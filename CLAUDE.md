@@ -197,6 +197,9 @@ Repository `pathora` được GitNexus index. Sử dụng **MCP tools** trong Cl
 - Ưu tiên shared primitives ở `src/components/ui`, domain components ở `src/components/partials`
 - Dùng backend API làm primary data source cho admin/dashboard pages, tránh hardcoded seed data
 - Dark mode dùng class-based — KHÔNG tạo parallel theme mechanism
+- Tailwind utility strings là dominant pattern — giữ nguyên style hiện tại
+- Forms: React Hook Form + Yup (pattern đã có sẵn)
+- Xem thêm: **Frontend — TypeScript/JavaScript** và **Testing**, **Bảo Mật** sections bên dưới
 
 ### Backend-Specific
 
@@ -207,12 +210,16 @@ Repository `pathora` được GitNexus index. Sử dụng **MCP tools** trong Cl
 - Controller actions phải thin — business logic ở application services + repositories
 - Dùng `ErrorOr<T>` cho expected failures, KHÔNG throw exceptions cho expected cases
 - Giữ `Program.cs` startup orchestration gọn
+- Dùng `dotnet format` để format code — KHÔNG format thủ công
+- Xem thêm: **Backend — C#** và **Testing**, **Bảo Mật** sections bên dưới
 
 ---
 
 ## Quy Tắc Code
 
-### Frontend Style Guide
+### Frontend — TypeScript/JavaScript (`pathora/frontend/`)
+
+#### Formatting & Naming
 
 | Aspect        | Quy tắc                                                                 |
 | ------------- | ----------------------------------------------------------------------- |
@@ -224,12 +231,104 @@ Repository `pathora` được GitNexus index. Sử dụng **MCP tools** trong Cl
 | Utilities     | camelCase: `formatCurrency.ts`, `apiResponse.ts`                        |
 | Constants     | `UPPER_SNAKE_CASE`: `API_ENDPOINTS`, `MAX_UPLOAD_SIZE`                  |
 | Route folders | lowercase: `(dashboard)/orders/page.tsx`                                |
-| TypeScript    | strict off, nhưng tránh `any` — dùng `unknown` + type guards            |
-| Tailwind      | Utility strings là dominant pattern — giữ nguyên style hiện tại         |
-| Forms         | React Hook Form + Yup (pattern đã có sẵn)                               |
 | Middleware    | `"use client"` chỉ khi cần client-side behavior                         |
 
-### Backend Style Guide
+#### TypeScript
+
+- **Tránh `any`** — dùng `unknown` + type guards cho dữ liệu ngoài kiểm soát
+- **Public APIs** phải có explicit types trên tham số và return
+- **Interfaces vs Types**: `interface` cho object shapes có thể extend; `type` cho union, intersection, mapped types
+- **React Props**: định nghĩa bằng `interface` hoặc `type`, type callback props rõ ràng, KHÔNG dùng `React.FC` trừ khi có lý do cụ thể
+
+```typescript
+// ĐÚNG: Explicit types trên public API
+interface UserCardProps {
+  user: { id: string; email: string }
+  onSelect: (id: string) => void
+}
+
+function UserCard({ user, onSelect }: UserCardProps) {
+  return <button onClick={() => onSelect(user.id)}>{user.email}</button>
+}
+
+// SAI: Dùng any
+function getErrorMessage(error: any) {
+  return error.message // Mất type safety!
+}
+
+// ĐÚNG: Dùng unknown + narrowing
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return 'Unexpected error'
+}
+```
+
+#### Immutability (TypeScript)
+
+```typescript
+// SAI: Mutation
+function updateUser(user: User, name: string): User {
+  user.name = name // MUTATION!
+  return user
+}
+
+// ĐÚNG: Immutable update
+function updateUser(user: Readonly<User>, name: string): User {
+  return { ...user, name }
+}
+```
+
+#### API Response Format (TypeScript)
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  meta?: {
+    total: number
+    page: number
+    limit: number
+  }
+}
+```
+
+#### Custom Hooks Pattern
+
+```typescript
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+#### Repository Pattern (TypeScript)
+
+```typescript
+interface Repository<T> {
+  findAll(filters?: Filters): Promise<T[]>
+  findById(id: string): Promise<T | null>
+  create(data: CreateDto): Promise<T>
+  update(id: string, data: UpdateDto): Promise<T>
+  delete(id: string): Promise<void>
+}
+```
+
+#### Console.log
+
+- KHÔNG có `console.log` trong production code — dùng proper logging library
+
+---
+
+### Backend — C# (`panthora_be/`)
+
+#### Formatting & Naming
 
 | Aspect         | Quy tắc                                                                       |
 | -------------- | ----------------------------------------------------------------------------- |
@@ -240,6 +339,98 @@ Repository `pathora` được GitNexus index. Sử dụng **MCP tools** trong Cl
 | Error handling | `ErrorOr<T>` cho business failures; KHÔNG throw exceptions cho expected cases |
 | Controller     | Thin actions — logic ở services/repositories                                  |
 | Errors         | Dùng centralized constants từ `ErrorConstants`, localization-aware            |
+| Formatting     | Dùng `dotnet format` để auto-format; KHÔNG format thủ công                  |
+
+#### Types & Models (C#)
+
+```csharp
+// ĐÚNG: Dùng record cho immutable value-like models
+public sealed record UserDto(Guid Id, string Email);
+
+// ĐÚNG: Dùng interface cho service boundaries
+public interface IUserRepository
+{
+    Task<UserDto?> FindByIdAsync(Guid id, CancellationToken cancellationToken);
+}
+
+// ĐÚNG: Sealed class cho entities có identity và lifecycle
+public sealed class UserEntity { ... }
+```
+
+#### Immutability (C#)
+
+```csharp
+// ĐÚNG: init setters, constructor params
+public sealed record UserProfile(string Name, string Email);
+
+// ĐÚNG: Immutable update với 'with'
+public static UserProfile Rename(UserProfile profile, string name) =>
+    profile with { Name = name };
+```
+
+#### Async & Error Handling (C#)
+
+```csharp
+// ĐÚNG: async/await + CancellationToken
+public async Task<Order> LoadOrderAsync(
+    Guid orderId,
+    CancellationToken cancellationToken)
+{
+    try
+    {
+        return await repository.FindAsync(orderId, cancellationToken)
+            ?? throw new InvalidOperationException($"Order {orderId} was not found.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to load order {OrderId}", orderId);
+        throw;
+    }
+}
+
+// SAI: Blocking calls
+var result = task.Result; // KHÔNG làm vậy!
+```
+
+#### API Response Pattern (C#)
+
+```csharp
+public sealed record ApiResponse<T>(
+    bool Success,
+    T? Data = default,
+    string? Error = null,
+    object? Meta = null);
+```
+
+#### Repository Pattern (C#)
+
+```csharp
+public interface IRepository<T>
+{
+    Task<IReadOnlyList<T>> FindAllAsync(CancellationToken cancellationToken);
+    Task<T?> FindByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<T> CreateAsync(T entity, CancellationToken cancellationToken);
+    Task<T> UpdateAsync(T entity, CancellationToken cancellationToken);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken);
+}
+```
+
+#### Options Pattern (C#)
+
+```csharp
+public sealed class PaymentsOptions
+{
+    public const string SectionName = "Payments";
+    public required string BaseUrl { get; init; }
+    public required string ApiKeySecretName { get; init; }
+}
+```
+
+#### Dependency Injection (C#)
+
+- Depend on interfaces at service boundaries
+- Constructor focused — split nếu dependencies quá nhiều
+- Singleton cho stateless/shared services, scoped cho request data, transient cho lightweight pure workers
 
 ---
 
@@ -275,6 +466,100 @@ dotnet format "panthora_be/LocalService.slnx" --verify-no-changes
 - Backend cookies: `access_token` (`HttpOnly=false` để frontend đọc được), refresh token (`HttpOnly=true`)
 - Frontend env: `NEXT_PUBLIC_API_GATEWAY`, `NEXT_PUBLIC_REMOTE_IMAGE_HOSTS` cho `next/image`
 
+### Frontend Security (TypeScript/JavaScript)
+
+- **Secret Management**: Luôn dùng `process.env.X` thay vì hardcode API keys
+
+```typescript
+// SAI: Hardcoded secret
+const apiKey = "sk-proj-xxxxx"
+
+// ĐÚNG: Environment variable
+const apiKey = process.env.OPENAI_API_KEY
+if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
+```
+
+- **XSS Prevention**: KHÔNG dùng `innerHTML` hoặc `dangerouslySetInnerHTML` nếu không sanitize trước
+- Dùng **security-reviewer** agent để audit security
+
+### Backend Security (C#)
+
+- **Secret Management**: Dùng `builder.Configuration["Key"]` thay vì hardcode
+
+```csharp
+// SAI: Hardcoded secret
+const string ApiKey = "sk-live-123";
+
+// ĐÚNG: Configuration
+var apiKey = builder.Configuration["OpenAI:ApiKey"]
+    ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
+```
+
+- **SQL Injection**: Luôn dùng parameterized queries với EF Core — KHÔNG concatenate user input vào SQL
+
+```csharp
+const string sql = "SELECT * FROM Orders WHERE CustomerId = @customerId";
+await connection.QueryAsync<Order>(sql, new { customerId });
+```
+
+- **Authentication/Authorization**: Prefer framework auth handlers, enforce policies at endpoint/handler boundaries
+- **Error Handling**: KHÔNG expose stack traces, SQL text, hoặc filesystem paths trong API responses
+
+---
+
+## Testing
+
+### Frontend (`pathora/frontend/`) — Vitest
+
+```bash
+npm --prefix "pathora/frontend" run test                           # Tất cả tests
+npm --prefix "pathora/frontend" run test -- "path/to/test.tsx"    # Một file
+npm --prefix "pathora/frontend" run test -- "path" -t "name"       # Theo tên
+```
+
+- **E2E Testing**: Dùng **Playwright** cho critical user flows
+- Target 80%+ coverage
+- **Test Structure**: Arrange-Act-Assert
+
+```typescript
+test('calculates similarity correctly', () => {
+  // Arrange
+  const vector1 = [1, 0, 0]
+  const vector2 = [0, 1, 0]
+
+  // Act
+  const similarity = calculateCosineSimilarity(vector1, vector2)
+
+  // Assert
+  expect(similarity).toBe(0)
+})
+```
+
+### Backend (`panthora_be/`) — xUnit + NSubstitute
+
+```bash
+dotnet test "panthora_be/LocalService.slnx"                          # Tất cả tests
+dotnet test "panthora_be/tests/Domain.Specs/Domain.Specs.csproj"     # Chỉ Domain.Specs
+```
+
+- **Test Framework**: xUnit, FluentAssertions, NSubstitute cho mocking
+- Target 80%+ line coverage
+- Tập trung vào domain logic, validation, auth, và failure paths
+- **Test Organization**: Mirror `src/` structure dưới `tests/`
+
+```csharp
+public sealed class OrderServiceTests
+{
+    [Fact]
+    public async Task FindByIdAsync_ReturnsOrder_WhenOrderExists()
+    {
+        // Arrange
+        // Act
+        // Assert
+    }
+}
+```
+
 ---
 
 ## Quy Định Nghiêm Ngặt Về Chạy Code
@@ -294,15 +579,18 @@ Nếu user muốn chạy lệnh, họ sẽ nói rõ: "chạy lint", "build thử
 
 ## Tài Liệu Liên Quan
 
-| File                         | Phạm vi                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| `AGENTS.md`                  | Workspace-level: commands, architecture rules, validation, safety       |
-| `pathora/AGENTS.md`          | Repository-level: project overview, frontend conventions                |
-| `pathora/frontend/AGENTS.md` | Frontend-specific: component conventions, Cursor workflow               |
-| `pathora/CLAUDE.md`          | Frontend-specific: GitNexus MCP tools reference                         |
-| `panthora_be/README.md`      | Backend: build/test/run commands, GitNexus setup                        |
-| `pathora/docs/`              | Design docs & plans (seed-data-integration, ui-ux-landing, superpowers) |
-| `openspec/changes/`          | 20+ OpenSpec changes: specs, tasks, decisions                           |
+| File                                   | Phạm vi                                                                      |
+| -------------------------------------- | ---------------------------------------------------------------------------- |
+| `AGENTS.md`                            | Workspace-level: commands, architecture rules, validation, safety              |
+| `pathora/AGENTS.md`                    | Repository-level: project overview, frontend conventions                       |
+| `pathora/frontend/AGENTS.md`           | Frontend-specific: component conventions, Cursor workflow                     |
+| `pathora/CLAUDE.md`                    | Frontend-specific: GitNexus MCP tools reference                              |
+| `panthora_be/README.md`                | Backend: build/test/run commands, GitNexus setup                             |
+| `pathora/docs/`                        | Design docs & plans (seed-data-integration, ui-ux-landing, superpowers)       |
+| `openspec/changes/`                    | 20+ OpenSpec changes: specs, tasks, decisions                                |
+| `.claude/rules/typescript/`            | TypeScript/JS: coding style, testing, patterns, security, hooks              |
+| `.claude/rules/csharp/`                | C#: coding style, testing, patterns, security, hooks                         |
+| `.claude/rules/common/`                 | Common rules: agents, code-review, coding-style, development-workflow, hooks, patterns, performance, security, testing, git-workflow |
 
 ---
 
@@ -484,5 +772,27 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 | Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
 | Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+---
+
+## Skills
+
+### TypeScript/JavaScript Skills
+
+| Skill | Khi nào dùng |
+|-------|--------------|
+| **frontend-patterns** | Component patterns, state management, React/Next.js patterns |
+| **dotnet-patterns** | C#/.NET idiomatic patterns, DI, async/await, ASP.NET Core |
+| **csharp-testing** | xUnit, FluentAssertions, mocking patterns cho .NET |
+| **security-review** | Security audits, OWASP Top 10 checks |
+
+### Agent Usage
+
+- **code-reviewer** → sau khi viết code mới/sửa code
+- **typescript-reviewer** → review TypeScript/JavaScript code
+- **security-reviewer** → audit code liên quan đến auth, input, payment
+- **tdd-guide** → enforce TDD workflow cho feature mới
+- **build-error-resolver** → khi build thất bại
+- **e2e-runner** → Playwright E2E testing cho critical user flows
 
 <!-- gitnexus:end -->
