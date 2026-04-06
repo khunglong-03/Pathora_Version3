@@ -18,5 +18,6 @@ public sealed record StaffMemberDto(
     string Email,
     string? AvatarUrl,
     string Role,
-    string RoleInTeam
+    string RoleInTeam,
+    string Status
 );

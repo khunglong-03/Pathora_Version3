@@ -72,6 +72,9 @@ vi.mock("@phosphor-icons/react", () => ({
   PencilSimple: () => <span data-testid="mock-icon-edit">PencilSimple</span>,
   ArrowRight: () => <span data-testid="mock-icon-arrow-right">ArrowRight</span>,
   X: () => <span data-testid="mock-icon-x">X</span>,
+  UserPlus: () => <span data-testid="mock-icon-user-plus">UserPlus</span>,
+  User: () => <span data-testid="mock-icon-user">User</span>,
+  ArrowClockwise: () => <span data-testid="mock-icon-arrow-clockwise">ArrowClockwise</span>,
 }));
 
 // Mock next/link

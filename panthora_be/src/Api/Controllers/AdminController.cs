@@ -1,5 +1,7 @@
 using Api.Endpoint;
 using Application.Common.Constant;
+using Application.Contracts.Admin;
+using Application.Features.Admin.Commands.CreateStaffUnderManager;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.Queries;
 using Application.Features.Admin.Queries.GetAllUsers;
@@ -99,6 +101,13 @@ public class AdminController : BaseApiController
     public async Task<IActionResult> ReassignStaff(Guid managerId, Guid staffId, [FromBody] ReassignStaffRequest request)
     {
         var result = await Sender.Send(new ReassignStaffCommand(managerId, staffId, request.TargetManagerId));
+        return HandleResult(result);
+    }
+
+    [HttpPost("tour-managers/{managerId:guid}/staff/create")]
+    public async Task<IActionResult> CreateStaffUnderManager(Guid managerId, [FromBody] CreateStaffUnderManagerRequest request)
+    {
+        var result = await Sender.Send(new CreateStaffUnderManagerCommand(managerId, request));
         return HandleResult(result);
     }
 

@@ -1,19 +1,24 @@
+using Domain.Abstractions;
 using Domain.Common.Repositories;
+using Domain.Events;
 using Domain.UnitOfWork;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using MediatR;
 
 namespace Infrastructure.Repositories.Common;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
+    private readonly IMediator _mediator;
     private readonly Dictionary<Type, object> _repositories = new();
 
-    public UnitOfWork(AppDbContext context)
+    public UnitOfWork(AppDbContext context, IMediator mediator)
     {
         _context = context;
+        _mediator = mediator;
     }
 
     public AppDbContext ContextDb => _context;
@@ -26,6 +31,7 @@ public class UnitOfWork : IUnitOfWork
     public async Task CommitTransactionAsync()
     {
         await ContextDb.Database.CommitTransactionAsync();
+        await DispatchDomainEventsAsync();
     }
 
     public void Dispose()
@@ -43,12 +49,35 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangeAsync(CancellationToken cancellationToken = default)
     {
-        return await ContextDb.SaveChangesAsync(cancellationToken);
+        var result = await ContextDb.SaveChangesAsync(cancellationToken);
+        await DispatchDomainEventsAsync();
+        return result;
     }
 
     public int SaveChanges()
     {
-        return ContextDb.SaveChanges();
+        var result = ContextDb.SaveChanges();
+        DispatchDomainEventsAsync().GetAwaiter().GetResult();
+        return result;
+    }
+
+    private async Task DispatchDomainEventsAsync()
+    {
+        var entities = ContextDb.ChangeTracker
+            .Entries<IAggregate<Guid>>()
+            .Select(x => x.Entity)
+            .ToList();
+
+        var events = entities
+            .SelectMany(x => x.DomainEvents)
+            .ToList();
+
+        entities.ForEach(x => x.ClearDomainEvents());
+
+        foreach (var domainEvent in events)
+        {
+            await _mediator.Publish(domainEvent);
+        }
     }
 
     public IRepository<TEntity> GenericRepository<TEntity>() where TEntity : class
@@ -77,6 +106,7 @@ public class UnitOfWork : IUnitOfWork
 
                 await ContextDb.SaveChangesAsync();
                 await transaction.CommitAsync();
+                await DispatchDomainEventsAsync();
             }
             catch
             {

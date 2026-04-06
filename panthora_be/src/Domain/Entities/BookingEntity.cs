@@ -1,5 +1,7 @@
 namespace Domain.Entities;
 
+using Domain.Events;
+
 public class BookingEntity : Aggregate<Guid>
 {
     // Foreign keys
@@ -114,19 +116,23 @@ public class BookingEntity : Aggregate<Guid>
     public void Complete(string performedBy)
     {
         EnsureValidTransition(Status, BookingStatus.Completed);
+        var oldStatus = Status;
         Status = BookingStatus.Completed;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Completed, performedBy));
     }
 
     public void Cancel(string reason, string performedBy)
     {
         EnsureValidTransition(Status, BookingStatus.Cancelled);
+        var oldStatus = Status;
         Status = BookingStatus.Cancelled;
         CancelReason = reason;
         CancelledAt = DateTimeOffset.UtcNow;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
     }
 
     public int TotalParticipants() => NumberAdult + NumberChild + NumberInfant;

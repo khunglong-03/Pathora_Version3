@@ -1,26 +1,55 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Icon from "@/components/ui/Icon";
-import { SkeletonTable } from "@/components/ui/SkeletonTable";
-import { tourManagerAssignmentService, type TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
+import {
+  adminService,
+  type CreateStaffRequest,
+} from "@/api/services/adminService";
+import {
+  tourManagerAssignmentService,
+  type TourManagerSummary,
+  ASSIGNED_ENTITY_TYPE,
+} from "@/api/services/tourManagerAssignmentService";
+import type { StaffMemberDto } from "@/types/admin";
+import { ManagerListPanel } from "./components/ManagerListPanel";
+import { StaffDetailPanel } from "./components/StaffDetailPanel";
+import { StaffReassignModal } from "@/features/dashboard/components/StaffReassignModal";
+import { AssignExistingModal } from "@/features/dashboard/components/AssignExistingModal";
+import { CreateStaffModal } from "@/features/dashboard/components/CreateStaffModal";
 
 export default function TourManagersPage() {
   const [managers, setManagers] = useState<TourManagerSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const [isLoadingManagers, setIsLoadingManagers] = useState(true);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [isErrorManagers, setIsErrorManagers] = useState(false);
+  const [managersError, setManagersError] = useState<string | null>(null);
+  const [staffError, setStaffError] = useState<string | null>(null);
+  const [staff, setStaff] = useState<StaffMemberDto[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
 
+  // Reassign modal
+  const [reassignTarget, setReassignTarget] = useState<StaffMemberDto | null>(null);
+
+  // Assign existing modal
+  const [assignExistingRole, setAssignExistingRole] = useState<"TourDesigner" | "TourGuide" | null>(null);
+
+  // Create staff modal
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  const selectedManager = managers.find((m) => m.managerId === selectedManagerId) ?? null;
+
+  // Load managers list
   useEffect(() => {
     let active = true;
 
-    const load = async () => {
-      setIsLoading(true);
-      setIsError(false);
-      setErrorMessage(null);
+    const loadManagers = async () => {
+      setIsLoadingManagers(true);
+      setIsErrorManagers(false);
+      setManagersError(null);
 
       const result = await tourManagerAssignmentService.getAll();
 
@@ -29,15 +58,83 @@ export default function TourManagersPage() {
       if (result.success && result.data) {
         setManagers(result.data);
       } else {
-        setIsError(true);
-        setErrorMessage(result.error?.message ?? "Không thể tải danh sách Tour Manager.");
+        setIsErrorManagers(true);
+        setManagersError(result.error?.message ?? "Không thể tải danh sách Tour Manager.");
       }
-      setIsLoading(false);
+      setIsLoadingManagers(false);
     };
 
-    void load();
+    void loadManagers();
     return () => { active = false; };
   }, [reloadToken]);
+
+  // Load staff for selected manager
+  const loadStaff = useCallback(async () => {
+    if (!selectedManagerId) return;
+    setIsLoadingStaff(true);
+    setStaffError(null);
+
+    const result = await adminService.getTourManagerStaff(selectedManagerId);
+
+    if (result && Array.isArray(result)) {
+      setStaff(result as StaffMemberDto[]);
+    } else {
+      setStaff([]);
+    }
+    setIsLoadingStaff(false);
+  }, [selectedManagerId]);
+
+  useEffect(() => {
+    void loadStaff();
+  }, [loadStaff]);
+
+  const handleRefresh = () => {
+    setReloadToken((t) => t + 1);
+    void loadStaff();
+  };
+
+  const handleManagerSelect = (managerId: string) => {
+    setSelectedManagerId(managerId);
+  };
+
+  const handleReassign = async (targetManagerId: string) => {
+    if (!reassignTarget || !selectedManagerId) return;
+    const result = await adminService.reassignStaff(
+      selectedManagerId,
+      reassignTarget.id,
+      targetManagerId,
+    );
+    if (result && typeof result === "object" && "success" in result && result.success) {
+      setReloadToken((t) => t + 1);
+      void loadStaff();
+    }
+  };
+
+  const handleAssignExisting = async (userId: string) => {
+    if (!selectedManagerId || !assignExistingRole) return;
+    const entityType = assignExistingRole === "TourDesigner"
+      ? ASSIGNED_ENTITY_TYPE.TourDesigner
+      : ASSIGNED_ENTITY_TYPE.TourGuide;
+    await tourManagerAssignmentService.bulkAssign(selectedManagerId, [
+      {
+        assignedUserId: userId,
+        assignedEntityType: entityType,
+        assignedRoleInTeam: null,
+      },
+    ]);
+    setReloadToken((t) => t + 1);
+    void loadStaff();
+  };
+
+  const handleCreateStaff = async (data: CreateStaffRequest) => {
+    if (!selectedManagerId) return;
+    await adminService.createStaffUnderManager(selectedManagerId, data);
+    setReloadToken((t) => t + 1);
+    void loadStaff();
+    setCreateModalOpen(false);
+  };
+
+  const excludedUserIds = staff.map((s) => s.id);
 
   return (
     <div className="p-6">
@@ -53,7 +150,7 @@ export default function TourManagersPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setReloadToken((v) => v + 1)}
+            onClick={() => setReloadToken((t) => t + 1)}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
           >
             Làm mới
@@ -67,135 +164,96 @@ export default function TourManagersPage() {
         </div>
       </div>
 
-      {/* Data table */}
-      {isLoading ? (
-        <SkeletonTable rows={5} columns={5} />
-      ) : isError ? (
-        <div className="bg-white border border-red-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-red-700">
-              {errorMessage ?? "Đã xảy ra lỗi khi tải dữ liệu."}
-            </p>
-            <button
-              onClick={() => setReloadToken((v) => v + 1)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700"
-            >
-              Thử lại
-            </button>
+      {/* Two-column master-detail layout */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm"
+        style={{ minHeight: "calc(100vh - 14rem)" }}
+      >
+        <div className="grid grid-cols-[380px_1fr]" style={{ minHeight: "calc(100vh - 14rem)" }}>
+          {/* Left: Manager list */}
+          <div
+            className="border-r border-stone-200 overflow-hidden"
+            style={{ maxHeight: "calc(100vh - 14rem)" }}
+          >
+            <ManagerListPanel
+              managers={managers}
+              selectedManagerId={selectedManagerId}
+              onSelect={handleManagerSelect}
+              isLoading={isLoadingManagers}
+            />
+          </div>
+
+          {/* Right: Staff detail */}
+          <div
+            className="overflow-hidden"
+            style={{ maxHeight: "calc(100vh - 14rem)" }}
+          >
+            <StaffDetailPanel
+              managerId={selectedManagerId}
+              manager={selectedManager}
+              staff={staff}
+              managers={managers}
+              isLoading={isLoadingStaff}
+              error={staffError}
+              onRefresh={handleRefresh}
+              onReassign={(s) => setReassignTarget(s)}
+            />
+
+            {/* Action buttons overlay at bottom-right */}
+            {selectedManagerId && !isLoadingStaff && (
+              <div className="flex gap-2 justify-end px-4 pb-4">
+                <button
+                  onClick={() => setAssignExistingRole("TourDesigner")}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border transition-all duration-200 hover:bg-[#EDE9FE]"
+                  style={{ borderColor: "#C4B5FD", color: "#7C3AED", backgroundColor: "#FAFAFA" }}
+                >
+                  + Gán Designer
+                </button>
+                <button
+                  onClick={() => setAssignExistingRole("TourGuide")}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border transition-all duration-200 hover:bg-[#DBEAFE]"
+                  style={{ borderColor: "#BFDBFE", color: "#2563EB", backgroundColor: "#FAFAFA" }}
+                >
+                  + Gán Guide
+                </button>
+                <button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="px-4 py-2 rounded-lg text-xs font-medium text-white transition-all duration-200 hover:opacity-90"
+                  style={{ backgroundColor: "#C9873A" }}
+                >
+                  + Tạo nhân viên
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      ) : managers.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-white border border-stone-200 rounded-2xl p-12 text-center shadow-sm"
-        >
-          <div className="w-14 h-14 bg-stone-100 rounded-2xl flex items-center justify-center mx-auto">
-            <Icon icon="heroicons:user-group" className="size-7 text-stone-400" />
-          </div>
-          <h3 className="text-base font-semibold text-stone-700 mt-4">
-            Chưa có Tour Manager nào
-          </h3>
-          <p className="text-sm text-stone-400 mt-1">
-            Tạo tài khoản và phân công đội ngũ cho Tour Manager đầu tiên.
-          </p>
-          <Link
-            href="/admin/tour-managers/create"
-            className="inline-block mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
-          >
-            Thêm Tour Manager
-          </Link>
-        </motion.div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-stone-50/80 border-b border-stone-200">
-                  <th className="text-left px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Tên
-                  </th>
-                  <th className="text-left px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Email
-                  </th>
-                  <th className="text-center px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Tour Designers
-                  </th>
-                  <th className="text-center px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Tour Guides
-                  </th>
-                  <th className="text-center px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Tours
-                  </th>
-                  <th className="text-center px-6 py-3.5 text-xs font-bold text-stone-500 uppercase tracking-wide">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {managers.map((manager) => {
-                  const initials = manager.managerName
-                    .split(" ")
-                    .map((w: string) => w[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase();
-                  return (
-                    <tr
-                      key={manager.managerId}
-                      className="hover:bg-stone-50/50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center text-sm font-bold text-amber-700">
-                            {initials}
-                          </div>
-                          <span className="text-sm font-medium text-stone-900">
-                            {manager.managerName}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-stone-600">
-                          {manager.managerEmail}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex min-w-[2rem] justify-center rounded-full bg-purple-50 px-2 py-1 text-xs font-semibold text-purple-700">
-                          {manager.designerCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex min-w-[2rem] justify-center rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
-                          {manager.guideCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex min-w-[2rem] justify-center rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
-                          {manager.tourCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Link
-                          href={`/admin/tour-managers/${manager.managerId}/edit`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors"
-                        >
-                          <Icon icon="heroicons:pencil" className="size-3.5" />
-                          Chỉnh sửa
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-      )}
+      </motion.div>
+
+      {/* Modals */}
+      <StaffReassignModal
+        isOpen={!!reassignTarget}
+        onClose={() => setReassignTarget(null)}
+        staffName={reassignTarget?.fullName ?? ""}
+        currentManager={selectedManager?.managerName ?? ""}
+        allManagers={managers}
+        onConfirm={handleReassign}
+      />
+
+      <AssignExistingModal
+        isOpen={!!assignExistingRole}
+        onClose={() => setAssignExistingRole(null)}
+        excludedUserIds={excludedUserIds}
+        role={assignExistingRole ?? "TourDesigner"}
+        onAssign={handleAssignExisting}
+      />
+
+      <CreateStaffModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSubmit={handleCreateStaff}
+      />
     </div>
   );
 }

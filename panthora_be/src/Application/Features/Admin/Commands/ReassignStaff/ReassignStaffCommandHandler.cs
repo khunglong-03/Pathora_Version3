@@ -25,7 +25,8 @@ public sealed class ReassignStaffCommandHandler(
             request.ManagerId, cancellationToken);
 
         var targetAssignment = currentAssignments
-            .FirstOrDefault(a => a.AssignedUserId == request.StaffId && a.AssignedEntityType == AssignedEntityType.TourDesigner);
+            .FirstOrDefault(a => a.AssignedUserId == request.StaffId
+                && (a.AssignedEntityType == AssignedEntityType.TourDesigner || a.AssignedEntityType == AssignedEntityType.TourGuide));
 
         if (targetAssignment is null)
             return Error.NotFound("Admin.StaffNotAssigned", "Staff member is not assigned to the specified manager.");
@@ -36,7 +37,7 @@ public sealed class ReassignStaffCommandHandler(
         // Create new assignment under target manager
         var newAssignment = TourManagerAssignmentEntity.Create(
             request.TargetManagerId,
-            AssignedEntityType.TourDesigner,
+            targetAssignment.AssignedEntityType,
             request.StaffId,
             null,
             targetAssignment.AssignedRoleInTeam,

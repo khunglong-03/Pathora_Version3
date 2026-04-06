@@ -178,4 +178,136 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Empty(result.Value.Staff);
     }
+
+    [Fact]
+    public async Task Handle_ActiveStaff_ReturnsStatusHoatDong()
+    {
+        var managerId = Guid.NewGuid();
+        var staffId = Guid.NewGuid();
+        var manager = new UserEntity
+        {
+            Id = managerId,
+            Username = "manager5",
+            Email = "manager5@example.com",
+            FullName = "Manager Five",
+            Status = UserStatus.Active,
+            IsDeleted = false
+        };
+        var activeStaff = new UserEntity
+        {
+            Id = staffId,
+            Username = "staff5",
+            Email = "staff5@example.com",
+            FullName = "Active Staff",
+            Status = UserStatus.Active,
+            IsDeleted = false
+        };
+        var assignment = TourManagerAssignmentEntity.Create(
+            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+
+        _userRepository.FindById(managerId).Returns(manager);
+        _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourManagerAssignmentEntity> { assignment });
+        _userRepository.FindById(staffId).Returns(activeStaff);
+
+        var query = new GetTourManagerStaffQuery(managerId);
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        Assert.False(result.IsError);
+        Assert.Single(result.Value.Staff);
+        Assert.Equal("Hoạt động", result.Value.Staff[0].Status);
+    }
+
+    [Fact]
+    public async Task Handle_DeletedStaff_ReturnsStatusKhoa()
+    {
+        var managerId = Guid.NewGuid();
+        var staffId = Guid.NewGuid();
+        var manager = new UserEntity
+        {
+            Id = managerId,
+            Username = "manager6",
+            Email = "manager6@example.com",
+            FullName = "Manager Six",
+            Status = UserStatus.Active,
+            IsDeleted = false
+        };
+        var deletedStaff = new UserEntity
+        {
+            Id = staffId,
+            Username = "staff6",
+            Email = "staff6@example.com",
+            FullName = "Deleted Staff",
+            Status = UserStatus.Inactive,
+            IsDeleted = true
+        };
+        var assignment = TourManagerAssignmentEntity.Create(
+            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+
+        _userRepository.FindById(managerId).Returns(manager);
+        _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourManagerAssignmentEntity> { assignment });
+        _userRepository.FindById(staffId).Returns(deletedStaff);
+
+        var query = new GetTourManagerStaffQuery(managerId);
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        Assert.False(result.IsError);
+        Assert.Single(result.Value.Staff);
+        Assert.Equal("Khóa", result.Value.Staff[0].Status);
+    }
+
+    [Fact]
+    public async Task Handle_MixedActiveAndDeletedStaff_ReturnsCorrectStatusForEach()
+    {
+        var managerId = Guid.NewGuid();
+        var activeId = Guid.NewGuid();
+        var deletedId = Guid.NewGuid();
+        var manager = new UserEntity
+        {
+            Id = managerId,
+            Username = "manager7",
+            Email = "manager7@example.com",
+            FullName = "Manager Seven",
+            Status = UserStatus.Active,
+            IsDeleted = false
+        };
+        var activeStaff = new UserEntity
+        {
+            Id = activeId,
+            Username = "staff7a",
+            Email = "staff7a@example.com",
+            FullName = "Active Staff 7",
+            IsDeleted = false
+        };
+        var deletedStaff = new UserEntity
+        {
+            Id = deletedId,
+            Username = "staff7b",
+            Email = "staff7b@example.com",
+            FullName = "Deleted Staff 7",
+            IsDeleted = true
+        };
+        var assignment1 = TourManagerAssignmentEntity.Create(
+            managerId, AssignedEntityType.TourDesigner, activeId, null, AssignedRoleInTeam.Member, "system");
+        var assignment2 = TourManagerAssignmentEntity.Create(
+            managerId, AssignedEntityType.TourGuide, deletedId, null, AssignedRoleInTeam.Lead, "system");
+
+        _userRepository.FindById(managerId).Returns(manager);
+        _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourManagerAssignmentEntity> { assignment1, assignment2 });
+        _userRepository.FindById(activeId).Returns(activeStaff);
+        _userRepository.FindById(deletedId).Returns(deletedStaff);
+
+        var query = new GetTourManagerStaffQuery(managerId);
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        Assert.False(result.IsError);
+        Assert.Equal(2, result.Value.Staff.Count);
+        Assert.Contains(result.Value.Staff, s => s.FullName == "Active Staff 7" && s.Status == "Hoạt động");
+        Assert.Contains(result.Value.Staff, s => s.FullName == "Deleted Staff 7" && s.Status == "Khóa");
+    }
 }

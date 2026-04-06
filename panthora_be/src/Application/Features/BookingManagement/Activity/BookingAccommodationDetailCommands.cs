@@ -11,6 +11,8 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
+using IHotelRoomInventoryRepository = Domain.Common.Repositories.IHotelRoomInventoryRepository;
 
 namespace Application.Features.BookingManagement.Activity;
 
@@ -56,6 +58,8 @@ public sealed class CreateAccommodationDetailCommandHandler(
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
     IBookingParticipantRepository bookingParticipantRepository,
     IUnitOfWork unitOfWork,
+    IRoomBlockRepository roomBlockRepository,
+    IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateAccommodationDetailCommand, ErrorOr<Guid>>
 {
@@ -103,6 +107,59 @@ public sealed class CreateAccommodationDetailCommandHandler(
             request.FileUrl,
             request.SpecialRequest,
             request.Note);
+
+        // Room blocking: validate availability and create blocks if inventory exists
+        if (request.SupplierId.HasValue && request.CheckInAt.HasValue && request.CheckOutAt.HasValue)
+        {
+            var inventory = await hotelRoomInventoryRepository.FindByHotelAndRoomTypeAsync(
+                request.SupplierId.Value,
+                request.RoomType);
+
+            if (inventory is not null)
+            {
+                var checkIn = DateOnly.FromDateTime(request.CheckInAt.Value.DateTime);
+                var checkOut = DateOnly.FromDateTime(request.CheckOutAt.Value.DateTime);
+                var date = checkIn;
+
+                while (date < checkOut)
+                {
+                    var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
+                        request.SupplierId.Value,
+                        request.RoomType,
+                        date);
+
+                    if (inventory.TotalRooms - blockedCount < request.RoomCount)
+                    {
+                        return Error.Validation(
+                            ErrorConstants.Booking.RoomCapacityExceededCode,
+                            $"Khong du phong cho loai phong {request.RoomType} vao ngay {date}.");
+                    }
+
+                    date = date.AddDays(1);
+                }
+
+                // Recreate blocks after validation passes
+                date = checkIn;
+                var blocksToAdd = new List<RoomBlockEntity>();
+
+                while (date < checkOut)
+                {
+                    var block = RoomBlockEntity.Create(
+                        request.SupplierId.Value,
+                        request.RoomType,
+                        date,
+                        request.RoomCount,
+                        "system",
+                        entity.Id,
+                        activity.BookingId);
+
+                    blocksToAdd.Add(block);
+                    date = date.AddDays(1);
+                }
+
+                await roomBlockRepository.AddRangeAsync(blocksToAdd);
+            }
+        }
 
         await bookingAccommodationDetailRepository.AddAsync(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -154,6 +211,8 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
     IUnitOfWork unitOfWork,
+    IRoomBlockRepository roomBlockRepository,
+    IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateAccommodationDetailCommand, ErrorOr<Success>>
 {
@@ -210,6 +269,72 @@ public sealed class UpdateAccommodationDetailCommandHandler(
             request.SpecialRequest,
             request.Status,
             request.Note);
+
+        // Room blocking: handle date or room count changes
+        var hasDateChange = request.CheckInAt.HasValue || request.CheckOutAt.HasValue || request.RoomCount.HasValue || request.SupplierId.HasValue || request.RoomType != default;
+        if (hasDateChange)
+        {
+            var effectiveSupplierId = request.SupplierId ?? entity.SupplierId;
+            var effectiveCheckIn = request.CheckInAt ?? entity.CheckInAt;
+            var effectiveCheckOut = request.CheckOutAt ?? entity.CheckOutAt;
+            var effectiveRoomCountForBlocks = request.RoomCount ?? entity.RoomCount;
+            var effectiveRoomType = request.RoomType != default ? request.RoomType : entity.RoomType;
+
+            // Delete existing blocks for this detail
+            await roomBlockRepository.DeleteByBookingAccommodationDetailIdAsync(entity.Id);
+
+            // Recreate blocks if supplier and dates are available
+            if (effectiveSupplierId.HasValue && effectiveCheckIn.HasValue && effectiveCheckOut.HasValue)
+            {
+                var inventory = await hotelRoomInventoryRepository.FindByHotelAndRoomTypeAsync(
+                    effectiveSupplierId.Value,
+                    effectiveRoomType);
+
+                if (inventory is not null)
+                {
+                    var checkIn = DateOnly.FromDateTime(effectiveCheckIn.Value.DateTime);
+                    var checkOut = DateOnly.FromDateTime(effectiveCheckOut.Value.DateTime);
+                    var date = checkIn;
+
+                    while (date < checkOut)
+                    {
+                        var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
+                            effectiveSupplierId.Value,
+                            effectiveRoomType,
+                            date);
+
+                        if (inventory.TotalRooms - blockedCount < effectiveRoomCountForBlocks)
+                        {
+                            return Error.Validation(
+                                ErrorConstants.Booking.RoomCapacityExceededCode,
+                                $"Khong du phong cho loai phong {effectiveRoomType} vao ngay {date}.");
+                        }
+
+                        date = date.AddDays(1);
+                    }
+
+                    date = checkIn;
+                    var blocksToAdd = new List<RoomBlockEntity>();
+
+                    while (date < checkOut)
+                    {
+                        var block = RoomBlockEntity.Create(
+                            effectiveSupplierId.Value,
+                            effectiveRoomType,
+                            date,
+                            effectiveRoomCountForBlocks,
+                            "system",
+                            entity.Id,
+                            activity.BookingId);
+
+                        blocksToAdd.Add(block);
+                        date = date.AddDays(1);
+                    }
+
+                    await roomBlockRepository.AddRangeAsync(blocksToAdd);
+                }
+            }
+        }
 
         bookingAccommodationDetailRepository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);

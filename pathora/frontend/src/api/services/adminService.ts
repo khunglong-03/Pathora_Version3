@@ -12,6 +12,7 @@ import type {
   ManagerSummaryDto,
   AdminDashboardOverview,
   PaginatedList,
+  StaffMemberDto,
 } from "@/types/admin";
 import { extractResult } from "@/utils/apiResponse";
 
@@ -40,6 +41,12 @@ export interface GetProvidersParams {
   limit?: number;
   status?: string;
   search?: string;
+}
+
+export interface CreateStaffRequest {
+  role: string;
+  email: string;
+  fullName: string;
 }
 
 export const adminService = {
@@ -111,6 +118,14 @@ export const adminService = {
     return extractResult<{ success: boolean }>(response.data);
   },
 
+  createStaffUnderManager: async (managerId: string, data: CreateStaffRequest) => {
+    const response = await api.post<ApiResponse<StaffMemberDto>>(
+      API_ENDPOINTS.ADMIN.CREATE_STAFF_UNDER_MANAGER(managerId),
+      data,
+    );
+    return extractResult<StaffMemberDto>(response.data);
+  },
+
   getDashboardOverview: async () => {
     const response = await api.get<ApiResponse<AdminDashboardOverview>>(
       API_ENDPOINTS.ADMIN.GET_DASHBOARD_OVERVIEW,
@@ -119,4 +134,4 @@ export const adminService = {
   },
 };
 
-export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList };
+export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto };

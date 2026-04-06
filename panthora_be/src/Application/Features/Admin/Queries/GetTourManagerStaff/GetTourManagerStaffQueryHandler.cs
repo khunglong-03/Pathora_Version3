@@ -38,13 +38,15 @@ public sealed class GetTourManagerStaffQueryHandler(
                         _ => "Staff"
                     };
                     var roleInTeam = assignment.AssignedRoleInTeam?.ToString() ?? "Member";
+                    var status = staffUser.IsDeleted ? "Khóa" : "Hoạt động";
                     staffList.Add(new StaffMemberDto(
                         staffUser.Id,
                         staffUser.FullName ?? staffUser.Username,
                         staffUser.Email,
                         staffUser.AvatarUrl,
                         roleName,
-                        roleInTeam));
+                        roleInTeam,
+                        status));
                 }
             }
         }
