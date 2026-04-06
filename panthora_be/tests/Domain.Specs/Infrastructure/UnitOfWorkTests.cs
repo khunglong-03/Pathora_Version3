@@ -1,5 +1,8 @@
 using Infrastructure.Data;
+using Infrastructure.Repositories.Common;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace Domain.Specs.Infrastructure;
 
@@ -18,7 +21,10 @@ public sealed class UnitOfWorkTests
             .Options;
 
         await using var context = new AppDbContext(options);
-        var unitOfWork = new global::Infrastructure.Repositories.Common.UnitOfWork(context);
+        var mediatorMock = new Mock<IMediator>();
+        mediatorMock.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        var unitOfWork = new UnitOfWork(context, mediatorMock.Object);
 
         // Act — should NOT throw even though no transaction was started
         var exception = await Record.ExceptionAsync(() => unitOfWork.RollbackTransactionAsync());

@@ -95,6 +95,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourInstanceDayEntity> TourInstanceDays => Set<TourInstanceDayEntity>();
     public DbSet<UserSettingEntity> UserSettings => Set<UserSettingEntity>();
     public DbSet<TourManagerAssignmentEntity> TourManagerAssignments => Set<TourManagerAssignmentEntity>();
+    public DbSet<VehicleEntity> Vehicles => Set<VehicleEntity>();
+    public DbSet<DriverEntity> Drivers => Set<DriverEntity>();
+    public DbSet<TourDayActivityRouteTransportEntity> TourDayActivityRouteTransports => Set<TourDayActivityRouteTransportEntity>();
+    public DbSet<HotelRoomInventoryEntity> HotelRoomInventories => Set<HotelRoomInventoryEntity>();
+    public DbSet<RoomBlockEntity> RoomBlocks => Set<RoomBlockEntity>();
+    public DbSet<GuestArrivalEntity> GuestArrivals => Set<GuestArrivalEntity>();
+    public DbSet<GuestArrivalParticipantEntity> GuestArrivalParticipants => Set<GuestArrivalParticipantEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

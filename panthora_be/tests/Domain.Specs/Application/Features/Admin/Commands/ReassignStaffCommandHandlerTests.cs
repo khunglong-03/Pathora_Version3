@@ -86,16 +86,15 @@ public sealed class ReassignStaffCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_StaffAssignedAsTourGuide_NotFound()
+    public async Task Handle_StaffNotAssignedToManager_ReturnsNotFound()
     {
+        // Staff member has no assignment under this manager — handler should return NotFound
         var staffId = Guid.NewGuid();
         var oldManagerId = Guid.NewGuid();
         var newManagerId = Guid.NewGuid();
-        var guideAssignment = TourManagerAssignmentEntity.Create(
-            oldManagerId, AssignedEntityType.TourGuide, staffId, null, AssignedRoleInTeam.Lead, "system");
 
         _assignmentRepository.GetByManagerIdAsync(oldManagerId, Arg.Any<CancellationToken>())
-            .Returns(new List<TourManagerAssignmentEntity> { guideAssignment });
+            .Returns(new List<TourManagerAssignmentEntity>());
 
         var command = new ReassignStaffCommand(oldManagerId, staffId, newManagerId);
 
@@ -104,6 +103,37 @@ public sealed class ReassignStaffCommandHandlerTests
         Assert.True(result.IsError);
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
         Assert.Equal("Admin.StaffNotAssigned", result.FirstError.Code);
+    }
+
+    [Fact]
+    public async Task Handle_ReassignTourGuideToDifferentManager_Success()
+    {
+        var staffId = Guid.NewGuid();
+        var oldManagerId = Guid.NewGuid();
+        var newManagerId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        var guideAssignment = TourManagerAssignmentEntity.Create(
+            oldManagerId, AssignedEntityType.TourGuide, staffId, null, AssignedRoleInTeam.Lead, "system");
+
+        typeof(TourManagerAssignmentEntity).BaseType!
+            .GetProperty("Id")!
+            .SetValue(guideAssignment, assignmentId);
+
+        _assignmentRepository.GetByManagerIdAsync(oldManagerId, Arg.Any<CancellationToken>())
+            .Returns(new List<TourManagerAssignmentEntity> { guideAssignment });
+
+        var command = new ReassignStaffCommand(oldManagerId, staffId, newManagerId);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result.IsError);
+        await _assignmentRepository.Received().RemoveByIdAsync(assignmentId, Arg.Any<CancellationToken>());
+        await _assignmentRepository.Received().AssignAsync(
+            Arg.Is<TourManagerAssignmentEntity>(e =>
+                e.TourManagerId == newManagerId &&
+                e.AssignedUserId == staffId &&
+                e.AssignedEntityType == AssignedEntityType.TourGuide),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

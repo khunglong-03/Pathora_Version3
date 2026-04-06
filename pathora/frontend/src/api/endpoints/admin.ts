@@ -92,6 +92,7 @@ export interface AdminEndpoints {
   GET_TOUR_MANAGER_STAFF: EndpointWithId;
   REASSIGN_STAFF: (managerId: string, staffId: string) => string;
   GET_DASHBOARD_OVERVIEW: string;
+  CREATE_STAFF_UNDER_MANAGER: (managerId: string) => string;
 }
 
 export interface SiteContentEndpoints {
@@ -207,6 +208,8 @@ export const ADMIN: AdminEndpoints = {
   REASSIGN_STAFF: (managerId: string, staffId: string): string =>
     `/api/admin/tour-managers/${managerId}/staff/${staffId}/reassign`,
   GET_DASHBOARD_OVERVIEW: "/api/admin/dashboard/overview",
+  CREATE_STAFF_UNDER_MANAGER: (managerId: string): string =>
+    `/api/admin/tour-managers/${managerId}/staff`,
 };
 
 export const SITE_CONTENT: SiteContentEndpoints = {

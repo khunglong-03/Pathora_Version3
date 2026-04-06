@@ -69,6 +69,14 @@ internal static class DependencyInjection
 
         services.AddScoped<ITourPurgeExecutor, TourPurgeExecutor>();
 
+        services.AddScoped<IVehicleRepository, VehicleRepository>();
+        services.AddScoped<IDriverRepository, DriverRepository>();
+        services.AddScoped<ITourDayActivityRouteTransportRepository, TourDayActivityRouteTransportRepository>();
+
+        services.AddScoped<IHotelRoomInventoryRepository, HotelRoomInventoryRepository>();
+        services.AddScoped<IRoomBlockRepository, RoomBlockRepository>();
+        services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
+
         return services;
     }
 }

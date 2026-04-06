@@ -1,0 +1,41 @@
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Infrastructure.Data.Configurations;
+
+public class TourDayActivityRouteTransportEntityConfiguration : IEntityTypeConfiguration<TourDayActivityRouteTransportEntity>
+{
+    public void Configure(EntityTypeBuilder<TourDayActivityRouteTransportEntity> builder)
+    {
+        builder.ToTable("TourDayActivityRouteTransports");
+
+        builder.HasKey(x => x.Id);
+
+        builder.HasIndex(x => new { x.BookingActivityReservationId, x.TourPlanRouteId })
+            .IsUnique();
+
+        builder.HasIndex(x => x.DriverId);
+        builder.HasIndex(x => x.VehicleId);
+
+        builder.HasOne(x => x.BookingActivityReservation)
+            .WithMany()
+            .HasForeignKey(x => x.BookingActivityReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.TourPlanRoute)
+            .WithMany()
+            .HasForeignKey(x => x.TourPlanRouteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Driver)
+            .WithMany()
+            .HasForeignKey(x => x.DriverId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(x => x.Vehicle)
+            .WithMany()
+            .HasForeignKey(x => x.VehicleId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}

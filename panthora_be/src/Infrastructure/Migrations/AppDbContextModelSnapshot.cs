@@ -904,6 +904,70 @@ namespace Infrastructure.Migrations
                     b.ToTable("DepositPolicies", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.DriverEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LicenseNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LicenseType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("LicenseNumber")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Drivers", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.FileMetadataEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -960,6 +1024,139 @@ namespace Infrastructure.Migrations
                     b.HasIndex("LinkedEntityId");
 
                     b.ToTable("FileMetadatas", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.GuestArrivalEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ActualCheckInAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ActualCheckOutAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("BookingAccommodationDetailId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CheckedInByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CheckedOutByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("SubmissionStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("SubmittedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingAccommodationDetailId")
+                        .IsUnique();
+
+                    b.ToTable("GuestArrivals", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.GuestArrivalParticipantEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingParticipantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GuestArrivalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingParticipantId");
+
+                    b.HasIndex("GuestArrivalId", "BookingParticipantId")
+                        .IsUnique();
+
+                    b.ToTable("GuestArrivalParticipants", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.HotelRoomInventoryEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TotalRooms")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("SupplierId", "RoomType");
+
+                    b.ToTable("HotelRoomInventory", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.OtpEntity", b =>
@@ -1702,6 +1899,53 @@ namespace Infrastructure.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.RoomBlockEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("BlockedDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("BookingAccommodationDetailId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RoomCountBlocked")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("SupplierId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingAccommodationDetailId");
+
+                    b.HasIndex("SupplierId", "RoomType", "BlockedDate");
+
+                    b.ToTable("RoomBlocks", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.SiteContentEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2200,6 +2444,56 @@ namespace Infrastructure.Migrations
                     b.HasIndex("TourDayActivityId");
 
                     b.ToTable("TourDayActivityResourceLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourDayActivityRouteTransportEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingActivityReservationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TourPlanRouteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DriverId");
+
+                    b.HasIndex("TourPlanRouteId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.HasIndex("BookingActivityReservationId", "TourPlanRouteId")
+                        .IsUnique();
+
+                    b.ToTable("TourDayActivityRouteTransports", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TourDayActivityStatusEntity", b =>
@@ -3510,6 +3804,85 @@ namespace Infrastructure.Migrations
                     b.ToTable("UserSettings", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.VehicleEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LocationArea")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SeatCapacity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("VehicleImageUrls")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("VehiclePlate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("VehicleType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("LocationArea");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("VehiclePlate")
+                        .IsUnique();
+
+                    b.ToTable("Vehicles", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.VisaApplicationEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3882,6 +4255,58 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Domain.Entities.DriverEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GuestArrivalEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingAccommodationDetailEntity", "BookingAccommodationDetail")
+                        .WithMany()
+                        .HasForeignKey("BookingAccommodationDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingAccommodationDetail");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GuestArrivalParticipantEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingParticipantEntity", "BookingParticipant")
+                        .WithMany()
+                        .HasForeignKey("BookingParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.GuestArrivalEntity", "GuestArrival")
+                        .WithMany("Participants")
+                        .HasForeignKey("GuestArrivalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingParticipant");
+
+                    b.Navigation("GuestArrival");
+                });
+
+            modelBuilder.Entity("Domain.Entities.HotelRoomInventoryEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.SupplierEntity", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("Domain.Entities.PassportEntity", b =>
                 {
                     b.HasOne("Domain.Entities.BookingParticipantEntity", "BookingParticipant")
@@ -3944,6 +4369,24 @@ namespace Infrastructure.Migrations
                     b.Navigation("Tour");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RoomBlockEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingAccommodationDetailEntity", "BookingAccommodationDetail")
+                        .WithMany()
+                        .HasForeignKey("BookingAccommodationDetailId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.SupplierEntity", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingAccommodationDetail");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Domain.Entities.SupplierPayableEntity", b =>
@@ -4026,6 +4469,39 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TourDayActivity");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourDayActivityRouteTransportEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingActivityReservationEntity", "BookingActivityReservation")
+                        .WithMany()
+                        .HasForeignKey("BookingActivityReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.DriverEntity", "Driver")
+                        .WithMany()
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.TourPlanRouteEntity", "TourPlanRoute")
+                        .WithMany()
+                        .HasForeignKey("TourPlanRouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.VehicleEntity", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("BookingActivityReservation");
+
+                    b.Navigation("Driver");
+
+                    b.Navigation("TourPlanRoute");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourDayActivityStatusEntity", b =>
@@ -4474,6 +4950,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.VehicleEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.UserEntity", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("Domain.Entities.VisaApplicationEntity", b =>
                 {
                     b.HasOne("Domain.Entities.BookingParticipantEntity", "BookingParticipant")
@@ -4540,6 +5027,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.CustomerDepositEntity", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GuestArrivalEntity", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("Domain.Entities.PassportEntity", b =>
