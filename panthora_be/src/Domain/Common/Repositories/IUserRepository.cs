@@ -20,4 +20,6 @@ public interface IUserRepository : IRepository<UserEntity>
     Task<int> CountActiveManagersAsync(CancellationToken cancellationToken);
     Task<Dictionary<string, int>> CountByRolesAsync(string? textSearch, CancellationToken cancellationToken = default);
     Task<bool> IsEmailUnique(string email);
+    Task<List<UserEntity>> FindProvidersByRoleAsync(int roleId, string? search, string? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> CountProvidersByRoleAsync(int roleId, string? search, string? status, CancellationToken cancellationToken = default);
 }

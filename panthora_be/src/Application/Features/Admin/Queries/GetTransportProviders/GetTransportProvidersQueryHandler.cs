@@ -8,38 +8,42 @@ using ErrorOr;
 using global::Contracts;
 using MediatR;
 
-public sealed class GetTransportProvidersQueryHandler(
-        ISupplierRepository supplierRepository,
-        IUserRepository userRepository)
+public sealed class GetTransportProvidersQueryHandler(IUserRepository userRepository)
     : IRequestHandler<GetTransportProvidersQuery, ErrorOr<PaginatedList<TransportProviderListItemDto>>>
 {
+    private const int TransportProviderRoleId = 6; // RoleId for "TransportProvider"
+
     public async Task<ErrorOr<PaginatedList<TransportProviderListItemDto>>> Handle(
         GetTransportProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var suppliers = await supplierRepository.FindAllTransportProvidersAsync(cancellationToken);
-        var total = suppliers.Count;
-
-        var allItems = new List<TransportProviderListItemDto>();
-        foreach (var supplier in suppliers)
-        {
-            var user = await userRepository.FindById(supplier.Id);
-            allItems.Add(new TransportProviderListItemDto(
-                supplier.Id,
-                supplier.Name,
-                supplier.Email ?? string.Empty,
-                supplier.Phone,
-                user?.AvatarUrl,
-                user?.Status ?? UserStatus.Inactive,
-                0));
-        }
-
         var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
         var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-        var skip = (pageNumber - 1) * pageSize;
-        var pagedItems = allItems.Skip(skip).Take(pageSize).ToList();
 
-        return new PaginatedList<TransportProviderListItemDto>(
-            total, pagedItems, pageNumber, pageSize);
+        var users = await userRepository.FindProvidersByRoleAsync(
+            TransportProviderRoleId,
+            request.Search,
+            request.Status,
+            pageNumber,
+            pageSize,
+            cancellationToken);
+
+        var total = await userRepository.CountProvidersByRoleAsync(
+            TransportProviderRoleId,
+            request.Search,
+            request.Status,
+            cancellationToken);
+
+        var items = users.Select(user => new TransportProviderListItemDto(
+            user.Id,
+            user.FullName ?? string.Empty,
+            user.Email,
+            user.PhoneNumber,
+            user.AvatarUrl,
+            user.Status,
+            0 // bookingCount not available in data model
+        )).ToList();
+
+        return new PaginatedList<TransportProviderListItemDto>(total, items, pageNumber, pageSize);
     }
 }

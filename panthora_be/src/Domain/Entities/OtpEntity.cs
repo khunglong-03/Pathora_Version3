@@ -1,6 +1,6 @@
 namespace Domain.Entities;
 
-public class OtpEntity: Aggregate<Guid>
+public class OtpEntity : Aggregate<Guid>
 {
     public required string Email { get; set; }
     public required string Code { get; set; }

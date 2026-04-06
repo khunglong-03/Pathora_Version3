@@ -14,7 +14,7 @@ export const ADMIN_ROUTE_PREFIXES = [
 
 const ADMIN_ROLE_NAMES = new Set(["Admin"]);
 const MANAGER_ROLE_NAMES = new Set(["Manager"]);
-const ADMIN_ROLE_DEFAULT_PATH = "/admin/dashboard";
+const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
 const MANAGER_ROLE_DEFAULT_PATH = "/dashboard";
 
 type RoleWithName = Pick<UserRoleVm, "name">;

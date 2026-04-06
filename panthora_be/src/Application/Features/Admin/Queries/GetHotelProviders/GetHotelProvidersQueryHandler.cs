@@ -8,38 +8,42 @@ using ErrorOr;
 using global::Contracts;
 using MediatR;
 
-public sealed class GetHotelProvidersQueryHandler(
-        ISupplierRepository supplierRepository,
-        IUserRepository userRepository)
+public sealed class GetHotelProvidersQueryHandler(IUserRepository userRepository)
     : IRequestHandler<GetHotelProvidersQuery, ErrorOr<PaginatedList<HotelProviderListItemDto>>>
 {
+    private const int HotelServiceProviderRoleId = 7; // RoleId for "HotelServiceProvider"
+
     public async Task<ErrorOr<PaginatedList<HotelProviderListItemDto>>> Handle(
         GetHotelProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var suppliers = await supplierRepository.FindAllHotelProvidersAsync(cancellationToken);
-        var total = suppliers.Count;
-
-        var allItems = new List<HotelProviderListItemDto>();
-        foreach (var supplier in suppliers)
-        {
-            var user = await userRepository.FindById(supplier.Id);
-            allItems.Add(new HotelProviderListItemDto(
-                supplier.Id,
-                supplier.Name,
-                supplier.Email ?? string.Empty,
-                supplier.Phone,
-                user?.AvatarUrl,
-                user?.Status ?? UserStatus.Inactive,
-                0));
-        }
-
         var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
         var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-        var skip = (pageNumber - 1) * pageSize;
-        var pagedItems = allItems.Skip(skip).Take(pageSize).ToList();
 
-        return new PaginatedList<HotelProviderListItemDto>(
-            total, pagedItems, pageNumber, pageSize);
+        var users = await userRepository.FindProvidersByRoleAsync(
+            HotelServiceProviderRoleId,
+            request.Search,
+            request.Status,
+            pageNumber,
+            pageSize,
+            cancellationToken);
+
+        var total = await userRepository.CountProvidersByRoleAsync(
+            HotelServiceProviderRoleId,
+            request.Search,
+            request.Status,
+            cancellationToken);
+
+        var items = users.Select(user => new HotelProviderListItemDto(
+            user.Id,
+            user.FullName ?? string.Empty,
+            user.Email,
+            user.PhoneNumber,
+            user.AvatarUrl,
+            user.Status,
+            0 // accommodationCount not available in data model
+        )).ToList();
+
+        return new PaginatedList<HotelProviderListItemDto>(total, items, pageNumber, pageSize);
     }
 }

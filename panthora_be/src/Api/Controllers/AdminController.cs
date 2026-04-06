@@ -67,9 +67,11 @@ public class AdminController : BaseApiController
     [HttpGet("transport-providers")]
     public async Task<IActionResult> GetTransportProviders(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null)
     {
-        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize));
+        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status));
         return HandleResult(result);
     }
 
@@ -77,9 +79,11 @@ public class AdminController : BaseApiController
     [HttpGet("hotel-providers")]
     public async Task<IActionResult> GetHotelProviders(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null)
     {
-        var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize));
+        var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize, search, status));
         return HandleResult(result);
     }
 

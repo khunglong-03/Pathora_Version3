@@ -1,5 +1,6 @@
 using Domain.Common.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Infrastructure.Repositories.Common;
 using Microsoft.EntityFrameworkCore;
@@ -98,9 +99,24 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
     public async Task<List<UserEntity>> FindAll(string? textSearch, int? roleId, int pageNumber, int pageSize)
     {
-        var query = _context.Users
-            .AsNoTracking()
-            .Where(u => !u.IsDeleted);
+        IQueryable<UserEntity> query;
+
+        if (roleId.HasValue)
+        {
+            query = _context.UserRoles
+                .AsNoTracking()
+                .Where(ur => ur.RoleId == roleId.Value)
+                .Join(_context.Users.Where(u => !u.IsDeleted),
+                    ur => ur.UserId,
+                    u => u.Id,
+                    (ur, u) => u);
+        }
+        else
+        {
+            query = _context.Users
+                .AsNoTracking()
+                .Where(u => !u.IsDeleted);
+        }
 
         if (!string.IsNullOrWhiteSpace(textSearch))
         {
@@ -120,7 +136,22 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
     public async Task<int> CountAll(string? textSearch, int? roleId)
     {
-        var query = _context.Users.Where(u => !u.IsDeleted);
+        IQueryable<UserEntity> query;
+
+        if (roleId.HasValue)
+        {
+            query = _context.UserRoles
+                .AsNoTracking()
+                .Where(ur => ur.RoleId == roleId.Value)
+                .Join(_context.Users.Where(u => !u.IsDeleted),
+                    ur => ur.UserId,
+                    u => u.Id,
+                    (ur, u) => u);
+        }
+        else
+        {
+            query = _context.Users.Where(u => !u.IsDeleted);
+        }
 
         if (!string.IsNullOrWhiteSpace(textSearch))
         {
@@ -217,5 +248,81 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
         return !await _context.Users.AnyAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted);
+    }
+
+    public async Task<List<UserEntity>> FindProvidersByRoleAsync(
+        int roleId,
+        string? search,
+        string? status,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.UserRoles
+            .AsNoTracking()
+            .Where(ur => ur.RoleId == roleId)
+            .Join(_context.Users.Where(u => !u.IsDeleted),
+                ur => ur.UserId,
+                u => u.Id,
+                (ur, u) => u);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(u =>
+                (u.FullName != null && u.FullName.ToLower().Contains(searchLower)) ||
+                u.Email.ToLower().Contains(searchLower) ||
+                u.Username.ToLower().Contains(searchLower));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.Status == UserStatus.Active);
+        }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.Status == UserStatus.Inactive);
+        }
+
+        return await query
+            .OrderByDescending(u => u.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountProvidersByRoleAsync(
+        int roleId,
+        string? search,
+        string? status,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.UserRoles
+            .AsNoTracking()
+            .Where(ur => ur.RoleId == roleId)
+            .Join(_context.Users.Where(u => !u.IsDeleted),
+                ur => ur.UserId,
+                u => u.Id,
+                (ur, u) => u);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(u =>
+                (u.FullName != null && u.FullName.ToLower().Contains(searchLower)) ||
+                u.Email.ToLower().Contains(searchLower) ||
+                u.Username.ToLower().Contains(searchLower));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.Status == UserStatus.Active);
+        }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.Status == UserStatus.Inactive);
+        }
+
+        return await query.CountAsync(cancellationToken);
     }
 }

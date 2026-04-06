@@ -69,7 +69,6 @@ export default function TransportProvidersPage() {
   const handleRefresh = () => setReloadToken((t) => t + 1);
 
   const activeCount = providers.filter((p) => p.status === "Active").length;
-  const totalBookings = providers.reduce((sum, p) => sum + (p.bookingCount ?? 0), 0);
 
   const kpis = [
     {
@@ -85,9 +84,9 @@ export default function TransportProvidersPage() {
       accent: "#22C55E",
     },
     {
-      label: "Tổng đặt xe",
-      value: totalBookings.toString(),
-      icon: "Ticket",
+      label: "Đang chờ xử lý",
+      value: total.toString(),
+      icon: "Hourbar",
       accent: "#C9873A",
     },
   ];

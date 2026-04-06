@@ -54,9 +54,10 @@ public sealed class GetAllUsersQueryHandler(
             var roles = rolesMap.TryGetValue(u.Id, out var r)
                 ? r.Select(x => x.Name).ToList()
                 : new List<string>();
+            var primaryRole = roles.Count > 0 ? roles[0] : null;
             return new UserListItemDto(
                 u.Id, u.Username, u.FullName, u.Email, u.PhoneNumber,
-                u.AvatarUrl, u.Status, u.VerifyStatus, roles);
+                u.AvatarUrl, u.Status, u.VerifyStatus, roles, primaryRole);
         }).ToList();
 
         return new PaginatedList<UserListItemDto>(total, items, request.PageNumber, request.PageSize, roleCounts);

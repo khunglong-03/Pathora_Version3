@@ -69,7 +69,6 @@ export default function HotelProvidersPage() {
   const handleRefresh = () => setReloadToken((t) => t + 1);
 
   const activeCount = providers.filter((p) => p.status === "Active").length;
-  const totalRooms = providers.reduce((sum, p) => sum + (p.roomCount ?? 0), 0);
 
   const kpis = [
     {
@@ -85,9 +84,9 @@ export default function HotelProvidersPage() {
       accent: "#22C55E",
     },
     {
-      label: "Tổng phòng",
-      value: totalRooms.toString(),
-      icon: "HouseLine",
+      label: "Đang chờ xử lý",
+      value: total.toString(),
+      icon: "Hourbar",
       accent: "#C9873A",
     },
   ];

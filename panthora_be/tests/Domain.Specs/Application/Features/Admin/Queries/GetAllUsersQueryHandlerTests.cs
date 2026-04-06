@@ -59,6 +59,7 @@ public sealed class GetAllUsersQueryHandlerTests
         Assert.Equal(1, result.Value.Total);
         Assert.Equal(userId, result.Value.Items[0].Id);
         Assert.Equal("Manager One", result.Value.Items[0].FullName);
+        Assert.Equal("Manager", result.Value.Items[0].Role);
     }
 
     [Fact]
@@ -96,6 +97,7 @@ public sealed class GetAllUsersQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Single(result.Value.Items);
         await _userRepository.Received().FindAll(null, roleId, 1, 20);
+        await _userRepository.Received().CountAll(null, roleId);
     }
 
     [Fact]
@@ -172,6 +174,8 @@ public sealed class GetAllUsersQueryHandlerTests
     {
         _roleRepository.FindByNameAsync("InvalidRole")
             .Returns((RoleEntity?)null);
+        _userRepository.CountByRolesAsync(null, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, int> { { "Manager", 5 }, { "TourGuide", 3 } });
 
         var query = new GetAllUsersQuery(1, 20, null, null, "InvalidRole");
 
@@ -180,5 +184,6 @@ public sealed class GetAllUsersQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Empty(result.Value.Items);
         Assert.Equal(0, result.Value.Total);
+        await _userRepository.Received().CountByRolesAsync(null, Arg.Any<CancellationToken>());
     }
 }

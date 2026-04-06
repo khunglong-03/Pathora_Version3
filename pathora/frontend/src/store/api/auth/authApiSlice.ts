@@ -313,7 +313,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Auth"],
     }),
   }),
-  overrideExisting: false,
+  overrideExisting: (process.env.NODE_ENV !== "production"),
 });
 
 export const {

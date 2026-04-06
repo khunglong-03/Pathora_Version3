@@ -109,7 +109,7 @@ export function middleware(request: NextRequest) {
 
   if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/users", request.url));
     }
     if (hasManagerRole(authRoles)) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -123,7 +123,7 @@ export function middleware(request: NextRequest) {
     }
 
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/users", request.url));
     }
 
     if (hasManagerRole(authRoles) && pathname.startsWith("/dashboard/customers")) {

@@ -64,3 +64,4 @@ delete_corrupted_analyzers.ps1
 download_serilog.ps1
 dir_root.js
 .gitnexus
+openspec/

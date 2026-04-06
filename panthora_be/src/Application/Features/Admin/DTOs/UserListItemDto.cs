@@ -11,5 +11,6 @@ public sealed record UserListItemDto(
     string? AvatarUrl,
     UserStatus Status,
     VerifyStatus VerifyStatus,
-    List<string> Roles
+    List<string> Roles,
+    string? Role = null
 );

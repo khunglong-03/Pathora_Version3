@@ -18,8 +18,8 @@ var app = builder.Build();
 Application.Services.SepayParsingHelper.SetLogger(app.Services.GetService<Microsoft.Extensions.Logging.ILogger>());
 
 // Seed disabled — uncomment only when resetting/re-seeding the database
-        // var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
-        // await dbInitializer.InitializeAsync();
+// var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
+// await dbInitializer.InitializeAsync();
 
 app.UseAppMiddleware();
 
