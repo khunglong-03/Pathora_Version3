@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json; json.load\\(open\\(''D:/DoAn/.claude/settings.json''\\)\\)\")",
+      "Bash(python -c \"import json; json.load\\(open\\(''D:/DoAn/.claude/settings.json''\\)\\)\")",
+      "mcp__plugin_everything-claude-code_github__get_file_contents",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx gitnexus@latest list)",
+      "Bash(npx gitnexus@latest analyze)",
+      "Bash(git -C \"D:/DoAn/panthora_be\" rev-parse --git-dir)",
+      "Bash(git -C \"D:/DoAn/pathora\" rev-parse --git-dir)",
+      "Bash(npx gitnexus@latest analyze --force)",
+      "Bash(node \"D:/DoAn/GitNexus/gitnexus/dist/cli/index.js\" status)",
+      "Bash(node:*)",
+      "Bash(echo \"Exit: $?\")"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="ErrorOr" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="Serilog" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Share\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Share\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Share\Contracts\Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

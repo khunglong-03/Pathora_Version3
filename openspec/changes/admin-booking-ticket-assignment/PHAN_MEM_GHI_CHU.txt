@@ -1,0 +1,615 @@
+# /autoplan — Review: admin-booking-ticket-assignment
+
+**Plan:** Admin Booking Ticket Assignment — cho phép admin gán transport/accommodation details vào booking activities khi booking đã được cọc (Deposited+).
+**Branch:** Không có git repo — review offline.
+**Date:** 2026-04-03
+
+---
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/autoplan` | Scope & strategy | 1 | issues_open | 3 issues |
+| Codex Review | N/A | No git repo | 0 | — | — |
+| Eng Review | `/autoplan` | Architecture & tests | 1 | issues_open | 6 issues |
+| Design Review | `/autoplan` | UI/UX gaps | 1 | issues_open | 2 issues |
+
+---
+
+## Phase 1: CEO Review
+
+### 0A: Premise Challenge
+
+**Premise 1: Backend handlers đã có sẵn, chỉ cần wire up controller.**
+- **Eval:** Gần đúng, nhưng thiếu Delete handlers. `BookingTransportDetailCommands.cs` và `BookingAccommodationDetailCommands.cs` chỉ có Create + Update + Get queries. **Không có Delete handlers.** Task 1.4 ghi "kiểm tra Delete handler, nếu chưa có thì tạo" — đây là underestimate. Cần tạo hoàn toàn 2 Delete handlers + 2 endpoints.
+- **Severity:** Medium — đây là work bổ sung ngoài "wire up", nhưng nhỏ.
+
+**Premise 2: Frontend types đã có đầy đủ.**
+- **Eval:** SAI. `BookingStatusEnum` trong frontend KHÔNG khớp với backend:
+  - Frontend: `Pending=1, Confirmed=2, Cancelled=3, Completed=4`
+  - Backend: `Pending=1, Confirmed=2, Deposited=3, Paid=4, Cancelled=5, Completed=6`
+  - Frontend THIẾU: `Deposited` và `Paid`
+- **Severity:** Critical — không fix thì status check hoàn toàn sai.
+
+**Premise 3: TransportTypeEnum khớp với backend.**
+- **Eval:** SAI.
+  - Frontend: `Bus=1, Train=2, Flight=3, Boat=4, Car=5, Other=6`
+  - Backend: `Airplane=1, Bus=2, Train=3, Ship=4, Car=5, Other=99`
+  - Frontend dùng `Flight=3` nhưng backend dùng `Airplane=1`
+- **Severity:** Critical — form transport type sẽ gửi sai giá trị.
+
+**Premise 4: Activities đã tồn tại khi booking được tạo.**
+- **Eval:** Chưa xác nhận được. Backend `CreatePublicBookingCommand` không tạo activities. Không tìm thấy chỗ nào tạo `BookingActivityReservationEntity` tự động. Có thể admin tạo thủ công qua endpoint `POST /api/bookings/{id}/activities`. Đây là một open question cần answer trước khi implement.
+- **Severity:** High — nếu activities không tồn tại, UI sẽ show empty state mãi.
+
+### 0B: Existing Code Leverage Map
+
+| Sub-problem | Existing code | Leveraged? |
+|-------------|--------------|------------|
+| Backend endpoints (POST/PUT/DELETE transport) | `BookingTransportDetailCommands.cs` — handlers có, controller chưa | Partial |
+| Backend endpoints (POST/PUT/DELETE accommodation) | `BookingAccommodationDetailCommands.cs` — handlers có, controller chưa | Partial |
+| Backend Delete handlers | **KHÔNG CÓ** — cần tạo | No |
+| GET booking detail | **KHÔNG CÓ endpoint** — `GET_DETAIL` trong frontend nhưng backend không có | No |
+| Frontend BookingStatusEnum | `src/types/booking.ts` — có nhưng SAI giá trị | No |
+| Frontend TransportTypeEnum | `src/types/booking.ts` — có nhưng SAI giá trị | No |
+| Frontend bookingService | `bookingService.ts` — cần thêm 10 methods | No |
+| Frontend DTOs (TransportDetailDto, AccommodationDetailDto) | `src/types/booking.ts` — đã có ✓ | Yes |
+| Frontend endpoint constants | `src/api/endpoints/booking.ts` — cần thêm constants cho POST/PUT/DELETE | No |
+| React Hook Form + Yup | Đã dùng trong project | Yes |
+| AdminSidebar + TopBar layout | `AdminSidebar.tsx` | Yes |
+| `STATUS_BADGE` pattern | `BookingsPageData.ts` | Yes |
+| Delete confirmation | Cần kiểm tra có component chưa | Unknown |
+
+### 0C: Dream State Diagram
+
+```
+CURRENT STATE:
+  Backend: Domain model + handlers có sẵn (Create/Update/Get)
+  Frontend: DTOs types có, UI = zero
+  Status: Backend đủ, frontend = 0%
+
+THIS PLAN (admin-booking-ticket-assignment):
+  Backend: +6 HTTP endpoints (POST/PUT/DELETE transport + accommodation)
+  Frontend: +10 API methods + 1 route + 8 components
+  Status: Backend hoàn chỉnh, Frontend = 70% (UI gán vé, chưa full detail)
+
+12-MONTH IDEAL:
+  Admin: Booking detail page đầy đủ (gán vé + participants + payments + team)
+  User: Booking confirmation page hiển thị vé đã gán (khách thấy được)
+  System: Email/SMS notification khi vé được gán
+```
+
+### 0C-bis: Implementation Alternatives
+
+| Approach | Effort | Risk | Pros | Cons |
+|----------|--------|------|------|------|
+| A) Backend trước, rồi Frontend (sequential) | ~3h backend + ~5h frontend | Low | Clean dependency, test được từng layer | 2 ngày total |
+| B) Frontend trước với mock data, Backend sau | ~5h frontend mock + ~3h backend | Medium | UI sớm để review | Cần mock layer, dễ miss edge cases |
+| C) Backend + Frontend song song | ~3h each | High | Nhanh nhất | Risk conflict, test phức tạp |
+
+**Recommendation:** A — Backend endpoints trước. Không có endpoint thì frontend không test được gì.
+
+### 0D: Mode-Specific Analysis — SELECTIVE EXPANSION
+
+Scope hiện tại: chỉ gán vé (transport + accommodation) trong booking detail page. Không participants, payments, team.
+
+**Selective expansions in blast radius (< 1 day CC):**
+- Fix `BookingStatusEnum` mismatch — 30 phút, ảnh hưởng toàn bộ booking UI
+- Fix `TransportTypeEnum` mismatch — 30 phút, ảnh hưởng form transport
+- Thêm `GET /api/bookings/{id}` endpoint — 1 giờ, cần cho booking detail page
+- Thêm Delete handlers — 2 giờ, không có thì không xóa được vé
+
+**Auto-approved (P2: boil lakes, < 1 day):**
+- Fix BookingStatusEnum (critical, 30 phút)
+- Fix TransportTypeEnum (critical, 30 phút)
+- Tạo Delete handlers (required for complete feature, 2 giờ)
+
+**Deferred to TODOS.md:**
+- `GET /api/bookings/{id}` endpoint — ngoài scope "gán vé", nhưng cần cho page hoạt động
+- Tạo `RoomType` enum trong frontend (nếu thiếu)
+- Email notification khi vé được gán
+
+### 0E: Temporal Interrogation
+
+| Time | Work |
+|------|------|
+| Hour 1 | Fix enum mismatches (BookingStatus, TransportType). Tạo Delete handlers. |
+| Hour 2 | Thêm backend endpoints (POST/PUT/DELETE transport + accommodation). Test với Postman. |
+| Hour 3-4 | Frontend: API service methods (10 methods). Endpoint constants. |
+| Hour 5-6 | Frontend: Route + BookingDetailPage + Header |
+| Hour 7-8 | Frontend: ActivitySection + Forms + Cards |
+| Hour 9-10 | Frontend: Status condition + i18n |
+| Hour 11-12 | Testing + lint + fix edge cases |
+
+### 0F: Mode Selection Confirmation
+
+SELECTIVE EXPANSION confirmed. Scope giữ nguyên (chỉ gán vé), nhưng fix critical enum mismatches vì chúng nằm trong blast radius.
+
+---
+
+### CEO Dual Voices
+
+**CODEX SAYS (CEO — strategy challenge):** No git repo — cannot run Codex.
+**CLAUDE SUBAGENT (CEO — strategic independence):** Subagent unavailable in this environment.
+
+**SINGLE-REVIEWER MODE.**
+
+### CEO Consensus Table
+
+```
+CEO DUAL VOICES — CONSENSUS TABLE:
+═══════════════════════════════════════════════════════════════
+  Dimension                           Claude  Codex  Consensus
+  ──────────────────────────────────── ─────── ─────── ─────────
+  1. Premises valid?                   ✗       N/A    INVALID
+  2. Right problem to solve?             ✓       N/A    CONFIRMED
+  3. Scope calibration correct?         ~       N/A    TASTE
+  4. Alternatives sufficiently explored?  ✓       N/A    CONFIRMED
+  5. Competitive/market risks covered?  ✓       N/A    CONFIRMED
+  6. 6-month trajectory sound?           ✓       N/A    CONFIRMED
+═══════════════════════════════════════════════════════════════
+```
+
+### Sections 1-10
+
+**Section 1 — Premise Validation:**
+Premises partially invalid (enum mismatches, missing delete handlers). See 0A.
+
+**Section 2 — Error & Rescue Registry:**
+
+| Error | Rescue |
+|-------|--------|
+| BookingStatusEnum mismatch (frontend=4 values, backend=6) | Fix frontend enum, add Deposited/Paid |
+| TransportTypeEnum mismatch (Flight vs Airplane, values shifted) | Fix frontend enum |
+| No GET /api/bookings/{id} endpoint | Add endpoint OR use existing list API |
+| No Delete handlers in backend | Create 2 new handlers |
+| Activities may not exist at booking creation time | Add task to verify/create activity, or document as manual step |
+
+**Section 3 — Failure Modes Registry:**
+
+| Mode | Severity | Trigger | Fix |
+|------|----------|---------|-----|
+| Enum mismatch breaks status filter | Critical | Booking.Deposited != 3 | Fix BookingStatusEnum |
+| Enum mismatch sends wrong transport type | Critical | TransportType.Flight gửi = 3 nhưng backend = Airplane | Fix TransportTypeEnum |
+| No DELETE = can't remove vé đã gán sai | High | Admin gán nhầm | Tạo Delete handlers |
+| Empty activities list — nothing to assign to | High | Activities chưa được tạo | Verify luồng tạo activities |
+
+**Section 4 — Scope Creep Check:**
+Scope chỉ gán vé — không participants/payments/team. Clear boundary. Tuy nhiên cần GET /api/bookings/{id} để lấy booking info (header) + status check. Đề xuất: thêm endpoint này vào scope.
+
+**Section 5 — Dependency Audit:**
+- Backend handlers: Create/Update tồn tại ✓, Delete không có ✗
+- Frontend service: hoàn toàn trống ✗
+- Frontend types: DTOs có ✓, Enums sai ✗
+- Backend endpoints: GET có ✓, POST/PUT/DELETE không có ✗
+- Route: không tồn tại ✗
+
+**Section 6 — Data Freshness:**
+No caching strategy specified. Backend queries có `[CacheKey.Booking]` và 5-minute expiration. Frontend không có cache invalidation strategy — acceptable cho mức độ sử dụng thấp.
+
+**Section 7 — Operational Complexity:**
+Không có. Không thêm background jobs, không queue, không event-driven.
+
+**Section 8 — Cost Estimate:**
+- Backend: ~4 giờ (fix enums + add endpoints + delete handlers)
+- Frontend: ~8 giờ (service + route + 8 components)
+- Total: ~12 giờ, 2 người có thể song song → ~6 giờ calendar
+
+**Section 9 — Competitive Landscape:**
+Không có competitive risk. Đây là internal admin tool.
+
+**Section 10 — Go/No-Go:**
+**GO** với điều kiện fix 3 critical issues trước khi implement.
+
+### Completion Summary
+
+| | CEO |
+|---|---|
+| Scope | Selective expansion — gán vé, expand to fix critical enums |
+| Effort | ~12h total (~2 ngày) |
+| Critical blockers | 3 (enum mismatches, missing delete handlers) |
+| Taste decisions | 1 (có nên thêm GET booking detail endpoint không) |
+| Status | issues_open |
+
+---
+
+## Phase 2: Design Review (UI Scope: YES)
+
+### Step 0: Design Scope
+
+UI scope confirmed — có 25+ component/view/form references trong plan.
+
+**Completeness rating: 7/10**
+- Specs có đầy đủ scenarios cho happy path + validation + empty/error states
+- Thiếu: animation/transition specs, responsive breakpoints, accessibility (ARIA labels), loading skeleton details, delete confirmation UI pattern
+
+### Step 0.5: Dual Voices
+
+**CODEX SAYS (design — UX challenge):** No git repo.
+**CLAUDE SUBAGENT (design — independent review):** Subagent unavailable.
+
+**SINGLE-REVIEWER MODE.**
+
+### Dimension 1: Information Hierarchy
+
+**Rating: 7/10**
+
+Design chỉ định header → itinerary → activity cards → forms/cards. Hợp lý. Tuy nhiên:
+
+**Issue 1 (High):** Không chỉ định rõ booking header nên nằm sticky hay scroll. Nếu itinerary dài (10+ activities), header nên sticky để luôn thấy thông tin khách hàng.
+
+**Issue 2 (Medium):** Không có breadcrumb: "Bookings > Booking #ABC > Itinerary". Nên có để navigate.
+
+### Dimension 2: Missing States
+
+**Rating: 6/10**
+
+| State | Spec | Status |
+|-------|------|--------|
+| Loading (skeleton) | Có task 4.9 | ✓ |
+| Empty activities | Có trong spec (88-90) | ✓ |
+| Error (booking not found) | Có trong spec (31-34) | ✓ |
+| Form submitting | **KHÔNG CÓ** | ✗ |
+| Success toast | Có trong spec | ✓ |
+| Delete confirming | Có trong spec | ✓ |
+| Inline form expanded | **KHÔNG CÓ** | ✗ |
+| No permission (non-Deposited) | Có message | ✓ |
+| Activity with multiple transports | **KHÔNG CÓ** | ✗ |
+
+### Dimension 3: User Journey
+
+**Rating: 7/10**
+
+Happy path clear: Click row → Detail page → See activities → Click "+ Thêm Transport" → Fill form → Save → Card appears. Nhưng:
+
+**Issue (High):** Không spec trạng thái khi admin mở form mà chưa save, rồi click ra ngoài. Xử lý như nào? Close + discard hay confirm?
+
+### Dimension 4: Specificity
+
+**Rating: 8/10**
+
+Tốt. Form fields được list cụ thể, card display format được mô tả. Tuy nhiên:
+
+**Issue (Low):** Transport type icon không được chỉ định dùng icon library nào (Heroicons, Lucide, etc.) — nên reference existing pattern trong project.
+
+### Dimension 5: Responsive Strategy
+
+**Rating: 5/10**
+
+**Issue (Medium):** Không spec responsive breakpoints. Forms có 14+ fields — trên mobile sẽ như nào? 1 column hay 2? Recommend: single column trên mobile, 2 columns trên tablet+.
+
+### Dimension 6: Accessibility
+
+**Rating: 4/10**
+
+**Issue (Medium):** Không spec ARIA labels, keyboard navigation (Tab, Enter, Escape trong form), focus management khi mở/close inline form. Đây là internal tool nhưng vẫn nên có.
+
+### Dimension 7: Interaction States
+
+**Rating: 6/10**
+
+**Issue (High):** Không spec hover states, disabled states, loading state của submit button. Nên: button disabled khi form invalid, button shows spinner khi submitting.
+
+### Design Litmus Scorecard
+
+```
+DESIGN LITMUS SCORECARD — CONSENSUS TABLE:
+═══════════════════════════════════════════════════════════════
+  Dimension                           Claude  Codex  Consensus
+  ──────────────────────────────────── ─────── ─────── ─────────
+  1. Information hierarchy             7        N/A    7/10
+  2. Missing states                    6        N/A    6/10
+  3. User journey                      7        N/A    7/10
+  4. Specificity                       8        N/A    8/10
+  5. Responsive strategy               5        N/A    5/10
+  6. Accessibility                     4        N/A    4/10
+  7. Interaction states                6        N/A    6/10
+═══════════════════════════════════════════════════════════════
+Average: 6.1/10 — Acceptable but room for improvement.
+```
+
+### Design Completion Summary
+
+| | Design |
+|---|---|
+| Scope | Selective expansion — gán vé |
+| Critical gaps | 2 (form close behavior, mobile layout) |
+| Medium gaps | 3 (sticky header, responsive breakpoints, accessibility) |
+| Taste decisions | 2 (icon library, responsive approach) |
+| Status | issues_open |
+
+---
+
+## Phase 3: Eng Review
+
+### Step 0: Scope Challenge
+
+**Existing code examined:**
+- `panthora_be/src/Api/Controllers/BookingManagementController.cs` — 260 lines, all existing endpoints
+- `panthora_be/src/Api/Endpoint/BookingManagementEndpoint.cs` — 32 constants
+- `panthora_be/src/Application/Features/BookingManagement/Activity/BookingTransportDetailCommands.cs` — 286 lines
+- `panthora_be/src/Application/Features/BookingManagement/Activity/BookingAccommodationDetailCommands.cs` — 284 lines
+- `pathora/frontend/src/api/services/bookingService.ts` — 46 lines, only 2 methods
+- `pathora/frontend/src/api/endpoints/booking.ts` — 104 lines
+- `pathora/frontend/src/types/booking.ts` — 253 lines
+- `pathora/frontend/src/features/dashboard/components/BookingsPage.tsx` — 159 lines
+
+**Architecture:** Clean separation — API gateway pattern, CQRS in backend, Redux + RTK Query in frontend. Solid foundation.
+
+### Step 0.5: Dual Voices
+
+**CODEX SAYS (eng — architecture challenge):** No git repo.
+**CLAUDE SUBAGENT (eng — independent review):** Subagent unavailable.
+
+**SINGLE-REVIEWER MODE.**
+
+### Eng Consensus Table
+
+```
+ENG DUAL VOICES — CONSENSUS TABLE:
+═══════════════════════════════════════════════════════════════
+  Dimension                           Claude  Codex  Consensus
+  ──────────────────────────────────── ─────── ─────── ─────────
+  1. Architecture sound?               ✓       N/A    CONFIRMED
+  2. Test coverage sufficient?           ✗       N/A    FAIL
+  3. Performance risks addressed?       ✓       N/A    CONFIRMED
+  4. Security threats covered?          ✓       N/A    CONFIRMED
+  5. Error paths handled?               ✓       N/A    CONFIRMED
+  6. Deployment risk manageable?         ✓       N/A    CONFIRMED
+═══════════════════════════════════════════════════════════════
+```
+
+### Section 1: Architecture ASCII Diagram
+
+```
+ARCHITECTURE — NEW COMPONENTS
+
+FRONTEND (Next.js 16)
+┌─────────────────────────────────────────────────────────────┐
+│  /dashboard/bookings/[id]/page.tsx                         │
+│       │                                                    │
+│       ▼                                                    │
+│  BookingDetailPage.tsx                                     │
+│       ├── BookingDetailHeader.tsx                          │
+│       ├── ActivitySection.tsx                               │
+│       │       ├── TransportDetailCard.tsx ──► TransportDetailForm │
+│       │       └── AccommodationDetailCard ──► AccommodationDetailForm │
+│       └── BookingDetailSkeleton.tsx                        │
+│                                                              │
+│  bookingService.ts (bookingService.ts:28)                  │
+│       ├── getActivities()      ──► GET /api/bookings/{id}/activities │
+│       ├── getTransportDetails() ──► GET /api/bookings/{id}/transport-details │
+│       ├── createTransportDetail()──► POST /api/bookings/{id}/transport-details │
+│       ├── updateTransportDetail()──► PUT  /api/bookings/{id}/transport-details/... │
+│       ├── deleteTransportDetail()──► DELETE /api/bookings/{id}/transport-details/... │
+│       └── (tương tự accommodation)                       │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+BACKEND (ASP.NET Core)
+┌─────────────────────────────────────────────────────────────┐
+│  BookingManagementController.cs                             │
+│       ├── [GET]  /api/bookings/{id}/activities             │
+│       ├── [GET]  /api/bookings/{id}/transport-details     │ ← existing
+│       ├── [POST] /api/bookings/{id}/transport-details     │ ← NEW
+│       ├── [PUT]  /api/bookings/{id}/transport-details/{..}│ ← NEW
+│       ├── [DELETE] /api/bookings/{id}/transport-details/..│ ← NEW
+│       └── (tương tự accommodation)                         │
+│                                                              │
+│  BookingTransportDetailCommands.cs                          │
+│       ├── CreateTransportDetailCommand + Handler            │ ← existing
+│       ├── UpdateTransportDetailCommand + Handler            │ ← existing
+│       └── DeleteTransportDetailCommand + Handler            │ ← MISSING
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Coupling:** Low — new components don't touch existing business logic.
+**Scaling:** N+1 not a concern — admin operations, low volume.
+
+### Section 2: Code Quality
+
+**DRY violations:** None detected — components are new.
+
+**Naming:** Tasks use generic names like `TransportDetailForm` which is fine.
+
+**Complexity:** Forms có 14 fields cho transport, 15 cho accommodation. Có thể chia thành sections (Basic Info / Pricing / Details) để giảm cognitive load.
+
+**Auto-fix approved (P5):** Split forms into logical sections — Basic (TransportType, DepartureAt, ArrivalAt), Ticket (TicketNumber, ETicketNumber, SeatNumber, SeatClass), Vehicle (VehicleNumber, SeatCapacity), Pricing (BuyPrice, TaxRate), Additional (Supplier, SpecialRequest, Note). Tương tự cho accommodation.
+
+### Section 3: Test Review
+
+**Test diagram:**
+
+| Codepath | Test type | Exists? |
+|----------|-----------|---------|
+| Form validation: required fields | Unit (Yup schema) | No |
+| Form validation: negative price | Unit (Yup schema) | No |
+| Form validation: ArrivalAt <= DepartureAt | Unit (Yup schema) | No |
+| Form validation: SeatCapacity < participants | Unit (Yup schema) | No |
+| API call: createTransportDetail success | Integration | No |
+| API call: createTransportDetail validation error | Integration | No |
+| API call: deleteTransportDetail | Integration | No |
+| UI: button visible only Deposited+ | Component | No |
+| UI: form submit → card appears | E2E | No |
+| UI: delete → confirmation → removed | E2E | No |
+
+**Status: No tests exist for this feature.**
+
+**Recommendation:** Thêm task 7.3 (Frontend unit tests cho Yup validation schemas) và task 7.4 (API integration tests cho backend endpoints). Backend có `tests/` directory — nên check xem có xUnit tests cho controller không.
+
+### Section 4: Performance
+
+**N+1:** Không có — chỉ CRUD operations.
+
+**Caching:** Backend dùng `[CacheKey.Booking]` với 5-min expiration. Frontend nên invalidate cache khi create/update/delete transport/accommodation. Tasks không có bước cache invalidation — **cần thêm**.
+
+**Slow paths:** Không có — admin operations, low volume.
+
+### Failure Modes Registry (Eng)
+
+| Mode | Severity | Trigger | Fix |
+|------|----------|---------|-----|
+| Enum mismatch silently passes wrong value | Critical | Submit transport form | Fix enums first |
+| POST succeeds but UI doesn't refresh | High | Cache not invalidated | Add cache invalidation step in tasks |
+| Delete handler not found at runtime | High | Admin clicks delete | Create Delete handlers in task 1.4 |
+| Capacity validation fails server-side but not caught client-side | Medium | Submit with SeatCapacity < participants | Yup schema validation mirrors backend |
+| Inline form scroll out of viewport on mobile | Low | Fill long form on mobile | Test on mobile viewport |
+
+### NOT in Scope
+
+- User-facing booking detail (currently uses sample data)
+- Participants management
+- Payments management
+- Team management
+- Email/SMS notification on ticket assignment
+- Activity creation (assumed to exist)
+
+### What Already Exists
+
+- Backend handlers (Create/Update/Get for transport/accommodation)
+- Frontend DTOs (TransportDetailDto, AccommodationDetailDto)
+- Frontend endpoint constants (GET only)
+- React Hook Form + Yup pattern
+- AdminSidebar + TopBar layout
+- `STATUS_BADGE` component pattern
+
+### Completion Summary
+
+| | Eng |
+|---|---|
+| Architecture | Clean, well-separated |
+| Critical gaps | 3 (enum mismatches, missing delete handlers, no cache invalidation) |
+| Test coverage | 0 — no tests for this feature |
+| Complexity | Medium — forms are long but straightforward |
+| Status | issues_open |
+
+---
+
+## Cross-Phase Themes
+
+**Theme 1: Enum mismatches between frontend and backend** — flagged in CEO (Premise invalid) and Eng (Critical gap). High-confidence signal. Both phases independently identified this as the #1 blocker. **Fix before implementing anything else.**
+
+**Theme 2: Missing backend capabilities (delete handlers)** — flagged in CEO (Premise challenge) and Eng (Failure modes). **Need to create before testing.**
+
+---
+
+## NOT in Scope
+
+Items auto-deferred with rationale:
+
+| Item | Reason | Deferred to |
+|------|--------|-------------|
+| `GET /api/bookings/{id}` endpoint | Ngoài scope "gán vé", nhưng cần cho booking detail page | Phase 2 (full booking detail) |
+| RoomType enum trong frontend | Cần kiểm tra có chưa, có thể dùng string thay | Discovery |
+| Email notification khi vé được gán | Không trong spec | Future |
+| User-facing booking detail page | Hiện dùng sample data, cần kết nối API riêng | Future |
+| Participants/Payments/Team management | Đã nói rõ trong Non-Goals | Future |
+
+---
+
+## What Already Exists
+
+| Component | Location | Status |
+|----------|---------|--------|
+| BookingTransportDetailCommands | `panthora_be/src/Application/...` | ✓ Handler exists |
+| BookingAccommodationDetailCommands | `panthora_be/src/Application/...` | ✓ Handler exists |
+| TransportDetailDto / AccommodationDetailDto | `pathora/frontend/src/types/booking.ts` | ✓ Type exists |
+| BookingStatusEnum (wrong values) | `pathora/frontend/src/types/booking.ts` | ✗ Exists but wrong |
+| TransportTypeEnum (wrong values) | `pathora/frontend/src/types/booking.ts` | ✗ Exists but wrong |
+| React Hook Form + Yup | Project-wide | ✓ Pattern exists |
+| AdminSidebar + TopBar | `src/features/dashboard/components/` | ✓ Layout exists |
+| STATUS_BADGE | `BookingsPageData.ts` | ✓ Component exists |
+
+---
+
+## Decision Audit Trail
+
+| # | Phase | Decision | Principle | Rationale | Rejected |
+|---|-------|----------|-----------|-----------|----------|
+| 1 | CEO | Fix BookingStatusEnum mismatch | P1 (completeness) | Critical — affects all booking UI | — |
+| 2 | CEO | Fix TransportTypeEnum mismatch | P1 (completeness) | Critical — form sends wrong values | — |
+| 3 | CEO | Create Delete handlers | P1 (completeness) | Required for complete CRUD, no workaround | — |
+| 4 | CEO | Expand scope to include GET booking detail endpoint | P2 (boil lakes) | <1 day, needed for page to work | — |
+| 5 | Eng | Split forms into sections (Basic/Ticket/Vehicle/Pricing/Additional) | P5 (explicit) | Reduces cognitive load, easy win | — |
+| 6 | Eng | Add cache invalidation step | P1 (completeness) | Prevent stale data after mutations | — |
+| 7 | Design | Sticky header — recommend but not required | P3 (pragmatic) | Internal tool, acceptable without | — |
+| 8 | Design | Responsive 2-col on tablet+, 1-col on mobile | P5 (explicit) | Specify to prevent implementation divergence | — |
+
+---
+
+## Final Approval Gate
+
+### Plan Summary
+
+Admin Booking Ticket Assignment — thêm UI cho admin gán transport/accommodation details vào booking activities khi booking đã cọc (Deposited+). Backend có handlers sẵn, cần expose HTTP endpoints. Frontend hoàn toàn mới. **3 critical blockers cần fix trước: enum mismatches (frontend/backend) + missing delete handlers.**
+
+### Decisions Made: 8 total (8 auto-decided, 0 choices)
+
+### Taste Decisions: NONE — all decisions auto-decided.
+
+### Review Scores
+
+- **CEO:** 3 critical premise issues (enum mismatches, missing delete handlers, unclear activity creation). GO with conditions.
+- **CEO Voices:** N/A (no git repo)
+- **Design:** 6.1/10 average. Missing: form close behavior, mobile layout, accessibility, interaction states. Good: specificity, hierarchy.
+- **Design Voices:** N/A (no git repo)
+- **Eng:** Solid architecture. 3 critical gaps (enums, delete handlers, cache invalidation). Zero test coverage.
+- **Eng Voices:** N/A (no git repo)
+
+### Auto-Decided: 8 decisions [see Decision Audit Trail above]
+
+### Recommended Tasks Update
+
+Add these tasks to tasks.md (in addition to existing):
+
+```
+## 0. Critical Fixes (DO FIRST)
+
+- [ ] 0.1 Fix BookingStatusEnum in src/types/booking.ts
+  - Add Deposited=3, Paid=4, reorder Cancelled=5, Completed=6
+  - Match backend: Pending=1, Confirmed=2, Deposited=3, Paid=4, Cancelled=5, Completed=6
+
+- [ ] 0.2 Fix TransportTypeEnum in src/types/booking.ts
+  - Match backend: Airplane=1, Bus=2, Train=3, Ship=4, Car=5, Other=99
+  - Change: Bus=1→2, Train=2→3, Flight=3→1(Airplane), Boat=4, Car=5, Other=6→99
+
+- [ ] 0.3 Create DeleteTransportDetailCommand + Handler in BookingTransportDetailCommands.cs
+- [ ] 0.4 Create DeleteAccommodationDetailCommand + Handler in BookingAccommodationDetailCommands.cs
+
+## 8. Cache Invalidation (add to Frontend)
+
+- [ ] 8.1 After create/update/delete transport: invalidate booking cache
+- [ ] 8.2 After create/update/delete accommodation: invalidate booking cache
+
+## 9. Backend Test Coverage (add to Verification)
+
+- [ ] 9.1 Backend: unit tests cho CreateTransportDetailCommand validation
+- [ ] 9.2 Backend: unit tests cho UpdateTransportDetailCommand validation
+- [ ] 9.3 Backend: unit tests cho CreateAccommodationDetailCommand validation
+- [ ] 9.4 Backend: integration test POST/PUT/DELETE /api/bookings/{id}/transport-details
+- [ ] 9.5 Backend: integration test POST/PUT/DELETE /api/bookings/{id}/accommodation-details
+
+## 10. Frontend Validation Tests (add to Verification)
+
+- [ ] 10.1 Yup schema: negative price → error
+- [ ] 10.2 Yup schema: ArrivalAt <= DepartureAt → error
+- [ ] 10.3 Yup schema: SeatCapacity < participants → error
+- [ ] 10.4 Yup schema: CheckOutAt <= CheckInAt → error
+```
+
+---
+
+## /autoplan Review Complete
+
+### Choices for you
+
+**A) Approve as-is** — chấp nhận 8 auto-decisions và bắt đầu implement. Critical fixes (0.1-0.4) sẽ được làm trước.
+
+**B) Approve with overrides** — muốn giữ enum mismatch như hiện tại (không khuyến khích, sẽ gây bug nghiêm trọng).
+
+**C) Interrogate** — hỏi về bất kỳ decision nào.
+
+**D) Revise** — cần thay đổi plan (specs, design, tasks).
+
+**E) Reject** — start over.

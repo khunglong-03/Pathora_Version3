@@ -1,0 +1,386 @@
+# CLAUDE.md — DoAn Workspace
+
+Hướng dẫn vận hành cho Claude khi làm việc với workspace `D:\DoAn`.
+
+---
+
+## Cấu Trúc Workspace
+
+```
+D:\DoAn\
+├── pathora/                          # Repository gốc (git repo)
+│   ├── frontend/                     # Frontend: Next.js 16 admin dashboard ★ĐÂY LÀ FRONTEND★
+│   │   ├── src/
+│   │   │   ├── app/                 # Next.js App Router
+│   │   │   │   ├── (auth)/          # Public routes: login, register, forgot-password
+│   │   │   │   └── (dashboard)/     # Protected routes: dashboard, products, orders...
+│   │   │   ├── components/
+│   │   │   │   ├── ui/              # Primitives: Button, Input, Modal, Dropdown...
+│   │   │   │   └── partials/        # Feature components: orders/, products/, customers/...
+│   │   │   ├── api/                 # Axios instance, endpoints, error handling
+│   │   │   ├── services/             # Domain services (authService, catalogService...)
+│   │   │   ├── store/               # Redux Toolkit slices, RTK Query apiSlice
+│   │   │   ├── contexts/            # AuthContext
+│   │   │   ├── hooks/               # Custom hooks: useAuth, useDarkMode, useRealtimeRefresh...
+│   │   │   ├── i18n/                # i18next: locales/en.json, locales/vi.json
+│   │   │   ├── configs/             # Theme config
+│   │   │   └── utils/               # Helpers: apiResponse.ts, formatters...
+│   │   ├── public/
+│   │   ├── package.json             # dev: port 3003, React 18.3.1, Vitest
+│   │   ├── next.config.ts
+│   │   ├── eslint.config.mjs
+│   │   ├── AGENTS.md                # Frontend-specific rules
+│   │   └── CLAUDE.md                # Frontend-specific guidance
+│   ├── docs/                        # Design docs & plans
+│   ├── openspec/                    # OpenSpec change tracking
+│   └── .github/copilot-instructions.md
+├── panthora_be/                     # Backend: .NET 10 Clean Architecture + CQRS API
+│   ├── src/
+│   │   ├── Api/                     # Controllers, middleware, filters
+│   │   ├── Application/             # CQRS: Commands, Queries, Handlers, Validators
+│   │   ├── Domain/                  # Entities, value objects, domain events
+│   │   └── Infrastructure/          # EF Core, JWT auth, external services
+│   ├── tests/
+│   │   └── Domain.Specs/            # xUnit integration tests
+│   ├── LocalService.slnx
+│   ├── package.json                 # GitNexus CLI scripts
+│   └── README.md                    # Backend build/test/run commands
+├── GitNexus/                        # GitNexus CLI tool (dùng qua MCP tools)
+├── openspec/                        # OpenSpec workspace config
+│   ├── config.yaml
+│   ├── specs/
+│   │   ├── admin-dashboard-routing/
+│   │   ├── admin-tour-request-detail/
+│   │   ├── dashboard-navigation-consistency/
+│   │   └── role-based-redirect/
+│   └── changes/
+│       ├── add-bookings-list-endpoint/
+│       ├── add-tour-continent/
+│       ├── admin-booking-ticket-assignment/
+│       ├── admin-role-based-routing/
+│       ├── archive/                 # Archived changes
+│       ├── fix-*.md                 # Nhiều fix changes
+│       ├── frontend-component-refactor/
+│       ├── hierarchical-admin/
+│       ├── local-postgres-redis-docker/
+│       └── ...
+├── AGENTS.md                        # Workspace-level agent guide
+└── .claude/                         # Claude Opus settings & memory
+```
+
+> **Lưu ý quan trọng về đường dẫn:**
+>
+> - Frontend code ở **`pathora/frontend/`** (KHÔNG PHẢI `pathora/` hay `pathora/frontend/frontend/`)
+> - `pathora/` là git repository root, chứa docs và config ở root level
+> - `panthora_be/` là backend, **không phải** `backend/`
+> - `GitNexus/` chứa CLI tool, dùng qua MCP tools trong Claude Opus
+> - Docs cũ có thể ghi sai port (3000/3001), React version (19), hoặc không có tests. Thực tế: **port 3003, React 18.3.1, Vitest có sẵn**
+
+---
+
+## Lệnh Thực Thi
+
+> **Ưu tiên nguồn lệnh:** `package.json` ghi đè mọi docs khác.
+
+### Frontend (`pathora/frontend/`)
+
+```bash
+npm --prefix "pathora/frontend" ci                                  # Cài dependencies (exact versions)
+npm --prefix "pathora/frontend" run dev                            # Dev server → port 3003
+npm --prefix "pathora/frontend" run dev:turbopack                   # Dev server với Turbopack
+npm --prefix "pathora/frontend" run lint                            # ESLint (Next.js core-web-vitals + TypeScript)
+npm --prefix "pathora/frontend" run build                          # Production build
+npm --prefix "pathora/frontend" run start                          # Production server (sau build)
+npm --prefix "pathora/frontend" run analyze                        # Bundle analysis
+npm --prefix "pathora/frontend" run test                           # Vitest
+npm --prefix "pathora/frontend" run test -- "path/to/test.tsx"     # Chạy một file test
+npm --prefix "pathora/frontend" run test -- "path" -t "name"       # Chạy test theo tên
+```
+
+Frontend scripts thực tế (từ `package.json`):
+
+- `dev` → `next dev --webpack -p 3003`
+- `dev:turbopack` → `next dev -p 3003`
+- `build` → `next build`
+- `start` → `next start -p 3003`
+- `lint` → `eslint`
+- `test` → `vitest run --pool=threads --maxWorkers=1 --no-file-parallelism`
+
+### Backend (`panthora_be/`)
+
+```bash
+dotnet restore "panthora_be/LocalService.slnx"
+dotnet build "panthora_be/LocalService.slnx"
+dotnet build "panthora_be/LocalService.slnx" -c Release
+dotnet test "panthora_be/LocalService.slnx"                               # Tất cả tests
+dotnet test "panthora_be/tests/Domain.Specs/Domain.Specs.csproj"          # Chỉ Domain.Specs
+dotnet test "panthora_be/tests/Domain.Specs/Domain.Specs.csproj" --filter "FullyQualifiedName~TestClassName"
+dotnet format "panthora_be/LocalService.slnx" --verify-no-changes       # Format verification
+dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạy API
+```
+
+### GitNexus (Backend — dùng MCP tools)
+
+```bash
+npm --prefix "panthora_be" ci                          # Cài GitNexus CLI dependencies
+npm --prefix "panthora_be" run gitnexus:status         # Kiểm tra trạng thái index
+npm --prefix "panthora_be" run gitnexus:analyze         # Rebuild index
+npm --prefix "panthora_be" run gitnexus:check          # Refresh + verify (CI workflow)
+```
+
+---
+
+## Kiến Trúc Chi Tiết
+
+### Frontend (`pathora/frontend/`)
+
+| Layer     | Công nghệ                                 | Ghi chú                                                                             |
+| --------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| Framework | Next.js 16 (App Router)                   | React 18.3.1, TypeScript (strict off)                                               |
+| State     | Redux Toolkit + RTK Query + React Context | Global: auth/layout/cart; API: RTK Query; Auth ops: Context                         |
+| API       | Axios (`axiosInstance.ts`)                | Interceptors: bearer token, 401 redirect, language header                           |
+| Auth      | Cookie-based                              | Cookies: `access_token`, `auth_status`, `auth_portal`, `auth_roles`                 |
+| Routing   | App Router route groups                   | `(auth)/` (public), `(dashboard)/` (protected); middleware đọc `auth_status` cookie |
+| Styling   | Tailwind CSS v4 + Sass                    | Dark mode (class-based), RTL, multiple layout modes                                 |
+| i18n      | i18next                                   | Locales: `en`, `vi`                                                                 |
+| Real-time | SignalR (`@microsoft/signalr`)            | `useRealtimeRefresh` hook để trigger refetch                                        |
+| Forms     | React Hook Form + Yup                     | Validation pattern nhất quán                                                        |
+| Env       | `NEXT_PUBLIC_API_GATEWAY`                 | dev: `http://localhost:5182`, prod: `https://api.vivugo.me`                         |
+
+**API Flow:**
+
+```
+Component → Service (authService, catalogService...) → axiosInstance.ts → Backend API
+                         ↓
+              interceptors: inject Bearer token, handle 401, set language header
+```
+
+**Response helpers:** `extractItems<T>()`, `extractResult<T>()`, `extractData<T>()`, `handleApiError()` trong `src/utils/apiResponse.ts`
+
+### Backend (`panthora_be/`)
+
+| Layer         | Công nghệ                 | Ghi chú                                                                                                                 |
+| ------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Framework     | .NET 10, ASP.NET Core     | Clean Architecture                                                                                                      |
+| CQRS          | MediatR                   | Command/Query → Handler → Validator pattern                                                                             |
+| Auth          | JWT Bearer tokens         | `access_token` cookie: `HttpOnly=false` (JS-readable), `SameSite=Lax`, `Secure`=IsHttps. Refresh token: `HttpOnly=true` |
+| Validation    | FluentValidation          | Trong MediatR pipeline behaviors, KHÔNG viết trong controller                                                           |
+| Error flow    | `ErrorOr<T>`              | Expected failures → ErrorOr, KHÔNG throw exceptions                                                                     |
+| API responses | `ResultSharedResponse<T>` | Qua `BaseApiController`, localization-aware                                                                             |
+| Localization  | Built-in .NET             | Success/error messages từ `Application.Common.Constant.ErrorConstants`                                                  |
+| Tests         | xUnit + NSubstitute       | Domain.Specs project                                                                                                    |
+
+### GitNexus (panthora_be/)
+
+Repository `pathora` được GitNexus index. Sử dụng **MCP tools** trong Claude Opus:
+
+- **Trước khi edit bất kỳ symbol nào**: `gitnexus_impact({target: "symbolName", direction: "upstream"})`
+- **Trước khi commit**: `gitnexus_detect_changes({scope: "staged"})`
+- **Trước khi rename**: `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})`
+- **Sau commit**: refresh index qua MCP hoặc `npm --prefix "panthora_be" run gitnexus:analyze`
+
+---
+
+## Quy Tắc Vận Hành
+
+### Nguyên Tắc Chung
+
+- **Không tự động chạy code.** Đây là quy định nghiêm ngặt — xem chi tiết ở phần **"Quy Định Nghiêm Ngặt Về Chạy Code"** bên dưới.
+- **Multi-step work**: Dùng multi-agent approach khi phù hợp.
+- **Conflicting docs**: Ưu tiên `package.json`, `tsconfig.json`, `eslint.config.mjs`, `.csproj`, và tests đang chạy thực tế.
+
+### Frontend-Specific
+
+- Giữ code mới trong `pathora/frontend/src/app`
+- **KHÔNG import** từ `src/pages-legacy` hoặc `src/layout-legacy`
+- Route groups: `(auth)/` (public) và `(dashboard)/` (protected)
+- Ưu tiên shared primitives ở `src/components/ui`, domain components ở `src/components/partials`
+- Dùng backend API làm primary data source cho admin/dashboard pages, tránh hardcoded seed data
+- Dark mode dùng class-based — KHÔNG tạo parallel theme mechanism
+
+### Backend-Specific
+
+- File-scoped namespaces
+- Nullable enabled, warnings as errors
+- `sealed` records/classes, primary constructors khi phù hợp
+- Validation trong FluentValidation validators + MediatR behaviors
+- Controller actions phải thin — business logic ở application services + repositories
+- Dùng `ErrorOr<T>` cho expected failures, KHÔNG throw exceptions cho expected cases
+- Giữ `Program.cs` startup orchestration gọn
+
+---
+
+## Quy Tắc Code
+
+### Frontend Style Guide
+
+| Aspect        | Quy tắc                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| Formatting    | 2-space indent, semicolons, double quotes, LF line endings              |
+| Path aliases  | `@/*` → `pathora/frontend/src/*`                                        |
+| Import order  | React/Next → external packages → `@/` aliases → relative → type imports |
+| Components    | PascalCase: `UserProfile.tsx`, `OrderList.tsx`                          |
+| Hooks         | camelCase + `use` prefix: `useAuth.ts`, `useRealtimeRefresh.ts`         |
+| Utilities     | camelCase: `formatCurrency.ts`, `apiResponse.ts`                        |
+| Constants     | `UPPER_SNAKE_CASE`: `API_ENDPOINTS`, `MAX_UPLOAD_SIZE`                  |
+| Route folders | lowercase: `(dashboard)/orders/page.tsx`                                |
+| TypeScript    | strict off, nhưng tránh `any` — dùng `unknown` + type guards            |
+| Tailwind      | Utility strings là dominant pattern — giữ nguyên style hiện tại         |
+| Forms         | React Hook Form + Yup (pattern đã có sẵn)                               |
+| Middleware    | `"use client"` chỉ khi cần client-side behavior                         |
+
+### Backend Style Guide
+
+| Aspect         | Quy tắc                                                                       |
+| -------------- | ----------------------------------------------------------------------------- |
+| Namespaces     | File-scoped                                                                   |
+| CQRS           | `Command`, `Query`, `Handler`, `Validator` suffix pattern                     |
+| Classes        | `sealed` records/classes khi có thể                                           |
+| Constructors   | Primary constructors ưu tiên                                                  |
+| Error handling | `ErrorOr<T>` cho business failures; KHÔNG throw exceptions cho expected cases |
+| Controller     | Thin actions — logic ở services/repositories                                  |
+| Errors         | Dùng centralized constants từ `ErrorConstants`, localization-aware            |
+
+---
+
+## Validation Gate
+
+Trước khi tuyên bố hoàn thành, **BẮT BUỘC** chạy:
+
+**Frontend:**
+
+```bash
+npm --prefix "pathora/frontend" run lint && npm --prefix "pathora/frontend" run build
+```
+
+**Backend:**
+
+```bash
+dotnet build "panthora_be/LocalService.slnx"
+dotnet test "panthora_be/tests/Domain.Specs/Domain.Specs.csproj"
+```
+
+**Nếu có thay đổi format-sensitive:**
+
+```bash
+dotnet format "panthora_be/LocalService.slnx" --verify-no-changes
+```
+
+---
+
+## Bảo Mật
+
+- **KHÔNG BAO GIỜ** commit secrets, credentials, API keys vào source
+- **KHÔNG BAO GIỜ** auto-commit hoặc auto-push trừ khi user yêu cầu rõ ràng
+- Backend cookies: `access_token` (`HttpOnly=false` để frontend đọc được), refresh token (`HttpOnly=true`)
+- Frontend env: `NEXT_PUBLIC_API_GATEWAY`, `NEXT_PUBLIC_REMOTE_IMAGE_HOSTS` cho `next/image`
+
+---
+
+## Quy Định Nghiêm Ngặt Về Chạy Code
+
+> **QUAN TRỌNG: Claude KHÔNG được tự động chạy bất kỳ code nào.**
+
+- **Không tự động chạy lệnh** build, test, lint, hay dev server. Chỉ chạy khi user yêu cầu rõ ràng hoặc khi validation gate bắt buộc.
+- **Không tự động start/stop** bất kỳ service nào (Next.js dev server, dotnet run, Docker, v.v.).
+- **Không tự động commit, push, hoặc tạo PR.**
+- **Không tự động cài đặt package** (`npm install`, `dotnet add package`, v.v.) trừ khi được yêu cầu.
+- **Luôn chờ user xác nhận** trước khi thực thi bất kỳ lệnh nào ảnh hưởng đến hệ thống.
+- **Việc duy nhất được làm mà không cần hỏi** là đọc file, tìm kiếm code, và trả lời câu hỏi về code.
+
+Nếu user muốn chạy lệnh, họ sẽ nói rõ: "chạy lint", "build thử", "chạy test", v.v.
+
+---
+
+## Tài Liệu Liên Quan
+
+| File                         | Phạm vi                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `AGENTS.md`                  | Workspace-level: commands, architecture rules, validation, safety       |
+| `pathora/AGENTS.md`          | Repository-level: project overview, frontend conventions                |
+| `pathora/frontend/AGENTS.md` | Frontend-specific: component conventions, Cursor workflow               |
+| `pathora/CLAUDE.md`          | Frontend-specific: GitNexus MCP tools reference                         |
+| `panthora_be/README.md`      | Backend: build/test/run commands, GitNexus setup                        |
+| `pathora/docs/`              | Design docs & plans (seed-data-integration, ui-ux-landing, superpowers) |
+| `openspec/changes/`          | 20+ OpenSpec changes: specs, tasks, decisions                           |
+
+---
+
+## GitNexus Quick Reference (MCP Tools)
+
+```typescript
+// Tìm code theo concept
+gitnexus_query({query: "auth validation", limit: 5})
+
+// View 360° của một symbol
+gitnexus_context({name: "validateUser"})
+
+// Blast radius trước khi edit
+gitnexus_impact({target: "X", direction: "upstream"})
+
+// Safe rename
+gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})
+
+// Pre-commit scope check
+gitnexus_detect_changes({scope: "staged"})
+
+// Trace execution flow
+gitnexus_query({query: "UserLogin", goal: "process flows"})
+READ gitnexus://repo/pathora/process/{processName}
+```
+
+**Risk Levels:**
+
+| Depth | Meaning                         | Action           |
+| ----- | ------------------------------- | ---------------- |
+| d=1   | WILL BREAK — direct callers     | MUST update      |
+| d=2   | LIKELY AFFECTED — indirect deps | Should test      |
+| d=3   | MAY NEED TESTING — transitive   | Test if critical |
+
+---
+
+## OpenSpec Changes (Active)
+
+Có **~17 active changes** trong `openspec/changes/`:
+
+| Change                             | Trạng thái                                            |
+| ---------------------------------- | ----------------------------------------------------- |
+| `local-postgres-redis-docker`      | Active — thêm docker-compose local PostgreSQL + Redis |
+| `frontend-component-refactor`      | Active                                                |
+| `hierarchical-admin`               | Active                                                |
+| `add-tour-continent`               | Active                                                |
+| `admin-role-based-routing`         | Active                                                |
+| `manager-restrict-customers-route` | Active                                                |
+| `add-bookings-list-endpoint`       | Active                                                |
+| `admin-booking-ticket-assignment`  | Active                                                |
+| `manage-tour-instance-itinerary`   | Active                                                |
+| `fix-*.md` (nhiều fix)             | Various stages                                        |
+| `archive/`                         | Archived completed changes                            |
+
+Specs (4): `admin-dashboard-routing`, `admin-tour-request-detail`, `dashboard-navigation-consistency`, `role-based-redirect`
+
+---
+
+## Operating Modes
+
+### Solo Mode (Quick Fixes / Questions)
+
+1. Check context: đọc file liên quan trước
+2. Run validation commands khi cần
+3. Implement fix hoặc answer question
+4. Verify với validation gate
+
+### GitNexus-Enhanced Mode (Refactoring / Understanding)
+
+1. Query GitNexus trước khi bắt đầu (`gitnexus_query`)
+2. Run impact analysis cho all symbols sẽ thay đổi (`gitnexus_impact`)
+3. Implement changes
+4. Run detect_changes để verify scope (`gitnexus_detect_changes`)
+5. Commit và refresh index
+
+### OpenSpec Mode (Feature Work)
+
+1. Explore `openspec/changes/` để hiểu scope công việc
+2. Theo dõi PROPOSAL.md, TASKS.md, DECISIONS.md trong từng change
+3. Implement theo tasks đã định nghĩa
+4. Validation gate trước khi hoàn thành

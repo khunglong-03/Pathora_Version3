@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Thông báo đăng ký tài khoản thành công</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+        padding: 20px;
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      .container {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        max-width: 700px;
+        margin: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .success-icon {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 50%;
+        position: relative;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+      }
+
+      .success-icon::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 36px;
+        font-weight: bold;
+      }
+
+      .title {
+        color: #28a745;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 32px;
+      }
+
+      .welcome-message {
+        color: #495057;
+        font-size: 16px;
+        margin-bottom: 32px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+      }
+
+      .credentials-section {
+        margin: 32px 0;
+      }
+
+      .credential-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .info-box {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+        margin: 12px 0 24px 0;
+        word-break: break-all;
+        color: #495057;
+        position: relative;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .info-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .info-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #28a745, #20c997);
+        border-radius: 12px 12px 0 0;
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .info-box:hover .copy-button {
+        opacity: 1;
+      }
+
+      .security-notice {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 32px 0;
+        border-left: 4px solid #ffc107;
+        font-weight: 500;
+        position: relative;
+      }
+
+      .security-notice::before {
+        content: "🔐";
+        position: absolute;
+        top: -8px;
+        left: 20px;
+        background: #ffc107;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+
+      .security-notice strong {
+        color: #856404;
+      }
+
+      .action-buttons {
+        text-align: center;
+        margin: 32px 0;
+      }
+
+      .login-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      .login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+      }
+
+      .footer {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 40px;
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+        font-style: italic;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+      }
+
+      .footer strong {
+        color: #495057;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          padding: 24px;
+        }
+
+        .title {
+          font-size: 24px;
+        }
+
+        .success-icon {
+          width: 60px;
+          height: 60px;
+        }
+
+        .success-icon::after {
+          font-size: 24px;
+        }
+
+        .info-box {
+          font-size: 16px;
+          padding: 16px;
+        }
+
+        .login-button {
+          padding: 12px 24px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="success-icon"></div>
+        <h1 class="title">Chào mừng bạn!</h1>
+        <p class="subtitle">Tài khoản của bạn đã được tạo thành công</p>
+      </div>
+
+      <div class="welcome-message">
+        Thông tin đăng ký tài khoản của bạn đã được phê duyệt thành công. Bạn có
+        thể sử dụng các thông tin dưới đây để đăng nhập vào hệ thống:
+      </div>
+
+      <div class="credentials-section">
+        <p class="credential-label"><strong>Tên đăng nhập:</strong></p>
+        <div class="info-box">
+          {{ email }}
+          <button
+            class="copy-button"
+            onclick="copyToClipboard(this.parentElement)"
+          >
+            Copy
+          </button>
+        </div>
+
+        <p class="credential-label"><strong>Mật khẩu tạm thời:</strong></p>
+        <div class="info-box">
+          {{ password }}
+          <button
+            class="copy-button"
+            onclick="copyToClipboard(this.parentElement)"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="security-notice">
+        <strong>Lưu ý bảo mật:</strong> Vì lý do bảo mật, bạn nên đổi mật khẩu
+        sau lần đăng nhập đầu tiên.
+      </div>
+
+      <div class="footer">
+        <strong>Lưu ý:</strong> Nếu bạn không đăng ký tài khoản hoặc nhận được
+        email này nhầm lẫn, vui lòng liên hệ với bộ phận hỗ trợ để được trợ
+        giúp.
+      </div>
+    </div>
+
+    <script>
+      function copyToClipboard(element) {
+        const text = element.textContent.replace("Copy", "").trim();
+        navigator.clipboard.writeText(text).then(() => {
+          const button = element.querySelector(".copy-button");
+          const originalText = button.textContent;
+          button.textContent = "Copied!";
+          button.style.background = "#20c997";
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = "#28a745";
+          }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>

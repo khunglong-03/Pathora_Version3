@@ -1,0 +1,1107 @@
+using Contracts;
+using Contracts.Interfaces;
+using Application.Common;
+using Application.Common.Constant;
+using Application.Dtos;
+using Application.Features.Tour.Commands;
+using Application.Features.Tour.Queries;
+using Application.Features.Admin.Queries;
+using AutoMapper;
+using Domain.Common.Repositories;
+using Domain.Entities;
+using Domain.Entities.Translations;
+using Domain.Enums;
+using Domain.UnitOfWork;
+using ErrorOr;
+using Microsoft.Extensions.Logging;
+
+namespace Application.Services;
+
+public interface ITourService
+{
+    Task<ErrorOr<Guid>> Create(CreateTourCommand request);
+    Task<ErrorOr<Success>> Update(UpdateTourCommand request);
+    Task<ErrorOr<Success>> Delete(Guid id);
+    Task<ErrorOr<Success>> UpdateStatus(Guid id, TourStatus status);
+    Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request);
+    Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request);
+    Task<ErrorOr<TourDto>> GetDetail(Guid id);
+}
+
+public class TourService(
+    ITourRepository tourRepository,
+    IUser user,
+    IUnitOfWork unitOfWork,
+    IMapper mapper,
+    ILogger<TourService>? logger = null,
+    ILanguageContext? languageContext = null) : ITourService
+{
+    private readonly ITourRepository _tourRepository = tourRepository;
+    private readonly IUser _user = user;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<TourService>? _logger = logger;
+    private readonly ILanguageContext _languageContext = languageContext ?? new FallbackLanguageContext();
+
+    // Tracks created locations within a single Create() call for deduplication.
+    // Key: (normalized name, city, country). Value: created TourPlanLocationEntity.
+    private Dictionary<(string Name, string? City, string? Country), TourPlanLocationEntity>? _locationCache;
+
+    private static ImageEntity ToImageEntity(ImageInputDto dto) =>
+        ImageEntity.Create(dto.FileId, dto.OriginalFileName, dto.FileName, dto.PublicURL);
+
+    private static ImageDto? ToImageDto(ImageEntity? image)
+    {
+        if (image is null)
+        {
+            return null;
+        }
+
+        var hasValue = !string.IsNullOrWhiteSpace(image.FileId)
+            || !string.IsNullOrWhiteSpace(image.OriginalFileName)
+            || !string.IsNullOrWhiteSpace(image.FileName)
+            || !string.IsNullOrWhiteSpace(image.PublicURL);
+
+        return hasValue
+            ? new ImageDto(image.FileId, image.OriginalFileName, image.FileName, image.PublicURL)
+            : null;
+    }
+
+    public async Task<ErrorOr<Guid>> Create(CreateTourCommand request)
+    {
+        _locationCache = new Dictionary<(string Name, string? City, string? Country), TourPlanLocationEntity>();
+        try
+        {
+            var thumbnail = request.Thumbnail is not null ? ToImageEntity(request.Thumbnail) : new ImageEntity();
+            var images = request.Images?.Select(ToImageEntity).ToList() ?? [];
+
+            var tour = TourEntity.Create(
+            request.TourName,
+            request.ShortDescription,
+            request.LongDescription,
+            _user.Id ?? string.Empty,
+            request.Status,
+            tourScope: request.TourScope,
+            customerSegment: request.CustomerSegment,
+            seoTitle: request.SEOTitle,
+            seoDescription: request.SEODescription,
+            thumbnail: thumbnail,
+            images: images,
+            visaPolicyId: request.VisaPolicyId,
+            depositPolicyId: request.DepositPolicyId,
+            pricingPolicyId: request.PricingPolicyId,
+            cancellationPolicyId: request.CancellationPolicyId);
+
+            const int maxTourCodeGenerationAttempts = 10;
+            var tourCodeGenerationAttempts = 0;
+            while (await _tourRepository.ExistsByTourCode(tour.TourCode) && tourCodeGenerationAttempts < maxTourCodeGenerationAttempts)
+            {
+                tour.TourCode = TourEntity.GenerateTourCode();
+                tourCodeGenerationAttempts++;
+            }
+
+            if (await _tourRepository.ExistsByTourCode(tour.TourCode))
+            {
+                return Error.Conflict(
+                    ErrorConstants.Tour.DuplicateCodeCode,
+                    string.Format(ErrorConstants.Tour.DuplicateCodeDescriptionTemplate, tour.TourCode));
+            }
+
+            tour.Translations = NormalizeTranslations(request.Translations);
+
+            // Add Classifications with Plans, Activities, Insurances
+            if (request.Classifications != null)
+            {
+                foreach (var cls in request.Classifications)
+                {
+                    var classification = TourClassificationEntity.Create(
+                        tour.Id,
+                        cls.Name,
+                        cls.BasePrice,
+                        cls.Description,
+                        cls.NumberOfDay,
+                        cls.NumberOfNight,
+                        _user.Id ?? string.Empty);
+                    classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
+
+                    // Add Plans (Days)
+                    foreach (var plan in cls.Plans)
+                    {
+                        var day = TourDayEntity.Create(
+                            classification.Id,
+                            plan.DayNumber,
+                            plan.Title,
+                            _user.Id ?? string.Empty,
+                            plan.Description);
+                        day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
+
+                        // Add Activities
+                        foreach (var act in plan.Activities)
+                        {
+                            var activityOrder = plan.Activities.IndexOf(act) + 1;
+                            var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
+                            TimeOnly? startTime = null;
+                            TimeOnly? endTime = null;
+
+                            if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st))
+                            {
+                                startTime = st;
+                            }
+                            if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et))
+                            {
+                                endTime = et;
+                            }
+
+                            var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
+
+                            var activity = TourDayActivityEntity.Create(
+                                day.Id,
+                                activityOrder,
+                                activityType,
+                                act.Title,
+                                _user.Id ?? string.Empty,
+                                act.Description,
+                                act.Note,
+                                startTime,
+                                endTime,
+                                act.EstimatedCost,
+                                act.IsOptional,
+                                resourceLinks);
+                            activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
+
+                            // Add Routes (Transportations)
+                            foreach (var route in act.Routes)
+                            {
+                                var routeOrder = act.Routes.IndexOf(route) + 1;
+                                var fromLocation = await ResolveLocationAsync(route.FromLocationId, route.FromLocationName, tour.Id);
+                                var toLocation = await ResolveLocationAsync(route.ToLocationId, route.ToLocationName, tour.Id);
+
+                                // Validator guarantees TransportationType is a valid enum — parse with assertion
+                                _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTransportType);
+
+                                var routeEntity = TourPlanRouteEntity.Create(
+                                    routeOrder,
+                                    routeTransportType,
+                                    _user.Id ?? string.Empty,
+                                    route.TransportationName,
+                                    null, // transportationNote
+                                    null, // estimatedDepartureTime
+                                    null, // estimatedArrivalTime
+                                    route.DurationMinutes,
+                                    null, // distanceKm
+                                    route.Price,
+                                    route.TicketInfo,
+                                    route.Note);
+
+                                routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
+
+                                routeEntity.FromLocation = fromLocation;
+                                routeEntity.ToLocation = toLocation;
+                                activity.Routes.Add(routeEntity);
+                            }
+
+                            // Add Accommodation
+                            if (act.Accommodation != null)
+                            {
+                                var parsedRoomType = !string.IsNullOrWhiteSpace(act.Accommodation.RoomType)
+                                    && Enum.TryParse<Domain.Enums.RoomType>(act.Accommodation.RoomType, ignoreCase: true, out var rt)
+                                    ? rt
+                                    : Domain.Enums.RoomType.Double;
+
+                                var accommodation = TourPlanAccommodationEntity.Create(
+                                    act.Accommodation.AccommodationName,
+                                    parsedRoomType,
+                                    act.Accommodation.RoomCapacity ?? 2,
+                                    Domain.Enums.MealType.None,
+                                    _user.Id ?? string.Empty,
+                                    act.Accommodation.CheckInTime != null && TimeOnly.TryParse(act.Accommodation.CheckInTime, out var cit) ? cit : null,
+                                    act.Accommodation.CheckOutTime != null && TimeOnly.TryParse(act.Accommodation.CheckOutTime, out var cot) ? cot : null,
+                                    null, // roomPrice
+                                    null, // numberOfRooms
+                                    null, // numberOfNights
+                                    null, // totalPrice
+                                    null, // specialRequest
+                                    act.Accommodation.Address,
+                                    null, // city
+                                    act.Accommodation.ContactPhone,
+                                    null, // website
+                                    null, // imageUrl
+                                    null, // latitude
+                                    null, // longitude
+                                    act.Accommodation.Note);
+
+                                accommodation.Translations = NormalizeTranslationsFromPayload(act.Accommodation.Translations);
+                                activity.Accommodation = accommodation;
+                            }
+
+                            day.Activities.Add(activity);
+                        }
+
+                        classification.Plans.Add(day);
+                    }
+
+                    // Add Insurances
+                    foreach (var ins in cls.Insurances)
+                    {
+                        var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
+
+                        var insurance = TourInsuranceEntity.Create(
+                            ins.InsuranceName,
+                            insuranceType,
+                            ins.InsuranceProvider,
+                            ins.CoverageDescription,
+                            ins.CoverageAmount,
+                            ins.CoverageFee,
+                            _user.Id ?? string.Empty,
+                            ins.IsOptional,
+                            ins.Note);
+                        insurance.Translations = NormalizeTranslationsFromPayload(ins.Translations);
+
+                        classification.Insurances.Add(insurance);
+                    }
+
+                    tour.Classifications.Add(classification);
+                }
+            }
+
+            // Standalone Accommodations, Locations, Transportations and Services are persisted as TourResources
+            if (request.Accommodations?.Count > 0)
+            {
+                foreach (var acc in request.Accommodations)
+                {
+                    var resource = TourResourceEntity.Create(
+                        tour.Id,
+                        TourResourceType.Accommodation,
+                        acc.AccommodationName,
+                        _user.Id ?? string.Empty,
+                        address: acc.Address,
+                        contactPhone: acc.ContactPhone,
+                        checkInTime: acc.CheckInTime,
+                        checkOutTime: acc.CheckOutTime,
+                        note: acc.Note);
+                    tour.Resources.Add(resource);
+                }
+            }
+            if (request.Locations?.Count > 0)
+            {
+                foreach (var loc in request.Locations)
+                {
+                    // Validator guarantees LocationType is a valid enum
+                    _ = EnumHelper.TryParseDefinedEnum<LocationType>(loc.LocationType, out var locType);
+                    var entity = TourPlanLocationEntity.Create(
+                        loc.LocationName,
+                        locType,
+                        _user.Id ?? string.Empty,
+                        tour.Id,
+                        locationDescription: loc.Description,
+                        address: loc.Address,
+                        city: loc.City,
+                        country: loc.Country,
+                        entranceFee: loc.EntranceFee);
+                    entity.Translations = NormalizeTranslationsFromPayload(loc.Translations);
+                    tour.PlanLocations.Add(entity);
+                }
+            }
+            if (request.Transportations?.Count > 0)
+            {
+                foreach (var tr in request.Transportations)
+                {
+                    var name = NormalizeTransportationName(tr);
+                    var resource = TourResourceEntity.Create(
+                        tour.Id,
+                        TourResourceType.Transportation,
+                        name,
+                        _user.Id ?? string.Empty,
+                        transportationType: tr.TransportationType,
+                        transportationName: tr.TransportationName,
+                        durationMinutes: tr.DurationMinutes,
+                        price: tr.Price,
+                        pricingType: tr.PricingType,
+                        requiresIndividualTicket: tr.RequiresIndividualTicket,
+                        ticketInfo: tr.TicketInfo,
+                        note: tr.Note,
+                        fromLocationId: tr.FromLocationId,
+                        toLocationId: tr.ToLocationId);
+                    resource.Translations = NormalizeTransportationTranslations(tr.Translations);
+                    tour.Resources.Add(resource);
+                }
+            }
+            if (request.Services?.Count > 0)
+            {
+                foreach (var svc in request.Services)
+                {
+                    var resource = TourResourceEntity.Create(
+                        tour.Id,
+                        TourResourceType.Service,
+                        svc.ServiceName,
+                        _user.Id ?? string.Empty,
+                        contactEmail: svc.Email,
+                        contactPhone: svc.ContactNumber,
+                        price: svc.Price ?? svc.SalePrice,
+                        pricingType: svc.PricingType);
+                    tour.Resources.Add(resource);
+                }
+            }
+
+            await _tourRepository.Create(tour);
+            await _unitOfWork.SaveChangeAsync();
+            return tour.Id;
+        }
+        finally
+        {
+            _locationCache = null;
+        }
+    }
+
+    public async Task<ErrorOr<Success>> Update(UpdateTourCommand request)
+    {
+        var tour = await _tourRepository.FindByIdForUpdate(request.Id);
+        if (tour is null)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        if (await _tourRepository.ExistsByTourCode(tour.TourCode, request.Id))
+            return Error.Conflict(
+                ErrorConstants.Tour.DuplicateCodeCode,
+                string.Format(ErrorConstants.Tour.DuplicateCodeDescriptionTemplate, tour.TourCode));
+
+        // Update thumbnail in-place if provided (avoids shared-type EF Core issue)
+        // Update images in-place — EF Core can track owned entities this way
+        if (request.Thumbnail is not null)
+        {
+            tour.Thumbnail ??= new ImageEntity();
+            tour.Thumbnail.FileId = request.Thumbnail.FileId;
+            tour.Thumbnail.OriginalFileName = request.Thumbnail.OriginalFileName;
+            tour.Thumbnail.FileName = request.Thumbnail.FileName;
+            tour.Thumbnail.PublicURL = request.Thumbnail.PublicURL;
+        }
+
+        // Update Images in-place — EF Core can track owned entities this way
+        if (request.Images is not null)
+        {
+            var newFileIds = request.Images.Where(i => i.FileId is not null).Select(i => i.FileId!).ToHashSet();
+            // Remove images not in the new list
+            var toRemove = tour.Images.Where(i => i.FileId is null || !newFileIds.Contains(i.FileId)).ToList();
+            foreach (var img in toRemove) tour.Images.Remove(img);
+
+            // Update or add images
+            foreach (var dto in request.Images)
+            {
+                var existing = tour.Images.FirstOrDefault(i => i.FileId == dto.FileId);
+                if (existing is not null)
+                {
+                    existing.OriginalFileName = dto.OriginalFileName;
+                    existing.FileName = dto.FileName;
+                    existing.PublicURL = dto.PublicURL;
+                }
+                else
+                {
+                    tour.Images.Add(new ImageEntity
+                    {
+                        FileId = dto.FileId,
+                        OriginalFileName = dto.OriginalFileName,
+                        FileName = dto.FileName,
+                        PublicURL = dto.PublicURL,
+                    });
+                }
+            }
+        }
+
+        tour.Update(
+            request.TourName,
+            request.ShortDescription,
+            request.LongDescription,
+            request.Status,
+            _user.Id ?? string.Empty,
+            tourScope: request.TourScope,
+            customerSegment: request.CustomerSegment,
+            seoTitle: request.SEOTitle,
+            seoDescription: request.SEODescription,
+            visaPolicyId: request.VisaPolicyId,
+            depositPolicyId: request.DepositPolicyId,
+            pricingPolicyId: request.PricingPolicyId,
+            cancellationPolicyId: request.CancellationPolicyId);
+        MergeTranslations(tour, request.Translations);
+
+        // Nested classifications update (upsert)
+        if (request.Classifications != null)
+        {
+            await UpdateClassificationsAsync(tour, request.Classifications);
+        }
+
+        // Cascade soft-delete removed classifications and their nested entities
+        if (request.DeletedClassificationIds != null && request.DeletedClassificationIds.Count > 0)
+        {
+            await CascadeDeleteClassificationsAsync(tour, request.DeletedClassificationIds);
+        }
+
+        // Cascade soft-delete removed activities and their nested routes/accommodations
+        if (request.DeletedActivityIds != null && request.DeletedActivityIds.Count > 0)
+        {
+            await CascadeDeleteActivitiesAsync(tour, request.DeletedActivityIds);
+        }
+
+        // Standalone Accommodations, Locations, Transportations and Services are merged as TourResources
+        if (request.Accommodations?.Count > 0)
+        {
+            foreach (var acc in request.Accommodations)
+            {
+                var resource = TourResourceEntity.Create(
+                    tour.Id,
+                    TourResourceType.Accommodation,
+                    acc.AccommodationName,
+                    _user.Id ?? string.Empty,
+                    address: acc.Address,
+                    contactPhone: acc.ContactPhone,
+                    checkInTime: acc.CheckInTime,
+                    checkOutTime: acc.CheckOutTime,
+                    note: acc.Note);
+                tour.Resources.Add(resource);
+            }
+        }
+        if (request.Locations?.Count > 0)
+        {
+            foreach (var loc in request.Locations)
+            {
+                // Validator guarantees LocationType is a valid enum
+                _ = EnumHelper.TryParseDefinedEnum<LocationType>(loc.LocationType, out var locType);
+                var entity = TourPlanLocationEntity.Create(
+                    loc.LocationName,
+                    locType,
+                    _user.Id ?? string.Empty,
+                    tour.Id,
+                    locationDescription: loc.Description,
+                    address: loc.Address,
+                    city: loc.City,
+                    country: loc.Country,
+                    entranceFee: loc.EntranceFee);
+                entity.Translations = NormalizeTranslationsFromPayload(loc.Translations);
+                tour.PlanLocations.Add(entity);
+            }
+        }
+        if (request.Transportations?.Count > 0)
+        {
+            foreach (var tr in request.Transportations)
+            {
+                var name = NormalizeTransportationName(tr);
+                var resource = TourResourceEntity.Create(
+                    tour.Id,
+                    TourResourceType.Transportation,
+                    name,
+                    _user.Id ?? string.Empty,
+                    transportationType: tr.TransportationType,
+                    transportationName: tr.TransportationName,
+                    durationMinutes: tr.DurationMinutes,
+                    price: tr.Price,
+                    pricingType: tr.PricingType,
+                    requiresIndividualTicket: tr.RequiresIndividualTicket,
+                    ticketInfo: tr.TicketInfo,
+                    note: tr.Note,
+                    fromLocationId: tr.FromLocationId,
+                    toLocationId: tr.ToLocationId);
+                resource.Translations = NormalizeTransportationTranslations(tr.Translations);
+                tour.Resources.Add(resource);
+            }
+        }
+        if (request.Services?.Count > 0)
+        {
+            foreach (var svc in request.Services)
+            {
+                var resource = TourResourceEntity.Create(
+                    tour.Id,
+                    TourResourceType.Service,
+                    svc.ServiceName,
+                    _user.Id ?? string.Empty,
+                    contactEmail: svc.Email,
+                    contactPhone: svc.ContactNumber,
+                    price: svc.Price ?? svc.SalePrice,
+                    pricingType: svc.PricingType);
+                resource.Translations = NormalizeTranslationsFromPayload(svc.Translations);
+                tour.Resources.Add(resource);
+            }
+        }
+
+        await _tourRepository.Update(tour);
+        try
+        {
+            await _unitOfWork.SaveChangeAsync();
+            return Result.Success;
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            return Error.Conflict(
+                ErrorConstants.Tour.ConcurrencyConflictCode,
+                "Tour was modified by another user. Please refresh and try again.");
+        }
+    }
+
+    public async Task<ErrorOr<Success>> Delete(Guid id)
+    {
+        var tour = await _tourRepository.FindById(id);
+        if (tour is null)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        var performedBy = _user.Id ?? string.Empty;
+        CascadeSoftDelete(tour, performedBy);
+        await _unitOfWork.SaveChangeAsync();
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> UpdateStatus(Guid id, TourStatus status)
+    {
+        var userId = _user.Id ?? string.Empty;
+        var rowsAffected = await _tourRepository.UpdateStatus(id, status, userId);
+        if (rowsAffected == 0)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Recursively soft-deletes the tour entity and all its nested entities
+    /// (Classifications, Plans, Activities, Routes, Locations, Insurances, Resources, Accommodations).
+    /// </summary>
+    private static void CascadeSoftDelete(TourEntity tour, string performedBy)
+    {
+        tour.SoftDelete(performedBy);
+
+        foreach (var classification in tour.Classifications)
+        {
+            CascadeSoftDeleteClassification(classification, performedBy);
+        }
+
+        foreach (var resource in tour.Resources)
+        {
+            resource.SoftDelete(performedBy);
+        }
+
+        foreach (var location in tour.PlanLocations)
+        {
+            location.SoftDelete(performedBy);
+        }
+    }
+
+    private static void CascadeSoftDeleteClassification(TourClassificationEntity classification, string performedBy)
+    {
+        classification.SoftDelete(performedBy);
+
+        foreach (var plan in classification.Plans)
+        {
+            CascadeSoftDeletePlan(plan, performedBy);
+        }
+
+        foreach (var insurance in classification.Insurances)
+        {
+            insurance.SoftDelete(performedBy);
+        }
+    }
+
+    private static void CascadeSoftDeletePlan(TourDayEntity plan, string performedBy)
+    {
+        plan.SoftDelete(performedBy);
+
+        foreach (var activity in plan.Activities)
+        {
+            CascadeSoftDeleteActivity(activity, performedBy);
+        }
+    }
+
+    private static void CascadeSoftDeleteActivity(TourDayActivityEntity activity, string performedBy)
+    {
+        activity.SoftDelete(performedBy);
+
+        if (activity.Accommodation != null)
+        {
+            activity.Accommodation.SoftDelete(performedBy);
+        }
+
+        foreach (var link in activity.ResourceLinks)
+        {
+            link.SoftDelete(performedBy);
+        }
+
+        foreach (var route in activity.Routes)
+        {
+            CascadeSoftDeleteRoute(route, performedBy);
+        }
+    }
+
+    private static void CascadeSoftDeleteRoute(TourPlanRouteEntity route, string performedBy)
+    {
+        route.SoftDelete(performedBy);
+
+        if (route.FromLocation != null)
+        {
+            route.FromLocation.SoftDelete(performedBy);
+        }
+
+        if (route.ToLocation != null)
+        {
+            route.ToLocation.SoftDelete(performedBy);
+        }
+    }
+
+    public async Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request)
+    {
+        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize);
+        var total = await _tourRepository.CountAll(request.SearchText);
+        var currentLanguage = _languageContext.CurrentLanguage;
+
+        var tourVms = tours.Select(t =>
+        {
+            var translated = t.ResolveTranslation(currentLanguage);
+            return new TourVm(
+                t.Id,
+                t.TourCode,
+                translated.TourName,
+                translated.ShortDescription,
+                t.Status.ToString(),
+                ToImageDto(t.Thumbnail),
+                t.CreatedOnUtc);
+        }).ToList();
+
+        return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);
+    }
+
+    public async Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request)
+    {
+        var tours = await _tourRepository.FindAllAdmin(request.SearchText, request.Status, request.PageNumber, request.PageSize);
+        var total = await _tourRepository.CountAllAdmin(request.SearchText, request.Status);
+        var currentLanguage = _languageContext.CurrentLanguage;
+
+        var tourVms = tours.Select(t =>
+        {
+            var translated = t.ResolveTranslation(currentLanguage);
+            return new TourVm(
+                t.Id,
+                t.TourCode,
+                translated.TourName,
+                translated.ShortDescription,
+                t.Status.ToString(),
+                ToImageDto(t.Thumbnail),
+                t.CreatedOnUtc);
+        }).ToList();
+
+        return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);
+    }
+
+    public async Task<ErrorOr<TourDto>> GetDetail(Guid id)
+    {
+        var tour = await _tourRepository.FindById(id, asNoTracking: true);
+        if (tour is null)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        tour.ApplyResolvedTranslations(_languageContext.CurrentLanguage);
+        return _mapper.Map<TourDto>(tour);
+    }
+
+    private static Dictionary<string, TourTranslationData> NormalizeTranslations(
+        Dictionary<string, TourTranslationData>? translations)
+    {
+        var result = new Dictionary<string, TourTranslationData>(StringComparer.OrdinalIgnoreCase);
+        if (translations is null || translations.Count == 0)
+        {
+            return result;
+        }
+
+        foreach (var translation in translations)
+        {
+            if (string.IsNullOrWhiteSpace(translation.Key) || translation.Value is null)
+            {
+                continue;
+            }
+
+            result[translation.Key.ToLowerInvariant()] = translation.Value;
+        }
+
+        return result;
+    }
+
+    private static Dictionary<string, TTranslation> NormalizeTranslationsFromPayload<TTranslation>(
+        Dictionary<string, TTranslation>? translations) where TTranslation : class
+    {
+        if (translations == null || translations.Count == 0)
+            return [];
+        return translations.ToDictionary(
+            kvp => kvp.Key.ToLowerInvariant(),
+            kvp => kvp.Value,
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Resolves a location: uses the provided LocationId if available,
+    /// otherwise looks up or creates a TourPlanLocationEntity for the given name.
+    /// Deduplication is performed within the current Create() call.
+    /// </summary>
+    private async Task<TourPlanLocationEntity> ResolveLocationAsync(Guid? locationId, string? locationName, Guid tourId)
+    {
+        if (locationId.HasValue && locationId != Guid.Empty)
+        {
+            // Reference to an existing location — fetch the actual entity from DB
+            var existingLocation = await _tourRepository.FindLocationByIdAsync(locationId.Value);
+            if (existingLocation != null)
+            {
+                // Update the TourId to point to the current tour and return the fetched entity
+                existingLocation.TourId = tourId;
+                return existingLocation;
+            }
+            // Fallback to stub if not found
+            return TourPlanLocationEntity.Create(
+                locationName ?? "Referenced Location",
+                LocationType.Other,
+                _user.Id ?? string.Empty,
+                tourId);
+        }
+
+        if (string.IsNullOrWhiteSpace(locationName))
+        {
+            return TourPlanLocationEntity.Create(
+                "Unknown",
+                LocationType.Other,
+                _user.Id ?? string.Empty,
+                tourId);
+        }
+
+        var key = (locationName.Trim(), (string?)null, (string?)null);
+        if (_locationCache!.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var location = TourPlanLocationEntity.Create(
+            locationName.Trim(),
+            LocationType.Other,
+            _user.Id ?? string.Empty,
+            tourId);
+        _locationCache[key] = location;
+        return location;
+    }
+
+    /// <summary>
+    /// Builds the display name for a Transportation resource.
+    /// If translations are provided, resolves the current language name; otherwise falls back to
+    /// "FromLocationName -> ToLocationName" or the TransportationName.
+    /// </summary>
+    private static string NormalizeTransportationName(TransportationDto dto)
+    {
+        if (dto.Translations != null && dto.Translations.Count > 0)
+        {
+            var lang = dto.Translations.Keys.FirstOrDefault(k => k.Equals("vi", StringComparison.OrdinalIgnoreCase))
+                ?? dto.Translations.Keys.First();
+            if (dto.Translations.TryGetValue(lang, out var data) && data != null)
+            {
+                var from = data.FromLocationName ?? dto.FromLocationName ?? "";
+                var to = data.ToLocationName ?? dto.ToLocationName ?? "";
+                var name = data.TransportationName ?? dto.TransportationName;
+                if (!string.IsNullOrWhiteSpace(name)) return name;
+                if (!string.IsNullOrWhiteSpace(from) || !string.IsNullOrWhiteSpace(to))
+                    return $"{from} -> {to}";
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.FromLocationName) || !string.IsNullOrWhiteSpace(dto.ToLocationName))
+        {
+            return $"{dto.FromLocationName} -> {dto.ToLocationName}";
+        }
+
+        return dto.TransportationName ?? dto.TransportationType;
+    }
+
+    private static Dictionary<string, Domain.Entities.Translations.TourResourceTranslationData> NormalizeTransportationTranslations(
+        Dictionary<string, TourTransportationTranslationData>? translations)
+    {
+        if (translations == null || translations.Count == 0)
+            return [];
+        return translations.ToDictionary(
+            kvp => kvp.Key.ToLowerInvariant(),
+            kvp => new Domain.Entities.Translations.TourResourceTranslationData
+            {
+                FromLocationName = kvp.Value.FromLocationName,
+                ToLocationName = kvp.Value.ToLocationName,
+                TransportationName = kvp.Value.TransportationName,
+                TicketInfo = kvp.Value.TicketInfo,
+                Note = kvp.Value.Note
+            },
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static IEnumerable<(string Url, int Order)> NormalizeResourceLinks(List<string>? links)
+    {
+        if (links is null || links.Count == 0)
+        {
+            return [];
+        }
+
+        // Trim and filter empty/whitespace
+        var filtered = links
+            .Select(l => l?.Trim())
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .DistinctBy(l => l!.ToLowerInvariant())
+            .ToList();
+
+        // Preserve order: assign sequential order (1-based) preserving first-occurrence order
+        return filtered.Select((l, i) => (Url: l!, Order: i + 1));
+    }
+
+    private static void MergeTranslations(TourEntity tour, Dictionary<string, TourTranslationData>? translations)
+    {
+        if (translations is null || translations.Count == 0)
+        {
+            return;
+        }
+
+        var normalized = NormalizeTranslations(translations);
+        foreach (var translation in normalized)
+        {
+            tour.Translations[translation.Key] = translation.Value;
+        }
+    }
+
+    private async Task UpdateClassificationsAsync(TourEntity tour, List<ClassificationDto> classifications)
+    {
+        foreach (var cls in classifications)
+        {
+            TourClassificationEntity? classification;
+            var classificationId = cls.Id;
+
+            if (classificationId.HasValue && classificationId != Guid.Empty)
+            {
+                classification = tour.Classifications.FirstOrDefault(c => c.Id == classificationId!.Value);
+                if (classification == null) continue;
+
+                classification.Update(cls.Name, cls.BasePrice, cls.Description, cls.NumberOfDay, cls.NumberOfNight, _user.Id ?? string.Empty);
+                classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
+            }
+            else
+            {
+                classification = TourClassificationEntity.Create(
+                    tour.Id, cls.Name, cls.BasePrice, cls.Description,
+                    cls.NumberOfDay, cls.NumberOfNight, _user.Id ?? string.Empty);
+                classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
+                tour.Classifications.Add(classification);
+            }
+
+            await UpdatePlansAsync(classification, cls.Plans);
+
+            // Update Insurances
+            foreach (var ins in cls.Insurances)
+            {
+                var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
+
+                var insurance = TourInsuranceEntity.Create(
+                    ins.InsuranceName,
+                    insuranceType,
+                    ins.InsuranceProvider,
+                    ins.CoverageDescription,
+                    ins.CoverageAmount,
+                    ins.CoverageFee,
+                    _user.Id ?? string.Empty,
+                    ins.IsOptional,
+                    ins.Note);
+                insurance.Translations = NormalizeTranslationsFromPayload(ins.Translations);
+
+                classification.Insurances.Add(insurance);
+            }
+        }
+    }
+
+    private async Task UpdatePlansAsync(TourClassificationEntity classification, List<DayPlanDto> plans)
+    {
+        foreach (var plan in plans)
+        {
+            TourDayEntity? day;
+            var planId = plan.Id;
+
+            if (planId.HasValue && planId != Guid.Empty)
+            {
+                day = classification.Plans.FirstOrDefault(p => p.Id == planId!.Value);
+                if (day == null) continue;
+
+                day.Update(plan.DayNumber, plan.Title, _user.Id ?? string.Empty, plan.Description);
+                day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
+            }
+            else
+            {
+                day = TourDayEntity.Create(
+                    classification.Id, plan.DayNumber, plan.Title,
+                    _user.Id ?? string.Empty, plan.Description);
+                day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
+                classification.Plans.Add(day);
+            }
+
+            await UpdateActivitiesAsync(classification.TourId, day, plan.Activities);
+        }
+    }
+
+    private async Task UpdateActivitiesAsync(Guid tourId, TourDayEntity day, List<ActivityDto> activities)
+    {
+        foreach (var act in activities)
+        {
+            TourDayActivityEntity? activity;
+            var activityId = act.Id;
+
+            if (activityId.HasValue && activityId != Guid.Empty)
+            {
+                activity = day.Activities.FirstOrDefault(a => a.Id == activityId!.Value);
+                if (activity == null) continue;
+
+                var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
+                TimeOnly? startTime = null;
+                TimeOnly? endTime = null;
+                if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
+                if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
+
+                activity.Update(day.Activities.IndexOf(activity) + 1, activityType, act.Title, _user.Id ?? string.Empty,
+                    act.Description, act.Note, startTime, endTime, act.EstimatedCost, act.IsOptional);
+                activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
+
+                // Replace ResourceLinks
+                activity.ResourceLinks.Clear();
+                var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
+                foreach (var link in resourceLinks)
+                {
+                    activity.ResourceLinks.Add(TourDayActivityResourceLinkEntity.Create(
+                        activity.Id, link.Url, link.Order, _user.Id ?? string.Empty));
+                }
+
+                // Replace Routes (upsert)
+                activity.Routes.Clear();
+                foreach (var route in act.Routes)
+                {
+                    var routeOrder = act.Routes.IndexOf(route) + 1;
+                    // Validator guarantees TransportationType is a valid enum — use helper
+                    _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTypeEnum);
+                    var transportationType = routeTypeEnum;
+                    var fromLocation = TourPlanLocationEntity.Create(
+                        route.FromLocationName ?? string.Empty,
+                        LocationType.Other,
+                        _user.Id ?? string.Empty,
+                        tourId,
+                        tourDayActivityId: day.Id);
+                    var toLocation = TourPlanLocationEntity.Create(
+                        route.ToLocationName ?? string.Empty,
+                        LocationType.Other,
+                        _user.Id ?? string.Empty,
+                        tourId,
+                        tourDayActivityId: day.Id);
+                    var routeEntity = TourPlanRouteEntity.Create(
+                        routeOrder,
+                        transportationType,
+                        _user.Id ?? string.Empty,
+                        route.TransportationName,
+                        null,
+                        null,
+                        null,
+                        route.DurationMinutes,
+                        null,
+                        route.Price,
+                        route.TicketInfo,
+                        route.Note);
+                    routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
+                    routeEntity.FromLocation = fromLocation;
+                    routeEntity.ToLocation = toLocation;
+                    // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
+                    // shared location entities when multiple routes reference the same location.
+                    activity.Routes.Add(routeEntity);
+                }
+            }
+            else
+            {
+                var activityOrder = day.Activities.Count + 1;
+                var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
+                TimeOnly? startTime = null;
+                TimeOnly? endTime = null;
+                if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
+                if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
+
+                var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
+                activity = TourDayActivityEntity.Create(
+                    day.Id, activityOrder, activityType, act.Title,
+                    _user.Id ?? string.Empty, act.Description, act.Note,
+                    startTime, endTime, act.EstimatedCost, act.IsOptional, resourceLinks);
+                activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
+
+                // Add routes for new activity
+                foreach (var route in act.Routes)
+                {
+                    var routeOrder = act.Routes.IndexOf(route) + 1;
+                    // Validator guarantees TransportationType is a valid enum — use helper
+                    _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTypeEnum);
+                    var transportationType = routeTypeEnum;
+                    var fromLocation = TourPlanLocationEntity.Create(
+                        route.FromLocationName ?? string.Empty,
+                        LocationType.Other,
+                        _user.Id ?? string.Empty,
+                        tourId,
+                        tourDayActivityId: day.Id);
+                    var toLocation = TourPlanLocationEntity.Create(
+                        route.ToLocationName ?? string.Empty,
+                        LocationType.Other,
+                        _user.Id ?? string.Empty,
+                        tourId,
+                        tourDayActivityId: day.Id);
+                    var routeEntity = TourPlanRouteEntity.Create(
+                        routeOrder,
+                        transportationType,
+                        _user.Id ?? string.Empty,
+                        route.TransportationName,
+                        null,
+                        null,
+                        null,
+                        route.DurationMinutes,
+                        null,
+                        route.Price,
+                        route.TicketInfo,
+                        route.Note);
+                    routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
+                    routeEntity.FromLocation = fromLocation;
+                    routeEntity.ToLocation = toLocation;
+                    // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
+                    // shared location entities when multiple routes reference the same location.
+                    activity.Routes.Add(routeEntity);
+                }
+
+                day.Activities.Add(activity);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Cascade soft-deletes classifications and all their nested entities
+    /// (Plans, Activities, Routes, Locations, Insurances, Accommodations).
+    /// </summary>
+    private async Task CascadeDeleteClassificationsAsync(TourEntity tour, List<Guid> deletedIds)
+    {
+        var deletedSet = new HashSet<Guid>(deletedIds);
+        var toDelete = tour.Classifications.Where(c => deletedSet.Contains(c.Id)).ToList();
+
+        foreach (var classification in toDelete)
+        {
+            CascadeSoftDeleteClassification(classification, _user.Id ?? string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Cascade soft-deletes standalone activities (from day plans) and their
+    /// nested routes and accommodations.
+    /// </summary>
+    private async Task CascadeDeleteActivitiesAsync(TourEntity tour, List<Guid> deletedActivityIds)
+    {
+        var deletedSet = new HashSet<Guid>(deletedActivityIds);
+        foreach (var classification in tour.Classifications)
+        {
+            foreach (var plan in classification.Plans)
+            {
+                var toDelete = plan.Activities.Where(a => deletedSet.Contains(a.Id)).ToList();
+                foreach (var activity in toDelete)
+                {
+                    CascadeSoftDeleteActivity(activity, _user.Id ?? string.Empty);
+                }
+            }
+        }
+    }
+
+    private sealed class FallbackLanguageContext : ILanguageContext
+    {
+        public string CurrentLanguage { get; set; } = ILanguageContext.DefaultLanguage;
+    }
+}

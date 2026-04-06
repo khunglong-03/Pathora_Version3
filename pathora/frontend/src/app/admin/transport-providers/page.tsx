@@ -1,0 +1,163 @@
+"use client";
+
+import React, { useCallback, useEffect, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { adminService } from "@/api/services/adminService";
+import type { TransportProviderListItem, PaginatedList } from "@/types/admin";
+import {
+  AdminPageHeader,
+  AdminKpiStrip,
+  AdminFilterTabs,
+  AdminEmptyState,
+  AdminErrorCard,
+} from "@/features/dashboard/components";
+import { TransportProviderCard } from "@/features/dashboard/components/TransportProviderCard";
+import TextInput from "@/components/ui/TextInput";
+import { SkeletonTable } from "@/components/ui/SkeletonTable";
+import Pagination from "@/components/ui/Pagination";
+
+type StatusFilter = "all" | "Active" | "Inactive";
+
+const STATUS_TABS: Array<{ label: string; value: StatusFilter }> = [
+  { label: "Tất cả", value: "all" },
+  { label: "Hoạt động", value: "Active" },
+  { label: "Ngừng", value: "Inactive" },
+];
+
+export default function TransportProvidersPage() {
+  const [providers, setProviders] = useState<TransportProviderListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  const loadProviders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const params: Parameters<typeof adminService.getTransportProviders>[0] = {
+      page: currentPage,
+      limit: 12,
+      search: debouncedSearch || undefined,
+      ...(statusFilter !== "all" && { status: statusFilter }),
+    };
+
+    const result = await adminService.getTransportProviders(params);
+
+    if (result && typeof result === "object" && "items" in result) {
+      const data = result as PaginatedList<TransportProviderListItem>;
+      setProviders(data.items);
+      setTotalPages(data.totalPages);
+      setTotal(data.total);
+    } else {
+      setProviders([]);
+    }
+    setIsLoading(false);
+  }, [currentPage, debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    void loadProviders();
+  }, [loadProviders]);
+
+  const handleRefresh = () => setReloadToken((t) => t + 1);
+
+  const activeCount = providers.filter((p) => p.status === "Active").length;
+  const totalBookings = providers.reduce((sum, p) => sum + (p.bookingCount ?? 0), 0);
+
+  const kpis = [
+    {
+      label: "Tổng nhà cung cấp",
+      value: total.toString(),
+      icon: "Van",
+      accent: "#0D9488",
+    },
+    {
+      label: "Đang hoạt động",
+      value: activeCount.toString(),
+      icon: "CheckCircle",
+      accent: "#22C55E",
+    },
+    {
+      label: "Tổng đặt xe",
+      value: totalBookings.toString(),
+      icon: "Ticket",
+      accent: "#C9873A",
+    },
+  ];
+
+  const tabsWithCounts = STATUS_TABS.map((tab) => ({
+    ...tab,
+    count: tab.value === "all" ? total : (tab.value === "Active" ? activeCount : total - activeCount),
+  }));
+
+  return (
+    <div className="p-6">
+      <AdminPageHeader
+        title="Nhà cung cấp Vận tải"
+        subtitle="Quản lý các đối tác vận chuyển"
+        onRefresh={handleRefresh}
+      />
+
+      {/* KPI Strip */}
+      <AdminKpiStrip kpis={kpis} />
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+        <AdminFilterTabs
+          tabs={tabsWithCounts}
+          activeValue={statusFilter}
+          onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
+        />
+        <div className="w-full md:w-72">
+          <TextInput
+            type="text"
+            placeholder="Tìm kiếm nhà cung cấp..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            icon="MagnifyingGlass"
+            hasicon={false}
+          />
+        </div>
+      </div>
+
+      {/* Content */}
+      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
+
+      {!error && !isLoading && providers.length === 0 && (
+        <AdminEmptyState
+          icon="Van"
+          heading="Không có nhà cung cấp nào"
+          description="Không tìm thấy nhà cung cấp vận tải phù hợp."
+        />
+      )}
+
+      {!error && !isLoading && providers.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {providers.map((provider) => (
+              <TransportProviderCard key={provider.id} provider={provider} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <Pagination
+                totalPages={totalPages}
+                currentPage={currentPage}
+                handlePageChange={(p) => setCurrentPage(p)}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {isLoading && <SkeletonTable rows={6} columns={3} />}
+    </div>
+  );
+}

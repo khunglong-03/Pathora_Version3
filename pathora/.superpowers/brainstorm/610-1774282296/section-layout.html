@@ -1,0 +1,145 @@
+<h2>Homepage Section Flow</h2>
+<p class="subtitle">Cấu trúc các section từ Hero xuống Footer. Click để chọn layout cho section chính.</p>
+
+<div class="cards">
+  <div class="card" data-choice="immersive-flow" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: #0a0a1a; padding: 16px; font-family: monospace; font-size: 11px; color: rgba(255,255,255,0.7);">
+        <!-- Hero -->
+        <div style="background: linear-gradient(135deg, #0a0a1a, #1a0a2e); height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid rgba(251,139,2,0.3); position: relative; overflow: hidden;">
+          <div style="position: absolute; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle, rgba(251,139,2,0.3), transparent); filter: blur(10px);"></div>
+          <span style="z-index: 1;">▶ HERO (100vh, video bg)</span>
+        </div>
+        <!-- Stats strip -->
+        <div style="background: rgba(251,139,2,0.1); border: 1px solid rgba(251,139,2,0.2); border-radius: 8px; height: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: rgba(251,139,2,0.8);">
+          ★ STATS STRIP — 4 key numbers (1200+ Tours | 50K+ Travelers | 4.9★ Rating | 24/7 Support)
+        </div>
+        <!-- Trending Destinations -->
+        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; position: relative;">
+          <span>🗺️ TRENDING DESTINATIONS — Horizontal scroll cards, 3D hover</span>
+        </div>
+        <!-- Video Showcase -->
+        <div style="background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(59,130,246,0.1)); border: 1px solid rgba(236,72,153,0.3); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          🎬 VIDEO SHOWCASE — Full-width cinematic video section
+        </div>
+        <!-- Featured Tours -->
+        <div style="background: rgba(251,139,2,0.08); border: 1px solid rgba(251,139,2,0.15); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ✦ FEATURED TRIPS — Bento grid layout, 3 columns asymmetric
+        </div>
+        <!-- Latest Tours -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ⟡ LATEST TOURS — Horizontal scroll, card hover 3D tilt
+        </div>
+        <!-- Why Choose -->
+        <div style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15); border-radius: 8px; height: 35px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ★ WHY CHOOSE US — Icon grid with animated counters
+        </div>
+        <!-- CTA -->
+        <div style="background: linear-gradient(90deg, rgba(251,139,2,0.2), rgba(236,72,153,0.2)); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ↗ CTA SECTION — Bold gradient background, large CTA button
+        </div>
+        <!-- Reviews -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          💬 REVIEWS — Testimonial carousel, avatar + quote
+        </div>
+        <!-- Footer -->
+        <div style="background: #050510; border-radius: 8px; height: 30px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+          ◈ FOOTER
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Immersive Flow (Recommended)</h3>
+      <p>Full-height hero → stats strip → destinations → <strong>video showcase</strong> → featured → latest → why choose → CTA → reviews → footer. Mỗi section full-width, xen kẽ dark backgrounds để tạo depth.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="alternating-flow" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: #0a0a1a; padding: 16px; font-family: monospace; font-size: 11px; color: rgba(255,255,255,0.7);">
+        <!-- Hero -->
+        <div style="background: linear-gradient(135deg, #0a0a1a, #1a0a2e); height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid rgba(251,139,2,0.3);">
+          <span>▶ HERO (100vh)</span>
+        </div>
+        <!-- Destinations - light bg -->
+        <div style="background: #f5f5f5; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: #111; border: 1px solid #e0e0e0;">
+          🗺️ TRENDING DESTINATIONS — Light section, dark text
+        </div>
+        <!-- Featured Tours - dark -->
+        <div style="background: #111; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid rgba(251,139,2,0.2);">
+          ✦ FEATURED TRIPS — Dark section
+        </div>
+        <!-- Video - gradient -->
+        <div style="background: linear-gradient(90deg, #1a0a2e, #0a1a2e); border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid rgba(236,72,153,0.3);">
+          🎬 VIDEO SHOWCASE
+        </div>
+        <!-- Latest Tours - light -->
+        <div style="background: #f5f5f5; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: #111; border: 1px solid #e0e0e0;">
+          ⟡ LATEST TOURS — Light section
+        </div>
+        <!-- Why Choose - dark -->
+        <div style="background: #0a0a1a; border-radius: 8px; height: 35px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ★ WHY CHOOSE US
+        </div>
+        <!-- CTA - gradient -->
+        <div style="background: linear-gradient(90deg, rgba(251,139,2,0.3), rgba(236,72,153,0.3)); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          ↗ CTA
+        </div>
+        <!-- Reviews - light -->
+        <div style="background: #f5f5f5; border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: #111; border: 1px solid #e0e0e0;">
+          💬 REVIEWS
+        </div>
+        <!-- Footer -->
+        <div style="background: #050510; border-radius: 8px; height: 30px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+          ◈ FOOTER
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Alternating Light/Dark</h3>
+      <p>Xen kẽ light sections (white/sand) với dark sections. Tạo contrast rõ ràng giữa các section. Video showcase vẫn giữa dark gradient.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="dark-monolith" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: #0a0a1a; padding: 16px; font-family: monospace; font-size: 11px; color: rgba(255,255,255,0.7);">
+        <!-- Hero -->
+        <div style="background: linear-gradient(135deg, #0a0a1a, #1a0a2e); height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid rgba(251,139,2,0.3);">
+          <span>▶ HERO (100vh)</span>
+        </div>
+        <!-- All dark sections -->
+        <div style="background: rgba(59,130,246,0.08); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(59,130,246,0.15); font-size: 10px;">🗺️ DESTINATIONS</div>
+        <div style="background: rgba(251,139,2,0.06); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(251,139,2,0.12); font-size: 10px;">🎬 VIDEO SHOWCASE</div>
+        <div style="background: rgba(236,72,153,0.06); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(236,72,153,0.12); font-size: 10px;">✦ FEATURED TRIPS</div>
+        <div style="background: rgba(59,130,246,0.05); border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(59,130,246,0.1); font-size: 10px;">⟡ LATEST TOURS</div>
+        <div style="background: rgba(251,139,2,0.05); border-radius: 8px; height: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(251,139,2,0.1); font-size: 10px;">★ WHY CHOOSE</div>
+        <div style="background: rgba(236,72,153,0.08); border-radius: 8px; height: 35px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(236,72,153,0.15); font-size: 10px;">↗ CTA</div>
+        <div style="background: rgba(255,255,255,0.03); border-radius: 8px; height: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06); font-size: 10px;">💬 REVIEWS</div>
+        <div style="background: #050510; border-radius: 8px; height: 25px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 10px;">◈ FOOTER</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dark Monolith</h3>
+      <p>Toàn bộ page giữ dark tone. Mỗi section chỉ khác accent color (orange, blue, pink) để phân biệt. Cohesive, premium, cinematic feel xuyên suốt.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 16px;">
+  <p class="label">Key Design Decisions</p>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; font-size: 12px;">
+    <div style="background: rgba(251,139,2,0.1); border: 1px solid rgba(251,139,2,0.2); border-radius: 8px; padding: 10px;">
+      <strong style="color: #fb8b02;">Font:</strong> <span style="color: rgba(255,255,255,0.7);">Space Grotesk (display) + Inter (body)</span>
+    </div>
+    <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 10px;">
+      <strong style="color: #3b82f6;">Animation:</strong> <span style="color: rgba(255,255,255,0.7);">Scroll-triggered, parallax, 3D tilt cards</span>
+    </div>
+    <div style="background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.2); border-radius: 8px; padding: 10px;">
+      <strong style="color: #ec4899;">Visual:</strong> <span style="color: rgba(255,255,255,0.7);">3D illustrations, gradient overlays</span>
+    </div>
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px;">
+      <strong style="color: rgba(255,255,255,0.8);">Radius:</strong> <span style="color: rgba(255,255,255,0.7);">16px cards, 24px large sections</span>
+    </div>
+  </div>
+</div>

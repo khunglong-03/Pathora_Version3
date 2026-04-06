@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "gitnexus": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "gitnexus",
+        "mcp"
+      ],
+      "env": {
+        "GITNEXUS_REPO_PATH": "D:\\DoAn\\pathora"
+      }
+    }
+  }
+}

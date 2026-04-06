@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tour Request Update</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #fef2f2;
+        color: #1f2937;
+      }
+      .card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+      .head {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #ffffff;
+        padding: 24px;
+      }
+      .body {
+        padding: 24px;
+      }
+      .meta {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      .note {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        background: #0f172a;
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .foot {
+        padding: 16px 24px 24px;
+        color: #6b7280;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="head">
+        <h2 style="margin: 0">Tour Request Update</h2>
+      </div>
+      <div class="body">
+        <p style="margin-top: 0">Hi {{ customername }}, we are unable to approve your request this time.</p>
+        <div class="meta">
+          <div><strong>Destination:</strong> {{ destination }}</div>
+        </div>
+        <div class="note"><strong>Reason from admin:</strong> {{ adminnote }}</div>
+        <p style="margin-bottom: 0">You can submit a new request with updated details any time.</p>
+        <a class="cta" href="{{ resubmitlink }}">Create Another Request</a>
+      </div>
+      <div class="foot">Pathora automated notification.</div>
+    </div>
+  </body>
+</html>

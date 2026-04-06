@@ -1,0 +1,98 @@
+<h2>Pathora Homepage — Bold & Immersive Redesign</h2>
+<p class="subtitle">Dark-first design với vibrant gradient accents, 3D/Illustration style, high-impact animations. Click để chọn hướng hero chính.</p>
+
+<div class="cards">
+  <div class="card" data-choice="video-hero" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%); height: 200px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(251,139,2,0.4) 0%, transparent 70%); filter: blur(20px);"></div>
+        <div style="position: absolute; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%); filter: blur(15px); left: 30%; top: 20%;"></div>
+        <div style="position: absolute; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%); filter: blur(12px); right: 25%; bottom: 20%;"></div>
+        <div style="text-align: center; z-index: 1;">
+          <div style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+            <div style="width: 0; height: 0; border-left: 14px solid white; border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 4px;"></div>
+          </div>
+          <span style="color: rgba(255,255,255,0.6); font-size: 10px; font-family: monospace;">VIDEO BG</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to top, #0a0a1a, transparent);"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Video Hero</h3>
+      <p>Cinematic video loop với parallax overlay. Gradient orbs bay nổi. Typography large & bold. Search bar floating.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="particle-hero" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #050510 0%, #0f0f23 100%); height: 200px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <!-- Particle dots -->
+        <div style="position: absolute; width: 3px; height: 3px; background: #fb8b02; border-radius: 50%; top: 20%; left: 15%; box-shadow: 0 0 6px #fb8b02;"></div>
+        <div style="position: absolute; width: 4px; height: 4px; background: #3b82f6; border-radius: 50%; top: 35%; left: 25%; box-shadow: 0 0 8px #3b82f6;"></div>
+        <div style="position: absolute; width: 2px; height: 2px; background: #fb8b02; border-radius: 50%; top: 15%; left: 40%; box-shadow: 0 0 4px #fb8b02;"></div>
+        <div style="position: absolute; width: 5px; height: 5px; background: #ec4899; border-radius: 50%; top: 50%; left: 12%; box-shadow: 0 0 10px #ec4899;"></div>
+        <div style="position: absolute; width: 3px; height: 3px; background: #3b82f6; border-radius: 50%; top: 60%; left: 30%; box-shadow: 0 0 6px #3b82f6;"></div>
+        <div style="position: absolute; width: 2px; height: 2px; background: #fb8b02; border-radius: 50%; top: 25%; left: 55%; box-shadow: 0 0 4px #fb8b02;"></div>
+        <div style="position: absolute; width: 4px; height: 4px; background: #ec4899; border-radius: 50%; top: 40%; left: 70%; box-shadow: 0 0 8px #ec4899;"></div>
+        <div style="position: absolute; width: 3px; height: 3px; background: #fb8b02; border-radius: 50%; top: 70%; left: 60%; box-shadow: 0 0 6px #fb8b02;"></div>
+        <div style="position: absolute; width: 2px; height: 2px; background: #3b82f6; border-radius: 50%; top: 80%; left: 45%; box-shadow: 0 0 4px #3b82f6;"></div>
+        <div style="position: absolute; width: 5px; height: 5px; background: #fb8b02; border-radius: 50%; top: 10%; left: 80%; box-shadow: 0 0 10px #fb8b02;"></div>
+        <div style="position: absolute; width: 3px; height: 3px; background: #ec4899; border-radius: 50%; top: 55%; left: 85%; box-shadow: 0 0 6px #ec4899;"></div>
+        <div style="position: absolute; width: 2px; height: 2px; background: #3b82f6; border-radius: 50%; top: 85%; left: 20%; box-shadow: 0 0 4px #3b82f6;"></div>
+        <!-- Connecting lines -->
+        <svg style="position: absolute; inset: 0; width: 100%; height: 100%;" xmlns="http://www.w3.org/2000/svg">
+          <line x1="15%" y1="20%" x2="25%" y2="35%" stroke="rgba(251,139,2,0.2)" stroke-width="1"/>
+          <line x1="25%" y1="35%" x2="40%" y2="15%" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
+          <line x1="12%" y1="50%" x2="25%" y2="35%" stroke="rgba(236,72,153,0.2)" stroke-width="1"/>
+          <line x1="30%" y1="60%" x2="70%" y2="40%" stroke="rgba(59,130,246,0.1)" stroke-width="1"/>
+          <line x1="70%" y1="40%" x2="85%" y2="55%" stroke="rgba(236,72,153,0.15)" stroke-width="1"/>
+        </svg>
+        <div style="text-align: center; z-index: 1; position: relative;">
+          <span style="background: linear-gradient(90deg, #fb8b02, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; font-family: monospace;">PARTICLES + NODES</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Particle Constellation</h3>
+      <p>Interactive particle system với floating nodes. Mouse interaction, glowing connections, aurora gradient backdrop.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="3d-hero" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(180deg, #0a0a1a 0%, #1a0533 50%, #0a1628 100%); height: 200px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+        <!-- 3D-ish floating shapes -->
+        <div style="position: absolute; width: 100px; height: 100px; border: 2px solid rgba(251,139,2,0.4); border-radius: 20px; transform: rotate(15deg); top: 15%; right: 10%; animation: float 3s ease-in-out infinite;"></div>
+        <div style="position: absolute; width: 60px; height: 60px; border: 2px solid rgba(59,130,246,0.4); border-radius: 50%; bottom: 20%; left: 10%; animation: float 4s ease-in-out infinite 0.5s;"></div>
+        <div style="position: absolute; width: 40px; height: 40px; background: rgba(236,72,153,0.15); border-radius: 8px; transform: rotate(30deg); top: 40%; left: 5%; animation: float 3.5s ease-in-out infinite 1s;"></div>
+        <div style="position: absolute; width: 80px; height: 80px; border: 2px solid rgba(251,139,2,0.3); border-radius: 50%; top: 60%; right: 20%; animation: float 5s ease-in-out infinite 0.3s;"></div>
+        <!-- Spotlight -->
+        <div style="position: absolute; width: 200px; height: 200px; background: radial-gradient(circle, rgba(251,139,2,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
+        <div style="text-align: center; z-index: 1;">
+          <span style="color: rgba(255,255,255,0.8); font-size: 11px; font-family: monospace; letter-spacing: 0.15em;">3D FLOATING SHAPES</span>
+        </div>
+        <style>
+          @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+          }
+        </style>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>3D Shapes + Spotlight</h3>
+      <p>Floating 3D geometric shapes với spotlight effects. Glassmorphism cards, depth layers, smooth parallax on scroll.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <p class="label">Color Accents Used</p>
+  <div style="display: flex; gap: 8px; margin-top: 8px;">
+    <div style="width: 40px; height: 40px; border-radius: 8px; background: #fb8b02; box-shadow: 0 0 12px rgba(251,139,2,0.5);"></div>
+    <div style="width: 40px; height: 40px; border-radius: 8px; background: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,0.5);"></div>
+    <div style="width: 40px; height: 40px; border-radius: 8px; background: #ec4899; box-shadow: 0 0 12px rgba(236,72,153,0.5);"></div>
+    <div style="width: 40px; height: 40px; border-radius: 8px; background: #0a0a1a; border: 1px solid rgba(255,255,255,0.2);"></div>
+    <div style="width: 40px; height: 40px; border-radius: 8px; background: #111827; border: 1px solid rgba(255,255,255,0.1);"></div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+{
+  "tailwindCSS.files.exclude": ["**/.next/**", "**/node_modules/**"],
+  "workbench.colorCustomizations": {
+    "statusBar.noFolderBackground": "#4C0A64",
+    "statusBar.noFolderForeground": "#FDFAFE"
+  }
+}

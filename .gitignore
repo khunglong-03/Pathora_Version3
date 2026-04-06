@@ -1,0 +1,65 @@
+# Claude Opus settings (local config)
+.claude/settings.local.json
+.gstack/
+
+# Node.js (frontend/tools)
+node_modules/
+package-lock.json
+skills-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# .NET build output
+panthora_be/src/**/bin/
+panthora_be/src/**/obj/
+panthora_be/tests/**/bin/
+panthora_be/tests/**/obj/
+*.suo
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Frontend (Next.js/React)
+pathora/frontend/node_modules/
+pathora/frontend/.next/
+pathora/frontend/out/
+pathora/frontend/build/
+pathora/frontend/dist/
+pathora/frontend/coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.*
+panthora_be/src/Api/appsettings.*.json
+!panthora_be/src/Api/appsettings.json
+!panthora_be/src/Api/appsettings.Development.json
+!backend/.env.production
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+test_serilog/
+
+# Misc
+cookies.txt
+delete_corrupted_analyzers.ps1
+download_serilog.ps1
+dir_root.js

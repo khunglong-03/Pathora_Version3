@@ -1,0 +1,7 @@
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.csproj.AssemblyReference.cache
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.GeneratedMSBuildEditorConfig.editorconfig
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.AssemblyInfoInputs.cache
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.AssemblyInfo.cs
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.csproj.CoreCompileInputs.cache
+D:\DoAn\test_serilog\obj\Debug\net10.0\rpswa.dswa.cache.json
+D:\DoAn\test_serilog\obj\Debug\net10.0\test_serilog.MvcApplicationPartsAssemblyInfo.cache

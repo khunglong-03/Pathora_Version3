@@ -1,0 +1,36 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+docs/plans/
+openspec/
+
+# AI tools / coding agents
+*.ai.*
+*.cursorrules
+.cursor/
+.codex/
+.gemini/
+.opencode/
+.windsurf/
+.claude/
+.agent/
+.agents/
+.aider*
+.kilocode/
+.kiro/
+CLAUDE.md
+skills/
+skills-lock.json
+.github/copilot-instructions.md
+.github/prompts/
+.github/skills/
+.vscode/mcp.json
+.gitnexus
+node_modules/
+frontend/node_modules/
+frontend/.worktrees/transportation-routes/
+.gstack/
+.gstack/browse-console.log
+.gstack/browse-network.log

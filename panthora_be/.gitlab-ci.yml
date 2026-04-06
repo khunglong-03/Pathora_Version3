@@ -1,0 +1,19 @@
+stages: 
+  - build-and-deploy 
+ 
+deploy-app: 
+  stage: build-and-deploy 
+  tags: 
+    - do-an-3 
+  rules: 
+    - if: $CI_COMMIT_BRANCH == "main" 
+  script: 
+    - echo "Bắt đầu quá trình build Image cho Backend..." 
+     
+    # 1. Build image mới (Đặt tên pathora-be cho khớp với compose của bạn) 
+    - docker build -f src/Api/Dockerfile -t pathora-be:latest . 
+    # 3. Dùng Compose để cập nhật hệ thống 
+    - echo "Đang cập nhật các container qua Docker Compose..." 
+    - cd /home/huynqhe180309 
+    - touch .env 
+    - docker compose up -d

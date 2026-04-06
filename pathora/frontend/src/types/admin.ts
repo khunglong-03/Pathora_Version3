@@ -1,0 +1,235 @@
+export interface AdminDashboardStats {
+  totalRevenue: number;
+  totalBookings: number;
+  activeTours: number;
+  totalCustomers: number;
+  cancellationRate: number;
+  visaApprovalRate: number;
+}
+
+export interface AdminCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  totalBookings: number;
+  totalSpent: number;
+  status: string;
+  lastBooking: string;
+}
+
+export interface AdminPayment {
+  id: string;
+  booking: string;
+  customer: string;
+  method: string;
+  amount: number;
+  status: string;
+  date: string;
+}
+
+export interface AdminInsurance {
+  id: string;
+  booking: string;
+  customer: string;
+  type: string;
+  coverage: string;
+  premium: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface AdminVisaApplication {
+  id: string;
+  booking: string;
+  applicant: string;
+  passport: string;
+  country: string;
+  type: string;
+  status: string;
+  submittedDate: string;
+  decisionDate: string;
+}
+
+export interface AdminOverview {
+  stats: AdminDashboardStats;
+  customers: AdminCustomer[];
+  payments: AdminPayment[];
+  insurances: AdminInsurance[];
+  visaApplications: AdminVisaApplication[];
+}
+
+export interface AdminDashboardMetricPoint {
+  label: string;
+  value: number;
+}
+
+export interface AdminDashboardCategoryMetric {
+  label: string;
+  value: number;
+}
+
+export interface AdminDashboardTopTour {
+  name: string;
+  bookings: number;
+  revenue: number;
+}
+
+export interface AdminDashboardVisaStatus {
+  label: string;
+  count: number;
+}
+
+export interface AdminDashboardVisaDeadline {
+  tour: string;
+  date: string;
+}
+
+export interface AdminDashboardVisaSummary {
+  totalApplications: number;
+  approved: number;
+  rejected: number;
+  approvalRate: number;
+}
+
+export interface AdminDashboardAlert {
+  text: string;
+  severity: string;
+}
+
+// ─── Paginated list helper ───────────────────────────────────────
+export interface PaginatedList<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  roleCounts?: Record<string, number>;
+}
+
+// ─── User Management ─────────────────────────────────────────────
+export interface AdminUserListItem {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: string;
+  status: string;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
+export interface AdminUserDetail {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  status: string;
+  roles: string[];
+  createdAt?: string;
+  lastLogin?: string;
+  avatar?: string;
+  address?: string;
+  dateOfBirth?: string;
+  nationality?: string;
+}
+
+// ─── Transport Provider ─────────────────────────────────────────
+export interface TransportProviderListItem {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  status: string;
+  bookingCount?: number;
+  vehicleCount?: number;
+  createdAt?: string;
+}
+
+// ─── Hotel Provider ──────────────────────────────────────────────
+export interface HotelProviderListItem {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  status: string;
+  accommodationCount?: number;
+  roomCount?: number;
+  createdAt?: string;
+}
+
+// ─── TourManager Hierarchy ───────────────────────────────────────
+export interface TourManagerStaffDto {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: string; // "TourDesigner" | "TourGuide"
+  status: string;
+}
+
+export interface StaffMemberDto {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: string;
+  status: string;
+}
+
+export interface ManagerSummaryDto {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  designerCount?: number;
+  guideCount?: number;
+  tourCount?: number;
+  status?: string;
+}
+
+// ─── Admin Dashboard ─────────────────────────────────────────────
+export interface AdminDashboardOverview {
+  totalUsers: number;
+  activeUsers: number;
+  totalManagers: number;
+  totalTourDesigners: number;
+  totalTourGuides: number;
+  totalTransportProviders: number;
+  activeTransportProviders: number;
+  transportBookingCount: number;
+  totalHotelProviders: number;
+  activeHotelProviders: number;
+  hotelRoomCount: number;
+  recentActivities: ActivityItem[];
+}
+
+export interface ActivityItem {
+  id: string;
+  actor: string;
+  action: string;
+  target?: string;
+  timestamp: string;
+  type?: string; // e.g. "booking", "user", "tour"
+}
+
+export interface AdminDashboard {
+  stats: AdminDashboardStats;
+  revenueOverTime: AdminDashboardMetricPoint[];
+  revenueByTourType: AdminDashboardCategoryMetric[];
+  revenueByRegion: AdminDashboardCategoryMetric[];
+  bookingStatusDistribution: AdminDashboardCategoryMetric[];
+  bookingTrend: AdminDashboardMetricPoint[];
+  topTours: AdminDashboardTopTour[];
+  topDestinations: AdminDashboardCategoryMetric[];
+  customerGrowth: AdminDashboardMetricPoint[];
+  customerNationalities: AdminDashboardCategoryMetric[];
+  visaStatuses: AdminDashboardVisaStatus[];
+  upcomingVisaDeadlines: AdminDashboardVisaDeadline[];
+  visaSummary: AdminDashboardVisaSummary;
+  alerts: AdminDashboardAlert[];
+}
