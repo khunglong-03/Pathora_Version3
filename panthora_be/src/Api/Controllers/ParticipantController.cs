@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = RoleConstants.Admin)]
+[Authorize(Policy = "TourAdminOnly")]
 [Route(ParticipantEndpoint.Base)]
 public class ParticipantController : BaseApiController
 {

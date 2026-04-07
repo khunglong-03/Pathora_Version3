@@ -181,6 +181,21 @@ public static class DependencyInjection
             options.AddPolicy("ManagerOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
+
+            // TransportProviderOnly: Admin OR TransportProvider
+            options.AddPolicy("TransportProviderOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("TransportProvider")));
+
+            // HotelServiceProviderOnly: Admin OR HotelServiceProvider
+            options.AddPolicy("HotelServiceProviderOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("HotelServiceProvider")));
+
+            // TourAdminOnly: Admin OR Manager (admin-scoped ops: participants, suppliers, payables)
+            options.AddPolicy("TourAdminOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
         });
 
         services.AddSingleton<IUser, CurrentUser>();

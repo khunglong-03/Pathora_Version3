@@ -38,6 +38,7 @@ public sealed class CreateSupplierPayableCommandHandler(
     ISupplierRepository supplierRepository,
     ISupplierPayableRepository supplierPayableRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateSupplierPayableCommand, ErrorOr<Guid>>
 {
@@ -46,6 +47,13 @@ public sealed class CreateSupplierPayableCommandHandler(
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
+        }
+
+        if (!await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken))
         {
             return Error.NotFound(
                 ErrorConstants.Booking.NotFoundCode,
@@ -100,7 +108,9 @@ public sealed class SupplierPayableValidator : AbstractValidator<UpdateSupplierP
 
 public sealed class UpdateSupplierPayableCommandHandler(
     ISupplierPayableRepository supplierPayableRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateSupplierPayableCommand, ErrorOr<Success>>
 {
@@ -113,6 +123,14 @@ public sealed class UpdateSupplierPayableCommandHandler(
             return Error.NotFound(
                 ErrorConstants.SupplierPayable.NotFoundCode,
                 ErrorConstants.SupplierPayable.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(entity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         entity.Update(
@@ -152,7 +170,9 @@ public sealed class RecordSupplierPaymentCommandValidator : AbstractValidator<Re
 public sealed class RecordSupplierPaymentCommandHandler(
     ISupplierPayableRepository supplierPayableRepository,
     ISupplierReceiptRepository supplierReceiptRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<RecordSupplierPaymentCommand, ErrorOr<Guid>>
 {
@@ -165,6 +185,14 @@ public sealed class RecordSupplierPaymentCommandHandler(
             return Error.NotFound(
                 ErrorConstants.SupplierPayable.NotFoundCode,
                 ErrorConstants.SupplierPayable.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(payable.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         var receipt = SupplierReceiptEntity.Create(

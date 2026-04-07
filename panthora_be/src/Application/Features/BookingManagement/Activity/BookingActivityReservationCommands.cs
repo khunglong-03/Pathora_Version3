@@ -49,6 +49,7 @@ public sealed class CreateBookingActivityReservationCommandHandler(
     IBookingRepository bookingRepository,
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateBookingActivityReservationCommand, ErrorOr<Guid>>
 {
@@ -57,6 +58,13 @@ public sealed class CreateBookingActivityReservationCommandHandler(
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
+        }
+
+        if (!await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken))
         {
             return Error.NotFound(
                 ErrorConstants.Booking.NotFoundCode,
@@ -119,7 +127,9 @@ public sealed class UpdateBookingActivityReservationCommandValidator : AbstractV
 
 public sealed class UpdateBookingActivityReservationCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateBookingActivityReservationCommand, ErrorOr<Success>>
 {
@@ -132,6 +142,14 @@ public sealed class UpdateBookingActivityReservationCommandHandler(
             return Error.NotFound(
                 ErrorConstants.BookingActivityReservation.NotFoundCode,
                 ErrorConstants.BookingActivityReservation.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(entity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         entity.Update(

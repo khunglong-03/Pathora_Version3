@@ -435,7 +435,7 @@ public class IdentityService(
             ? []
             : rolesResult.Value.Select(r => new UserRoleVm(r.Type, r.Id.ToString(), r.Name)).ToList();
 
-        var portalRouting = AuthPortalResolver.Resolve(roles.Select(role => role.Type));
+        var portalRouting = AuthPortalResolver.ResolveByName(roles.Select(role => role.Name));
 
         var preferredLanguage = userEntity.UserSetting?.PreferredLanguage ?? SupportedLanguageConstants.Vietnamese;
 
@@ -537,6 +537,15 @@ public class IdentityService(
         }
 
         var roleTypes = (rolesResult.Value ?? []).Select(role => role.Type);
+        var roleNames = (rolesResult.Value ?? []).Select(role => role.Name);
+        var portalRouting = AuthPortalResolver.ResolveByName(roleNames);
+
+        // Manager/Admin resolved by name; otherwise fall back to type-based
+        if (portalRouting.Portal == "admin")
+        {
+            return portalRouting;
+        }
+
         return AuthPortalResolver.Resolve(roleTypes);
     }
 }

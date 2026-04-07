@@ -57,9 +57,11 @@ public sealed class CreateAccommodationDetailCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
     IBookingParticipantRepository bookingParticipantRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateAccommodationDetailCommand, ErrorOr<Guid>>
 {
@@ -72,6 +74,14 @@ public sealed class CreateAccommodationDetailCommandHandler(
             return Error.NotFound(
                 ErrorConstants.BookingActivityReservation.NotFoundCode,
                 ErrorConstants.BookingActivityReservation.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(activity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         var participants = await bookingParticipantRepository.GetByBookingIdAsync(activity.BookingId);
@@ -210,9 +220,11 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateAccommodationDetailCommand, ErrorOr<Success>>
 {
@@ -233,6 +245,14 @@ public sealed class UpdateAccommodationDetailCommandHandler(
             return Error.NotFound(
                 ErrorConstants.BookingActivityReservation.NotFoundCode,
                 ErrorConstants.BookingActivityReservation.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(activity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         var participants = await bookingParticipantRepository.GetByBookingIdAsync(activity.BookingId);

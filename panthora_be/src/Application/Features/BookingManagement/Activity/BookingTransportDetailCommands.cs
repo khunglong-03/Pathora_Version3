@@ -54,7 +54,9 @@ public sealed class CreateTransportDetailCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IBookingTransportDetailRepository bookingTransportDetailRepository,
     IBookingParticipantRepository bookingParticipantRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateTransportDetailCommand, ErrorOr<Guid>>
 {
@@ -67,6 +69,14 @@ public sealed class CreateTransportDetailCommandHandler(
             return Error.NotFound(
                 ErrorConstants.BookingActivityReservation.NotFoundCode,
                 ErrorConstants.BookingActivityReservation.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(activity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         if (request.SeatCapacity > 0)
@@ -153,7 +163,9 @@ public sealed class UpdateTransportDetailCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingTransportDetailRepository bookingTransportDetailRepository,
+    IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    IOwnershipValidator ownershipValidator,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTransportDetailCommand, ErrorOr<Success>>
 {
@@ -174,6 +186,14 @@ public sealed class UpdateTransportDetailCommandHandler(
             return Error.NotFound(
                 ErrorConstants.BookingActivityReservation.NotFoundCode,
                 ErrorConstants.BookingActivityReservation.NotFoundDescription.Resolve(lang));
+        }
+
+        var booking = await bookingRepository.GetByIdAsync(activity.BookingId);
+        if (!await ownershipValidator.CanAccessAsync(booking?.UserId ?? Guid.Empty, cancellationToken))
+        {
+            return Error.NotFound(
+                ErrorConstants.Booking.NotFoundCode,
+                ErrorConstants.Booking.NotFoundDescription.Resolve(lang));
         }
 
         var effectiveSeatCapacity = request.SeatCapacity ?? entity.SeatCapacity;

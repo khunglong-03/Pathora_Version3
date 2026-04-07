@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = RoleConstants.Admin)]
+[Authorize(Policy = "TourAdminOnly")]
 [Route(SupplierEndpoint.Base)]
 public class SupplierController : BaseApiController
 {
