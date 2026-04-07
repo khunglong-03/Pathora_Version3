@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import AdminShell from "@/app/admin/AdminShell";
 
-const HOTELSERVICEPROVIDER_ROLE_NAMES = new Set(["HotelServiceProvider"]);
+const TRANSPORTPROVIDER_ROLE_NAMES = new Set(["TransportProvider"]);
 
-export default async function HotelLayout({ children }: { children: ReactNode }) {
+export default async function TransportLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   const authStatus = cookieStore.get("auth_status")?.value;
   const authRolesRaw = cookieStore.get("auth_roles")?.value;
@@ -20,7 +20,7 @@ export default async function HotelLayout({ children }: { children: ReactNode })
     }
   }
 
-  const hasProviderRole = roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
+  const hasProviderRole = roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasProviderRole) {
     redirect("/home");

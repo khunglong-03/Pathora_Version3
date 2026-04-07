@@ -8,6 +8,9 @@ import {
 // Role names generated from role.json — single source of truth
 import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES } from "./auth-roles";
 
+// TRANSPORTPROVIDER_ROLE_NAMES — not in generated auth-roles.ts, define here
+const TRANSPORTPROVIDER_ROLE_NAMES = new Set(["TransportProvider"]);
+
 const SUPPORTED_LANGUAGES = ["en", "vi"] as const;
 const DEFAULT_LANGUAGE = "en";
 
@@ -62,10 +65,13 @@ const hasManagerRole = (roles: string[]): boolean =>
 const hasHotelServiceProviderRole = (roles: string[]): boolean =>
   roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
 
+const hasTransportProviderRole = (roles: string[]): boolean =>
+  roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
+
 
 const isManagerRoutePath = (pathname: string): boolean => {
   const MANAGER_ROUTE_PREFIXES = [
-    "/dashboard",
+    "/manager",
     "/tour-management",
     "/tour-instances",
     "/tour-requests",
@@ -120,25 +126,28 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/admin/users", request.url));
     }
     if (hasManagerRole(authRoles)) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/manager", request.url));
     }
     if (hasHotelServiceProviderRole(authRoles)) {
       return NextResponse.redirect(new URL("/hotel", request.url));
+    }
+    if (hasTransportProviderRole(authRoles)) {
+      return NextResponse.redirect(new URL("/transport", request.url));
     }
     return NextResponse.redirect(new URL(USER_DEFAULT_PATH, request.url));
   }
 
   if (authenticated) {
     if (hasManagerRole(authRoles) && pathname.startsWith("/admin/")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/manager", request.url));
     }
 
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
       return NextResponse.redirect(new URL("/admin/users", request.url));
     }
 
-    if (hasManagerRole(authRoles) && pathname.startsWith("/dashboard/customers")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (hasManagerRole(authRoles) && pathname.startsWith("/manager/customers")) {
+      return NextResponse.redirect(new URL("/manager", request.url));
     }
 
     if (
@@ -148,6 +157,10 @@ export function middleware(request: NextRequest) {
       !isManagerRoutePath(pathname)
     ) {
       return NextResponse.redirect(new URL("/hotel", request.url));
+    }
+
+    if (hasTransportProviderRole(authRoles) && !isProviderRoutePath(pathname) && !isAdminRoutePath(pathname)) {
+      return NextResponse.redirect(new URL("/transport", request.url));
     }
 
   }

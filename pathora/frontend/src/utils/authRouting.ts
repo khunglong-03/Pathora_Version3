@@ -58,7 +58,11 @@ export const parseAuthRoles = (cookieValue: string | undefined): string[] => {
 };
 
 export const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
-export const MANAGER_ROLE_DEFAULT_PATH = "/dashboard";
+export const MANAGER_ROLE_DEFAULT_PATH = "/manager";
+export const HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH = "/hotel";
+export const TRANSPORTPROVIDER_ROLE_DEFAULT_PATH = "/transport";
+
+export const PROVIDER_ROLE_NAMES = new Set(["HotelServiceProvider", "TransportProvider"]);
 
 export const resolveRoleDefaultPath = (
   roles?: RoleWithName[] | null,
@@ -84,6 +88,12 @@ export const resolveRoleDefaultPath = (
   }
   if (roles.some((role) => MANAGER_ROLE_NAMES.has(role.name))) {
     return MANAGER_ROLE_DEFAULT_PATH;
+  }
+  if (roles.some((role) => role.name === "HotelServiceProvider")) {
+    return HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH;
+  }
+  if (roles.some((role) => role.name === "TransportProvider")) {
+    return TRANSPORTPROVIDER_ROLE_DEFAULT_PATH;
   }
   return USER_DEFAULT_PATH;
 };
@@ -112,6 +122,11 @@ export const resolvePostLoginPath = ({
 
 export const isAdminRoutePath = (pathname: string): boolean =>
   ADMIN_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+export const isProviderRoutePath = (pathname: string): boolean =>
+  ["/hotel", "/transport"].some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
