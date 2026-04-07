@@ -28,8 +28,11 @@ public class HotelRoomInventoryController : BaseApiController
     }
 
     [HttpPost(HotelRoomInventoryEndpoint.Base)]
-    public async Task<IActionResult> CreateInventory([FromBody] CreateHotelRoomInventoryRequestDto request)
+    public async Task<IActionResult> CreateInventory([FromBody] CreateHotelRoomInventoryRequestDto? request)
     {
+        if (request is null)
+            return BadRequest("Request body is required.");
+
         var command = new CreateHotelRoomInventoryCommand(
             request.SupplierId,
             request.RoomType,

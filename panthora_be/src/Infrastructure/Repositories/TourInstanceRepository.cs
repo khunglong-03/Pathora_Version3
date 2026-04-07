@@ -124,10 +124,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     {
         var query = _context.TourInstances
             .AsNoTracking()
-            .AsSplitQuery()
             .Include(t => t.Thumbnail)
             .Include(t => t.Images)
-            .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
                 && t.InstanceType == TourType.Public
                 && t.Status == TourInstanceStatus.Available);
@@ -140,11 +138,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
         query = sortBy switch
         {
-            "price-low" => query.OrderBy(t => t.BasePrice).ThenBy(t => t.StartDate),
-            "price-high" => query.OrderByDescending(t => t.BasePrice).ThenByDescending(t => t.StartDate),
-            "duration-short" => query.OrderBy(t => (t.EndDate - t.StartDate).TotalDays),
-            "duration-long" => query.OrderByDescending(t => (t.EndDate - t.StartDate).TotalDays),
-            "recommended" or _ => query.OrderBy(t => t.StartDate),
+            "price-low" => query.OrderBy(t => t.BasePrice).ThenBy(t => t.Id),
+            "price-high" => query.OrderByDescending(t => t.BasePrice).ThenByDescending(t => t.Id),
+            "duration-short" => query.OrderBy(t => t.DurationDays).ThenBy(t => t.Id),
+            "duration-long" => query.OrderByDescending(t => t.DurationDays).ThenByDescending(t => t.Id),
+            "recommended" or _ => query.OrderBy(t => t.StartDate).ThenBy(t => t.Id),
         };
 
         return await query

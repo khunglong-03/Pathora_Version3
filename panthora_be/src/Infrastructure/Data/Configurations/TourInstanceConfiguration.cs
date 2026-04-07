@@ -102,11 +102,14 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
 
         // Indexes
         builder.HasIndex(t => t.TourInstanceCode).IsUnique();
-        builder.HasIndex(t => new { t.Status, t.InstanceType });
+        builder.HasIndex(t => new { t.IsDeleted, t.InstanceType, t.Status, t.StartDate })
+            .HasFilter("\"IsDeleted\" = false");
         builder.HasIndex(t => t.TourId);
-        builder.HasIndex(t => t.StartDate);
+        builder.HasIndex(t => t.BasePrice);
         builder.HasIndex(t => t.IsDeleted)
             .HasFilter("\"IsDeleted\" = false");
+        // Note: GIN trigram index on LOWER(Location) is created via raw SQL in the migration
+        // because EF Core fluent API cannot express GIN ops with gin_trgm_ops.
 
         // Relationships
         builder.HasOne(t => t.Tour)

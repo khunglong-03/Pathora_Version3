@@ -53,3 +53,17 @@ public sealed class GetTrendingDestinationsQueryValidator : AbstractValidator<Ge
             .WithMessage(ValidationMessages.PublicQueryLimitRange1To50);
     }
 }
+
+public sealed class GetPublicTourInstancesQueryValidator : AbstractValidator<GetPublicTourInstancesQuery>
+{
+    public GetPublicTourInstancesQueryValidator()
+    {
+        RuleFor(x => x.Page)
+            .GreaterThanOrEqualTo(1)
+            .WithMessage(ValidationMessages.SearchToursPageMinimum1);
+
+        RuleFor(x => x.PageSize)
+            .InclusiveBetween(1, 50)
+            .WithMessage(ValidationMessages.SearchToursPageSizeRange);
+    }
+}
