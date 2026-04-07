@@ -30,6 +30,12 @@ public sealed class GetHotelRoomInventoryQueryHandler(
             e.SupplierId,
             supplier.Name,
             e.RoomType,
-            e.TotalRooms)).ToList();
+            e.TotalRooms,
+            e.Name,
+            e.Address,
+            e.LocationArea?.ToString(),
+            e.OperatingCountries,
+            e.ImageUrls,
+            e.Notes)).ToList();
     }
 }

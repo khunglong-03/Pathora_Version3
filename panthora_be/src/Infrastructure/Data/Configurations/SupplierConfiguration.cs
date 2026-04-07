@@ -40,6 +40,8 @@ public class SupplierConfiguration : IEntityTypeConfiguration<SupplierEntity>
         builder.Property(s => s.Note)
             .HasMaxLength(1000);
 
+        builder.Property(s => s.OwnerUserId);
+
         builder.Property(s => s.IsActive)
             .HasDefaultValue(true)
             .IsRequired();
@@ -52,5 +54,6 @@ public class SupplierConfiguration : IEntityTypeConfiguration<SupplierEntity>
         builder.HasIndex(s => s.SupplierType);
         builder.HasIndex(s => s.IsActive);
         builder.HasIndex(s => s.IsDeleted);
+        builder.HasIndex(s => s.OwnerUserId);
     }
 }

@@ -11,12 +11,14 @@ using Xunit;
 public sealed class GetHotelProvidersQueryHandlerTests
 {
     private readonly IUserRepository _userRepository;
+    private readonly ISupplierRepository _supplierRepository;
     private readonly HotelProviders.GetHotelProvidersQueryHandler _handler;
 
     public GetHotelProvidersQueryHandlerTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
-        _handler = new HotelProviders.GetHotelProvidersQueryHandler(_userRepository);
+        _supplierRepository = Substitute.For<ISupplierRepository>();
+        _handler = new HotelProviders.GetHotelProvidersQueryHandler(_supplierRepository, _userRepository);
     }
 
     [Fact]
@@ -36,6 +38,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity> { user });
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(1);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery();
 
@@ -60,6 +64,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity>());
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(0);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery();
 
@@ -86,6 +92,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity> { user });
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(1);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery();
 
@@ -105,6 +113,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity> { p1, p2 });
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(2);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery();
 
@@ -129,6 +139,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity> { user });
         _userRepository.CountProvidersByRoleAsync(7, "sea", null, Arg.Any<CancellationToken>())
             .Returns(1);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery(1, 10, "sea", null);
 
@@ -153,6 +165,8 @@ public sealed class GetHotelProvidersQueryHandlerTests
             .Returns(new List<UserEntity> { user });
         _userRepository.CountProvidersByRoleAsync(7, "resort", "Active", Arg.Any<CancellationToken>())
             .Returns(1);
+        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
 
         var query = new HotelProviders.GetHotelProvidersQuery(1, 10, "resort", "Active");
 

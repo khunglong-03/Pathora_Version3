@@ -14,6 +14,7 @@ export const ADMIN_ROUTE_PREFIXES = [
 
 const ADMIN_ROLE_NAMES = new Set(["Admin"]);
 const MANAGER_ROLE_NAMES = new Set(["Manager"]);
+const HOTELSERVICEPROVIDER_ROLE_NAMES = new Set(["HotelServiceProvider"]);
 const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
 const MANAGER_ROLE_DEFAULT_PATH = "/dashboard";
 
@@ -35,6 +36,9 @@ const resolveRoleDefaultPath = (
       if (roles.some((role) => MANAGER_ROLE_NAMES.has(role.name))) {
         return MANAGER_ROLE_DEFAULT_PATH;
       }
+      if (roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role.name))) {
+        return "/hotel";
+      }
     }
     return ADMIN_ROLE_DEFAULT_PATH;
   }
@@ -47,6 +51,9 @@ const resolveRoleDefaultPath = (
   }
   if (roles.some((role) => MANAGER_ROLE_NAMES.has(role.name))) {
     return MANAGER_ROLE_DEFAULT_PATH;
+  }
+  if (roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role.name))) {
+    return "/hotel";
   }
   return USER_DEFAULT_PATH;
 };

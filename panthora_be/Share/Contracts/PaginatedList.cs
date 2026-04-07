@@ -5,7 +5,8 @@ public record PaginatedList<T>(
     List<T> Items,
     int PageNumber,
     int PageSize,
-    Dictionary<string, int>? RoleCounts = null)
+    Dictionary<string, int>? RoleCounts = null,
+    int PendingCount = 0)
 {
     public int TotalPages => PageSize > 0
         ? (int)Math.Ceiling(Total / (double)PageSize)

@@ -4,11 +4,13 @@ using Application.Contracts.Admin;
 using Application.Features.Admin.Commands.CreateStaffUnderManager;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.Queries;
+using Application.Features.Admin.Queries.GetAllManagerUsers;
 using Application.Features.Admin.Queries.GetAllUsers;
 using Application.Features.Admin.Queries.GetAdminDashboardOverview;
 using Application.Features.Admin.Queries.GetHotelProviders;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
+using Application.Features.Admin.Queries.GetTransportProviderById;
 using Application.Features.Admin.Queries.GetUserDetail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -71,9 +73,17 @@ public class AdminController : BaseApiController
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? search = null,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] Domain.Enums.Continent? continent = null)
     {
-        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status));
+        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status, continent));
+        return HandleResult(result);
+    }
+
+    [HttpGet("transport-providers/{id:guid}")]
+    public async Task<IActionResult> GetTransportProviderById(Guid id)
+    {
+        var result = await Sender.Send(new GetTransportProviderByIdQuery(id));
         return HandleResult(result);
     }
 
@@ -83,9 +93,10 @@ public class AdminController : BaseApiController
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? search = null,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] Domain.Enums.Continent? continent = null)
     {
-        var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize, search, status));
+        var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize, search, status, continent));
         return HandleResult(result);
     }
 
@@ -116,6 +127,14 @@ public class AdminController : BaseApiController
     public async Task<IActionResult> GetAdminDashboardOverview()
     {
         var result = await Sender.Send(new GetAdminDashboardOverviewQuery());
+        return HandleResult(result);
+    }
+
+    // Group 6: Managers
+    [HttpGet(AdminEndpoint.GetAllManagers)]
+    public async Task<IActionResult> GetAllManagers()
+    {
+        var result = await Sender.Send(new GetAllManagerUsersQuery());
         return HandleResult(result);
     }
 }

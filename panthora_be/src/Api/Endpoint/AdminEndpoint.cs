@@ -6,4 +6,5 @@ public static class AdminEndpoint
     public const string Overview = "overview";
     public const string Dashboard = "dashboard";
     public const string TourManagement = "tour-management";
+    public const string GetAllManagers = "managers";
 }

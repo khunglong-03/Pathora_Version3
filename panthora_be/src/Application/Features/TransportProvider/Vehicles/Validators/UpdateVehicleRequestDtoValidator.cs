@@ -19,13 +19,25 @@ public sealed class UpdateVehicleRequestDtoValidator : AbstractValidator<UpdateV
             .LessThanOrEqualTo(100).WithMessage("Seat capacity must not exceed 100.")
             .When(x => x.SeatCapacity.HasValue);
 
-        RuleFor(x => x.CountryCode)
-            .MaximumLength(2).WithMessage("Country code must be exactly 2 characters.")
-            .Matches("^[A-Za-z]{2}$").When(x => !string.IsNullOrEmpty(x.CountryCode))
-            .WithMessage("Country code must be a valid 2-letter ISO code.");
+        RuleFor(x => x.OperatingCountries)
+            .MaximumLength(500).WithMessage("Operating countries must not exceed 500 characters.")
+            .Must(BeValidOperatingCountriesFormat).When(x => !string.IsNullOrEmpty(x.OperatingCountries))
+            .WithMessage("Operating countries must be comma-separated 2-letter uppercase ISO codes (e.g. VN,TH,MY).");
 
         RuleFor(x => x.LocationArea)
             .IsInEnum().When(x => x.LocationArea.HasValue)
             .WithMessage("Invalid location area.");
+    }
+
+    private static bool BeValidOperatingCountriesFormat(string? operatingCountries)
+    {
+        if (string.IsNullOrEmpty(operatingCountries)) return true;
+        var codes = operatingCountries.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (codes.Length > 100) return false;
+        return codes.All(c =>
+        {
+            var s = c.Trim();
+            return s.Length == 2 && s.All(char.IsLetter) && s == s.ToUpperInvariant();
+        });
     }
 }

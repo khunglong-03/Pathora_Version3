@@ -176,8 +176,11 @@ public static class DependencyInjection
             options.AddPolicy("AdminOnly", policy =>
                 policy.RequireRole("Admin"));
 
+            // ManagerOnly: Admin is included because seed data admin users have role "Admin",
+            // not "Manager". Admin is a superuser with full access including manager operations.
             options.AddPolicy("ManagerOnly", policy =>
-                policy.RequireRole("Manager"));
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
         });
 
         services.AddSingleton<IUser, CurrentUser>();

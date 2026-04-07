@@ -16,6 +16,7 @@ public class SupplierEntity : Aggregate<Guid>
     public string? Email { get; set; }
     public string? Address { get; set; }
     public string? Note { get; set; }
+    public Guid? OwnerUserId { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
 
@@ -28,7 +29,8 @@ public class SupplierEntity : Aggregate<Guid>
         string? phone = null,
         string? email = null,
         string? address = null,
-        string? note = null)
+        string? note = null,
+        Guid? ownerUserId = null)
     {
         return new SupplierEntity
         {
@@ -40,6 +42,7 @@ public class SupplierEntity : Aggregate<Guid>
             Email = email,
             Address = address,
             Note = note,
+            OwnerUserId = ownerUserId,
             IsActive = true,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,

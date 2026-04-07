@@ -7,4 +7,10 @@ public sealed record HotelRoomInventoryDto(
     Guid SupplierId,
     string? SupplierName,
     RoomType RoomType,
-    int TotalRooms);
+    int TotalRooms,
+    string? Name = null,
+    string? Address = null,
+    string? LocationArea = null,
+    string? OperatingCountries = null,
+    string? ImageUrls = null,
+    string? Notes = null);

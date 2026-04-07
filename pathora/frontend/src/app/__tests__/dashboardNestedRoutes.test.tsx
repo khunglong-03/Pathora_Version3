@@ -9,16 +9,16 @@ vi.mock("next/navigation", () => ({
   redirect: redirectMock,
 }));
 
-import DashboardTourManagementPage from "../(dashboard)/dashboard/tour-management/page";
-import DashboardCreateTourManagementPage from "../(dashboard)/dashboard/tour-management/create/page";
-import DashboardTourInstancesPage from "../(dashboard)/dashboard/tour-instances/page";
-import DashboardVisaPage from "../(dashboard)/dashboard/visa/page";
-import DashboardCustomersPage from "../(dashboard)/dashboard/customers/page";
-import DashboardInsurancePage from "../(dashboard)/dashboard/insurance/page";
-import DashboardPaymentsPage from "../(dashboard)/dashboard/payments/page";
-import DashboardSettingsPage from "../(dashboard)/dashboard/settings/page";
-import DashboardPoliciesPage from "../(dashboard)/dashboard/policies/page";
-import DashboardSiteContentPage from "../(dashboard)/dashboard/site-content/page";
+import DashboardTourManagementPage from "../manager/dashboard/tour-management/page";
+import DashboardCreateTourManagementPage from "../manager/dashboard/tour-management/create/page";
+import DashboardTourInstancesPage from "../manager/dashboard/tour-instances/page";
+import DashboardVisaPage from "../manager/dashboard/visa/page";
+import DashboardCustomersPage from "../manager/dashboard/customers/page";
+import DashboardInsurancePage from "../manager/dashboard/insurance/page";
+import DashboardPaymentsPage from "../manager/dashboard/payments/page";
+import DashboardSettingsPage from "../manager/dashboard/settings/page";
+import DashboardPoliciesPage from "../manager/dashboard/policies/page";
+import DashboardSiteContentPage from "../manager/dashboard/site-content/page";
 
 describe("dashboard nested routes", () => {
   beforeEach(() => {

@@ -10,7 +10,7 @@ public class VehicleEntity : Aggregate<Guid>
     public string? Model { get; set; }
     public int SeatCapacity { get; set; }
     public Continent? LocationArea { get; set; }
-    public string? CountryCode { get; set; }
+    public string? OperatingCountries { get; set; }
     public string? VehicleImageUrls { get; set; }
     public Guid OwnerId { get; set; }
     public virtual UserEntity Owner { get; set; } = null!;
@@ -27,12 +27,12 @@ public class VehicleEntity : Aggregate<Guid>
         string? brand = null,
         string? model = null,
         Continent? locationArea = null,
-        string? countryCode = null,
+        string? operatingCountries = null,
         string? vehicleImageUrls = null,
         string? notes = null)
     {
         EnsureValidSeatCapacity(seatCapacity);
-        EnsureValidCountryCode(countryCode);
+        EnsureValidOperatingCountries(operatingCountries);
 
         return new VehicleEntity
         {
@@ -43,7 +43,7 @@ public class VehicleEntity : Aggregate<Guid>
             Model = model?.Trim(),
             SeatCapacity = seatCapacity,
             LocationArea = locationArea,
-            CountryCode = countryCode?.Trim().ToUpperInvariant(),
+            OperatingCountries = operatingCountries?.Trim().ToUpperInvariant(),
             VehicleImageUrls = vehicleImageUrls,
             OwnerId = ownerId,
             IsActive = true,
@@ -62,7 +62,7 @@ public class VehicleEntity : Aggregate<Guid>
         string? model,
         int? seatCapacity,
         Continent? locationArea,
-        string? countryCode,
+        string? operatingCountries,
         string? vehicleImageUrls,
         string? notes,
         string performedBy)
@@ -70,15 +70,15 @@ public class VehicleEntity : Aggregate<Guid>
         if (seatCapacity.HasValue)
             EnsureValidSeatCapacity(seatCapacity.Value);
 
-        if (!string.IsNullOrEmpty(countryCode))
-            EnsureValidCountryCode(countryCode);
+        if (!string.IsNullOrEmpty(operatingCountries))
+            EnsureValidOperatingCountries(operatingCountries);
 
         VehicleType = vehicleType;
         Brand = brand?.Trim();
         Model = model?.Trim();
         SeatCapacity = seatCapacity ?? SeatCapacity;
         LocationArea = locationArea;
-        CountryCode = countryCode?.Trim().ToUpperInvariant();
+        OperatingCountries = operatingCountries?.Trim().ToUpperInvariant();
         VehicleImageUrls = vehicleImageUrls;
         Notes = notes?.Trim();
         LastModifiedBy = performedBy;
@@ -114,11 +114,24 @@ public class VehicleEntity : Aggregate<Guid>
         }
     }
 
-    private static void EnsureValidCountryCode(string? countryCode)
+    private static void EnsureValidOperatingCountries(string? operatingCountries)
     {
-        if (!string.IsNullOrEmpty(countryCode) && countryCode.Trim().Length != 2)
+        if (string.IsNullOrEmpty(operatingCountries))
+            return;
+
+        var trimmed = operatingCountries.Trim();
+        if (trimmed.Length > 500)
+            throw new ArgumentException("Operating countries must not exceed 500 characters.", nameof(operatingCountries));
+
+        var codes = trimmed.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (codes.Length > 100)
+            throw new ArgumentException("Operating countries must not exceed 100 country codes.", nameof(operatingCountries));
+
+        foreach (var code in codes)
         {
-            throw new ArgumentException("Country code must be a 2-character ISO 3166-1 alpha-2 code.", nameof(countryCode));
+            var c = code.Trim();
+            if (c.Length != 2 || !c.All(char.IsLetter) || c != c.ToUpperInvariant())
+                throw new ArgumentException($"Invalid country code '{c}'. Must be a 2-letter uppercase ISO code.", nameof(operatingCountries));
         }
     }
 }

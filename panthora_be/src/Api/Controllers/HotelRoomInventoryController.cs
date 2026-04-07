@@ -10,6 +10,7 @@ using Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventory;
 using Application.Features.RoomBlocking.DTOs;
 using Application.Features.RoomBlocking.Queries.GetHotelRoomAvailability;
 using BuildingBlocks.CORS;
+using Domain.Common.Repositories;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,12 +19,22 @@ using Microsoft.AspNetCore.Mvc;
 [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.HotelServiceProvider}")]
 public class HotelRoomInventoryController : BaseApiController
 {
+    private readonly ISupplierRepository _supplierRepository;
+
+    public HotelRoomInventoryController(ISupplierRepository supplierRepository)
+    {
+        _supplierRepository = supplierRepository;
+    }
+
     // ─── Room Inventory CRUD ────────────────────────────────────────────────
 
     [HttpGet(HotelRoomInventoryEndpoint.Base)]
-    public async Task<IActionResult> GetInventory([FromQuery] Guid supplierId)
+    public async Task<IActionResult> GetInventory()
     {
-        var result = await Sender.Send(new GetHotelRoomInventoryQuery(supplierId));
+        var supplierIdResult = ResolveSupplierId();
+        if (supplierIdResult is not null) return supplierIdResult;
+
+        var result = await Sender.Send(new GetHotelRoomInventoryQuery(_resolvedSupplierId!.Value));
         return HandleResult(result);
     }
 
@@ -60,11 +71,39 @@ public class HotelRoomInventoryController : BaseApiController
 
     [HttpGet(HotelRoomAvailabilityEndpoint.Base)]
     public async Task<IActionResult> GetAvailability(
-        [FromQuery] Guid supplierId,
         [FromQuery] DateOnly fromDate,
         [FromQuery] DateOnly toDate)
     {
-        var result = await Sender.Send(new GetHotelRoomAvailabilityQuery(supplierId, fromDate, toDate));
+        var supplierIdResult = ResolveSupplierId();
+        if (supplierIdResult is not null) return supplierIdResult;
+
+        var result = await Sender.Send(new GetHotelRoomAvailabilityQuery(
+            _resolvedSupplierId!.Value, fromDate, toDate));
         return HandleResult(result);
+    }
+
+    // ─── Ownership Scoping ───────────────────────────────────────────────────
+
+    private Guid? _resolvedSupplierId;
+
+    private IActionResult? ResolveSupplierId()
+    {
+        var userId = GetCurrentUserId();
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var supplier = _supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
+            return StatusCode(403, "You do not have an accommodation supplier.");
+
+        _resolvedSupplierId = supplier.Id;
+        return null;
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?? User.FindFirst("sub");
+        return claim != null && Guid.TryParse(claim.Value, out var id) ? id : Guid.Empty;
     }
 }

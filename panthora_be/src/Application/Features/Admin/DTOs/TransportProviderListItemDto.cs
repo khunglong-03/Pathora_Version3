@@ -9,5 +9,8 @@ public sealed record TransportProviderListItemDto(
     string? PhoneNumber,
     string? AvatarUrl,
     UserStatus Status,
+    int VehicleCount,
+    List<string> Continents,
+    string? Address,
     int BookingCount
 );

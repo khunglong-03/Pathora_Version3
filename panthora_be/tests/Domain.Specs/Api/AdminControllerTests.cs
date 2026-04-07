@@ -98,7 +98,7 @@ public sealed class AdminControllerTests
     {
         var providers = new List<TransportProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Transport Co", "trans@example.com", "0123456789", null, UserStatus.Active, 5)
+            new(Guid.NewGuid(), "Transport Co", "trans@example.com", "0123456789", null, UserStatus.Active, 5, [], null, 0)
         };
         var response = new PaginatedList<TransportProviderListItemDto>(
             providers.Count, providers, 1, 10);
@@ -124,7 +124,7 @@ public sealed class AdminControllerTests
     {
         var providers = new List<HotelProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Hotel Co", "hotel@example.com", "0123456789", null, UserStatus.Active, 3)
+            new(Guid.NewGuid(), "Hotel Co", "hotel@example.com", "0123456789", null, UserStatus.Active, 3, [])
         };
         var response = new PaginatedList<HotelProviderListItemDto>(
             providers.Count, providers, 1, 10);

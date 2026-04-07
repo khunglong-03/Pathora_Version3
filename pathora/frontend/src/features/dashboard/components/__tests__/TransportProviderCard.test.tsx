@@ -90,4 +90,14 @@ describe("TransportProviderCard", () => {
 
     expect(screen.getByText("Min Transport")).toBeInTheDocument();
   });
+
+  it("renders address when provided", () => {
+    const providerWithAddress: TransportProviderListItem = {
+      ...mockProvider,
+      address: "123 Đường ABC, Quận 1, TP.HCM",
+    };
+    renderComponent({ provider: providerWithAddress });
+
+    expect(screen.getByText("123 Đường ABC, Quận 1, TP.HCM")).toBeInTheDocument();
+  });
 });

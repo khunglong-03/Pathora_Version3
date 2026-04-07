@@ -8,7 +8,7 @@ public sealed record VehicleResponseDto(
     string? Model,
     int SeatCapacity,
     string? LocationArea,
-    string? CountryCode,
+    string? OperatingCountries,
     List<string>? VehicleImageUrls,
     bool IsActive,
     string? Notes,
@@ -22,7 +22,7 @@ public sealed record CreateVehicleRequestDto(
     string? Model,
     int SeatCapacity,
     int? LocationArea,
-    string? CountryCode,
+    string? OperatingCountries,
     List<string>? VehicleImageUrls,
     string? Notes
 );
@@ -33,7 +33,7 @@ public sealed record UpdateVehicleRequestDto(
     string? Model,
     int? SeatCapacity,
     int? LocationArea,
-    string? CountryCode,
+    string? OperatingCountries,
     List<string>? VehicleImageUrls,
     string? Notes
 );

@@ -8,10 +8,13 @@ using ErrorOr;
 using global::Contracts;
 using MediatR;
 
-public sealed class GetTransportProvidersQueryHandler(IUserRepository userRepository)
+public sealed class GetTransportProvidersQueryHandler(
+    IVehicleRepository vehicleRepository,
+    IUserRepository userRepository,
+    ISupplierRepository supplierRepository)
     : IRequestHandler<GetTransportProvidersQuery, ErrorOr<PaginatedList<TransportProviderListItemDto>>>
 {
-    private const int TransportProviderRoleId = 6; // RoleId for "TransportProvider"
+    private const int TransportProviderRoleId = (int)AssignedRole.TransportProvider;
 
     public async Task<ErrorOr<PaginatedList<TransportProviderListItemDto>>> Handle(
         GetTransportProvidersQuery request,
@@ -19,6 +22,11 @@ public sealed class GetTransportProvidersQueryHandler(IUserRepository userReposi
     {
         var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
         var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
+
+        if (request.Continent.HasValue)
+        {
+            return await HandleWithContinentFilterAsync(request, pageNumber, pageSize, cancellationToken);
+        }
 
         var users = await userRepository.FindProvidersByRoleAsync(
             TransportProviderRoleId,
@@ -34,16 +42,103 @@ public sealed class GetTransportProvidersQueryHandler(IUserRepository userReposi
             request.Status,
             cancellationToken);
 
-        var items = users.Select(user => new TransportProviderListItemDto(
-            user.Id,
-            user.FullName ?? string.Empty,
-            user.Email,
-            user.PhoneNumber,
-            user.AvatarUrl,
-            user.Status,
-            0 // bookingCount not available in data model
-        )).ToList();
+        var userIds = users.Select(u => u.Id).ToList();
 
-        return new PaginatedList<TransportProviderListItemDto>(total, items, pageNumber, pageSize);
+        // Fetch vehicle data, supplier address data, and pending count in parallel
+        var vehicleDataTask = vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierAddressDataTask = supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
+        var pendingCountTask = userRepository.CountProvidersByRoleAsync(
+            TransportProviderRoleId, request.Search, "Pending", cancellationToken);
+
+        await Task.WhenAll(vehicleDataTask, supplierAddressDataTask, pendingCountTask);
+
+        var vehicleData = vehicleDataTask.Result;
+        var supplierAddressData = supplierAddressDataTask.Result;
+        var pendingCount = pendingCountTask.Result;
+
+        var items = users.Select(user =>
+        {
+            var hasData = vehicleData.TryGetValue(user.Id, out var data);
+            supplierAddressData.TryGetValue(user.Id, out var address);
+            return new TransportProviderListItemDto(
+                user.Id,
+                user.FullName ?? string.Empty,
+                user.Email,
+                user.PhoneNumber,
+                user.AvatarUrl,
+                user.Status,
+                hasData ? data.Count : 0,
+                hasData ? data.Continents.Select(c => c.ToString()).ToList() : [],
+                address,
+                0);
+        }).ToList();
+
+        return new PaginatedList<TransportProviderListItemDto>(total, items, pageNumber, pageSize, null, pendingCount);
+    }
+
+    private async Task<ErrorOr<PaginatedList<TransportProviderListItemDto>>> HandleWithContinentFilterAsync(
+        GetTransportProvidersQuery request,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        // Find users who own vehicles in the specified continent
+        var continent = request.Continent!.Value;
+        var userIdsWithInventory = await vehicleRepository
+            .FindOwnerIdsWithVehicleInContinentAsync(continent, cancellationToken);
+
+        if (userIdsWithInventory.Count == 0)
+        {
+            return new PaginatedList<TransportProviderListItemDto>(0, [], pageNumber, pageSize, null, 0);
+        }
+
+        var total = await userRepository.CountProvidersByRoleWithIdsAsync(
+            TransportProviderRoleId,
+            request.Search,
+            request.Status,
+            userIdsWithInventory,
+            cancellationToken);
+
+        var users = await userRepository.FindProvidersByRoleWithIdsAsync(
+            TransportProviderRoleId,
+            request.Search,
+            request.Status,
+            userIdsWithInventory,
+            pageNumber,
+            pageSize,
+            cancellationToken);
+
+        var userIds = users.Select(u => u.Id).ToList();
+
+        // Fetch vehicle data, supplier address data, and pending count in parallel
+        var vehicleDataTask = vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierAddressDataTask = supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
+        var pendingCountTask = userRepository.CountProvidersByRoleAsync(
+            TransportProviderRoleId, request.Search, "Pending", cancellationToken);
+
+        await Task.WhenAll(vehicleDataTask, supplierAddressDataTask, pendingCountTask);
+
+        var vehicleData = vehicleDataTask.Result;
+        var supplierAddressData = supplierAddressDataTask.Result;
+        var pendingCount = pendingCountTask.Result;
+
+        var items = users.Select(user =>
+        {
+            var hasData = vehicleData.TryGetValue(user.Id, out var data);
+            supplierAddressData.TryGetValue(user.Id, out var address);
+            return new TransportProviderListItemDto(
+                user.Id,
+                user.FullName ?? string.Empty,
+                user.Email,
+                user.PhoneNumber,
+                user.AvatarUrl,
+                user.Status,
+                hasData ? data.Count : 0,
+                hasData ? data.Continents.Select(c => c.ToString()).ToList() : [],
+                address,
+                0);
+        }).ToList();
+
+        return new PaginatedList<TransportProviderListItemDto>(total, items, pageNumber, pageSize, null, pendingCount);
     }
 }

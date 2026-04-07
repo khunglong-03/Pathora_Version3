@@ -164,6 +164,7 @@ Component → Service (authService, catalogService...) → axiosInstance.ts → 
 | Framework     | .NET 10, ASP.NET Core     | Clean Architecture                                                                                                      |
 | CQRS          | MediatR                   | Command/Query → Handler → Validator pattern                                                                             |
 | Auth          | JWT Bearer tokens         | `access_token` cookie: `HttpOnly=false` (JS-readable), `SameSite=Lax`, `Secure`=IsHttps. Refresh token: `HttpOnly=true` |
+| Role constants | Code-generated           | Single source of truth: `role.json`; scripts generate `RoleConstants.cs` (backend) and `auth-roles.ts` (frontend). When adding/modifying roles in `role.json`, run both: `panthora_be/scripts/GenerateRoleConstants.ps1` and `npx tsx pathora/scripts/generate-auth-roles.ts`. |
 | Validation    | FluentValidation          | Trong MediatR pipeline behaviors, KHÔNG viết trong controller                                                           |
 | Error flow    | `ErrorOr<T>`              | Expected failures → ErrorOr, KHÔNG throw exceptions                                                                     |
 | API responses | `ResultSharedResponse<T>` | Qua `BaseApiController`, localization-aware                                                                             |
@@ -676,7 +677,7 @@ Specs (4): `admin-dashboard-routing`, `admin-tour-request-detail`, `dashboard-na
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Doan2** (11405 symbols, 26692 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Doan2** (11463 symbols, 26947 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -772,27 +773,5 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 | Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
 | Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-
----
-
-## Skills
-
-### TypeScript/JavaScript Skills
-
-| Skill | Khi nào dùng |
-|-------|--------------|
-| **frontend-patterns** | Component patterns, state management, React/Next.js patterns |
-| **dotnet-patterns** | C#/.NET idiomatic patterns, DI, async/await, ASP.NET Core |
-| **csharp-testing** | xUnit, FluentAssertions, mocking patterns cho .NET |
-| **security-review** | Security audits, OWASP Top 10 checks |
-
-### Agent Usage
-
-- **code-reviewer** → sau khi viết code mới/sửa code
-- **typescript-reviewer** → review TypeScript/JavaScript code
-- **security-reviewer** → audit code liên quan đến auth, input, payment
-- **tdd-guide** → enforce TDD workflow cho feature mới
-- **build-error-resolver** → khi build thất bại
-- **e2e-runner** → Playwright E2E testing cho critical user flows
 
 <!-- gitnexus:end -->
