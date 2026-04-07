@@ -4,16 +4,16 @@
   },
   "permissions": {
     "allow": [
-      "Bash(python3 -c \"import json; json.load\\(open\\(''D:/DoAn/.claude/settings.json''\\)\\)\")",
-      "Bash(python -c \"import json; json.load\\(open\\(''D:/DoAn/.claude/settings.json''\\)\\)\")",
+      "Bash(python3 -c \"import json; json.load\\(open\\(''/Users/namhai/Desktop/Pathora_Version3/.claude/settings.json''\\)\\)\")",
+      "Bash(python -c \"import json; json.load\\(open\\(''/Users/namhai/Desktop/Pathora_Version3/.claude/settings.json''\\)\\)\")",
       "mcp__plugin_everything-claude-code_github__get_file_contents",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(npx gitnexus@latest list)",
       "Bash(npx gitnexus@latest analyze)",
-      "Bash(git -C \"D:/DoAn/panthora_be\" rev-parse --git-dir)",
-      "Bash(git -C \"D:/DoAn/pathora\" rev-parse --git-dir)",
+      "Bash(git -C \"/Users/namhai/Desktop/Pathora_Version3/panthora_be\" rev-parse --git-dir)",
+      "Bash(git -C \"/Users/namhai/Desktop/Pathora_Version3/pathora\" rev-parse --git-dir)",
       "Bash(npx gitnexus@latest analyze --force)",
-      "Bash(node \"D:/DoAn/GitNexus/gitnexus/dist/cli/index.js\" status)",
+      "Bash(node \"/Users/namhai/Desktop/Pathora_Version3/GitNexus/gitnexus/dist/cli/index.js\" status)",
       "Bash(node:*)",
       "Bash(echo \"Exit: $?\")",
       "Bash(chmod:*)"
