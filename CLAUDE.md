@@ -676,7 +676,7 @@ Specs (4): `admin-dashboard-routing`, `admin-tour-request-detail`, `dashboard-na
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Doan2** (11405 symbols, 26692 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (11933 symbols, 38090 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -692,7 +692,7 @@ This project is indexed by GitNexus as **Doan2** (11405 symbols, 26692 relations
 
 1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
 2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/Doan2/process/{processName}` — trace the full execution flow step by step
+3. `READ gitnexus://repo/Pathora_Version3/process/{processName}` — trace the full execution flow step by step
 4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
 
 ## When Refactoring
@@ -731,10 +731,10 @@ This project is indexed by GitNexus as **Doan2** (11405 symbols, 26692 relations
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/Doan2/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Doan2/clusters` | All functional areas |
-| `gitnexus://repo/Doan2/processes` | All execution flows |
-| `gitnexus://repo/Doan2/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/Pathora_Version3/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
+| `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
+| `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
 
 ## Self-Check Before Finishing
 
@@ -772,27 +772,5 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 | Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
 | Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-
----
-
-## Skills
-
-### TypeScript/JavaScript Skills
-
-| Skill | Khi nào dùng |
-|-------|--------------|
-| **frontend-patterns** | Component patterns, state management, React/Next.js patterns |
-| **dotnet-patterns** | C#/.NET idiomatic patterns, DI, async/await, ASP.NET Core |
-| **csharp-testing** | xUnit, FluentAssertions, mocking patterns cho .NET |
-| **security-review** | Security audits, OWASP Top 10 checks |
-
-### Agent Usage
-
-- **code-reviewer** → sau khi viết code mới/sửa code
-- **typescript-reviewer** → review TypeScript/JavaScript code
-- **security-reviewer** → audit code liên quan đến auth, input, payment
-- **tdd-guide** → enforce TDD workflow cho feature mới
-- **build-error-resolver** → khi build thất bại
-- **e2e-runner** → Playwright E2E testing cho critical user flows
 
 <!-- gitnexus:end -->
