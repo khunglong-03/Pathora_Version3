@@ -55,20 +55,38 @@ public class TourManagerAssignmentRepository(AppDbContext context)
             .Where(m => m.TourManagerId == managerId)
             .ToListAsync(cancellationToken);
 
+        var sentinel = existing
+            .FirstOrDefault(a => a.AssignedUserId == null && a.AssignedTourId == null && a.AssignedEntityType == AssignedEntityType.Tour);
+
+        List<TourManagerAssignmentEntity> effectiveAssignments = newAssignments;
         if (newAssignments.Count > 0)
         {
-            foreach (var assignment in newAssignments)
+            if (sentinel == null)
+            {
+                var sentinelAssignment = TourManagerAssignmentEntity.Create(
+                    tourManagerId: managerId,
+                    entityType: AssignedEntityType.Tour,
+                    assignedUserId: null,
+                    assignedTourId: null,
+                    roleInTeam: null,
+                    performedBy: performedBy);
+                effectiveAssignments = newAssignments.Append(sentinelAssignment).ToList();
+            }
+            foreach (var assignment in effectiveAssignments)
             {
                 assignment.CreatedBy = performedBy;
                 assignment.CreatedOnUtc = DateTimeOffset.UtcNow;
             }
-            await _context.TourManagerAssignments.AddRangeAsync(newAssignments, cancellationToken);
+            await _context.TourManagerAssignments.AddRangeAsync(effectiveAssignments, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
         }
 
         if (existing.Count > 0)
         {
-            _context.TourManagerAssignments.RemoveRange(existing);
+            var toRemove = sentinel != null
+                ? existing.Where(a => a != sentinel).ToList()
+                : existing;
+            _context.TourManagerAssignments.RemoveRange(toRemove);
             await _context.SaveChangesAsync(cancellationToken);
         }
     }

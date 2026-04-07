@@ -32,14 +32,54 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
             RoleId = roleId
         }).ToList();
         await _context.UserRoles.AddRangeAsync(userRoles);
+
+        if (roleIds.Contains(2))
+        {
+            await EnsureManagerSentinelAsync(userId);
+        }
+
         return Result.Success;
     }
 
     public async Task<ErrorOr<Success>> DeleteUser(Guid userId)
     {
+        var hadManager = await _context.UserRoles
+            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == 2);
+
         var userRoles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync();
         _context.UserRoles.RemoveRange(userRoles);
+
+        if (hadManager)
+        {
+            var assignments = await _context.TourManagerAssignments
+                .Where(a => a.TourManagerId == userId)
+                .ToListAsync();
+            _context.TourManagerAssignments.RemoveRange(assignments);
+        }
+
         return Result.Success;
+    }
+
+    private async Task EnsureManagerSentinelAsync(Guid userId)
+    {
+        var alreadyExists = await _context.TourManagerAssignments
+            .AnyAsync(a =>
+                a.TourManagerId == userId &&
+                a.AssignedUserId == null &&
+                a.AssignedTourId == null &&
+                a.AssignedEntityType == AssignedEntityType.Tour);
+        if (alreadyExists) return;
+
+        await _context.TourManagerAssignments.AddAsync(new TourManagerAssignmentEntity
+        {
+            Id = Guid.CreateVersion7(),
+            TourManagerId = userId,
+            AssignedEntityType = AssignedEntityType.Tour,
+            AssignedUserId = null,
+            AssignedTourId = null,
+            CreatedBy = "system",
+            CreatedOnUtc = DateTimeOffset.UtcNow
+        });
     }
 
     public async Task<ErrorOr<List<(Guid UserId, int RoleId)>>> FindAllUserRoles()
