@@ -27,7 +27,7 @@ describe("dashboard bookings navigation", () => {
     dashboardNavFiles.forEach((filePath) => {
       const source = readFile(filePath);
 
-      expect(source.includes('href: "/dashboard/bookings"')).toBe(true);
+      expect(source.includes('href: "/manager/bookings"')).toBe(true);
       expect(source.includes('href: "/bookings"')).toBe(false);
     });
   });

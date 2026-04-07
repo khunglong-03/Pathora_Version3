@@ -13,10 +13,7 @@ import { describe, expect, it } from "vitest";
  */
 
 import {
-  isAdminPortal,
-  isAdminRoutePath,
   isManagerRoutePath,
-  isLoginEntryPath,
   hasAdminRole,
   hasManagerRole,
   parseAuthRoles,
@@ -24,37 +21,38 @@ import {
   USER_DEFAULT_PATH,
   ADMIN_ROLE_DEFAULT_PATH,
   MANAGER_ROLE_DEFAULT_PATH,
+  isProviderRoutePath,
 } from "@/utils/authRouting";
 
 /**
- * Integration test 7.1: Login with hung.nv@pathora.vn → redirect to /dashboard
+ * Integration test 7.1: Login with hung.nv@pathora.vn → redirect to /manager
  *
  * After login, if the user has Manager role and admin portal, they should
- * be redirected to /dashboard (Manager home).
+ * be redirected to /manager (Manager home).
  */
-describe("7.1: Login redirect to /dashboard", () => {
-  it("Manager role at login entry redirects to /dashboard", () => {
+describe("7.1: Login redirect to /manager", () => {
+  it("Manager role at login entry redirects to /manager", () => {
     const roles = [{ name: "Manager" }];
     const defaultPath = resolveRoleDefaultPath(roles);
 
     expect(defaultPath).toBe(MANAGER_ROLE_DEFAULT_PATH);
-    expect(MANAGER_ROLE_DEFAULT_PATH).toBe("/dashboard");
+    expect(MANAGER_ROLE_DEFAULT_PATH).toBe("/manager");
   });
 
   it("Manager role from login resolves to manager home", () => {
     const roles = [{ name: "Manager" }];
     expect(hasManagerRole(roles)).toBe(true);
-    expect(resolveRoleDefaultPath(roles)).toBe("/dashboard");
+    expect(resolveRoleDefaultPath(roles)).toBe("/manager");
   });
 });
 
 /**
  * Integration test 7.2: Manager blocked from admin routes
  *
- * Middleware: Manager accessing /admin/* → redirect to /dashboard
+ * Middleware: Manager accessing /admin/* → redirect to /manager
  */
 describe("7.2: Manager blocked from /admin/*", () => {
-  it("Manager role accessing /admin/dashboard should redirect to /dashboard", () => {
+  it("Manager role accessing /admin/dashboard should redirect to /manager", () => {
     const roles = [{ name: "Manager" }];
     expect(hasManagerRole(roles)).toBe(true);
 
@@ -71,18 +69,18 @@ describe("7.2: Manager blocked from /admin/*", () => {
 });
 
 /**
- * Integration test 7.3: Admin blocked from dashboard
+ * Integration test 7.3: Admin blocked from manager routes
  *
- * Middleware: Admin accessing /dashboard or manager routes → redirect to /admin/dashboard
+ * Middleware: Admin accessing /manager or manager routes → redirect to /admin/users
  */
-describe("7.3: Admin blocked from /dashboard", () => {
-  it("Admin role accessing /dashboard should redirect to /admin/dashboard", () => {
+describe("7.3: Admin blocked from /manager", () => {
+  it("Admin role accessing /manager should redirect to /admin/users", () => {
     const roles = [{ name: "Admin" }];
     expect(hasAdminRole(roles)).toBe(true);
-    expect(isManagerRoutePath("/dashboard")).toBe(true);
+    expect(isManagerRoutePath("/manager")).toBe(true);
   });
 
-  it("Admin role accessing /tour-management should redirect to /admin/dashboard", () => {
+  it("Admin role accessing /tour-management should redirect to /admin/users", () => {
     const roles = [{ name: "Admin" }];
     expect(hasAdminRole(roles)).toBe(true);
     expect(isManagerRoutePath("/tour-management")).toBe(true);
@@ -90,11 +88,11 @@ describe("7.3: Admin blocked from /dashboard", () => {
 });
 
 /**
- * Integration test 7.4: Non-manager blocked from /dashboard
+ * Integration test 7.4: Non-manager blocked from /manager
  *
- * Dashboard layout: User without Manager role accessing /dashboard → redirect to /home
+ * Manager layout: User without Manager role accessing /manager → redirect to /home
  */
-describe("7.4: Non-manager blocked from /dashboard layout", () => {
+describe("7.4: Non-manager blocked from /manager layout", () => {
   it("User role without manager access is redirected", () => {
     const roles = [{ name: "User" }];
     expect(hasManagerRole(roles)).toBe(false);
@@ -107,7 +105,7 @@ describe("7.4: Non-manager blocked from /dashboard layout", () => {
     expect(hasManagerRole(undefined)).toBe(false);
   });
 
-  it("Empty roles resolved path is /home (not /dashboard)", () => {
+  it("Empty roles resolved path is /home (not /manager)", () => {
     expect(resolveRoleDefaultPath([])).toBe(USER_DEFAULT_PATH);
     expect(resolveRoleDefaultPath(null)).toBe(USER_DEFAULT_PATH);
   });
@@ -116,7 +114,7 @@ describe("7.4: Non-manager blocked from /dashboard layout", () => {
 /**
  * Integration test 7.5: Unauthenticated redirect
  *
- * Dashboard layout: Unauthenticated user accessing /dashboard → redirect to /home?login=true
+ * Manager layout: Unauthenticated user accessing /manager → redirect to /home?login=true
  */
 describe("7.5: Unauthenticated redirect", () => {
   it("No auth cookies means unauthenticated", () => {
@@ -126,11 +124,9 @@ describe("7.5: Unauthenticated redirect", () => {
     expect(authenticated).toBe(false);
   });
 
-  it("/dashboard is not a public path", () => {
-    // Public paths are: /, /home, /tours, etc.
-    // /dashboard is protected
-    expect(isAdminRoutePath("/dashboard")).toBe(true);
-    expect(isManagerRoutePath("/dashboard")).toBe(true);
+  it("/manager is a protected manager route path", () => {
+    // /manager is protected by middleware
+    expect(isManagerRoutePath("/manager")).toBe(true);
   });
 
   it("Unauthenticated + protected path → redirect destination is /home", () => {
@@ -154,18 +150,22 @@ describe("7.6: AdminSidebar manager variant nav items", () => {
 
   it("Manager routes include expected prefixes", () => {
     const managerRoutes = [
-      "/dashboard",
-      "/dashboard/bookings",
-      "/dashboard/customers",
-      "/dashboard/payments",
-      "/dashboard/policies",
-      "/dashboard/settings",
-      "/dashboard/site-content",
-      "/dashboard/tour-instances",
-      "/dashboard/tour-management",
-      "/dashboard/tour-requests",
-      "/dashboard/visa",
-      "/dashboard/insurance",
+      "/manager",
+      "/manager/bookings",
+      "/manager/customers",
+      "/manager/payments",
+      "/manager/settings",
+      "/manager/tour-instances",
+      "/manager/tour-management",
+      "/manager/tour-requests",
+      "/manager/visa",
+      "/manager/insurance",
+      // Flat routes (not under /manager/)
+      "/tour-management",
+      "/tour-instances",
+      "/tour-requests",
+      "/pricing-policies",
+      "/tax-configs",
     ];
 
     managerRoutes.forEach((route) => {
@@ -179,12 +179,19 @@ describe("7.6: AdminSidebar manager variant nav items", () => {
     expect(isManagerRoutePath("/home")).toBe(false);
     expect(isManagerRoutePath("/tours")).toBe(false);
   });
+
+  it("Provider routes are excluded from manager routes", () => {
+    expect(isManagerRoutePath("/hotel")).toBe(false);
+    expect(isManagerRoutePath("/transport")).toBe(false);
+    expect(isProviderRoutePath("/hotel")).toBe(true);
+    expect(isProviderRoutePath("/transport")).toBe(true);
+  });
 });
 
 /**
  * Integration test 7.7: Dual role Admin wins
  *
- * Admin + Manager dual role → Admin redirect takes precedence → /admin/dashboard
+ * Admin + Manager dual role → Admin redirect takes precedence → /admin/users
  */
 describe("7.7: Dual role Admin wins", () => {
   it("Admin + Manager dual role → Admin takes precedence", () => {
@@ -196,7 +203,7 @@ describe("7.7: Dual role Admin wins", () => {
     // Admin wins — resolveRoleDefaultPath returns admin path
     const path = resolveRoleDefaultPath(dualRoles);
     expect(path).toBe(ADMIN_ROLE_DEFAULT_PATH);
-    expect(ADMIN_ROLE_DEFAULT_PATH).toBe("/admin/dashboard");
+    expect(ADMIN_ROLE_DEFAULT_PATH).toBe("/admin/users");
   });
 
   it("Admin wins over Manager even with both roles present", () => {
@@ -210,8 +217,8 @@ describe("7.7: Dual role Admin wins", () => {
     const roles = [{ name: "Admin" }];
 
     expect(hasAdminRole(roles)).toBe(true);
-    expect(isManagerRoutePath("/dashboard")).toBe(true);
-    // Admin at /dashboard → redirect to /admin/dashboard
+    expect(isManagerRoutePath("/manager")).toBe(true);
+    // Admin at /manager → redirect to /admin/users
   });
 });
 

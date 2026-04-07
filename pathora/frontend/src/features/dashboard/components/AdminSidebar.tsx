@@ -30,16 +30,16 @@ import { AdminLogoutButton } from "./AdminLogoutButton";
    Navigation Items - Single Source of Truth
    ══════════════════════════════════════════════════════════════ */
 export const MANAGER_NAV_ITEMS = [
-  { label: "Dashboard", icon: SquaresFour, href: "/dashboard" },
-  { label: "Tours", icon: GlobeHemisphereWest, href: "/tour-management" },
-  { label: "Tour Instances", icon: CalendarDots, href: "/tour-instances" },
-  { label: "Tour Requests", icon: ClipboardText, href: "/dashboard/tour-requests" },
-  { label: "Bookings", icon: Ticket, href: "/dashboard/bookings" },
-  { label: "Payments", icon: CreditCard, href: "/dashboard/payments" },
-  { label: "Customers", icon: UsersThree, href: "/dashboard/customers" },
-  { label: "Insurance", icon: ShieldCheck, href: "/dashboard/insurance" },
-  { label: "Visa Applications", icon: Certificate, href: "/dashboard/visa" },
-  { label: "Settings", icon: Gear, href: "/dashboard/settings" },
+  { label: "Dashboard", icon: SquaresFour, href: "/manager/dashboard" },
+  { label: "Tours", icon: GlobeHemisphereWest, href: "/manager/tour-management" },
+  { label: "Tour Instances", icon: CalendarDots, href: "/manager/tour-instances" },
+  { label: "Tour Requests", icon: ClipboardText, href: "/manager/dashboard/tour-requests" },
+  { label: "Bookings", icon: Ticket, href: "/manager/dashboard/bookings" },
+  { label: "Payments", icon: CreditCard, href: "/manager/dashboard/payments" },
+  { label: "Customers", icon: UsersThree, href: "/manager/dashboard/customers" },
+  { label: "Insurance", icon: ShieldCheck, href: "/manager/dashboard/insurance" },
+  { label: "Visa Applications", icon: Certificate, href: "/manager/dashboard/visa" },
+  { label: "Settings", icon: Gear, href: "/manager/dashboard/settings" },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
@@ -192,8 +192,8 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
   }, [variant, loadPendingCount]);
 
   const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard" || pathname === "/dashboard/";
+    if (href === "/manager/dashboard") {
+      return pathname === "/manager/dashboard" || pathname === "/manager/dashboard/";
     }
     if (href === "/admin/dashboard") {
       return pathname === "/admin/dashboard" || pathname === "/admin/dashboard/";
@@ -220,7 +220,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
           style={{ borderBottom: "1px solid var(--sidebar-border)" }}
         >
           <Link
-            href={variant === "admin" ? "/admin/dashboard" : "/dashboard"}
+            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? "/hotel" : "/manager/dashboard"}
             className="flex items-center gap-3 group"
           >
             {/* Logo mark */}
