@@ -37,6 +37,7 @@ public static class DependencyInjection
         var cacheOptions = configuration.GetSection(CacheOptions.Cache).Get<CacheOptions>() ?? new CacheOptions();
 
         return services
+           .AddScoped<HotelServiceProviderSupplierMapper>()
            .AddDbContext<AppDbContext>(options =>
             {
                 options.UseLazyLoadingProxies(proxyOptions =>

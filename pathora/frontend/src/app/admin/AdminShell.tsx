@@ -5,6 +5,7 @@ import { AdminSidebar } from "@/features/dashboard/components/AdminSidebar";
 
 interface AdminShellProps {
   children: React.ReactNode;
+  variant?: "admin" | "manager" | "provider";
 }
 
 const ADMIN_ROLE_NAME = "Admin";
@@ -18,7 +19,10 @@ const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   }
 };
 
-export default function AdminShell({ children }: AdminShellProps) {
+export default function AdminShell({
+  children,
+  variant = "manager",
+}: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -37,7 +41,7 @@ export default function AdminShell({ children }: AdminShellProps) {
     <AdminSidebar
       isOpen={sidebarOpen}
       onClose={() => setSidebarOpen(false)}
-      variant="admin"
+      variant={variant}
       isAdmin={isAdmin}
     >
       <div style={{ backgroundColor: "#F1F5F9", minHeight: "100vh" }}>

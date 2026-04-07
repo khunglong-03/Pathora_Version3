@@ -7,10 +7,11 @@ import Icon from "@/components/ui/Icon";
 import {
   adminService,
   type CreateStaffRequest,
+  type TourManagerSummary,
 } from "@/api/services/adminService";
+import type { ApiResponse } from "@/types/home";
 import {
   tourManagerAssignmentService,
-  type TourManagerSummary,
   ASSIGNED_ENTITY_TYPE,
 } from "@/api/services/tourManagerAssignmentService";
 import type { StaffMemberDto } from "@/types/admin";
@@ -51,15 +52,15 @@ export default function TourManagersPage() {
       setIsErrorManagers(false);
       setManagersError(null);
 
-      const result = await tourManagerAssignmentService.getAll();
+      const result = await adminService.getAllManagers();
 
       if (!active) return;
 
-      if (result.success && result.data) {
-        setManagers(result.data);
+      if (result) {
+        setManagers(result);
       } else {
         setIsErrorManagers(true);
-        setManagersError(result.error?.message ?? "Không thể tải danh sách Tour Manager.");
+        setManagersError("Không thể tải danh sách Tour Manager.");
       }
       setIsLoadingManagers(false);
     };

@@ -38,8 +38,9 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
             .HasConversion<string>()
             .HasMaxLength(20);
 
-        builder.Property(x => x.CountryCode)
-            .HasMaxLength(2);
+        // CountryCode renamed to OperatingCountries on 2026-04-07
+        builder.Property(x => x.OperatingCountries)
+            .HasMaxLength(500);
 
         builder.Property(x => x.VehicleImageUrls)
             .HasColumnType("jsonb");
@@ -50,6 +51,7 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
         builder.HasIndex(x => x.OwnerId);
         builder.HasIndex(x => x.IsDeleted);
         builder.HasIndex(x => x.LocationArea);
+        builder.HasIndex(x => x.OperatingCountries);
 
         builder.HasOne(x => x.Owner)
             .WithMany()

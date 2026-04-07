@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
 import type { TransportProviderListItem, PaginatedList } from "@/types/admin";
@@ -33,6 +34,7 @@ export default function TransportProvidersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchInput, setSearchInput] = useState("");
@@ -56,6 +58,7 @@ export default function TransportProvidersPage() {
       setProviders(data.items);
       setTotalPages(data.totalPages);
       setTotal(data.total);
+      setPendingCount(data.pendingCount ?? 0);
     } else {
       setProviders([]);
     }
@@ -85,7 +88,7 @@ export default function TransportProvidersPage() {
     },
     {
       label: "Đang chờ xử lý",
-      value: total.toString(),
+      value: pendingCount.toString(),
       icon: "Hourbar",
       accent: "#C9873A",
     },
@@ -141,7 +144,9 @@ export default function TransportProvidersPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {providers.map((provider) => (
-              <TransportProviderCard key={provider.id} provider={provider} />
+              <Link href={`/admin/transport-providers/${provider.id}`} key={provider.id} className="block">
+                <TransportProviderCard provider={provider} />
+              </Link>
             ))}
           </div>
           {totalPages > 1 && (

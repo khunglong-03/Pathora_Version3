@@ -108,4 +108,38 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<List<Guid>> FindOwnerIdsWithVehicleInContinentAsync(
+        Continent continent, CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.LocationArea == continent && !v.IsDeleted)
+            .Select(v => v.OwnerId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Dictionary<Guid, (int Count, List<Continent> Continents)>> GetVehicleDataGroupedByOwnerAsync(
+        List<Guid> ownerIds, CancellationToken cancellationToken = default)
+    {
+        if (ownerIds.Count == 0)
+            return [];
+
+        var groups = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => ownerIds.Contains(v.OwnerId) && !v.IsDeleted)
+            .GroupBy(v => v.OwnerId)
+            .Select(g => new
+            {
+                OwnerId = g.Key,
+                Count = g.Count(),
+                Continents = g.Where(v => v.LocationArea.HasValue).Select(v => v.LocationArea!.Value).Distinct().ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        return groups.ToDictionary(
+            g => g.OwnerId,
+            g => (g.Count, g.Continents));
+    }
 }

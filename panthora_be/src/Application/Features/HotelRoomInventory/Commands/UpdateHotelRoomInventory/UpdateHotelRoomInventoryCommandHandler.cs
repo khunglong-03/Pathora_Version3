@@ -29,7 +29,16 @@ public sealed class UpdateHotelRoomInventoryCommandHandler(
 
         var supplier = await supplierRepository.GetByIdAsync(entity.SupplierId);
 
-        entity.Update(request.TotalRooms, performedBy);
+        entity.Update(
+            request.TotalRooms,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            performedBy);
         inventoryRepository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
@@ -38,6 +47,12 @@ public sealed class UpdateHotelRoomInventoryCommandHandler(
             entity.SupplierId,
             supplier?.Name,
             entity.RoomType,
-            entity.TotalRooms);
+            entity.TotalRooms,
+            entity.Name,
+            entity.Address,
+            entity.LocationArea?.ToString(),
+            entity.OperatingCountries,
+            entity.ImageUrls,
+            entity.Notes);
     }
 }

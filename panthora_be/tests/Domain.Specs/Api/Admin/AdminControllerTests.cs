@@ -180,7 +180,7 @@ public sealed class AdminControllerTests
     {
         var providers = new List<TransportProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Transport One", "transport@example.com", "+84 111 222 333", null, UserStatus.Active, 42)
+            new(Guid.NewGuid(), "Transport One", "transport@example.com", "+84 111 222 333", null, UserStatus.Active, 42, [], null, 0)
         };
         var response = new PaginatedList<TransportProviderListItemDto>(providers.Count, providers, 1, 10);
         var (controller, _) = ApiControllerTestHelper
@@ -224,7 +224,7 @@ public sealed class AdminControllerTests
     {
         var providers = new List<HotelProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Hotel One", "hotel@example.com", "+84 444 555 666", null, UserStatus.Active, 120)
+            new(Guid.NewGuid(), "Hotel One", "hotel@example.com", "+84 444 555 666", null, UserStatus.Active, 120, [])
         };
         var response = new PaginatedList<HotelProviderListItemDto>(providers.Count, providers, 1, 10);
         var (controller, _) = ApiControllerTestHelper

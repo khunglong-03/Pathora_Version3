@@ -13,8 +13,10 @@ import type {
   AdminDashboardOverview,
   PaginatedList,
   StaffMemberDto,
+  TransportProviderDetail,
 } from "@/types/admin";
-import { extractResult } from "@/utils/apiResponse";
+import { extractData, extractResult } from "@/utils/apiResponse";
+import { type TourManagerSummary } from "./tourManagerAssignmentService";
 
 export interface AdminBooking {
   id: string | number;
@@ -95,6 +97,13 @@ export const adminService = {
     return extractResult<PaginatedList<TransportProviderListItem>>(response.data);
   },
 
+  getTransportProviderDetail: async (id: string) => {
+    const response = await api.get<ApiResponse<TransportProviderDetail>>(
+      API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_DETAIL(id),
+    );
+    return extractResult<TransportProviderDetail>(response.data);
+  },
+
   getHotelProviders: async (params: GetProvidersParams = {}) => {
     const response = await api.get<ApiResponse<PaginatedList<HotelProviderListItem>>>(
       API_ENDPOINTS.ADMIN.GET_HOTEL_PROVIDERS,
@@ -132,6 +141,15 @@ export const adminService = {
     );
     return extractResult<AdminDashboardOverview>(response.data);
   },
+
+  getAllManagers: async () => {
+    const response = await api.get<ApiResponse<TourManagerSummary[]>>(
+      API_ENDPOINTS.ADMIN.GET_ALL_MANAGERS,
+    );
+    // Returns TourManagerSummary[] | null — null on error, extracted from ApiResponse
+    return extractData<TourManagerSummary[]>(response.data);
+  },
 };
 
-export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto };
+export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto, TransportProviderDetail };
+export type { TourManagerSummary };

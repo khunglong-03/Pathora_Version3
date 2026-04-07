@@ -88,11 +88,13 @@ export interface AdminEndpoints {
   GET_ALL_USERS: string;
   GET_USER_DETAIL: EndpointWithId;
   GET_TRANSPORT_PROVIDERS: string;
+  GET_TRANSPORT_PROVIDER_DETAIL: EndpointWithId;
   GET_HOTEL_PROVIDERS: string;
   GET_TOUR_MANAGER_STAFF: EndpointWithId;
   REASSIGN_STAFF: (managerId: string, staffId: string) => string;
   GET_DASHBOARD_OVERVIEW: string;
   CREATE_STAFF_UNDER_MANAGER: (managerId: string) => string;
+  GET_ALL_MANAGERS: string;
 }
 
 export interface SiteContentEndpoints {
@@ -203,6 +205,7 @@ export const ADMIN: AdminEndpoints = {
   GET_ALL_USERS: "/api/admin/users",
   GET_USER_DETAIL: (id: string): string => `/api/admin/users/${id}`,
   GET_TRANSPORT_PROVIDERS: "/api/admin/transport-providers",
+  GET_TRANSPORT_PROVIDER_DETAIL: (id: string): string => `/api/admin/transport-providers/${id}`,
   GET_HOTEL_PROVIDERS: "/api/admin/hotel-providers",
   GET_TOUR_MANAGER_STAFF: (id: string): string => `/api/admin/tour-managers/${id}/staff`,
   REASSIGN_STAFF: (managerId: string, staffId: string): string =>
@@ -210,6 +213,7 @@ export const ADMIN: AdminEndpoints = {
   GET_DASHBOARD_OVERVIEW: "/api/admin/dashboard/overview",
   CREATE_STAFF_UNDER_MANAGER: (managerId: string): string =>
     `/api/admin/tour-managers/${managerId}/staff`,
+  GET_ALL_MANAGERS: "/api/admin/managers",
 };
 
 export const SITE_CONTENT: SiteContentEndpoints = {

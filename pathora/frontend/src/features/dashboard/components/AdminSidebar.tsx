@@ -70,6 +70,10 @@ export const ADMIN_NAV_ITEMS = [
 
 export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
+export const PROVIDER_NAV_ITEMS = [
+  { label: "KS của tôi", icon: Bed, href: "/hotel" },
+] as const;
+
 export type NavItem = (typeof MANAGER_NAV_ITEMS)[number];
 
 // Section label definitions for Admin
@@ -84,7 +88,7 @@ interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   children?: React.ReactNode;
-  variant?: "manager" | "admin";
+  variant?: "manager" | "admin" | "provider";
   isAdmin?: boolean;
 }
 
@@ -96,7 +100,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
 
-  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : MANAGER_NAV_ITEMS;
+  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? PROVIDER_NAV_ITEMS : MANAGER_NAV_ITEMS;
 
   // For admin, build enriched nav with section labels
   const renderAdminNav = () => {
@@ -264,6 +268,53 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {variant === "admin" ? (
             renderAdminNav()
+          ) : variant === "provider" ? (
+            <div className="space-y-0.5">
+              {PROVIDER_NAV_ITEMS.map((item) => {
+                const active = isActive(item.href);
+                const IconComp = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                    onClick={onClose}
+                    style={
+                      active
+                        ? {
+                            backgroundColor: "var(--sidebar-active-bg)",
+                            color: "var(--sidebar-active-text)",
+                          }
+                        : {
+                            color: "var(--sidebar-text-muted)",
+                          }
+                    }
+                  >
+                    <span
+                      className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                      style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                    />
+                    <span className="relative z-10 transition-colors duration-200">
+                      <IconComp size={20} weight={active ? "fill" : "regular"} />
+                    </span>
+                    <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                    <AnimatePresence>
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active-indicator"
+                          initial={{ opacity: 0, scaleY: 0 }}
+                          animate={{ opacity: 1, scaleY: 1 }}
+                          exit={{ opacity: 0, scaleY: 0 }}
+                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                          style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </Link>
+                );
+              })}
+            </div>
           ) : (
             <div className="space-y-0.5">
               {navItems.map((item) => {

@@ -5,6 +5,7 @@ using Application.Contracts.User;
 using Application.Common.Constant;
 using Domain.Common.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 
@@ -27,7 +28,8 @@ public class UserService(
     IPasswordHasher passwordHasher,
     IRoleService roleService,
     IUserRepository userRepository,
-    IRoleRepository roleRepository)
+    IRoleRepository roleRepository,
+    HotelServiceProviderSupplierMapper? hotelServiceProviderMapper = null)
     : IUserService
 {
     private readonly IUser _user = user;
@@ -36,6 +38,7 @@ public class UserService(
     private readonly IRoleService _roleService = roleService;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly HotelServiceProviderSupplierMapper? _hotelServiceProviderMapper = hotelServiceProviderMapper;
 
     public async Task<ErrorOr<PaginatedListWithPermissions<UserVm>>> GetAll(GetAllUserRequest request)
     {
@@ -146,7 +149,13 @@ public class UserService(
             var settings = UserSettingEntity.Create(userEntity.Id, _user.Id ?? "system");
             await settingsRepo.AddAsync(settings);
             if (request.RoleIds.Count > 0)
+            {
                 await _roleRepository.AddUser(userEntity.Id, request.RoleIds);
+                if (request.RoleIds.Contains((int)AssignedRole.HotelServiceProvider) && _hotelServiceProviderMapper is not null)
+                {
+                    await _hotelServiceProviderMapper.MapAndCreateAsync(userEntity, _user.Id ?? "system");
+                }
+            }
             await _unitOfWork.CommitTransactionAsync();
         }
         catch

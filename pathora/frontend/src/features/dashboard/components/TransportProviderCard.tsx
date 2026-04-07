@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Van, Phone, EnvelopeSimple } from "@phosphor-icons/react";
+import { Van, Phone, EnvelopeSimple, MapPin } from "@phosphor-icons/react";
 import type { TransportProviderListItem } from "@/types/admin";
 
 interface TransportProviderCardProps {
@@ -64,6 +64,14 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
             <Phone size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs" style={{ color: "#6B7280" }}>
               {provider.phone}
+            </span>
+          </div>
+        )}
+        {provider.address && (
+          <div className="flex items-center gap-2">
+            <MapPin size={14} style={{ color: "#9CA3AF" }} />
+            <span className="text-xs truncate" style={{ color: "#6B7280" }}>
+              {provider.address}
             </span>
           </div>
         )}

@@ -9,7 +9,7 @@ const readFile = (relativePath: string): string => {
 
 describe("tour code auto-generation wiring", () => {
   it("does not require manual tour code entry on create flow", () => {
-    const source = readFile("src/app/(dashboard)/tour-management/create/page.tsx");
+    const source = readFile("src/app/manager/tour-management/create/page.tsx");
 
     expect(source.includes("Tour Code")).toBe(false);
     expect(source.includes('formData.append("tourCode"')).toBe(false);

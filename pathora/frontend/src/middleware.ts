@@ -5,6 +5,8 @@ import {
   isLoginEntryPath,
   USER_DEFAULT_PATH,
 } from "./utils/authRouting";
+// Role names generated from role.json — single source of truth
+import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES } from "./auth-roles";
 
 const SUPPORTED_LANGUAGES = ["en", "vi"] as const;
 const DEFAULT_LANGUAGE = "en";
@@ -42,10 +44,6 @@ const isPublicPath = (pathname: string): boolean => {
 const STATIC_MEDIA_REGEX =
   /\.(mp4|webm|mov|ogg|mp3|wav|flac|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|ico|avif)$/i;
 
-// Duplicated intentionally — middleware runs on Edge Runtime, cannot import from utils/
-const ADMIN_ROLE_NAMES = new Set(["Admin"]);
-const MANAGER_ROLE_NAMES = new Set(["Manager"]);
-
 const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   if (!cookieValue) return [];
   try {
@@ -61,6 +59,9 @@ const hasAdminRole = (roles: string[]): boolean =>
 const hasManagerRole = (roles: string[]): boolean =>
   roles.some((role) => MANAGER_ROLE_NAMES.has(role));
 
+const hasHotelServiceProviderRole = (roles: string[]): boolean =>
+  roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
+
 
 const isManagerRoutePath = (pathname: string): boolean => {
   const MANAGER_ROUTE_PREFIXES = [
@@ -75,6 +76,13 @@ const isManagerRoutePath = (pathname: string): boolean => {
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 };
+
+const PROVIDER_ROUTE_PREFIXES = ["/transport", "/hotel"];
+
+const isProviderRoutePath = (pathname: string): boolean =>
+  PROVIDER_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -114,6 +122,9 @@ export function middleware(request: NextRequest) {
     if (hasManagerRole(authRoles)) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
+    if (hasHotelServiceProviderRole(authRoles)) {
+      return NextResponse.redirect(new URL("/hotel", request.url));
+    }
     return NextResponse.redirect(new URL(USER_DEFAULT_PATH, request.url));
   }
 
@@ -128,6 +139,15 @@ export function middleware(request: NextRequest) {
 
     if (hasManagerRole(authRoles) && pathname.startsWith("/dashboard/customers")) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    if (
+      hasHotelServiceProviderRole(authRoles) &&
+      !isProviderRoutePath(pathname) &&
+      !isAdminRoutePath(pathname) &&
+      !isManagerRoutePath(pathname)
+    ) {
+      return NextResponse.redirect(new URL("/hotel", request.url));
     }
 
   }

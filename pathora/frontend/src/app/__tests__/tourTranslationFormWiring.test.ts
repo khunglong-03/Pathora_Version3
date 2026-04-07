@@ -9,7 +9,7 @@ const readFile = (relativePath: string): string => {
 
 describe("tour translation form wiring", () => {
   it("delegates translations payload serialization to create payload builder", () => {
-    const createPageSource = readFile("src/app/(dashboard)/tour-management/create/page.tsx");
+    const createPageSource = readFile("src/app/manager/tour-management/create/page.tsx");
     const payloadBuilderSource = readFile("src/api/services/tourCreatePayload.ts");
 
     expect(createPageSource.includes("buildTourFormData")).toBe(true);
@@ -21,7 +21,7 @@ describe("tour translation form wiring", () => {
   });
 
   it("uses language tabs and sends translations JSON payload in edit page", () => {
-    const source = readFile("src/app/(dashboard)/tour-management/[id]/edit/page.tsx");
+    const source = readFile("src/app/manager/tour-management/[id]/edit/page.tsx");
 
     expect(source.includes("LanguageTabs")).toBe(true);
     expect(source.includes("formData.append(\"translations\"")).toBe(true);
@@ -31,7 +31,7 @@ describe("tour translation form wiring", () => {
 
 describe("activity route wiring", () => {
   it("create page has routes state and expandedRoutes UI", () => {
-    const source = readFile("src/app/(dashboard)/tour-management/create/page.tsx");
+    const source = readFile("src/app/manager/tour-management/create/page.tsx");
 
     // Route state and helpers exist
     expect(source.includes("expandedRoutes")).toBe(true);

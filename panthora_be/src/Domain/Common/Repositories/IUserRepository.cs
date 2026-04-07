@@ -22,4 +22,22 @@ public interface IUserRepository : IRepository<UserEntity>
     Task<bool> IsEmailUnique(string email);
     Task<List<UserEntity>> FindProvidersByRoleAsync(int roleId, string? search, string? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<int> CountProvidersByRoleAsync(int roleId, string? search, string? status, CancellationToken cancellationToken = default);
+    Task<List<ManagerUserSummaryDto>> GetAllManagerUsersAsync(CancellationToken cancellationToken);
+
+    // Filtered by a precomputed set of user IDs (e.g., for continent-filtered provider lists)
+    Task<List<UserEntity>> FindProvidersByRoleWithIdsAsync(
+        int roleId,
+        string? search,
+        string? status,
+        List<Guid> userIds,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+    Task<int> CountProvidersByRoleWithIdsAsync(
+        int roleId,
+        string? search,
+        string? status,
+        List<Guid> userIds,
+        CancellationToken cancellationToken = default);
+    Task<UserEntity?> FindTransportProviderByIdAsync(Guid id, CancellationToken cancellationToken = default);
 }

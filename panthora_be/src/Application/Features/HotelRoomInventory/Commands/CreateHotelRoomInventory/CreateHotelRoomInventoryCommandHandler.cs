@@ -54,6 +54,12 @@ public sealed class CreateHotelRoomInventoryCommandHandler(
             entity.SupplierId,
             supplier.Name,
             entity.RoomType,
-            entity.TotalRooms);
+            entity.TotalRooms,
+            entity.Name,
+            entity.Address,
+            entity.LocationArea?.ToString(),
+            entity.OperatingCountries,
+            entity.ImageUrls,
+            entity.Notes);
     }
 }

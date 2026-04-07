@@ -9,5 +9,6 @@ public sealed record HotelProviderListItemDto(
     string? PhoneNumber,
     string? AvatarUrl,
     UserStatus Status,
-    int AccommodationCount
+    int AccommodationCount,
+    List<string> Continents
 );

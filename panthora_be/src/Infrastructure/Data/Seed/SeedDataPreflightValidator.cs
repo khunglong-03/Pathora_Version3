@@ -46,6 +46,14 @@ internal static class SeedDataPreflightValidator
         {
             throw new InvalidOperationException(BuildFailureMessage(issues));
         }
+
+        // Phase 4: Role constants vs role.json validation
+        ValidateRoleConstants(basePath, issues);
+
+        if (issues.Count > 0)
+        {
+            throw new InvalidOperationException(BuildFailureMessage(issues));
+        }
     }
 
     private static void ValidateDuplicateIds(string? basePath, List<SeedPreflightIssue> issues)
@@ -280,6 +288,74 @@ internal static class SeedDataPreflightValidator
         }
 
         throw new InvalidOperationException("Could not resolve repository root for seed validation.");
+    }
+
+    private static void ValidateRoleConstants(string? basePath, List<SeedPreflightIssue> issues)
+    {
+        var repoRoot = ResolveRepositoryRoot(basePath);
+        var seedDataDir = Path.Combine(repoRoot, "src", "Infrastructure", "Data", "Seed", "Seeddata");
+        var roleJsonPath = Path.Combine(seedDataDir, "role.json");
+
+        if (!File.Exists(roleJsonPath))
+        {
+            return; // Skip if role.json doesn't exist
+        }
+
+        var json = File.ReadAllText(roleJsonPath).Trim();
+        if (string.IsNullOrEmpty(json) || json == "[]")
+        {
+            return;
+        }
+
+        // Extract role names from role.json
+        using var document = JsonDocument.Parse(json);
+        var arrayRoot = document.RootElement.ValueKind == JsonValueKind.Array
+            ? document.RootElement
+            : document.RootElement.GetProperty("data");
+
+        var roleNamesFromJson = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in arrayRoot.EnumerateArray())
+        {
+            if (item.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String)
+            {
+                roleNamesFromJson.Add(nameProp.GetString()!);
+            }
+        }
+
+        // Expected role names from RoleConstants.cs
+        // These must match role.json. If someone edits role.json without regenerating,
+        // this will catch the mismatch.
+        var expectedRoleNames = new[]
+        {
+            "Admin", "Manager", "TourDesigner", "TourGuide",
+            "Customer", "TransportProvider", "HotelServiceProvider"
+        };
+
+        foreach (var expected in expectedRoleNames)
+        {
+            if (!roleNamesFromJson.Contains(expected))
+            {
+                issues.Add(new SeedPreflightIssue(
+                    "RoleConstants",
+                    "role.json",
+                    null,
+                    $"Role '{expected}' is defined in RoleConstants.cs but is missing from role.json. " +
+                    "Run GenerateRoleConstants.ps1 to update."));
+            }
+        }
+
+        foreach (var actual in roleNamesFromJson)
+        {
+            if (!expectedRoleNames.Contains(actual))
+            {
+                issues.Add(new SeedPreflightIssue(
+                    "RoleConstants",
+                    "role.json",
+                    null,
+                    $"Role '{actual}' is defined in role.json but is missing from RoleConstants.cs. " +
+                    "Run GenerateRoleConstants.ps1 to update."));
+            }
+        }
     }
 
     private static string BuildFailureMessage(IReadOnlyList<SeedPreflightIssue> issues)

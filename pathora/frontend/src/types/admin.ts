@@ -107,6 +107,7 @@ export interface PaginatedList<T> {
   limit: number;
   totalPages: number;
   roleCounts?: Record<string, number>;
+  pendingCount?: number;
 }
 
 // ─── User Management ─────────────────────────────────────────────
@@ -147,6 +148,46 @@ export interface TransportProviderListItem {
   bookingCount?: number;
   vehicleCount?: number;
   createdAt?: string;
+}
+
+// ─── Transport Provider Detail ──────────────────────────────────
+export interface VehicleSummary {
+  id: string;
+  vehiclePlate: string;
+  vehicleType: string;
+  brand?: string;
+  model?: string;
+  seatCapacity: number;
+  locationArea?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface DriverSummary {
+  id: string;
+  fullName: string;
+  licenseNumber: string;
+  licenseType: string;
+  phoneNumber: string;
+  isActive: boolean;
+}
+
+export interface TransportProviderDetail {
+  id: string;
+  supplierName: string;
+  supplierCode: string;
+  taxCode?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  avatarUrl?: string;
+  status: string;
+  userCreatedAt?: string;
+  vehicles: VehicleSummary[];
+  drivers: DriverSummary[];
+  bookingCount: number;
+  activeBookingCount: number;
+  completedBookingCount: number;
 }
 
 // ─── Hotel Provider ──────────────────────────────────────────────

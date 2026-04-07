@@ -29,7 +29,7 @@ public sealed class CreateVehicleCommandHandler(
             request.Request.LocationArea.HasValue
                 ? (Continent)request.Request.LocationArea.Value
                 : null,
-            request.Request.CountryCode,
+            request.Request.OperatingCountries,
             request.Request.VehicleImageUrls is { Count: > 0 }
                 ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
                 : null,
@@ -61,7 +61,7 @@ public sealed class CreateVehicleCommandHandler(
             v.Model,
             v.SeatCapacity,
             v.LocationArea?.ToString(),
-            v.CountryCode,
+            v.OperatingCountries,
             imageUrls,
             v.IsActive,
             v.Notes,

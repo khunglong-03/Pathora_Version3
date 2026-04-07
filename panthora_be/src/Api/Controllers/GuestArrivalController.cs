@@ -8,6 +8,8 @@ using Application.Features.GuestArrival.DTOs;
 using Application.Features.GuestArrival.Queries.GetGuestArrival;
 using Application.Features.GuestArrival.Queries.GetGuestArrivalsByHotel;
 using BuildingBlocks.CORS;
+using Domain.Common.Repositories;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,13 +17,27 @@ using Microsoft.AspNetCore.Mvc;
 [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.HotelServiceProvider}")]
 public class GuestArrivalController : BaseApiController
 {
+    private readonly ISupplierRepository _supplierRepository;
+
+    public GuestArrivalController(ISupplierRepository supplierRepository)
+    {
+        _supplierRepository = supplierRepository;
+    }
+
     // ─── Get Arrivals ───────────────────────────────────────────────────────
 
-    /// <summary>List all guest arrivals for a specific hotel (supplier).</summary>
+    /// <summary>List all guest arrivals for the current user's hotel (supplier).</summary>
     [HttpGet(GuestArrivalEndpoint.Base)]
-    public async Task<IActionResult> GetByHotel([FromQuery] Guid supplierId)
+    public async Task<IActionResult> GetByHotel(
+        [FromQuery] GuestStayStatus? status,
+        [FromQuery] DateOnly? dateFrom,
+        [FromQuery] DateOnly? dateTo)
     {
-        var result = await Sender.Send(new GetGuestArrivalsByHotelQuery(supplierId));
+        var supplierIdResult = ResolveSupplierId();
+        if (supplierIdResult is not null) return supplierIdResult;
+
+        var result = await Sender.Send(new GetGuestArrivalsByHotelQuery(
+            _resolvedSupplierId!.Value, status, dateFrom, dateTo));
         return HandleResult(result);
     }
 
@@ -61,6 +77,24 @@ public class GuestArrivalController : BaseApiController
             Note: request.Note);
         var result = await Sender.Send(command);
         return HandleResult(result);
+    }
+
+    // ─── Ownership Scoping ───────────────────────────────────────────────────
+
+    private Guid? _resolvedSupplierId;
+
+    private IActionResult? ResolveSupplierId()
+    {
+        var userId = GetCurrentUserId();
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var supplier = _supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
+            return StatusCode(403, "You do not have an accommodation supplier.");
+
+        _resolvedSupplierId = supplier.Id;
+        return null;
     }
 
     private Guid GetCurrentUserId()

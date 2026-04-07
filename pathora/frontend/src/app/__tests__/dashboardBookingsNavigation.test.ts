@@ -19,7 +19,7 @@ const dashboardNavFiles = [
   "src/features/dashboard/components/TourInstanceDetailPage.tsx",
   "src/features/dashboard/components/TourInstanceListPage.tsx",
   "src/features/dashboard/components/CreateTourInstancePage.tsx",
-  "src/app/(dashboard)/tour-management/create/page.tsx",
+  "src/app/manager/tour-management/create/page.tsx",
 ];
 
 describe("dashboard bookings navigation", () => {
@@ -33,7 +33,7 @@ describe("dashboard bookings navigation", () => {
   });
 
   it("has a dedicated dashboard bookings route", () => {
-    const source = readFile("src/app/(dashboard)/dashboard/bookings/page.tsx");
+    const source = readFile("src/app/manager/dashboard/bookings/page.tsx");
 
     expect(source.includes("DashboardBookingsPage")).toBe(true);
     expect(

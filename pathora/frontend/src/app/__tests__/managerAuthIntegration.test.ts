@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
  *
  * These tests verify the routing decision contract between:
  * - Middleware (src/middleware.ts)
- * - Dashboard layout guard (src/app/(dashboard)/layout.tsx)
+ * - Dashboard layout guard (src/app/manager/layout.tsx)
  * - Auth routing helpers (src/utils/authRouting.ts)
  *
  * The tests use the routing helpers directly since middleware runs in Edge

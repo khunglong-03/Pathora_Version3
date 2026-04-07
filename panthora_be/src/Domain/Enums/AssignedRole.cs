@@ -5,17 +5,17 @@ namespace Domain.Enums;
 public enum AssignedRole
 {
     [Description("TourManager")]
-    TourManager = 1,
+    TourManager = 2,
 
     [Description("TourDesigner")]
-    TourDesigner = 2,
+    TourDesigner = 3,
 
     [Description("TourGuide")]
-    TourGuide = 3,
+    TourGuide = 4,
 
     [Description("TransportProvider")]
-    TransportProvider = 4,
+    TransportProvider = 6,
 
     [Description("HotelServiceProvider")]
-    HotelServiceProvider = 5
+    HotelServiceProvider = 7
 }

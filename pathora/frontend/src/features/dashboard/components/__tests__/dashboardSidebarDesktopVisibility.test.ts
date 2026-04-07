@@ -16,7 +16,7 @@ const DASHBOARD_SIDEBAR_FILES = [
   "src/features/dashboard/components/TourInstanceListPage.tsx",
   "src/features/dashboard/components/TourListPage.tsx",
   "src/features/dashboard/components/VisaApplicationsPage.tsx",
-  "src/app/(dashboard)/tour-management/create/page.tsx",
+  "src/app/manager/tour-management/create/page.tsx",
 ];
 
 const readFile = (relativePath: string): string => {
