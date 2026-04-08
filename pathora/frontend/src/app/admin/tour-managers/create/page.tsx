@@ -30,15 +30,7 @@ interface CreateManagerRequest {
   avatar: string;
 }
 
-const MANAGER_ROLE_ID = 3;
-const ROLE_LABELS: Record<number, string> = {
-  [ASSIGNED_ENTITY_TYPE.TourDesigner]: "Tour Designer",
-  [ASSIGNED_ENTITY_TYPE.TourGuide]: "Tour Guide",
-};
-const ROLE_IN_TEAM_LABELS: Record<number, string> = {
-  1: "Trưởng nhóm",
-  2: "Thành viên",
-};
+const MANAGER_ROLE_ID = 2;
 
 export default function CreateTourManagerPage() {
   const router = useRouter();
@@ -53,7 +45,6 @@ export default function CreateTourManagerPage() {
   // Available users
   const [availableDesigners, setAvailableDesigners] = useState<FilteredUser[]>([]);
   const [availableGuides, setAvailableGuides] = useState<FilteredUser[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
 
   // Selection
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
@@ -71,24 +62,23 @@ export default function CreateTourManagerPage() {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      setUsersLoading(true);
       try {
         const allUsers = await userService.getAll(undefined, 1, 200);
         if (!active) return;
         setAvailableDesigners(
           (allUsers as FilteredUser[]).filter((u: unknown) => {
             const user = u as FilteredUser;
-            return user.roles?.some((r) => r.name === "TourDesigner" || r.type === 4 || r.id === "4");
+            return user.roles?.some((r) => r.name === "TourDesigner");
           }),
         );
         setAvailableGuides(
           (allUsers as FilteredUser[]).filter((u: unknown) => {
             const user = u as FilteredUser;
-            return user.roles?.some((r) => r.name === "TourGuide" || r.type === 7 || r.id === "7");
+            return user.roles?.some((r) => r.name === "TourGuide");
           }),
         );
-      } finally {
-        if (active) setUsersLoading(false);
+      } catch {
+        // ignore
       }
     };
     void load();

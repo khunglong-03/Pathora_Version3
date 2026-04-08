@@ -28,10 +28,6 @@ interface SelectedMember {
   isNew?: boolean;
 }
 
-const ROLE_IN_TEAM_LABELS: Record<number, string> = {
-  1: "Trưởng nhóm",
-  2: "Thành viên",
-};
 
 export default function EditTourManagerPage() {
   const router = useRouter();
@@ -48,7 +44,6 @@ export default function EditTourManagerPage() {
   // Available users for adding
   const [availableDesigners, setAvailableDesigners] = useState<FilteredUser[]>([]);
   const [availableGuides, setAvailableGuides] = useState<FilteredUser[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
 
   // Selection state
   const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
@@ -97,22 +92,21 @@ export default function EditTourManagerPage() {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      setUsersLoading(true);
       try {
         const allUsers = await userService.getAll(undefined, 1, 200);
         if (!active) return;
         const designers = (allUsers as FilteredUser[]).filter((u: unknown) => {
           const user = u as FilteredUser;
-          return user.roles?.some((r) => r.name === "TourDesigner" || r.type === 4 || r.id === "4");
+          return user.roles?.some((r) => r.name === "TourDesigner");
         });
         const guides = (allUsers as FilteredUser[]).filter((u: unknown) => {
           const user = u as FilteredUser;
-          return user.roles?.some((r) => r.name === "TourGuide" || r.type === 7 || r.id === "7");
+          return user.roles?.some((r) => r.name === "TourGuide");
         });
         setAvailableDesigners(designers);
         setAvailableGuides(guides);
-      } finally {
-        if (active) setUsersLoading(false);
+      } catch {
+        // ignore
       }
     };
     void load();
@@ -235,7 +229,6 @@ export default function EditTourManagerPage() {
   const guideMembers = selectedMembers.filter(
     (m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourGuide,
   );
-  const tourMembers = selectedMembers.filter((m) => m.entityType === ASSIGNED_ENTITY_TYPE.Tour);
 
   if (isLoading) {
     return (

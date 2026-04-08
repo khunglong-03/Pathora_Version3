@@ -15,13 +15,13 @@ import {
   ShieldCheck,
   Certificate,
   Gear,
-  SignOut,
   X,
   List,
   Bell,
   Buildings,
   Van,
   Bed,
+  PaintBrush,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { AdminLogoutButton } from "./AdminLogoutButton";
@@ -59,6 +59,7 @@ export const ADMIN_PROVIDER_ITEMS = [
 
 export const ADMIN_TOUR_ITEMS = [
   { label: "Quản lý Tour Manager", icon: UsersThree, href: "/admin/tour-managers" },
+  { label: "Quản lý Tour Designer", icon: PaintBrush, href: "/admin/tour-designers" },
 ] as const;
 
 // Flat nav items list (used by the component)
@@ -96,7 +97,7 @@ interface AdminSidebarProps {
 /* ══════════════════════════════════════════════════════════════
    AdminSidebar Component
    ══════════════════════════════════════════════════════════════ */
-export function AdminSidebar({ isOpen, onClose, children, variant = "manager", isAdmin = false }: AdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }: AdminSidebarProps) {
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
 

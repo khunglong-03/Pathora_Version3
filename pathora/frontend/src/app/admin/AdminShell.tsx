@@ -21,7 +21,7 @@ const parseAuthRoles = (cookieValue: string | undefined): string[] => {
 
 export default function AdminShell({
   children,
-  variant = "manager",
+  variant = "admin",
 }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);

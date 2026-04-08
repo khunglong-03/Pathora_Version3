@@ -90,6 +90,9 @@ const isProviderRoutePath = (pathname: string): boolean =>
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
+const isAdminRoutePath = (pathname: string): boolean =>
+  pathname === "/admin" || pathname.startsWith("/admin/");
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -123,7 +126,7 @@ export function middleware(request: NextRequest) {
 
   if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
-      return NextResponse.redirect(new URL("/admin/users", request.url));
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
     if (hasManagerRole(authRoles)) {
       return NextResponse.redirect(new URL("/manager", request.url));
@@ -143,7 +146,7 @@ export function middleware(request: NextRequest) {
     }
 
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
-      return NextResponse.redirect(new URL("/admin/users", request.url));
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
 
     if (hasManagerRole(authRoles) && pathname.startsWith("/manager/customers")) {

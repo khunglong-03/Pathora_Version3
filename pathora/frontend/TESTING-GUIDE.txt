@@ -1,0 +1,53 @@
+========================================
+TOUR MANAGER MASTER-DETAIL UI - TESTING GUIDE
+========================================
+
+STATUS: Dev server running successfully on port 3003 ✓
+        Backend API running on port 5182 ✓
+
+NEXT STEPS TO TEST:
+==================
+
+1. LOGIN FIRST:
+   - Browser redirected you to /home?login=true
+   - Use these credentials:
+     Email: admin@pathora.vn  
+     Password: Password123 (or try: password, admin)
+
+2. AFTER LOGIN:
+   - Navigate to: http://localhost:3003/admin/tour-managers
+   - Or the page will auto-redirect back
+
+3. TEST MASTER-DETAIL UI:
+   ✓ Left panel (green area): List of tour managers
+   ✓ Click on a manager → Right panel (yellow area) shows their staff
+   ✓ Real-time API load from: GET /api/admin/tour-managers/{managerId}/staff
+   ✓ Staff count displayed next to "DETAIL VIEW"
+   ✓ "Tạo nhân viên" button at bottom of staff list
+
+4. TEST CREATE STAFF BUTTON:
+   ✓ Click "Tạo nhân viên" (Create Employee)
+   ✓ Modal opens with form fields:
+     - Email
+     - Full Name  
+     - Phone
+     - Password
+     - Role (TourDesigner or TourGuide)
+   ✓ Submit creates via: POST /api/admin/tour-managers/{managerId}/staff/create
+
+VERIFIED API ENDPOINTS:
+======================
+✓ GET /api/admin/managers - Get all managers
+✓ GET /api/admin/tour-managers/{managerId}/staff - Get staff for a manager
+✓ POST /api/admin/tour-managers/{managerId}/staff/create - Create new staff
+✓ PUT /api/admin/tour-managers/{managerId}/staff/{staffId}/reassign - Reassign staff
+
+SEED DATA USERS:
+===============
+Admin: admin@pathora.vn
+Tour Manager: hung.nv@pathora.vn (Nguyễn Văn Hùng)
+Designers: lan.lt@pathora.vn, dat.pv@pathora.vn
+Guides: anh.vd@pathora.vn, hang.nt@pathora.vn, long.td@pathora.vn
+
+All use same password: Password123 (or try: password, admin)
+

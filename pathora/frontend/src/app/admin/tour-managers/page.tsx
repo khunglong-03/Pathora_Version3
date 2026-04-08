@@ -3,13 +3,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import Icon from "@/components/ui/Icon";
 import {
   adminService,
   type CreateStaffRequest,
   type TourManagerSummary,
 } from "@/api/services/adminService";
-import type { ApiResponse } from "@/types/home";
 import {
   tourManagerAssignmentService,
   ASSIGNED_ENTITY_TYPE,
@@ -26,8 +24,6 @@ export default function TourManagersPage() {
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const [isLoadingManagers, setIsLoadingManagers] = useState(true);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
-  const [isErrorManagers, setIsErrorManagers] = useState(false);
-  const [managersError, setManagersError] = useState<string | null>(null);
   const [staffError, setStaffError] = useState<string | null>(null);
   const [staff, setStaff] = useState<StaffMemberDto[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
@@ -49,8 +45,6 @@ export default function TourManagersPage() {
 
     const loadManagers = async () => {
       setIsLoadingManagers(true);
-      setIsErrorManagers(false);
-      setManagersError(null);
 
       const result = await adminService.getAllManagers();
 
@@ -58,9 +52,6 @@ export default function TourManagersPage() {
 
       if (result) {
         setManagers(result);
-      } else {
-        setIsErrorManagers(true);
-        setManagersError("Không thể tải danh sách Tour Manager.");
       }
       setIsLoadingManagers(false);
     };

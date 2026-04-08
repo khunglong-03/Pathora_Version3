@@ -44,17 +44,12 @@ public sealed class GetTransportProvidersQueryHandler(
 
         var userIds = users.Select(u => u.Id).ToList();
 
-        // Fetch vehicle data, supplier address data, and pending count in parallel
-        var vehicleDataTask = vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
-        var supplierAddressDataTask = supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
-        var pendingCountTask = userRepository.CountProvidersByRoleAsync(
+        // Fetch vehicle data, supplier address data, and pending count sequentially
+        // Note: Cannot run in parallel as all repositories share the same DbContext instance (scoped)
+        var vehicleData = await vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierAddressData = await supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
+        var pendingCount = await userRepository.CountProvidersByRoleAsync(
             TransportProviderRoleId, request.Search, "Pending", cancellationToken);
-
-        await Task.WhenAll(vehicleDataTask, supplierAddressDataTask, pendingCountTask);
-
-        var vehicleData = vehicleDataTask.Result;
-        var supplierAddressData = supplierAddressDataTask.Result;
-        var pendingCount = pendingCountTask.Result;
 
         var items = users.Select(user =>
         {
@@ -110,17 +105,12 @@ public sealed class GetTransportProvidersQueryHandler(
 
         var userIds = users.Select(u => u.Id).ToList();
 
-        // Fetch vehicle data, supplier address data, and pending count in parallel
-        var vehicleDataTask = vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
-        var supplierAddressDataTask = supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
-        var pendingCountTask = userRepository.CountProvidersByRoleAsync(
+        // Fetch vehicle data, supplier address data, and pending count sequentially
+        // Note: Cannot run in parallel as all repositories share the same DbContext instance (scoped)
+        var vehicleData = await vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierAddressData = await supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, cancellationToken);
+        var pendingCount = await userRepository.CountProvidersByRoleAsync(
             TransportProviderRoleId, request.Search, "Pending", cancellationToken);
-
-        await Task.WhenAll(vehicleDataTask, supplierAddressDataTask, pendingCountTask);
-
-        var vehicleData = vehicleDataTask.Result;
-        var supplierAddressData = supplierAddressDataTask.Result;
-        var pendingCount = pendingCountTask.Result;
 
         var items = users.Select(user =>
         {

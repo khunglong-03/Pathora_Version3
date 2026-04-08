@@ -1,5 +1,5 @@
 export const DEFAULT_DEVELOPMENT_API_GATEWAY_BASE_URL =
-  "http://localhost:5812";
+  "http://localhost:5182";
 export const DEFAULT_PRODUCTION_API_GATEWAY_BASE_URL =
   "https://api.vivugo.me";
 

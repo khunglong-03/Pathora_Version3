@@ -3,12 +3,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { adminService } from "@/api/services/adminService";
-import type { AdminUserDetail } from "@/api/services/adminService";
+import type { AdminUserDetail, TourManagerStaffDto } from "@/api/services/adminService";
 import {
   AdminPageHeader,
   AdminEmptyState,
   AdminErrorCard,
 } from "@/features/dashboard/components";
+import { ManagerSupervisionPanel } from "@/features/dashboard/components/ManagerSupervisionPanel";
 import Icon from "@/components/ui/Icon";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -49,6 +50,11 @@ export default function AdminUserDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
+  // Manager supervision state
+  const [supervisedStaff, setSupervisedStaff] = useState<TourManagerStaffDto[]>([]);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [staffReloadToken, setStaffReloadToken] = useState(0);
+
   const loadUser = useCallback(async () => {
     if (!userId) return;
     setIsLoading(true);
@@ -64,11 +70,35 @@ export default function AdminUserDetailPage() {
     setIsLoading(false);
   }, [userId, reloadToken]);
 
+  // Load supervised staff if user is a Manager
+  const loadSupervisedStaff = useCallback(async () => {
+    if (!userId || !user?.roles.includes("Manager")) return;
+
+    setIsLoadingStaff(true);
+    try {
+      const result = await adminService.getTourManagerStaff(userId);
+      if (result) {
+        setSupervisedStaff(result);
+      } else {
+        setSupervisedStaff([]);
+      }
+    } catch {
+      setSupervisedStaff([]);
+    } finally {
+      setIsLoadingStaff(false);
+    }
+  }, [userId, user, staffReloadToken]);
+
   useEffect(() => {
     void loadUser();
   }, [loadUser]);
 
+  useEffect(() => {
+    void loadSupervisedStaff();
+  }, [loadSupervisedStaff]);
+
   const handleRefresh = () => setReloadToken((t) => t + 1);
+  const handleStaffRefresh = () => setStaffReloadToken((t) => t + 1);
 
   if (isLoading) {
     return (
@@ -169,6 +199,38 @@ export default function AdminUserDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Manager Supervision Panel */}
+        {user.roles.includes("Manager") && (
+          <div className="mt-6">
+            {isLoadingStaff ? (
+              <div
+                className="rounded-xl border border-[#E5E7EB] bg-white p-6"
+                style={{ boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)" }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="skeleton h-10 w-10 rounded-lg" />
+                  <div className="flex-1">
+                    <div className="skeleton h-5 w-48 mb-2" />
+                    <div className="skeleton h-4 w-24" />
+                  </div>
+                  <div className="skeleton h-10 w-32 rounded-lg" />
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="skeleton h-16 rounded-lg" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <ManagerSupervisionPanel
+                managerId={userId}
+                staff={supervisedStaff}
+                onStaffAdded={handleStaffRefresh}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
