@@ -17,6 +17,8 @@ public sealed class DatabaseStartupInitializer(
         var resetAndReseedEnabled = configuration.IsResetAndReseedOnStartupEnabled();
         if (!resetAndReseedEnabled)
         {
+            await lifecycle.SeedIfNeededAsync(cancellationToken);
+            Log.Information("Development database incremental seed completed.");
             return;
         }
 

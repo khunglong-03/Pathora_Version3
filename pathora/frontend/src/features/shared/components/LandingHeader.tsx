@@ -547,9 +547,14 @@ export const LandingHeader = ({
     };
   }, [languageMenuOpen, userMenuOpen]);
 
-  // Fetch recent bookings when user menu opens
+  // If user has any staff/provider roles, they are not a customer and shouldn't fetch bookings
+  const isCustomer =
+    !user?.roles?.length ||
+    user.roles.every((r) => r.name.toLowerCase() === "customer");
+
+  // Fetch recent bookings when user menu opens (Only for Customers)
   useEffect(() => {
-    if (!clientIsAuth || !userMenuOpen) return;
+    if (!clientIsAuth || !userMenuOpen || !isCustomer) return;
 
     const fetchRecentBookings = async () => {
       setBookingsLoading(true);
@@ -565,7 +570,7 @@ export const LandingHeader = ({
     };
 
     fetchRecentBookings();
-  }, [clientIsAuth, userMenuOpen]);
+  }, [clientIsAuth, userMenuOpen, user?.roles]);
 
   // Helper to get status color
   const getStatusColor = (status: string) => {
@@ -843,7 +848,8 @@ export const LandingHeader = ({
                     {/* Empty bookings state */}
                     {recentBookings.length === 0 &&
                       !bookingsLoading &&
-                      clientIsAuth && (
+                      clientIsAuth &&
+                      isCustomer && (
                         <div className="border-t border-white/10 px-4 py-3">
                           <p className="text-xs text-gray-400">
                             {t("booking.noBookings") || "Bạn chưa có tour nào"}

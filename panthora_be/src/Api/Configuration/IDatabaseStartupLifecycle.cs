@@ -7,4 +7,6 @@ public interface IDatabaseStartupLifecycle
     Task MigrateAsync(CancellationToken cancellationToken);
 
     Task SeedFreshAsync(CancellationToken cancellationToken);
+
+    Task SeedIfNeededAsync(CancellationToken cancellationToken);
 }

@@ -25,6 +25,11 @@ public sealed class EfCoreDatabaseStartupLifecycle(IServiceScopeFactory scopeFac
         await ExecuteAsync(AppDbContextSeed.SeedFreshAsync, cancellationToken);
     }
 
+    public async Task SeedIfNeededAsync(CancellationToken cancellationToken)
+    {
+        await ExecuteAsync(async (context, token) => await AppDbContextSeed.SeedIfNeededAsync(context, token), cancellationToken);
+    }
+
     private async Task ExecuteAsync(
         Func<AppDbContext, CancellationToken, Task> action,
         CancellationToken cancellationToken)

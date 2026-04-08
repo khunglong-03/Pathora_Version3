@@ -127,14 +127,52 @@ public static class AppDbContextSeed
     private static bool SeedAppendTable<T>(AppDbContext context, string fileName, Microsoft.EntityFrameworkCore.DbSet<T> dbSet) where T : class
     {
         var data = SeedDataLoader.LoadData<T>(fileName);
-        if (data is { Count: > 0 })
+        if (data is not { Count: > 0 })
         {
-            dbSet.AddRange(data);
-            context.SaveChanges();
-            return true;
+            return false;
         }
 
-        return false;
+        var entityType = context.Model.FindEntityType(typeof(T))
+            ?? throw new InvalidOperationException($"Seed append is not configured for entity type '{typeof(T).Name}'.");
+        var primaryKey = entityType.FindPrimaryKey()
+            ?? throw new InvalidOperationException($"Seed append requires a primary key for entity type '{typeof(T).Name}'.");
+
+        if (primaryKey.Properties.Count != 1)
+        {
+            throw new InvalidOperationException($"Seed append only supports single-column primary keys for entity type '{typeof(T).Name}'.");
+        }
+
+        var keyProperty = primaryKey.Properties[0].PropertyInfo
+            ?? throw new InvalidOperationException($"Seed append requires a CLR primary key property for entity type '{typeof(T).Name}'.");
+
+        var seenKeys = dbSet
+            .AsNoTracking()
+            .AsEnumerable()
+            .Select(entity => keyProperty.GetValue(entity))
+            .ToHashSet();
+
+        var itemsToAppend = new List<T>();
+        foreach (var item in data)
+        {
+            var key = keyProperty.GetValue(item)
+                ?? throw new InvalidOperationException($"Seed file '{fileName}' contains '{typeof(T).Name}' without a primary key value.");
+
+            if (!seenKeys.Add(key))
+            {
+                continue;
+            }
+
+            itemsToAppend.Add(item);
+        }
+
+        if (itemsToAppend.Count == 0)
+        {
+            return false;
+        }
+
+        dbSet.AddRange(itemsToAppend);
+        context.SaveChanges();
+        return true;
     }
 
     private static async Task SaveChangesUtcAsync(AppDbContext context, CancellationToken cancellationToken)

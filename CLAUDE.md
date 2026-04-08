@@ -676,7 +676,7 @@ Specs (4): `admin-dashboard-routing`, `admin-tour-request-detail`, `dashboard-na
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Doan2** (12085 symbols, 28849 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Doan2** (12447 symbols, 29559 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
