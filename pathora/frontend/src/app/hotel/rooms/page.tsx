@@ -42,13 +42,16 @@ export default function RoomsPage() {
   const [createRoomType, setCreateRoomType] = useState("Standard");
   const [createTotal, setCreateTotal] = useState(1);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTotal, setEditTotal] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const loadAccommodations = useCallback(async () => {
     setIsLoading(true);
@@ -69,6 +72,7 @@ export default function RoomsPage() {
 
   const handleCreate = async () => {
     setCreating(true);
+    setCreateError(null);
     try {
       await hotelProviderService.createAccommodation({
         roomType: createRoomType,
@@ -78,8 +82,8 @@ export default function RoomsPage() {
       setCreateTotal(1);
       setCreateRoomType("Standard");
       await loadAccommodations();
-    } catch {
-      // ignore
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Tạo phòng thất bại");
     } finally {
       setCreating(false);
     }
@@ -87,15 +91,18 @@ export default function RoomsPage() {
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
+    const originalTotal = accommodations.find(a => a.id === editingId)?.totalRooms;
     setSaving(true);
+    setSaveError(null);
     try {
       await hotelProviderService.updateAccommodation(editingId, {
         totalRooms: editTotal,
       });
       setEditingId(null);
       await loadAccommodations();
-    } catch {
-      // ignore
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Cập nhật thất bại");
+      setEditTotal(originalTotal ?? 0);
     } finally {
       setSaving(false);
     }
@@ -104,12 +111,13 @@ export default function RoomsPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await hotelProviderService.deleteAccommodation(deleteId);
       setDeleteId(null);
       await loadAccommodations();
-    } catch {
-      // ignore
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Xóa phòng thất bại");
     } finally {
       setDeleting(false);
     }
@@ -293,14 +301,27 @@ export default function RoomsPage() {
         </div>
       )}
 
+      {isLoading && (
+        <div className="space-y-3 mt-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-12 rounded-lg animate-pulse" style={{ backgroundColor: "var(--border)" }} />
+          ))}
+        </div>
+      )}
+
       {/* Create Modal */}
       <Modal
         activeModal={showCreate}
-        onClose={() => setShowCreate(false)}
+        onClose={() => { setShowCreate(false); setCreateError(null); }}
         title="Thêm loại phòng"
         className="max-w-md"
       >
         <div className="space-y-4">
+          {createError && (
+            <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEE2E2", color: "#EF4444" }}>
+              {createError}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Loại phòng</label>
             <select
@@ -329,7 +350,7 @@ export default function RoomsPage() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
-              onClick={() => setShowCreate(false)}
+              onClick={() => { setShowCreate(false); setCreateError(null); }}
               className="px-4 py-2 rounded-lg text-sm border"
               style={{ borderColor: "var(--border)" }}
             >
@@ -347,29 +368,49 @@ export default function RoomsPage() {
         </div>
       </Modal>
 
+      {/* Save Error Toast (inline) */}
+      {saveError && (
+        <div className="fixed bottom-4 right-4 p-4 rounded-xl shadow-lg max-w-sm z-50" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
+          <p className="text-sm font-medium">{saveError}</p>
+          <button
+            onClick={() => setSaveError(null)}
+            className="mt-2 text-xs underline"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
+
       {/* Delete Modal */}
       <Modal
         activeModal={deleteId !== null}
-        onClose={() => setDeleteId(null)}
+        onClose={() => { setDeleteId(null); setDeleteError(null); }}
         title="Xác nhận xóa"
         className="max-w-sm"
       >
-        <p className="text-sm mb-4">Bạn có chắc muốn xóa loại phòng này?</p>
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => setDeleteId(null)}
-            className="px-4 py-2 rounded-lg text-sm border"
-            style={{ borderColor: "var(--border)" }}
-          >
-            Hủy
-          </button>
-          <button
-            onClick={() => void handleDelete()}
-            disabled={deleting}
-            className="px-4 py-2 rounded-lg text-sm text-white bg-red-500"
-          >
-            {deleting ? "Đang xóa..." : "Xóa"}
-          </button>
+        <div className="space-y-4">
+          {deleteError && (
+            <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEE2E2", color: "#EF4444" }}>
+              {deleteError}
+            </div>
+          )}
+          <p className="text-sm">Bạn có chắc muốn xóa loại phòng này?</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => { setDeleteId(null); setDeleteError(null); }}
+              className="px-4 py-2 rounded-lg text-sm border"
+              style={{ borderColor: "var(--border)" }}
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => void handleDelete()}
+              disabled={deleting}
+              className="px-4 py-2 rounded-lg text-sm text-white bg-red-500"
+            >
+              {deleting ? "Đang xóa..." : "Xóa"}
+            </button>
+          </div>
         </div>
       </Modal>
 

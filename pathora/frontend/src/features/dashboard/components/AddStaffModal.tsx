@@ -16,7 +16,7 @@ interface AddStaffModalProps {
 
 type StaffType = "TourDesigner" | "TourGuide";
 
-export function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffModalProps) {
+export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaffModalProps) {
   const [selectedType, setSelectedType] = useState<StaffType>("TourDesigner");
   const [availableStaff, setAvailableStaff] = useState<AdminUserListItem[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
@@ -105,7 +105,7 @@ export function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffModalProps
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Thêm nhân viên">
+    <Modal activeModal={isOpen} onClose={handleClose} title="Thêm nhân viên">
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Staff Type Selection */}
         <div>

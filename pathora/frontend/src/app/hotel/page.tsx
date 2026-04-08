@@ -26,6 +26,7 @@ const STATUS_COLOR: Record<GuestStayStatus, string> = {
 export default function HotelDashboardPage() {
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
   const [recentArrivals, setRecentArrivals] = useState<GuestArrivalItem[]>([]);
+  const [availableRooms, setAvailableRooms] = useState<number>(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +34,16 @@ export default function HotelDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [accommodationsData, arrivalsData] = await Promise.all([
+      const today = new Date().toISOString().split("T")[0];
+      const [accommodationsData, arrivalsData, availabilityData] = await Promise.all([
         hotelProviderService.getAccommodations(),
         hotelProviderService.getGuestArrivals({}),
+        hotelProviderService.getRoomAvailability(today, today),
       ]);
       setAccommodations(accommodationsData);
+      setAvailableRooms(
+        availabilityData.reduce((sum, a) => sum + a.availableRooms, 0),
+      );
       setRecentArrivals(
         arrivalsData
           .sort(
@@ -80,7 +86,7 @@ export default function HotelDashboardPage() {
     },
     {
       label: "Đang trống",
-      value: "-",
+      value: availableRooms < 0 ? "-" : availableRooms.toString(),
       icon: "DoorOpen",
       accent: "#22C55E",
     },

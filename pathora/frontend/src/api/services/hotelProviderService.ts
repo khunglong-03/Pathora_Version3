@@ -5,30 +5,24 @@ import { api } from "@/api/axiosInstance";
 import { extractResult } from "@/utils/apiResponse";
 import type { ApiResponse } from "@/types/home";
 
-// ─── Room Inventory ──────────────────────────────────────────────
+// ─── Supplier Info ────────────────────────────────────────────────
 
-export interface RoomInventoryItem {
+export interface HotelSupplierInfo {
   id: string;
-  supplierId: string;
-  supplierName: string | null;
-  roomType: string;
-  totalRooms: number;
-  name: string | null;
+  supplierCode: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
   address: string | null;
-  locationArea: string | null;
-  operatingCountries: string | null;
-  imageUrls: string | null;
   notes: string | null;
 }
 
-export interface CreateRoomInventoryDto {
-  supplierId: string;
-  roomType: string;
-  totalRooms: number;
-}
-
-export interface UpdateRoomInventoryDto {
-  totalRooms: number;
+export interface UpdateSupplierInfoDto {
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
 }
 
 // ─── Room Availability ─────────────────────────────────────────────
@@ -93,7 +87,7 @@ export interface UpdateGuestArrivalDto {
   note?: string;
 }
 
-// ─── Hotel Accommodations (existing scoped endpoint) ───────────────────
+// ─── Hotel Accommodations ────────────────────────────────────────────
 
 export interface AccommodationItem {
   id: string;
@@ -125,26 +119,6 @@ export interface UpdateAccommodationDto {
   notes?: string;
 }
 
-// ─── Supplier Info ────────────────────────────────────────────────
-
-export interface HotelSupplierInfo {
-  id: string;
-  supplierCode: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  notes: string | null;
-}
-
-export interface UpdateSupplierInfoDto {
-  name: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  notes?: string;
-}
-
 // ─── Filter Params ────────────────────────────────────────────────
 
 export interface ArrivalFilterParams {
@@ -156,67 +130,12 @@ export interface ArrivalFilterParams {
 // ─── Service ─────────────────────────────────────────────────────
 
 export const hotelProviderService = {
-  // Room Inventory (scoped via backend ownership)
-  getRoomInventory: async (): Promise<RoomInventoryItem[]> => {
-    const response = await api.get<ApiResponse<RoomInventoryItem[]>>(
-      "/api/hotel-room-inventory",
-    );
-    return extractResult<RoomInventoryItem[]>(response.data) ?? [];
-  },
-
-  getRoomAvailability: async (
-    fromDate: string,
-    toDate: string,
-  ): Promise<RoomAvailability[]> => {
-    const response = await api.get<ApiResponse<RoomAvailability[]>>(
-      "/api/hotel-room-availability",
-      { params: { fromDate, toDate } },
-    );
-    return extractResult<RoomAvailability[]>(response.data) ?? [];
-  },
-
-  createRoomInventory: async (
-    data: CreateRoomInventoryDto,
-  ): Promise<RoomInventoryItem> => {
-    const response = await api.post<ApiResponse<RoomInventoryItem>>(
-      "/api/hotel-room-inventory",
-      data,
-    );
-    return extractResult<RoomInventoryItem>(response.data) as RoomInventoryItem;
-  },
-
-  updateRoomInventory: async (
-    id: string,
-    data: UpdateRoomInventoryDto,
-  ): Promise<RoomInventoryItem> => {
-    const response = await api.put<ApiResponse<RoomInventoryItem>>(
-      `/api/hotel-room-inventory/${id}`,
-      data,
-    );
-    return extractResult<RoomInventoryItem>(response.data) as RoomInventoryItem;
-  },
-
-  deleteRoomInventory: async (id: string): Promise<void> => {
-    await api.delete(`/api/hotel-room-inventory/${id}`);
-  },
-
   // Hotel Accommodations (existing scoped endpoint)
   getAccommodations: async (): Promise<AccommodationItem[]> => {
     const response = await api.get<ApiResponse<AccommodationItem[]>>(
       "/hotel-provider/accommodations",
     );
     return extractResult<AccommodationItem[]>(response.data) ?? [];
-  },
-
-  getAccommodationById: async (
-    id: string,
-  ): Promise<AccommodationItem> => {
-    const response = await api.get<ApiResponse<AccommodationItem>>(
-      `/hotel-provider/accommodations/${id}`,
-    );
-    return extractResult<AccommodationItem>(
-      response.data,
-    ) as AccommodationItem;
   },
 
   createAccommodation: async (
@@ -246,6 +165,18 @@ export const hotelProviderService = {
 
   deleteAccommodation: async (id: string): Promise<void> => {
     await api.delete(`/hotel-provider/accommodations/${id}`);
+  },
+
+  // Room Availability
+  getRoomAvailability: async (
+    fromDate: string,
+    toDate: string,
+  ): Promise<RoomAvailability[]> => {
+    const response = await api.get<ApiResponse<RoomAvailability[]>>(
+      "/api/hotel-room-availability",
+      { params: { fromDate, toDate } },
+    );
+    return extractResult<RoomAvailability[]>(response.data) ?? [];
   },
 
   // Guest Arrivals (scoped via backend ownership)
@@ -295,11 +226,10 @@ export const hotelProviderService = {
     ) as GuestArrivalItem;
   },
 
-  // Supplier Info — use the scoped accommodations endpoint to get supplier info
+  // Supplier Info
   getSupplierInfo: async (): Promise<HotelSupplierInfo | null> => {
     const accommodations = await hotelProviderService.getAccommodations();
     if (accommodations.length === 0) return null;
-    // Return a minimal supplier info from first accommodation
     const first = accommodations[0];
     return {
       id: first.supplierId,
@@ -314,8 +244,12 @@ export const hotelProviderService = {
 
   updateSupplierInfo: async (
     _id: string,
-    _data: UpdateSupplierInfoDto,
+    data: UpdateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
-    throw new Error("Update supplier info not yet implemented");
+    const response = await api.put<ApiResponse<HotelSupplierInfo>>(
+      "/api/hotel-supplier/info",
+      data,
+    );
+    return extractResult<HotelSupplierInfo>(response.data) as HotelSupplierInfo;
   },
 };

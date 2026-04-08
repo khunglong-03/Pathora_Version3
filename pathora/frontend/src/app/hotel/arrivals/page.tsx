@@ -13,6 +13,7 @@ import {
   AdminErrorCard,
 } from "@/features/dashboard/components";
 import Modal from "@/components/ui/Modal";
+import ArrivalDetailModal from "@/components/hotel/ArrivalDetailModal";
 
 const STATUS_CONFIG: Record<
   GuestStayStatus,
@@ -34,22 +35,46 @@ const TABS: Array<{ label: string; value: FilterTab }> = [
   { label: "Đã check-out", value: "checkedout" },
 ];
 
+const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function ArrivalsPage() {
   const [arrivals, setArrivals] = useState<GuestArrivalItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>("today");
 
+  const [selectedArrival, setSelectedArrival] = useState<GuestArrivalItem | null>(null);
+
   const [showSubmit, setShowSubmit] = useState(false);
   const [submitBookingId, setSubmitBookingId] = useState("");
   const [submitNotes, setSubmitNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [guidInvalid, setGuidInvalid] = useState(false);
 
-  const loadArrivals = useCallback(async () => {
+  const loadArrivals = useCallback(async (tab: FilterTab) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await hotelProviderService.getGuestArrivals({});
+      const today = new Date().toISOString().split("T")[0];
+      let params: Parameters<typeof hotelProviderService.getGuestArrivals>[0] = {};
+
+      if (tab === "today") {
+        params = { dateFrom: today, dateTo: today };
+      } else if (tab === "week") {
+        const weekEnd = new Date();
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        params = {
+          dateFrom: today,
+          dateTo: weekEnd.toISOString().split("T")[0],
+        };
+      } else if (tab === "checkedin") {
+        params = { status: "CheckedIn" };
+      } else if (tab === "checkedout") {
+        params = { status: "CheckedOut" };
+      }
+
+      const data = await hotelProviderService.getGuestArrivals(params);
       setArrivals(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load arrivals");
@@ -59,25 +84,12 @@ export default function ArrivalsPage() {
   }, []);
 
   useEffect(() => {
-    void loadArrivals();
-  }, [loadArrivals]);
+    void loadArrivals(activeTab);
+  }, [activeTab, loadArrivals]);
 
-  const filtered = arrivals.filter((a) => {
-    const today = new Date().toISOString().split("T")[0];
-    const checkIn = a.checkInDate?.split("T")[0];
-    if (activeTab === "today") return checkIn === today;
-    if (activeTab === "week") {
-      if (!checkIn) return false;
-      const d = new Date(checkIn);
-      const now = new Date(today);
-      const weekEnd = new Date(now);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-      return d >= now && d <= weekEnd;
-    }
-    if (activeTab === "checkedin") return a.status === "CheckedIn";
-    if (activeTab === "checkedout") return a.status === "CheckedOut";
-    return true;
-  });
+  const handleTabChange = (tab: FilterTab) => {
+    setActiveTab(tab);
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
@@ -85,23 +97,34 @@ export default function ArrivalsPage() {
   };
 
   const handleSubmit = async () => {
-    if (!submitBookingId.trim()) return;
+    const trimmed = submitBookingId.trim();
+    setGuidInvalid(!GUID_PATTERN.test(trimmed));
+    if (!trimmed || !GUID_PATTERN.test(trimmed)) return;
+
     setSubmitting(true);
+    setSubmitError(null);
     try {
       await hotelProviderService.submitGuestArrival({
-        bookingAccommodationDetailId: submitBookingId.trim(),
+        bookingAccommodationDetailId: trimmed,
         participantIds: [],
         note: submitNotes || undefined,
       });
       setShowSubmit(false);
       setSubmitBookingId("");
       setSubmitNotes("");
-      await loadArrivals();
-    } catch {
-      // ignore
+      setGuidInvalid(false);
+      await loadArrivals(activeTab);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Gửi thông tin thất bại",
+      );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleArrivalRefresh = () => {
+    void loadArrivals(activeTab);
   };
 
   return (
@@ -109,7 +132,7 @@ export default function ArrivalsPage() {
       <AdminPageHeader
         title="Check-in khách"
         subtitle="Danh sách check-in"
-        onRefresh={() => void loadArrivals()}
+        onRefresh={() => void loadArrivals(activeTab)}
       />
 
       {/* Filter Tabs */}
@@ -117,7 +140,7 @@ export default function ArrivalsPage() {
         {TABS.map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
+            onClick={() => void handleTabChange(tab.value)}
             className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
             style={
               activeTab === tab.value
@@ -145,10 +168,10 @@ export default function ArrivalsPage() {
       </div>
 
       {error && (
-        <AdminErrorCard message={error} onRetry={() => void loadArrivals()} />
+        <AdminErrorCard message={error} onRetry={() => void loadArrivals(activeTab)} />
       )}
 
-      {!error && !isLoading && filtered.length === 0 && (
+      {!error && !isLoading && arrivals.length === 0 && (
         <AdminEmptyState
           icon="CalendarCheck"
           heading="Không có check-in nào"
@@ -156,7 +179,7 @@ export default function ArrivalsPage() {
         />
       )}
 
-      {!error && !isLoading && filtered.length > 0 && (
+      {!error && !isLoading && arrivals.length > 0 && (
         <div
           className="rounded-xl overflow-hidden"
           style={{ border: "1px solid var(--border)", backgroundColor: "white" }}
@@ -173,16 +196,18 @@ export default function ArrivalsPage() {
                 <th className="px-4 py-3 font-medium">Check-out</th>
                 <th className="px-4 py-3 font-medium">Trạng thái</th>
                 <th className="px-4 py-3 font-medium">Ngày gửi</th>
+                <th className="px-4 py-3 font-medium text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((arrival) => {
+              {arrivals.map((arrival) => {
                 const cfg = STATUS_CONFIG[arrival.status];
                 return (
                   <tr
                     key={arrival.id}
                     className="border-t cursor-pointer hover:bg-gray-50 transition-colors"
                     style={{ borderColor: "var(--border)" }}
+                    onClick={() => setSelectedArrival(arrival)}
                   >
                     <td className="px-4 py-3 font-mono text-xs">
                       {arrival.bookingAccommodationDetailId.slice(0, 8)}...
@@ -201,6 +226,15 @@ export default function ArrivalsPage() {
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {formatDate(arrival.submittedAt)}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedArrival(arrival); }}
+                        className="text-xs px-2 py-1 rounded border transition-colors hover:bg-gray-100"
+                        style={{ borderColor: "var(--border)" }}
+                      >
+                        Chi tiết
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -209,14 +243,28 @@ export default function ArrivalsPage() {
         </div>
       )}
 
+      {/* Arrival Detail Modal */}
+      {selectedArrival && (
+        <ArrivalDetailModal
+          arrival={selectedArrival}
+          onClose={() => setSelectedArrival(null)}
+          onRefresh={handleArrivalRefresh}
+        />
+      )}
+
       {/* Submit Modal */}
       <Modal
         activeModal={showSubmit}
-        onClose={() => setShowSubmit(false)}
+        onClose={() => { setShowSubmit(false); setSubmitError(null); setGuidInvalid(false); setSubmitBookingId(""); setSubmitNotes(""); }}
         title="Gửi thông tin check-in"
         className="max-w-md"
       >
         <div className="space-y-4">
+          {submitError && (
+            <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEE2E2", color: "#EF4444" }}>
+              {submitError}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">
               Booking Accommodation Detail ID
@@ -224,11 +272,22 @@ export default function ArrivalsPage() {
             <input
               type="text"
               value={submitBookingId}
-              onChange={(e) => setSubmitBookingId(e.target.value)}
-              placeholder="Nhập ID booking"
-              className="w-full px-3 py-2 rounded-lg border text-sm"
-              style={{ borderColor: "var(--border)" }}
+              onChange={(e) => {
+                setSubmitBookingId(e.target.value);
+                setGuidInvalid(false);
+              }}
+              placeholder="VD: a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              className="w-full px-3 py-2 rounded-lg border text-sm font-mono"
+              style={{ borderColor: guidInvalid ? "#EF4444" : "var(--border)" }}
             />
+            {guidInvalid && (
+              <p className="text-xs mt-1" style={{ color: "#EF4444" }}>
+                Vui lòng nhập đúng định dạng GUID (ví dụ: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
+              </p>
+            )}
+            <p className="text-xs mt-2" style={{ color: "#9CA3AF" }}>
+              Nhận booking ID từ Manager qua email/chat. Booking ID là GUID (36 ký tự).
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -245,7 +304,7 @@ export default function ArrivalsPage() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
-              onClick={() => setShowSubmit(false)}
+              onClick={() => { setShowSubmit(false); setSubmitError(null); setGuidInvalid(false); setSubmitBookingId(""); setSubmitNotes(""); }}
               className="px-4 py-2 rounded-lg text-sm border"
               style={{ borderColor: "var(--border)" }}
             >
