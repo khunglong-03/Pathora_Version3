@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers;
 
 [Authorize(Policy = "AdminOnly")]
-[Authorize(Roles = RoleConstants.Admin)]
 [Route(RoleEndpoint.Base)]
 public class RoleController : BaseApiController
 {

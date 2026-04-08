@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers;
 
 [Authorize(Policy = "ManagerOnly")]
-[Authorize(Roles = RoleConstants.Admin)]
 [Route(CancellationPolicyEndpoint.Base)]
 public class CancellationPolicyController : BaseApiController
 {

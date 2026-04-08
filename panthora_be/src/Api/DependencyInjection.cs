@@ -182,20 +182,40 @@ public static class DependencyInjection
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
 
-            // TransportProviderOnly: Admin OR TransportProvider
+            // TransportProviderOnly: Admin OR TransportProvider (fleet management)
             options.AddPolicy("TransportProviderOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("TransportProvider")));
+
+            // BookingTransportOnly: Admin OR Manager OR TransportProvider (booking transport assignments)
+            options.AddPolicy("BookingTransportOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TransportProvider")));
 
             // HotelServiceProviderOnly: Admin OR HotelServiceProvider
             options.AddPolicy("HotelServiceProviderOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("HotelServiceProvider")));
 
+            // CustomerOnly: Admin OR Customer (customer portal endpoints)
+            options.AddPolicy("CustomerOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Customer")));
+
             // TourAdminOnly: Admin OR Manager (admin-scoped ops: participants, suppliers, payables)
             options.AddPolicy("TourAdminOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
+
+            // TourManagerOnly: Admin OR Manager OR TourDesigner (tour lifecycle management)
+            options.AddPolicy("TourManagerOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourDesigner")));
+
+            // TourGuideOnly: Admin OR TourGuide (tour guide specific operations)
+            options.AddPolicy("TourGuideOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("TourGuide")));
         });
 
         services.AddSingleton<IUser, CurrentUser>();

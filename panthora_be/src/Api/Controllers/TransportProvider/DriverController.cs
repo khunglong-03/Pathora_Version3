@@ -1,17 +1,18 @@
-namespace Api.Controllers;
-
 using Api.Endpoint;
-using Application.Common.Constant;
+
+namespace Api.Controllers.TransportProvider;
+
+using Api.Endpoint.TransportProvider;
 using Application.Features.TransportProvider.Drivers.Commands;
 using Application.Features.TransportProvider.Drivers.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.TransportProvider}")]
-public class TransportProviderDriverController : BaseApiController
+[Authorize(Policy = "TransportProviderOnly")]
+public class DriverController : BaseApiController
 {
-    [HttpGet(TransportProviderDriverEndpoint.Base)]
+    [HttpGet(DriverEndpoint.Base)]
     public async Task<IActionResult> GetDrivers()
     {
         var userId = GetCurrentUserId();
@@ -19,7 +20,7 @@ public class TransportProviderDriverController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet($"{TransportProviderDriverEndpoint.Base}/{{id:guid}}")]
+    [HttpGet($"{DriverEndpoint.Base}/{{id:guid}}")]
     public async Task<IActionResult> GetDriverById(Guid id)
     {
         var userId = GetCurrentUserId();
@@ -27,7 +28,7 @@ public class TransportProviderDriverController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPost(TransportProviderDriverEndpoint.Base)]
+    [HttpPost(DriverEndpoint.Base)]
     public async Task<IActionResult> CreateDriver([FromBody] Application.Features.TransportProvider.Drivers.DTOs.CreateDriverRequestDto request)
     {
         var userId = GetCurrentUserId();
@@ -35,7 +36,7 @@ public class TransportProviderDriverController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPut($"{TransportProviderDriverEndpoint.Base}/{{id:guid}}")]
+    [HttpPut($"{DriverEndpoint.Base}/{{id:guid}}")]
     public async Task<IActionResult> UpdateDriver(Guid id, [FromBody] Application.Features.TransportProvider.Drivers.DTOs.UpdateDriverRequestDto request)
     {
         var userId = GetCurrentUserId();
@@ -43,7 +44,7 @@ public class TransportProviderDriverController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpDelete($"{TransportProviderDriverEndpoint.Base}/{{id:guid}}")]
+    [HttpDelete($"{DriverEndpoint.Base}/{{id:guid}}")]
     public async Task<IActionResult> DeleteDriver(Guid id)
     {
         var userId = GetCurrentUserId();

@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "ManagerOnly")]
-[Authorize(Roles = RoleConstants.Admin_Manager_TourDesigner)]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(TourRequestEndpoint.Base)]
 public class TourRequestController : BaseApiController
 {

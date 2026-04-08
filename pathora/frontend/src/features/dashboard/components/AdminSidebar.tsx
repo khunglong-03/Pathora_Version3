@@ -81,6 +81,14 @@ export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: Bed, href: "/hotel" },
 ] as const;
 
+export const TOURDESIGNER_NAV_ITEMS = [
+  { label: "Trang chủ", icon: SquaresFour, href: "/tour-designer" },
+] as const;
+
+export const TOURGUIDE_NAV_ITEMS = [
+  { label: "Trang chủ", icon: SquaresFour, href: "/tour-guide" },
+] as const;
+
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
   { label: "VT của tôi", icon: Truck, href: "/transport" },
   { label: "Quản lý xe", icon: Car, href: "/transport/vehicles" },
@@ -107,9 +115,9 @@ interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   children?: React.ReactNode;
-  variant?: "manager" | "admin" | "provider";
+  variant?: "manager" | "admin" | "provider" | "tour-designer" | "tour-guide";
   isAdmin?: boolean;
-  providerPortal?: "hotel" | "transport";
+  providerPortal?: "hotel" | "transport" | "tour-designer" | "tour-guide";
 }
 
 
@@ -121,7 +129,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
   const [pendingCount, setPendingCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
 
-  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? (providerPortal === "transport" ? TRANSPORT_PROVIDER_NAV_ITEMS : HOTEL_PROVIDER_NAV_ITEMS) : MANAGER_NAV_ITEMS;
+  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? (providerPortal === "transport" ? TRANSPORT_PROVIDER_NAV_ITEMS : HOTEL_PROVIDER_NAV_ITEMS) : variant === "tour-designer" ? TOURDESIGNER_NAV_ITEMS : variant === "tour-guide" ? TOURGUIDE_NAV_ITEMS : MANAGER_NAV_ITEMS;
 
   const loadCompanyName = useCallback(async () => {
     if (providerPortal !== "transport") return;
@@ -257,7 +265,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
           style={{ borderBottom: "1px solid var(--sidebar-border)" }}
         >
           <Link
-            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : "/manager/dashboard"}
+            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : variant === "tour-designer" ? "/tour-designer" : variant === "tour-guide" ? "/tour-guide" : "/manager/dashboard"}
             className="flex items-center gap-3 group"
           >
             {/* Logo mark */}
@@ -306,6 +314,53 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
           {variant === "admin" ? (
             renderAdminNav()
           ) : variant === "provider" ? (
+            <div className="space-y-0.5">
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                const IconComp = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                    onClick={onClose}
+                    style={
+                      active
+                        ? {
+                            backgroundColor: "var(--sidebar-active-bg)",
+                            color: "var(--sidebar-active-text)",
+                          }
+                        : {
+                            color: "var(--sidebar-text-muted)",
+                          }
+                    }
+                  >
+                    <span
+                      className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                      style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                    />
+                    <span className="relative z-10 transition-colors duration-200">
+                      <IconComp size={20} weight={active ? "fill" : "regular"} />
+                    </span>
+                    <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                    <AnimatePresence>
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active-indicator"
+                          initial={{ opacity: 0, scaleY: 0 }}
+                          animate={{ opacity: 1, scaleY: 1 }}
+                          exit={{ opacity: 0, scaleY: 0 }}
+                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                          style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : variant === "tour-designer" || variant === "tour-guide" ? (
             <div className="space-y-0.5">
               {navItems.map((item) => {
                 const active = isActive(item.href);
@@ -443,6 +498,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
             >
               {providerPortal === "transport" && companyName
                 ? companyName.split(" ").slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase()
+                : providerPortal === "tour-designer"
+                ? "TD"
+                : providerPortal === "tour-guide"
+                ? "TG"
                 : "AD"}
               {/* Online dot */}
               <span
@@ -457,6 +516,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
               <p className="text-sm font-medium truncate leading-none" style={{ color: "var(--sidebar-text)" }}>
                 {providerPortal === "transport" && companyName
                   ? companyName
+                  : providerPortal === "tour-designer"
+                  ? "TourDesigner"
+                  : providerPortal === "tour-guide"
+                  ? "TourGuide"
                   : "Admin"}
               </p>
               <p className="text-xs truncate mt-0.5" style={{ color: "var(--sidebar-text-muted)" }}>
@@ -464,6 +527,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                   ? "TransportProvider"
                   : providerPortal === "hotel"
                   ? "HotelServiceProvider"
+                  : providerPortal === "tour-designer"
+                  ? "TourDesigner"
+                  : providerPortal === "tour-guide"
+                  ? "TourGuide"
                   : "Administrator"}
               </p>
             </div>

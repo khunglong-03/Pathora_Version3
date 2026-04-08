@@ -1,5 +1,6 @@
 using Application.Features.TransportProvider.Drivers.DTOs;
 using Application.Features.TransportProvider.Drivers.Validators;
+using Domain.Common.Repositories;
 using Domain.Enums;
 using FluentValidation.TestHelper;
 using NSubstitute;

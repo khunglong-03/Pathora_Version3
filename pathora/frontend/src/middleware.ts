@@ -6,7 +6,7 @@ import {
   USER_DEFAULT_PATH,
 } from "./utils/authRouting";
 // Role names generated from role.json — single source of truth
-import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES } from "./auth-roles";
+import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES, TOURDESIGNER_ROLE_NAMES, TOURGUIDE_ROLE_NAMES } from "./auth-roles";
 
 // TRANSPORTPROVIDER_ROLE_NAMES — not in generated auth-roles.ts, define here
 const TRANSPORTPROVIDER_ROLE_NAMES = new Set(["TransportProvider"]);
@@ -77,8 +77,11 @@ const hasHotelServiceProviderRole = (roles: string[]): boolean =>
 const hasTransportProviderRole = (roles: string[]): boolean =>
   roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
 
+const hasTourDesignerRole = (roles: string[]): boolean =>
+  roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role));
 
-const isManagerRoutePath = (pathname: string): boolean => {
+const hasTourGuideRole = (roles: string[]): boolean =>
+  roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));const isManagerRoutePath = (pathname: string): boolean => {
   const MANAGER_ROUTE_PREFIXES = [
     "/manager",
     "/tour-management",
@@ -93,9 +96,21 @@ const isManagerRoutePath = (pathname: string): boolean => {
 };
 
 const PROVIDER_ROUTE_PREFIXES = ["/transport", "/hotel"];
+const TOUR_DESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
+const TOUR_GUIDE_ROUTE_PREFIXES = ["/tour-guide"];
 
 const isProviderRoutePath = (pathname: string): boolean =>
   PROVIDER_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+const isTourDesignerRoutePath = (pathname: string): boolean =>
+  TOUR_DESIGNER_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+const isTourGuideRoutePath = (pathname: string): boolean =>
+  TOUR_GUIDE_ROUTE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
@@ -157,6 +172,12 @@ export function middleware(request: NextRequest) {
     }
     if (hasTransportProviderRole(authRoles)) {
       return NextResponse.redirect(new URL("/transport", request.url));
+    }
+    if (hasTourDesignerRole(authRoles)) {
+      return NextResponse.redirect(new URL("/tour-designer", request.url));
+    }
+    if (hasTourGuideRole(authRoles)) {
+      return NextResponse.redirect(new URL("/tour-guide", request.url));
     }
     return NextResponse.redirect(new URL(USER_DEFAULT_PATH, request.url));
   }
@@ -225,6 +246,40 @@ export function middleware(request: NextRequest) {
       if (hasTransportProviderRole(authRoles)) {
         return NextResponse.redirect(new URL("/transport", request.url));
       }
+      if (hasTourDesignerRole(authRoles)) {
+        return NextResponse.redirect(new URL("/tour-designer", request.url));
+      }
+      if (hasTourGuideRole(authRoles)) {
+        return NextResponse.redirect(new URL("/tour-guide", request.url));
+      }
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+
+    // Tour Designers must stay in tour-designer routes (except public paths)
+    if (
+      hasTourDesignerRole(authRoles) &&
+      !isTourDesignerRoutePath(pathname) &&
+      !publicPath
+    ) {
+      return NextResponse.redirect(new URL("/tour-designer", request.url));
+    }
+
+    // Tour Guides must stay in tour-guide routes (except public paths)
+    if (
+      hasTourGuideRole(authRoles) &&
+      !isTourGuideRoutePath(pathname) &&
+      !publicPath
+    ) {
+      return NextResponse.redirect(new URL("/tour-guide", request.url));
+    }
+
+    // Block non-tour-designers from accessing /tour-designer routes
+    if (pathname.startsWith("/tour-designer") && !hasTourDesignerRole(authRoles)) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+
+    // Block non-tour-guides from accessing /tour-guide routes
+    if (pathname.startsWith("/tour-guide") && !hasTourGuideRole(authRoles)) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
 

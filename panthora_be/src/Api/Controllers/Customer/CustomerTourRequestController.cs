@@ -1,3 +1,5 @@
+namespace Api.Controllers.Customer;
+
 using Api.Endpoint;
 using Application.Common.Constant;
 using Application.Features.TourRequest.Commands;
@@ -5,11 +7,10 @@ using Application.Features.TourRequest.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.Public;
-
-[Authorize(Roles = RoleConstants.Admin_Customer)]
+[ApiController]
+[Authorize(Policy = "CustomerOnly")]
 [Route(PublicEndpoint.Base + "/" + PublicEndpoint.TourRequests)]
-public class PublicTourRequestController : BaseApiController
+public class CustomerTourRequestController : BaseApiController
 {
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTourRequestCommand command)

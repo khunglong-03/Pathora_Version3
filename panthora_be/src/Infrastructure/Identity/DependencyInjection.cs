@@ -67,7 +67,8 @@ internal static class DependencyInjection
                     ValidIssuers = validIssuers,
                     ValidAudiences = validAudiences,
 
-                    NameClaimType = ClaimTypes.NameIdentifier
+                    NameClaimType = ClaimTypes.NameIdentifier,
+                    RoleClaimType = ClaimTypes.Role
                 };
 
                 options.Events = new JwtBearerEvents

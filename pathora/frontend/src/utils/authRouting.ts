@@ -61,6 +61,76 @@ export const ADMIN_ROLE_DEFAULT_PATH = "/admin/dashboard";
 export const MANAGER_ROLE_DEFAULT_PATH = "/manager";
 export const HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH = "/hotel";
 export const TRANSPORTPROVIDER_ROLE_DEFAULT_PATH = "/transport";
+export const TOURDESIGNER_ROLE_DEFAULT_PATH = "/tour-designer";
+export const TOURGUIDE_ROLE_DEFAULT_PATH = "/tour-guide";
+
+export const TOURDESIGNER_ROLE_NAMES = new Set(["TourDesigner"]);
+export const TOURGUIDE_ROLE_NAMES = new Set(["TourGuide"]);
+
+export const TOURDESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
+export const TOURGUIDE_ROUTE_PREFIXES = ["/tour-guide"];
+
+export type AuthPortal = "admin" | "user";
+
+export const normalizePortal = (portal: string | null | undefined): AuthPortal | null => {
+  const value = portal?.trim().toLowerCase();
+  if (value === "admin") {
+    return "admin";
+  }
+  if (value === "user") {
+    return "user";
+  }
+  return null;
+};
+
+export const sanitizePath = (path: string | null | undefined): string | null => {
+  const value = path?.trim();
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return null;
+  }
+  return value;
+};
+
+export const USER_PRIVATE_ROUTE_PREFIXES = [
+  "/custom-tour-request",
+  "/my-custom-tour-requests",
+] as const;
+
+const startsWithRoutePrefix = (pathname: string, prefix: string): boolean =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+
+export const inferPortalFromDefaultPath = (
+  defaultPath: string | null | undefined,
+): AuthPortal | null => {
+  const path = sanitizePath(defaultPath);
+  if (!path) {
+    return null;
+  }
+
+  if (isAdminRoutePath(path)) {
+    return "admin";
+  }
+
+  if (
+    USER_PRIVATE_ROUTE_PREFIXES.some((prefix) => startsWithRoutePrefix(path, prefix)) ||
+    startsWithRoutePrefix(path, "/home")
+  ) {
+    return "user";
+  }
+
+  return null;
+};
+
+export const resolveAuthPortal = (
+  portal: string | null | undefined,
+  defaultPath?: string | null,
+): AuthPortal | null => {
+  const normalized = normalizePortal(portal);
+  if (normalized) {
+    return normalized;
+  }
+  return inferPortalFromDefaultPath(defaultPath);
+};
 
 export const PROVIDER_ROLE_NAMES = new Set(["HotelServiceProvider", "TransportProvider"]);
 

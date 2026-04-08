@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 type StatusFilter = "all" | "active" | "maintenance" | "inactive";
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  Hoạt động: { label: "Hoạt động", color: "#22C55E", bg: "#DCFCE7" },
+  "Hoạt động": { label: "Hoạt động", color: "#22C55E", bg: "#DCFCE7" },
   "Bảo trì": { label: "Bảo trì", color: "#F59E0B", bg: "#FEF3C7" },
   "Ngưng hoạt động": { label: "Ngưng hoạt động", color: "#EF4444", bg: "#FEE2E2" },
 };

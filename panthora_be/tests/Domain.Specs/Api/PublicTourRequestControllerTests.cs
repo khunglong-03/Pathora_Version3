@@ -1,4 +1,4 @@
-using Api.Controllers.Public;
+using Api.Controllers.Customer;
 using Application.Dtos;
 using Application.Features.TourRequest.Commands;
 using Application.Features.TourRequest.Queries;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Domain.Specs.Api;
 
-public sealed class PublicTourRequestControllerTests
+public sealed class CustomerTourRequestControllerTests
 {
     [Fact]
     public async Task Create_WhenCommandSucceeds_ShouldReturnCreatedResponse()
@@ -25,7 +25,7 @@ public sealed class PublicTourRequestControllerTests
             TravelInterests: ["Adventure"]);
 
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<PublicTourRequestController, CreateTourRequestCommand, Guid>(
+            .BuildController<CustomerTourRequestController, CreateTourRequestCommand, Guid>(
                 requestId,
                 "/api/public/tour-requests");
 
@@ -45,7 +45,7 @@ public sealed class PublicTourRequestControllerTests
     public async Task GetMy_WhenUnauthorized_ShouldReturnUnauthorizedResponse()
     {
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<PublicTourRequestController, GetMyTourRequestsQuery, PaginatedList<TourRequestVm>>(
+            .BuildController<CustomerTourRequestController, GetMyTourRequestsQuery, PaginatedList<TourRequestVm>>(
                 Error.Unauthorized("User.Unauthorized", "Người dùng chưa đăng nhập"),
                 "/api/public/tour-requests/my");
 
@@ -64,7 +64,7 @@ public sealed class PublicTourRequestControllerTests
     {
         var id = Guid.CreateVersion7();
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<PublicTourRequestController, GetTourRequestDetailQuery, TourRequestDetailDto>(
+            .BuildController<CustomerTourRequestController, GetTourRequestDetailQuery, TourRequestDetailDto>(
                 Error.NotFound("TourRequest.NotFound", "Yêu cầu tour không tồn tại"),
                 $"/api/public/tour-requests/{id}");
 

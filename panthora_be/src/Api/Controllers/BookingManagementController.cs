@@ -14,18 +14,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers;
 
 [Authorize(Policy = "ManagerOnly")]
-[Authorize(Roles = RoleConstants.Admin)]
 [Route(BookingManagementEndpoint.Base)]
 public class BookingManagementController : BaseApiController
 {
-    [Authorize(Roles = RoleConstants.Admin_Customer)]
-    [HttpGet(BookingManagementEndpoint.MyRecent)]
-    public async Task<IActionResult> GetMyRecentBookings([FromQuery] int count = 3)
-    {
-        var result = await Sender.Send(new GetRecentBookingsQuery(count));
-        return HandleResult(result);
-    }
-
     [HttpGet(BookingManagementEndpoint.Activities)]
     public async Task<IActionResult> GetActivities(Guid id)
     {

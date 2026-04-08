@@ -9,7 +9,6 @@ using Application.Services;
 namespace Api.Controllers;
 
 [Authorize(Policy = "ManagerOnly")]
-[Authorize(Roles = RoleConstants.Admin_Customer)]
 [Route(PaymentEndpoint.Base)]
 public class PaymentController : BaseApiController
 {

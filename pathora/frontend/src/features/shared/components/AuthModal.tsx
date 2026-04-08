@@ -1,5 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useDispatch } from "react-redux";
 import Checkbox from "@/components/ui/Checkbox";
 import TextInput from "@/components/ui/TextInput";
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -8,9 +9,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Icon } from "@/components/ui";
 import {
+  authApiSlice,
   useLoginMutation,
   useRegisterMutation,
 } from "@/store/api/auth/authApiSlice";
+import type { AppDispatch } from "@/store";
 import { GOOGLE_LOGIN_URL } from "@/configs/apiGateway";
 import { resolveLoginDestination } from "@/utils/authRouting";
 import { handleApiError } from "@/utils/apiResponse";
@@ -306,6 +309,7 @@ const LoginView = ({
   const [form, setForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState<string | null>(null);
   const [login, { isLoading }] = useLoginMutation();
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -326,21 +330,29 @@ const LoginView = ({
         password: form.password,
       }).unwrap();
 
+      // Provider redirects depend on role names, not just portal metadata.
+      const userInfoRequest = dispatch(
+        authApiSlice.endpoints.getUserInfo.initiate(),
+      );
+      const userInfoResult = await userInfoRequest;
+      userInfoRequest.unsubscribe();
+      const userInfo = "data" in userInfoResult
+        ? userInfoResult.data?.data ?? null
+        : null;
+
       // Get next parameter from URL (preserved from original protected destination)
       const nextParam = searchParams.get("next");
 
       const destination = resolveLoginDestination({
         next: nextParam,
-        defaultPath: loginResult.data?.defaultPath ?? null,
-        portal: loginResult.data?.portal ?? null,
-        roles: null, // Login response doesn't include roles - use portal-based logic
+        defaultPath: userInfo?.defaultPath ?? loginResult.data?.defaultPath ?? null,
+        portal: userInfo?.portal ?? loginResult.data?.portal ?? null,
+        roles: userInfo?.roles ?? null,
       });
 
       toast.success(t("landing.auth.loginSuccess"));
 
-      // Close modal and navigate - wait for Redux state to fully sync
-      // The auth cookies are set synchronously, but Redux state update is async
-      // Using a short delay ensures the state is updated before navigation
+      // Keep the short delay so the success toast/modal transition remains smooth.
       setTimeout(() => {
         onClose();
         router.replace(destination);

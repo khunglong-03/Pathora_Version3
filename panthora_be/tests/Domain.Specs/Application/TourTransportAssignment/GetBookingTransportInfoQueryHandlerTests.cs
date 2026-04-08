@@ -242,7 +242,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         Assert.Single(result.Value.Routes);
         Assert.NotNull(result.Value.Routes[0].Driver);
         Assert.Null(result.Value.Routes[0].Vehicle);
-        Assert.Equal("Driver Only", result.Value.Routes[0].Driver.FullName);
+        Assert.Equal("Driver Only", result.Value.Routes[0].Driver!.FullName);
     }
 
     #endregion
@@ -289,7 +289,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         Assert.Single(result.Value.Routes);
         Assert.Null(result.Value.Routes[0].Driver);
         Assert.NotNull(result.Value.Routes[0].Vehicle);
-        Assert.Equal("99Z-99999", result.Value.Routes[0].Vehicle.VehiclePlate);
+        Assert.Equal("99Z-99999", result.Value.Routes[0].Vehicle!.VehiclePlate);
     }
 
     #endregion

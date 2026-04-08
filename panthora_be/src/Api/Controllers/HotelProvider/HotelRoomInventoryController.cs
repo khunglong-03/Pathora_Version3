@@ -1,4 +1,4 @@
-namespace Api.Controllers;
+namespace Api.Controllers.HotelProvider;
 
 using Api.Endpoint;
 using Application.Common.Constant;
@@ -16,16 +16,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.HotelServiceProvider}")]
-public class HotelRoomInventoryController : BaseApiController
+[Authorize(Policy = "HotelServiceProviderOnly")]
+public class HotelRoomInventoryController(ISupplierRepository supplierRepository) : BaseApiController
 {
-    private readonly ISupplierRepository _supplierRepository;
-
-    public HotelRoomInventoryController(ISupplierRepository supplierRepository)
-    {
-        _supplierRepository = supplierRepository;
-    }
-
     // ─── Room Inventory CRUD ────────────────────────────────────────────────
 
     [HttpGet(HotelRoomInventoryEndpoint.Base)]
@@ -74,11 +67,16 @@ public class HotelRoomInventoryController : BaseApiController
         [FromQuery] DateOnly fromDate,
         [FromQuery] DateOnly toDate)
     {
-        var supplierIdResult = ResolveSupplierId();
-        if (supplierIdResult is not null) return supplierIdResult;
+        var userId = GetCurrentUserId();
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var supplier = await supplierRepository.FindByOwnerUserIdAsync(userId);
+        if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
+            return HandleResult<List<HotelRoomAvailabilityDto>>(new List<HotelRoomAvailabilityDto>());
 
         var result = await Sender.Send(new GetHotelRoomAvailabilityQuery(
-            _resolvedSupplierId!.Value, fromDate, toDate));
+            supplier.Id, fromDate, toDate));
         return HandleResult(result);
     }
 
@@ -92,7 +90,7 @@ public class HotelRoomInventoryController : BaseApiController
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = _supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        var supplier = supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return StatusCode(403, "You do not have an accommodation supplier.");
 

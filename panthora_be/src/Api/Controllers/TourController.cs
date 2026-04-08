@@ -17,8 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "ManagerOnly")]
-[Authorize(Roles = RoleConstants.Admin_Manager_TourDesigner)]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(TourEndpoint.Base)]
 public class TourController(
     IFileService fileService,
@@ -323,7 +322,6 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [Authorize(Roles = RoleConstants.Admin_Manager_TourDesigner)]
     [HttpPut(TourEndpoint.Status)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTourStatusRequestDto dto)
     {
@@ -331,7 +329,7 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [Authorize(Roles = RoleConstants.Admin)]
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(TourEndpoint.Id + "/purge")]
     public async Task<IActionResult> Purge(Guid id)
     {

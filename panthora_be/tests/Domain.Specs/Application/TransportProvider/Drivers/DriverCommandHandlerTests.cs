@@ -124,7 +124,7 @@ public sealed class UpdateDriverCommandHandlerTests
         Assert.False(result.IsError);
         Assert.Equal("Updated Name", result.Value.FullName);
         Assert.Equal("Updated notes", result.Value.Notes);
-        _driverRepository.Received().UpdateAsync(driver, Arg.Any<CancellationToken>());
+        await _driverRepository.Received().UpdateAsync(driver, Arg.Any<CancellationToken>());
     }
 
     [Fact]

@@ -10,7 +10,9 @@ import {
   isManagerRoutePath,
   isSafeNextPath,
   MANAGER_ROLE_DEFAULT_PATH,
+  normalizePortal,
   parseAuthRoles,
+  resolveAuthPortal,
   resolveLoginDestination,
   resolvePostLoginPath,
   resolveRoleDefaultPath,
@@ -319,5 +321,56 @@ describe("resolveLoginDestination", () => {
     expect(resolveLoginDestination({ portal: "user" })).toBe(
       USER_DEFAULT_PATH,
     );
+  });
+});
+
+describe("normalizePortal", () => {
+  it("returns admin for admin portal (case-insensitive)", () => {
+    expect(normalizePortal("admin")).toBe("admin");
+    expect(normalizePortal("Admin")).toBe("admin");
+    expect(normalizePortal("ADMIN")).toBe("admin");
+  });
+
+  it("returns user for user portal (case-insensitive)", () => {
+    expect(normalizePortal("user")).toBe("user");
+    expect(normalizePortal("User")).toBe("user");
+  });
+
+  it("returns null for unknown portal", () => {
+    expect(normalizePortal(null)).toBe(null);
+    expect(normalizePortal(undefined)).toBe(null);
+    expect(normalizePortal("")).toBe(null);
+    expect(normalizePortal("unknown")).toBe(null);
+  });
+});
+
+describe("resolveAuthPortal", () => {
+  it("returns admin portal when explicit", () => {
+    expect(resolveAuthPortal("admin")).toBe("admin");
+    expect(resolveAuthPortal("Admin")).toBe("admin");
+  });
+
+  it("returns user portal when explicit", () => {
+    expect(resolveAuthPortal("user")).toBe("user");
+  });
+
+  it("infers admin portal from admin default path", () => {
+    // /dashboard is in ADMIN_ROUTE_PREFIXES, so it infers admin portal
+    expect(resolveAuthPortal(undefined, "/dashboard")).toBe("admin");
+  });
+
+  it("infers user portal from user default path", () => {
+    expect(resolveAuthPortal(null, "/home")).toBe("user");
+    expect(resolveAuthPortal(undefined, "/my-custom-tour-requests")).toBe("user");
+  });
+
+  it("returns null when portal and defaultPath are absent", () => {
+    expect(resolveAuthPortal(null, null)).toBe(null);
+    expect(resolveAuthPortal(undefined, undefined)).toBe(null);
+  });
+
+  it("prefers explicit portal over inferred from defaultPath", () => {
+    expect(resolveAuthPortal("admin", "/home")).toBe("admin");
+    expect(resolveAuthPortal("user", "/admin/dashboard")).toBe("user");
   });
 });

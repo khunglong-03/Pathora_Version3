@@ -32,44 +32,44 @@ public sealed class CreateDriverRequestDtoValidatorTests
     #region FullName
 
     [Fact]
-    public void Validate_ValidDto_Passes()
+    public async Task Validate_ValidDto_Passes()
     {
         var dto = ValidDto();
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validate_EmptyFullName_Fails()
+    public async Task Validate_EmptyFullName_Fails()
     {
         var dto = ValidDto() with { FullName = "" };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
             .WithErrorMessage("Full name is required.");
     }
 
     [Fact]
-    public void Validate_WhitespaceFullName_Fails()
+    public async Task Validate_WhitespaceFullName_Fails()
     {
         var dto = ValidDto() with { FullName = "   " };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.FullName);
     }
 
     [Fact]
-    public void Validate_FullNameTooLong_Fails()
+    public async Task Validate_FullNameTooLong_Fails()
     {
         var dto = ValidDto() with { FullName = new string('A', 101) };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
             .WithErrorMessage("Full name must not exceed 100 characters.");
     }
 
     [Fact]
-    public void Validate_FullNameMaxChars_Passes()
+    public async Task Validate_FullNameMaxChars_Passes()
     {
         var dto = ValidDto() with { FullName = new string('A', 100) };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveValidationErrorFor(x => x.FullName);
     }
 
@@ -78,25 +78,25 @@ public sealed class CreateDriverRequestDtoValidatorTests
     #region LicenseNumber
 
     [Fact]
-    public void Validate_EmptyLicenseNumber_Fails()
+    public async Task Validate_EmptyLicenseNumber_Fails()
     {
         var dto = ValidDto() with { LicenseNumber = "" };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.LicenseNumber)
             .WithErrorMessage("License number is required.");
     }
 
     [Fact]
-    public void Validate_LicenseNumberTooLong_Fails()
+    public async Task Validate_LicenseNumberTooLong_Fails()
     {
         var dto = ValidDto() with { LicenseNumber = new string('1', 51) };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.LicenseNumber)
             .WithErrorMessage("License number must not exceed 50 characters.");
     }
 
     [Fact]
-    public void async Task Validate_LicenseNumberAlreadyExists_Fails()
+    public async Task Validate_LicenseNumberAlreadyExists_Fails()
     {
         _driverRepository.ExistsByLicenseNumberAsync("0123456789", Arg.Any<CancellationToken>())
             .Returns(true);
@@ -109,10 +109,10 @@ public sealed class CreateDriverRequestDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_NewLicenseNumber_Passes()
+    public async Task Validate_NewLicenseNumber_Passes()
     {
         var dto = ValidDto() with { LicenseNumber = "9999999999" };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveValidationErrorFor(x => x.LicenseNumber);
     }
 
@@ -127,18 +127,18 @@ public sealed class CreateDriverRequestDtoValidatorTests
     [InlineData(DriverLicenseType.D)]
     [InlineData(DriverLicenseType.E)]
     [InlineData(DriverLicenseType.F)]
-    public void Validate_ValidLicenseType_Passes(DriverLicenseType type)
+    public async Task Validate_ValidLicenseType_Passes(DriverLicenseType type)
     {
         var dto = ValidDto() with { LicenseType = (int)type };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveValidationErrorFor(x => x.LicenseType);
     }
 
     [Fact]
-    public void Validate_InvalidLicenseType_Fails()
+    public async Task Validate_InvalidLicenseType_Fails()
     {
         var dto = ValidDto() with { LicenseType = 99 };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.LicenseType)
             .WithErrorMessage("Invalid license type.");
     }
@@ -153,10 +153,10 @@ public sealed class CreateDriverRequestDtoValidatorTests
     [InlineData("0987654321")]
     [InlineData("+84912345678")]
     [InlineData("+840123456789")]
-    public void Validate_ValidVietnamesePhone_Passes(string phone)
+    public async Task Validate_ValidVietnamesePhone_Passes(string phone)
     {
         var dto = ValidDto() with { PhoneNumber = phone };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveValidationErrorFor(x => x.PhoneNumber);
     }
 
@@ -168,10 +168,10 @@ public sealed class CreateDriverRequestDtoValidatorTests
     [InlineData("+84912")]       // too short
     [InlineData("091234567")]   // 9 digits without +84
     [InlineData("84123456789")]  // missing +
-    public void Validate_InvalidPhone_Fails(string phone)
+    public async Task Validate_InvalidPhone_Fails(string phone)
     {
         var dto = ValidDto() with { PhoneNumber = phone };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.PhoneNumber)
             .WithErrorMessage("Phone number must be a valid Vietnamese format (e.g., 0912345678 or +84912345678).");
     }
@@ -181,18 +181,18 @@ public sealed class CreateDriverRequestDtoValidatorTests
     #region AvatarUrl
 
     [Fact]
-    public void Validate_NullAvatarUrl_Passes()
+    public async Task Validate_NullAvatarUrl_Passes()
     {
         var dto = ValidDto() with { AvatarUrl = null };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validate_WithAvatarUrl_Passes()
+    public async Task Validate_WithAvatarUrl_Passes()
     {
         var dto = ValidDto() with { AvatarUrl = "https://cdn.example.com/avatar.jpg" };
-        var result = _validator.TestValidate(dto);
+        var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }
 

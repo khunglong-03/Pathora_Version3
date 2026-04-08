@@ -5,8 +5,8 @@ import { AdminSidebar } from "@/features/dashboard/components/AdminSidebar";
 
 interface AdminShellProps {
   children: React.ReactNode;
-  variant?: "admin" | "manager" | "provider";
-  providerPortal?: "hotel" | "transport";
+  variant?: "admin" | "manager" | "provider" | "tour-designer" | "tour-guide";
+  providerPortal?: "hotel" | "transport" | "tour-designer" | "tour-guide";
 }
 
 const ADMIN_ROLE_NAME = "Admin";

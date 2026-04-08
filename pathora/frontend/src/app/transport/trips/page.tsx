@@ -6,7 +6,6 @@ import {
   CheckCircle,
   XCircle,
   X,
-  ClipboardList,
 } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import type {
@@ -184,7 +183,7 @@ export default function TransportTripsPage() {
 
       {!error && !isLoading && filteredTrips.length === 0 && (
         <AdminEmptyState
-          icon="ClipboardList"
+          icon="heroicons:clipboard-document-list"
           heading="Không có chuyến nào"
           description="Chưa có chuyến phân công nào."
         />

@@ -38,4 +38,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\Customer\" />
+    <Folder Include="Controllers\HotelProvider\" />
+    <Folder Include="Controllers\TransportProvider\" />
+  </ItemGroup>
 </Project>

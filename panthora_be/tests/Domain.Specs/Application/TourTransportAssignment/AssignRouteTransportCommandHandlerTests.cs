@@ -324,7 +324,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 VehiclePlate = "30A-NOCONT",
                 VehicleType = VehicleType.Car,
                 SeatCapacity = 5,
-                LocationArea = Continent.NorthAmerica
+                LocationArea = Continent.Americas
             });
         _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns((Continent?)null);

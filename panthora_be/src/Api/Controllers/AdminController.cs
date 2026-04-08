@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = RoleConstants.Admin)]
 [Authorize(Policy = "AdminOnly")]
 [Route(AdminEndpoint.Base)]
 public class AdminController : BaseApiController

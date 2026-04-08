@@ -454,7 +454,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                         r.TourDayActivity.TourDay.Classification.Tour != null &&
                         r.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
                         !r.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
-            .SumAsync(r => r.DistanceKm ?? 0, cancellationToken);
+            .SumAsync(r => (decimal?)r.DistanceKm, cancellationToken) ?? 0;
     }
 
     public async Task<List<string>> GetAllDestinations()

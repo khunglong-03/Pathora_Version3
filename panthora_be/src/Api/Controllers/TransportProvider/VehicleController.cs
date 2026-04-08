@@ -1,7 +1,8 @@
-namespace Api.Controllers;
-
 using Api.Endpoint;
-using Application.Common.Constant;
+
+namespace Api.Controllers.TransportProvider;
+
+using Api.Endpoint.TransportProvider;
 using Application.Features.TransportProvider.Vehicles.Commands;
 using Application.Features.TransportProvider.Vehicles.Queries;
 using Domain.Enums;
@@ -9,10 +10,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.TransportProvider}")]
-public class TransportProviderVehicleController : BaseApiController
+[Authorize(Policy = "TransportProviderOnly")]
+public class VehicleController : BaseApiController
 {
-    [HttpGet(TransportProviderVehicleEndpoint.Base)]
+    [HttpGet(VehicleEndpoint.Base)]
     public async Task<IActionResult> GetVehicles([FromQuery] int? locationArea = null)
     {
         var userId = GetCurrentUserId();
@@ -20,7 +21,7 @@ public class TransportProviderVehicleController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet($"{TransportProviderVehicleEndpoint.Base}/{{plate}}")]
+    [HttpGet($"{VehicleEndpoint.Base}/{{plate}}")]
     public async Task<IActionResult> GetVehicleByPlate(string plate)
     {
         var userId = GetCurrentUserId();
@@ -28,7 +29,7 @@ public class TransportProviderVehicleController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPost(TransportProviderVehicleEndpoint.Base)]
+    [HttpPost(VehicleEndpoint.Base)]
     public async Task<IActionResult> CreateVehicle([FromBody] Application.Features.TransportProvider.Vehicles.DTOs.CreateVehicleRequestDto request)
     {
         var userId = GetCurrentUserId();
@@ -36,7 +37,7 @@ public class TransportProviderVehicleController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPut($"{TransportProviderVehicleEndpoint.Base}/{{plate}}")]
+    [HttpPut($"{VehicleEndpoint.Base}/{{plate}}")]
     public async Task<IActionResult> UpdateVehicle(string plate, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
     {
         var userId = GetCurrentUserId();
@@ -44,7 +45,7 @@ public class TransportProviderVehicleController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpDelete($"{TransportProviderVehicleEndpoint.Base}/{{plate}}")]
+    [HttpDelete($"{VehicleEndpoint.Base}/{{plate}}")]
     public async Task<IActionResult> DeleteVehicle(string plate)
     {
         var userId = GetCurrentUserId();

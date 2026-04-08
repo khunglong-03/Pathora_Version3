@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = RoleConstants.Admin)]
 [Authorize(Policy = "AdminOnly")]
 [Route(PositionEndpoint.Base)]
 public class PositionController : BaseApiController

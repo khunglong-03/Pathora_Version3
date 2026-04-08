@@ -1,4 +1,4 @@
-namespace Api.Controllers;
+namespace Api.Controllers.HotelProvider;
 
 using Api.Endpoint;
 using Application.Common.Constant;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.HotelServiceProvider}")]
+[Authorize(Policy = "HotelServiceProviderOnly")]
 public class HotelServiceProviderAccommodationController : BaseApiController
 {
     [HttpGet(HotelServiceProviderAccommodationEndpoint.Base)]

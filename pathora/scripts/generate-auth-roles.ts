@@ -66,6 +66,18 @@ function generate(): void {
     .filter((r) => r.Name === 'HotelServiceProvider')
     .map((r) => `"${r.Name}"`);
 
+  const transportProviderRoles = sortedRoles
+    .filter((r) => r.Name === 'TransportProvider')
+    .map((r) => `"${r.Name}"`);
+
+  const tourDesignerRoles = sortedRoles
+    .filter((r) => r.Name === 'TourDesigner')
+    .map((r) => `"${r.Name}"`);
+
+  const tourGuideRoles = sortedRoles
+    .filter((r) => r.Name === 'TourGuide')
+    .map((r) => `"${r.Name}"`);
+
   const allRoleNames = sortedRoles.map((r) => `"${r.Name}"`);
 
   const generatedDate = new Date().toISOString();
@@ -87,11 +99,14 @@ function generate(): void {
 const ADMIN_ROLE_NAMES = new Set<string>([${adminRoles.join(', ')}]);
 const MANAGER_ROLE_NAMES = new Set<string>([${managerRoles.join(', ')}]);
 const HOTELSERVICEPROVIDER_ROLE_NAMES = new Set<string>([${hotelServiceProviderRoles.join(', ')}]);
+const TRANSPORTPROVIDER_ROLE_NAMES = new Set<string>([${transportProviderRoles.join(', ')}]);
+const TOURDESIGNER_ROLE_NAMES = new Set<string>([${tourDesignerRoles.join(', ')}]);
+const TOURGUIDE_ROLE_NAMES = new Set<string>([${tourGuideRoles.join(', ')}]);
 
 // All role names from role.json
 const ALL_ROLE_NAMES: string[] = [${allRoleNames.join(', ')}];
 
-export { ADMIN_ROLE_NAMES, MANAGER_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, ALL_ROLE_NAMES };
+export { ADMIN_ROLE_NAMES, MANAGER_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, TRANSPORTPROVIDER_ROLE_NAMES, TOURDESIGNER_ROLE_NAMES, TOURGUIDE_ROLE_NAMES, ALL_ROLE_NAMES };
 `;
 
   const outputDir = dirname(outputPath);
@@ -104,6 +119,9 @@ export { ADMIN_ROLE_NAMES, MANAGER_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, 
   console.log(`  Admin roles: ${[...adminRoles]}`);
   console.log(`  Manager roles: ${[...managerRoles]}`);
   console.log(`  HotelServiceProvider roles: ${[...hotelServiceProviderRoles]}`);
+  console.log(`  TransportProvider roles: ${[...transportProviderRoles]}`);
+  console.log(`  TourDesigner roles: ${[...tourDesignerRoles]}`);
+  console.log(`  TourGuide roles: ${[...tourGuideRoles]}`);
 }
 
 generate();

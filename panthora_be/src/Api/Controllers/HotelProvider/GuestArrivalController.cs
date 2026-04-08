@@ -1,20 +1,18 @@
-namespace Api.Controllers;
+namespace Api.Controllers.HotelProvider;
 
 using Api.Endpoint;
-using Application.Common.Constant;
 using Application.Features.GuestArrival.Commands.CreateGuestArrival;
 using Application.Features.GuestArrival.Commands.UpdateGuestArrival;
 using Application.Features.GuestArrival.DTOs;
 using Application.Features.GuestArrival.Queries.GetGuestArrival;
 using Application.Features.GuestArrival.Queries.GetGuestArrivalsByHotel;
-using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.HotelServiceProvider}")]
+[Authorize(Policy = "HotelServiceProviderOnly")]
 public class GuestArrivalController : BaseApiController
 {
     private readonly ISupplierRepository _supplierRepository;
@@ -33,11 +31,16 @@ public class GuestArrivalController : BaseApiController
         [FromQuery] DateOnly? dateFrom,
         [FromQuery] DateOnly? dateTo)
     {
-        var supplierIdResult = ResolveSupplierId();
-        if (supplierIdResult is not null) return supplierIdResult;
+        var userId = GetCurrentUserId();
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(userId);
+        if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
+            return HandleResult<List<GuestArrivalListDto>>(new List<GuestArrivalListDto>());
 
         var result = await Sender.Send(new GetGuestArrivalsByHotelQuery(
-            _resolvedSupplierId!.Value, status, dateFrom, dateTo));
+            supplier.Id, status, dateFrom, dateTo));
         return HandleResult(result);
     }
 

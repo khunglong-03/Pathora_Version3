@@ -9,6 +9,7 @@ namespace Domain.Enums;
 /// This enum is currently unused in authorization logic. It is provided for future
 /// role categorization needs.
 /// </summary>
+[Obsolete("This enum is unused in the authorization pipeline. Use role names from role.json instead. Will be removed in a future version.")]
 public enum RoleType
 {
     /// <summary>Administrator / System Admin (Type=9 in role.json)</summary>
