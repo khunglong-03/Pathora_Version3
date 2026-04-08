@@ -17,7 +17,7 @@ public sealed class DeleteDriverCommandHandler(
             request.DriverId, request.CurrentUserId, cancellationToken);
 
         if (driver is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Driver not found or you do not own this driver.");
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         await driverRepository.DeactivateAsync(driver.Id, request.CurrentUserId.ToString(), cancellationToken);
         return Result.Success;

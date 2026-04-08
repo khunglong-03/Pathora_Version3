@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Domain.Entities;
 
 /// <summary>
@@ -22,6 +24,10 @@ public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
     public Guid? VehicleId { get; set; }
     /// <summary>Vehicle được phân công.</summary>
     public virtual VehicleEntity? Vehicle { get; set; }
+    /// <summary>Trạng thái phân công chuyến xe: Pending/InProgress/Completed/Rejected/Cancelled.</summary>
+    public int? Status { get; set; }
+    /// <summary>Lý do từ chối (nếu Rejected).</summary>
+    public string? RejectionReason { get; set; }
     /// <summary>Thời gian cập nhật phân công gần nhất.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
     /// <summary>ID của User thực hiện cập nhật.</summary>
@@ -57,6 +63,35 @@ public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
         VehicleId = vehicleId;
         UpdatedAt = DateTimeOffset.UtcNow;
         UpdatedById = updatedById;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Accept(string performedBy)
+    {
+        Status = (int)TripAssignmentStatus.InProgress;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Reject(string reason, string performedBy)
+    {
+        Status = (int)TripAssignmentStatus.Rejected;
+        RejectionReason = reason;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Complete(string performedBy)
+    {
+        Status = (int)TripAssignmentStatus.Completed;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Cancel(string performedBy)
+    {
+        Status = (int)TripAssignmentStatus.Cancelled;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

@@ -11,21 +11,19 @@ interface VehicleFormProps {
 }
 
 const VEHICLE_TYPES = [
-  { value: 0, label: "Xe 4 chỗ" },
-  { value: 1, label: "Xe 7 chỗ" },
-  { value: 2, label: "Xe 16 chỗ" },
-  { value: 3, label: "Xe 29 chỗ" },
-  { value: 4, label: "Xe 45 chỗ" },
-  { value: 5, label: "Xe giường nằm" },
-  { value: 6, label: "Xe limousine" },
-  { value: 7, label: "Xe tải" },
-  { value: 8, label: "Khác" },
+  { value: 1, label: "Xe 4 chỗ" },
+  { value: 2, label: "Xe buýt" },
+  { value: 3, label: "Xe 12-29 chỗ" },
+  { value: 4, label: "Xe van" },
+  { value: 5, label: "Xe coach" },
+  { value: 6, label: "Xe máy" },
+  { value: 7, label: "Khác" },
 ];
 
 export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
   const [formData, setFormData] = useState<CreateVehicleDto>({
     vehiclePlate: vehicle?.vehiclePlate ?? "",
-    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.label === vehicle.vehicleType)?.value ?? 0) : 0,
+    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.label === vehicle.vehicleType)?.value ?? 1) : 1,
     brand: vehicle?.brand,
     model: vehicle?.model,
     seatCapacity: vehicle?.seatCapacity ?? 4,

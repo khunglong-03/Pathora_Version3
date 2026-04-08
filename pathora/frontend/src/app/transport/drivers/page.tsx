@@ -18,6 +18,22 @@ import {
 import DriverForm from "@/components/transport/DriverForm";
 import { toast } from "react-toastify";
 
+// Backend returns numeric license type, map to label for display
+const DRIVER_LICENSE_LABELS: Record<number, string> = {
+  1: "Bằng B1",
+  2: "Bằng B2",
+  3: "Bằng C",
+  4: "Bằng D",
+  5: "Bằng E",
+  6: "Bằng F",
+  7: "Khác",
+};
+function getLicenseDisplay(licenseType: string | undefined): string {
+  if (!licenseType) return "-";
+  const num = parseInt(licenseType, 10);
+  return !isNaN(num) && DRIVER_LICENSE_LABELS[num] ? DRIVER_LICENSE_LABELS[num] : licenseType;
+}
+
 type StatusFilter = "all" | "ready" | "driving" | "leave" | "inactive";
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -95,6 +111,8 @@ export default function TransportDriversPage() {
       if (success) {
         toast.success("Xóa tài xế thành công");
         void loadDrivers();
+      } else {
+        toast.error("Xóa tài xế thất bại. Vui lòng thử lại.");
       }
     } finally {
       setIsDeleting(null);
@@ -108,6 +126,8 @@ export default function TransportDriversPage() {
         toast.success("Cập nhật tài xế thành công");
         setIsFormOpen(false);
         void loadDrivers();
+      } else {
+        toast.error("Cập nhật tài xế thất bại. Vui lòng thử lại.");
       }
     } else {
       const result = await transportProviderService.createDriver(data as CreateDriverDto);
@@ -115,6 +135,8 @@ export default function TransportDriversPage() {
         toast.success("Thêm tài xế thành công");
         setIsFormOpen(false);
         void loadDrivers();
+      } else {
+        toast.error("Thêm tài xế thất bại. Vui lòng thử lại.");
       }
     }
   };
@@ -225,7 +247,7 @@ export default function TransportDriversPage() {
                     <td className="px-4 py-3 font-medium">{driver.fullName}</td>
                     <td className="px-4 py-3">{driver.phoneNumber ?? "-"}</td>
                     <td className="px-4 py-3">{driver.licenseNumber ?? "-"}</td>
-                    <td className="px-4 py-3">{driver.licenseType ?? "-"}</td>
+                    <td className="px-4 py-3">{getLicenseDisplay(driver.licenseType)}</td>
                     <td className="px-4 py-3">
                       <span
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"

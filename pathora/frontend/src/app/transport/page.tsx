@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Car,
   UsersThree,
@@ -35,6 +36,7 @@ const TRIP_STATUS_LABEL: Record<string, string> = {
 };
 
 export default function TransportDashboardPage() {
+  const router = useRouter();
   const [vehicles, setVehicles] = useState<import("@/api/services/transportProviderService").Vehicle[]>([]);
   const [drivers, setDrivers] = useState<import("@/api/services/transportProviderService").Driver[]>([]);
   const [tripAssignments, setTripAssignments] = useState<TripAssignment[]>([]);
@@ -227,13 +229,13 @@ export default function TransportDashboardPage() {
                     className="border-t cursor-pointer transition-colors duration-150 hover:bg-gray-50"
                     style={{ borderColor: "var(--border)" }}
                     onClick={() => {
-                      window.location.href = `/transport/trips`;
+                      router.push(`/transport/trips`);
                     }}
                     role="row"
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
-                        window.location.href = `/transport/trips`;
+                        router.push(`/transport/trips`);
                       }
                     }}
                     aria-label={`Chuyến ${trip.id} đến ${trip.route}`}

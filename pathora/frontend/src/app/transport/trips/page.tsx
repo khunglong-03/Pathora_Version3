@@ -20,7 +20,7 @@ import {
 } from "@/features/dashboard/components";
 import { toast } from "react-toastify";
 
-type StatusFilter = "all" | "pending" | "inprogress" | "completed";
+type StatusFilter = "all" | "pending" | "inprogress" | "completed" | "rejected" | "cancelled";
 
 const TRIP_STATUS_COLOR: Record<string, string> = {
   Pending: "#C9873A",
@@ -43,6 +43,8 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
   { key: "pending", label: "Chờ xác nhận" },
   { key: "inprogress", label: "Đang thực hiện" },
   { key: "completed", label: "Hoàn thành" },
+  { key: "rejected", label: "Từ chối" },
+  { key: "cancelled", label: "Đã hủy" },
 ];
 
 export default function TransportTripsPage() {
@@ -116,7 +118,11 @@ export default function TransportTripsPage() {
         );
         setSelectedTrip(null);
         void loadTrips();
+      } else {
+        toast.error("Thao tác thất bại. Vui lòng thử lại.");
       }
+    } catch {
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại.");
     } finally {
       setIsActionLoading(false);
     }
@@ -127,6 +133,8 @@ export default function TransportTripsPage() {
     if (filter === "pending") return t.status === "Pending";
     if (filter === "inprogress") return t.status === "InProgress";
     if (filter === "completed") return t.status === "Completed";
+    if (filter === "rejected") return t.status === "Rejected";
+    if (filter === "cancelled") return t.status === "Cancelled";
     return true;
   });
 
@@ -155,7 +163,11 @@ export default function TransportTripsPage() {
               ? trips.filter((t) => t.status === "Pending").length
               : tab.key === "inprogress"
               ? trips.filter((t) => t.status === "InProgress").length
-              : trips.filter((t) => t.status === "Completed").length;
+              : tab.key === "completed"
+              ? trips.filter((t) => t.status === "Completed").length
+              : tab.key === "rejected"
+              ? trips.filter((t) => t.status === "Rejected").length
+              : trips.filter((t) => t.status === "Cancelled").length;
           return (
             <button
               key={tab.key}

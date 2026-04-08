@@ -8,7 +8,8 @@ using MediatR;
 
 public sealed class GetBookingTransportInfoQueryHandler(
         ITourDayActivityRouteTransportRepository routeTransportRepository,
-        IBookingRepository bookingRepository)
+        IBookingRepository bookingRepository,
+        IBookingTourGuideRepository bookingTourGuideRepository)
     : IRequestHandler<GetBookingTransportInfoQuery, ErrorOr<BookingTransportInfoDto>>
 {
     public async Task<ErrorOr<BookingTransportInfoDto>> Handle(
@@ -19,8 +20,13 @@ public sealed class GetBookingTransportInfoQueryHandler(
         if (booking == null)
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
 
-        // Verify the current user is the booking owner or has admin/manager role
-        // For now, allow access - the controller should handle authorization
+        // IDOR check: verify the current user is the booking owner or a team member
+        var isOwner = booking.UserId == request.CurrentUserId;
+        var isTeamMember = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(
+            request.BookingId, request.CurrentUserId) is not null;
+
+        if (!isOwner && !isTeamMember)
+            return Error.Forbidden("You do not have permission to access this booking.");
 
         var routeTransports = await routeTransportRepository.FindByBookingIdAsync(request.BookingId, cancellationToken);
 

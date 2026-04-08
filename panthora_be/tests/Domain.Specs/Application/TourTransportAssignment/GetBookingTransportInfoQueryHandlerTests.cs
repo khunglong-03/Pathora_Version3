@@ -12,23 +12,25 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
 {
     private readonly ITourDayActivityRouteTransportRepository _routeTransportRepository;
     private readonly IBookingRepository _bookingRepository;
+    private readonly IBookingTourGuideRepository _bookingTourGuideRepository;
     private readonly GetBookingTransportInfoQueryHandler _handler;
 
     public GetBookingTransportInfoQueryHandlerTests()
     {
         _routeTransportRepository = Substitute.For<ITourDayActivityRouteTransportRepository>();
         _bookingRepository = Substitute.For<IBookingRepository>();
+        _bookingTourGuideRepository = Substitute.For<IBookingTourGuideRepository>();
         _handler = new GetBookingTransportInfoQueryHandler(
-            _routeTransportRepository, _bookingRepository);
+            _routeTransportRepository, _bookingRepository, _bookingTourGuideRepository);
     }
 
-    private static GetBookingTransportInfoQuery Query(
+    private static (GetBookingTransportInfoQuery Query, Guid CurrentUserId) Query(
         Guid currentUserId = default,
         Guid bookingId = default)
     {
-        return new GetBookingTransportInfoQuery(
-            currentUserId == default ? Guid.NewGuid() : currentUserId,
-            bookingId == default ? Guid.NewGuid() : bookingId);
+        var userId = currentUserId == default ? Guid.NewGuid() : currentUserId;
+        var bId = bookingId == default ? Guid.NewGuid() : bookingId;
+        return (new GetBookingTransportInfoQuery(userId, bId), userId);
     }
 
     #region TC01: Booking not found
@@ -39,7 +41,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var bookingId = Guid.NewGuid();
         _bookingRepository.GetByIdAsync(bookingId).Returns((BookingEntity?)null);
 
-        var query = Query(bookingId: bookingId);
+        var (query, _) = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -54,13 +56,12 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_NoAssignments_ReturnsEmptyRoutes()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity>());
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -76,7 +77,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_WithDriverAndVehicle_ReturnsCorrectData()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
         var driverId = Guid.NewGuid();
         var vehicleId = Guid.NewGuid();
@@ -98,24 +100,30 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
             Model = "Coaster",
             SeatCapacity = 45
         };
+        var bookingActivity = new BookingActivityReservationEntity
+        {
+            Id = Guid.NewGuid(),
+            BookingId = bookingId,
+            Booking = new BookingEntity { Id = bookingId, UserId = userId },
+            StartTime = DateTimeOffset.UtcNow
+        };
 
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
-            BookingActivityReservationId = Guid.NewGuid(),
+            BookingActivityReservationId = bookingActivity.Id,
+            BookingActivityReservation = bookingActivity,
             TourPlanRouteId = routeId,
-            DriverId = driverId,
-            VehicleId = vehicleId,
             TourPlanRoute = routeEntity,
+            DriverId = driverId,
             Driver = driver,
+            VehicleId = vehicleId,
             Vehicle = vehicle
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -129,7 +137,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         Assert.Equal("Nguyen Van A", route.Driver.FullName);
         Assert.Equal("0912345678", route.Driver.PhoneNumber);
         // License masked — last 4 chars visible
-        Assert.Equal("****6789", route.Driver.MaskedLicenseNumber);
+        Assert.Equal("******6789", route.Driver.MaskedLicenseNumber);
 
         Assert.NotNull(route.Vehicle);
         Assert.Equal("30A-12345", route.Vehicle.VehiclePlate);
@@ -146,7 +154,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_MultipleAssignments_ReturnsAllRoutes()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
 
         var route1 = new TourPlanRouteEntity { Id = Guid.NewGuid(), Order = 1 };
         var route2 = new TourPlanRouteEntity { Id = Guid.NewGuid(), Order = 2 };
@@ -182,11 +191,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { rt1, rt2, rt3 });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -207,7 +214,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_DriverOnly_VehicleNull()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
         var route = new TourPlanRouteEntity { Id = routeId, Order = 1 };
@@ -230,11 +238,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -252,7 +258,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_VehicleOnly_DriverNull()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
         var route = new TourPlanRouteEntity { Id = routeId, Order = 1 };
@@ -277,11 +284,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -298,12 +303,13 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
 
     [Theory]
     [InlineData("1234", "1234")]
-    [InlineData("A1234", "*A1234")]
+    [InlineData("1A234", "*A234")]
     [InlineData("ABCDEF", "**CDEF")]
     [InlineData("AB123456", "****3456")]
     public async Task Handle_LicenseMasking_ShowsLast4Chars(string license, string expected)
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
         var driver = new DriverEntity
@@ -323,11 +329,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -338,7 +342,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_LicenseTooShort_ShowsAsterisks()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
         var driver = new DriverEntity
@@ -358,11 +363,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -377,7 +380,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
     [Fact]
     public async Task Handle_RouteNullOrder_DefaultsToZero()
     {
-        var bookingId = Guid.NewGuid();
+        var (query, userId) = Query();
+        var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
         var route = new TourPlanRouteEntity { Id = routeId, Order = 0 };
@@ -389,11 +393,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         };
 
         _bookingRepository.GetByIdAsync(bookingId)
-            .Returns(new BookingEntity { Id = bookingId });
+            .Returns(new BookingEntity { Id = bookingId, UserId = userId });
         _routeTransportRepository.FindByBookingIdAsync(bookingId, Arg.Any<CancellationToken>())
             .Returns(new List<TourDayActivityRouteTransportEntity> { routeTransport });
-
-        var query = Query(bookingId: bookingId);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 

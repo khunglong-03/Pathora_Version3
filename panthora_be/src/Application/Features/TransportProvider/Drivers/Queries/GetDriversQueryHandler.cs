@@ -35,7 +35,7 @@ public sealed class GetDriverByIdQueryHandler(
             request.DriverId, request.CurrentUserId, cancellationToken);
 
         if (driver is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Driver not found or you do not own this driver.");
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         return MapToDto(driver);
     }

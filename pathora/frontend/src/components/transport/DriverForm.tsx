@@ -10,23 +10,39 @@ interface DriverFormProps {
   onCancel: () => void;
 }
 
+// Backend returns numeric DriverLicenseType (1=B1, 2=B2, 3=C, 4=D, 5=E, 6=F)
 const LICENSE_TYPES = [
-  { value: 0, label: "Bằng B1 (ô tô 4-5 chỗ)" },
-  { value: 1, label: "Bằng B2 (ô tô đến 9 chỗ)" },
-  { value: 2, label: "Bằng C (xe tải)" },
-  { value: 3, label: "Bằng D (xe khách 16-30 chỗ)" },
-  { value: 4, label: "Bằng D (xe khách trên 30 chỗ)" },
-  { value: 5, label: "Bằng E (xe khách hạng nặng)" },
-  { value: 6, label: "Bằng FC (Forklift)" },
+  { value: 1, label: "Bằng B1" },
+  { value: 2, label: "Bằng B2" },
+  { value: 3, label: "Bằng C" },
+  { value: 4, label: "Bằng D" },
+  { value: 5, label: "Bằng E" },
+  { value: 6, label: "Bằng F" },
   { value: 7, label: "Khác" },
 ];
+
+// Backend returns numeric license type, map to label for display
+const LICENSE_TYPE_LABELS: Record<number, string> = {
+  1: "Bằng B1",
+  2: "Bằng B2",
+  3: "Bằng C",
+  4: "Bằng D",
+  5: "Bằng E",
+  6: "Bằng F",
+  7: "Khác",
+};
+
+function getLicenseTypeDisplay(value: number | undefined): string {
+  if (value === undefined || value === null) return "-";
+  return LICENSE_TYPE_LABELS[value] ?? `Bằng ${value}`;
+}
 
 export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps) {
   const [formData, setFormData] = useState<CreateDriverDto>({
     fullName: driver?.fullName ?? "",
     phoneNumber: driver?.phoneNumber ?? "",
     licenseNumber: driver?.licenseNumber ?? "",
-    licenseType: driver ? (LICENSE_TYPES.find((t) => t.label === driver.licenseType)?.value ?? 0) : 0,
+    licenseType: driver?.licenseType ?? 1,
     avatarUrl: driver?.avatarUrl,
     notes: driver?.notes,
   });

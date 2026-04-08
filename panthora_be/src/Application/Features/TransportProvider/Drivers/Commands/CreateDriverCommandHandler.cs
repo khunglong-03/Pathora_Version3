@@ -9,7 +9,8 @@ using ErrorOr;
 using MediatR;
 
 public sealed class CreateDriverCommandHandler(
-        IDriverRepository driverRepository)
+        IDriverRepository driverRepository,
+        Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<CreateDriverCommand, ErrorOr<DriverResponseDto>>
 {
     public async Task<ErrorOr<DriverResponseDto>> Handle(
@@ -27,6 +28,7 @@ public sealed class CreateDriverCommandHandler(
             request.Request.Notes);
 
         await driverRepository.CreateAsync(driver, cancellationToken);
+        await unitOfWork.SaveChangeAsync(cancellationToken);
         return MapToDto(driver);
     }
 

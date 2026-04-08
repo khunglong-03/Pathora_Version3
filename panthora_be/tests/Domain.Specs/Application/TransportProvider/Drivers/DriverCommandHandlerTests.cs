@@ -3,6 +3,7 @@ using Application.Features.TransportProvider.Drivers.DTOs;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.UnitOfWork;
 using ErrorOr;
 using NSubstitute;
 using Xunit;
@@ -12,12 +13,14 @@ namespace Domain.Specs.Application.TransportProvider.Drivers;
 public sealed class CreateDriverCommandHandlerTests
 {
     private readonly IDriverRepository _driverRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly CreateDriverCommandHandler _handler;
 
     public CreateDriverCommandHandlerTests()
     {
         _driverRepository = Substitute.For<IDriverRepository>();
-        _handler = new CreateDriverCommandHandler(_driverRepository);
+        _unitOfWork = Substitute.For<IUnitOfWork>();
+        _handler = new CreateDriverCommandHandler(_driverRepository, _unitOfWork);
     }
 
     private static CreateDriverCommand ValidCommand() => new(

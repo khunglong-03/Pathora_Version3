@@ -58,7 +58,7 @@ public sealed class CreateAccommodationCommandHandler(
         return new AccommodationDto(
             e.Id,
             e.SupplierId,
-            e.RoomType,
+            e.RoomType.ToString(),
             e.TotalRooms,
             e.Name,
             e.Address,

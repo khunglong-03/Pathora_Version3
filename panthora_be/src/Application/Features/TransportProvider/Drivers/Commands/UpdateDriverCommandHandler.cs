@@ -19,7 +19,7 @@ public sealed class UpdateDriverCommandHandler(
             request.DriverId, request.CurrentUserId, cancellationToken);
 
         if (driver is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Driver not found or you do not own this driver.");
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         driver.Update(
             request.Request.FullName,

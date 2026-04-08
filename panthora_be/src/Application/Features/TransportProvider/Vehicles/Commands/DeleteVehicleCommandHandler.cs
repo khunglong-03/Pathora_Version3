@@ -17,7 +17,7 @@ public sealed class DeleteVehicleCommandHandler(
             request.VehiclePlate, request.CurrentUserId, cancellationToken);
 
         if (vehicle is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Vehicle not found or you do not own this vehicle.");
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         await vehicleRepository.SoftDeleteAsync(vehicle.Id, request.CurrentUserId.ToString(), cancellationToken);
         return Result.Success;

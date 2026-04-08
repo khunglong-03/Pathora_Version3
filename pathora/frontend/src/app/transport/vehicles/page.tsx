@@ -17,6 +17,22 @@ import {
 import VehicleForm from "@/components/transport/VehicleForm";
 import { toast } from "react-toastify";
 
+// Backend returns numeric VehicleType (1=Car, 2=Bus, 3=Minibus, 4=Van, 5=Coach, 6=Motorbike)
+const VEHICLE_TYPE_LABELS: Record<number, string> = {
+  1: "Xe 4 chỗ",
+  2: "Xe buýt",
+  3: "Xe 12-29 chỗ",
+  4: "Xe van",
+  5: "Xe coach",
+  6: "Xe máy",
+};
+
+function getVehicleTypeLabel(type: string | undefined): string {
+  if (!type) return "-";
+  const num = parseInt(type, 10);
+  return !isNaN(num) && VEHICLE_TYPE_LABELS[num] ? VEHICLE_TYPE_LABELS[num] : type;
+}
+
 type StatusFilter = "all" | "active" | "maintenance" | "inactive";
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -81,6 +97,8 @@ export default function TransportVehiclesPage() {
       if (success) {
         toast.success("Xóa xe thành công");
         void loadVehicles();
+      } else {
+        toast.error("Xóa xe thất bại. Vui lòng thử lại.");
       }
     } finally {
       setIsDeleting(null);
@@ -94,6 +112,8 @@ export default function TransportVehiclesPage() {
         toast.success("Cập nhật xe thành công");
         setIsFormOpen(false);
         void loadVehicles();
+      } else {
+        toast.error("Cập nhật xe thất bại. Vui lòng thử lại.");
       }
     } else {
       const result = await transportProviderService.createVehicle(data as CreateVehicleDto);
@@ -101,6 +121,8 @@ export default function TransportVehiclesPage() {
         toast.success("Thêm xe thành công");
         setIsFormOpen(false);
         void loadVehicles();
+      } else {
+        toast.error("Thêm xe thất bại. Vui lòng thử lại.");
       }
     }
   };
@@ -207,7 +229,7 @@ export default function TransportVehiclesPage() {
                     style={{ borderColor: "var(--border)" }}
                   >
                     <td className="px-4 py-3 font-mono font-semibold">{vehicle.vehiclePlate}</td>
-                    <td className="px-4 py-3">{vehicle.vehicleType ?? "-"}</td>
+                    <td className="px-4 py-3">{getVehicleTypeLabel(vehicle.vehicleType)}</td>
                     <td className="px-4 py-3">{vehicle.seatCapacity ? `${vehicle.seatCapacity} người` : "-"}</td>
                     <td className="px-4 py-3">
                       <span

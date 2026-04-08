@@ -17,6 +17,7 @@ public class TourDayActivityRouteTransportEntityConfiguration : IEntityTypeConfi
 
         builder.HasIndex(x => x.DriverId);
         builder.HasIndex(x => x.VehicleId);
+        builder.HasIndex(x => x.Status);
 
         builder.HasOne(x => x.BookingActivityReservation)
             .WithMany()
@@ -37,5 +38,12 @@ public class TourDayActivityRouteTransportEntityConfiguration : IEntityTypeConfi
             .WithMany()
             .HasForeignKey(x => x.VehicleId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Property(x => x.Status)
+            .IsRequired(false);
+
+        builder.Property(x => x.RejectionReason)
+            .HasMaxLength(1000)
+            .IsRequired(false);
     }
 }

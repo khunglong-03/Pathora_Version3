@@ -42,12 +42,10 @@ export default function TransportProfilePage() {
   const handleEdit = () => {
     if (!profile) return;
     setFormData({
-      name: profile.name,
+      companyName: profile.companyName,
       address: profile.address,
       phone: profile.phone,
       email: profile.email,
-      taxCode: profile.taxCode,
-      notes: profile.notes,
     });
     setIsEditing(true);
   };
@@ -65,6 +63,8 @@ export default function TransportProfilePage() {
         setProfile(result);
         setIsEditing(false);
         toast.success("Cập nhật thông tin công ty thành công");
+      } else {
+        toast.error("Cập nhật thông tin công ty thất bại. Vui lòng thử lại.");
       }
     } finally {
       setIsSaving(false);
@@ -130,14 +130,14 @@ export default function TransportProfilePage() {
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="col-span-2">
-                  <label htmlFor="name" className="block text-xs font-medium mb-1.5" style={{ color: "#374151" }}>
+                  <label htmlFor="companyName" className="block text-xs font-medium mb-1.5" style={{ color: "#374151" }}>
                     Tên công ty
                   </label>
                   <input
-                    id="name"
-                    name="name"
+                    id="companyName"
+                    name="companyName"
                     type="text"
-                    value={formData.name ?? ""}
+                    value={formData.companyName ?? ""}
                     onChange={handleChange}
                     className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 outline-none focus:border-indigo-400"
                   />
@@ -181,32 +181,6 @@ export default function TransportProfilePage() {
                     className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 outline-none focus:border-indigo-400"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label htmlFor="taxCode" className="block text-xs font-medium mb-1.5" style={{ color: "#374151" }}>
-                    Mã số thuế
-                  </label>
-                  <input
-                    id="taxCode"
-                    name="taxCode"
-                    type="text"
-                    value={formData.taxCode ?? ""}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 outline-none focus:border-indigo-400"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label htmlFor="notes" className="block text-xs font-medium mb-1.5" style={{ color: "#374151" }}>
-                    Ghi chú
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes ?? ""}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 outline-none focus:border-indigo-400 resize-none"
-                  />
-                </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
@@ -238,7 +212,7 @@ export default function TransportProfilePage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="col-span-2">
                   <p className="text-xs" style={{ color: "#9CA3AF" }}>Tên công ty</p>
-                  <p className="font-medium">{profile.name ?? "-"}</p>
+                  <p className="font-medium">{profile.companyName ?? "-"}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs" style={{ color: "#9CA3AF" }}>Địa chỉ</p>
@@ -251,14 +225,6 @@ export default function TransportProfilePage() {
                 <div>
                   <p className="text-xs" style={{ color: "#9CA3AF" }}>Email</p>
                   <p className="font-medium">{profile.email ?? "-"}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs" style={{ color: "#9CA3AF" }}>Mã số thuế</p>
-                  <p className="font-medium">{profile.taxCode ?? "-"}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs" style={{ color: "#9CA3AF" }}>Ghi chú</p>
-                  <p className="font-medium">{profile.notes ?? "-"}</p>
                 </div>
               </div>
             </div>

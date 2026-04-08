@@ -1,11 +1,12 @@
 namespace Application.Features.HotelServiceProvider.Accommodations.DTOs;
 
+using System.Text.Json.Serialization;
 using Domain.Enums;
 
 public sealed record AccommodationDto(
     Guid Id,
     Guid SupplierId,
-    RoomType RoomType,
+    string RoomType,
     int TotalRooms,
     string? Name,
     string? Address,
@@ -15,6 +16,7 @@ public sealed record AccommodationDto(
     string? Notes);
 
 public sealed record CreateAccommodationRequestDto(
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     RoomType RoomType,
     int TotalRooms,
     string? Name,
@@ -25,6 +27,7 @@ public sealed record CreateAccommodationRequestDto(
     string? Notes);
 
 public sealed record UpdateAccommodationRequestDto(
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     RoomType? RoomType,
     int? TotalRooms,
     string? Name,

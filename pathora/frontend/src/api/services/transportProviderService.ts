@@ -98,11 +98,11 @@ export interface TripStatusHistoryItem {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  Items: T[];
+  Total: number;
+  Page: number;
+  PageSize: number;
+  TotalPages: number;
 }
 
 // Revenue types
@@ -132,22 +132,18 @@ export interface TripHistoryItem {
 
 // Company Profile types
 export interface TransportCompanyProfile {
-  id: string;
-  name: string;
+  userId: string;
+  companyName: string;
   address: string;
   phone: string;
   email: string;
-  taxCode: string;
-  notes: string;
 }
 
 export interface UpdateCompanyProfileDto {
-  name?: string;
+  companyName?: string;
   address?: string;
   phone?: string;
   email?: string;
-  taxCode?: string;
-  notes?: string;
 }
 
 class TransportProviderService {
@@ -319,11 +315,12 @@ class TransportProviderService {
     }
   }
 
-  async getTripHistory(page: number, pageSize: number): Promise<PaginatedResponse<TripHistoryItem> | null> {
+  async getTripHistory(page: number, pageSize: number, year?: number, quarter?: number): Promise<PaginatedResponse<TripHistoryItem> | null> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<TripHistoryItem>>("/transport-provider/revenue/history", {
-        params: { page, pageSize },
-      });
+      const params: Record<string, number> = { page, pageSize };
+      if (year !== undefined) params.year = year;
+      if (quarter !== undefined) params.quarter = quarter;
+      const response = await axiosInstance.get<PaginatedResponse<TripHistoryItem>>("/transport-provider/revenue/history", { params });
       return extractResult(response);
     } catch (error) {
       handleApiError(error);

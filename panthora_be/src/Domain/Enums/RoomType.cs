@@ -20,6 +20,14 @@ public enum RoomType
     Dormitory = 6,
     [Description("Villa")]
     Villa = 7,
+    [Description("Standard")]
+    Standard = 8,
+    [Description("Deluxe")]
+    Deluxe = 9,
+    [Description("VIP")]
+    VIP = 10,
+    [Description("Quad")]
+    Quad = 11,
     [Description("Other")]
     Other = 99
 }

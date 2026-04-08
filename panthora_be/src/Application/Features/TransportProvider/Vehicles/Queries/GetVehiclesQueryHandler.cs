@@ -61,7 +61,7 @@ public sealed class GetVehicleByPlateQueryHandler(
             request.VehiclePlate, request.CurrentUserId, cancellationToken);
 
         if (vehicle is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Vehicle not found or you do not own this vehicle.");
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         return MapToDto(vehicle);
     }

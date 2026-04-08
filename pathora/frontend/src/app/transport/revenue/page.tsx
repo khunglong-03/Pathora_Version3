@@ -58,12 +58,12 @@ export default function TransportRevenuePage() {
       const quarter = selectedQuarter === "all" ? undefined : (selectedQuarter as number);
       const [summaryData, historyData] = await Promise.all([
         transportProviderService.getRevenueSummary(selectedYear, quarter),
-        transportProviderService.getTripHistory(currentPage, pageSize),
+        transportProviderService.getTripHistory(currentPage, pageSize, selectedYear, quarter),
       ]);
       setSummary(summaryData);
       if (historyData) {
-        setTripHistory(historyData.items);
-        setTotalPages(historyData.totalPages);
+        setTripHistory(historyData.Items);
+        setTotalPages(historyData.TotalPages);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải dữ liệu");
@@ -346,25 +346,46 @@ export default function TransportRevenuePage() {
                 >
                   ←
                 </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const page = i + 1;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                        currentPage === page ? "text-white" : "border"
-                      }`}
-                      style={
-                        currentPage === page
-                          ? { backgroundColor: "#6366F1" }
-                          : { borderColor: "var(--border)", color: "var(--text-secondary)" }
-                      }
-                    >
-                      {page}
-                    </button>
+                {(() => {
+                  const pages: (number | "...")[] = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (currentPage > 3) pages.push("...");
+                    for (
+                      let i = Math.max(2, currentPage - 1);
+                      i <= Math.min(totalPages - 1, currentPage + 1);
+                      i++
+                    ) {
+                      pages.push(i);
+                    }
+                    if (currentPage < totalPages - 2) pages.push("...");
+                    pages.push(totalPages);
+                  }
+                  return pages.map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 py-1.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                          currentPage === page ? "text-white" : "border"
+                        }`}
+                        style={
+                          currentPage === page
+                            ? { backgroundColor: "#6366F1" }
+                            : { borderColor: "var(--border)", color: "var(--text-secondary)" }
+                        }
+                      >
+                        {page}
+                      </button>
+                    ),
                   );
-                })}
+                })()}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
