@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Pencil, Building2 } from "@phosphor-icons/react";
+import { Pencil, Buildings } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import type {
   TransportCompanyProfile,
@@ -111,7 +111,7 @@ export default function TransportProfilePage() {
 
       {!error && !isLoading && !profile && (
         <AdminEmptyState
-          icon="Building2"
+          icon="Buildings"
           heading="Chưa có thông tin công ty"
           description="Vui lòng liên hệ quản trị viên để được cấp quyền truy cập."
         />

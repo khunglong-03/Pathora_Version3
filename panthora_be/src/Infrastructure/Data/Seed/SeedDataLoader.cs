@@ -13,7 +13,9 @@ internal static class SeedDataLoader
         Converters =
         {
             new JsonStringEnumConverter(),
-            new DateTimeOffsetJsonConverter()
+            new DateTimeOffsetJsonConverter(),
+            new TimeOnlyJsonConverter(),
+            new NullableTimeOnlyJsonConverter()
         }
     };
 
@@ -219,5 +221,57 @@ internal sealed class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset
     {
         // Always write as UTC ISO 8601 string
         writer.WriteStringValue(value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+    }
+}
+
+internal sealed class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
+{
+    public override TimeOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var value = reader.GetString();
+            if (string.IsNullOrEmpty(value))
+                return default;
+
+            if (TimeOnly.TryParse(value, out var result))
+                return result;
+        }
+
+        return default;
+    }
+
+    public override void Write(Utf8JsonWriter writer, TimeOnly value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString("HH:mm:ss"));
+    }
+}
+
+internal sealed class NullableTimeOnlyJsonConverter : JsonConverter<TimeOnly?>
+{
+    public override TimeOnly? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+            return null;
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var value = reader.GetString();
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (TimeOnly.TryParse(value, out var result))
+                return result;
+        }
+
+        return null;
+    }
+
+    public override void Write(Utf8JsonWriter writer, TimeOnly? value, JsonSerializerOptions options)
+    {
+        if (value.HasValue)
+            writer.WriteStringValue(value.Value.ToString("HH:mm:ss"));
+        else
+            writer.WriteNullValue();
     }
 }

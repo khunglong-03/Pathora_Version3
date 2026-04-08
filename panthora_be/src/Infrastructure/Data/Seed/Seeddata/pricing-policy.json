@@ -1,0 +1,46 @@
+[
+  {
+    "Id": "019527c1-0000-7000-8000-000000000001",
+    "PolicyCode": "PP-20260409-001",
+    "Name": "Bảng Giá Tour Trong Nước",
+    "TourType": 2,
+    "Status": 1,
+    "IsDefault": true,
+    "IsDeleted": false,
+    "Tiers": [
+      { "MinParticipants": 2, "MaxParticipants": 5, "PricePerPerson": 5500000 },
+      { "MinParticipants": 6, "MaxParticipants": 10, "PricePerPerson": 4800000 },
+      { "MinParticipants": 11, "MaxParticipants": 9999, "PricePerPerson": 4200000 }
+    ],
+    "Translations": {
+      "vi": { "name": "Bảng Giá Tour Trong Nước", "description": "Bảng giá áp dụng cho các tour du lịch trong nước Việt Nam" },
+      "en": { "name": "Domestic Tour Pricing", "description": "Pricing table for domestic tours within Vietnam" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527c1-0000-7000-8000-000000000002",
+    "PolicyCode": "PP-20260409-002",
+    "Name": "Bảng Giá Tour Quốc Tế",
+    "TourType": 2,
+    "Status": 1,
+    "IsDefault": true,
+    "IsDeleted": false,
+    "Tiers": [
+      { "MinParticipants": 2, "MaxParticipants": 5, "PricePerPerson": 28000000 },
+      { "MinParticipants": 6, "MaxParticipants": 10, "PricePerPerson": 25000000 },
+      { "MinParticipants": 11, "MaxParticipants": 9999, "PricePerPerson": 22000000 }
+    ],
+    "Translations": {
+      "vi": { "name": "Bảng Giá Tour Quốc Tế", "description": "Bảng giá áp dụng cho các tour du lịch quốc tế" },
+      "en": { "name": "International Tour Pricing", "description": "Pricing table for international tours" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

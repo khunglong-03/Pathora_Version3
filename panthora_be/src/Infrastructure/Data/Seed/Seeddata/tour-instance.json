@@ -1,0 +1,163 @@
+[
+  {
+    "Id": "01952930-0000-7000-8000-000000000001",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "ClassificationId": "01952801-0000-7000-8000-000000000001",
+    "TourInstanceCode": "TI-JP20260515-0001",
+    "Title": "Tour Nhật Bản 6N5Đ - Tiêu Chuẩn",
+    "TourName": "Tour Nhật Bản 6N5Đ",
+    "TourCode": "JP-6D5N",
+    "ClassificationName": "Tiêu Chuẩn",
+    "InstanceType": 2,
+    "Status": 1,
+    "CancellationReason": null,
+    "StartDate": "2026-05-15T00:00:00Z",
+    "EndDate": "2026-05-20T00:00:00Z",
+    "DurationDays": 6,
+    "ConfirmationDeadline": "2026-05-10T00:00:00Z",
+    "MaxParticipation": 30,
+    "CurrentParticipation": 12,
+    "BasePrice": 25000000,
+    "Location": "TP.HCM - Tokyo, Kyoto, Osaka",
+    "Thumbnail": {
+      "FileId": "thumb-jp-std-001",
+      "OriginalFileName": "tour-nhat-ban-tieu-chuan.jpg",
+      "FileName": "tour-nhat-ban-tieu-chuan.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      { "FileId": "img-jp-std-001", "OriginalFileName": "tokyo-tower.jpg", "FileName": "tokyo-tower.jpg", "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg" },
+      { "FileId": "img-jp-std-002", "OriginalFileName": "fushimi-inari.jpg", "FileName": "fushimi-inari.jpg", "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg" }
+    ],
+    "IncludedServices": ["Vé máy bay khứ hồi VN-HN-NRT", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet hàng ngày", "Xe đưa đón và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt", "Phí tham quan theo chương trình", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"],
+    "Translations": {
+      "vi": { "title": "Tour Nhật Bản 6N5Đ - Tiêu Chuẩn", "location": "TP.HCM - Tokyo, Kyoto, Osaka", "includedServices": ["Vé máy bay khứ hồi VN-HN-NRT", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet hàng ngày", "Xe đưa đón và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt", "Phí tham quan theo chương trình", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"], "cancellationReason": null },
+      "en": { "title": "Japan 6D5N Tour - Standard", "location": "HCMC - Tokyo, Kyoto, Osaka", "includedServices": ["Round-trip flights VN-HN-NRT", "4-star hotel accommodation", "Daily buffet breakfast", "Ground transportation and sightseeing", "Vietnamese tour guide", "Entrance fees as per itinerary", "Taxes and service charges", "Travel insurance"], "cancellationReason": null }
+    },
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952930-0000-7000-8000-000000000002",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "ClassificationId": "01952801-0000-7000-8000-000000000001",
+    "TourInstanceCode": "TI-JP20260610-0002",
+    "Title": "Tour Nhật Bản 6N5Đ - Tiêu Chuẩn",
+    "TourName": "Tour Nhật Bản 6N5Đ",
+    "TourCode": "JP-6D5N",
+    "ClassificationName": "Tiêu Chuẩn",
+    "InstanceType": 2,
+    "Status": 2,
+    "CancellationReason": null,
+    "StartDate": "2026-06-10T00:00:00Z",
+    "EndDate": "2026-06-15T00:00:00Z",
+    "DurationDays": 6,
+    "ConfirmationDeadline": "2026-06-05T00:00:00Z",
+    "MaxParticipation": 30,
+    "CurrentParticipation": 25,
+    "BasePrice": 27000000,
+    "Location": "TP.HCM - Tokyo, Kyoto, Osaka",
+    "Thumbnail": {
+      "FileId": "thumb-jp-std-002",
+      "OriginalFileName": "tour-nhat-ban-tieu-chuan.jpg",
+      "FileName": "tour-nhat-ban-tieu-chuan.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      { "FileId": "img-jp-std-003", "OriginalFileName": "osaka-castle.jpg", "FileName": "osaka-castle.jpg", "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg" }
+    ],
+    "IncludedServices": ["Vé máy bay khứ hồi VN-HN-NRT", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet hàng ngày", "Xe đưa đón và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt", "Phí tham quan theo chương trình", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"],
+    "Translations": {
+      "vi": { "title": "Tour Nhật Bản 6N5Đ - Tiêu Chuẩn", "location": "TP.HCM - Tokyo, Kyoto, Osaka", "includedServices": ["Vé máy bay khứ hồi VN-HN-NRT", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet hàng ngày", "Xe đưa đón và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt", "Phí tham quan theo chương trình", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"], "cancellationReason": null },
+      "en": { "title": "Japan 6D5N Tour - Standard", "location": "HCMC - Tokyo, Kyoto, Osaka", "includedServices": ["Round-trip flights VN-HN-NRT", "4-star hotel accommodation", "Daily buffet breakfast", "Ground transportation and sightseeing", "Vietnamese tour guide", "Entrance fees as per itinerary", "Taxes and service charges", "Travel insurance"], "cancellationReason": null }
+    },
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952930-0000-7000-8000-000000000003",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "TourInstanceCode": "TI-JP20260701-0003",
+    "Title": "Tour Nhật Bản 6N5Đ - Cao Cấp",
+    "TourName": "Tour Nhật Bản 6N5Đ",
+    "TourCode": "JP-6D5N",
+    "ClassificationName": "Cao Cấp",
+    "InstanceType": 2,
+    "Status": 1,
+    "CancellationReason": null,
+    "StartDate": "2026-07-01T00:00:00Z",
+    "EndDate": "2026-07-06T00:00:00Z",
+    "DurationDays": 6,
+    "ConfirmationDeadline": "2026-06-26T00:00:00Z",
+    "MaxParticipation": 15,
+    "CurrentParticipation": 8,
+    "BasePrice": 35000000,
+    "Location": "TP.HCM - Tokyo, Kyoto, Osaka",
+    "Thumbnail": {
+      "FileId": "thumb-jp-prem-001",
+      "OriginalFileName": "tour-nhat-ban-cao-cap.jpg",
+      "FileName": "tour-nhat-ban-cao-cap.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      { "FileId": "img-jp-prem-001", "OriginalFileName": "hakone-ryokan.jpg", "FileName": "hakone-ryokan.jpg", "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg" }
+    ],
+    "IncludedServices": ["Vé máy bay khứ hồi hạng thương gia VN-HN-NRT", "Lưu trú khách sạn 5 sao và Ryokan cao cấp", "Ăn buffet 3 bữa hàng ngày", "Xe đưa đón riêng và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt chuyên nghiệp", "Phí tham quan theo chương trình (không giới hạn)", "Thuế và phí dịch vụ", "Bảo hiểm du lịch cao cấp", "Quà tặng đặc biệt"],
+    "Translations": {
+      "vi": { "title": "Tour Nhật Bản 6N5Đ - Cao Cấp", "location": "TP.HCM - Tokyo, Kyoto, Osaka", "includedServices": ["Vé máy bay khứ hồi hạng thương gia VN-HN-NRT", "Lưu trú khách sạn 5 sao và Ryokan cao cấp", "Ăn buffet 3 bữa hàng ngày", "Xe đưa đón riêng và tham quan theo chương trình", "Hướng dẫn viên tiếng Việt chuyên nghiệp", "Phí tham quan theo chương trình (không giới hạn)", "Thuế và phí dịch vụ", "Bảo hiểm du lịch cao cấp", "Quà tặng đặc biệt"], "cancellationReason": null },
+      "en": { "title": "Japan 6D5N Tour - Premium", "location": "HCMC - Tokyo, Kyoto, Osaka", "includedServices": ["Business class round-trip flights VN-HN-NRT", "5-star hotels and premium Ryokan", "Daily 3-meal buffet", "Private transfer and sightseeing", "Professional Vietnamese tour guide", "Unlimited entrance fees per itinerary", "Taxes and service charges", "Premium travel insurance", "Special gifts"], "cancellationReason": null }
+    },
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952930-0000-7000-8000-000000000004",
+    "TourId": "01952800-0000-7000-8000-000000000003",
+    "ClassificationId": "01952801-0000-7000-8000-000000000004",
+    "TourInstanceCode": "TI-DN20260501-0004",
+    "Title": "Tour Đà Nẵng Hội An 3N2Đ - Tiêu Chuẩn",
+    "TourName": "Tour Đà Nẵng Hội An",
+    "TourCode": "DN-3D2N",
+    "ClassificationName": "Tiêu Chuẩn",
+    "InstanceType": 2,
+    "Status": 4,
+    "CancellationReason": null,
+    "StartDate": "2026-05-01T00:00:00Z",
+    "EndDate": "2026-05-03T00:00:00Z",
+    "DurationDays": 3,
+    "ConfirmationDeadline": "2026-04-28T00:00:00Z",
+    "MaxParticipation": 40,
+    "CurrentParticipation": 20,
+    "BasePrice": 4500000,
+    "Location": "Đà Nẵng - Ngũ Hành Sơn - Hội An",
+    "Thumbnail": {
+      "FileId": "thumb-dn-std-001",
+      "OriginalFileName": "tour-da-nang-hoi-an.jpg",
+      "FileName": "tour-da-nang-hoi-an.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      { "FileId": "img-dn-std-001", "OriginalFileName": "hoi-an-ancient.jpg", "FileName": "hoi-an-ancient.jpg", "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg" }
+    ],
+    "IncludedServices": ["Xe du lịch đời mới đưa đón", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet", "Tham quan theo chương trình", "Hướng dẫn viên địa phương", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"],
+    "Translations": {
+      "vi": { "title": "Tour Đà Nẵng Hội An 3N2Đ - Tiêu Chuẩn", "location": "Đà Nẵng - Ngũ Hành Sơn - Hội An", "includedServices": ["Xe du lịch đời mới đưa đón", "Lưu trú khách sạn 4 sao", "Ăn sáng buffet", "Tham quan theo chương trình", "Hướng dẫn viên địa phương", "Thuế và phí dịch vụ", "Bảo hiểm du lịch"], "cancellationReason": null },
+      "en": { "title": "Da Nang Hoi An 3D2N Tour - Standard", "location": "Da Nang - Marble Mountains - Hoi An", "includedServices": ["Modern tourist vehicle transfer", "4-star hotel accommodation", "Buffet breakfast", "Sightseeing as per itinerary", "Local tour guide", "Taxes and service charges", "Travel insurance"], "cancellationReason": null }
+    },
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

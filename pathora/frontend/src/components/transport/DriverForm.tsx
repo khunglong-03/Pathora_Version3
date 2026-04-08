@@ -42,7 +42,7 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
     fullName: driver?.fullName ?? "",
     phoneNumber: driver?.phoneNumber ?? "",
     licenseNumber: driver?.licenseNumber ?? "",
-    licenseType: driver?.licenseType ?? 1,
+    licenseType: driver?.licenseType ? Number(driver.licenseType) : 1,
     avatarUrl: driver?.avatarUrl,
     notes: driver?.notes,
   });

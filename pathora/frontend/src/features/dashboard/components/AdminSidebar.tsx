@@ -138,8 +138,8 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
     if (providerPortal !== "transport") return;
     try {
       const profile = await transportProviderService.getCompanyProfile();
-      if (profile?.name) {
-        setCompanyName(profile.name);
+      if (profile?.companyName) {
+        setCompanyName(profile.companyName);
       }
     } catch {
       // Silently fail — company name is optional

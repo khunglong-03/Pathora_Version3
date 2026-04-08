@@ -1,0 +1,40 @@
+[
+  {
+    "Id": "019527d0-0000-7000-8000-000000000001",
+    "SupplierCode": "SUP-TP-001",
+    "SupplierType": 1,
+    "Name": "Minh Transport",
+    "SupplierName": "Minh Transport",
+    "TaxCode": "0123456789",
+    "Phone": "0902001001",
+    "Email": "contact@minhtransport.vn",
+    "Address": "123 Đường XYZ, Quận Bình Thạnh, TP.HCM",
+    "Note": "Nhà cung cấp vận chuyển chuyên nghiệp",
+    "OwnerUserId": "019527a0-0000-7000-8000-000000000120",
+    "IsActive": true,
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527d0-0000-7000-8000-000000000002",
+    "SupplierCode": "SUP-TP-002",
+    "SupplierType": 1,
+    "Name": "Thanh Liên Express",
+    "SupplierName": "Thanh Liên Express",
+    "TaxCode": "9876543210",
+    "Phone": "0902002002",
+    "Email": "info@thanhlienexpress.vn",
+    "Address": "456 Đường ABC, Quận 5, TP.HCM",
+    "Note": "Chuyên xe limousine và coach cao cấp",
+    "OwnerUserId": "019527a0-0000-7000-8000-000000000124",
+    "IsActive": true,
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

@@ -6,6 +6,10 @@
     "Type": 9,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Quản Trị Viên", "description": "Quản trị viên, quản lý toàn bộ hệ thống" },
+      "en": { "name": "Administrator", "description": "System administrator, manages the entire system" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -18,6 +22,10 @@
     "Type": 1,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Quản Lý", "description": "Quản lý vận hành hoạt động" },
+      "en": { "name": "Manager", "description": "Operations manager" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -30,6 +38,10 @@
     "Type": 2,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Nhân Viên Thiết Kế Tour", "description": "Người thiết kế tour du lịch" },
+      "en": { "name": "Tour Designer", "description": "Designs and creates tour itineraries" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -42,6 +54,10 @@
     "Type": 2,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Hướng Dẫn Viên", "description": "Hướng dẫn viên du lịch" },
+      "en": { "name": "Tour Guide", "description": "Tour guide for travelers" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -54,6 +70,10 @@
     "Type": 3,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Khách Hàng", "description": "Khách hàng đăng ký tài khoản" },
+      "en": { "name": "Customer", "description": "Registered customer account" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -62,10 +82,14 @@
   {
     "Id": 6,
     "Name": "TransportProvider",
-    "Description": "Người cung cấp dịch vụ vé xe",
+    "Description": "Người cung cấp dịch vụ vận chuyển",
     "Type": 2,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Nhà Cung Cấp Vận Chuyển", "description": "Người cung cấp dịch vụ vận chuyển" },
+      "en": { "name": "Transport Provider", "description": "Transportation service provider" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",
@@ -78,6 +102,10 @@
     "Type": 2,
     "Status": 1,
     "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Nhà Cung Cấp Khách Sạn", "description": "Người cung cấp dịch vụ khách sạn" },
+      "en": { "name": "Hotel Service Provider", "description": "Hotel and accommodation service provider" }
+    },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",

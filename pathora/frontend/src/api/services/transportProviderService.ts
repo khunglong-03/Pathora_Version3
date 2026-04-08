@@ -98,11 +98,11 @@ export interface TripStatusHistoryItem {
 }
 
 export interface PaginatedResponse<T> {
-  Items: T[];
-  Total: number;
-  Page: number;
-  PageSize: number;
-  TotalPages: number;
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 // Revenue types

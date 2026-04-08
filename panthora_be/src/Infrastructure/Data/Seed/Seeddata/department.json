@@ -1,0 +1,66 @@
+[
+  {
+    "Id": "019527b0-0000-7000-8000-000000000001",
+    "Name": "Phòng Kinh Doanh",
+    "DepartmentCode": "SALES",
+    "Level": 1,
+    "ParentId": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Phòng Kinh Doanh" },
+      "en": { "name": "Sales Department" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b0-0000-7000-8000-000000000002",
+    "Name": "Phòng Vận Hành Tour",
+    "DepartmentCode": "TOUR_OPS",
+    "Level": 1,
+    "ParentId": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Phòng Vận Hành Tour" },
+      "en": { "name": "Tour Operations Department" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b0-0000-7000-8000-000000000003",
+    "Name": "Phòng Thiết Kế Tour",
+    "DepartmentCode": "TOUR_DESIGN",
+    "Level": 1,
+    "ParentId": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Phòng Thiết Kế Tour" },
+      "en": { "name": "Tour Design Department" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b0-0000-7000-8000-000000000004",
+    "Name": "Phòng Hỗ Trợ Khách Hàng",
+    "DepartmentCode": "CUST_SUPPORT",
+    "Level": 1,
+    "ParentId": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Phòng Hỗ Trợ Khách Hàng" },
+      "en": { "name": "Customer Support Department" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

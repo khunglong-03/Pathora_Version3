@@ -1,0 +1,110 @@
+[
+  {
+    "Id": "01952801-0000-7000-8000-000000000001",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "Name": "Tiêu Chuẩn",
+    "BasePrice": 25000000,
+    "Description": "Tour Nhật Bản 6N5Đ hạng Tiêu chuẩn - Khách sạn 3-4 sao, ăn sáng buffet",
+    "NumberOfDay": 6,
+    "NumberOfNight": 5,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Tiêu Chuẩn", "description": "Tour Nhật Bản 6N5Đ hạng Tiêu chuẩn - Khách sạn 3-4 sao, ăn sáng buffet" },
+      "en": { "name": "Standard", "description": "Japan 6D5N Standard Tour - 3-4 star hotels, buffet breakfast" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952801-0000-7000-8000-000000000002",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "Name": "Cao Cấp",
+    "BasePrice": 35000000,
+    "Description": "Tour Nhật Bản 6N5Đ hạng Cao cấp - Khách sạn 4-5 sao, ăn buffet 3 bữa",
+    "NumberOfDay": 6,
+    "NumberOfNight": 5,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Cao Cấp", "description": "Tour Nhật Bản 6N5Đ hạng Cao cấp - Khách sạn 4-5 sao, ăn buffet 3 bữa" },
+      "en": { "name": "Premium", "description": "Japan 6D5N Premium Tour - 4-5 star hotels, 3 buffet meals daily" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952801-0000-7000-8000-000000000003",
+    "TourId": "01952800-0000-7000-8000-000000000002",
+    "Name": "Tiêu Chuẩn",
+    "BasePrice": 22000000,
+    "Description": "Tour Hàn Quốc 5N4Đ hạng Tiêu chuẩn - Khách sạn 3 sao",
+    "NumberOfDay": 5,
+    "NumberOfNight": 4,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Tiêu Chuẩn", "description": "Tour Hàn Quốc 5N4Đ hạng Tiêu chuẩn - Khách sạn 3 sao" },
+      "en": { "name": "Standard", "description": "South Korea 5D4N Standard Tour - 3-star hotels" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952801-0000-7000-8000-000000000004",
+    "TourId": "01952800-0000-7000-8000-000000000003",
+    "Name": "Tiêu Chuẩn",
+    "BasePrice": 4500000,
+    "Description": "Tour Đà Nẵng Hội An 3N2Đ hạng Tiêu chuẩn",
+    "NumberOfDay": 3,
+    "NumberOfNight": 2,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Tiêu Chuẩn", "description": "Tour Đà Nẵng Hội An 3N2Đ hạng Tiêu chuẩn" },
+      "en": { "name": "Standard", "description": "Da Nang Hoi An 3D2N Standard Tour" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952801-0000-7000-8000-000000000005",
+    "TourId": "01952800-0000-7000-8000-000000000003",
+    "Name": "Tiết Kiệm",
+    "BasePrice": 3500000,
+    "Description": "Tour Đà Nẵng Hội An 3N2Đ hạng Tiết kiệm - Khách sạn 2 sao",
+    "NumberOfDay": 3,
+    "NumberOfNight": 2,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Tiết Kiệm", "description": "Tour Đà Nẵng Hội An 3N2Đ hạng Tiết kiệm - Khách sạn 2 sao" },
+      "en": { "name": "Budget", "description": "Da Nang Hoi An 3D2N Budget Tour - 2-star hotels" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952801-0000-7000-8000-000000000006",
+    "TourId": "01952800-0000-7000-8000-000000000002",
+    "Name": "Cao Cấp",
+    "BasePrice": 30000000,
+    "Description": "Tour Hàn Quốc 5N4Đ hạng Cao cấp - Khách sạn 4 sao, ăn buffet",
+    "NumberOfDay": 5,
+    "NumberOfNight": 4,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Cao Cấp", "description": "Tour Hàn Quốc 5N4Đ hạng Cao cấp - Khách sạn 4 sao, ăn buffet" },
+      "en": { "name": "Premium", "description": "South Korea 5D4N Premium Tour - 4-star hotels, buffet meals" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

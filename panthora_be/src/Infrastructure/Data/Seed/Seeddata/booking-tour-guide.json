@@ -1,0 +1,32 @@
+[
+  {
+    "Id": "01952990-0000-7000-8000-000000000001",
+    "BookingId": "01952940-0000-7000-8000-000000000001",
+    "UserId": "019527a0-0000-7000-8000-000000000105",
+    "AssignedRole": 4,
+    "IsLead": true,
+    "AssignedDate": "2026-04-02T08:00:00Z",
+    "AssignedBy": "019527a0-0000-7000-8000-000000000001",
+    "Status": 2,
+    "Note": "Hướng dẫn viên chính cho tour Nhật Bản",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-02T08:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-02T08:00:00Z"
+  },
+  {
+    "Id": "01952990-0000-7000-8000-000000000002",
+    "BookingId": "01952940-0000-7000-8000-000000000004",
+    "UserId": "019527a0-0000-7000-8000-000000000119",
+    "AssignedRole": 4,
+    "IsLead": true,
+    "AssignedDate": "2026-04-11T08:00:00Z",
+    "AssignedBy": "019527a0-0000-7000-8000-000000000001",
+    "Status": 4,
+    "Note": "Hướng dẫn viên chính cho tour Đà Nẵng",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-11T08:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-11T08:00:00Z"
+  }
+]

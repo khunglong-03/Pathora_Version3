@@ -1,0 +1,21 @@
+[
+  {
+    "Id": "019527d2-0000-7000-8000-000000000001",
+    "SupplierCode": "SUP-ACT-001",
+    "SupplierType": 4,
+    "Name": "Saigontourist",
+    "SupplierName": "Saigontourist",
+    "TaxCode": "9988776655",
+    "Phone": "0904001001",
+    "Email": "info@saigontourist.com",
+    "Address": "45 Lê Thánh Tôn, Quận 1, TP.HCM",
+    "Note": "Công ty lữ hành và dịch vụ du lịch",
+    "OwnerUserId": "019527a0-0000-7000-8000-000000000001",
+    "IsActive": true,
+    "IsDeleted": false,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

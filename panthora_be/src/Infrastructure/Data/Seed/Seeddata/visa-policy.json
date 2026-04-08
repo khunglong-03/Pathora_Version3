@@ -1,0 +1,38 @@
+[
+  {
+    "Id": "019527c4-0000-7000-8000-000000000001",
+    "CountryCode": "JP",
+    "Region": "Japan",
+    "ProcessingDays": 10,
+    "BufferDays": 7,
+    "FullPaymentRequired": true,
+    "IsActive": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "region": "Nhật Bản", "note": "Yêu cầu hộ chiếu còn hạn tối thiểu 6 tháng. Cần booking đầy đủ và thanh toán trước khi xin visa." },
+      "en": { "region": "Japan", "note": "Passport must be valid for at least 6 months. Full payment required before visa application." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527c4-0000-7000-8000-000000000002",
+    "CountryCode": "KR",
+    "Region": "Korea",
+    "ProcessingDays": 7,
+    "BufferDays": 5,
+    "FullPaymentRequired": true,
+    "IsActive": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "region": "Hàn Quốc", "note": "Hộ chiếu còn hạn tối thiểu 6 tháng. Thời gian xử lý 7 ngày làm việc." },
+      "en": { "region": "South Korea", "note": "Passport must be valid for at least 6 months. Processing time is 7 working days." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

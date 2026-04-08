@@ -1,0 +1,46 @@
+[
+  {
+    "Id": "019527c2-0000-7000-8000-000000000001",
+    "PolicyCode": "CP-20260409-001",
+    "Name": "Chính Sách Hủy Tour Trong Nước",
+    "TourScope": 1,
+    "Status": 1,
+    "IsDeleted": false,
+    "Tiers": [
+      { "MinDaysBeforeDeparture": 15, "MaxDaysBeforeDeparture": 9999, "CancellationFeePercentage": 0 },
+      { "MinDaysBeforeDeparture": 7, "MaxDaysBeforeDeparture": 14, "CancellationFeePercentage": 20 },
+      { "MinDaysBeforeDeparture": 3, "MaxDaysBeforeDeparture": 6, "CancellationFeePercentage": 50 },
+      { "MinDaysBeforeDeparture": 0, "MaxDaysBeforeDeparture": 2, "CancellationFeePercentage": 80 }
+    ],
+    "Translations": {
+      "vi": { "description": "Hủy trước 15 ngày: không phí. Hủy 7-14 ngày: phí 20%. Hủy 3-6 ngày: phí 50%. Hủy dưới 3 ngày: phí 80%." },
+      "en": { "description": "Cancel 15+ days: 0% fee. Cancel 7-14 days: 20% fee. Cancel 3-6 days: 50% fee. Cancel under 3 days: 80% fee." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527c2-0000-7000-8000-000000000002",
+    "PolicyCode": "CP-20260409-002",
+    "Name": "Chính Sách Hủy Tour Quốc Tế",
+    "TourScope": 2,
+    "Status": 1,
+    "IsDeleted": false,
+    "Tiers": [
+      { "MinDaysBeforeDeparture": 30, "MaxDaysBeforeDeparture": 9999, "CancellationFeePercentage": 0 },
+      { "MinDaysBeforeDeparture": 15, "MaxDaysBeforeDeparture": 29, "CancellationFeePercentage": 30 },
+      { "MinDaysBeforeDeparture": 7, "MaxDaysBeforeDeparture": 14, "CancellationFeePercentage": 50 },
+      { "MinDaysBeforeDeparture": 0, "MaxDaysBeforeDeparture": 6, "CancellationFeePercentage": 100 }
+    ],
+    "Translations": {
+      "vi": { "description": "Hủy trước 30 ngày: không phí. Hủy 15-29 ngày: phí 30%. Hủy 7-14 ngày: phí 50%. Hủy dưới 7 ngày: phí 100%." },
+      "en": { "description": "Cancel 30+ days: 0% fee. Cancel 15-29 days: 30% fee. Cancel 7-14 days: 50% fee. Cancel under 7 days: 100% fee." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

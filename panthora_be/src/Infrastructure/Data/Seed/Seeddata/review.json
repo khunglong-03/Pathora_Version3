@@ -1,0 +1,82 @@
+[
+  {
+    "Id": "019529A0-0000-7000-8000-000000000001",
+    "UserId": "019527a0-0000-7000-8000-000000000108",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "Rating": 5,
+    "Comment": "Tour rất tuyệt vời! Hướng dẫn viên chuyên nghiệp, lịch trình hợp lý, khách sạn sạch sẽ. Đặc biệt thích nhất là thăm đền Fushimi Inari và tắm suối nước nóng Hakone. Sẽ quay lại Nhật Bản lần nữa!",
+    "IsApproved": true,
+    "Translations": {
+      "vi": { "comment": "Tour rất tuyệt vời! Hướng dẫn viên chuyên nghiệp, lịch trình hợp lý, khách sạn sạch sẽ. Đặc biệt thích nhất là thăm đền Fushimi Inari và tắm suối nước nóng Hakone. Sẽ quay lại Nhật Bản lần nữa!" },
+      "en": { "comment": "Amazing tour! Professional guide, well-organized itinerary, clean hotels. Especially loved visiting Fushimi Inari Shrine and Hakone hot springs. Will return to Japan again!" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-01T10:30:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-01T10:30:00Z"
+  },
+  {
+    "Id": "019529A0-0000-7000-8000-000000000002",
+    "UserId": "019527a0-0000-7000-8000-000000000109",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "Rating": 4,
+    "Comment": "Tour tốt, đáng giá với giá tiền. Thích đền Fushimi Inari nhưng thời gian ở Tokyo hơi ngắn. Nên có thêm thời gian tự do ở Shibuya.",
+    "IsApproved": true,
+    "Translations": {
+      "vi": { "comment": "Tour tốt, đáng giá với giá tiền. Thích đền Fushimi Inari nhưng thời gian ở Tokyo hơi ngắn. Nên có thêm thời gian tự do ở Shibuya." },
+      "en": { "comment": "Good tour, great value for money. Loved Fushimi Inari but time in Tokyo was a bit short. Should add more free time at Shibuya." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-04T14:20:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-04T14:20:00Z"
+  },
+  {
+    "Id": "019529A0-0000-7000-8000-000000000003",
+    "UserId": "019527a0-0000-7000-8000-000000000110",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "Rating": 5,
+    "Comment": "Excellent tour! The guide was knowledgeable and friendly. Mt. Fuji viewpoint at Gotemba was breathtaking. The hot springs in Hakone were a highlight. Highly recommended!",
+    "IsApproved": true,
+    "Translations": {
+      "vi": { "comment": "Tour xuất sắc! Hướng dẫn viên hiểu biết và thân thiện. Điểm ngắm núi Phú Sĩ tại Gotemba rất ngoạn mục. Suối nước nóng Hakone là điểm nhấn. Rất khuyến khích!" },
+      "en": { "comment": "Excellent tour! The guide was knowledgeable and friendly. Mt. Fuji viewpoint at Gotemba was breathtaking. The hot springs in Hakone were a highlight. Highly recommended!" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-06T09:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-06T09:00:00Z"
+  },
+  {
+    "Id": "019529A0-0000-7000-8000-000000000004",
+    "UserId": "019527a0-0000-7000-8000-000000000111",
+    "TourId": "01952800-0000-7000-8000-000000000003",
+    "Rating": 5,
+    "Comment": "Tour Đà Nẵng Hội An rất vui! Bãi biển đẹp, phố cổ Hội An có nhiều thứ thú vị. Hướng dẫn viên nhiệt tình, ăn ngon, khách sạn tốt. Phù hợp gia đình có trẻ nhỏ.",
+    "IsApproved": true,
+    "Translations": {
+      "vi": { "comment": "Tour Đà Nẵng Hội An rất vui! Bãi biển đẹp, phố cổ Hội An có nhiều thứ thú vị. Hướng dẫn viên nhiệt tình, ăn ngon, khách sạn tốt. Phù hợp gia đình có trẻ nhỏ." },
+      "en": { "comment": "Da Nang Hoi An tour was so fun! Beautiful beaches, Hoi An Ancient Town has lots of interesting things. Enthusiastic guide, great food, good hotels. Perfect for families with small children." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-12T11:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-12T11:00:00Z"
+  },
+  {
+    "Id": "019529A0-0000-7000-8000-000000000005",
+    "UserId": "019527a0-0000-7000-8000-000000000112",
+    "TourId": "01952800-0000-7000-8000-000000000003",
+    "Rating": 4,
+    "Comment": "Good tour, great value for money. Hoi An ancient town is beautiful but crowded. Da Nang beach is clean and nice. Should include more local food experiences.",
+    "IsApproved": false,
+    "Translations": {
+      "vi": { "comment": "Tour tốt, giá trị xứng đáng. Phố cổ Hội An đẹp nhưng đông đúc. Bãi biển Đà Nẵng sạch và đẹp. Nên bổ sung thêm trải nghiệm ẩm thực địa phương." },
+      "en": { "comment": "Good tour, great value for money. Hoi An ancient town is beautiful but crowded. Da Nang beach is clean and nice. Should include more local food experiences." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-15T09:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-15T09:00:00Z"
+  }
+]

@@ -62,8 +62,8 @@ export default function TransportRevenuePage() {
       ]);
       setSummary(summaryData);
       if (historyData) {
-        setTripHistory(historyData.Items);
-        setTotalPages(historyData.TotalPages);
+        setTripHistory(historyData.items);
+        setTotalPages(historyData.totalPages);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải dữ liệu");

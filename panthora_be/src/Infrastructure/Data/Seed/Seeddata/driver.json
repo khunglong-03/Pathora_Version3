@@ -1,0 +1,62 @@
+[
+  {
+    "Id": "019527e1-0000-7000-8000-000000000001",
+    "UserId": "019527a0-0000-7000-8000-000000000120",
+    "FullName": "Nguyễn Văn Minh",
+    "LicenseNumber": "TK123456789",
+    "LicenseType": 4,
+    "PhoneNumber": "0902001001",
+    "AvatarUrl": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg",
+    "IsActive": true,
+    "Notes": "Tài xế kinh nghiệm 10 năm",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527e1-0000-7000-8000-000000000002",
+    "UserId": "019527a0-0000-7000-8000-000000000124",
+    "FullName": "Hoàng Thị Thanh",
+    "LicenseNumber": "TK987654321",
+    "LicenseType": 4,
+    "PhoneNumber": "0902002002",
+    "AvatarUrl": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg",
+    "IsActive": true,
+    "Notes": "Tài xế nữ chuyên nghiệp",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527e1-0000-7000-8000-000000000003",
+    "UserId": "019527a0-0000-7000-8000-000000000126",
+    "FullName": "Trần Văn Đức",
+    "LicenseNumber": "TK111222333",
+    "LicenseType": 5,
+    "PhoneNumber": "0902111222",
+    "AvatarUrl": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg",
+    "IsActive": true,
+    "Notes": "Tài xế xe lớn trên 15 chỗ",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527e1-0000-7000-8000-000000000004",
+    "UserId": "019527a0-0000-7000-8000-000000000127",
+    "FullName": "Lê Minh Hoàng",
+    "LicenseNumber": "TK444555666",
+    "LicenseType": 3,
+    "PhoneNumber": "0902444555",
+    "AvatarUrl": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg",
+    "IsActive": true,
+    "Notes": "Tài xế xe tải và xe bus cỡ trung",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

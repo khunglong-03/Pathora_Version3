@@ -1,0 +1,185 @@
+[
+  {
+    "Id": "01952800-0000-7000-8000-000000000001",
+    "TourCode": "TOUR-20260401-00001",
+    "TourName": "Khám Phá Nhật Bản 6N5Đ",
+    "ShortDescription": "Tour du lịch Nhật Bản 6 ngày 5 đêm - Khám phá Tokyo, Kyoto, Osaka",
+    "LongDescription": "Hành trình 6 ngày 5 đêm khám phá xứ sở hoa anh đào với các điểm đến nổi tiếng: Tokyo, Kyoto, núi Phú Sĩ, Osaka. Trải nghiệm văn hóa truyền thống và hiện đại độc đáo của Nhật Bản.",
+    "Status": 1,
+    "TourScope": 2,
+    "Continent": 1,
+    "CustomerSegment": 2,
+    "IsDeleted": false,
+    "SEOTitle": "Tour Nhật Bản 6N5Đ - Khám Phá Tokyo Kyoto Osaka",
+    "SEODescription": "Tour du lịch Nhật Bản 6 ngày 5 đêm giá tốt. Khám phá Tokyo, Kyoto, núi Phú Sĩ, Osaka. Đặt tour ngay.",
+    "TourDesignerId": "019527a0-0000-7000-8000-000000000122",
+    "PricingPolicyId": "019527c1-0000-7000-8000-000000000002",
+    "DepositPolicyId": "019527c3-0000-7000-8000-000000000002",
+    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000002",
+    "VisaPolicyId": "019527c4-0000-7000-8000-000000000001",
+    "Thumbnail": {
+      "FileId": "thumb-japan-tour-001",
+      "OriginalFileName": "tour-nhat-ban.jpg",
+      "FileName": "tour-nhat-ban-001.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      {
+        "FileId": "img-japan-tour-001",
+        "OriginalFileName": "tokyo.jpg",
+        "FileName": "tokyo-001.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      },
+      {
+        "FileId": "img-japan-tour-002",
+        "OriginalFileName": "kyoto.jpg",
+        "FileName": "kyoto-002.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      },
+      {
+        "FileId": "img-japan-tour-003",
+        "OriginalFileName": "osaka.jpg",
+        "FileName": "osaka-003.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      }
+    ],
+    "Translations": {
+      "vi": {
+        "tourName": "Khám Phá Nhật Bản 6N5Đ",
+        "shortDescription": "Tour du lịch Nhật Bản 6 ngày 5 đêm - Khám phá Tokyo, Kyoto, Osaka",
+        "longDescription": "Hành trình 6 ngày 5 đêm khám phá xứ sở hoa anh đào với các điểm đến nổi tiếng: Tokyo, Kyoto, núi Phú Sĩ, Osaka.",
+        "seoTitle": "Tour Nhật Bản 6N5Đ - Khám Phá Tokyo Kyoto Osaka",
+        "seoDescription": "Tour du lịch Nhật Bản 6 ngày 5 đêm giá tốt. Khám phá Tokyo, Kyoto, núi Phú Sĩ, Osaka."
+      },
+      "en": {
+        "tourName": "Discover Japan 6D5N",
+        "shortDescription": "Japan tour 6 days 5 nights - Explore Tokyo, Kyoto, Osaka",
+        "longDescription": "A 6-day 5-night journey exploring the Land of the Rising Sun with destinations: Tokyo, Kyoto, Mt. Fuji, Osaka.",
+        "seoTitle": "Japan Tour 6D5N - Explore Tokyo Kyoto Osaka",
+        "seoDescription": "Best value Japan tour 6 days 5 nights. Explore Tokyo, Kyoto, Mt. Fuji, Osaka. Book now."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952800-0000-7000-8000-000000000002",
+    "TourCode": "TOUR-20260401-00002",
+    "TourName": "Hàn Quốc 5N4Đ - Seoul & Busan",
+    "ShortDescription": "Tour du lịch Hàn Quốc 5 ngày 4 đêm - Khám phá Seoul, Busan, Jeju",
+    "LongDescription": "Khám phá xứ sở Kim Chi với 5 ngày 4 đêm: Seoul thủ đô hiện đại, Busan thành phố biển, trải nghiệm K-pop và ẩm thực Hàn Quốc đặc sắc.",
+    "Status": 1,
+    "TourScope": 2,
+    "Continent": 1,
+    "CustomerSegment": 2,
+    "IsDeleted": false,
+    "SEOTitle": "Tour Hàn Quốc 5N4Đ - Seoul Busan Giá Tốt",
+    "SEODescription": "Tour du lịch Hàn Quốc 5 ngày 4 đêm giá hấp dẫn. Khám phá Seoul, Busan. Đặt ngay.",
+    "TourDesignerId": "019527a0-0000-7000-8000-000000000123",
+    "PricingPolicyId": "019527c1-0000-7000-8000-000000000002",
+    "DepositPolicyId": "019527c3-0000-7000-8000-000000000002",
+    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000002",
+    "VisaPolicyId": "019527c4-0000-7000-8000-000000000002",
+    "Thumbnail": {
+      "FileId": "thumb-korea-tour-001",
+      "OriginalFileName": "tour-han-quoc.jpg",
+      "FileName": "tour-han-quoc-001.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      {
+        "FileId": "img-korea-tour-001",
+        "OriginalFileName": "seoul.jpg",
+        "FileName": "seoul-001.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      },
+      {
+        "FileId": "img-korea-tour-002",
+        "OriginalFileName": "busan.jpg",
+        "FileName": "busan-002.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      }
+    ],
+    "Translations": {
+      "vi": {
+        "tourName": "Hàn Quốc 5N4Đ - Seoul & Busan",
+        "shortDescription": "Tour du lịch Hàn Quốc 5 ngày 4 đêm - Khám phá Seoul, Busan, Jeju",
+        "longDescription": "Khám phá xứ sở Kim Chi với 5 ngày 4 đêm: Seoul, Busan, trải nghiệm K-pop và ẩm thực Hàn Quốc.",
+        "seoTitle": "Tour Hàn Quốc 5N4Đ - Seoul Busan Giá Tốt",
+        "seoDescription": "Tour du lịch Hàn Quốc 5 ngày 4 đêm giá hấp dẫn. Khám phá Seoul, Busan."
+      },
+      "en": {
+        "tourName": "South Korea 5D4N - Seoul & Busan",
+        "shortDescription": "South Korea tour 5 days 4 nights - Explore Seoul, Busan, Jeju",
+        "longDescription": "Discover Korea with 5 days 4 nights: Seoul, Busan, K-pop and Korean cuisine experience.",
+        "seoTitle": "South Korea Tour 5D4N - Seoul Busan Best Price",
+        "seoDescription": "Best value South Korea tour 5 days 4 nights. Explore Seoul, Busan. Book now."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952800-0000-7000-8000-000000000003",
+    "TourCode": "TOUR-20260401-00003",
+    "TourName": "Đà Nẵng - Hội An 3N2Đ",
+    "ShortDescription": "Tour du lịch Đà Nẵng Hội An 3 ngày 2 đêm - Bãi Biển, Ngũ Hành Sơn, Phố Cổ Hội An",
+    "LongDescription": "Chuyến đi ngắn 3 ngày 2 đêm khám phá Đà Nẵng và Hội An: bãi biển Mỹ Khê, Ngũ Hành Sơn, phố cổ Hội An, cầu Vàng. Lý tưởng cho chuyến đi ngắn ngày.",
+    "Status": 1,
+    "TourScope": 1,
+    "Continent": null,
+    "CustomerSegment": 2,
+    "IsDeleted": false,
+    "SEOTitle": "Tour Đà Nẵng Hội An 3N2Đ Giá Tốt",
+    "SEODescription": "Tour du lịch Đà Nẵng Hội An 3 ngày 2 đêm giá rẻ. Đặt tour ngay.",
+    "TourDesignerId": "019527a0-0000-7000-8000-000000000122",
+    "PricingPolicyId": "019527c1-0000-7000-8000-000000000001",
+    "DepositPolicyId": "019527c3-0000-7000-8000-000000000001",
+    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000001",
+    "VisaPolicyId": null,
+    "Thumbnail": {
+      "FileId": "thumb-danang-tour-001",
+      "OriginalFileName": "tour-da-nang.jpg",
+      "FileName": "tour-da-nang-001.jpg",
+      "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+    },
+    "Images": [
+      {
+        "FileId": "img-danang-tour-001",
+        "OriginalFileName": "hoi-an.jpg",
+        "FileName": "hoi-an-001.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      },
+      {
+        "FileId": "img-danang-tour-002",
+        "OriginalFileName": "cau-vang.jpg",
+        "FileName": "cau-vang-002.jpg",
+        "PublicURL": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg"
+      }
+    ],
+    "Translations": {
+      "vi": {
+        "tourName": "Đà Nẵng - Hội An 3N2Đ",
+        "shortDescription": "Tour du lịch Đà Nẵng Hội An 3 ngày 2 đêm - Bãi Biển, Ngũ Hành Sơn, Phố Cổ Hội An",
+        "longDescription": "Chuyến đi ngắn 3 ngày 2 đêm khám phá Đà Nẵng và Hội An.",
+        "seoTitle": "Tour Đà Nẵng Hội An 3N2Đ Giá Tốt",
+        "seoDescription": "Tour du lịch Đà Nẵng Hội An 3 ngày 2 đêm giá rẻ."
+      },
+      "en": {
+        "tourName": "Da Nang - Hoi An 3D2N",
+        "shortDescription": "Da Nang Hoi An tour 3 days 2 nights - Beach, Marble Mountains, Hoi An Ancient Town",
+        "longDescription": "A short 3-day 2-night trip exploring Da Nang and Hoi An: My Khe beach, Marble Mountains, Hoi An Ancient Town, Golden Bridge.",
+        "seoTitle": "Da Nang Hoi An Tour 3D2N Best Price",
+        "seoDescription": "Da Nang Hoi An tour 3 days 2 nights at great price. Book now."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

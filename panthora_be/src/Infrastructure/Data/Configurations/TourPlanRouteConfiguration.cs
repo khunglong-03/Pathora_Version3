@@ -63,9 +63,10 @@ public class TourPlanRouteConfiguration : IEntityTypeConfiguration<TourPlanRoute
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        // TourDayActivity required relationship (FK inferred from navigation property)
+        // TourDayActivity required relationship
         builder.HasOne(r => r.TourDayActivity)
             .WithMany()
+            .HasForeignKey(r => r.TourDayActivityId)
             .IsRequired();
     }
 }

@@ -37,7 +37,7 @@ function getLicenseDisplay(licenseType: string | undefined): string {
 type StatusFilter = "all" | "ready" | "driving" | "leave" | "inactive";
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  Sẵn sàng: { label: "Sẵn sàng", color: "#22C55E", bg: "#DCFCE7" },
+  "Sẵn sàng": { label: "Sẵn sàng", color: "#22C55E", bg: "#DCFCE7" },
   "Đang lái": { label: "Đang lái", color: "#3B82F6", bg: "#DBEAFE" },
   "Nghỉ phép": { label: "Nghỉ phép", color: "#F59E0B", bg: "#FEF3C7" },
   "Không hoạt động": { label: "Không hoạt động", color: "#EF4444", bg: "#FEE2E2" },

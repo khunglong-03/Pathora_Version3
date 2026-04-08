@@ -43,6 +43,8 @@ public class TourPlanRouteEntity : Aggregate<Guid>
     public string? DeletedBy { get; set; }
     /// <summary>Bản dịch đa ngôn ngữ cho tên và ghi chú.</summary>
     public Dictionary<string, TourPlanRouteTranslationData> Translations { get; set; } = [];
+    /// <summary>FK đến TourDayActivity mà lộ trình này thuộc về.</summary>
+    public Guid TourDayActivityId { get; set; }
     /// <summary>TourDayActivity mà lộ trình này thuộc về.</summary>
     public virtual TourDayActivityEntity TourDayActivity { get; set; } = null!;
 

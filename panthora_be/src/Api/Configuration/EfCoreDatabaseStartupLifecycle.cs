@@ -16,7 +16,7 @@ public sealed class EfCoreDatabaseStartupLifecycle(IServiceScopeFactory scopeFac
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
         await ExecuteAsync(
-            (dbContext, token) => dbContext.Database.MigrateAsync(token),
+            (dbContext, token) => dbContext.Database.EnsureCreatedAsync(token),
             cancellationToken);
     }
 

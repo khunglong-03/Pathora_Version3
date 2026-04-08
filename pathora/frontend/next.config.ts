@@ -123,6 +123,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "tourdatviet.vn",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "statics.vinpearl.com",
         pathname: "/**",
       },

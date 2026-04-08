@@ -5,6 +5,7 @@ using Application.Contracts.Public;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Domain.Common.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Public.Queries;
 
@@ -18,34 +19,33 @@ public sealed record GetHomeStatsQuery(string? Language = null) : IQuery<ErrorOr
 
 public sealed class GetHomeStatsQueryHandler(
     ITourRepository tourRepository,
-    ISystemKeyRepository systemKeyRepository)
+    ISystemKeyRepository systemKeyRepository,
+    ILogger<GetHomeStatsQueryHandler> logger)
     : IQueryHandler<GetHomeStatsQuery, ErrorOr<HomeStatsVm>>
 {
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ISystemKeyRepository _systemKeyRepository = systemKeyRepository;
+    private readonly ILogger<GetHomeStatsQueryHandler> _logger = logger;
 
     public async Task<ErrorOr<HomeStatsVm>> Handle(GetHomeStatsQuery request, CancellationToken cancellationToken)
     {
-        var totalToursTask = _tourRepository.GetTotalActiveTours(cancellationToken);
-        var totalDistanceTask = _tourRepository.GetTotalDistanceKm(cancellationToken);
-        var travelersKeyTask = _systemKeyRepository.FindByCode("TOTAL_TRAVELERS", cancellationToken);
-
         try
         {
-            await Task.WhenAll(totalToursTask, totalDistanceTask, travelersKeyTask);
+            // EF Core DbContext is not thread-safe — queries must run sequentially
+            // when sharing the same scoped DbContext instance.
+            var totalTours = await _tourRepository.GetTotalActiveTours(cancellationToken);
+            var totalDistance = await _tourRepository.GetTotalDistanceKm(cancellationToken);
+            var travelersKey = await _systemKeyRepository.FindByCode("TOTAL_TRAVELERS", cancellationToken);
+
+            var totalTravelers = travelersKey?.CodeValue ?? 10000;
+
+            return new HomeStatsVm(totalTravelers, totalTours, totalDistance);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to load home statistics");
             return Error.Unexpected(description: "Failed to load home statistics");
         }
-
-        var totalTours = totalToursTask.Result;
-        var totalDistance = totalDistanceTask.Result;
-        var travelersKey = travelersKeyTask.Result;
-
-        var totalTravelers = travelersKey?.CodeValue ?? 10000;
-
-        return new HomeStatsVm(totalTravelers, totalTours, totalDistance);
     }
 }
 

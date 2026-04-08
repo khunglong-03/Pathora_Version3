@@ -1,0 +1,104 @@
+[
+  {
+    "Id": "019527b1-0000-7000-8000-000000000001",
+    "Name": "Giám Đốc",
+    "PositionCode": "DIRECTOR",
+    "Level": 1,
+    "Note": "Quản lý cấp cao nhất",
+    "Type": 2,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Giám Đốc", "note": "Quản lý cấp cao nhất" },
+      "en": { "name": "Director", "note": "Highest management level" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b1-0000-7000-8000-000000000002",
+    "Name": "Quản Lý",
+    "PositionCode": "MANAGER",
+    "Level": 2,
+    "Note": "Quản lý bộ phận",
+    "Type": 2,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Quản Lý", "note": "Quản lý bộ phận" },
+      "en": { "name": "Manager", "note": "Department manager" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b1-0000-7000-8000-000000000003",
+    "Name": "Nhân Viên Thiết Kế Tour",
+    "PositionCode": "TOUR_DESIGNER",
+    "Level": 3,
+    "Note": "Thiết kế và xây dựng lịch trình tour",
+    "Type": 1,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Nhân Viên Thiết Kế Tour", "note": "Thiết kế và xây dựng lịch trình tour" },
+      "en": { "name": "Tour Designer", "note": "Designs and builds tour itineraries" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b1-0000-7000-8000-000000000004",
+    "Name": "Hướng Dẫn Viên",
+    "PositionCode": "TOUR_GUIDE",
+    "Level": 3,
+    "Note": "Hướng dẫn và hỗ trợ khách du lịch",
+    "Type": 1,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Hướng Dẫn Viên", "note": "Hướng dẫn và hỗ trợ khách du lịch" },
+      "en": { "name": "Tour Guide", "note": "Guides and supports tourists" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b1-0000-7000-8000-000000000005",
+    "Name": "Điều Phối Viên",
+    "PositionCode": "COORDINATOR",
+    "Level": 3,
+    "Note": "Điều phối vận hành tour",
+    "Type": 1,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Điều Phối Viên", "note": "Điều phối vận hành tour" },
+      "en": { "name": "Coordinator", "note": "Tour operations coordinator" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527b1-0000-7000-8000-000000000006",
+    "Name": "Nhân Viên",
+    "PositionCode": "STAFF",
+    "Level": 4,
+    "Note": "Nhân viên hỗ trợ",
+    "Type": 1,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "name": "Nhân Viên", "note": "Nhân viên hỗ trợ" },
+      "en": { "name": "Staff", "note": "Support staff" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

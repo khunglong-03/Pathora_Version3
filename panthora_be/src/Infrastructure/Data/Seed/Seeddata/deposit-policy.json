@@ -1,0 +1,36 @@
+[
+  {
+    "Id": "019527c3-0000-7000-8000-000000000001",
+    "TourScope": 1,
+    "DepositType": 2,
+    "DepositValue": 30.0,
+    "MinDaysBeforeDeparture": 5,
+    "IsActive": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "description": "Đặt cọc 30% giá tour, thu trước tối thiểu 5 ngày trước khởi hành" },
+      "en": { "description": "30% deposit required, minimum 5 days before departure" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "019527c3-0000-7000-8000-000000000002",
+    "TourScope": 2,
+    "DepositType": 2,
+    "DepositValue": 50.0,
+    "MinDaysBeforeDeparture": 14,
+    "IsActive": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": { "description": "Đặt cọc 50% giá tour, thu trước tối thiểu 14 ngày trước khởi hành" },
+      "en": { "description": "50% deposit required, minimum 14 days before departure" }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]
