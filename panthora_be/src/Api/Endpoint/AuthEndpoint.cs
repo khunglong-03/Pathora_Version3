@@ -4,6 +4,7 @@ public static class AuthEndpoint
 {
     public const string Base = "api/auth";
     public const string Login = "login";
+    public const string LoginWithRoles = "login-with-roles";
     public const string Register = "register";
     public const string Refresh = "refresh";
     public const string Logout = "logout";

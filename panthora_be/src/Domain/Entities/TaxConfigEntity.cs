@@ -1,13 +1,22 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Cấu hình thuế áp dụng cho booking/tour. Lưu tên thuế, tỷ lệ,
+/// và ngày hiệu lực. Tự động sinh mã thuế theo format TAX-YYYYMMDD-NNN.
+/// </summary>
 public class TaxConfigEntity : Aggregate<Guid>
 {
     private static int _taxCodeSequence = Random.Shared.Next(0, 1000);
 
+    /// <summary>Tên loại thuế (VD: VAT 10%, Phí dịch vụ).</summary>
     public string TaxName { get; set; } = null!;
+    /// <summary>Tỷ lệ thuế (VD: 0.1 = 10%).</summary>
     public decimal TaxRate { get; set; }
+    /// <summary>Mô tả chi tiết về loại thuế.</summary>
     public string? Description { get; set; }
+    /// <summary>Trạng thái kích hoạt: true = đang áp dụng, false = bị vô hiệu.</summary>
     public bool IsActive { get; set; }
+    /// <summary>Ngày thuế bắt đầu có hiệu lực.</summary>
     public DateTimeOffset EffectiveDate { get; set; }
 
     public static string GenerateTaxCode()

@@ -26,15 +26,24 @@ public sealed class GetHomeStatsQueryHandler(
 
     public async Task<ErrorOr<HomeStatsVm>> Handle(GetHomeStatsQuery request, CancellationToken cancellationToken)
     {
-        var totalTours = await _tourRepository.GetTotalActiveTours();
-        var totalDistance = await _tourRepository.GetTotalDistanceKm();
+        var totalToursTask = _tourRepository.GetTotalActiveTours(cancellationToken);
+        var totalDistanceTask = _tourRepository.GetTotalDistanceKm(cancellationToken);
+        var travelersKeyTask = _systemKeyRepository.FindByCode("TOTAL_TRAVELERS", cancellationToken);
 
-        var totalTravelers = 10000;
-        var travelersKey = await _systemKeyRepository.FindByCode("TOTAL_TRAVELERS");
-        if (travelersKey != null)
+        try
         {
-            totalTravelers = travelersKey.CodeValue;
+            await Task.WhenAll(totalToursTask, totalDistanceTask, travelersKeyTask);
         }
+        catch (Exception)
+        {
+            return Error.Unexpected(description: "Failed to load home statistics");
+        }
+
+        var totalTours = totalToursTask.Result;
+        var totalDistance = totalDistanceTask.Result;
+        var travelersKey = travelersKeyTask.Result;
+
+        var totalTravelers = travelersKey?.CodeValue ?? 10000;
 
         return new HomeStatsVm(totalTravelers, totalTours, totalDistance);
     }

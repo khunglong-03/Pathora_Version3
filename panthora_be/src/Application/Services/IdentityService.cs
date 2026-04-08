@@ -20,7 +20,7 @@ namespace Application.Services;
 public interface IIdentityService
 {
     Task<ErrorOr<Success>> Register(RegisterRequest request);
-    Task<ErrorOr<LoginResponse>> Login(LoginRequest request);
+    Task<ErrorOr<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken = default);
     Task<ErrorOr<ExternalLoginResponse>> ExternalLogin(ExternalLoginRequest request);
     Task<ErrorOr<RefreshTokenResponse>> Refresh(RefreshTokenRequest request);
     Task<ErrorOr<Success>> Logout(LogoutRequest request);
@@ -32,6 +32,7 @@ public interface IIdentityService
     Task<ErrorOr<Success>> UpdateMyProfile(UpdateMyProfileRequest request);
     Task<ErrorOr<List<TabVm>>> GetTabs();
     Task<ErrorOr<Success>> ConfirmRegister(ConfirmRegisterRequest request);
+    Task<ErrorOr<(LoginResponse Response, List<RoleEntity> Roles)>> LoginWithRoles(LoginRequest request, CancellationToken cancellationToken = default);
 }
 
 public class IdentityService(
@@ -133,7 +134,7 @@ public class IdentityService(
         return Result.Success;
     }
 
-    public async Task<ErrorOr<LoginResponse>> Login(LoginRequest request)
+    public async Task<ErrorOr<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken = default)
     {
         UserEntity? userEntity;
         try
@@ -175,6 +176,53 @@ public class IdentityService(
 
         var (accessToken, refreshToken) = tokenResult.Value;
         return new LoginResponse(accessToken, refreshToken, portalResult.Value.Portal, portalResult.Value.DefaultPath);
+    }
+
+    public async Task<ErrorOr<(LoginResponse Response, List<RoleEntity> Roles)>> LoginWithRoles(LoginRequest request, CancellationToken cancellationToken = default)
+    {
+        UserEntity? userEntity;
+        try
+        {
+            userEntity = await _userRepository.FindByEmail(request.Email);
+        }
+        catch
+        {
+            return Error.Custom(503, ErrorConstants.Auth.ServiceUnavailableCode, ErrorConstants.Auth.ServiceUnavailableDescription);
+        }
+
+        if (userEntity is null)
+        {
+            return Error.Unauthorized(ErrorConstants.Auth.InvalidCredentialsCode, ErrorConstants.Auth.InvalidCredentialsDescription);
+        }
+
+        if (userEntity.IsDeleted || userEntity.Status != UserStatus.Active)
+        {
+            return Error.Forbidden(ErrorConstants.Auth.AccountForbiddenCode, ErrorConstants.Auth.AccountForbiddenDescription);
+        }
+
+        var isPasswordValid = _passwordHasher.VerifyHashedPassword(userEntity.Password!, request.Password);
+        if (!isPasswordValid)
+        {
+            return Error.Unauthorized(ErrorConstants.Auth.InvalidCredentialsCode, ErrorConstants.Auth.InvalidCredentialsDescription);
+        }
+
+        var tokenResult = await _tokenManager.GenerateTokenWithRoles(userEntity, cancellationToken);
+        if (tokenResult.IsError)
+        {
+            return Error.Custom(503, ErrorConstants.Auth.ServiceUnavailableCode, ErrorConstants.Auth.ServiceUnavailableDescription);
+        }
+
+        var (accessToken, refreshToken, roles) = tokenResult.Value;
+
+        // Use roles from token generation — no duplicate FindByUserId query
+        var portalRouting = AuthPortalResolver.ResolveByName(roles.Select(r => r.Name));
+        if (portalRouting.Portal == "admin")
+        {
+            return (new LoginResponse(accessToken, refreshToken, portalRouting.Portal, portalRouting.DefaultPath), roles);
+        }
+
+        var portalRoutingByType = AuthPortalResolver.Resolve(roles.Select(r => r.Type));
+        return (new LoginResponse(accessToken, refreshToken, portalRoutingByType.Portal, portalRoutingByType.DefaultPath), roles);
     }
 
     public async Task<ErrorOr<ExternalLoginResponse>> ExternalLogin(ExternalLoginRequest request)

@@ -27,9 +27,9 @@ internal sealed class TokenManager(
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    public async Task<ErrorOr<(string AccessToken, string RefreshToken)>> GenerateToken(UserEntity user)
+    public async Task<ErrorOr<(string AccessToken, string RefreshToken)>> GenerateToken(UserEntity user, CancellationToken cancellationToken = default)
     {
-        var rolesResult = await roleRepository.FindByUserId(user.Id.ToString());
+        var rolesResult = await roleRepository.FindByUserId(user.Id.ToString(), cancellationToken);
         if (rolesResult.IsError)
         {
             return rolesResult.Errors;
@@ -84,6 +84,70 @@ internal sealed class TokenManager(
         await repo.AddAsync(refreshTokenEntity);
 
         return (accessToken, refreshTokenValue);
+    }
+
+    public async Task<ErrorOr<(string AccessToken, string RefreshToken, List<RoleEntity> Roles)>> GenerateTokenWithRoles(UserEntity user, CancellationToken cancellationToken = default)
+    {
+        var rolesResult = await roleRepository.FindByUserId(user.Id.ToString(), cancellationToken);
+        if (rolesResult.IsError)
+        {
+            return rolesResult.Errors;
+        }
+
+        var tokenIssuer = ResolvePrimaryValue(_jwtOptions.Issuer);
+        var tokenAudience = ResolvePrimaryValue(_jwtOptions.Audience);
+
+        var roleClaims = rolesResult.Value
+            .GroupBy(role => role.Id)
+            .Select(group => group.First())
+            .SelectMany(role => new[]
+            {
+                new Claim(ClaimTypes.Role, role.Name),
+                new Claim("roles", role.Name)
+            })
+            .ToList();
+
+        var key = Encoding.UTF8.GetBytes(_jwtOptions.Secret);
+        var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Iss, tokenIssuer),
+            new Claim(JwtRegisteredClaimNames.Aud, tokenAudience)
+        };
+        claims.AddRange(roleClaims);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpireInMinutes),
+            SigningCredentials = credentials
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.CreateToken(tokenDescriptor);
+        var accessToken = tokenHandler.WriteToken(jwtToken);
+
+        var refreshTokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var refreshTokenEntity = new RefreshTokenEntity
+        {
+            UserId = user.Id,
+            Token = refreshTokenValue,
+            ExpiresOnUtc = DateTimeOffset.UtcNow.AddHours(_jwtOptions.RefreshTokenExpirationHours)
+        };
+
+        var repo = unitOfWork.GenericRepository<RefreshTokenEntity>();
+        await repo.AddAsync(refreshTokenEntity);
+
+        var deduplicatedRoles = rolesResult.Value
+            .GroupBy(role => role.Id)
+            .Select(group => group.First())
+            .ToList();
+
+        return (accessToken, refreshTokenValue, deduplicatedRoles);
     }
 
     public async Task<ErrorOr<(string AccessToken, string RefreshToken, Guid UserId)>> RefreshToken(string refreshToken)

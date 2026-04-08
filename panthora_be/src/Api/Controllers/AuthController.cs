@@ -32,6 +32,19 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return base.HandleResult(result);
     }
 
+    [HttpPost(AuthEndpoint.LoginWithRoles)]
+    public async Task<IActionResult> LoginWithRoles([FromBody] LoginWithRolesCommand command)
+    {
+        var result = await Sender.Send(command);
+
+        if (!result.IsError && !Response.HasStarted)
+        {
+            AuthCookieWriter.WriteAuthCookies(Response, result.Value, Request.IsHttps, jwtOptions.Value);
+        }
+
+        return base.HandleResult(result);
+    }
+
     [HttpPost(AuthEndpoint.Register)]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {

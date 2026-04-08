@@ -1,13 +1,25 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Đánh giá/review từ người dùng sau khi hoàn thành tour. Lưu điểm
+/// (1–5 sao), bình luận, và trạng thái duyệt. Chỉ hiển thị công khai
+/// khi IsApproved = true.
+/// </summary>
 public class ReviewEntity : Entity<Guid>
 {
+    /// <summary>ID của User viết review.</summary>
     public Guid UserId { get; set; }
+    /// <summary>User liên quan.</summary>
     public virtual UserEntity User { get; set; } = null!;
+    /// <summary>ID của Tour được đánh giá.</summary>
     public Guid TourId { get; set; }
+    /// <summary>Tour liên quan.</summary>
     public virtual TourEntity Tour { get; set; } = null!;
+    /// <summary>Điểm đánh giá (1–5 sao).</summary>
     public int Rating { get; set; }
+    /// <summary>Nội dung bình luận của khách.</summary>
     public string? Comment { get; set; }
+    /// <summary>Trạng thái duyệt: true = đã duyệt (hiển thị), false = chưa duyệt.</summary>
     public bool IsApproved { get; set; } = false;
 
     public static ReviewEntity Create(Guid userId, Guid tourId, int rating, string? comment, string performedBy)

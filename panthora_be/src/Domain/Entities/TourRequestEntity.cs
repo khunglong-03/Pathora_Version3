@@ -1,40 +1,70 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Yêu cầu đặt tour từ khách hàng (lead/tour request). Lưu thông tin liên hệ,
+/// chi tiết chuyến đi, ngân sách, và trạng thái xử lý (Pending → Approved/Rejected/Cancelled).
+/// Khi được duyệt, liên kết đến một TourInstance cụ thể.
+/// </summary>
 public class TourRequestEntity : Aggregate<Guid>
 {
     // Customer info
+    /// <summary>ID của User đã đăng nhập (null nếu khách chưa có tài khoản).</summary>
     public Guid? UserId { get; set; }
+    /// <summary>User liên quan (null nếu khách vãng lai).</summary>
     public virtual UserEntity? User { get; set; }
+    /// <summary>Tên khách hàng.</summary>
     public string CustomerName { get; set; } = null!;
+    /// <summary>Số điện thoại khách hàng.</summary>
     public string CustomerPhone { get; set; } = null!;
+    /// <summary>Email khách hàng.</summary>
     public string? CustomerEmail { get; set; }
 
     // Request details
+    /// <summary>Điểm đến mong muốn.</summary>
     public string Destination { get; set; } = null!;
+    /// <summary>Ngày khởi hành mong muốn.</summary>
     public DateTimeOffset DepartureDate { get; set; }
+    /// <summary>Ngày về mong muốn (null nếu chưa xác định).</summary>
     public DateTimeOffset? ReturnDate { get; set; }
+    /// <summary>Số người lớn.</summary>
     public int NumberAdult { get; set; }
+    /// <summary>Số trẻ em (2–12 tuổi).</summary>
     public int NumberChild { get; set; }
+    /// <summary>Số em bé (&lt;2 tuổi).</summary>
     public int NumberInfant { get; set; }
+    /// <summary>Ngân sách dự kiến của khách.</summary>
     public decimal? Budget { get; set; }
+    /// <summary>Danh sách sở thích du lịch (VD: ẩm thực, nghỉ dưỡng).</summary>
     public List<string> TravelInterests { get; set; } = [];
+    /// <summary>Loại lưu trú ưa thích.</summary>
     public string? PreferredAccommodation { get; set; }
+    /// <summary>Phương tiện di chuyển ưa thích.</summary>
     public string? TransportationPreference { get; set; }
+    /// <summary>Yêu cầu đặc biệt từ khách.</summary>
     public string? SpecialRequirements { get; set; }
+    /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
 
     // Status & review
+    /// <summary>Trạng thái xử lý: Pending, Approved, Rejected, Cancelled.</summary>
     public TourRequestStatus Status { get; set; } = TourRequestStatus.Pending;
+    /// <summary>Ghi chú từ admin khi xử lý.</summary>
     public string? AdminNote { get; set; }
+    /// <summary>ID User đã duyệt/từ chối.</summary>
     public Guid? ReviewedBy { get; set; }
+    /// <summary>Admin đã review.</summary>
     public virtual UserEntity? Reviewer { get; set; }
+    /// <summary>Thời gian được review.</summary>
     public DateTimeOffset? ReviewedAt { get; set; }
 
     // Link to approved tour instance
+    /// <summary>ID TourInstance được duyệt (null nếu chưa duyệt).</summary>
     public Guid? TourInstanceId { get; set; }
+    /// <summary>TourInstance được liên kết khi duyệt.</summary>
     public virtual TourInstanceEntity? TourInstance { get; set; }
 
     // Navigation
+    /// <summary>Danh sách các Booking tạo từ yêu cầu này.</summary>
     public virtual List<BookingEntity> Bookings { get; set; } = [];
 
     public static TourRequestEntity Create(

@@ -3,20 +3,33 @@ namespace Domain.Entities;
 using Domain.Entities.Translations;
 using Domain.Enums;
 using Domain.ValueObjects;
-// Policy xet gia khi nao
+
+/// <summary>
+/// Chính sách giá — định nghĩa các bậc giá (tiers) theo số lượng người tham gia
+/// cho một loại tour cụ thể. Mỗi tier chứa số người tối thiểu/tối đa và mức giá tương ứng.
+/// Ví dụ: 2-5 người giá X, 6-10 người giá Y.
+/// </summary>
 public class PricingPolicy : Aggregate<Guid>
 {
     private static int _policyCodeSequence = Random.Shared.Next(0, 1000);
 
+    /// <summary>Mã chính sách tự sinh (format: PP-YYYYMMDD-NNN).</summary>
     public string PolicyCode { get; set; } = null!;
+    /// <summary>Tên chính sách giá.</summary>
     public string Name { get; set; } = null!;
+    /// <summary>Loại tour mà chính sách này áp dụng: Public hoặc Private.</summary>
     public TourType TourType { get; set; }
+    /// <summary>Trạng thái: Active hoặc Inactive.</summary>
     public PricingPolicyStatus Status { get; set; } = PricingPolicyStatus.Inactive;
+    /// <summary>True nếu đây là chính sách mặc định.</summary>
     public bool IsDefault { get; set; }
+    /// <summary>Danh sách các bậc giá (tiers) theo số người.</summary>
     public List<PricingPolicyTier> Tiers { get; set; } = [];
+    /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
     // Translations (en, vi)
+    /// <summary>Bản dịch đa ngôn ngữ cho chính sách giá.</summary>
     public Dictionary<string, PricingPolicyTranslationData> Translations { get; set; } = [];
 
     public static string GeneratePolicyCode()

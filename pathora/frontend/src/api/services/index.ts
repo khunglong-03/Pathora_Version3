@@ -22,3 +22,5 @@ export { paymentService } from "./paymentService";
 export { reportService } from "./reportService";
 export { dashboardPoliciesService } from "./dashboardPoliciesService";
 export { tourManagerAssignmentService } from "./tourManagerAssignmentService";
+export { transportProviderService } from "./transportProviderService";
+export type { Vehicle, Driver, CreateVehicleDto, UpdateVehicleDto, CreateDriverDto, UpdateDriverDto } from "./transportProviderService";

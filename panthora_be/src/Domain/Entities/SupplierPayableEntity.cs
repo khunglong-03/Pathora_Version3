@@ -1,18 +1,33 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Công nợ phải trả cho nhà cung cấp cho một booking.
+/// Theo dõi số tiền dự kiến phải trả, đã trả, hạn thanh toán, và trạng thái.
+/// Mỗi SupplierPayable có nhiều SupplierReceipt (các đợt thanh toán).
+/// </summary>
 public class SupplierPayableEntity : Aggregate<Guid>
 {
+    /// <summary>ID của Booking mà công nợ này thuộc về.</summary>
     public Guid BookingId { get; set; }
+    /// <summary>Booking cha.</summary>
     public virtual BookingEntity Booking { get; set; } = null!;
+    /// <summary>ID nhà cung cấp được trả.</summary>
     public Guid SupplierId { get; set; }
+    /// <summary>Nhà cung cấp.</summary>
     public virtual SupplierEntity Supplier { get; set; } = null!;
 
+    /// <summary>Số tiền dự kiến phải trả.</summary>
     public decimal ExpectedAmount { get; set; }
+    /// <summary>Số tiền đã thanh toán.</summary>
     public decimal PaidAmount { get; set; }
+    /// <summary>Hạn thanh toán.</summary>
     public DateTimeOffset? DueAt { get; set; }
+    /// <summary>Trạng thái: Unpaid, Partial, Settled, Overpaid.</summary>
     public PaymentStatus Status { get; set; } = PaymentStatus.Unpaid;
+    /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
 
+    /// <summary>Danh sách các biên nhận thanh toán cho công nợ này.</summary>
     public virtual List<SupplierReceiptEntity> Receipts { get; set; } = [];
 
     public static SupplierPayableEntity Create(

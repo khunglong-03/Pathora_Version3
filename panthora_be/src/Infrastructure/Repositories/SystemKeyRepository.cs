@@ -19,10 +19,10 @@ public class SystemKeyRepository(AppDbContext context) : ISystemKeyRepository
             .ToListAsync();
     }
 
-    public async Task<SystemKey?> FindByCode(string codeKey)
+    public async Task<SystemKey?> FindByCode(string codeKey, CancellationToken cancellationToken = default)
     {
         return await _context.SystemKeys
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.CodeKey == codeKey && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.CodeKey == codeKey && !s.IsDeleted, cancellationToken);
     }
 }

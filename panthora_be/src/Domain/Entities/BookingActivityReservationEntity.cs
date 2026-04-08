@@ -1,24 +1,45 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Đại diện cho một hoạt động đã được đặt (reserved) trong một booking cụ thể.
+/// Ví dụ: một ngày tham quan, một chuyến đi, một điểm đến.
+/// Liên kết với nhà cung cấp, theo dõi thời gian, giá dịch vụ (trước/sau thuế),
+/// và có các danh sách chi tiết vận chuyển &amp; lưu trú con.
+/// </summary>
 public class BookingActivityReservationEntity : Aggregate<Guid>
 {
+    /// <summary>ID của booking cha.</summary>
     public Guid BookingId { get; set; }
+    /// <summary>Booking cha chứa activity reservation này.</summary>
     public virtual BookingEntity Booking { get; set; } = null!;
+    /// <summary>ID nhà cung cấp dịch vụ cho hoạt động này (optional).</summary>
     public Guid? SupplierId { get; set; }
+    /// <summary>Nhà cung cấp dịch vụ.</summary>
     public virtual SupplierEntity? Supplier { get; set; }
-
+    /// <summary>Thứ tự sắp xếp của hoạt động trong ngày/plan.</summary>
     public int Order { get; set; }
+    /// <summary>Loại hoạt động (day tour, attraction, transport, v.v.).</summary>
     public string ActivityType { get; set; } = null!;
+    /// <summary>Tên/mô tả tiêu đề của hoạt động.</summary>
     public string Title { get; set; } = null!;
+    /// <summary>Mô tả chi tiết hơn về hoạt động.</summary>
     public string? Description { get; set; }
+    /// <summary>Thời gian bắt đầu dự kiến của hoạt động.</summary>
     public DateTimeOffset? StartTime { get; set; }
+    /// <summary>Thời gian kết thúc dự kiến.</summary>
     public DateTimeOffset? EndTime { get; set; }
+    /// <summary>Tổng giá dịch vụ chưa bao gồm thuế.</summary>
     public decimal TotalServicePrice { get; set; }
+    /// <summary>Tổng giá dịch vụ sau khi đã cộng thuế.</summary>
     public decimal TotalServicePriceAfterTax { get; set; }
+    /// <summary>Trạng thái đặt chỗ: Pending, Confirmed, Cancelled.</summary>
     public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
+    /// <summary>Ghi chú bổ sung về hoạt động này.</summary>
     public string? Note { get; set; }
 
+    /// <summary>Danh sách chi tiết vận chuyển con của hoạt động này.</summary>
     public virtual List<BookingTransportDetailEntity> TransportDetails { get; set; } = [];
+    /// <summary>Danh sách chi tiết lưu trú con của hoạt động này.</summary>
     public virtual List<BookingAccommodationDetailEntity> AccommodationDetails { get; set; } = [];
 
     public static BookingActivityReservationEntity Create(

@@ -34,7 +34,12 @@ public sealed class LoginCommandHandler(IIdentityService identityService)
 {
     public async Task<ErrorOr<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        return await identityService.Login(new LoginRequest(request.Email, request.Password));
+        var result = await identityService.LoginWithRoles(new LoginRequest(request.Email, request.Password), cancellationToken);
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
+        return result.Value.Response;
     }
 }
 

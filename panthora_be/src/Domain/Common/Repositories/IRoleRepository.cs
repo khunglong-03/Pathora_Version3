@@ -15,7 +15,7 @@ public interface IRoleRepository
     Task<ErrorOr<List<RoleEntity>>> GetAll();
     Task<ErrorOr<RoleEntity?>> FindById(int roleId);
     Task<ErrorOr<RoleEntity?>> FindByNameAsync(string name);
-    Task<ErrorOr<List<RoleEntity>>> FindByUserId(string userId);
+    Task<ErrorOr<List<RoleEntity>>> FindByUserId(string userId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Dictionary<Guid, List<RoleEntity>>>> FindByUserIds(List<Guid> userIds);
 
     Task<ErrorOr<List<RoleEntity>>> FindAll(

@@ -26,5 +26,5 @@ export default async function HotelLayout({ children }: { children: ReactNode })
     redirect("/home");
   }
 
-  return <AdminShell variant="provider">{children}</AdminShell>;
+  return <AdminShell variant="provider" providerPortal="hotel">{children}</AdminShell>;
 }

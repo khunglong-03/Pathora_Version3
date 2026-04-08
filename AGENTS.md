@@ -73,7 +73,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Doan2** (11463 symbols, 26947 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Doan2** (12020 symbols, 28710 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -128,10 +128,10 @@ This project is indexed by GitNexus as **Doan2** (11463 symbols, 26947 relations
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/Pathora_Version3/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
-| `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
-| `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/Doan2/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Doan2/clusters` | All functional areas |
+| `gitnexus://repo/Doan2/processes` | All execution flows |
+| `gitnexus://repo/Doan2/process/{name}` | Step-by-step execution trace |
 
 ## Self-Check Before Finishing
 

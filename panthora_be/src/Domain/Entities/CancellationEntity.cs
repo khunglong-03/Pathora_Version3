@@ -4,18 +4,29 @@ using Domain.Entities.Translations;
 using Domain.Enums;
 using Domain.ValueObjects;
 
+/// <summary>
+/// Chính sách hủy — định nghĩa các mức phí refund khi khách hủy booking.
+/// Mỗi tier chứa khoảng số ngày trước khởi hành và % phí hủy tương ứng.
+/// Ví dụ: hủy 14+ ngày trước = 0% phí, 7-13 ngày = 30% phí, 3-6 ngày = 50% phí.
+/// </summary>
 public class CancellationPolicyEntity : Aggregate<Guid>
 {
     private static int _policyCodeSequence = Random.Shared.Next(0, 1000);
 
+    /// <summary>Mã chính sách tự sinh (format: CP-YYYYMMDD-NNN).</summary>
     public string PolicyCode { get; set; } = null!;
+    /// <summary>Phạm vi: Domestic hoặc International.</summary>
     public TourScope TourScope { get; set; }
+    /// <summary>Trạng thái: Active hoặc Inactive.</summary>
     public CancellationPolicyStatus Status { get; set; } = CancellationPolicyStatus.Active;
+    /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
     // Translations (en, vi)
+    /// <summary>Bản dịch đa ngôn ngữ.</summary>
     public Dictionary<string, CancellationPolicyTranslationData> Translations { get; set; } = [];
 
+    /// <summary>Danh sách các tier phí hủy theo số ngày trước khởi hành.</summary>
     public List<CancellationPolicyTier> Tiers { get; set; } = [];
 
     public static string GeneratePolicyCode()

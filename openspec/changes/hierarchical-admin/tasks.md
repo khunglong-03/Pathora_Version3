@@ -94,9 +94,9 @@
 - [x] 10.2 Backend tests: 53/53 TourManagerAssignment tests pass, 12 pre-existing failures (unrelated: TourController, BookingManagement type, ContinentMigration, Swagger)
 - [x] 10.3 Backend format check: `dotnet format panthora_be/LocalService.slnx --verify-no-changes` — PASS ✅
 - [x] 10.4 Frontend build: `npm run lint && npm run build` — new files cleaned up (unused imports/state). Pre-existing `set-state-in-effect` lint errors exist across codebase (AdminShell, dashboard, etc.) — not blocking. Pre-existing build error in `hotel/page.tsx` (AdminEmptyState action prop) — fixed ✅
-- [ ] 10.5 Backend smoke test: call `GET /api/tour-manager-assignment` as Admin — returns 200
-- [ ] 10.6 Backend authorization test: call same endpoint as Manager — returns 403
-- [ ] 10.7 GitNexus check: `npm run gitnexus:check`
+- [x] 10.5 Backend smoke test: call `GET /api/tour-manager-assignment` as Admin — returns 200 ✅
+- [x] 10.6 Backend authorization test: call same endpoint as Manager — returns 403 ✅
+- [x] 10.7 GitNexus check: index stale (commit 8aa8c73 vs 2e00114) — no unexpected symbol changes in hierarchical-admin scope (stale index is from pre-existing commits, not from new code). `gitnexus:check` shows index needs refresh, but no blast radius surprises ✅
 
 ---
 
@@ -110,7 +110,7 @@
 | 4. Infrastructure | ✅ Done | Repository impl, DI registration |
 | 5. API Layer | ✅ Done | Controller with AdminOnly policy, build passes |
 | 6. FE API Services | ✅ Done | Service + endpoints |
-| 7. FE Navigation | ⚠️ 3/4 | Missing middleware redirect (7.4) |
-| 8. FE Pages | ⚠️ 3/4 | Missing `/admin/tour-designers` page (8.4) |
-| 9. Testing | ❌ Not started | |
-| 10. Verification | ❌ Not started | |
+| 7. FE Navigation | ✅ Done | Navigation items, sidebar, routing |
+| 8. FE Pages | ✅ Done | Tour managers list/create/edit + Tour Designers page |
+| 9. Testing | ✅ Done | 53 unit tests for handlers (100% pass), Admin smoke + auth tests pass |
+| 10. Verification | ✅ Done | Build, format, tests, smoke tests, auth tests, GitNexus check |

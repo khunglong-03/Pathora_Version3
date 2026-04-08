@@ -1,16 +1,30 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Phân công phương tiện và tài xế cho một lịch trình di chuyển trong booking.
+/// Gắn Driver và Vehicle cụ thể với một BookingActivityReservation và TourPlanRoute.
+/// </summary>
 public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
 {
+    /// <summary>ID của BookingActivityReservation mà phân công này thuộc về.</summary>
     public Guid BookingActivityReservationId { get; set; }
+    /// <summary>BookingActivityReservation liên quan.</summary>
     public virtual BookingActivityReservationEntity BookingActivityReservation { get; set; } = null!;
+    /// <summary>ID của TourPlanRoute mà tài xế/xe được gán vào.</summary>
     public Guid TourPlanRouteId { get; set; }
+    /// <summary>TourPlanRoute liên quan.</summary>
     public virtual TourPlanRouteEntity TourPlanRoute { get; set; } = null!;
+    /// <summary>ID của Driver được phân công.</summary>
     public Guid? DriverId { get; set; }
+    /// <summary>Driver được phân công.</summary>
     public virtual DriverEntity? Driver { get; set; }
+    /// <summary>ID của Vehicle được phân công.</summary>
     public Guid? VehicleId { get; set; }
+    /// <summary>Vehicle được phân công.</summary>
     public virtual VehicleEntity? Vehicle { get; set; }
+    /// <summary>Thời gian cập nhật phân công gần nhất.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
+    /// <summary>ID của User thực hiện cập nhật.</summary>
     public Guid UpdatedById { get; set; }
 
     public static TourDayActivityRouteTransportEntity Create(

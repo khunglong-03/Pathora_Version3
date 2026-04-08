@@ -2,53 +2,84 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities;
 
+/// <summary>
+/// Giao dịch thanh toán online cho booking. Quản lý toàn bộ vòng đời thanh toán:
+/// tạo, gửi checkout URL, nhận webhook, xử lý retry, hoàn tiền.
+/// Hỗ trợ nhiều cổng thanh toán (VNPay, MoMo, Sepay, v.v.).
+/// </summary>
 public class PaymentTransactionEntity : Aggregate<Guid>
 {
     // References
+    /// <summary>ID của Booking mà giao dịch này thuộc về.</summary>
     public Guid BookingId { get; set; }
+    /// <summary>Booking cha.</summary>
     public virtual BookingEntity Booking { get; set; } = null!;
 
     // Transaction identification
-    public string TransactionCode { get; set; } = null!; // Mã giao dịch nội bộ
-    public string? ExternalTransactionId { get; set; } // ID giao dịch từ ngân hàng/sepay
-    public string? PayOSOrderCode { get; set; } // Deprecated: PayOS removed; field kept for DB compatibility
+    /// <summary>Mã giao dịch nội bộ.</summary>
+    public string TransactionCode { get; set; } = null!;
+    /// <summary>ID giao dịch từ cổng thanh toán (bank/sepay).</summary>
+    public string? ExternalTransactionId { get; set; }
+    /// <summary>Deprecated: PayOS đã bị loại bỏ.</summary>
+    public string? PayOSOrderCode { get; set; }
 
     // Transaction type & status
+    /// <summary>Loại giao dịch: Deposit, FullPayment, Refund.</summary>
     public Enums.TransactionType Type { get; set; }
+    /// <summary>Trạng thái: Pending, Processing, Completed, Failed, Cancelled, Refunded.</summary>
     public Enums.TransactionStatus Status { get; set; }
 
     // Amount
+    /// <summary>Số tiền cần thanh toán.</summary>
     public decimal Amount { get; set; }
-    public decimal? PaidAmount { get; set; } // Số tiền đã thanh toán thực tế
-    public decimal? RemainingAmount { get; set; } // Số tiền còn lại
+    /// <summary>Số tiền đã thanh toán thực tế.</summary>
+    public decimal? PaidAmount { get; set; }
+    /// <summary>Số tiền còn lại.</summary>
+    public decimal? RemainingAmount { get; set; }
 
     // Payment method
+    /// <summary>Phương thức thanh toán: VNPay, MoMo, Sepay, BankTransfer, v.v.</summary>
     public PaymentMethod PaymentMethod { get; set; }
 
     // Timing
+    /// <summary>Thời gian tạo giao dịch.</summary>
     public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? ExpiredAt { get; set; } // Hết hạn thanh toán
-    public DateTimeOffset? PaidAt { get; set; } // Thời điểm thanh toán thành công
-    public DateTimeOffset? CompletedAt { get; set; } // Thời điểm hoàn tất
+    /// <summary>Thời gian hết hạn thanh toán.</summary>
+    public DateTimeOffset? ExpiredAt { get; set; }
+    /// <summary>Thời gian thanh toán thành công.</summary>
+    public DateTimeOffset? PaidAt { get; set; }
+    /// <summary>Thời gian hoàn tất xử lý.</summary>
+    public DateTimeOffset? CompletedAt { get; set; }
 
     // Checkout info
-    public string? CheckoutUrl { get; set; } // URL checkout/thanh toán
-    public string? PaymentNote { get; set; } // Nội dung thanh toán (note/description)
+    /// <summary>URL checkout để khách thanh toán.</summary>
+    public string? CheckoutUrl { get; set; }
+    /// <summary>Nội dung thanh toán (description/note).</summary>
+    public string? PaymentNote { get; set; }
     [MaxLength(12)]
-    public string? ReferenceCode { get; set; } // Short reference code for bank matching (stored, not sent to bank)
+    /// <summary>Mã tham chiếu ngắn dùng để đối soát ngân hàng.</summary>
+    public string? ReferenceCode { get; set; }
 
     // Bank info (from webhook callback)
+    /// <summary>Tên người chuyển khoản.</summary>
     public string? SenderName { get; set; }
+    /// <summary>Số tài khoản người chuyển.</summary>
     public string? SenderAccountNumber { get; set; }
+    /// <summary>Tên ngân hàng người nhận.</summary>
     public string? BeneficiaryBank { get; set; }
 
     // Error tracking
+    /// <summary>Mã lỗi từ cổng thanh toán.</summary>
     public string? ErrorCode { get; set; }
+    /// <summary>Thông điệp lỗi.</summary>
     public string? ErrorMessage { get; set; }
 
     // Metadata
+    /// <summary>Số lần retry xử lý giao dịch.</summary>
     public int RetryCount { get; set; }
+    /// <summary>Lỗi xử lý cuối cùng.</summary>
     public string? LastProcessingError { get; set; }
+    /// <summary>Thời gian xử lý cuối cùng.</summary>
     public DateTimeOffset? LastProcessedAt { get; set; }
 
     public static PaymentTransactionEntity Create(

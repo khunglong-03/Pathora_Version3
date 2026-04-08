@@ -6,5 +6,5 @@ namespace Domain.Common.Repositories;
 public interface ISystemKeyRepository
 {
     Task<ErrorOr<List<SystemKey>>> FindAll();
-    Task<SystemKey?> FindByCode(string codeKey);
+    Task<SystemKey?> FindByCode(string codeKey, CancellationToken cancellationToken = default);
 }

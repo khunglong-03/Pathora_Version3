@@ -59,7 +59,6 @@ public class AdminController : BaseApiController
         var result = await Sender.Send(new GetAllUsersQuery(pageNumber, pageSize, searchText, status, role));
         return HandleResult(result);
     }
-
     [HttpGet("users/{id:guid}")]
     public async Task<IActionResult> GetUserDetail(Guid id)
     {

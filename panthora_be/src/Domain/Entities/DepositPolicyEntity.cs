@@ -3,16 +3,28 @@ namespace Domain.Entities;
 using Domain.Entities.Translations;
 using Domain.Enums;
 
+/// <summary>
+/// Chính sách đặt cọc — định nghĩa số tiền/cọc và thời hạn yêu cầu đặt cọc.
+/// Ví dụ: đặt cọc 30% giá tour, phải đặt cọc trước ngày khởi hành ít nhất 7 ngày.
+/// Áp dụng riêng cho tour trong nước và quốc tế.
+/// </summary>
 public class DepositPolicyEntity : Aggregate<Guid>
 {
+    /// <summary>Phạm vi: Domestic hoặc International.</summary>
     public TourScope TourScope { get; set; }
+    /// <summary>Loại đặt cọc: Percentage (%) hoặc FixedAmount (số tiền cố định).</summary>
     public DepositType DepositType { get; set; }
+    /// <summary>Giá trị đặt cọc (theo DepositType: % hoặc số tiền VND).</summary>
     public decimal DepositValue { get; set; }
+    /// <summary>Số ngày tối thiểu trước khởi hành mà phải đặt cọc.</summary>
     public int MinDaysBeforeDeparture { get; set; }
+    /// <summary>True nếu chính sách đang kích hoạt.</summary>
     public bool IsActive { get; set; } = true;
+    /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
     // Translations (en, vi)
+    /// <summary>Bản dịch đa ngôn ngữ.</summary>
     public Dictionary<string, DepositPolicyTranslationData> Translations { get; set; } = [];
 
     public static DepositPolicyEntity Create(

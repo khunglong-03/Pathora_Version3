@@ -1,16 +1,28 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Visa thực tế được cấp cho một đơn xin visa. Lưu số visa,
+/// quốc gia, loại nhập cảnh, ngày cấp, ngày hết hạn, và file đính kèm.
+/// </summary>
 public class VisaEntity : Aggregate<Guid>
 {
+    /// <summary>ID của VisaApplication mà visa này được cấp.</summary>
     public Guid VisaApplicationId { get; set; }
+    /// <summary>VisaApplication liên quan.</summary>
     public virtual VisaApplicationEntity VisaApplication { get; set; } = null!;
-
+    /// <summary>Số visa (mã do Đại sứ quán cấp).</summary>
     public string? VisaNumber { get; set; }
+    /// <summary>Quốc gia cấp visa.</summary>
     public string? Country { get; set; }
+    /// <summary>Trạng thái: Pending, Processing, Approved, Rejected, Cancelled.</summary>
     public VisaStatus Status { get; set; } = VisaStatus.Pending;
+    /// <summary>Loại nhập cảnh: Single, Double, Multiple.</summary>
     public VisaEntryType? EntryType { get; set; }
+    /// <summary>Ngày cấp visa.</summary>
     public DateTimeOffset? IssuedAt { get; set; }
+    /// <summary>Ngày hết hạn visa.</summary>
     public DateTimeOffset? ExpiresAt { get; set; }
+    /// <summary>URL file scan visa.</summary>
     public string? FileUrl { get; set; }
 
     public static VisaEntity Create(

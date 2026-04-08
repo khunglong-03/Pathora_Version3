@@ -111,18 +111,18 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
         return role;
     }
 
-    public async Task<ErrorOr<List<RoleEntity>>> FindByUserId(string userId)
+    public async Task<ErrorOr<List<RoleEntity>>> FindByUserId(string userId, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(userId, out var uid))
             return Error.Validation(ErrorConstants.User.InvalidIdCode, ErrorConstants.User.InvalidIdDescription);
         var roleIds = await _context.UserRoles
             .Where(ur => ur.UserId == uid)
             .Select(ur => ur.RoleId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
         var roles = await _context.Roles
             .AsNoTracking()
             .Where(r => roleIds.Contains(r.Id) && !r.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
         return roles;
     }
 

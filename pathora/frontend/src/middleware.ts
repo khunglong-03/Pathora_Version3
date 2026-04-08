@@ -50,8 +50,17 @@ const STATIC_MEDIA_REGEX =
 const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   if (!cookieValue) return [];
   try {
-    return JSON.parse(decodeURIComponent(cookieValue)) as string[];
-  } catch {
+    const decoded = decodeURIComponent(cookieValue);
+    const roles = JSON.parse(decoded) as string[];
+    
+    // Debug log in development
+    if (process.env.NODE_ENV === "development") {
+      console.log("[middleware] parseAuthRoles:", { cookieValue, decoded, roles });
+    }
+    
+    return roles;
+  } catch (error) {
+    console.error("[middleware] Failed to parse auth_roles cookie:", error);
     return [];
   }
 };
@@ -124,6 +133,18 @@ export function middleware(request: NextRequest) {
   const authRoles = parseAuthRoles(authRolesRaw);
   const publicPath = isPublicPath(pathname);
 
+  // Debug log in development
+  if (process.env.NODE_ENV === "development" && pathname.startsWith("/transport")) {
+    console.log("[middleware] /transport route check:", {
+      pathname,
+      authenticated,
+      adminPortal,
+      authRoles,
+      hasTransportProviderRole: hasTransportProviderRole(authRoles),
+      publicPath,
+    });
+  }
+
   if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
       return NextResponse.redirect(new URL("/admin/dashboard", request.url));
@@ -141,18 +162,24 @@ export function middleware(request: NextRequest) {
   }
 
   if (authenticated) {
+    // Role-based redirects to prevent unauthorized access
+    
+    // Managers can't access admin routes
     if (hasManagerRole(authRoles) && pathname.startsWith("/admin/")) {
       return NextResponse.redirect(new URL("/manager", request.url));
     }
 
+    // Admins can't access manager routes
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
       return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
 
+    // Managers can't access customer routes
     if (hasManagerRole(authRoles) && pathname.startsWith("/manager/customers")) {
       return NextResponse.redirect(new URL("/manager", request.url));
     }
 
+    // Hotel providers must stay in hotel routes
     if (
       hasHotelServiceProviderRole(authRoles) &&
       !isProviderRoutePath(pathname) &&
@@ -162,8 +189,43 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/hotel", request.url));
     }
 
-    if (hasTransportProviderRole(authRoles) && !isProviderRoutePath(pathname) && !isAdminRoutePath(pathname)) {
+    // Transport providers must stay in transport routes (except public paths)
+    if (
+      hasTransportProviderRole(authRoles) && 
+      !isProviderRoutePath(pathname) && 
+      !isAdminRoutePath(pathname) &&
+      !isManagerRoutePath(pathname) &&
+      !publicPath
+    ) {
       return NextResponse.redirect(new URL("/transport", request.url));
+    }
+
+    // Block non-transport-providers from accessing /transport routes
+    if (pathname.startsWith("/transport/") && !hasTransportProviderRole(authRoles)) {
+      if (hasAdminRole(authRoles)) {
+        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      }
+      if (hasManagerRole(authRoles)) {
+        return NextResponse.redirect(new URL("/manager", request.url));
+      }
+      if (hasHotelServiceProviderRole(authRoles)) {
+        return NextResponse.redirect(new URL("/hotel", request.url));
+      }
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+
+    // Block non-hotel-providers from accessing /hotel routes
+    if (pathname.startsWith("/hotel/") && !hasHotelServiceProviderRole(authRoles)) {
+      if (hasAdminRole(authRoles)) {
+        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      }
+      if (hasManagerRole(authRoles)) {
+        return NextResponse.redirect(new URL("/manager", request.url));
+      }
+      if (hasTransportProviderRole(authRoles)) {
+        return NextResponse.redirect(new URL("/transport", request.url));
+      }
+      return NextResponse.redirect(new URL("/home", request.url));
     }
 
   }

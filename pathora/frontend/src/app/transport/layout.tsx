@@ -26,5 +26,5 @@ export default async function TransportLayout({ children }: { children: ReactNod
     redirect("/home");
   }
 
-  return <AdminShell variant="provider">{children}</AdminShell>;
+  return <AdminShell variant="provider" providerPortal="transport">{children}</AdminShell>;
 }

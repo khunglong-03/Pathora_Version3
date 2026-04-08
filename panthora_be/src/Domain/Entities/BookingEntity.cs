@@ -2,48 +2,82 @@ namespace Domain.Entities;
 
 using Domain.Events;
 
+/// <summary>
+/// Đại diện cho một booking (đặt tour) trong hệ thống. Liên kết khách hàng với một TourInstance cụ thể,
+/// theo dõi số lượng người tham gia (người lớn/trẻ em/em bé), tổng giá, phương thức thanh toán,
+/// và trạng thái booking. Trạng thái chuyển đổi theo machine: Pending → Confirmed → Deposited → Paid → Completed,
+/// hoặc có thể bị hủy ở bất kỳ trạng thái nào trước Completed.
+/// </summary>
 public class BookingEntity : Aggregate<Guid>
 {
     // Foreign keys
+    /// <summary>ID của TourInstance mà booking này thuộc về.</summary>
     public Guid TourInstanceId { get; set; }
+    /// <summary>TourInstance được đặt trong booking này.</summary>
     public virtual TourInstanceEntity TourInstance { get; set; } = null!;
+    /// <summary>ID của User (khách hàng đã đăng nhập) thực hiện booking. Null nếu là khách vãng lai.</summary>
     public Guid? UserId { get; set; }
+    /// <summary>User thực hiện booking.</summary>
     public virtual UserEntity? User { get; set; }
+    /// <summary>ID của TourRequest liên quan (nếu booking được tạo từ yêu cầu tư vấn).</summary>
     public Guid? TourRequestId { get; set; }
+    /// <summary>TourRequest liên quan đến booking này.</summary>
     public virtual TourRequestEntity? TourRequest { get; set; }
 
     // Customer info
+    /// <summary>Tên khách hàng.</summary>
     public string CustomerName { get; set; } = null!;
+    /// <summary>Số điện thoại khách hàng.</summary>
     public string CustomerPhone { get; set; } = null!;
+    /// <summary>Email khách hàng (optional).</summary>
     public string? CustomerEmail { get; set; }
 
     // Participants
+    /// <summary>Số người lớn trong booking.</summary>
     public int NumberAdult { get; set; }
+    /// <summary>Số trẻ em (2-11 tuổi) trong booking.</summary>
     public int NumberChild { get; set; }
+    /// <summary>Số em bé (dưới 2 tuổi) trong booking.</summary>
     public int NumberInfant { get; set; }
 
     // Payment
+    /// <summary>Tổng giá booking.</summary>
     public decimal TotalPrice { get; set; }
+    /// <summary>Phương thức thanh toán (VNPay, MoMo, chuyển khoản, v.v.).</summary>
     public PaymentMethod PaymentMethod { get; set; }
+    /// <summary>True nếu khách thanh toán đủ, False nếu chỉ đặt cọc.</summary>
     public bool IsFullPay { get; set; }
 
     // Booking type
+    /// <summary>Loại booking: Join chuyến đi có sẵn hoặc Private tour riêng.</summary>
     public BookingType BookingType { get; set; } = BookingType.InstanceJoin;
 
     // Status & dates
+    /// <summary>Trạng thái booking: Pending → Confirmed → Deposited → Paid → Completed, hoặc Cancelled.</summary>
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
+    /// <summary>Ngày giờ tạo booking.</summary>
     public DateTimeOffset BookingDate { get; set; }
+    /// <summary>Ngày giờ hủy booking (null nếu chưa hủy).</summary>
     public DateTimeOffset? CancelledAt { get; set; }
+    /// <summary>Lý do hủy booking.</summary>
     public string? CancelReason { get; set; }
 
     // Navigation
+    /// <summary>Danh sách các hoạt động đã đặt trong booking này (ngày tham quan, vận chuyển, lưu trú).</summary>
     public virtual List<BookingActivityReservationEntity> BookingActivityReservations { get; set; } = [];
+    /// <summary>Danh sách các thành viên tham gia trong booking (người lớn, trẻ em, em bé).</summary>
     public virtual List<BookingParticipantEntity> BookingParticipants { get; set; } = [];
+    /// <summary>Danh sách hướng dẫn viên được phân công vào booking.</summary>
     public virtual List<BookingTourGuideEntity> BookingTourGuides { get; set; } = [];
+    /// <summary>Danh sách trạng thái hoạt động theo ngày (tracking thực tế).</summary>
     public virtual List<TourDayActivityStatusEntity> TourDayActivityStatuses { get; set; } = [];
+    /// <summary>Danh sách công nợ với nhà cung cấp cho booking này.</summary>
     public virtual List<SupplierPayableEntity> SupplierPayables { get; set; } = [];
+    /// <summary>Danh sách các đợt đặt cọc của khách.</summary>
     public virtual List<CustomerDepositEntity> Deposits { get; set; } = [];
+    /// <summary>Danh sách các khoản thanh toán của khách.</summary>
     public virtual List<CustomerPaymentEntity> Payments { get; set; } = [];
+    /// <summary>Danh sách các giao dịch thanh toán của booking.</summary>
     public virtual List<PaymentTransactionEntity> PaymentTransactions { get; set; } = [];
 
 

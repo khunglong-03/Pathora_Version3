@@ -22,8 +22,14 @@ import {
   Van,
   Bed,
   PaintBrush,
+  Truck,
+  Car,
+  ListChecks,
+  TrendUp,
+  BuildingOffice,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
+import { transportProviderService } from "@/api/services/transportProviderService";
 import { AdminLogoutButton } from "./AdminLogoutButton";
 
 /* ══════════════════════════════════════════════════════════════
@@ -71,9 +77,21 @@ export const ADMIN_NAV_ITEMS = [
 
 export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
-export const PROVIDER_NAV_ITEMS = [
+export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: Bed, href: "/hotel" },
 ] as const;
+
+export const TRANSPORT_PROVIDER_NAV_ITEMS = [
+  { label: "VT của tôi", icon: Truck, href: "/transport" },
+  { label: "Quản lý xe", icon: Car, href: "/transport/vehicles" },
+  { label: "Quản lý tài xế", icon: UsersThree, href: "/transport/drivers" },
+  { label: "Phân công chuyến", icon: ListChecks, href: "/transport/trips" },
+  { label: "Doanh thu", icon: TrendUp, href: "/transport/revenue" },
+  { label: "Công ty", icon: BuildingOffice, href: "/transport/profile" },
+] as const;
+
+// Keep old export for backward compat during migration
+export const PROVIDER_NAV_ITEMS = HOTEL_PROVIDER_NAV_ITEMS;
 
 export type NavItem = (typeof MANAGER_NAV_ITEMS)[number];
 
@@ -91,17 +109,31 @@ interface AdminSidebarProps {
   children?: React.ReactNode;
   variant?: "manager" | "admin" | "provider";
   isAdmin?: boolean;
+  providerPortal?: "hotel" | "transport";
 }
 
 
 /* ══════════════════════════════════════════════════════════════
    AdminSidebar Component
    ══════════════════════════════════════════════════════════════ */
-export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }: AdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose, children, variant = "manager", providerPortal }: AdminSidebarProps) {
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
+  const [companyName, setCompanyName] = useState<string>("");
 
-  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? PROVIDER_NAV_ITEMS : MANAGER_NAV_ITEMS;
+  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? (providerPortal === "transport" ? TRANSPORT_PROVIDER_NAV_ITEMS : HOTEL_PROVIDER_NAV_ITEMS) : MANAGER_NAV_ITEMS;
+
+  const loadCompanyName = useCallback(async () => {
+    if (providerPortal !== "transport") return;
+    try {
+      const profile = await transportProviderService.getCompanyProfile();
+      if (profile?.name) {
+        setCompanyName(profile.name);
+      }
+    } catch {
+      // Silently fail — company name is optional
+    }
+  }, [providerPortal]);
 
   // For admin, build enriched nav with section labels
   const renderAdminNav = () => {
@@ -190,7 +222,11 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }:
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadPendingCount();
     }
-  }, [variant, loadPendingCount]);
+    if (variant === "provider") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadCompanyName();
+    }
+  }, [variant, loadPendingCount, loadCompanyName]);
 
   const isActive = (href: string) => {
     if (href === "/manager/dashboard") {
@@ -221,7 +257,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }:
           style={{ borderBottom: "1px solid var(--sidebar-border)" }}
         >
           <Link
-            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? "/hotel" : "/manager/dashboard"}
+            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : "/manager/dashboard"}
             className="flex items-center gap-3 group"
           >
             {/* Logo mark */}
@@ -271,7 +307,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }:
             renderAdminNav()
           ) : variant === "provider" ? (
             <div className="space-y-0.5">
-              {PROVIDER_NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const active = isActive(item.href);
                 const IconComp = item.icon;
                 return (
@@ -405,7 +441,9 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }:
                 backgroundColor: "var(--accent)",
               }}
             >
-              AD
+              {providerPortal === "transport" && companyName
+                ? companyName.split(" ").slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase()
+                : "AD"}
               {/* Online dot */}
               <span
                 className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
@@ -417,10 +455,16 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager" }:
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate leading-none" style={{ color: "var(--sidebar-text)" }}>
-                Admin
+                {providerPortal === "transport" && companyName
+                  ? companyName
+                  : "Admin"}
               </p>
               <p className="text-xs truncate mt-0.5" style={{ color: "var(--sidebar-text-muted)" }}>
-                Administrator
+                {providerPortal === "transport" && companyName
+                  ? "TransportProvider"
+                  : providerPortal === "hotel"
+                  ? "HotelServiceProvider"
+                  : "Administrator"}
               </p>
             </div>
           </div>

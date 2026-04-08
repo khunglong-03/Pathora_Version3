@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 import { BoldTiltCard } from "./BoldTiltCard";
 import { homeService } from "@/api/services/homeService";
-import type { NormalizedTourInstanceVm } from "@/types/tour";
+import type { TrendingDestination } from "@/types/home";
 
 type DestinationCard = {
   id: string;
@@ -18,18 +18,13 @@ type DestinationCard = {
 const fallbackImage =
   "https://images.unsplash.com/photo-1509030969356-4dd11f51c5e8?w=600&q=80";
 
-const mapInstancesToDestinations = (
-  data: NormalizedTourInstanceVm[]
-): DestinationCard[] =>
-  data.map((instance) => ({
-    id: instance.id,
-    name: instance.location || instance.tourName || "Unknown Destination",
-    country: "Vietnam",
-    image:
-      instance.thumbnail?.publicURL ||
-      instance.images?.[0]?.publicURL ||
-      fallbackImage,
-    tours: 1,
+const mapTrendingToDestinations = (data: TrendingDestination[]): DestinationCard[] =>
+  data.map((dest) => ({
+    id: `${dest.city}-${dest.country}`,
+    name: dest.city,
+    country: dest.country,
+    image: dest.imageUrl ?? fallbackImage,
+    tours: dest.toursCount,
   }));
 
 export const BoldTrendingDestinations = () => {
@@ -44,13 +39,8 @@ export const BoldTrendingDestinations = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await homeService.getAvailablePublicInstances(
-        undefined,
-        1,
-        6,
-        i18n.resolvedLanguage ?? i18n.language
-      );
-      setDestinations(mapInstancesToDestinations(result?.data ?? []));
+      const result = await homeService.getTrendingDestinations(6);
+      setDestinations(mapTrendingToDestinations(result ?? []));
     } catch {
       setError(
         t("landing.destinations.loadError") || "Unable to load destinations"
@@ -59,7 +49,7 @@ export const BoldTrendingDestinations = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [i18n.language, i18n.resolvedLanguage, t]);
+  }, [i18n.language, t]);
 
   React.useEffect(() => {
     fetchDestinations();

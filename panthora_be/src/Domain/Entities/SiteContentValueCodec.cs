@@ -3,6 +3,12 @@ using System.Text.Json;
 
 namespace Domain.Entities;
 
+/// <summary>
+/// Codec xử lý nội dung CMS từ SiteContentEntity.ContentValue.
+/// Hỗ trợ cả chuỗi đơn ngữ và JSON đa ngôn ngữ (en/vi).
+/// Cung cấp encode/decode, phân giải ngôn ngữ, và trích xuất giá trị editable.
+/// </summary>
+
 public readonly record struct SiteContentValueMetadata(
     bool IsLocalized,
     bool HasEnglish,

@@ -1,20 +1,34 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Đợt đặt cọc của khách hàng cho một booking.
+/// Một booking có thể có nhiều đợt đặt cọc (Deposit 1, Deposit 2...).
+/// Mỗi đợt có số tiền dự kiến, hạn thanh toán, và trạng thái: Pending → Paid/Overdue → Waived.
+/// </summary>
 public class CustomerDepositEntity : Aggregate<Guid>
 {
     // Foreign key
+    /// <summary>ID của Booking.</summary>
     public Guid BookingId { get; set; }
+    /// <summary>Booking cha.</summary>
     public virtual BookingEntity Booking { get; set; } = null!;
 
     // Deposit details
+    /// <summary>Thứ tự đợt đặt cọc (1, 2, 3...).</summary>
     public int DepositOrder { get; set; }
+    /// <summary>Số tiền cọc dự kiến.</summary>
     public decimal ExpectedAmount { get; set; }
+    /// <summary>Hạn thanh toán cọc.</summary>
     public DateTimeOffset DueAt { get; set; }
+    /// <summary>Trạng thái: Pending, Paid, Overdue, Waived.</summary>
     public DepositStatus Status { get; set; } = DepositStatus.Pending;
+    /// <summary>Thời gian thanh toán thực tế.</summary>
     public DateTimeOffset? PaidAt { get; set; }
+    /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
 
     // Navigation
+    /// <summary>Danh sách các khoản thanh toán thuộc đợt cọc này.</summary>
     public virtual List<CustomerPaymentEntity> Payments { get; set; } = [];
 
     public static CustomerDepositEntity Create(

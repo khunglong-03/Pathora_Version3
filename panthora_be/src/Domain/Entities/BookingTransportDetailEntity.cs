@@ -1,28 +1,54 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Chi tiết vận chuyển được đặt cho một BookingActivityReservation.
+/// Theo dõi loại phương tiện, thời gian khởi hành/đến, thông tin vé (số ghế, số vé điện tử),
+/// giá mua (trước/sau thuế), và trạng thái đặt chỗ.
+/// </summary>
 public class BookingTransportDetailEntity : Aggregate<Guid>
 {
+    /// <summary>ID của BookingActivityReservation cha mà detail này thuộc về.</summary>
     public Guid BookingActivityReservationId { get; set; }
+    /// <summary>BookingActivityReservation cha.</summary>
     public virtual BookingActivityReservationEntity BookingActivityReservation { get; set; } = null!;
+    /// <summary>ID nhà cung cấp vận chuyển (hãng xe, hãng bay, v.v.).</summary>
     public Guid? SupplierId { get; set; }
+    /// <summary>Nhà cung cấp vận chuyển.</summary>
     public virtual SupplierEntity? Supplier { get; set; }
 
+    /// <summary>Loại phương tiện: Flight, Train, Bus, Car, Ferry, v.v.</summary>
     public TransportType TransportType { get; set; }
+    /// <summary>Thời gian khởi hành dự kiến.</summary>
     public DateTimeOffset? DepartureAt { get; set; }
+    /// <summary>Thời gian đến dự kiến.</summary>
     public DateTimeOffset? ArrivalAt { get; set; }
+    /// <summary>Số vé / mã vé.</summary>
     public string? TicketNumber { get; set; }
+    /// <summary>Số vé điện tử (e-ticket).</summary>
     public string? ETicketNumber { get; set; }
+    /// <summary>Số ghế ngồi.</summary>
     public string? SeatNumber { get; set; }
+    /// <summary>Sức chứa ghế (số lượng hành khách).</summary>
     public int SeatCapacity { get; set; }
+    /// <summary>Hạng ghế (Economy, Business, First Class, v.v.).</summary>
     public string? SeatClass { get; set; }
+    /// <summary>Số hiệu phương tiện (biển số xe, mã chuyến bay, v.v.).</summary>
     public string? VehicleNumber { get; set; }
+    /// <summary>Giá mua dịch vụ vận chuyển (chưa thuế).</summary>
     public decimal BuyPrice { get; set; }
+    /// <summary>Tỷ lệ thuế (%).</summary>
     public decimal TaxRate { get; set; }
+    /// <summary>Tổng giá sau khi đã cộng thuế (nếu IsTaxable=true).</summary>
     public decimal TotalBuyPrice { get; set; }
+    /// <summary>True nếu dịch vụ này chịu thuế.</summary>
     public bool IsTaxable { get; set; }
+    /// <summary>URL file đính kèm (vé, hóa đơn, v.v.).</summary>
     public string? FileUrl { get; set; }
+    /// <summary>Yêu cầu đặc biệt về vận chuyển.</summary>
     public string? SpecialRequest { get; set; }
+    /// <summary>Trạng thái đặt chỗ vận chuyển.</summary>
     public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
+    /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
 
     public static BookingTransportDetailEntity Create(

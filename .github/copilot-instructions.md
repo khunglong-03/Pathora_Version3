@@ -86,7 +86,11 @@ docker-compose -f "panthora_be/docker-compose.yml" up -d
 
 **Extend the pattern already used in the feature** — don't introduce a third approach.
 
-**API Response helpers:** Use `src/utils/apiResponse.ts` helpers (`extractItems`, `extractResult`, `extractData`, `handleApiError`) instead of manually unwrapping backend payloads.
+**API Response helpers:** Use `src/utils/apiResponse.ts` helpers instead of manually unwrapping backend payloads:
+- `extractItems<T>()` — Extract array from nested backend response
+- `extractResult<T>()` — Extract single result from `result`, `data`, or `value` field
+- `extractData<T>()` — Extract data from `ServiceResponse<T>` checking `success` flag
+- `handleApiError()` — Map backend errors to translation keys with proper error codes
 
 **Forms:** Use `react-hook-form` + `yup` validation (existing pattern).
 
@@ -202,6 +206,24 @@ Both are deploy-only on `main` branch.
 
 ## Documentation
 
-**Design docs:** `pathora/docs/`
-**Change tracking:** `openspec/changes/` (OpenSpec workflow)
-**Architecture details:** See respective `AGENTS.md` and `CLAUDE.md` files in each project root.
+**Design docs:** `pathora/docs/`  
+**Change tracking:** `openspec/changes/` (OpenSpec workflow using spec-driven schema)  
+**Architecture details:** See respective `AGENTS.md` and `CLAUDE.md` files in each project root
+
+## Common Pitfalls
+
+**Path confusion:**
+- Frontend code is in `pathora/frontend/`, NOT `pathora/` or root-level `backend/`
+- Active backend is `panthora_be/`, NOT the root-level `backend/` folder
+- Some older docs may reference `D:\DoAn` but workspace is `D:\Doan2`
+
+**Port numbers:**
+- Frontend dev server: **port 3003** (some docs incorrectly say 3000/3001)
+- Backend API: port 5182 (dev), https://api.vivugo.me (prod)
+
+**React version:**
+- Currently using React **18.3.1** (some docs incorrectly mention React 19)
+
+**Data fetching:**
+- Two patterns coexist: Axios services (`src/services/*`) and RTK Query (`src/store/api/*`)
+- Extend whichever pattern is already used in the feature, don't create a third approach

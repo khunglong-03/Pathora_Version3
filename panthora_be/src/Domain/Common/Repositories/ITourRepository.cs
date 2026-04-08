@@ -41,8 +41,8 @@ public interface ITourRepository
         int? maxDays);
     Task<List<(string City, string Country, int ToursCount)>> GetTrendingDestinations(int limit);
     Task<List<TourPlanLocationEntity>> GetTopAttractions(int limit);
-    Task<int> GetTotalActiveTours();
-    Task<decimal> GetTotalDistanceKm();
+    Task<int> GetTotalActiveTours(CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalDistanceKm(CancellationToken cancellationToken = default);
     Task<List<string>> GetAllDestinations();
     Task<TourPlanLocationEntity?> FindLocationByIdAsync(Guid id);
 }

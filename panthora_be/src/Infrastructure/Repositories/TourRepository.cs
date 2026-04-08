@@ -438,14 +438,14 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetTotalActiveTours()
+    public async Task<int> GetTotalActiveTours(CancellationToken cancellationToken = default)
     {
         return await _context.Tours
             .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
-            .CountAsync();
+            .CountAsync(cancellationToken);
     }
 
-    public async Task<decimal> GetTotalDistanceKm()
+    public async Task<decimal> GetTotalDistanceKm(CancellationToken cancellationToken = default)
     {
         return await _context.TourPlanRoutes
             .Where(r => r.DistanceKm != null)
@@ -454,7 +454,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                         r.TourDayActivity.TourDay.Classification.Tour != null &&
                         r.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
                         !r.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
-            .SumAsync(r => r.DistanceKm ?? 0);
+            .SumAsync(r => r.DistanceKm ?? 0, cancellationToken);
     }
 
     public async Task<List<string>> GetAllDestinations()
