@@ -79,6 +79,9 @@ export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
 export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: Bed, href: "/hotel" },
+  { label: "Quản lý phòng", icon: Bed, href: "/hotel/rooms" },
+  { label: "Nhận khách", icon: Buildings, href: "/hotel/arrivals" },
+  { label: "Công ty", icon: BuildingOffice, href: "/hotel/profile" },
 ] as const;
 
 export const TOURDESIGNER_NAV_ITEMS = [
@@ -295,7 +298,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                 className="text-[10px] font-medium tracking-widest uppercase mt-0.5"
                 style={{ color: "var(--sidebar-text-muted)" }}
               >
-                Admin
+                {providerPortal === "transport"
+                  ? "Transport Provider"
+                  : providerPortal === "hotel"
+                  ? "Hotel Provider"
+                  : providerPortal === "tour-designer"
+                  ? "Tour Designer"
+                  : providerPortal === "tour-guide"
+                  ? "Tour Guide"
+                  : "Admin"}
               </span>
             </div>
           </Link>
