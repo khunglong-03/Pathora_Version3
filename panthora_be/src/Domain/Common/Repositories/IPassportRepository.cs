@@ -4,5 +4,5 @@ namespace Domain.Common.Repositories;
 
 public interface IPassportRepository : IRepository<PassportEntity>
 {
-    Task<PassportEntity?> GetByBookingParticipantIdAsync(Guid bookingParticipantId);
+    Task<PassportEntity?> GetByBookingParticipantIdAsync(Guid bookingParticipantId, CancellationToken cancellationToken = default);
 }

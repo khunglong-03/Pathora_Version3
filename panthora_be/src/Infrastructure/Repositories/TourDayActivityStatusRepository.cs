@@ -9,17 +9,17 @@ namespace Infrastructure.Repositories;
 public class TourDayActivityStatusRepository(AppDbContext context)
     : Repository<TourDayActivityStatusEntity>(context), ITourDayActivityStatusRepository
 {
-    public async Task<IReadOnlyList<TourDayActivityStatusEntity>> GetByBookingIdAsync(Guid bookingId)
+    public async Task<IReadOnlyList<TourDayActivityStatusEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.BookingId == bookingId)
             .OrderBy(x => x.TourDayId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<TourDayActivityStatusEntity?> GetByBookingIdAndTourDayIdAsync(Guid bookingId, Guid tourDayId)
+    public async Task<TourDayActivityStatusEntity?> GetByBookingIdAndTourDayIdAsync(Guid bookingId, Guid tourDayId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .FirstOrDefaultAsync(x => x.BookingId == bookingId && x.TourDayId == tourDayId);
+            .FirstOrDefaultAsync(x => x.BookingId == bookingId && x.TourDayId == tourDayId, cancellationToken);
     }
 }

@@ -2,6 +2,7 @@ import {
   buildTourTranslationsPayload,
   type TourTranslationFormValues,
 } from "./tourTranslations";
+import { tourFormSchema, type TourFormValues } from "@/schemas/tour-form";
 
 interface BasicInfoPayload {
   tourName: string;
@@ -587,7 +588,53 @@ export const buildTourFormData = ({
   selectedDepositPolicyId,
   selectedCancellationPolicyId,
   selectedVisaPolicyId,
-}: CreateTourPayloadOptions) => {
+}: CreateTourPayloadOptions): FormData => {
+  // Safety-net Zod validation — surfaces errors early before sending to API
+  const payload: TourFormValues = {
+    basicInfo: {
+      tourName: basicInfo.tourName,
+      shortDescription: basicInfo.shortDescription,
+      longDescription: basicInfo.longDescription,
+      seoTitle: basicInfo.seoTitle ?? "",
+      seoDescription: basicInfo.seoDescription ?? "",
+      status: basicInfo.status,
+      tourScope: basicInfo.tourScope ?? "",
+      continent: basicInfo.continent ?? "",
+      customerSegment: basicInfo.customerSegment ?? "",
+    },
+    enTranslation: {
+      tourName: "",
+      shortDescription: "",
+      longDescription: "",
+      seoTitle: "",
+      seoDescription: "",
+    },
+    classifications: classifications.map((c) => ({
+      id: undefined,
+      name: c.name,
+      enName: c.enName ?? "",
+      description: c.description ?? "",
+      enDescription: c.enDescription ?? "",
+      basePrice: c.basePrice,
+      durationDays: c.durationDays,
+    })),
+    dayPlans: dayPlans as unknown as TourFormValues["dayPlans"],
+    insurances: insurances as unknown as TourFormValues["insurances"],
+    services: services as unknown as TourFormValues["services"],
+    activeLang: "vi",
+    deletedClassificationIds: [],
+    deletedActivityIds: [],
+  };
+
+  const result = tourFormSchema.safeParse(payload);
+  if (!result.success) {
+    // Safety-net: warn but don't block — form-level validation handles field errors
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((i) => `[${i.path.join(".")}] ${i.message}`)
+      .join("; ");
+    console.warn("[tourCreatePayload] Zod validation warning:", issues);
+  }
   const formData = new FormData();
 
   formData.append("tourName", basicInfo.tourName);

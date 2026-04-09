@@ -8,25 +8,25 @@ namespace Infrastructure.Repositories;
 
 public class VisaPolicyRepository(AppDbContext context) : Repository<VisaPolicyEntity>(context), IVisaPolicyRepository
 {
-    public async Task<IReadOnlyList<VisaPolicyEntity>> GetActivePoliciesAsync()
+    public async Task<IReadOnlyList<VisaPolicyEntity>> GetActivePoliciesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.IsActive && !x.IsDeleted)
             .OrderBy(x => x.Region)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<VisaPolicyEntity>> GetAllPoliciesAsync()
+    public async Task<IReadOnlyList<VisaPolicyEntity>> GetAllPoliciesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => !x.IsDeleted)
             .OrderBy(x => x.Region)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<VisaPolicyEntity?> GetByRegionAsync(string region)
+    public async Task<VisaPolicyEntity?> GetByRegionAsync(string region, CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .FirstOrDefaultAsync(x => x.Region == region && x.IsActive && !x.IsDeleted);
+            .FirstOrDefaultAsync(x => x.Region == region && x.IsActive && !x.IsDeleted, cancellationToken);
     }
 }

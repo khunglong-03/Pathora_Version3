@@ -10,34 +10,34 @@ public class PasswordResetTokenRepository(AppDbContext context) : IPasswordReset
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<ErrorOr<Success>> CreateAsync(PasswordResetTokenEntity token)
+    public async Task<ErrorOr<Success>> CreateAsync(PasswordResetTokenEntity token, CancellationToken ct = default)
     {
         // Delete any existing tokens for this user first
         var existingTokens = await _context.Set<PasswordResetTokenEntity>()
             .Where(t => t.UserId == token.UserId && !t.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         foreach (var existingToken in existingTokens)
         {
             existingToken.IsDeleted = true;
         }
 
-        await _context.Set<PasswordResetTokenEntity>().AddAsync(token);
-        await _context.SaveChangesAsync();
+        await _context.Set<PasswordResetTokenEntity>().AddAsync(token, ct);
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 
-    public async Task<ErrorOr<PasswordResetTokenEntity?>> GetByTokenHashAsync(string tokenHash)
+    public async Task<ErrorOr<PasswordResetTokenEntity?>> GetByTokenHashAsync(string tokenHash, CancellationToken ct = default)
     {
         var token = await _context.Set<PasswordResetTokenEntity>()
             .AsNoTracking()
             .FirstOrDefaultAsync(t =>
                 t.TokenHash == tokenHash &&
-                !t.IsDeleted);
+                !t.IsDeleted, ct);
         return token;
     }
 
-    public async Task<ErrorOr<PasswordResetTokenEntity?>> GetValidTokenAsync(string tokenHash)
+    public async Task<ErrorOr<PasswordResetTokenEntity?>> GetValidTokenAsync(string tokenHash, CancellationToken ct = default)
     {
         var token = await _context.Set<PasswordResetTokenEntity>()
             .AsNoTracking()
@@ -45,14 +45,14 @@ public class PasswordResetTokenRepository(AppDbContext context) : IPasswordReset
                 t.TokenHash == tokenHash &&
                 !t.IsDeleted &&
                 t.UsedAt == null &&
-                t.ExpiresAt > DateTimeOffset.UtcNow);
+                t.ExpiresAt > DateTimeOffset.UtcNow, ct);
         return token;
     }
 
-    public async Task<ErrorOr<Success>> MarkAsUsedAsync(Guid tokenId)
+    public async Task<ErrorOr<Success>> MarkAsUsedAsync(Guid tokenId, CancellationToken ct = default)
     {
         var token = await _context.Set<PasswordResetTokenEntity>()
-            .FirstOrDefaultAsync(t => t.Id == tokenId);
+            .FirstOrDefaultAsync(t => t.Id == tokenId, ct);
 
         if (token is null)
         {
@@ -60,22 +60,22 @@ public class PasswordResetTokenRepository(AppDbContext context) : IPasswordReset
         }
 
         token.MarkAsUsed();
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> DeleteByUserIdAsync(string userId)
+    public async Task<ErrorOr<Success>> DeleteByUserIdAsync(string userId, CancellationToken ct = default)
     {
         var tokens = await _context.Set<PasswordResetTokenEntity>()
             .Where(t => t.UserId == userId && !t.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         foreach (var token in tokens)
         {
             token.IsDeleted = true;
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 }

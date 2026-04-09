@@ -9,24 +9,24 @@ namespace Infrastructure.Repositories;
 
 public class UserRepository(AppDbContext context) : Repository<UserEntity>(context), IUserRepository
 {
-    public async Task<UserEntity?> FindByEmail(string email)
+    public async Task<UserEntity?> FindByEmail(string email, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
         var result = await _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted);
+            .FirstOrDefaultAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted, cancellationToken);
         return result;
     }
 
-    public async Task<UserEntity?> FindById(Guid id)
+    public async Task<UserEntity?> FindById(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Users
             .AsNoTracking()
             .Include(u => u.UserSetting)
-            .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
+            .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<UserEntity>> FindByIds(IEnumerable<Guid> ids)
+    public async Task<IReadOnlyList<UserEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();
         if (idList.Count == 0)
@@ -35,34 +35,32 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         return await _context.Users
             .AsNoTracking()
             .Where(u => idSet.Contains(u.Id) && !u.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<UserEntity?> FindByGoogleId(string googleId)
+    public async Task<UserEntity?> FindByGoogleId(string googleId, CancellationToken cancellationToken = default)
     {
         return await _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.GoogleId == googleId && !u.IsDeleted);
+            .FirstOrDefaultAsync(u => u.GoogleId == googleId && !u.IsDeleted, cancellationToken);
     }
 
-    public async Task Create(UserEntity user)
+    public async Task Create(UserEntity user, CancellationToken cancellationToken = default)
     {
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await _context.Users.AddAsync(user, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-
-
-    public async Task SoftDelete(Guid id)
+    public async Task SoftDelete(Guid id, CancellationToken cancellationToken = default)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
         if (user != null)
         {
             user.IsDeleted = true;
         }
     }
 
-    public async Task<List<UserEntity>> FindAll(string? textSearch, Guid? departmentId, int pageNumber, int pageSize)
+    public async Task<List<UserEntity>> FindAll(string? textSearch, Guid? departmentId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = _context.Users
             .AsNoTracking()
@@ -81,10 +79,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
             .OrderByDescending(u => u.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<UserEntity>> FindAll(string? textSearch, Guid? departmentId, int pageNumber, int pageSize, List<Guid>? roleUserIds)
+    public async Task<List<UserEntity>> FindAll(string? textSearch, Guid? departmentId, int pageNumber, int pageSize, List<Guid>? roleUserIds, CancellationToken cancellationToken = default)
     {
         var query = _context.Users
             .AsNoTracking()
@@ -106,10 +104,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
             .OrderByDescending(u => u.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<UserEntity>> FindAll(string? textSearch, int? roleId, int pageNumber, int pageSize)
+    public async Task<List<UserEntity>> FindAll(string? textSearch, int? roleId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         IQueryable<UserEntity> query;
 
@@ -143,10 +141,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
             .OrderByDescending(u => u.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? textSearch, int? roleId)
+    public async Task<int> CountAll(string? textSearch, int? roleId, CancellationToken cancellationToken = default)
     {
         IQueryable<UserEntity> query;
 
@@ -174,10 +172,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(search));
         }
 
-        return await query.CountAsync();
+        return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? textSearch, Guid? departmentId)
+    public async Task<int> CountAll(string? textSearch, Guid? departmentId, CancellationToken cancellationToken = default)
     {
         var query = _context.Users.Where(u => !u.IsDeleted);
 
@@ -190,19 +188,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(search));
         }
 
-        return await query.CountAsync();
-    }
-
-    public async Task<int> CountActiveManagersAsync(CancellationToken cancellationToken)
-    {
-        return await _context.UserRoles
-            .AsNoTracking()
-            .Where(ur => ur.RoleId == 2) // Manager role
-            .Join(_context.Users.Where(u => !u.IsDeleted),
-                ur => ur.UserId,
-                u => u.Id,
-                (ur, u) => u)
-            .CountAsync(cancellationToken);
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task<Dictionary<string, int>> CountByRolesAsync(string? textSearch, CancellationToken cancellationToken = default)
@@ -237,7 +223,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         return counts.ToDictionary(x => x.RoleName, x => x.Count);
     }
 
-    public async Task<int> CountAll(string? textSearch, Guid? departmentId, List<Guid>? roleUserIds)
+    public async Task<int> CountAll(string? textSearch, Guid? departmentId, List<Guid>? roleUserIds, CancellationToken cancellationToken = default)
     {
         var query = _context.Users.Where(u => !u.IsDeleted);
 
@@ -253,13 +239,25 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(search));
         }
 
-        return await query.CountAsync();
+        return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<bool> IsEmailUnique(string email)
+    public async Task<int> CountActiveManagersAsync(CancellationToken cancellationToken)
+    {
+        return await _context.UserRoles
+            .AsNoTracking()
+            .Where(ur => ur.RoleId == 2) // Manager role
+            .Join(_context.Users.Where(u => !u.IsDeleted),
+                ur => ur.UserId,
+                u => u.Id,
+                (ur, u) => u)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<bool> IsEmailUnique(string email, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
-        return !await _context.Users.AnyAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted);
+        return !await _context.Users.AnyAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted, cancellationToken);
     }
 
     public async Task<List<UserEntity>> FindProvidersByRoleAsync(
@@ -340,10 +338,6 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
     public async Task<List<ManagerUserSummaryDto>> GetAllManagerUsersAsync(CancellationToken cancellationToken)
     {
-        // Query: Users → UserRoles (RoleId == 2) → LEFT JOIN TourManagerAssignments
-        // Group by user, count by AssignedEntityType
-        // Note: RoleId == 2 is "Manager" from seed data (role.json)
-        // Note: TourManagerAssignmentEntity has no IsDeleted — query directly
         var query = _context.UserRoles
             .AsNoTracking()
             .Where(ur => ur.RoleId == 2) // Manager role

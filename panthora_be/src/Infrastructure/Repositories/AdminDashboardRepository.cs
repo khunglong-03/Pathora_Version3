@@ -219,9 +219,9 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
 
         return rows
             .Select(x => new AdminDashboardTopTourReport(
-                Name: ResolveTourDisplayName(x.Title, x.TourName),
-                Bookings: x.Bookings,
-                Revenue: x.Revenue))
+                ResolveTourDisplayName(x.Title, x.TourName),
+                x.Bookings,
+                x.Revenue))
             .ToList();
     }
 
@@ -323,8 +323,8 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
 
         return rows
             .Select(x => new AdminDashboardVisaDeadlineReport(
-                Tour: ResolveTourDisplayName(x.TourTitle, x.Destination),
-                Date: x.DepartureDate.ToString("dd MMM", DateCulture)))
+                ResolveTourDisplayName(x.TourTitle, x.Destination),
+                x.DepartureDate.ToString("dd MMM", DateCulture)))
             .ToList();
     }
 
@@ -441,9 +441,9 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
             {
                 var month = firstMonth.AddMonths(offset);
                 return new MonthRangeItem(
-                    Key: BuildMonthKey(month.Year, month.Month),
-                    Label: month.ToString("MMM", DateCulture),
-                    MonthStart: month);
+                    BuildMonthKey(month.Year, month.Month),
+                    month.ToString("MMM", DateCulture),
+                    month);
             })
             .ToList();
     }

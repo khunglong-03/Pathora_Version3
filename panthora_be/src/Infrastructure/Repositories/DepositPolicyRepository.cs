@@ -8,11 +8,11 @@ namespace Infrastructure.Repositories;
 
 public class DepositPolicyRepository(AppDbContext context) : Repository<DepositPolicyEntity>(context), IDepositPolicyRepository
 {
-    public async Task<IReadOnlyList<DepositPolicyEntity>> GetAllActiveAsync()
+    public async Task<IReadOnlyList<DepositPolicyEntity>> GetAllActiveAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.IsActive && !x.IsDeleted)
             .OrderBy(x => x.TourScope)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

@@ -30,12 +30,12 @@ public sealed class GetTourManagerAssignmentsQueryHandler(
             {
                 var manager = g.First().TourManager;
                 return new TourManagerSummaryVm(
-                    ManagerId: g.Key,
-                    ManagerName: manager.FullName ?? manager.Username,
-                    ManagerEmail: manager.Email,
-                    DesignerCount: g.Count(a => a.AssignedEntityType == AssignedEntityType.TourDesigner),
-                    GuideCount: g.Count(a => a.AssignedEntityType == AssignedEntityType.TourGuide),
-                    TourCount: g.Count(a => a.AssignedEntityType == AssignedEntityType.Tour));
+                    g.Key,
+                    manager.FullName ?? manager.Username,
+                    manager.Email,
+                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourDesigner),
+                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourGuide),
+                    g.Count(a => a.AssignedEntityType == AssignedEntityType.Tour));
             })
             .ToList();
 

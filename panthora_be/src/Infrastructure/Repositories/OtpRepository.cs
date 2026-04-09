@@ -12,12 +12,12 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 30;
 
-    public async Task<ErrorOr<Success>> Upsert(OtpEntity otp)
+    public async Task<ErrorOr<Success>> Upsert(OtpEntity otp, CancellationToken ct = default)
     {
-        var existing = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == otp.Email);
+        var existing = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == otp.Email, ct);
         if (existing is null)
         {
-            await _context.Set<OtpEntity>().AddAsync(otp);
+            await _context.Set<OtpEntity>().AddAsync(otp, ct);
         }
         else
         {
@@ -25,26 +25,26 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
             existing.ExpiryDate = otp.ExpiryDate;
             existing.IsDeleted = false;
         }
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 
-    public async Task<ErrorOr<OtpEntity?>> FindByEmail(string email)
+    public async Task<ErrorOr<OtpEntity?>> FindByEmail(string email, CancellationToken ct = default)
     {
         var otp = await _context.Set<OtpEntity>()
             .AsNoTracking()
             .FirstOrDefaultAsync(o =>
                 o.Email == email &&
                 !o.IsDeleted &&
-                o.ExpiryDate > DateTimeOffset.UtcNow);
+                o.ExpiryDate > DateTimeOffset.UtcNow, ct);
         return otp;
     }
 
-    public async Task<ErrorOr<int>> GetFailedAttemptsCount(string email)
+    public async Task<ErrorOr<int>> GetFailedAttemptsCount(string email, CancellationToken ct = default)
     {
         var otp = await _context.Set<OtpEntity>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Email == email);
+            .FirstOrDefaultAsync(o => o.Email == email, ct);
 
         if (otp is null)
             return 0;
@@ -55,16 +55,16 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
             // Clear expired lockout
             otp.FailedAttemptsCount = 0;
             otp.LockoutExpiration = null;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
             return 0;
         }
 
         return otp.FailedAttemptsCount;
     }
 
-    public async Task<ErrorOr<Success>> IncrementFailedAttempts(string email)
+    public async Task<ErrorOr<Success>> IncrementFailedAttempts(string email, CancellationToken ct = default)
     {
-        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email);
+        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email, ct);
 
         if (otp is null)
         {
@@ -76,7 +76,7 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
                 ExpiryDate = DateTimeOffset.UtcNow.AddDays(-1), // Expired
                 FailedAttemptsCount = 1
             };
-            await _context.Set<OtpEntity>().AddAsync(otp);
+            await _context.Set<OtpEntity>().AddAsync(otp, ct);
         }
         else
         {
@@ -89,15 +89,15 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
             }
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 
-    public async Task<ErrorOr<DateTimeOffset?>> GetLockoutExpiration(string email)
+    public async Task<ErrorOr<DateTimeOffset?>> GetLockoutExpiration(string email, CancellationToken ct = default)
     {
         var otp = await _context.Set<OtpEntity>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Email == email);
+            .FirstOrDefaultAsync(o => o.Email == email, ct);
 
         if (otp is null)
             return (DateTimeOffset?)null;
@@ -108,16 +108,16 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
             // Clear expired lockout
             otp.FailedAttemptsCount = 0;
             otp.LockoutExpiration = null;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
             return (DateTimeOffset?)null;
         }
 
         return otp.LockoutExpiration;
     }
 
-    public async Task<ErrorOr<Success>> SetLockout(string email, DateTimeOffset expiration)
+    public async Task<ErrorOr<Success>> SetLockout(string email, DateTimeOffset expiration, CancellationToken ct = default)
     {
-        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email);
+        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email, ct);
 
         if (otp is null)
         {
@@ -129,7 +129,7 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
                 FailedAttemptsCount = MaxFailedAttempts,
                 LockoutExpiration = expiration
             };
-            await _context.Set<OtpEntity>().AddAsync(otp);
+            await _context.Set<OtpEntity>().AddAsync(otp, ct);
         }
         else
         {
@@ -137,19 +137,19 @@ public class OtpRepository(AppDbContext context) : IOtpRepository
             otp.LockoutExpiration = expiration;
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> ClearFailedAttempts(string email)
+    public async Task<ErrorOr<Success>> ClearFailedAttempts(string email, CancellationToken ct = default)
     {
-        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email);
+        var otp = await _context.Set<OtpEntity>().FirstOrDefaultAsync(o => o.Email == email, ct);
 
         if (otp is not null)
         {
             otp.FailedAttemptsCount = 0;
             otp.LockoutExpiration = null;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
         }
 
         return Result.Success;

@@ -135,6 +135,7 @@ public sealed class HotelProviderControllerTests
         Assert.Equal("Deluxe", dto.RoomType);
         Assert.Equal(10, dto.TotalRooms);
         Assert.Equal("Deluxe Room", dto.Name);
+        await Task.CompletedTask;
     }
 
     private static AccommodationDto MapToDtoForTest(HotelRoomInventoryEntity e)

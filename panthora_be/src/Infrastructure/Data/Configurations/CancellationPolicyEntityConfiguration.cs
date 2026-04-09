@@ -44,9 +44,11 @@ public class CancellationPolicyEntityConfiguration : IEntityTypeConfiguration<Ca
                 value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                 value => DeserializeTiers(value),
                 new ValueComparer<List<CancellationPolicyTier>>(
-                    (left, right) => JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right),
-                    value => JsonSerializer.Serialize(value).GetHashCode(),
-                    value => JsonSerializer.Deserialize<List<CancellationPolicyTier>>(JsonSerializer.Serialize(value)) ?? new List<CancellationPolicyTier>()));
+                    (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null).GetHashCode(),
+                    value => JsonSerializer.Deserialize<List<CancellationPolicyTier>>(
+                        JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
+                        (JsonSerializerOptions?)null) ?? new List<CancellationPolicyTier>()));
 
         // Translations as JSONB with explicit conversion
         builder.Property(p => p.Translations)
@@ -55,9 +57,11 @@ public class CancellationPolicyEntityConfiguration : IEntityTypeConfiguration<Ca
                 value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                 value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>>(value, (JsonSerializerOptions?)null) ?? new Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>(),
                 new ValueComparer<Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>>(
-                    (left, right) => JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right),
-                    value => JsonSerializer.Serialize(value).GetHashCode(),
-                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>>(JsonSerializer.Serialize(value)) ?? new Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>()));
+                    (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null).GetHashCode(),
+                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>>(
+                        JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
+                        (JsonSerializerOptions?)null) ?? new Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>()));
 
         // Indexes
         builder.HasIndex(p => new { p.TourScope, p.Status, p.IsDeleted });

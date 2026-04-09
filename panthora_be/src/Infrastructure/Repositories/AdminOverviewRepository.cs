@@ -88,11 +88,10 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             .Where(x => x.UserId.HasValue)
             .GroupBy(x => x.UserId!.Value)
             .Select(g => new CustomerBookingSummary(
-                UserId: g.Key,
-                TotalBookings: g.Count(),
-                TotalSpent: g.Sum(x => x.TotalPrice),
-                LastBookingDate: g.Max(x => x.BookingDate)))
-            .ToListAsync(cancellationToken);
+                g.Key,
+                g.Count(),
+                g.Sum(x => x.TotalPrice),
+                g.Max(x => x.BookingDate))).ToListAsync(cancellationToken);
 
         var bookingSummaryMap = bookingSummaries.ToDictionary(x => x.UserId);
 
@@ -120,15 +119,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                     : user.FullName;
 
                 return new AdminCustomerReport(
-                    Id: PrefixId("CUS", user.Id),
-                    Name: displayName,
-                    Email: user.Email,
-                    Phone: user.PhoneNumber ?? "-",
-                    Nationality: "Unknown",
-                    TotalBookings: summary?.TotalBookings ?? 0,
-                    TotalSpent: summary?.TotalSpent ?? 0m,
-                    Status: MapUserStatus(user.Status),
-                    LastBooking: summary is null
+                    PrefixId("CUS", user.Id),
+                    displayName,
+                    user.Email,
+                    user.PhoneNumber ?? "-",
+                    "Unknown",
+                    summary?.TotalBookings ?? 0,
+                    summary?.TotalSpent ?? 0m,
+                    MapUserStatus(user.Status),
+                    summary is null
                         ? "-"
                         : FormatDate(summary.LastBookingDate));
             })
@@ -237,15 +236,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
         return insuranceRows
             .Select(row => new AdminInsuranceReport(
-                Id: PrefixId("INS", row.Id),
-                Booking: row.ClassificationName,
-                Customer: row.Provider,
-                Type: row.InsuranceType.ToString(),
-                Coverage: FormatMoney(row.CoverageAmount),
-                Premium: row.CoverageFee,
-                Status: row.IsOptional ? "claimed" : "active",
-                StartDate: FormatDate(row.CreatedOnUtc),
-                EndDate: row.LastModifiedOnUtc.HasValue
+                PrefixId("INS", row.Id),
+                row.ClassificationName,
+                row.Provider,
+                row.InsuranceType.ToString(),
+                FormatMoney(row.CoverageAmount),
+                row.CoverageFee,
+                row.IsOptional ? "claimed" : "active",
+                FormatDate(row.CreatedOnUtc),
+                row.LastModifiedOnUtc.HasValue
                     ? FormatDate(row.LastModifiedOnUtc.Value)
                     : "-"))
             .ToList();
@@ -270,17 +269,17 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
         return visaRows
             .Select(row => new AdminVisaApplicationReport(
-                Id: PrefixId("VISA", row.Id),
-                Booking: string.IsNullOrWhiteSpace(row.TourInstanceTitle)
+                PrefixId("VISA", row.Id),
+                string.IsNullOrWhiteSpace(row.TourInstanceTitle)
                     ? row.Destination
                     : row.TourInstanceTitle,
-                Applicant: row.CustomerName,
-                Passport: "-",
-                Country: row.Destination,
-                Type: "Tourist",
-                Status: MapVisaStatus(row.Status),
-                SubmittedDate: FormatDate(row.CreatedOnUtc),
-                DecisionDate: row.ReviewedAt.HasValue
+                row.CustomerName,
+                "-",
+                row.Destination,
+                "Tourist",
+                MapVisaStatus(row.Status),
+                FormatDate(row.CreatedOnUtc),
+                row.ReviewedAt.HasValue
                     ? FormatDate(row.ReviewedAt.Value)
                     : "-"))
             .ToList();
@@ -299,12 +298,7 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             return title;
         }
 
-        if (!string.IsNullOrWhiteSpace(tourName))
-        {
-            return tourName;
-        }
-
-        return "Tour Booking";
+        return !string.IsNullOrWhiteSpace(tourName) ? tourName : "Tour Booking";
     }
 
     private static string FormatDate(DateTimeOffset value)
@@ -317,16 +311,14 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         return $"${value:N0}";
     }
 
-    private static string MapUserStatus(UserStatus status)
-    {
-        return status switch
+    private static string MapUserStatus(UserStatus status) =>
+        status switch
         {
             UserStatus.Active => "active",
             UserStatus.Inactive => "inactive",
             UserStatus.Banned => "inactive",
             _ => "inactive"
         };
-    }
 
     private static string MapVisaStatus(TourRequestStatus status)
     {

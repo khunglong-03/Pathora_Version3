@@ -30,10 +30,9 @@ const activityRouteSchema = z.object({
   enNote: z.string(),
 });
 
-// Base activity schema — all activity types share these fields
-const baseActivitySchema = z.object({
+// Base activity schema fields (no activityType — used for discriminated union variants)
+const baseActivityFields = {
   id: z.string().optional(),
-  activityType: z.string().min(1, "Loại hoạt động là bắt buộc"),
   title: z
     .string()
     .min(1, "Tên hoạt động không được để trống")
@@ -84,6 +83,23 @@ const baseActivitySchema = z.object({
   locationAddress: z.string().optional(),
   enLocationAddress: z.string().optional(),
   locationEntranceFee: z.string().optional(),
+};
+
+// Base activity schema — all non-7/non-8 activity types
+const baseActivitySchema = z.object({
+  ...baseActivityFields,
+  activityType: z
+    .union([
+      z.literal("0"),
+      z.literal("1"),
+      z.literal("2"),
+      z.literal("3"),
+      z.literal("4"),
+      z.literal("5"),
+      z.literal("6"),
+    ])
+    .optional()
+    .default("0"),
 });
 
 // Type 7 (Transport) variant — requires from/to location

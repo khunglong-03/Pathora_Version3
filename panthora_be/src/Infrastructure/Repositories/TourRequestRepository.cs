@@ -10,9 +10,9 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
 {
     private readonly AppDbContext _context = context;
 
-    public async Task AddAsync(TourRequestEntity entity)
+    public async Task AddAsync(TourRequestEntity entity, CancellationToken ct = default)
     {
-        await _context.TourRequests.AddAsync(entity);
+        await _context.TourRequests.AddAsync(entity, ct);
     }
 
     public Task UpdateAsync(TourRequestEntity entity)
@@ -21,7 +21,7 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
         return Task.CompletedTask;
     }
 
-    public async Task<TourRequestEntity?> GetByIdAsync(Guid id, bool asNoTracking = false)
+    public async Task<TourRequestEntity?> GetByIdAsync(Guid id, bool asNoTracking = false, CancellationToken ct = default)
     {
         var query = _context.TourRequests
             .Include(t => t.User)
@@ -34,14 +34,15 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
             query = query.AsNoTracking();
         }
 
-        return await query.FirstOrDefaultAsync();
+        return await query.FirstOrDefaultAsync(ct);
     }
 
     public async Task<List<TourRequestEntity>> GetByUserIdAsync(
         Guid userId,
         int pageNumber = 1,
         int pageSize = 10,
-        bool asNoTracking = false)
+        bool asNoTracking = false,
+        CancellationToken ct = default)
     {
         var query = _context.TourRequests
             .Where(t => t.UserId == userId);
@@ -60,14 +61,14 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
                 .Take(pageSize);
         }
 
-        return await query.ToListAsync();
+        return await query.ToListAsync(ct);
     }
 
-    public async Task<int> CountByUserIdAsync(Guid userId)
+    public async Task<int> CountByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
         return await _context.TourRequests
             .AsNoTracking()
-            .CountAsync(t => t.UserId == userId);
+            .CountAsync(t => t.UserId == userId, ct);
     }
 
     public async Task<List<TourRequestEntity>> GetAllAsync(
@@ -77,7 +78,8 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
         string? searchText = null,
         int pageNumber = 1,
         int pageSize = 10,
-        bool asNoTracking = false)
+        bool asNoTracking = false,
+        CancellationToken ct = default)
     {
         var query = ApplyFilters(status, fromDate, toDate, searchText);
 
@@ -95,27 +97,28 @@ public class TourRequestRepository(AppDbContext context) : ITourRequestRepositor
                 .Take(pageSize);
         }
 
-        return await query.ToListAsync();
+        return await query.ToListAsync(ct);
     }
 
     public async Task<int> CountAllAsync(
         TourRequestStatus? status = null,
         DateTimeOffset? fromDate = null,
         DateTimeOffset? toDate = null,
-        string? searchText = null)
+        string? searchText = null,
+        CancellationToken ct = default)
     {
         var query = ApplyFilters(status, fromDate, toDate, searchText);
-        return await query.AsNoTracking().CountAsync();
+        return await query.AsNoTracking().CountAsync(ct);
     }
 
-    public async Task<List<TourRequestEntity>> GetByStatusAsync(TourRequestStatus status)
+    public async Task<List<TourRequestEntity>> GetByStatusAsync(TourRequestStatus status, CancellationToken ct = default)
     {
-        return await GetAllAsync(status: status, asNoTracking: true);
+        return await GetAllAsync(status: status, asNoTracking: true, ct: ct);
     }
 
-    public async Task<int> CountByStatusAsync(TourRequestStatus status)
+    public async Task<int> CountByStatusAsync(TourRequestStatus status, CancellationToken ct = default)
     {
-        return await CountAllAsync(status: status);
+        return await CountAllAsync(status: status, ct: ct);
     }
 
     private IQueryable<TourRequestEntity> ApplyFilters(

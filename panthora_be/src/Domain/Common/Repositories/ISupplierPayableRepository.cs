@@ -4,5 +4,5 @@ namespace Domain.Common.Repositories;
 
 public interface ISupplierPayableRepository : IRepository<SupplierPayableEntity>
 {
-    Task<IReadOnlyList<SupplierPayableEntity>> GetByBookingIdAsync(Guid bookingId);
+    Task<IReadOnlyList<SupplierPayableEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
 }

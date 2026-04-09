@@ -9,7 +9,7 @@ public class ReviewRepository(AppDbContext context) : IReviewRepository
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<List<ReviewEntity>> GetTopReviews(int limit)
+    public async Task<List<ReviewEntity>> GetTopReviews(int limit, CancellationToken ct = default)
     {
         return await _context.Reviews
             .Include(r => r.User)
@@ -18,13 +18,13 @@ public class ReviewRepository(AppDbContext context) : IReviewRepository
             .OrderByDescending(r => r.Rating)
             .ThenByDescending(r => r.CreatedOnUtc)
             .Take(limit)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<int> CountReviews()
+    public async Task<int> CountReviews(CancellationToken ct = default)
     {
         return await _context.Reviews
             .Where(r => r.IsApproved)
-            .CountAsync();
+            .CountAsync(ct);
     }
 }

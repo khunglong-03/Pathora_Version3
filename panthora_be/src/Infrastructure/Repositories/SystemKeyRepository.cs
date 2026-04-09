@@ -10,13 +10,13 @@ public class SystemKeyRepository(AppDbContext context) : ISystemKeyRepository
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<ErrorOr<List<SystemKey>>> FindAll()
+    public async Task<ErrorOr<List<SystemKey>>> FindAll(CancellationToken ct = default)
     {
         return await _context.SystemKeys
             .AsNoTracking()
             .Where(s => !s.IsDeleted)
             .OrderBy(s => s.SortOrder)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     public async Task<SystemKey?> FindByCode(string codeKey, CancellationToken cancellationToken = default)

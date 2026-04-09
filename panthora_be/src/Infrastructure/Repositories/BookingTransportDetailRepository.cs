@@ -9,10 +9,10 @@ namespace Infrastructure.Repositories;
 public class BookingTransportDetailRepository(AppDbContext context)
     : Repository<BookingTransportDetailEntity>(context), IBookingTransportDetailRepository
 {
-    public async Task<IReadOnlyList<BookingTransportDetailEntity>> GetByBookingActivityReservationIdAsync(Guid bookingActivityReservationId)
+    public async Task<IReadOnlyList<BookingTransportDetailEntity>> GetByBookingActivityReservationIdAsync(Guid bookingActivityReservationId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.BookingActivityReservationId == bookingActivityReservationId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

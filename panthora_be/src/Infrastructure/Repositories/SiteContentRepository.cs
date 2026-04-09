@@ -9,22 +9,22 @@ namespace Infrastructure.Repositories;
 
 public class SiteContentRepository(AppDbContext context) : Repository<SiteContentEntity>(context), ISiteContentRepository
 {
-    public async Task<List<SiteContentEntity>> GetByPageKeyAsync(string pageKey)
+    public async Task<List<SiteContentEntity>> GetByPageKeyAsync(string pageKey, CancellationToken ct = default)
     {
         return await _context.SiteContents
             .AsNoTracking()
             .Where(sc => sc.PageKey == pageKey)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<SiteContentEntity?> GetByPageAndContentKeyAsync(string pageKey, string contentKey)
+    public async Task<SiteContentEntity?> GetByPageAndContentKeyAsync(string pageKey, string contentKey, CancellationToken ct = default)
     {
         return await _context.SiteContents
             .AsNoTracking()
-            .FirstOrDefaultAsync(sc => sc.PageKey == pageKey && sc.ContentKey == contentKey);
+            .FirstOrDefaultAsync(sc => sc.PageKey == pageKey && sc.ContentKey == contentKey, ct);
     }
 
-    public async Task<List<SiteContentEntity>> GetAdminListAsync(string? pageKey, string? search)
+    public async Task<List<SiteContentEntity>> GetAdminListAsync(string? pageKey, string? search, CancellationToken ct = default)
     {
         var query = _context.SiteContents.AsNoTracking();
 
@@ -45,32 +45,32 @@ public class SiteContentRepository(AppDbContext context) : Repository<SiteConten
         return await query
             .OrderBy(sc => sc.PageKey)
             .ThenBy(sc => sc.ContentKey)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<ErrorOr<SiteContentEntity>> UpsertAsync(string pageKey, string contentKey, string contentValue, string modifiedBy)
+    public async Task<ErrorOr<SiteContentEntity>> UpsertAsync(string pageKey, string contentKey, string contentValue, string modifiedBy, CancellationToken ct = default)
     {
         var existing = await _context.SiteContents
-            .FirstOrDefaultAsync(sc => sc.PageKey == pageKey && sc.ContentKey == contentKey);
+            .FirstOrDefaultAsync(sc => sc.PageKey == pageKey && sc.ContentKey == contentKey, ct);
 
         if (existing != null)
         {
             existing.Update(contentValue, modifiedBy);
             _context.SiteContents.Update(existing);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
             return existing;
         }
 
         var newEntity = SiteContentEntity.Create(pageKey, contentKey, contentValue, modifiedBy);
-        await _context.SiteContents.AddAsync(newEntity);
-        await _context.SaveChangesAsync();
+        await _context.SiteContents.AddAsync(newEntity, ct);
+        await _context.SaveChangesAsync(ct);
         return newEntity;
     }
 
-    public async Task<ErrorOr<SiteContentEntity>> UpsertByIdAsync(Guid id, string contentValue, string modifiedBy)
+    public async Task<ErrorOr<SiteContentEntity>> UpsertByIdAsync(Guid id, string contentValue, string modifiedBy, CancellationToken ct = default)
     {
         var existing = await _context.SiteContents
-            .FirstOrDefaultAsync(sc => sc.Id == id);
+            .FirstOrDefaultAsync(sc => sc.Id == id, ct);
 
         if (existing is null)
         {
@@ -79,7 +79,7 @@ public class SiteContentRepository(AppDbContext context) : Repository<SiteConten
 
         existing.Update(contentValue, modifiedBy);
         _context.SiteContents.Update(existing);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return existing;
     }
 }

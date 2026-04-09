@@ -26,18 +26,19 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.FindAsync(id);
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id)
+    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         IQueryable<T> query = _dbSet.TagWith($"GetById: {typeof(T).Name}");
         query = query.Where(e => EF.Property<Guid>(e, GetPrimaryKeyName()) == id);
         if (typeof(T).GetProperty("IsDeleted") != null)
             query = query.Where(e => !EF.Property<bool>(e, "IsDeleted"));
-        return await query.FirstOrDefaultAsync();
+        return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
     public virtual async Task<IReadOnlyList<T>> GetListAsync(
      Expression<Func<T, bool>>? predicate = null,
-     Expression<Func<T, object>>[]? includes = null)
+     Expression<Func<T, object>>[]? includes = null,
+     CancellationToken cancellationToken = default)
     {
         IQueryable<T> query = _dbSet.AsNoTracking();
 
@@ -57,13 +58,13 @@ public class Repository<T> : IRepository<T> where T : class
         }
         if (predicate != null)
             query = query.Where(predicate);
-        return await query.ToListAsync();
+        return await query.ToListAsync(cancellationToken);
     }
 
-    public virtual async Task DeleteAsync(Guid id)
+    public virtual async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var keyName = GetPrimaryKeyName();
-        var entity = await _dbSet.FirstOrDefaultAsync(e => EF.Property<Guid>(e, keyName) == id);
+        var entity = await _dbSet.FirstOrDefaultAsync(e => EF.Property<Guid>(e, keyName) == id, cancellationToken);
 
         if (entity != null)
         {
@@ -90,14 +91,14 @@ public class Repository<T> : IRepository<T> where T : class
         return _dbSet.ToList();
     }
 
-    public virtual async Task<IEnumerable<T>> GetAllAsync()
+    public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.ToListAsync(cancellationToken);
     }
 
-    public virtual async Task AddAsync(T entity)
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await _dbSet.AddAsync(entity);
+        await _dbSet.AddAsync(entity, cancellationToken);
     }
 
     public virtual void Update(T entity)
@@ -111,9 +112,9 @@ public class Repository<T> : IRepository<T> where T : class
         return Task.CompletedTask;
     }
 
-    public virtual async Task AddRangeAsync(IEnumerable<T> entities)
+    public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await _dbSet.AddRangeAsync(entities);
+        await _dbSet.AddRangeAsync(entities, cancellationToken);
     }
 
     public virtual void Delete(int id)

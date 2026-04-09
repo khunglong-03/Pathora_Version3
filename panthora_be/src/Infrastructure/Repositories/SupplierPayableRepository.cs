@@ -9,10 +9,10 @@ namespace Infrastructure.Repositories;
 public class SupplierPayableRepository(AppDbContext context)
     : Repository<SupplierPayableEntity>(context), ISupplierPayableRepository
 {
-    public async Task<IReadOnlyList<SupplierPayableEntity>> GetByBookingIdAsync(Guid bookingId)
+    public async Task<IReadOnlyList<SupplierPayableEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.BookingId == bookingId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

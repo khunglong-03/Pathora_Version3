@@ -10,20 +10,20 @@ public class CustomerDepositRepository(AppDbContext context) : ICustomerDepositR
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<List<CustomerDepositEntity>> GetByBookingIdAsync(Guid bookingId)
+    public async Task<List<CustomerDepositEntity>> GetByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
         return await _context.CustomerDeposits
             .Where(d => d.BookingId == bookingId)
             .OrderBy(d => d.DepositOrder)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<CustomerDepositEntity>> GetOverdueDepositsAsync()
+    public async Task<List<CustomerDepositEntity>> GetOverdueDepositsAsync(CancellationToken cancellationToken = default)
     {
         return await _context.CustomerDeposits
             .Include(d => d.Booking)
             .Where(d => d.Status == DepositStatus.Pending && d.DueAt < DateTimeOffset.UtcNow)
             .OrderBy(d => d.DueAt)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

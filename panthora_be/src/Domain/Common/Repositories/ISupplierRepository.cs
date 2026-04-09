@@ -4,8 +4,8 @@ namespace Domain.Common.Repositories;
 
 public interface ISupplierRepository : IRepository<SupplierEntity>
 {
-    Task<SupplierEntity?> GetByCodeAsync(string supplierCode);
-    Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId);
+    Task<SupplierEntity?> GetByCodeAsync(string supplierCode, CancellationToken cancellationToken = default);
+    Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<List<SupplierEntity>> FindAllTransportProvidersAsync(CancellationToken cancellationToken);
     Task<List<SupplierEntity>> FindAllHotelProvidersAsync(CancellationToken cancellationToken);
     Task<int> CountActiveTransportProvidersAsync(CancellationToken cancellationToken);

@@ -48,9 +48,11 @@ public class PricingPolicyConfiguration : IEntityTypeConfiguration<PricingPolicy
                 value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                 value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>>(value, (JsonSerializerOptions?)null) ?? new Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>(),
                 new ValueComparer<Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>>(
-                    (left, right) => JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right),
-                    value => JsonSerializer.Serialize(value).GetHashCode(),
-                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>>(JsonSerializer.Serialize(value)) ?? new Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>()));
+                    (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null).GetHashCode(),
+                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>>(
+                        JsonSerializer.Serialize(value, (JsonSerializerOptions?)null), (JsonSerializerOptions?)null)
+                        ?? new Dictionary<string, Domain.Entities.Translations.PricingPolicyTranslationData>()));
 
         // Tiers stored as JSON
         builder.Property(p => p.Tiers)
@@ -59,9 +61,11 @@ public class PricingPolicyConfiguration : IEntityTypeConfiguration<PricingPolicy
                 value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                 value => JsonSerializer.Deserialize<List<Domain.ValueObjects.PricingPolicyTier>>(value, (JsonSerializerOptions?)null) ?? new List<Domain.ValueObjects.PricingPolicyTier>(),
                 new ValueComparer<List<Domain.ValueObjects.PricingPolicyTier>>(
-                    (left, right) => JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right),
-                    value => JsonSerializer.Serialize(value).GetHashCode(),
-                    value => JsonSerializer.Deserialize<List<Domain.ValueObjects.PricingPolicyTier>>(JsonSerializer.Serialize(value)) ?? new List<Domain.ValueObjects.PricingPolicyTier>()));
+                    (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null).GetHashCode(),
+                    value => JsonSerializer.Deserialize<List<Domain.ValueObjects.PricingPolicyTier>>(
+                        JsonSerializer.Serialize(value, (JsonSerializerOptions?)null), (JsonSerializerOptions?)null)
+                        ?? new List<Domain.ValueObjects.PricingPolicyTier>()));
 
         builder.HasIndex(p => new { p.Status, p.IsDeleted });
         builder.HasIndex(p => p.IsDefault);

@@ -10,43 +10,48 @@ using Microsoft.EntityFrameworkCore;
 public class RoomBlockRepository(AppDbContext context)
     : Repository<RoomBlockEntity>(context), IRoomBlockRepository
 {
-    public async Task<RoomBlockEntity?> FindByIdAsync(Guid id)
+    public async Task<RoomBlockEntity?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<RoomBlockEntity>> GetByDateRangeAsync(
-        Guid supplierId, RoomType roomType, DateOnly fromDate, DateOnly toDate)
+        Guid supplierId, RoomType roomType, DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.SupplierId == supplierId
                 && x.RoomType == roomType
                 && x.BlockedDate >= fromDate
                 && x.BlockedDate < toDate)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<RoomBlockEntity>> GetByBookingAccommodationDetailIdAsync(Guid bookingAccommodationDetailId)
+    public async Task<IReadOnlyList<RoomBlockEntity>> GetByBookingAccommodationDetailIdAsync(Guid bookingAccommodationDetailId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.BookingAccommodationDetailId == bookingAccommodationDetailId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> GetBlockedRoomCountAsync(Guid supplierId, RoomType roomType, DateOnly date)
+    public override async Task AddRangeAsync(IEnumerable<RoomBlockEntity> entities, CancellationToken cancellationToken = default)
+    {
+        await base.AddRangeAsync(entities, cancellationToken);
+    }
+
+    public async Task<int> GetBlockedRoomCountAsync(Guid supplierId, RoomType roomType, DateOnly date, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.SupplierId == supplierId
                 && x.RoomType == roomType
                 && x.BlockedDate == date)
-            .SumAsync(x => x.RoomCountBlocked);
+            .SumAsync(x => x.RoomCountBlocked, cancellationToken);
     }
 
-    public async Task DeleteByBookingAccommodationDetailIdAsync(Guid bookingAccommodationDetailId)
+    public async Task DeleteByBookingAccommodationDetailIdAsync(Guid bookingAccommodationDetailId, CancellationToken cancellationToken = default)
     {
         var blocks = await _dbSet
             .Where(x => x.BookingAccommodationDetailId == bookingAccommodationDetailId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         _dbSet.RemoveRange(blocks);
     }

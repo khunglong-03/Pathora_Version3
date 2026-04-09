@@ -8,8 +8,8 @@ namespace Infrastructure.Repositories;
 
 public class VisaRepository(AppDbContext context) : Repository<VisaEntity>(context), IVisaRepository
 {
-    public async Task<VisaEntity?> GetByVisaApplicationIdAsync(Guid visaApplicationId)
+    public async Task<VisaEntity?> GetByVisaApplicationIdAsync(Guid visaApplicationId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FirstOrDefaultAsync(x => x.VisaApplicationId == visaApplicationId);
+        return await _dbSet.FirstOrDefaultAsync(x => x.VisaApplicationId == visaApplicationId, cancellationToken);
     }
 }

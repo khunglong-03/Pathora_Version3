@@ -9,11 +9,11 @@ namespace Infrastructure.Repositories;
 public class SupplierReceiptRepository(AppDbContext context)
     : Repository<SupplierReceiptEntity>(context), ISupplierReceiptRepository
 {
-    public async Task<IReadOnlyList<SupplierReceiptEntity>> GetBySupplierPayableIdAsync(Guid supplierPayableId)
+    public async Task<IReadOnlyList<SupplierReceiptEntity>> GetBySupplierPayableIdAsync(Guid supplierPayableId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.SupplierPayableId == supplierPayableId)
             .OrderByDescending(x => x.PaidAt)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

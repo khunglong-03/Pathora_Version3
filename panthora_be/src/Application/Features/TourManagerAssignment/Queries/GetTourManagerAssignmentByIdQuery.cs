@@ -28,15 +28,15 @@ public sealed class GetTourManagerAssignmentByIdQueryHandler(
         var manager = assignments.First().TourManager!;
 
         var items = assignments.Select(a => new AssignmentItemVm(
-            Id: a.Id,
-            UserId: a.AssignedUserId,
-            UserName: a.AssignedUser != null ? (a.AssignedUser.FullName ?? a.AssignedUser.Username) : null,
-            UserEmail: a.AssignedUser?.Email,
-            TourId: a.AssignedTourId,
-            TourName: a.AssignedTour?.TourName,
-            EntityType: (int)a.AssignedEntityType,
-            RoleInTeam: a.AssignedRoleInTeam.HasValue ? (int)a.AssignedRoleInTeam.Value : null,
-            CreatedAt: a.CreatedOnUtc)).ToList();
+            a.Id,
+            a.AssignedUserId,
+            a.AssignedUser != null ? (a.AssignedUser.FullName ?? a.AssignedUser.Username) : null,
+            a.AssignedUser?.Email,
+            a.AssignedTourId,
+            a.AssignedTour?.TourName,
+            (int)a.AssignedEntityType,
+            a.AssignedRoleInTeam.HasValue ? (int)a.AssignedRoleInTeam.Value : null,
+            a.CreatedOnUtc)).ToList();
 
         return new TourManagerAssignmentDetailVm(
             ManagerId: request.ManagerId,

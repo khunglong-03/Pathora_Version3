@@ -9,10 +9,10 @@ namespace Infrastructure.Repositories;
 public class VisaApplicationRepository(AppDbContext context)
     : Repository<VisaApplicationEntity>(context), IVisaApplicationRepository
 {
-    public async Task<IReadOnlyList<VisaApplicationEntity>> GetByBookingParticipantIdAsync(Guid bookingParticipantId)
+    public async Task<IReadOnlyList<VisaApplicationEntity>> GetByBookingParticipantIdAsync(Guid bookingParticipantId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Where(x => x.BookingParticipantId == bookingParticipantId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

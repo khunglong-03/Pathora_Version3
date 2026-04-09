@@ -13,16 +13,16 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
     {
     }
 
-    public async Task<SupplierEntity?> GetByCodeAsync(string supplierCode)
+    public async Task<SupplierEntity?> GetByCodeAsync(string supplierCode, CancellationToken cancellationToken = default)
     {
-        return await _context.Suppliers.FirstOrDefaultAsync(s => s.SupplierCode == supplierCode);
+        return await _context.Suppliers.FirstOrDefaultAsync(s => s.SupplierCode == supplierCode, cancellationToken);
     }
 
-    public async Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId)
+    public async Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
     {
         return await _context.Suppliers
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.OwnerUserId == ownerUserId && !s.IsDeleted);
+            .FirstOrDefaultAsync(s => s.OwnerUserId == ownerUserId && !s.IsDeleted, cancellationToken);
     }
 
     public async Task<List<SupplierEntity>> FindAllTransportProvidersAsync(CancellationToken cancellationToken)

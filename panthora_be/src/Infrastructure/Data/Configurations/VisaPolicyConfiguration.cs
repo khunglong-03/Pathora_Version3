@@ -40,9 +40,11 @@ public class VisaPolicyConfiguration : IEntityTypeConfiguration<VisaPolicyEntity
                 value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null),
                 value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>>(value, (JsonSerializerOptions?)null) ?? new Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>(),
                 new ValueComparer<Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>>(
-                    (left, right) => JsonSerializer.Serialize(left) == JsonSerializer.Serialize(right),
-                    value => JsonSerializer.Serialize(value).GetHashCode(),
-                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>>(JsonSerializer.Serialize(value)) ?? new Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>()));
+                    (left, right) => JsonSerializer.Serialize(left, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(right, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Serialize(value, (JsonSerializerOptions?)null).GetHashCode(),
+                    value => JsonSerializer.Deserialize<Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>>(
+                                 JsonSerializer.Serialize(value, (JsonSerializerOptions?)null), (JsonSerializerOptions?)null)
+                             ?? new Dictionary<string, Domain.Entities.Translations.VisaPolicyTranslationData>()));
 
         builder.HasIndex(x => x.Region);
         builder.HasIndex(x => x.IsActive);

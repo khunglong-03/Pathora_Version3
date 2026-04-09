@@ -4,5 +4,5 @@ namespace Domain.Common.Repositories;
 
 public interface IBookingAccommodationDetailRepository : IRepository<BookingAccommodationDetailEntity>
 {
-    Task<IReadOnlyList<BookingAccommodationDetailEntity>> GetByBookingActivityReservationIdAsync(Guid bookingActivityReservationId);
+    Task<IReadOnlyList<BookingAccommodationDetailEntity>> GetByBookingActivityReservationIdAsync(Guid bookingActivityReservationId, CancellationToken cancellationToken = default);
 }

@@ -12,9 +12,9 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<ErrorOr<Success>> Create(RoleEntity role)
+    public async Task<ErrorOr<Success>> Create(RoleEntity role, CancellationToken cancellationToken = default)
     {
-        await _context.Roles.AddAsync(role);
+        await _context.Roles.AddAsync(role, cancellationToken);
         return Result.Success;
     }
 
@@ -24,50 +24,50 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
         return Task.FromResult<ErrorOr<Success>>(Result.Success);
     }
 
-    public async Task<ErrorOr<Success>> AddUser(Guid userId, List<int> roleIds)
+    public async Task<ErrorOr<Success>> AddUser(Guid userId, List<int> roleIds, CancellationToken cancellationToken = default)
     {
         var userRoles = roleIds.Select(roleId => new UserRoleEntity
         {
             UserId = userId,
             RoleId = roleId
         }).ToList();
-        await _context.UserRoles.AddRangeAsync(userRoles);
+        await _context.UserRoles.AddRangeAsync(userRoles, cancellationToken);
 
         if (roleIds.Contains(2))
         {
-            await EnsureManagerSentinelAsync(userId);
+            await EnsureManagerSentinelAsync(userId, cancellationToken);
         }
 
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> DeleteUser(Guid userId)
+    public async Task<ErrorOr<Success>> DeleteUser(Guid userId, CancellationToken cancellationToken = default)
     {
         var hadManager = await _context.UserRoles
-            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == 2);
+            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == 2, cancellationToken);
 
-        var userRoles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync();
+        var userRoles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync(cancellationToken);
         _context.UserRoles.RemoveRange(userRoles);
 
         if (hadManager)
         {
             var assignments = await _context.TourManagerAssignments
                 .Where(a => a.TourManagerId == userId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
             _context.TourManagerAssignments.RemoveRange(assignments);
         }
 
         return Result.Success;
     }
 
-    private async Task EnsureManagerSentinelAsync(Guid userId)
+    private async Task EnsureManagerSentinelAsync(Guid userId, CancellationToken cancellationToken)
     {
         var alreadyExists = await _context.TourManagerAssignments
             .AnyAsync(a =>
                 a.TourManagerId == userId &&
                 a.AssignedUserId == null &&
                 a.AssignedTourId == null &&
-                a.AssignedEntityType == AssignedEntityType.Tour);
+                a.AssignedEntityType == AssignedEntityType.Tour, cancellationToken);
         if (alreadyExists) return;
 
         await _context.TourManagerAssignments.AddAsync(new TourManagerAssignmentEntity
@@ -79,35 +79,35 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
             AssignedTourId = null,
             CreatedBy = "system",
             CreatedOnUtc = DateTimeOffset.UtcNow
-        });
+        }, cancellationToken);
     }
 
-    public async Task<ErrorOr<List<(Guid UserId, int RoleId)>>> FindAllUserRoles()
+    public async Task<ErrorOr<List<(Guid UserId, int RoleId)>>> FindAllUserRoles(CancellationToken cancellationToken = default)
     {
         var result = await _context.UserRoles
             .AsNoTracking()
             .Select(ur => new { ur.UserId, ur.RoleId })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
         return result.Select(ur => (ur.UserId, ur.RoleId)).ToList();
     }
 
-    public async Task<ErrorOr<List<RoleEntity>>> GetAll()
+    public async Task<ErrorOr<List<RoleEntity>>> GetAll(CancellationToken cancellationToken = default)
     {
         return await _context.Roles
             .AsNoTracking()
             .Where(r => !r.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<ErrorOr<RoleEntity?>> FindById(int roleId)
+    public async Task<ErrorOr<RoleEntity?>> FindById(int roleId, CancellationToken cancellationToken = default)
     {
-        var role = await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted);
+        var role = await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
         return role;
     }
 
-    public async Task<ErrorOr<RoleEntity?>> FindByNameAsync(string name)
+    public async Task<ErrorOr<RoleEntity?>> FindByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        var role = await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Name == name && !r.IsDeleted);
+        var role = await _context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Name == name && !r.IsDeleted, cancellationToken);
         return role;
     }
 
@@ -126,7 +126,7 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
         return roles;
     }
 
-    public async Task<ErrorOr<Dictionary<Guid, List<RoleEntity>>>> FindByUserIds(List<Guid> userIds)
+    public async Task<ErrorOr<Dictionary<Guid, List<RoleEntity>>>> FindByUserIds(List<Guid> userIds, CancellationToken cancellationToken = default)
     {
         var userRoles = await _context.UserRoles
             .AsNoTracking()
@@ -135,28 +135,28 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
                 ur => ur.RoleId,
                 r => r.Id,
                 (ur, r) => new { ur.UserId, Role = r })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return userRoles
             .GroupBy(x => x.UserId)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Role).ToList());
     }
 
-    public async Task<ErrorOr<List<RoleEntity>>> FindAll(string? roleName = null, RoleStatus status = RoleStatus.Active, int pageNumber = 0, int pageSize = 0)
+    public async Task<ErrorOr<List<RoleEntity>>> FindAll(string? roleName = null, RoleStatus status = RoleStatus.Active, int pageNumber = 0, int pageSize = 0, CancellationToken cancellationToken = default)
     {
         var query = _context.Roles.AsNoTracking().Where(r => !r.IsDeleted && r.Status == status);
         if (!string.IsNullOrWhiteSpace(roleName))
             query = query.Where(r => r.Name.ToLower().Contains(roleName.ToLower()));
         if (pageNumber > 0 && pageSize > 0)
             query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
-        return await query.OrderByDescending(r => r.CreatedOnUtc).ToListAsync();
+        return await query.OrderByDescending(r => r.CreatedOnUtc).ToListAsync(cancellationToken);
     }
 
-    public async Task<ErrorOr<int>> CountAll(string? roleName = null, RoleStatus status = RoleStatus.Active)
+    public async Task<ErrorOr<int>> CountAll(string? roleName = null, RoleStatus status = RoleStatus.Active, CancellationToken cancellationToken = default)
     {
         var query = _context.Roles.Where(r => !r.IsDeleted && r.Status == status);
         if (!string.IsNullOrWhiteSpace(roleName))
             query = query.Where(r => r.Name.ToLower().Contains(roleName.ToLower()));
-        return await query.CountAsync();
+        return await query.CountAsync(cancellationToken);
     }
 }

@@ -10,19 +10,19 @@ public class CancellationPolicyRepository(AppDbContext context) : ICancellationP
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<CancellationPolicyEntity?> FindById(Guid id)
+    public async Task<CancellationPolicyEntity?> FindById(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.CancellationPolicies
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<CancellationPolicyEntity>> FindAll()
+    public async Task<IReadOnlyList<CancellationPolicyEntity>> FindAll(CancellationToken cancellationToken = default)
     {
         var entities = await _context.CancellationPolicies
             .AsNoTracking()
             .Where(p => !p.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return entities
             .OrderBy(p => p.TourScope)
@@ -30,14 +30,14 @@ public class CancellationPolicyRepository(AppDbContext context) : ICancellationP
             .ToList();
     }
 
-    public async Task<CancellationPolicyEntity?> FindByTourScopeAndDays(TourScope tourScope, int daysBeforeDeparture)
+    public async Task<CancellationPolicyEntity?> FindByTourScopeAndDays(TourScope tourScope, int daysBeforeDeparture, CancellationToken cancellationToken = default)
     {
         return await _context.CancellationPolicies
             .AsNoTracking()
             .Where(p => p.TourScope == tourScope
                     && !p.IsDeleted
                     && p.Status == CancellationPolicyStatus.Active)
-            .ToListAsync()
+            .ToListAsync(cancellationToken)
             .ContinueWith(task =>
                 task.Result
                     .Select(p => new { Policy = p, Tier = p.FindMatchingTier(daysBeforeDeparture) })
@@ -47,20 +47,20 @@ public class CancellationPolicyRepository(AppDbContext context) : ICancellationP
                     .FirstOrDefault());
     }
 
-    public async Task<IReadOnlyList<CancellationPolicyEntity>> FindByTourScope(TourScope tourScope)
+    public async Task<IReadOnlyList<CancellationPolicyEntity>> FindByTourScope(TourScope tourScope, CancellationToken cancellationToken = default)
     {
         return await _context.CancellationPolicies
             .AsNoTracking()
             .Where(p => p.TourScope == tourScope && !p.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task Create(CancellationPolicyEntity entity)
+    public async Task Create(CancellationPolicyEntity entity, CancellationToken cancellationToken = default)
     {
-        await _context.CancellationPolicies.AddAsync(entity);
+        await _context.CancellationPolicies.AddAsync(entity, cancellationToken);
     }
 
-    public async Task UpdateAsync(CancellationPolicyEntity entity)
+    public async Task UpdateAsync(CancellationPolicyEntity entity, CancellationToken cancellationToken = default)
     {
         _context.CancellationPolicies.Update(entity);
         await Task.CompletedTask;

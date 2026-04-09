@@ -4,5 +4,5 @@ namespace Domain.Common.Repositories;
 
 public interface ISupplierReceiptRepository : IRepository<SupplierReceiptEntity>
 {
-    Task<IReadOnlyList<SupplierReceiptEntity>> GetBySupplierPayableIdAsync(Guid supplierPayableId);
+    Task<IReadOnlyList<SupplierReceiptEntity>> GetBySupplierPayableIdAsync(Guid supplierPayableId, CancellationToken cancellationToken = default);
 }

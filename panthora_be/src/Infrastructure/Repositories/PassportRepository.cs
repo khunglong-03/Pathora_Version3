@@ -8,8 +8,8 @@ namespace Infrastructure.Repositories;
 
 public class PassportRepository(AppDbContext context) : Repository<PassportEntity>(context), IPassportRepository
 {
-    public async Task<PassportEntity?> GetByBookingParticipantIdAsync(Guid bookingParticipantId)
+    public async Task<PassportEntity?> GetByBookingParticipantIdAsync(Guid bookingParticipantId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FirstOrDefaultAsync(x => x.BookingParticipantId == bookingParticipantId);
+        return await _dbSet.FirstOrDefaultAsync(x => x.BookingParticipantId == bookingParticipantId, cancellationToken);
     }
 }

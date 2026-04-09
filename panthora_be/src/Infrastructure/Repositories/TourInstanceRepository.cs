@@ -10,7 +10,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<TourInstanceEntity?> FindById(Guid id, bool asNoTracking = false)
+    public async Task<TourInstanceEntity?> FindById(Guid id, bool asNoTracking = false, CancellationToken cancellationToken = default)
     {
         var query = asNoTracking
             ? _context.TourInstances.AsNoTracking()
@@ -19,10 +19,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await query
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Include(t => t.InstanceDays)
-            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids)
+    public async Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();
         if (idList.Count == 0)
@@ -31,10 +31,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await _context.TourInstances
             .AsNoTracking()
             .Where(t => idSet.Contains(t.Id) && !t.IsDeleted)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -63,10 +63,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -84,10 +84,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.Status == status.Value);
         }
 
-        return await query.CountAsync();
+        return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<TourInstanceEntity?> FindByIdWithInstanceDays(Guid id)
+    public async Task<TourInstanceEntity?> FindByIdWithInstanceDays(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.TourInstances
             .AsNoTracking()
@@ -97,42 +97,42 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.InstanceDays).ThenInclude(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.ToLocation)
             .Include(t => t.InstanceDays).ThenInclude(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Accommodation)
             .Include(t => t.InstanceDays).ThenInclude(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.ResourceLinks)
-            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
-    public async Task Create(TourInstanceEntity tourInstance)
+    public async Task Create(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default)
     {
-        await _context.TourInstances.AddAsync(tourInstance);
-        await _context.SaveChangesAsync();
+        await _context.TourInstances.AddAsync(tourInstance, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Update(TourInstanceEntity tourInstance)
+    public async Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default)
     {
         _context.TourInstances.Update(tourInstance);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SoftDelete(Guid id)
+    public async Task SoftDelete(Guid id, CancellationToken cancellationToken = default)
     {
-        var instance = await _context.TourInstances.FirstOrDefaultAsync(t => t.Id == id);
+        var instance = await _context.TourInstances.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
         if (instance is not null)
         {
             instance.IsDeleted = true;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task<(int Total, int Available, int Confirmed, int SoldOut)> GetStats()
+    public async Task<(int Total, int Available, int Confirmed, int SoldOut)> GetStats(CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
-        var total = await query.CountAsync();
-        var available = await query.CountAsync(t => t.Status == TourInstanceStatus.Available);
-        var confirmed = await query.CountAsync(t => t.Status == TourInstanceStatus.Confirmed);
-        var soldOut = await query.CountAsync(t => t.Status == TourInstanceStatus.SoldOut);
+        var total = await query.CountAsync(cancellationToken);
+        var available = await query.CountAsync(t => t.Status == TourInstanceStatus.Available, cancellationToken);
+        var confirmed = await query.CountAsync(t => t.Status == TourInstanceStatus.Confirmed, cancellationToken);
+        var soldOut = await query.CountAsync(t => t.Status == TourInstanceStatus.SoldOut, cancellationToken);
         return (total, available, confirmed, soldOut);
     }
 
-    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize)
+    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances
             .AsNoTracking()
@@ -164,10 +164,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountPublicAvailable(string? destination)
+    public async Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances
             .Where(t => !t.IsDeleted
@@ -180,10 +180,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.Location != null && t.Location.ToLower().Contains(destLower));
         }
 
-        return await query.CountAsync();
+        return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<TourInstanceEntity?> FindPublicById(Guid id)
+    public async Task<TourInstanceEntity?> FindPublicById(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.TourInstances
             .AsNoTracking()
@@ -198,10 +198,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(t => t.Id == id
                 && !t.IsDeleted
                 && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available);
+                && t.Status == TourInstanceStatus.Available, cancellationToken);
     }
 
-    public async Task<TourInstanceDayEntity?> FindInstanceDayById(Guid instanceId, Guid dayId)
+    public async Task<TourInstanceDayEntity?> FindInstanceDayById(Guid instanceId, Guid dayId, CancellationToken cancellationToken = default)
     {
         return await _context.TourInstanceDays
             .AsNoTracking()
@@ -209,10 +209,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.ToLocation)
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Accommodation)
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.ResourceLinks)
-            .FirstOrDefaultAsync(d => d.Id == dayId && d.TourInstanceId == instanceId);
+            .FirstOrDefaultAsync(d => d.Id == dayId && d.TourInstanceId == instanceId, cancellationToken);
     }
 
-    public async Task<TourDayActivityEntity?> FindTourDayActivityById(Guid tourDayId, Guid activityId)
+    public async Task<TourDayActivityEntity?> FindTourDayActivityById(Guid tourDayId, Guid activityId, CancellationToken cancellationToken = default)
     {
         return await _context.TourDayActivities
             .AsNoTracking()
@@ -220,28 +220,28 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(a => a.Routes).ThenInclude(r => r.ToLocation)
             .Include(a => a.Accommodation)
             .Include(a => a.ResourceLinks)
-            .FirstOrDefaultAsync(a => a.Id == activityId && a.TourDayId == tourDayId && !a.IsDeleted);
+            .FirstOrDefaultAsync(a => a.Id == activityId && a.TourDayId == tourDayId && !a.IsDeleted, cancellationToken);
     }
 
-    public async Task UpdateInstanceDay(TourInstanceDayEntity day)
+    public async Task UpdateInstanceDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default)
     {
         _context.TourInstanceDays.Update(day);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task AddDay(TourInstanceDayEntity day)
+    public async Task AddDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default)
     {
-        await _context.TourInstanceDays.AddAsync(day);
-        await _context.SaveChangesAsync();
+        await _context.TourInstanceDays.AddAsync(day, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateTourDayActivity(TourDayActivityEntity activity)
+    public async Task UpdateTourDayActivity(TourDayActivityEntity activity, CancellationToken cancellationToken = default)
     {
         _context.TourDayActivities.Update(activity);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate)
+    public async Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default)
     {
         return await _context.TourInstances
             .AsNoTracking()
@@ -249,6 +249,6 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 && t.TourId == tourId
                 && t.ClassificationId == classificationId
                 && t.StartDate.Date == startDate.Date)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }

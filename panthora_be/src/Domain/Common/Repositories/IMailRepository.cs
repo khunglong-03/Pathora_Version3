@@ -6,8 +6,8 @@ namespace Domain.Common.Repositories;
 
 public interface IMailRepository
 {
-    Task<ErrorOr<Success>> Add(MailEntity record);
-    Task<ErrorOr<Success>> AddRange(List<MailEntity> records);
-    Task<ErrorOr<List<MailEntity>>> FindPending();
-    Task<ErrorOr<Success>> UpdateStatus(List<Guid> mailIds, MailStatus status);
+    Task<ErrorOr<Success>> Add(MailEntity record, CancellationToken ct = default);
+    Task<ErrorOr<Success>> AddRange(List<MailEntity> records, CancellationToken ct = default);
+    Task<ErrorOr<List<MailEntity>>> FindPending(CancellationToken ct = default);
+    Task<ErrorOr<Success>> UpdateStatus(List<Guid> mailIds, MailStatus status, CancellationToken ct = default);
 }
