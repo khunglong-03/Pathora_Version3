@@ -24,7 +24,7 @@ export default function AdminShell({
   variant = "manager",
 }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [authRoles, setAuthRoles] = useState<string[]>([]);
 
   useEffect(() => {
     const authRolesRaw = document.cookie
@@ -34,8 +34,10 @@ export default function AdminShell({
       ?.slice("auth_roles=".length);
 
     const roles = parseAuthRoles(authRolesRaw);
-    setIsAdmin(roles.includes(ADMIN_ROLE_NAME));
+    setAuthRoles(roles);
   }, []);
+
+  const isAdmin = authRoles.includes(ADMIN_ROLE_NAME);
 
   return (
     <AdminSidebar
@@ -43,6 +45,7 @@ export default function AdminShell({
       onClose={() => setSidebarOpen(false)}
       variant={variant}
       isAdmin={isAdmin}
+      authRoles={authRoles}
     >
       <div style={{ backgroundColor: "#F1F5F9", minHeight: "100vh" }}>
         {children}

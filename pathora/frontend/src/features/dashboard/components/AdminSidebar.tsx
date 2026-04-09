@@ -74,6 +74,15 @@ export const PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: Bed, href: "/hotel" },
 ] as const;
 
+export const TRANSPORT_NAV_ITEMS = [
+  { label: "Dashboard", icon: SquaresFour, href: "/transport" },
+  { label: "Phương tiện", icon: Van, href: "/transport/vehicles" },
+  { label: "Tài xế", icon: UsersThree, href: "/transport/drivers" },
+  { label: "Booking", icon: Ticket, href: "/transport/bookings" },
+  { label: "Phân công", icon: CalendarDots, href: "/transport/assignments" },
+  { label: "Hồ sơ", icon: Gear, href: "/transport/profile" },
+] as const;
+
 export type NavItem = (typeof MANAGER_NAV_ITEMS)[number];
 
 // Section label definitions for Admin
@@ -90,17 +99,31 @@ interface AdminSidebarProps {
   children?: React.ReactNode;
   variant?: "manager" | "admin" | "provider";
   isAdmin?: boolean;
+  authRoles?: string[];
 }
 
 
 /* ══════════════════════════════════════════════════════════════
    AdminSidebar Component
    ══════════════════════════════════════════════════════════════ */
-export function AdminSidebar({ isOpen, onClose, children, variant = "manager", isAdmin = false }: AdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose, children, variant = "manager", isAdmin = false, authRoles = [] }: AdminSidebarProps) {
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
 
-  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? PROVIDER_NAV_ITEMS : MANAGER_NAV_ITEMS;
+  const isTransportProvider = authRoles.some((r) => r === "TransportProvider");
+  const isHotelProvider = authRoles.some((r) => r === "HotelServiceProvider");
+
+  const providerNavItems = isTransportProvider
+    ? TRANSPORT_NAV_ITEMS
+    : isHotelProvider
+      ? PROVIDER_NAV_ITEMS
+      : PROVIDER_NAV_ITEMS;
+
+  const navItems = variant === "admin"
+    ? ADMIN_NAV_ITEMS
+    : variant === "provider"
+      ? providerNavItems
+      : MANAGER_NAV_ITEMS;
 
   // For admin, build enriched nav with section labels
   const renderAdminNav = () => {
@@ -220,7 +243,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
           style={{ borderBottom: "1px solid var(--sidebar-border)" }}
         >
           <Link
-            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? "/hotel" : "/manager/dashboard"}
+            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? "/transport" : "/manager/dashboard"}
             className="flex items-center gap-3 group"
           >
             {/* Logo mark */}
@@ -250,7 +273,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
                 className="text-[10px] font-medium tracking-widest uppercase mt-0.5"
                 style={{ color: "var(--sidebar-text-muted)" }}
               >
-                Admin
+                {isTransportProvider ? "Transport" : isHotelProvider ? "Provider" : "Admin"}
               </span>
             </div>
           </Link>
@@ -270,7 +293,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", i
             renderAdminNav()
           ) : variant === "provider" ? (
             <div className="space-y-0.5">
-              {PROVIDER_NAV_ITEMS.map((item) => {
+              {providerNavItems.map((item) => {
                 const active = isActive(item.href);
                 const IconComp = item.icon;
                 return (

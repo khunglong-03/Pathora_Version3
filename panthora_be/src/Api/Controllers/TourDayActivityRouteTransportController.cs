@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.Manager}")]
+[Authorize(Roles = $"{RoleConstants.Admin_TransportProvider},{RoleConstants.Admin_Manager_TourDesigner}")]
 public class TourDayActivityRouteTransportController : BaseApiController
 {
     [HttpPut(TourTransportAssignmentEndpoint.Assign)]
