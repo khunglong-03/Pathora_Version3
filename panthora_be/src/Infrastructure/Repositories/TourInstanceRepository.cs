@@ -22,6 +22,18 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
     }
 
+    public async Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids)
+    {
+        var idList = ids.ToList();
+        if (idList.Count == 0)
+            return [];
+        var idSet = new HashSet<Guid>(idList);
+        return await _context.TourInstances
+            .AsNoTracking()
+            .Where(t => idSet.Contains(t.Id) && !t.IsDeleted)
+            .ToListAsync();
+    }
+
     public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize)
     {
         var query = _context.TourInstances.AsNoTracking()
@@ -124,8 +136,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     {
         var query = _context.TourInstances
             .AsNoTracking()
+            .AsSplitQuery()
+            .Include(t => t.Tour)
+            .Include(t => t.Classification)
             .Include(t => t.Thumbnail)
             .Include(t => t.Images)
+            .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
                 && t.InstanceType == TourType.Public
                 && t.Status == TourInstanceStatus.Available);

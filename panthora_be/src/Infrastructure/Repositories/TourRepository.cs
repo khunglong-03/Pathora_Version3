@@ -16,10 +16,15 @@ public class TourRepository(AppDbContext context) : ITourRepository
         var query = asNoTracking
             ? BuildTourDetailQueryNoTracking()
             : _context.Tours
+                .AsSplitQuery()
                 .Include(t => t.PricingPolicy)
                 .Include(t => t.DepositPolicy)
                 .Include(t => t.CancellationPolicy)
-                .Include(t => t.VisaPolicy);
+                .Include(t => t.VisaPolicy)
+                .Include(t => t.Classifications)
+                    .ThenInclude(c => c.Plans)
+                        .ThenInclude(p => p.Activities)
+                            .ThenInclude(a => a.Accommodation);
 
         return await query.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
     }
@@ -240,6 +245,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await _context.Tours
             .AsNoTracking()
             .Include(t => t.Thumbnail)
+            .Include(t => t.Classifications)
             .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)

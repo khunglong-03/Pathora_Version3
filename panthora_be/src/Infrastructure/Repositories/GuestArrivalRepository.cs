@@ -42,6 +42,9 @@ public class GuestArrivalRepository(AppDbContext context)
     {
         return await _dbSet
             .Include(x => x.Participants)
+                .ThenInclude(p => p.BookingParticipant)
+                    .ThenInclude(bp => bp.Passport)
+            .Include(x => x.BookingAccommodationDetail)
             .Where(x => x.BookingAccommodationDetail.BookingActivityReservation.BookingId == bookingId)
             .OrderByDescending(x => x.SubmittedAt)
             .ToListAsync();

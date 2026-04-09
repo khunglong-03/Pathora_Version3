@@ -103,7 +103,10 @@ public sealed class TourServiceTests
         // First call returns conflict, subsequent calls return not-found (simulating retry)
         var callCount = 0;
         _tourRepository.ExistsByTourCode(Arg.Any<string>())
-            .Returns(async _ => { callCount++; return callCount <= 1; });
+            .Returns(async _ =>
+            {
+                callCount++; return callCount <= 1;
+            });
 
         var command = CreateBaseValidCommand();
         var service = CreateService();

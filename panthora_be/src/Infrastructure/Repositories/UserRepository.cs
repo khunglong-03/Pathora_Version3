@@ -26,6 +26,18 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
     }
 
+    public async Task<IReadOnlyList<UserEntity>> FindByIds(IEnumerable<Guid> ids)
+    {
+        var idList = ids.ToList();
+        if (idList.Count == 0)
+            return [];
+        var idSet = new HashSet<Guid>(idList);
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => idSet.Contains(u.Id) && !u.IsDeleted)
+            .ToListAsync();
+    }
+
     public async Task<UserEntity?> FindByGoogleId(string googleId)
     {
         return await _context.Users

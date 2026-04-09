@@ -20,12 +20,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var connectionString = configuration.GetConnectionString("Default");
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder
-            .UseLazyLoadingProxies(proxyOptions =>
-            {
-                proxyOptions.IgnoreNonVirtualNavigations();
-            })
-            .UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new AppDbContext(optionsBuilder.Options);
     }

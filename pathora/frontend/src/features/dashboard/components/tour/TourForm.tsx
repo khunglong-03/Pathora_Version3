@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import Icon from "@/components/ui/Icon";
@@ -15,6 +17,7 @@ import type { CancellationPolicy } from "@/types/cancellationPolicy";
 import type { VisaPolicy } from "@/types/visaPolicy";
 import type { TourDto, ImageDto } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import { tourFormSchema, type TourFormValues } from "@/schemas/tour-form";
 import {
   BasicInfoSection,
   TourClassificationsBuilder,
@@ -314,9 +317,9 @@ const emptyDayPlan = (): DayPlanForm => ({
 
 const syncPlansByDuration = (
   plans: DayPlanForm[],
-  durationDays: string,
+  durationDays: string | number,
 ): DayPlanForm[] => {
-  const targetDays = Number.parseInt(durationDays, 10);
+  const targetDays = Number.parseInt(String(durationDays), 10);
   if (!Number.isFinite(targetDays) || targetDays <= 0) {
     return plans;
   }
@@ -366,6 +369,44 @@ const emptyService = (): ServiceForm => ({
 export default function TourForm({ mode, initialData, existingImages: initialExistingImages, onSubmit, onCancel }: TourFormProps) {
   const { t } = useTranslation();
   const isEditMode = mode === "edit";
+
+  /* ── React Hook Form state ─────────────────────────────────── */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const form = useForm<TourFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(tourFormSchema) as any,
+    defaultValues: {
+      basicInfo: {
+        tourName: "",
+        shortDescription: "",
+        longDescription: "",
+        seoTitle: "",
+        seoDescription: "",
+        status: "3",
+        tourScope: "1",
+        continent: "",
+        customerSegment: "2",
+      },
+      enTranslation: {
+        tourName: "",
+        shortDescription: "",
+        longDescription: "",
+        seoTitle: "",
+        seoDescription: "",
+      },
+      classifications: [{ id: "", name: "", enName: "", description: "", enDescription: "", basePrice: "", durationDays: "" }],
+      dayPlans: [[]],
+      insurances: [[]],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" }] as any,
+      activeLang: "vi",
+      deletedClassificationIds: [],
+      deletedActivityIds: [],
+    },
+    mode: "onBlur",
+  });
+
+  const watchedValues = form.watch();
 
   const wizardStepLabels = [
     t("tourAdmin.steps.basic"),
@@ -726,7 +767,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   }, [isEditMode, initialData]);
 
   /* ── Validation ───────────────────────────────────────────── */
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [thumbnailError, setThumbnailError] = useState<string>();
   const [imagesError, setImagesError] = useState<string>();
 
@@ -754,226 +794,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     fetchPolicies();
   }, []);
 
-  /* ── Validation logic ────────────────────────────────────────── */
-  const collectStepErrors = (
-    step: number,
-    packageIndexOverride?: number,
-  ): Record<string, string> => {
-    const newErrors: Record<string, string> = {};
-    const activePackageIndex = packageIndexOverride ?? selectedPackageIndex;
-
-    if (step === 0) {
-      if (!basicInfo.tourName.trim())
-        newErrors.tourName = t("tourAdmin.required", "Required");
-      if (!basicInfo.shortDescription.trim())
-        newErrors.shortDescription = t("tourAdmin.required", "Required");
-      if (!basicInfo.longDescription.trim())
-        newErrors.longDescription = t("tourAdmin.required", "Required");
-      if (thumbnailError) newErrors.thumbnail = thumbnailError;
-      if (images.length === 0 && existingImages.length === 0)
-        newErrors.images = t("tourAdmin.validation.atLeastOneImage", "At least one image is required");
-      else if (imagesError) newErrors.images = imagesError;
-    }
-
-    if (step === 1) {
-      if (classifications.length === 0) {
-        newErrors.classifications = t("tourAdmin.validation.atLeastOnePackage", "At least one package is required.");
-      }
-      classifications.forEach((cls, i) => {
-        if (!cls.name.trim())
-          newErrors[`cls_${i}_name`] = t("tourAdmin.required", "Required");
-        if (!cls.enName.trim())
-          newErrors[`cls_${i}_enName`] = t("tourAdmin.required", "Required");
-        if (!cls.description.trim())
-          newErrors[`cls_${i}_description`] = t("tourAdmin.required", "Required");
-        if (!cls.enDescription.trim())
-          newErrors[`cls_${i}_enDescription`] = t("tourAdmin.required", "Required");
-        if (!cls.durationDays || Number(cls.durationDays) <= 0)
-          newErrors[`cls_${i}_duration`] = t("tourAdmin.invalidDuration", "Invalid duration");
-        const basePrice = Number(cls.basePrice);
-        if (!cls.basePrice.trim() || isNaN(basePrice) || basePrice < 0)
-          newErrors[`cls_${i}_basePrice`] = t("tourAdmin.validation.invalidBasePrice", "Invalid base price");
-      });
-    }
-
-    if (step === 2) {
-      const plans = dayPlans[activePackageIndex] ?? [];
-      if (plans.length === 0) {
-        newErrors.dayPlans = t("tourAdmin.validation.atLeastOneDayPlan", "At least one day plan is required.");
-      }
-      plans.forEach((plan, i) => {
-        if (!plan.title.trim())
-          newErrors[`plan_${i}_title`] = t("tourAdmin.required", "Required");
-        if (!plan.enTitle.trim())
-          newErrors[`plan_${i}_enTitle`] = t("tourAdmin.required", "Required");
-        if (!plan.description.trim())
-          newErrors[`plan_${i}_description`] = t("tourAdmin.required", "Required");
-        if (!plan.enDescription.trim())
-          newErrors[`plan_${i}_enDescription`] = t("tourAdmin.required", "Required");
-      });
-
-      plans.forEach((plan, planIdx) => {
-        plan.activities.forEach((act, actIdx) => {
-          if (act.estimatedCost.trim()) {
-            const cost = Number(act.estimatedCost);
-            if (Number.isNaN(cost) || cost < 0) {
-              newErrors[`act_${planIdx}_${actIdx}_estimatedCost`] = t(
-                "tourAdmin.validation.invalidEstimatedCost",
-                "Estimated cost must be 0 or greater",
-              );
-            }
-          }
-          if (!act.startTime.trim()) {
-            newErrors[`act_${planIdx}_${actIdx}_startTime`] = t("tourAdmin.itineraries.startTimeRequired", "Start time is required");
-          }
-          if (!act.endTime.trim()) {
-            newErrors[`act_${planIdx}_${actIdx}_endTime`] = t("tourAdmin.itineraries.endTimeRequired", "End time is required");
-          }
-          if (act.startTime.trim() && act.endTime.trim()) {
-            if (act.endTime <= act.startTime) {
-              newErrors[`act_${planIdx}_${actIdx}_endTime`] = t("tourAdmin.itineraries.endTimeMustBeAfterStartTime", "End time must be after start time");
-            }
-          }
-          act.linkToResources.forEach((link, linkIdx) => {
-            if (link.trim() && !isValidUrl(link)) {
-              newErrors[`link_${planIdx}_${actIdx}_${linkIdx}`] = t(
-                "tourAdmin.validation.invalidLinkUrl",
-                "Please enter a valid URL starting with http:// or https://",
-              );
-            }
-          });
-          act.routes.forEach((route, ri) => {
-            const hasFrom = route.fromLocationIndex !== "" || route.fromLocationCustom.trim() !== "";
-            const hasTo = route.toLocationIndex !== "" || route.toLocationCustom.trim() !== "";
-            if (!hasFrom)
-              newErrors[`route_${planIdx}_${actIdx}_${ri}_from`] = t("tourAdmin.itineraries.requiredFromLocation", "From location is required");
-            if (!hasTo)
-              newErrors[`route_${planIdx}_${actIdx}_${ri}_to`] = t("tourAdmin.itineraries.requiredToLocation", "To location is required");
-            if (route.durationMinutes.trim()) {
-              const dur = Number(route.durationMinutes);
-              if (Number.isNaN(dur) || dur < 0)
-                newErrors[`route_${planIdx}_${actIdx}_${ri}_duration`] = t("tourAdmin.invalidDuration", "Invalid duration");
-            }
-            if (route.price.trim()) {
-              const price = Number(route.price);
-              if (Number.isNaN(price) || price < 0)
-                newErrors[`route_${planIdx}_${actIdx}_${ri}_price`] = t("tourAdmin.invalidPrice", "Invalid price");
-            }
-          });
-          if (act.activityType === "7") {
-            if (!act.fromLocation.trim())
-              newErrors[`act_${planIdx}_${actIdx}_fromLocation`] = t("tourAdmin.required", "Required");
-            if (!act.toLocation.trim())
-              newErrors[`act_${planIdx}_${actIdx}_toLocation`] = t("tourAdmin.required", "Required");
-          }
-          if (act.activityType === "8") {
-            if (!act.accommodationName.trim())
-              newErrors[`act_${planIdx}_${actIdx}_accommodationName`] = t("tourAdmin.required", "Required");
-            if (act.roomCapacity.trim()) {
-              const cap = Number(act.roomCapacity);
-              if (Number.isNaN(cap) || cap < 1)
-                newErrors[`act_${planIdx}_${actIdx}_roomCapacity`] = t("tourAdmin.validation.invalidRoomCapacity", "Room capacity must be at least 1");
-            }
-            if (act.numberOfRooms.trim()) {
-              const rooms = Number(act.numberOfRooms);
-              if (Number.isNaN(rooms) || rooms < 1 || rooms > 999)
-                newErrors[`act_${planIdx}_${actIdx}_numberOfRooms`] = t("tourAdmin.validation.invalidNumberOfRooms", "Number of rooms must be between 1 and 999");
-            }
-            if (act.numberOfNights.trim()) {
-              const nights = Number(act.numberOfNights);
-              if (Number.isNaN(nights) || nights < 1 || nights > 999)
-                newErrors[`act_${planIdx}_${actIdx}_numberOfNights`] = t("tourAdmin.validation.invalidNumberOfNights", "Number of nights must be between 1 and 999");
-            }
-            if (act.roomPrice.trim()) {
-              const price = Number(act.roomPrice);
-              if (Number.isNaN(price) || price < 0)
-                newErrors[`act_${planIdx}_${actIdx}_roomPrice`] = t("tourAdmin.validation.invalidRoomPrice", "Room price must be 0 or greater");
-            }
-            if (act.latitude.trim()) {
-              const lat = Number(act.latitude);
-              if (Number.isNaN(lat) || lat < -90 || lat > 90)
-                newErrors[`act_${planIdx}_${actIdx}_latitude`] = t("tourAdmin.validation.invalidLatitude", "Latitude must be between -90 and 90");
-            }
-            if (act.longitude.trim()) {
-              const lng = Number(act.longitude);
-              if (Number.isNaN(lng) || lng < -180 || lng > 180)
-                newErrors[`act_${planIdx}_${actIdx}_longitude`] = t("tourAdmin.validation.invalidLongitude", "Longitude must be between -180 and 180");
-            }
-          }
-        });
-      });
-    }
-
-    if (step === 3) {
-      services.forEach((svc, i) => {
-        if (!svc.serviceName.trim())
-          newErrors[`svc_${i}_name`] = t("tourAdmin.required", "Required");
-        if (!svc.pricingType.trim())
-          newErrors[`svc_${i}_pricingType`] = t("tourAdmin.required", "Required");
-      });
-    }
-
-    if (step === 4) {
-      const insurancesForClass = insurances[activePackageIndex] ?? [];
-      insurancesForClass.forEach((ins, i) => {
-        if (ins.insuranceName.trim() || ins.enInsuranceName.trim()) {
-          if (!ins.insuranceName.trim())
-            newErrors[`ins_${i}_name`] = t("tourAdmin.required", "Required");
-          if (!ins.enInsuranceName.trim())
-            newErrors[`ins_${i}_enName`] = t("tourAdmin.required", "Required");
-          if (!ins.coverageDescription.trim())
-            newErrors[`ins_${i}_coverage`] = t("tourAdmin.required", "Required");
-          if (!ins.enCoverageDescription.trim())
-            newErrors[`ins_${i}_enCoverage`] = t("tourAdmin.required", "Required");
-          const amount = Number(ins.coverageAmount);
-          if (!ins.coverageAmount.trim() || isNaN(amount) || amount <= 0)
-            newErrors[`ins_${i}_amount`] = t("tourAdmin.validation.invalidCoverageAmount", "Invalid coverage amount");
-        }
-      });
-    }
-
-    return newErrors;
+  // Step field name maps for trigger-based wizard validation
+  const STEP_FIELD_NAMES: Record<number, (keyof TourFormValues)[]> = {
+    0: ["basicInfo", "enTranslation"],
+    1: ["classifications"],
+    2: ["dayPlans"],
+    3: ["services"],
+    4: ["insurances"],
+    5: [],
   };
 
-  const validateStep = (step: number, packageIndexOverride?: number): boolean => {
-    const newErrors = collectStepErrors(step, packageIndexOverride);
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateField = (field: string, value: string, isOptional = false) => {
-    if (!isOptional && !value.trim()) {
-      setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.required", "Required") }));
-    } else {
-      setErrors((prev) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [field]: _removed, ...rest } = prev;
-        return rest;
-      });
-    }
-  };
-
-  const validateFieldPositiveNumber = (field: string, value: string, isOptional = false) => {
-    if (!value.trim()) {
-      if (!isOptional) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.required", "Required") }));
-      }
-    } else {
-      const num = Number(value.trim());
-      if (isNaN(num) || num < 0) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.invalidPrice", "Invalid price") }));
-      } else {
-        setErrors((prev) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { [field]: _removed, ...rest } = prev;
-          return rest;
-        });
-      }
-    }
-  };
-
-  const goNext = () => {
-    if (validateStep(currentStep)) {
+  const goNext = async () => {
+    const fieldsForStep = STEP_FIELD_NAMES[currentStep] ?? [];
+    const isValid = await form.trigger(fieldsForStep as (keyof TourFormValues)[]);
+    if (isValid) {
       setThumbnailError(undefined);
       setImagesError(undefined);
       const nextStep = Math.min(currentStep + 1, WIZARD_STEPS.length - 1);
@@ -986,18 +820,22 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
   /* ── Classification CRUD ──────────────────────────────────── */
   const addClassification = () => {
-    setClassifications((prev) => [...prev, emptyClassification()]);
+    const current = form.getValues("classifications");
+    const newCls = { id: "", name: "", enName: "", description: "", enDescription: "", basePrice: "", durationDays: "" };
+    form.setValue("classifications", [...current, newCls]);
     setDayPlans((prev) => [...prev, []]);
     setInsurances((prev) => [...prev, []]);
   };
 
   const removeClassification = (index: number) => {
-    if (classifications.length <= 1) return;
-    const deletedId = classifications[index]?.id;
+    const current = form.getValues("classifications");
+    if (current.length <= 1) return;
+    const deletedId = current[index]?.id;
     if (deletedId) {
       setDeletedClassificationIds((prev) => [...prev, deletedId]);
     }
-    setClassifications((prev) => prev.filter((_, i) => i !== index));
+    const updated = current.filter((_, i) => i !== index);
+    form.setValue("classifications", updated);
     setDayPlans((prev) => prev.filter((_, i) => i !== index));
     setInsurances((prev) => prev.filter((_, i) => i !== index));
   };
@@ -1007,9 +845,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     field: keyof ClassificationForm,
     value: string,
   ) => {
-    setClassifications((prev) =>
-      prev.map((cls, i) => (i === index ? { ...cls, [field]: value } : cls)),
+    const current = form.getValues("classifications");
+    const updated = current.map((cls, i) =>
+      i === index ? { ...cls, [field]: value } : cls,
     );
+    form.setValue("classifications", updated);
     if (field === "durationDays") {
       setDayPlans((prev) =>
         prev.map((plans, i) =>
@@ -1020,37 +860,41 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   };
 
   useEffect(() => {
+    const current = form.getValues("classifications");
     setDayPlans((prev) =>
-      classifications.map((classification, index) =>
+      current.map((classification, index) =>
         syncPlansByDuration(prev[index] ?? [], classification.durationDays),
       ),
     );
-  }, [classifications]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.getValues("classifications")]);
 
   const updateClassificationPackageTypeVi = (index: number, value: string) => {
     const option = findPackageTypeOption(value);
+    const current = form.getValues("classifications");
     if (!option) {
-      updateClassification(index, "name", value);
+      form.setValue("classifications", current.map((cls, i) =>
+        i === index ? { ...cls, name: value } : cls,
+      ));
       return;
     }
-    setClassifications((prev) =>
-      prev.map((cls, i) =>
-        i === index ? { ...cls, name: option.vi, enName: option.en } : cls,
-      ),
-    );
+    form.setValue("classifications", current.map((cls, i) =>
+      i === index ? { ...cls, name: option.vi, enName: option.en } : cls,
+    ));
   };
 
   const updateClassificationPackageTypeEn = (index: number, value: string) => {
     const option = findPackageTypeOption(value);
+    const current = form.getValues("classifications");
     if (!option) {
-      updateClassification(index, "enName", value);
+      form.setValue("classifications", current.map((cls, i) =>
+        i === index ? { ...cls, enName: value } : cls,
+      ));
       return;
     }
-    setClassifications((prev) =>
-      prev.map((cls, i) =>
-        i === index ? { ...cls, name: option.vi, enName: option.en } : cls,
-      ),
-    );
+    form.setValue("classifications", current.map((cls, i) =>
+      i === index ? { ...cls, name: option.vi, enName: option.en } : cls,
+    ));
   };
 
   /* ── Day Plan CRUD ────────────────────────────────────────── */
@@ -1275,11 +1119,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
   /* ── Service CRUD ─────────────────────────────────────────── */
   const addService = () => {
-    setServices((prev) => [...prev, emptyService()]);
+    const current = form.getValues("services");
+    const newSvc = { serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form.setValue("services", [...current, newSvc] as any);
   };
 
   const removeService = (index: number) => {
-    setServices((prev) => prev.filter((_, i) => i !== index));
+    const current = form.getValues("services");
+    if (current.length <= 1) return;
+    const updated = current.filter((_, i) => i !== index);
+    form.setValue("services", updated);
   };
 
   const updateService = (
@@ -1287,77 +1137,31 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     field: keyof ServiceForm,
     value: string,
   ) => {
-    setServices((prev) =>
-      prev.map((svc, i) => (i === index ? { ...svc, [field]: value } : svc)),
-    );
+    const current = form.getValues("services");
+    const updated = current.map((svc, i) => (i === index ? { ...svc, [field]: value } : svc));
+    form.setValue("services", updated);
   };
 
   /* ── Submit ───────────────────────────────────────────────── */
-  const handleSubmit = async () => {
-    const stepIndices = WIZARD_STEPS.map((_, i) => i);
-    let firstInvalidStep: number | undefined;
-    let firstInvalidPackageIndex: number | undefined;
-    let firstInvalidErrors: Record<string, string> = {};
-
-    for (const step of stepIndices) {
-      if (step === 2 || step === 4) {
-        for (let packageIndex = 0; packageIndex < classifications.length; packageIndex += 1) {
-          const stepErrors = collectStepErrors(step, packageIndex);
-          if (Object.keys(stepErrors).length > 0) {
-            firstInvalidStep = step;
-            firstInvalidPackageIndex = packageIndex;
-            firstInvalidErrors = stepErrors;
-            break;
-          }
-        }
-        if (firstInvalidStep !== undefined) break;
-        continue;
-      }
-      const stepErrors = collectStepErrors(step);
-      if (Object.keys(stepErrors).length > 0) {
-        firstInvalidStep = step;
-        firstInvalidErrors = stepErrors;
-        break;
-      }
-    }
-
-    if (firstInvalidStep !== undefined) {
-      if (firstInvalidPackageIndex !== undefined) {
-        setSelectedPackageIndex(firstInvalidPackageIndex);
-      }
-      setErrors(firstInvalidErrors);
-      setCurrentStep(firstInvalidStep);
-      console.warn("[TourForm] Validation failed before publish", {
-        currentStep,
-        maxNavigableStep,
-        firstInvalidStep,
-        firstInvalidPackageIndex,
-        firstInvalidErrorKeys: Object.keys(firstInvalidErrors),
-      });
-      toast.error(
-        t(
-          "tourAdmin.validation.completeAllSteps",
-          "Please complete all required fields before publishing",
-        ),
-      );
-      return;
-    }
-
+  // Internal submit handler — called by form.handleSubmit after Zod validation passes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleFormSubmit = (form.handleSubmit as (handler: (values: TourFormValues) => Promise<void>) => () => void)(async (values: TourFormValues) => {
     try {
       setSaving(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const formData = buildTourFormData({
-        basicInfo,
+        basicInfo: values.basicInfo as any,
         thumbnail,
         images,
         vietnameseTranslation: {
-          tourName: basicInfo.tourName,
-          shortDescription: basicInfo.shortDescription,
-          longDescription: basicInfo.longDescription,
-          seoTitle: basicInfo.seoTitle,
-          seoDescription: basicInfo.seoDescription,
+          tourName: values.basicInfo.tourName ?? "",
+          shortDescription: values.basicInfo.shortDescription ?? "",
+          longDescription: values.basicInfo.longDescription ?? "",
+          seoTitle: values.basicInfo.seoTitle ?? "",
+          seoDescription: values.basicInfo.seoDescription ?? "",
         },
-        englishTranslation: enTranslation,
-        classifications,
+        englishTranslation: values.enTranslation as any,
+        classifications: values.classifications as any,
         dayPlans,
         insurances,
         services,
@@ -1410,7 +1214,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     } finally {
       setSaving(false);
     }
-  };
+  });
 
   /* ── Sync selectedPackageIndex with classifications ─────────── */
   useEffect(() => {
@@ -1424,6 +1228,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
      Render — Shell with wizard chrome + builder delegation
      ══════════════════════════════════════════════════════════ */
   return (
+    <FormProvider {...form}>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32">
       {/* Saving overlay */}
       {saving && (
@@ -1476,7 +1281,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               </button>
             )}
             <button
-              onClick={handleSubmit}
+              onClick={handleFormSubmit}
               disabled={saving}
               className="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 inline-flex items-center gap-2">
               {saving && <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />}
@@ -1535,16 +1340,15 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       <div className="p-4 sm:p-6 max-w-5xl">
         {currentStep === 0 && (
           <BasicInfoSection
-            basicInfo={basicInfo}
-            enTranslation={enTranslation}
-            activeLang={activeLang}
+            basicInfo={watchedValues.basicInfo as BasicInfoForm}
+            enTranslation={watchedValues.enTranslation as TranslationFields}
+            activeLang={watchedValues.activeLang}
             thumbnail={thumbnail}
             existingThumbnail={existingThumbnail}
             images={images}
             existingImages={existingImages}
             thumbnailError={thumbnailError}
             imagesError={imagesError}
-            errors={errors}
             pricingPolicies={pricingPolicies}
             depositPolicies={depositPolicies}
             cancellationPolicies={cancellationPolicies}
@@ -1553,8 +1357,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             selectedCancellationPolicyId={selectedCancellationPolicyId}
             selectedVisaPolicyId={selectedVisaPolicyId}
             isEditMode={isEditMode}
-            setBasicInfo={setBasicInfo}
-            setEnTranslation={setEnTranslation}
+            setBasicInfo={(field, value) => form.setValue(`basicInfo.${field}` as keyof TourFormValues, value as never, { shouldValidate: true })}
+            setEnTranslation={(field, value) => form.setValue(`enTranslation.${field}` as keyof TourFormValues, value as never, { shouldValidate: true })}
             setActiveLang={setActiveLang}
             setThumbnail={setThumbnail}
             setExistingThumbnail={setExistingThumbnail}
@@ -1566,8 +1370,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             setSelectedDepositPolicyId={setSelectedDepositPolicyId}
             setSelectedCancellationPolicyId={setSelectedCancellationPolicyId}
             setSelectedVisaPolicyId={setSelectedVisaPolicyId}
-            validateField={validateField}
-            validateFieldPositiveNumber={validateFieldPositiveNumber}
             onRemoveExistingImage={(img) =>
               setExistingImages((prev) => prev.filter((i) => i.fileId !== img.fileId))
             }
@@ -1577,8 +1379,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {currentStep === 1 && (
           <TourClassificationsBuilder
-            classifications={classifications}
-            errors={errors}
+            classifications={watchedValues.classifications as ClassificationForm[]}
             isEditMode={isEditMode}
             onAddClassification={addClassification}
             onRemoveClassification={(i) =>
@@ -1588,16 +1389,13 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             onUpdateClassificationPackageTypeVi={updateClassificationPackageTypeVi}
             onUpdateClassificationPackageTypeEn={updateClassificationPackageTypeEn}
             setConfirmDelete={setConfirmDelete}
-            validateField={validateField}
-            validateFieldPositiveNumber={validateFieldPositiveNumber}
           />
         )}
 
         {currentStep === 2 && (
           <TourItineraryBuilder
-            classifications={classifications}
+            classifications={watchedValues.classifications as ClassificationForm[]}
             dayPlans={dayPlans}
-            errors={errors}
             selectedPackageIndex={selectedPackageIndex}
             expandedRoutes={expandedRoutes}
             isEditMode={isEditMode}
@@ -1627,8 +1425,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {currentStep === 3 && (
           <ServicesSection
-            services={services}
-            errors={errors}
+            services={watchedValues.services as unknown as ServiceForm[]}
             onAddService={addService}
             onRemoveService={removeService}
             onUpdateService={updateService}
@@ -1637,9 +1434,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {currentStep === 4 && (
           <InsuranceSection
-            classifications={classifications}
+            classifications={watchedValues.classifications as ClassificationForm[]}
             insurances={insurances}
-            errors={errors}
             activeLang={activeLang}
             insuranceTypes={insuranceTypes}
             onAddInsurance={addInsurance}
@@ -1650,14 +1446,14 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
         {currentStep === 5 && (
           <TourPreviewSection
-            basicInfo={basicInfo}
+            basicInfo={watchedValues.basicInfo as BasicInfoForm}
             thumbnail={thumbnail}
             existingThumbnail={existingThumbnail}
             images={images}
             existingImages={existingImages}
-            classifications={classifications}
+            classifications={watchedValues.classifications as ClassificationForm[]}
             dayPlans={dayPlans}
-            services={services}
+            services={watchedValues.services as unknown as ServiceForm[]}
             insurances={insurances}
           />
         )}
@@ -1678,7 +1474,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           {currentStep === WIZARD_STEPS.length - 1 ? (
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={handleFormSubmit}
               disabled={saving}
               className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
               {saving && <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />}
@@ -1713,5 +1509,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         cancelLabel={t("tourAdmin.confirmDelete.cancel")}
       />
     </div>
+    </FormProvider>
   );
 }

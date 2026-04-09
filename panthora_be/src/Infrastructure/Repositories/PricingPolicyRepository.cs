@@ -60,6 +60,7 @@ public class PricingPolicyRepository(AppDbContext context) : IPricingPolicyRepos
     public async Task UpdateAsync(PricingPolicy policy)
     {
         _context.PricingPolicies.Update(policy);
+        await Task.CompletedTask;
     }
 
     public async Task SoftDelete(Guid id)

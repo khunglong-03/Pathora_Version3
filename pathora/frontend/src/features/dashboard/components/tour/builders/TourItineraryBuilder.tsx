@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
+import type { TourFormValues } from "@/schemas/tour-form";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClassificationForm {
@@ -128,7 +130,6 @@ const ACTIVITY_TYPE_OPTIONS = [
 interface TourItineraryBuilderProps {
   classifications: ClassificationForm[];
   dayPlans: DayPlanForm[][];
-  errors: Record<string, string>;
   selectedPackageIndex: number;
   expandedRoutes: Record<string, boolean>;
   isEditMode: boolean;
@@ -161,7 +162,6 @@ interface TourItineraryBuilderProps {
 export function TourItineraryBuilder({
   classifications,
   dayPlans,
-  errors,
   selectedPackageIndex,
   expandedRoutes,
   isEditMode,
@@ -185,6 +185,8 @@ export function TourItineraryBuilder({
   setConfirmDelete,
 }: TourItineraryBuilderProps) {
   const { t } = useTranslation();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { errors } = useFormState<TourFormValues>({ name: "dayPlans" } as any);
 
   const ci = selectedPackageIndex;
 
@@ -294,9 +296,9 @@ export function TourItineraryBuilder({
                       className="flex-1 px-2 py-1 text-sm bg-white/5 text-white/70 rounded border border-white/10 placeholder:text-white/30 focus:ring-2 focus:ring-white/20 outline-none"
                     />
                   </div>
-                  {(errors[`plan_${di}_title`] || errors[`plan_${di}_enTitle`]) && (
+                  {(errors.dayPlans?.[ci]?.[di]?.title?.message || errors.dayPlans?.[ci]?.[di]?.enTitle?.message) && (
                     <p className="text-red-400 text-xs mt-1">
-                      {errors[`plan_${di}_title`] || errors[`plan_${di}_enTitle`]}
+                      {errors.dayPlans[ci][di].title?.message || errors.dayPlans[ci][di].enTitle?.message}
                     </p>
                   )}
                   <button
@@ -338,9 +340,9 @@ export function TourItineraryBuilder({
                         placeholder="Day description in English..."
                         className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
                       />
-                      {(errors[`plan_${di}_description`] || errors[`plan_${di}_enDescription`]) && (
+                      {(errors.dayPlans?.[ci]?.[di]?.description?.message || errors.dayPlans?.[ci]?.[di]?.enDescription?.message) && (
                         <p className="text-red-500 text-xs mt-1">
-                          {errors[`plan_${di}_description`] || errors[`plan_${di}_enDescription`]}
+                          {errors.dayPlans[ci][di].description?.message || errors.dayPlans[ci][di].enDescription?.message}
                         </p>
                       )}
                     </div>
@@ -489,14 +491,17 @@ export function TourItineraryBuilder({
                               }
                               placeholder="0"
                               className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                errors[`act_${di}_${ai}_estimatedCost`]
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                (errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.estimatedCost?.message
                                   ? "border-red-400 dark:border-red-500"
                                   : "border-slate-300 dark:border-slate-600"
                               }`}
                             />
-                            {errors[`act_${di}_${ai}_estimatedCost`] && (
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.estimatedCost?.message && (
                               <p className="text-red-500 text-xs mt-0.5">
-                                {errors[`act_${di}_${ai}_estimatedCost`]}
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any).estimatedCost.message}
                               </p>
                             )}
                           </div>
@@ -613,14 +618,17 @@ export function TourItineraryBuilder({
                                     }
                                     placeholder={t("tourAdmin.itineraries.placeholderHttps")}
                                     className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                      errors[`link_${di}_${ai}_${li}`]
+                                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message
                                         ? "border-red-400 dark:border-red-500"
                                         : "border-slate-300 dark:border-slate-600"
                                     }`}
                                   />
-                                  {errors[`link_${di}_${ai}_${li}`] && (
+                                  {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message && (
                                     <p className="text-red-500 text-xs mt-0.5">
-                                      {errors[`link_${di}_${ai}_${li}`]}
+                                      {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message}
                                     </p>
                                   )}
                                 </div>
@@ -741,11 +749,17 @@ export function TourItineraryBuilder({
                                 value={act.accommodationName}
                                 onChange={(e) => onUpdateActivity(ci, di, ai, "accommodationName", e.target.value)}
                                 className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                  errors[`act_${ci}_${di}_${ai}_accommodationName`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                  (errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.accommodationName
+                                    ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                 }`}
                               />
-                              {errors[`act_${ci}_${di}_${ai}_accommodationName`] && (
-                                <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_accommodationName`]}</p>
+                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                              {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.accommodationName && (
+                                <p className="text-red-500 text-xs mt-0.5">
+                                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                  {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any).accommodationName.message}
+                                </p>
                               )}
                             </div>
                             <div>
@@ -833,11 +847,14 @@ export function TourItineraryBuilder({
                                   value={act.roomCapacity}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "roomCapacity", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_roomCapacity`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomCapacity ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_roomCapacity`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_roomCapacity`]}</p>
+                                {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomCapacity && (
+                                  <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomCapacity}</p>
                                 )}
                               </div>
                               <div>
@@ -850,11 +867,14 @@ export function TourItineraryBuilder({
                                   value={act.numberOfRooms}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "numberOfRooms", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_numberOfRooms`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfRooms ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_numberOfRooms`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_numberOfRooms`]}</p>
+                                {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfRooms && (
+                                  <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfRooms}</p>
                                 )}
                               </div>
                               <div>
@@ -867,11 +887,14 @@ export function TourItineraryBuilder({
                                   value={act.numberOfNights}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "numberOfNights", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_numberOfNights`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfNights ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_numberOfNights`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_numberOfNights`]}</p>
+                                {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfNights && (
+                                  <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.numberOfNights}</p>
                                 )}
                               </div>
                               <div>
@@ -903,11 +926,14 @@ export function TourItineraryBuilder({
                                   value={act.roomPrice}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "roomPrice", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_roomPrice`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomPrice ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_roomPrice`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_roomPrice`]}</p>
+                                {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomPrice && (
+                                  <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.roomPrice}</p>
                                 )}
                               </div>
                               <div>
@@ -920,11 +946,14 @@ export function TourItineraryBuilder({
                                   value={act.latitude}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "latitude", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_latitude`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.latitude ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_latitude`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_latitude`]}</p>
+                                {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.latitude && (
+                                  <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.latitude}</p>
                                 )}
                               </div>
                               <div>
@@ -937,11 +966,16 @@ export function TourItineraryBuilder({
                                   value={act.longitude}
                                   onChange={(e) => onUpdateActivity(ci, di, ai, "longitude", e.target.value)}
                                   className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                    errors[`act_${ci}_${di}_${ai}_longitude`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    (errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.longitude ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                   }`}
                                 />
-                                {errors[`act_${ci}_${di}_${ai}_longitude`] && (
-                                  <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_longitude`]}</p>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any)?.longitude && (
+                                  <p className="text-red-500 text-xs mt-0.5">
+                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                    {(errors.dayPlans?.[ci]?.[di]?.activities?.[ai] as any).longitude}
+                                  </p>
                                 )}
                               </div>
                               <div className="md:col-span-4">
@@ -1025,11 +1059,14 @@ export function TourItineraryBuilder({
                                           onChange={(e) => onUpdateRoute(ci, di, ai, ri, "fromLocationCustom", e.target.value)}
                                           placeholder={t("tourAdmin.itineraries.placeholderFromLocation", "Departure location")}
                                           className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                            errors[`route_${ci}_${di}_${ai}_${ri}_from`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                           }`}
                                         />
-                                        {errors[`route_${ci}_${di}_${ai}_${ri}_from`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_from`]}</p>
+                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom && (
+                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom}</p>
                                         )}
                                       </div>
                                       <div>
@@ -1042,11 +1079,14 @@ export function TourItineraryBuilder({
                                           onChange={(e) => onUpdateRoute(ci, di, ai, ri, "toLocationCustom", e.target.value)}
                                           placeholder={t("tourAdmin.itineraries.placeholderToLocation", "Arrival location")}
                                           className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                            errors[`route_${ci}_${di}_${ai}_${ri}_to`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
                                           }`}
                                         />
-                                        {errors[`route_${ci}_${di}_${ai}_${ri}_to`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_to`]}</p>
+                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom && (
+                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom}</p>
                                         )}
                                       </div>
                                     </div>
@@ -1109,13 +1149,16 @@ export function TourItineraryBuilder({
                                           onChange={(e) => onUpdateRoute(ci, di, ai, ri, "durationMinutes", e.target.value)}
                                           placeholder="0"
                                           className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                            errors[`route_${ci}_${di}_${ai}_${ri}_duration`]
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes
                                               ? "border-red-400 dark:border-red-500"
                                               : "border-slate-300 dark:border-slate-600"
                                           }`}
                                         />
-                                        {errors[`route_${ci}_${di}_${ai}_${ri}_duration`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_duration`]}</p>
+                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes && (
+                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes}</p>
                                         )}
                                       </div>
                                       <div>
@@ -1130,13 +1173,16 @@ export function TourItineraryBuilder({
                                           onChange={(e) => onUpdateRoute(ci, di, ai, ri, "price", e.target.value)}
                                           placeholder="0"
                                           className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                            errors[`route_${ci}_${di}_${ai}_${ri}_price`]
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price
                                               ? "border-red-400 dark:border-red-500"
                                               : "border-slate-300 dark:border-slate-600"
                                           }`}
                                         />
-                                        {errors[`route_${ci}_${di}_${ai}_${ri}_price`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_price`]}</p>
+                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price && (
+                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price}</p>
                                         )}
                                       </div>
                                     </div>

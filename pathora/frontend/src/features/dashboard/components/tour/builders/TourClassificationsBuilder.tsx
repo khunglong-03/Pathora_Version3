@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
+import type { TourFormValues } from "@/schemas/tour-form";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClassificationForm {
@@ -41,7 +43,6 @@ const findPackageTypeOption = (value: string) => {
 /* ── Props ──────────────────────────────────────────────────── */
 interface TourClassificationsBuilderProps {
   classifications: ClassificationForm[];
-  errors: Record<string, string>;
   isEditMode: boolean;
   onAddClassification: () => void;
   onRemoveClassification: (index: number) => void;
@@ -54,13 +55,10 @@ interface TourClassificationsBuilderProps {
     index2?: number;
     index3?: number;
   } | null>>;
-  validateField: (field: string, value: string) => void;
-  validateFieldPositiveNumber: (field: string, value: string) => void;
 }
 
 export function TourClassificationsBuilder({
   classifications,
-  errors,
   isEditMode,
   onAddClassification,
   onRemoveClassification,
@@ -68,10 +66,10 @@ export function TourClassificationsBuilder({
   onUpdateClassificationPackageTypeVi,
   onUpdateClassificationPackageTypeEn,
   setConfirmDelete,
-  validateField,
-  validateFieldPositiveNumber,
 }: TourClassificationsBuilderProps) {
   const { t } = useTranslation();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { errors } = useFormState<TourFormValues>({ name: "classifications" } as any);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
@@ -145,8 +143,8 @@ export function TourClassificationsBuilder({
                   placeholder={t("tourAdmin.packages.placeholderDuration")}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                 />
-                {errors[`cls_${clsI}_duration`] && (
-                  <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_duration`]}</p>
+                {errors.classifications?.[clsI]?.durationDays?.message && (
+                  <p className="text-red-500 text-xs mt-1">{errors.classifications[clsI].durationDays.message}</p>
                 )}
               </div>
               <div>
@@ -161,26 +159,23 @@ export function TourClassificationsBuilder({
                     onChange={(e) =>
                       onUpdateClassification(clsI, "basePrice", e.target.value)
                     }
-                    onBlur={(e) =>
-                      validateFieldPositiveNumber(`cls_${clsI}_basePrice`, e.target.value)
-                    }
                     placeholder={t("tourAdmin.packages.placeholderBasePrice")}
                     className={`w-full px-3 py-2 pr-8 text-sm rounded-xl border bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                      errors[`cls_${clsI}_basePrice`]
+                      errors.classifications?.[clsI]?.basePrice
                         ? "border-red-400 dark:border-red-500"
                         : "border-stone-300 dark:border-stone-600"
                     }`}
                   />
-                  {errors[`cls_${clsI}_basePrice`] && (
+                  {errors.classifications?.[clsI]?.basePrice && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
                       <Icon icon="heroicons:x-circle" className="size-4" />
                     </span>
                   )}
                 </div>
-                {errors[`cls_${clsI}_basePrice`] && (
+                {errors.classifications?.[clsI]?.basePrice && (
                   <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                     <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                    {errors[`cls_${clsI}_basePrice`]}
+                    {errors.classifications[clsI].basePrice.message}
                   </p>
                 )}
               </div>
@@ -204,9 +199,8 @@ export function TourClassificationsBuilder({
                     <select
                       value={findPackageTypeOption(cls.name)?.key ?? ""}
                       onChange={(e) => onUpdateClassificationPackageTypeVi(clsI, e.target.value)}
-                      onBlur={() => validateField(`cls_${clsI}_name`, cls.name)}
                       className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer ${
-                        errors[`cls_${clsI}_name`]
+                        errors.classifications?.[clsI]?.name
                           ? "border-red-400 dark:border-red-500"
                           : "border-stone-300 dark:border-stone-600"
                       }`}>
@@ -215,16 +209,16 @@ export function TourClassificationsBuilder({
                         <option key={opt.key} value={opt.key}>{opt.vi}</option>
                       ))}
                     </select>
-                    {errors[`cls_${clsI}_name`] && (
+                    {errors.classifications?.[clsI]?.name && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
                         <Icon icon="heroicons:x-circle" className="size-4" />
                       </span>
                     )}
                   </div>
-                  {errors[`cls_${clsI}_name`] && (
+                  {errors.classifications?.[clsI]?.name && (
                     <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                       <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                      {errors[`cls_${clsI}_name`]}
+                      {errors.classifications[clsI].name.message}
                     </p>
                   )}
                 </div>
@@ -239,8 +233,8 @@ export function TourClassificationsBuilder({
                     placeholder={t("tourAdmin.packages.placeholderDescription")}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
                   />
-                  {errors[`cls_${clsI}_description`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_description`]}</p>
+                  {errors.classifications?.[clsI]?.description?.message && (
+                    <p className="text-red-500 text-xs mt-1">{errors.classifications[clsI].description.message}</p>
                   )}
                 </div>
               </div>
@@ -269,9 +263,6 @@ export function TourClassificationsBuilder({
                       <option key={opt.key} value={opt.key}>{opt.en}</option>
                     ))}
                   </select>
-                  {errors[`cls_${clsI}_enName`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enName`]}</p>
-                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
@@ -284,8 +275,8 @@ export function TourClassificationsBuilder({
                     placeholder="Describe what this package includes..."
                     className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
                   />
-                  {errors[`cls_${clsI}_enDescription`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enDescription`]}</p>
+                  {errors.classifications?.[clsI]?.enDescription?.message && (
+                    <p className="text-red-500 text-xs mt-1">{errors.classifications[clsI].enDescription.message}</p>
                   )}
                 </div>
               </div>

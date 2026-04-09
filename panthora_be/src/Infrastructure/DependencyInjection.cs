@@ -40,10 +40,6 @@ public static class DependencyInjection
            .AddScoped<HotelServiceProviderSupplierMapper>()
            .AddDbContext<AppDbContext>(options =>
             {
-                options.UseLazyLoadingProxies(proxyOptions =>
-                {
-                    proxyOptions.IgnoreNonVirtualNavigations();
-                });
                 options.UseNpgsql(configuration.GetConnectionString("Default"), npgsqlOptions =>
                 {
                     npgsqlOptions.CommandTimeout(databaseOptions.CommandTimeoutSeconds);

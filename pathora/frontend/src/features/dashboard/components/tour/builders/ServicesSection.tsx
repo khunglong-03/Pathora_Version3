@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
+import type { TourFormValues } from "@/schemas/tour-form";
 
 interface ServiceForm {
   serviceName: string;
@@ -16,7 +18,6 @@ interface ServiceForm {
 
 interface ServicesSectionProps {
   services: ServiceForm[];
-  errors: Record<string, string>;
   onAddService: () => void;
   onRemoveService: (index: number) => void;
   onUpdateService: (index: number, field: keyof ServiceForm, value: string) => void;
@@ -32,12 +33,13 @@ const PRICING_TYPE_OPTIONS = [
 
 export function ServicesSection({
   services,
-  errors,
   onAddService,
   onRemoveService,
   onUpdateService,
 }: ServicesSectionProps) {
   const { t } = useTranslation();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { errors } = useFormState<TourFormValues>({ name: "services" } as any);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
@@ -100,8 +102,8 @@ export function ServicesSection({
                   placeholder={t("tourAdmin.services.placeholderServiceName")}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                 />
-                {errors[`svc_${svcI}_name`] && (
-                  <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_name`]}</p>
+                {errors.services?.[svcI]?.serviceName?.message && (
+                  <p className="text-red-500 text-xs mt-1">{errors.services[svcI].serviceName.message}</p>
                 )}
               </div>
               {/* English Service Name */}
@@ -132,8 +134,8 @@ export function ServicesSection({
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
-                  {errors[`svc_${svcI}_pricingType`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_pricingType`]}</p>
+                  {errors.services?.[svcI]?.pricingType?.message && (
+                    <p className="text-red-500 text-xs mt-1">{errors.services[svcI].pricingType.message}</p>
                   )}
                 </div>
                 <div>

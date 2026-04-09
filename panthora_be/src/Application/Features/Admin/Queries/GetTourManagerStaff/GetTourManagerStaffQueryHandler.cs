@@ -10,6 +10,7 @@ using MediatR;
 
 public sealed class GetTourManagerStaffQueryHandler(
         IUserRepository userRepository,
+        IRoleRepository roleRepository,
         ITourManagerAssignmentRepository assignmentRepository)
     : IRequestHandler<GetTourManagerStaffQuery, ErrorOr<TourManagerStaffDto>>
 {
@@ -22,32 +23,41 @@ public sealed class GetTourManagerStaffQueryHandler(
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
 
         var assignments = await assignmentRepository.GetByManagerIdAsync(request.ManagerId, cancellationToken);
-        var staffList = new List<StaffMemberDto>();
+        var assignedUserIds = assignments
+            .Where(a => a.AssignedUserId.HasValue)
+            .Select(a => a.AssignedUserId!.Value)
+            .Distinct()
+            .ToList();
 
+        var usersResult = await userRepository.FindByIds(assignedUserIds);
+        var userMap = usersResult.ToDictionary(u => u.Id);
+
+        var rolesResult = await roleRepository.FindByUserIds(assignedUserIds.ToList());
+        var roleMap = rolesResult.IsError
+            ? new Dictionary<Guid, List<RoleEntity>>()
+            : rolesResult.Value;
+
+        var staffList = new List<StaffMemberDto>();
         foreach (var assignment in assignments)
         {
-            if (assignment.AssignedUserId.HasValue)
+            if (assignment.AssignedUserId.HasValue && userMap.TryGetValue(assignment.AssignedUserId.Value, out var staffUser))
             {
-                var staffUser = await userRepository.FindById(assignment.AssignedUserId.Value);
-                if (staffUser != null)
+                var roleName = assignment.AssignedEntityType switch
                 {
-                    var roleName = assignment.AssignedEntityType switch
-                    {
-                        AssignedEntityType.TourDesigner => "Tour Designer",
-                        AssignedEntityType.TourGuide => "Tour Guide",
-                        _ => "Staff"
-                    };
-                    var roleInTeam = assignment.AssignedRoleInTeam?.ToString() ?? "Member";
-                    var status = staffUser.IsDeleted ? "Khóa" : "Hoạt động";
-                    staffList.Add(new StaffMemberDto(
-                        staffUser.Id,
-                        staffUser.FullName ?? staffUser.Username,
-                        staffUser.Email,
-                        staffUser.AvatarUrl,
-                        roleName,
-                        roleInTeam,
-                        status));
-                }
+                    AssignedEntityType.TourDesigner => "Tour Designer",
+                    AssignedEntityType.TourGuide => "Tour Guide",
+                    _ => "Staff"
+                };
+                var roleInTeam = assignment.AssignedRoleInTeam?.ToString() ?? "Member";
+                var status = staffUser.IsDeleted ? "Khóa" : "Hoạt động";
+                staffList.Add(new StaffMemberDto(
+                    staffUser.Id,
+                    staffUser.FullName ?? staffUser.Username,
+                    staffUser.Email,
+                    staffUser.AvatarUrl,
+                    roleName,
+                    roleInTeam,
+                    status));
             }
         }
 

@@ -12,15 +12,37 @@ namespace Domain.Specs.Application.Features.Admin.Queries;
 public sealed class GetTourManagerStaffQueryHandlerStatusTests
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly ITourManagerAssignmentRepository _assignmentRepository;
     private readonly GetTourManagerStaffQueryHandler _handler;
 
     public GetTourManagerStaffQueryHandlerStatusTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
+        _roleRepository = Substitute.For<IRoleRepository>();
         _assignmentRepository = Substitute.For<ITourManagerAssignmentRepository>();
-        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _assignmentRepository);
+        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _roleRepository, _assignmentRepository);
     }
+
+    private static UserEntity CreateManager(Guid id, string fullName, string email) => new()
+    {
+        Id = id,
+        Username = fullName.ToLowerInvariant(),
+        Email = email,
+        FullName = fullName,
+        Status = UserStatus.Active,
+        IsDeleted = false
+    };
+
+    private static UserEntity CreateStaff(Guid id, string fullName, string email, bool isDeleted) => new()
+    {
+        Id = id,
+        Username = fullName.ToLowerInvariant().Replace(" ", ""),
+        Email = email,
+        FullName = fullName,
+        Status = UserStatus.Active,
+        IsDeleted = isDeleted
+    };
 
     [Fact]
     public async Task Handle_ActiveStaff_ReturnsStatusHoatDong()
@@ -36,7 +58,10 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { assignment });
-        _userRepository.FindById(staffId).Returns(activeStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new List<UserEntity> { activeStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -61,7 +86,10 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { assignment });
-        _userRepository.FindById(staffId).Returns(deletedStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new List<UserEntity> { deletedStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -90,8 +118,10 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { activeAssignment, deletedAssignment });
-        _userRepository.FindById(activeId).Returns(activeStaff);
-        _userRepository.FindById(deletedId).Returns(deletedStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(activeId) && ids.Contains(deletedId)))
+            .Returns(new List<UserEntity> { activeStaff, deletedStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(activeId) && ids.Contains(deletedId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -102,24 +132,4 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         Assert.Contains(result.Value.Staff, s => s.FullName == "Active Guide" && s.Status == "Hoạt động");
         Assert.Contains(result.Value.Staff, s => s.FullName == "Deleted Guide" && s.Status == "Khóa");
     }
-
-    private static UserEntity CreateManager(Guid id, string fullName, string email) => new()
-    {
-        Id = id,
-        Username = fullName.ToLowerInvariant(),
-        Email = email,
-        FullName = fullName,
-        Status = UserStatus.Active,
-        IsDeleted = false
-    };
-
-    private static UserEntity CreateStaff(Guid id, string fullName, string email, bool isDeleted) => new()
-    {
-        Id = id,
-        Username = fullName.ToLowerInvariant().Replace(" ", ""),
-        Email = email,
-        FullName = fullName,
-        Status = UserStatus.Active,
-        IsDeleted = isDeleted
-    };
 }

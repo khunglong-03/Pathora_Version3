@@ -12,14 +12,16 @@ namespace Domain.Specs.Application.Features.Admin.Queries;
 public sealed class GetTourManagerStaffQueryHandlerTests
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly ITourManagerAssignmentRepository _assignmentRepository;
     private readonly GetTourManagerStaffQueryHandler _handler;
 
     public GetTourManagerStaffQueryHandlerTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
+        _roleRepository = Substitute.For<IRoleRepository>();
         _assignmentRepository = Substitute.For<ITourManagerAssignmentRepository>();
-        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _assignmentRepository);
+        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _roleRepository, _assignmentRepository);
     }
 
     [Fact]
@@ -66,8 +68,10 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { designerAssignment, guideAssignment });
-        _userRepository.FindById(designerId).Returns(designer);
-        _userRepository.FindById(guideId).Returns(guide);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(designerId) && ids.Contains(guideId)))
+            .Returns(new List<UserEntity> { designer, guide });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(designerId) && ids.Contains(guideId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -141,7 +145,10 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { designerAssignment });
-        _userRepository.FindById(designerAssignment.AssignedUserId!.Value).Returns((UserEntity?)null);
+        _userRepository.FindByIds(Arg.Any<List<Guid>>())
+            .Returns(new List<UserEntity>());
+        _roleRepository.FindByUserIds(Arg.Any<List<Guid>>())
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -208,7 +215,10 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { assignment });
-        _userRepository.FindById(staffId).Returns(activeStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new List<UserEntity> { activeStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -248,7 +258,10 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { assignment });
-        _userRepository.FindById(staffId).Returns(deletedStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new List<UserEntity> { deletedStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(staffId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 
@@ -298,8 +311,10 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourManagerAssignmentEntity> { assignment1, assignment2 });
-        _userRepository.FindById(activeId).Returns(activeStaff);
-        _userRepository.FindById(deletedId).Returns(deletedStaff);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(ids => ids.Contains(activeId) && ids.Contains(deletedId)))
+            .Returns(new List<UserEntity> { activeStaff, deletedStaff });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(ids => ids.Contains(activeId) && ids.Contains(deletedId)))
+            .Returns(new Dictionary<Guid, List<RoleEntity>>());
 
         var query = new GetTourManagerStaffQuery(managerId);
 

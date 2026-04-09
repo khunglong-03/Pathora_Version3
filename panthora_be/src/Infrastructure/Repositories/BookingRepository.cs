@@ -70,7 +70,15 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
 
     public async Task<(List<BookingEntity> Items, int TotalCount)> GetAllPagedAsync(int page, int pageSize)
     {
-        var query = _context.Bookings.AsNoTracking().Include(b => b.TourInstance);
+        var query = _context.Bookings
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(b => b.TourInstance)
+            .Include(b => b.User)
+            .Include(b => b.BookingParticipants)
+                .ThenInclude(bp => bp.Passport)
+            .Include(b => b.BookingActivityReservations)
+            .Include(b => b.BookingTourGuides);
 
         var totalCount = await query.CountAsync();
         var items = await query

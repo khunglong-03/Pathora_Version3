@@ -1,14 +1,12 @@
 {
   "mcpServers": {
     "gitnexus": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "D:/DoAn/GitNexus/gitnexus/dist/cli/index.js",
+        "-y",
+        "gitnexus@latest",
         "mcp"
-      ],
-      "env": {
-        "GITNEXUS_REPO_PATH": "D:\\DoAn\\panthora_be"
-      }
+      ]
     }
   }
 }

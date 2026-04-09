@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useFormContext, useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
 import SearchableSelect from "@/components/ui/SearchableSelect";
@@ -13,26 +14,27 @@ import type { PricingPolicy } from "@/types/pricingPolicy";
 import type { DepositPolicy } from "@/types/depositPolicy";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
 import type { VisaPolicy } from "@/types/visaPolicy";
+import type { TourFormValues } from "@/schemas/tour-form";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface BasicInfoForm {
   tourName: string;
   shortDescription: string;
   longDescription: string;
-  seoTitle: string;
-  seoDescription: string;
+  seoTitle?: string;
+  seoDescription?: string;
   status: string;
   tourScope: string;
-  continent: string;
+  continent?: string;
   customerSegment: string;
 }
 
 interface TranslationFields {
-  tourName: string;
-  shortDescription: string;
-  longDescription: string;
-  seoTitle: string;
-  seoDescription: string;
+  tourName?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 /* ── Props ──────────────────────────────────────────────────── */
@@ -43,7 +45,6 @@ interface BasicInfoSectionProps {
   existingThumbnail: ImageDto | null;
   images: File[];
   existingImages: ImageDto[];
-  errors: Record<string, string>;
   thumbnailError: string | undefined;
   imagesError: string | undefined;
   pricingPolicies: PricingPolicy[];
@@ -55,8 +56,8 @@ interface BasicInfoSectionProps {
   selectedVisaPolicyId: string;
   activeLang: SupportedLanguage;
   isEditMode: boolean;
-  setBasicInfo: React.Dispatch<React.SetStateAction<BasicInfoForm>>;
-  setEnTranslation: React.Dispatch<React.SetStateAction<TranslationFields>>;
+  setBasicInfo: (field: keyof BasicInfoForm, value: string) => void;
+  setEnTranslation: (field: keyof TranslationFields, value: string) => void;
   setThumbnail: React.Dispatch<React.SetStateAction<File | null>>;
   setExistingThumbnail: React.Dispatch<React.SetStateAction<ImageDto | null>>;
   setImages: React.Dispatch<React.SetStateAction<File[]>>;
@@ -68,8 +69,6 @@ interface BasicInfoSectionProps {
   setActiveLang: (v: SupportedLanguage) => void;
   setThumbnailError: (v: string | undefined) => void;
   setImagesError: (v: string | undefined) => void;
-  validateField: (field: string, value: string) => void;
-  validateFieldPositiveNumber: (field: string, value: string) => void;
   onRemoveExistingImage: (img: ImageDto) => void;
   onRemoveExistingThumbnail: () => void;
 }
@@ -81,7 +80,6 @@ export function BasicInfoSection({
   existingThumbnail,
   images,
   existingImages,
-  errors,
   thumbnailError,
   imagesError,
   pricingPolicies,
@@ -106,11 +104,40 @@ export function BasicInfoSection({
   setActiveLang,
   setThumbnailError,
   setImagesError,
-  validateField,
   onRemoveExistingImage,
   onRemoveExistingThumbnail,
 }: BasicInfoSectionProps) {
   const { t } = useTranslation();
+  const { setValue, getValues } = useFormContext<TourFormValues>();
+  const { errors } = useFormState<TourFormValues>({ name: "basicInfo" } as never);
+
+  // Adapter: translate field/value calls to useFormContext.setValue calls
+  // Supports both (field, value) and functional-updater styles
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleBasicInfoChange = (fieldOrUpdater: any, maybeValue?: any) => {
+    if (typeof fieldOrUpdater === "function") {
+      const current = getValues("basicInfo");
+      const next = fieldOrUpdater(current);
+      Object.entries(next as BasicInfoForm).forEach(([k, v]) => {
+        setValue(`basicInfo.${k}` as keyof TourFormValues, v as never, { shouldValidate: true });
+      });
+    } else {
+      setValue(`basicInfo.${fieldOrUpdater}` as keyof TourFormValues, maybeValue as never, { shouldValidate: true });
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEnTranslationChange = (fieldOrUpdater: any, maybeValue?: any) => {
+    if (typeof fieldOrUpdater === "function") {
+      const current = getValues("enTranslation");
+      const next = fieldOrUpdater(current);
+      Object.entries(next as TranslationFields).forEach(([k, v]) => {
+        setValue(`enTranslation.${k}` as keyof TourFormValues, v as never, { shouldValidate: true });
+      });
+    } else {
+      setValue(`enTranslation.${fieldOrUpdater}` as keyof TourFormValues, maybeValue as never, { shouldValidate: true });
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
@@ -141,11 +168,7 @@ export function BasicInfoSection({
           <select
             value={basicInfo.tourScope}
             onChange={(e) =>
-              setBasicInfo((prev) => ({
-                ...prev,
-                tourScope: e.target.value,
-                continent: e.target.value === "1" ? "" : prev.continent,
-              }))
+              handleBasicInfoChange("tourScope", e.target.value)
             }
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           >
@@ -160,7 +183,7 @@ export function BasicInfoSection({
           <select
             value={basicInfo.customerSegment}
             onChange={(e) =>
-              setBasicInfo((prev) => ({ ...prev, customerSegment: e.target.value }))
+              handleBasicInfoChange("customerSegment", e.target.value)
             }
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           >
@@ -181,7 +204,7 @@ export function BasicInfoSection({
           <select
             value={basicInfo.continent}
             onChange={(e) =>
-              setBasicInfo((prev) => ({ ...prev, continent: e.target.value }))
+              handleBasicInfoChange("continent", e.target.value)
             }
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           >
@@ -205,7 +228,7 @@ export function BasicInfoSection({
           <select
             value={basicInfo.status}
             onChange={(e) =>
-              setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
+              handleBasicInfoChange("status", e.target.value)
             }
             className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           >
@@ -238,29 +261,25 @@ export function BasicInfoSection({
                 type="text"
                 value={basicInfo.tourName}
                 onChange={(e) =>
-                  setBasicInfo((prev) => ({
-                    ...prev,
-                    tourName: e.target.value,
-                  }))
+                  handleBasicInfoChange("tourName", e.target.value)
                 }
-                onBlur={(e) => validateField("tourName", e.target.value)}
                 placeholder={t("placeholder.enterTourName")}
                 className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                  errors.tourName
+                  errors.basicInfo?.tourName?.message
                     ? "border-red-400 dark:border-red-500"
                     : "border-slate-300 dark:border-slate-600"
                 }`}
               />
-              {errors.tourName && (
+              {errors.basicInfo?.tourName?.message && (
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
                   <Icon icon="heroicons:x-circle" className="size-4" />
                 </span>
               )}
             </div>
-            {errors.tourName && (
+            {errors.basicInfo?.tourName?.message && (
               <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                 <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                {errors.tourName}
+                {errors.basicInfo?.tourName?.message}
               </p>
             )}
           </div>
@@ -274,30 +293,26 @@ export function BasicInfoSection({
               <textarea
                 value={basicInfo.shortDescription}
                 onChange={(e) =>
-                  setBasicInfo((prev) => ({
-                    ...prev,
-                    shortDescription: e.target.value,
-                  }))
+                  handleBasicInfoChange("shortDescription", e.target.value)
                 }
-                onBlur={(e) => validateField("shortDescription", e.target.value)}
                 rows={2}
                 placeholder={t("placeholder.briefTourDescription")}
                 className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${
-                  errors.shortDescription
+                  errors.basicInfo?.shortDescription?.message
                     ? "border-red-400 dark:border-red-500"
                     : "border-slate-300 dark:border-slate-600"
                 }`}
               />
-              {errors.shortDescription && (
+              {errors.basicInfo?.shortDescription?.message && (
                 <span className="absolute right-3 top-3 text-red-500">
                   <Icon icon="heroicons:x-circle" className="size-4" />
                 </span>
               )}
             </div>
-            {errors.shortDescription && (
+            {errors.basicInfo?.shortDescription?.message && (
               <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                 <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                {errors.shortDescription}
+                {errors.basicInfo?.shortDescription?.message}
               </p>
             )}
           </div>
@@ -311,30 +326,26 @@ export function BasicInfoSection({
               <textarea
                 value={basicInfo.longDescription}
                 onChange={(e) =>
-                  setBasicInfo((prev) => ({
-                    ...prev,
-                    longDescription: e.target.value,
-                  }))
+                  handleBasicInfoChange("longDescription", e.target.value)
                 }
-                onBlur={(e) => validateField("longDescription", e.target.value)}
                 rows={4}
                 placeholder={t("placeholder.detailedTourDescription")}
                 className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${
-                  errors.longDescription
+                  errors.basicInfo?.longDescription?.message
                     ? "border-red-400 dark:border-red-500"
                     : "border-slate-300 dark:border-slate-600"
                 }`}
               />
-              {errors.longDescription && (
+              {errors.basicInfo?.longDescription?.message && (
                 <span className="absolute right-3 top-3 text-red-500">
                   <Icon icon="heroicons:x-circle" className="size-4" />
                 </span>
               )}
             </div>
-            {errors.longDescription && (
+            {errors.basicInfo?.longDescription?.message && (
               <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                 <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                {errors.longDescription}
+                {errors.basicInfo?.longDescription?.message}
               </p>
             )}
           </div>
@@ -348,10 +359,7 @@ export function BasicInfoSection({
               type="text"
               value={basicInfo.seoTitle}
               onChange={(e) =>
-                setBasicInfo((prev) => ({
-                  ...prev,
-                  seoTitle: e.target.value,
-                }))
+                handleBasicInfoChange("seoTitle", e.target.value)
               }
               placeholder={t("placeholder.seoOptimizedTitle")}
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
@@ -366,10 +374,7 @@ export function BasicInfoSection({
             <textarea
               value={basicInfo.seoDescription}
               onChange={(e) =>
-                setBasicInfo((prev) => ({
-                  ...prev,
-                  seoDescription: e.target.value,
-                }))
+                handleBasicInfoChange("seoDescription", e.target.value)
               }
               rows={2}
               placeholder={t("placeholder.seoOptimizedDescription")}
@@ -408,10 +413,7 @@ export function BasicInfoSection({
               type="text"
               value={enTranslation.tourName}
               onChange={(e) =>
-                setEnTranslation((prev) => ({
-                  ...prev,
-                  tourName: e.target.value,
-                }))
+                handleEnTranslationChange("tourName", e.target.value)
               }
               placeholder={t("placeholder.enterTourNameEn")}
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
@@ -426,10 +428,7 @@ export function BasicInfoSection({
             <textarea
               value={enTranslation.shortDescription}
               onChange={(e) =>
-                setEnTranslation((prev) => ({
-                  ...prev,
-                  shortDescription: e.target.value,
-                }))
+                handleEnTranslationChange("shortDescription", e.target.value)
               }
               rows={2}
               placeholder={t("placeholder.briefDescEn")}
@@ -445,10 +444,7 @@ export function BasicInfoSection({
             <textarea
               value={enTranslation.longDescription}
               onChange={(e) =>
-                setEnTranslation((prev) => ({
-                  ...prev,
-                  longDescription: e.target.value,
-                }))
+                handleEnTranslationChange("longDescription", e.target.value)
               }
               rows={4}
               placeholder={t("placeholder.detailedDescEn")}
@@ -465,10 +461,7 @@ export function BasicInfoSection({
               type="text"
               value={enTranslation.seoTitle}
               onChange={(e) =>
-                setEnTranslation((prev) => ({
-                  ...prev,
-                  seoTitle: e.target.value,
-                }))
+                handleEnTranslationChange("seoTitle", e.target.value)
               }
               placeholder={t("placeholder.seoOptimizedTitle")}
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
@@ -483,10 +476,7 @@ export function BasicInfoSection({
             <textarea
               value={enTranslation.seoDescription}
               onChange={(e) =>
-                setEnTranslation((prev) => ({
-                  ...prev,
-                  seoDescription: e.target.value,
-                }))
+                handleEnTranslationChange("seoDescription", e.target.value)
               }
               rows={2}
               placeholder={t("placeholder.seoOptimizedDescription")}

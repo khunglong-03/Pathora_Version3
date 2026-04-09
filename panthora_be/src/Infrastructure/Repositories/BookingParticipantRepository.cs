@@ -12,6 +12,7 @@ public class BookingParticipantRepository(AppDbContext context)
     public async Task<IReadOnlyList<BookingParticipantEntity>> GetByBookingIdAsync(Guid bookingId)
     {
         return await _dbSet
+            .Include(x => x.Passport)
             .Where(x => x.BookingId == bookingId)
             .ToListAsync();
     }

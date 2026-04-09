@@ -8,6 +8,7 @@ public interface IUserRepository : IRepository<UserEntity>
 {
     Task<UserEntity?> FindByEmail(string email);
     Task<UserEntity?> FindById(Guid id);
+    Task<IReadOnlyList<UserEntity>> FindByIds(IEnumerable<Guid> ids);
     Task<UserEntity?> FindByGoogleId(string googleId);
     Task Create(UserEntity user);
     Task SoftDelete(Guid id);

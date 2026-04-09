@@ -64,28 +64,33 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
             .Distinct()
             .ToList();
 
-        foreach (var uid in userIds)
+        if (userIds.Contains(managerId))
         {
-            var assignedUser = await _userRepository.FindById(uid);
-            if (assignedUser == null)
+            return Error.Validation(
+                code: "TourManagerAssignment.SelfAssignment",
+                description: "Cannot assign the manager to their own team.");
+        }
+
+        if (userIds.Count > 0)
+        {
+            var usersResult = await _userRepository.FindByIds(userIds);
+            var foundIds = usersResult.Select(u => u.Id).ToHashSet();
+            var missingId = userIds.FirstOrDefault(id => !foundIds.Contains(id));
+            if (missingId != Guid.Empty)
             {
                 return Error.NotFound(
                     code: "User.NotFound",
-                    description: $"User with ID {uid} not found.");
+                    description: $"User with ID {missingId} not found.");
             }
 
-            if (uid == managerId)
-            {
-                return Error.Validation(
-                    code: "TourManagerAssignment.SelfAssignment",
-                    description: "Cannot assign the manager to their own team.");
-            }
-
-            var rolesResult = await _roleRepository.FindByUserId(uid.ToString());
+            var rolesResult = await _roleRepository.FindByUserIds(userIds);
             if (rolesResult.IsError)
                 return rolesResult.Errors;
-            var roles = rolesResult.Value.Select(r => r.Name).ToList();
-            if (roles.Contains("Manager"))
+            var managerUsers = rolesResult.Value
+                .Where(kvp => kvp.Value.Any(r => r.Name == "Manager"))
+                .Select(kvp => kvp.Key)
+                .ToList();
+            if (managerUsers.Count > 0)
             {
                 return Error.Validation(
                     code: "TourManagerAssignment.ManagerCannotBeAssigned",
@@ -99,10 +104,12 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
             .Distinct()
             .ToList();
 
-        foreach (var tid in tourIds)
+        if (tourIds.Count > 0)
         {
-            var tour = await _tourInstanceRepository.FindById(tid, asNoTracking: true);
-            if (tour == null)
+            var tours = await _tourInstanceRepository.FindByIds(tourIds);
+            var foundTourIds = tours.Select(t => t.Id).ToHashSet();
+            var missingTourId = tourIds.FirstOrDefault(id => !foundTourIds.Contains(id));
+            if (missingTourId != Guid.Empty)
             {
                 return Error.NotFound(
                     code: ErrorConstants.Tour.NotFoundCode,

@@ -141,6 +141,7 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
 
     private async Task<List<AdminDashboardCategoryMetricReport>> BuildRevenueByRegion(CancellationToken cancellationToken)
     {
+        // Take early server-side to limit rows before in-memory GroupBy
         var rows = await _context.Bookings
             .AsNoTracking()
             .Where(x => x.Status != BookingStatus.Cancelled)
@@ -197,9 +198,14 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
 
     private async Task<List<AdminDashboardTopTourReport>> BuildTopTours(CancellationToken cancellationToken)
     {
+        // Server-side limit prevents unbounded memory usage for large booking tables.
+        // In-memory GroupBy is used because EF Core cannot translate GroupBy result shapes
+        // to entity types without raw SQL or explicit projection DTOs.
         var sourceRows = await _context.Bookings
             .AsNoTracking()
             .Where(x => x.Status != BookingStatus.Cancelled)
+            .OrderByDescending(x => x.CreatedOnUtc)
+            .Take(5000)
             .Select(x => new TopTourSourceRow(x.TourInstance.Title, x.TourInstance.TourName, x.TotalPrice))
             .ToListAsync(cancellationToken);
 
