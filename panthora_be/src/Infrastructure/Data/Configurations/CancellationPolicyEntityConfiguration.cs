@@ -73,7 +73,7 @@ public class CancellationPolicyEntityConfiguration : IEntityTypeConfiguration<Ca
         try
         {
             return JsonSerializer.Deserialize<List<CancellationPolicyTier>>(value, (JsonSerializerOptions?)null)
-                ?? new List<CancellationPolicyTier>();
+                   ?? new List<CancellationPolicyTier>();
         }
         catch (JsonException)
         {

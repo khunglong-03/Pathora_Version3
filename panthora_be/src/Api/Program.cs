@@ -17,9 +17,9 @@ var app = builder.Build();
 
 Application.Services.SepayParsingHelper.SetLogger(app.Services.GetService<Microsoft.Extensions.Logging.ILogger>());
 
-// Seed database on startup
-var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
-await dbInitializer.InitializeAsync();
+// Seed database on startup is temporarily disabled.
+// var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
+// await dbInitializer.InitializeAsync();
 
 app.UseAppMiddleware();
 

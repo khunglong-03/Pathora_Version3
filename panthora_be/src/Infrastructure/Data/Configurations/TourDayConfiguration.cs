@@ -12,6 +12,7 @@ public class TourDayConfiguration : IEntityTypeConfiguration<TourDayEntity>
 
         builder.HasKey(d => d.Id);
 
+        // ClassificationId is intentionally nullable (entity declares Guid?) — no IsRequired()
         builder.Property(d => d.ClassificationId);
 
         builder.Property(d => d.DayNumber)

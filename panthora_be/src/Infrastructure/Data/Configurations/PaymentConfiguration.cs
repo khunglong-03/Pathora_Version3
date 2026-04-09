@@ -18,6 +18,10 @@ public class PaymentConfiguration : IEntityTypeConfiguration<PaymentEntity>
         builder.Property(p => p.LastModifiedOnUtc);
         builder.Property(p => p.CreatedBy).HasMaxLength(256);
 
+        // Transaction identification
+        builder.Property(p => p.TransactionId)
+            .HasMaxLength(100);
+
         // Amount & currency
         builder.Property(p => p.Amount)
             .HasColumnType("numeric(18,2)")
@@ -64,9 +68,11 @@ public class PaymentConfiguration : IEntityTypeConfiguration<PaymentEntity>
             .IsRequired();
 
         // Indexes
+        // Indexes
         builder.HasIndex("PaidUser");
         builder.HasIndex(p => p.BookingId);
         builder.HasIndex(p => p.TransactionTimestamp);
+        builder.HasIndex(p => p.TransactionId);
 
         // Relationships
         builder.HasOne<UserEntity>()

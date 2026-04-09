@@ -1060,6 +1060,7 @@ public class TourService(
                     activity.Routes.Add(routeEntity);
                 }
 
+                await Task.CompletedTask;
                 day.Activities.Add(activity);
             }
         }
@@ -1078,6 +1079,7 @@ public class TourService(
         {
             CascadeSoftDeleteClassification(classification, _user.Id ?? string.Empty);
         }
+        await Task.CompletedTask;
     }
 
     /// <summary>
@@ -1098,6 +1100,7 @@ public class TourService(
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private sealed class FallbackLanguageContext : ILanguageContext

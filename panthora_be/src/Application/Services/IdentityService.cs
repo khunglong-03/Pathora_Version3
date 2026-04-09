@@ -531,7 +531,7 @@ public class IdentityService(
         var userId = _user.Id;
         if (string.IsNullOrEmpty(userId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
-
+        await Task.CompletedTask;
         return new List<TabVm>();
     }
 
