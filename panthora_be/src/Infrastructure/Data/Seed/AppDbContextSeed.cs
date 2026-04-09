@@ -14,7 +14,10 @@ public static class AppDbContextSeed
         SeedVehiclesDriversRooms(context);
         SeedTourContent(context);
         SeedTourInstances(context);
+        SeedTourInstanceDetails(context);
         SeedBookings(context);
+        SeedCustomerDepositsAndPayments(context);
+        SeedPaymentTransactions(context);
         SeedReviews(context);
 
         return Task.CompletedTask;
@@ -31,7 +34,10 @@ public static class AppDbContextSeed
         seeded |= SeedVehiclesDriversRooms(context);
         seeded |= SeedTourContent(context);
         seeded |= SeedTourInstances(context);
+        seeded |= SeedTourInstanceDetails(context);
         seeded |= SeedBookings(context);
+        seeded |= SeedCustomerDepositsAndPayments(context);
+        seeded |= SeedPaymentTransactions(context);
         seeded |= SeedReviews(context);
         return Task.FromResult(seeded);
     }
@@ -90,6 +96,15 @@ public static class AppDbContextSeed
         return SeedTable(context, "tour-instance.json", context.TourInstances);
     }
 
+    // Layer 5b: Tour Instance Details (Managers + Days)
+    private static bool SeedTourInstanceDetails(AppDbContext context)
+    {
+        var seeded = false;
+        seeded |= SeedTable(context, "tour-instance-manager.json", context.TourInstanceManagers);
+        seeded |= SeedTable(context, "tour-instance-day.json", context.TourInstanceDays);
+        return seeded;
+    }
+
     // Layer 6: Bookings
     private static bool SeedBookings(AppDbContext context)
     {
@@ -103,7 +118,22 @@ public static class AppDbContextSeed
         return seeded;
     }
 
-    // Layer 7: Reviews
+    // Layer 7: Customer Deposits & Payments
+    private static bool SeedCustomerDepositsAndPayments(AppDbContext context)
+    {
+        var seeded = false;
+        seeded |= SeedTable(context, "customer-deposit.json", context.CustomerDeposits);
+        seeded |= SeedTable(context, "customer-payment.json", context.CustomerPayments);
+        return seeded;
+    }
+
+    // Layer 8: Payment Transactions
+    private static bool SeedPaymentTransactions(AppDbContext context)
+    {
+        return SeedTable(context, "payment-transaction.json", context.PaymentTransactions);
+    }
+
+    // Layer 9: Reviews
     private static bool SeedReviews(AppDbContext context)
     {
         return SeedTable(context, "review.json", context.Reviews);
@@ -111,7 +141,7 @@ public static class AppDbContextSeed
 
     private static bool SeedTable<T>(AppDbContext context, string fileName, Microsoft.EntityFrameworkCore.DbSet<T> dbSet) where T : class
     {
-        if (dbSet.Any()) return false;
+        if (dbSet.IgnoreQueryFilters().Any()) return false;
 
         var data = SeedDataLoader.LoadData<T>(fileName);
         if (data is { Count: > 0 })
@@ -146,6 +176,7 @@ public static class AppDbContextSeed
             ?? throw new InvalidOperationException($"Seed append requires a CLR primary key property for entity type '{typeof(T).Name}'.");
 
         var seenKeys = dbSet
+            .IgnoreQueryFilters()
             .AsNoTracking()
             .AsEnumerable()
             .Select(entity => keyProperty.GetValue(entity))

@@ -1,0 +1,182 @@
+[
+  {
+    "Id": "01952936-0000-7000-8000-000000000001",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000001",
+    "InstanceDayNumber": 1,
+    "ActualDate": "2026-05-15",
+    "Title": "Ngày 1: Khởi Hành - Tokyo",
+    "Description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo.",
+    "StartTime": "07:00:00",
+    "EndTime": "23:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 1: Khởi Hành - Tokyo", "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo." },
+      "en": { "title": "Day 1: Departure - Tokyo", "description": "Passengers gather at Tan Son Nhat airport, check-in and depart for Tokyo." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000002",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000002",
+    "InstanceDayNumber": 2,
+    "ActualDate": "2026-05-16",
+    "Title": "Ngày 2: Tokyo - Asakusa - Shibuya",
+    "Description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower.",
+    "StartTime": "08:00:00",
+    "EndTime": "20:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 2: Tokyo - Asakusa - Shibuya", "description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower." },
+      "en": { "title": "Day 2: Tokyo - Asakusa - Shibuya", "description": "Visit Asakusa Temple, stroll through Shibuya district and see Tokyo Tower." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000003",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000003",
+    "InstanceDayNumber": 3,
+    "ActualDate": "2026-05-17",
+    "Title": "Ngày 3: Núi Phú Sĩ - Hakone",
+    "Description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone.",
+    "StartTime": "07:30:00",
+    "EndTime": "19:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 3: Núi Phú Sĩ - Hakone", "description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone." },
+      "en": { "title": "Day 3: Mt. Fuji - Hakone", "description": "View Mt. Fuji from Gotemba, experience Hakone hot springs." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000004",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000004",
+    "InstanceDayNumber": 4,
+    "ActualDate": "2026-05-18",
+    "Title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama",
+    "Description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama.",
+    "StartTime": "07:00:00",
+    "EndTime": "20:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama", "description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama." },
+      "en": { "title": "Day 4: Kyoto - Fushimi Inari - Arashiyama", "description": "Travel to Kyoto, visit Fushimi Inari Shrine with thousands of torii gates, Arashiyama bamboo forest." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000005",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000005",
+    "InstanceDayNumber": 5,
+    "ActualDate": "2026-05-19",
+    "Title": "Ngày 5: Osaka - Dotonbori - Umeda",
+    "Description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building.",
+    "StartTime": "08:00:00",
+    "EndTime": "21:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 5: Osaka - Dotonbori - Umeda", "description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building." },
+      "en": { "title": "Day 5: Osaka - Dotonbori - Umeda", "description": "Explore Osaka: Dotonbori district, Osaka Castle, Umeda Sky Building." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000006",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000001",
+    "TourDayId": "01952802-0000-7000-8000-000000000006",
+    "InstanceDayNumber": 6,
+    "ActualDate": "2026-05-20",
+    "Title": "Ngày 6: Trở Về",
+    "Description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM.",
+    "StartTime": "06:00:00",
+    "EndTime": "22:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 6: Trở Về", "description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM." },
+      "en": { "title": "Day 6: Return", "description": "Transfer to Kansai airport, check-in and return to Ho Chi Minh City." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000007",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000004",
+    "TourDayId": "01952802-0000-7000-8000-000000000012",
+    "InstanceDayNumber": 1,
+    "ActualDate": "2026-05-01",
+    "Title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển",
+    "Description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê.",
+    "StartTime": "08:00:00",
+    "EndTime": "20:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển", "description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê." },
+      "en": { "title": "Day 1: Da Nang - Marble Mountains - Beach", "description": "Arrive in Da Nang, visit Marble Mountains, relax at My Khe Beach." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000008",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000004",
+    "TourDayId": "01952802-0000-7000-8000-000000000013",
+    "InstanceDayNumber": 2,
+    "ActualDate": "2026-05-02",
+    "Title": "Ngày 2: Hội An - Cổ Phố",
+    "Description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu.",
+    "StartTime": "08:00:00",
+    "EndTime": "21:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 2: Hội An - Cổ Phố", "description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu." },
+      "en": { "title": "Day 2: Hoi An - Ancient Town", "description": "Visit Hoi An Ancient Town, Japanese Covered Bridge, Assembly Hall." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952936-0000-7000-8000-000000000009",
+    "TourInstanceId": "01952930-0000-7000-8000-000000000004",
+    "TourDayId": "01952802-0000-7000-8000-000000000014",
+    "InstanceDayNumber": 3,
+    "ActualDate": "2026-05-03",
+    "Title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về",
+    "Description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về.",
+    "StartTime": "08:00:00",
+    "EndTime": "17:00:00",
+    "Note": null,
+    "Translations": {
+      "vi": { "title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về", "description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về." },
+      "en": { "title": "Day 3: Son Tra Peninsula - Return", "description": "Visit Son Tra Peninsula, see Lady Buddha statue, return." }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  }
+]

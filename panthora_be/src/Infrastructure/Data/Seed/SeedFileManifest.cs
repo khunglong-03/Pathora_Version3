@@ -39,6 +39,8 @@ internal static class SeedFileManifest
 
         // Layer 4: Tour Instances
         new("TourInstanceSeed", "tour-instance.json", ["Id", "TourInstanceCode"], "Id", null),
+        new("TourInstanceManagerSeed", "tour-instance-manager.json", ["Id", "TourInstanceId", "UserId"], "Id", null),
+        new("TourInstanceDaySeed", "tour-instance-day.json", ["Id", "TourInstanceId", "TourDayId", "InstanceDayNumber"], "Id", null),
 
         // Layer 5: Bookings
         new("BookingSeed", "booking.json", ["Id", "TourInstanceId"], "Id", null),
@@ -50,6 +52,13 @@ internal static class SeedFileManifest
 
         // Layer 6: Reviews
         new("ReviewSeed", "review.json", ["Id", "UserId", "TourId"], "Id", null),
+
+        // Layer 7: Customer Deposits & Payments
+        new("CustomerDepositSeed", "customer-deposit.json", ["Id", "BookingId"], "Id", null),
+        new("CustomerPaymentSeed", "customer-payment.json", ["Id", "BookingId"], "Id", null),
+
+        // Layer 8: Payment Transactions
+        new("PaymentTransactionSeed", "payment-transaction.json", ["Id", "BookingId", "TransactionCode"], "Id", null),
     ];
 }
 
