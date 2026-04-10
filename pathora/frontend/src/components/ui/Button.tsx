@@ -10,7 +10,7 @@ type ButtonProps = {
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
-  icon?: string;
+  icon?: React.ReactNode;
   loadingClass?: string;
   iconPosition?: "left" | "right";
   iconClass?: string;
@@ -21,6 +21,8 @@ type ButtonProps = {
   ariaLabel?: string;
   suppressHydrationWarning?: boolean;
   style?: React.CSSProperties;
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
+  size?: "sm" | "md" | "lg";
 };
 
 const LoadingSpinner = ({ loadingClass }: { loadingClass?: string }) => (
@@ -66,7 +68,7 @@ const ButtonContent = ({
         {icon && (
           <span
             className={`${iconPosition === "right" ? "order-1 ltr:ml-2 rtl:mr-2" : ""} ${text && iconPosition === "left" ? "ltr:mr-2 rtl:ml-2" : ""} ${iconClass}`}>
-            <Icon icon={icon} aria-hidden="true" />
+            {icon}
           </span>
         )}
         {text && <span>{text}</span>}
@@ -105,9 +107,23 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   ariaLabel,
   suppressHydrationWarning,
   style,
+  variant = "primary",
+  size = "md",
 
 }, ref) => {
-  const baseClasses = `btn inline-flex items-center justify-center rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background ${
+  const variantClasses: Record<string, string> = {
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+    ghost: "hover:bg-accent hover:text-accent-foreground",
+    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  };
+  const sizeClasses: Record<string, string> = {
+    sm: "h-8 px-3 text-sm",
+    md: "h-10 px-4 text-base",
+    lg: "h-12 px-6 text-lg",
+  };
+  const baseClasses = `btn inline-flex items-center justify-center rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background ${variantClasses[variant]} ${sizeClasses[size]} ${
     disabled || isLoading ? "pointer-events-none" : ""
   } ${disabled ? "cursor-not-allowed opacity-40" : ""} ${className}`;
 

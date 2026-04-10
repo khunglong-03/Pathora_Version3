@@ -10,7 +10,7 @@ import { Fragment, useState } from "react";
 import Icon from "@/components/ui/Icon";
 
 type ModalProps = {
-  activeModal?: boolean;
+  isOpen?: boolean;
   onClose?: () => void;
   noFade?: boolean;
   disableBackdrop?: boolean;
@@ -24,10 +24,11 @@ type ModalProps = {
   uncontrol?: boolean;
   label?: string;
   labelClass?: string;
+  size?: "sm" | "md" | "lg" | "xl" | "full";
 };
 
 const Modal = ({
-  activeModal,
+  isOpen: activeModal,
   onClose,
   noFade,
   disableBackdrop,
@@ -41,7 +42,15 @@ const Modal = ({
   uncontrol,
   label = "Basic Modal",
   labelClass,
+  size,
 }: ModalProps) => {
+  const sizeClass: Record<string, string> = {
+    sm: "max-w-sm",
+    md: "max-w-xl",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-full",
+  };
   const [showModal, setShowModal] = useState(false);
 
   const closeModal = () => setShowModal(false);
@@ -91,7 +100,7 @@ const Modal = ({
           >
             <TransitionChild as={Fragment} {...contentTransitionClasses}>
               <DialogPanel
-                className={`w-full transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-2xl transition-all dark:bg-slate-800 ${className} ${
+                className={`w-full transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-2xl transition-all dark:bg-slate-800 ${sizeClass[size ?? "md"]} ${className} ${
                   scrollContent ? "overscroll-contain" : ""
                 }`}
               >

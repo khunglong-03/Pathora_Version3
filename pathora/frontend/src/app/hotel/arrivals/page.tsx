@@ -254,7 +254,7 @@ export default function ArrivalsPage() {
 
       {/* Submit Modal */}
       <Modal
-        activeModal={showSubmit}
+        isOpen={showSubmit}
         onClose={() => { setShowSubmit(false); setSubmitError(null); setGuidInvalid(false); setSubmitBookingId(""); setSubmitNotes(""); }}
         title="Gửi thông tin check-in"
         className="max-w-md"

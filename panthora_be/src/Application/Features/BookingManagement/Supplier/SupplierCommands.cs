@@ -16,7 +16,6 @@ public sealed record CreateSupplierCommand(
     string SupplierCode,
     SupplierType SupplierType,
     string Name,
-    string? TaxCode,
     string? Phone,
     string? Email,
     string? Address,
@@ -61,7 +60,6 @@ public sealed class CreateSupplierCommandHandler(
             request.SupplierType,
             request.Name,
             performedBy: "system",
-            request.TaxCode,
             request.Phone,
             request.Email,
             request.Address,
@@ -79,7 +77,6 @@ public sealed record UpdateSupplierCommand(
     string SupplierCode,
     SupplierType SupplierType,
     string Name,
-    string? TaxCode,
     string? Phone,
     string? Email,
     string? Address,
@@ -136,7 +133,6 @@ public sealed class UpdateSupplierCommandHandler(
             request.SupplierType,
             request.Name,
             performedBy: "system",
-            request.TaxCode,
             request.Phone,
             request.Email,
             request.Address,
@@ -164,7 +160,7 @@ public sealed class DeleteSupplierCommandHandler(
     public async Task<ErrorOr<Success>> Handle(DeleteSupplierCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
-        var entity = await supplierRepository.GetByIdAsync(request.SupplierId);
+        var entity = await supplierRepository.GetByIdAsync(request.SupplierId, cancellationToken);
         if (entity is null)
         {
             return Error.NotFound(

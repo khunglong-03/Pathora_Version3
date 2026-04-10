@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourAdminOnly")]
+[Authorize(Policy = "AdminOnly")]
 [Route(SupplierEndpoint.Base)]
 public class SupplierController : BaseApiController
 {
@@ -33,7 +33,6 @@ public class SupplierController : BaseApiController
             request.SupplierCode,
             request.SupplierType,
             request.Name,
-            request.TaxCode,
             request.Phone,
             request.Email,
             request.Address,
@@ -51,7 +50,6 @@ public class SupplierController : BaseApiController
             request.SupplierCode,
             request.SupplierType,
             request.Name,
-            request.TaxCode,
             request.Phone,
             request.Email,
             request.Address,

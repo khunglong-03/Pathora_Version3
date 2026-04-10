@@ -6,7 +6,6 @@ public sealed record HotelProviderDetailDto(
     Guid Id,
     string SupplierName,
     string SupplierCode,
-    string? TaxCode,
     string? Address,
     string? Phone,
     string? Email,

@@ -34,7 +34,7 @@ export default function ConfirmationDialog({
 
   return (
     <Modal
-      activeModal={active}
+      isOpen={active}
       onClose={onClose}
       title={resolvedTitle}
       className="max-w-md"

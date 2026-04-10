@@ -1913,9 +1913,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
@@ -2075,10 +2072,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<string>("TaxCode")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
 
                     b.HasKey("Id");
 

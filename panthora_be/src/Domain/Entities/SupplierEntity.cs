@@ -19,8 +19,6 @@ public class SupplierEntity : Aggregate<Guid>
     public SupplierType SupplierType { get; set; }
     /// <summary>Tên nhà cung cấp.</summary>
     public string Name { get; set; } = null!;
-    /// <summary>Mã số thuế.</summary>
-    public string? TaxCode { get; set; }
     /// <summary>Số điện thoại liên hệ.</summary>
     public string? Phone { get; set; }
     /// <summary>Email liên hệ.</summary>
@@ -41,7 +39,6 @@ public class SupplierEntity : Aggregate<Guid>
         SupplierType supplierType,
         string name,
         string performedBy,
-        string? taxCode = null,
         string? phone = null,
         string? email = null,
         string? address = null,
@@ -53,7 +50,6 @@ public class SupplierEntity : Aggregate<Guid>
             SupplierCode = supplierCode,
             SupplierType = supplierType,
             Name = name,
-            TaxCode = taxCode,
             Phone = phone,
             Email = email,
             Address = address,
@@ -72,7 +68,6 @@ public class SupplierEntity : Aggregate<Guid>
         SupplierType supplierType,
         string name,
         string performedBy,
-        string? taxCode = null,
         string? phone = null,
         string? email = null,
         string? address = null,
@@ -82,7 +77,6 @@ public class SupplierEntity : Aggregate<Guid>
         SupplierCode = supplierCode;
         SupplierType = supplierType;
         Name = name;
-        TaxCode = taxCode;
         Phone = phone;
         Email = email;
         Address = address;

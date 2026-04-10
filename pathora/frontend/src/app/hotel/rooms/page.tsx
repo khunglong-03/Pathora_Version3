@@ -311,7 +311,7 @@ export default function RoomsPage() {
 
       {/* Create Modal */}
       <Modal
-        activeModal={showCreate}
+        isOpen={showCreate}
         onClose={() => { setShowCreate(false); setCreateError(null); }}
         title="Thêm loại phòng"
         className="max-w-md"
@@ -383,7 +383,7 @@ export default function RoomsPage() {
 
       {/* Delete Modal */}
       <Modal
-        activeModal={deleteId !== null}
+        isOpen={deleteId !== null}
         onClose={() => { setDeleteId(null); setDeleteError(null); }}
         title="Xác nhận xóa"
         className="max-w-sm"
@@ -416,7 +416,7 @@ export default function RoomsPage() {
 
       {/* Availability Calendar Modal */}
       <Modal
-        activeModal={showCalendar}
+        isOpen={showCalendar}
         onClose={() => setShowCalendar(false)}
         title="Tình trạng phòng"
         className="max-w-4xl"

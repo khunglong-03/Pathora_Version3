@@ -83,7 +83,7 @@ export default function ArrivalDetailModal({
 
   return (
     <Modal
-      activeModal
+      isOpen={true}
       onClose={onClose}
       title="Chi tiết check-in"
       className="max-w-2xl"

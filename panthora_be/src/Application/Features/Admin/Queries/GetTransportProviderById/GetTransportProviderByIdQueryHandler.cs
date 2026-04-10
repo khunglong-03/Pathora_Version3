@@ -59,7 +59,6 @@ public sealed class GetTransportProviderByIdQueryHandler(
             user.Id,
             supplier?.Name ?? user.FullName ?? string.Empty,
             supplier?.SupplierCode ?? string.Empty,
-            supplier?.TaxCode,
             supplier?.Address,
             supplier?.Phone,
             supplier?.Email ?? user.Email,

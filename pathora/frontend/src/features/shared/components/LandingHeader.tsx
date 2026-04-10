@@ -448,7 +448,7 @@ export const LandingHeader = ({
             .find((c) => c.startsWith("auth_portal="))
             ?.split("=")[1]
         : undefined;
-    router.push(portal === "admin" ? "/" : "/");
+    router.push(portal === "admin" ? "/admin/dashboard" : "/");
   };
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useMobileMenu();

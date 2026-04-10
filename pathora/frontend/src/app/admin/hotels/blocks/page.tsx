@@ -125,7 +125,7 @@ export default function HotelBlocksPage() {
     reset,
     formState: { errors },
   } = useForm<CreateBlockFormData>({
-    resolver: yupResolver(createBlockSchema),
+    resolver: yupResolver(createBlockSchema) as unknown as Parameters<typeof useForm>[0]["resolver"],
     defaultValues: {
       roomCount: 1,
     },

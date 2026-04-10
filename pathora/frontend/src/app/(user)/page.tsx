@@ -47,7 +47,9 @@ export default function Home() {
       className="bold-theme min-h-screen overflow-x-hidden"
     >
       {/* Hero */}
-      <BoldHeroSection />
+      <Suspense fallback={<SectionSkeleton className="h-screen" />}>
+        <BoldHeroSection />
+      </Suspense>
 
       {/* Stats Strip */}
       <BoldStatsStrip />

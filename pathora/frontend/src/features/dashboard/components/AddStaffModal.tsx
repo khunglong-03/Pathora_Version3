@@ -105,7 +105,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
   };
 
   return (
-    <Modal activeModal={isOpen} onClose={handleClose} title="Thêm nhân viên">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Thêm nhân viên">
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Staff Type Selection */}
         <div>

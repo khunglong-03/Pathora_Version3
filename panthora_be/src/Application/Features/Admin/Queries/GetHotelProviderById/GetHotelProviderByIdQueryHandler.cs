@@ -46,7 +46,6 @@ public sealed class GetHotelProviderByIdQueryHandler(
             user.Id,
             supplier?.Name ?? user.FullName ?? string.Empty,
             supplier?.SupplierCode ?? string.Empty,
-            supplier?.TaxCode,
             supplier?.Address,
             supplier?.Phone ?? user.PhoneNumber,
             supplier?.Email ?? user.Email,

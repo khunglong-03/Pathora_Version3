@@ -25,9 +25,6 @@ public class SupplierConfiguration : IEntityTypeConfiguration<SupplierEntity>
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(s => s.TaxCode)
-            .HasMaxLength(30);
-
         builder.Property(s => s.Phone)
             .HasMaxLength(20);
 

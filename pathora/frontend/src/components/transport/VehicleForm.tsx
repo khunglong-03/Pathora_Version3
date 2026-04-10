@@ -22,7 +22,7 @@ const VEHICLE_TYPES = [
 export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
   const [formData, setFormData] = useState<CreateVehicleDto>({
     vehiclePlate: vehicle?.vehiclePlate ?? "",
-    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.value === vehicle.vehicleType)?.value ?? 1) : 1,
+    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.value === Number(vehicle.vehicleType))?.value ?? 1) : 1,
     brand: vehicle?.brand,
     model: vehicle?.model,
     seatCapacity: vehicle?.seatCapacity ?? 4,
