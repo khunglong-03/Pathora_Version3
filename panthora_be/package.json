@@ -2,9 +2,9 @@
   "name": "panthora_be",
   "private": true,
   "scripts": {
-    "gitnexus:status": "node \"D:/DoAn/GitNexus/gitnexus/dist/cli/index.js\" status",
-    "gitnexus:analyze": "node \"D:/DoAn/GitNexus/gitnexus/dist/cli/index.js\" analyze",
-    "gitnexus:check": "npm run gitnexus:analyze && npm run gitnexus:status"
+    "gitnexus:status": "npx gitnexus status",
+    "gitnexus:analyze": "npx gitnexus analyze",
+    "gitnexus:check": "npx gitnexus analyze && npx gitnexus status"
   },
   "dependencies": {
     "gitnexus": "^1.4.9"

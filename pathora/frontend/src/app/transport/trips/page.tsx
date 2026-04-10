@@ -367,6 +367,10 @@ export default function TransportTripsPage() {
                   <p className="font-medium">{selectedTrip.bookingReference ?? "-"}</p>
                 </div>
                 <div>
+                  <p className="text-xs font-medium" style={{ color: "#9CA3AF" }}>Ngày tạo</p>
+                  <p className="font-medium">{selectedTrip.createdOnUtc ? new Date(selectedTrip.createdOnUtc).toLocaleDateString("vi-VN") : "-"}</p>
+                </div>
+                <div>
                   <p className="text-xs font-medium" style={{ color: "#9CA3AF" }}>Ngày</p>
                   <p className="font-medium">{formatDate(selectedTrip.tripDate)}</p>
                 </div>
@@ -396,33 +400,6 @@ export default function TransportTripsPage() {
                 )}
               </div>
 
-              {/* Status History Timeline */}
-              {selectedTrip.statusHistory && selectedTrip.statusHistory.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
-                    Lịch sử trạng thái
-                  </p>
-                  <div className="space-y-2">
-                    {selectedTrip.statusHistory.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{
-                            backgroundColor: TRIP_STATUS_COLOR[item.status] ?? "#9CA3AF",
-                          }}
-                        />
-                        <span className="text-sm font-medium">
-                          {TRIP_STATUS_LABEL[item.status] ?? item.status}
-                        </span>
-                        <span className="text-xs" style={{ color: "#9CA3AF" }}>
-                          {new Date(item.updatedAt).toLocaleString("vi-VN")}
-                          {item.updatedBy ? ` · ${item.updatedBy}` : ""}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Modal Actions */}

@@ -77,14 +77,15 @@ export default function TransportDriversPage() {
     void loadDrivers();
   }, [loadDrivers]);
 
-  // Note: Backend doesn't have driver status (ready/driving/leave) yet.
-  // For now, we treat isActive as the primary status filter.
-  // The backend would need to add a Status field to support the full filter.
+  // NOTE: Backend doesn't have driver status (ready/driving/leave) yet.
+  // The "Đang lái" and "Nghỉ phép" tabs currently behave identically to "Sẵn sàng"
+  // because only isActive is available as a filter. This is a known limitation
+  // until the backend adds a dedicated Status field to the Driver entity.
   const filteredDrivers = drivers.filter((d) => {
     if (filter === "all") return true;
-    if (filter === "ready") return d.isActive; // Active drivers = ready (simplified)
+    if (filter === "ready") return d.isActive;
     if (filter === "inactive") return !d.isActive;
-    // Driving/leave filters show all active for now (backend doesn't have these statuses)
+    // driving/leave: backend limitation — same as "ready" (isActive)
     if (filter === "driving" || filter === "leave") return d.isActive;
     return true;
   });
@@ -104,15 +105,15 @@ export default function TransportDriversPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm(`Xóa tài xế này?`)) return;
+    if (!window.confirm(`Vô hiệu hóa tài xế này?`)) return;
     setIsDeleting(id);
     try {
       const success = await transportProviderService.deleteDriver(id);
       if (success) {
-        toast.success("Xóa tài xế thành công");
+        toast.success("Vô hiệu hóa tài xế thành công");
         void loadDrivers();
       } else {
-        toast.error("Xóa tài xế thất bại. Vui lòng thử lại.");
+        toast.error("Vô hiệu hóa tài xế thất bại. Vui lòng thử lại.");
       }
     } finally {
       setIsDeleting(null);
@@ -170,7 +171,7 @@ export default function TransportDriversPage() {
             ? drivers.filter((d) => d.isActive).length
             : tab.key === "inactive"
             ? drivers.filter((d) => !d.isActive).length
-            : drivers.filter((d) => d.isActive).length; // driving/leave show active
+            : drivers.filter((d) => d.isActive).length; // driving/leave: same as ready (backend limitation)
           return (
             <button
               key={tab.key}
@@ -231,6 +232,7 @@ export default function TransportDriversPage() {
                 <th className="px-4 py-3 font-medium">Loại bằng</th>
                 <th className="px-4 py-3 font-medium">Trạng thái</th>
                 <th className="px-4 py-3 font-medium">Ghi chú</th>
+                <th className="px-4 py-3 font-medium">Ngày tạo</th>
                 <th className="px-4 py-3 font-medium text-right">Thao tác</th>
               </tr>
             </thead>
@@ -259,6 +261,9 @@ export default function TransportDriversPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]">
                       {driver.notes ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">
+                      {driver.createdOnUtc ? new Date(driver.createdOnUtc).toLocaleDateString("vi-VN") : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">

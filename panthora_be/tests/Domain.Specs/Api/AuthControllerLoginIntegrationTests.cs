@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Serilog;
 
 namespace Domain.Specs.Api;
 
@@ -35,7 +36,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithValidCredentials_ShouldReturnHttp200Or401WithSafeBody()
     {
-        await using var host = await BuildTestHostAsync();
+         using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -79,7 +80,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithInvalidCredentials_ShouldReturnHttp401AndNoAuthCookies()
     {
-        await using var host = await BuildTestHostAsync();
+         using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -111,7 +112,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithMalformedEmail_ShouldReturnBadRequestOrUnauthorized()
     {
-        await using var host = await BuildTestHostAsync();
+         using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -137,7 +138,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithMissingBody_ShouldReturnBadRequestOrServerError()
     {
-        await using var host = await BuildTestHostAsync();
+         using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var response = await client.PostAsync(
@@ -210,14 +211,15 @@ public sealed class AuthControllerLoginIntegrationTests
                     // Request logging
                     app.UseSerilogRequestLogging();
 
-                    // Health checks
-                    app.MapHealthChecks("/health");
-                    app.MapHealthChecks("/health/live");
-                    app.MapHealthChecks("/health/ready");
-
-                    // API + SignalR
-                    app.MapControllers();
-                    app.MapHub<NotificationsHub>("/hubs/notifications");
+                    // Health checks + API + SignalR via UseEndpoints (IEndpointRouteBuilder)
+                    app.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapHealthChecks("/health");
+                        endpoints.MapHealthChecks("/health/live");
+                        endpoints.MapHealthChecks("/health/ready");
+                        endpoints.MapControllers();
+                        endpoints.MapHub<NotificationsHub>("/hubs/notifications");
+                    });
                 });
             });
 

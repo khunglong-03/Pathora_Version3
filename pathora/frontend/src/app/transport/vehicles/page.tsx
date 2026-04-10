@@ -33,11 +33,10 @@ function getVehicleTypeLabel(type: string | undefined): string {
   return !isNaN(num) && VEHICLE_TYPE_LABELS[num] ? VEHICLE_TYPE_LABELS[num] : type;
 }
 
-type StatusFilter = "all" | "active" | "maintenance" | "inactive";
+type StatusFilter = "all" | "active" | "inactive";
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
   "Hoạt động": { label: "Hoạt động", color: "#22C55E", bg: "#DCFCE7" },
-  "Bảo trì": { label: "Bảo trì", color: "#F59E0B", bg: "#FEF3C7" },
   "Ngưng hoạt động": { label: "Ngưng hoạt động", color: "#EF4444", bg: "#FEE2E2" },
 };
 
@@ -74,7 +73,6 @@ export default function TransportVehiclesPage() {
   const filteredVehicles = vehicles.filter((v) => {
     if (filter === "all") return true;
     if (filter === "active") return v.isActive;
-    if (filter === "maintenance") return false; // Backend doesn't have maintenance status yet
     if (filter === "inactive") return !v.isActive;
     return true;
   });
@@ -147,7 +145,7 @@ export default function TransportVehiclesPage() {
 
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["all", "active", "maintenance", "inactive"] as StatusFilter[]).map((f) => (
+        {(["all", "active", "inactive"] as StatusFilter[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -163,7 +161,7 @@ export default function TransportVehiclesPage() {
             }
             aria-pressed={filter === f}
           >
-            {f === "all" ? "Tất cả" : f === "active" ? "Hoạt động" : f === "maintenance" ? "Bảo trì" : "Ngưng hoạt động"}
+            {f === "all" ? "Tất cả" : f === "active" ? "Hoạt động" : "Ngưng hoạt động"}
             {f !== "all" && (
               <span
                 className="ml-1.5 text-xs opacity-75"
@@ -215,6 +213,7 @@ export default function TransportVehiclesPage() {
                 <th className="px-4 py-3 font-medium">Sức chứa</th>
                 <th className="px-4 py-3 font-medium">Trạng thái</th>
                 <th className="px-4 py-3 font-medium">Ghi chú</th>
+                <th className="px-4 py-3 font-medium">Ngày tạo</th>
                 <th className="px-4 py-3 font-medium text-right">Thao tác</th>
               </tr>
             </thead>
@@ -242,6 +241,9 @@ export default function TransportVehiclesPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]">
                       {vehicle.notes ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">
+                      {vehicle.createdOnUtc ? new Date(vehicle.createdOnUtc).toLocaleDateString("vi-VN") : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
