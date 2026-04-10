@@ -8,22 +8,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.collector"/>
-        <PackageReference Include="Microsoft.AspNetCore.TestHost"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
-        <PackageReference Include="FluentAssertions"/>
-        <PackageReference Include="FluentValidation"/>
-        <PackageReference Include="NSubstitute"/>
-        <PackageReference Include="xunit"/>
-        <PackageReference Include="xunit.runner.visualstudio"/>
-        <PackageReference Include="CloudinaryDotNet"/>
-        <PackageReference Include="Npgsql"/>
-        <PackageReference Include="StackExchange.Redis"/>
+        <PackageReference Include="coverlet.collector" />
+        <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="FluentAssertions" />
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="Serilog.AspNetCore" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.runner.visualstudio" />
+        <PackageReference Include="CloudinaryDotNet" />
+        <PackageReference Include="Npgsql" />
+        <PackageReference Include="StackExchange.Redis" />
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Xunit"/>
+        <Using Include="Xunit" />
     </ItemGroup>
 
     <!-- Exclude untracked/incomplete feature test folders -->
