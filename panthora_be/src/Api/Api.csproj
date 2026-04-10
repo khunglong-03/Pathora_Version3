@@ -40,11 +40,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Customer\" />
+    <Folder Include="Controllers\Admin\" />
     <Folder Include="Controllers\HotelProvider\" />
     <Folder Include="Controllers\TransportProvider\" />
     <Compile Remove="Controllers\**\AdminHotelBookingController.cs" />
     <Compile Remove="Controllers\**\RoomBlockController.cs" />
     <Compile Remove="Controllers\**\HotelRoomInventoryController.cs" />
+    <Folder Include="Controllers\User\" />
   </ItemGroup>
 </Project>

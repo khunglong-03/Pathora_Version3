@@ -1,9 +1,9 @@
-namespace Api.Controllers;
-
 using Api.Endpoint;
 using Application.Features.AdminHotelBookings.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Controllers.Admin;
 
 [ApiController]
 [Authorize(Policy = "AdminOnly")]

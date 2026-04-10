@@ -16,7 +16,7 @@ using Application.Features.Admin.Queries.GetUserDetail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers;
+namespace Api.Controllers.Admin;
 
 [Authorize(Policy = "AdminOnly")]
 [Route(AdminEndpoint.Base)]

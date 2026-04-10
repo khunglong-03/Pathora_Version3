@@ -1,4 +1,4 @@
-using Api.Controllers;
+using Api.Controllers.Admin;
 using Api.Endpoint;
 using Application.Contracts.User;
 using Application.Features.Admin.DTOs;

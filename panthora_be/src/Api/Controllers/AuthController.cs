@@ -123,16 +123,14 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
             : command.RefreshToken;
 
         var result = await Sender.Send(command with { RefreshToken = refreshToken });
-        if (!result.IsError)
+        if (result.IsError) return HandleResult(result);
+        try
         {
-            try
-            {
-                AuthCookieWriter.ClearAuthCookies(Response, Request.IsHttps);
-            }
-            catch (InvalidOperationException)
-            {
-                // Response has already started — cookies cannot be cleared.
-            }
+            AuthCookieWriter.ClearAuthCookies(Response, Request.IsHttps);
+        }
+        catch (InvalidOperationException)
+        {
+            // Response has already started — cookies cannot be cleared.
         }
 
         return HandleResult(result);
@@ -143,16 +141,14 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
     public async Task<IActionResult> LogoutAll()
     {
         var result = await Sender.Send(new LogoutAllCommand());
-        if (!result.IsError)
+        if (result.IsError) return HandleResult(result);
+        try
         {
-            try
-            {
-                AuthCookieWriter.ClearAuthCookies(Response, Request.IsHttps);
-            }
-            catch (InvalidOperationException)
-            {
-                // Response has already started — cookies cannot be cleared.
-            }
+            AuthCookieWriter.ClearAuthCookies(Response, Request.IsHttps);
+        }
+        catch (InvalidOperationException)
+        {
+            // Response has already started — cookies cannot be cleared.
         }
 
         return HandleResult(result);

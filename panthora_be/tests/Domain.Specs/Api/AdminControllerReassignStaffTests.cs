@@ -1,4 +1,4 @@
-using Api.Controllers;
+using Api.Controllers.Admin;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.DTOs;
 using Contracts.ModelResponse;

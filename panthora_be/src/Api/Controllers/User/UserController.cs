@@ -5,7 +5,7 @@ using Application.Features.User.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers;
+namespace Api.Controllers.User;
 
 [Authorize(Policy = "AdminOnly")]
 [Route(UserEndpoint.Base)]

@@ -1,4 +1,4 @@
-using Api.Controllers;
+using Api.Controllers.Admin;
 using Application.Contracts.Role;
 using Application.Features.Role.Commands;
 using Application.Features.Role.Queries;

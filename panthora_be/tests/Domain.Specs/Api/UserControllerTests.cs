@@ -1,4 +1,4 @@
-using Api.Controllers;
+using Api.Controllers.User;
 using Contracts;
 using Contracts.ModelResponse;
 using Application.Contracts.User;
