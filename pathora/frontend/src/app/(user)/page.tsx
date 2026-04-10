@@ -12,6 +12,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary_large_image" },
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
 };
 
 export default function RootPage() {

@@ -36,8 +36,7 @@ public sealed class OwnershipValidator(
         }
 
         return rolesResult.Value.Any(role =>
-            role.Type == 9
-            || string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
+            string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<bool> CanAccessAsync(Guid resourceOwnerId, CancellationToken cancellationToken = default)

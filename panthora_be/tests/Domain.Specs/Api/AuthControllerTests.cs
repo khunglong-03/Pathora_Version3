@@ -193,7 +193,7 @@ public sealed class AuthControllerTests
             Email: "admin@example.com",
             Avatar: null,
             ForcePasswordChange: false,
-            Roles: [new UserRoleVm(1, "role-1", "Admin")],
+            Roles: [new UserRoleVm("role-1", "Admin")],
             Departments: [new UserDepartmentVm(Guid.CreateVersion7().ToString(), "IT", null, null)],
             Portal: "admin",
             DefaultPath: "/dashboard");

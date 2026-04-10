@@ -19,11 +19,10 @@ public interface IPositionService
     Task<ErrorOr<List<LookupVm>>> GetComboboxAsync();
 }
 
-public class PositionService(IPositionRepository positionRepository, IRoleService roleService, IUser user, IUnitOfWork unitOfWork)
+public class PositionService(IPositionRepository positionRepository, IUser user, IUnitOfWork unitOfWork)
     : IPositionService
 {
     private readonly IPositionRepository _positionRepository = positionRepository;
-    private readonly IRoleService _roleService = roleService;
     private readonly IUser _user = user;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 

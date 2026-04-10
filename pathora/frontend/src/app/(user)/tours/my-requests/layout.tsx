@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/tours/my-requests" },
+  robots: { index: true, follow: true },
 };
 
 export default function MyRequestsLayout({

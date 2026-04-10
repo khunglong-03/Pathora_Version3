@@ -8,6 +8,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: "/dashboard/tour-requests",
+  },
 };
 
 export default function DashboardTourRequestsPage() {

@@ -55,4 +55,22 @@ public class RoomBlockRepository(AppDbContext context)
 
         _dbSet.RemoveRange(blocks);
     }
+
+    public async Task<IReadOnlyList<RoomBlockEntity>> GetBySupplierAsync(Guid supplierId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(x => x.SupplierId == supplierId)
+            .OrderBy(x => x.BlockedDate)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void Remove(RoomBlockEntity entity)
+    {
+        _dbSet.Remove(entity);
+    }
+
+    public void Add(RoomBlockEntity entity)
+    {
+        _dbSet.Add(entity);
+    }
 }

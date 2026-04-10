@@ -2,28 +2,6 @@ namespace Application.Common.Auth;
 
 public static class AuthPortalResolver
 {
-    private const int CustomerRoleType = 2;
-    private static readonly HashSet<int> AdminRoleTypes = [0, 9];
-
-    public static PortalRouting Resolve(IEnumerable<int> roleTypes)
-    {
-        var normalizedRoleTypes = roleTypes
-            .Distinct()
-            .ToList();
-
-        if (normalizedRoleTypes.Any(AdminRoleTypes.Contains))
-        {
-            return PortalRouting.Admin;
-        }
-
-        if (normalizedRoleTypes.Contains(CustomerRoleType))
-        {
-            return PortalRouting.User;
-        }
-
-        return PortalRouting.User;
-    }
-
     /// <summary>
     /// Resolves portal routing using role names for precise routing decisions.
     /// </summary>

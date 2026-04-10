@@ -48,6 +48,10 @@ import type {
 } from "./policy";
 import type { UserEndpoints } from "./user";
 import { USER } from "./user";
+import type { RoleEndpoints } from "./role";
+import type { AdminHotelEndpoints } from "./adminHotel";
+import { ADMIN_HOTEL } from "./adminHotel";
+import { ROLE } from "./role";
 
 // Re-export types for external consumers
 export type {
@@ -91,6 +95,9 @@ export type {
   CommunicationEndpoints,
   TourManagerAssignmentEndpoints,
 } from "./admin";
+
+export type { RoleEndpoints } from "./role";
+export type { AdminHotelEndpoints } from "./adminHotel";
 
 // Import constants for use in API_ENDPOINTS object
 import {
@@ -164,6 +171,8 @@ export {
   TOUR_MANAGER_ASSIGNMENT,
 } from "./admin";
 export { USER } from "./user";
+export { ROLE } from "./role";
+export { ADMIN_HOTEL } from "./adminHotel";
 
 // Composite interface
 export interface ApiEndpoints {
@@ -191,6 +200,8 @@ export interface ApiEndpoints {
   CANCELLATION_POLICY: CancellationPolicyEndpoints;
   TAX_CONFIG: TaxConfigEndpoints;
   USER: UserEndpoints;
+  ROLE: RoleEndpoints;
+  HOTEL: AdminHotelEndpoints;
   TOUR_MANAGER_ASSIGNMENT: TourManagerAssignmentEndpoints;
 }
 
@@ -220,6 +231,8 @@ export const API_ENDPOINTS: ApiEndpoints = {
   SITE_CONTENT,
   COMMUNICATION,
   USER,
+  ROLE,
+  HOTEL: ADMIN_HOTEL,
   TOUR_MANAGER_ASSIGNMENT,
 };
 

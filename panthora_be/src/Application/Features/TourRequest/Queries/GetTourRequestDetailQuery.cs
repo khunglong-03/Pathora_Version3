@@ -66,8 +66,7 @@ public sealed class GetTourRequestDetailQueryHandler(
         }
 
         var isAdmin = rolesResult.Value.Any(role =>
-            role.Type == 9
-            || string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
+            string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
 
         return isAdmin;
     }

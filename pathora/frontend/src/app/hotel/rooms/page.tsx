@@ -155,7 +155,7 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6" data-testid="rooms-page">
       <AdminPageHeader
         title="Quản lý phòng"
         subtitle="Các loại phòng của khách sạn"

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     "Explore curated tour packages across Vietnam and Asia. Book guided tours, custom itineraries, and discover trending destinations with Pathora.",
   keywords: ["tours", "Vietnam travel", "Asia tours", "travel packages", "guided tours"],
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Discover Amazing Tours | Pathora",
     description:
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true },
 };
 
 // All Bold components — no lazy loading needed for this redesign

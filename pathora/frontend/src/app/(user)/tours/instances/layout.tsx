@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     title: "Tour Instances | Pathora",
     type: "website",
   },
+  alternates: { canonical: "/tours/instances" },
+  robots: { index: true, follow: true },
 };
 
 export default function TourInstancesLayout({

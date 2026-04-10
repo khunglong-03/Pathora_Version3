@@ -22,5 +22,4 @@
   <Folder Name="/tests/">
     <Project Path="tests/Domain.Specs/Domain.Specs.csproj" />
   </Folder>
-  <Folder Name="/volume/" />
 </Solution>

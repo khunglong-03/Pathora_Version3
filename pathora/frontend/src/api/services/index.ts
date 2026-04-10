@@ -14,6 +14,7 @@ export type {
   AdminBooking,
 } from "./adminService";
 export { bookingService } from "./bookingService";
+export { roleService } from "./roleService";
 export { discountService } from "./discountService";
 export { inventoryService } from "./inventoryService";
 export { notificationService } from "./notificationService";
@@ -24,3 +25,13 @@ export { dashboardPoliciesService } from "./dashboardPoliciesService";
 export { tourManagerAssignmentService } from "./tourManagerAssignmentService";
 export { transportProviderService } from "./transportProviderService";
 export type { Vehicle, Driver, CreateVehicleDto, UpdateVehicleDto, CreateDriverDto, UpdateDriverDto } from "./transportProviderService";
+export { hotelProviderService } from "./hotelProviderService";
+export { adminHotelService } from "./adminHotelService";
+export type {
+  RoleVm,
+  RoleDetailVm,
+  LookupVm,
+  PaginatedRolesResponse,
+  CreateRolePayload,
+  UpdateRolePayload,
+} from "./roleService";

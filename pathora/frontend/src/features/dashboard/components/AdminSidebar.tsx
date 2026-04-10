@@ -27,6 +27,8 @@ import {
   ListChecks,
   TrendUp,
   BuildingOffice,
+  Archive,
+  CalendarBlank,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -60,7 +62,12 @@ export const ADMIN_USER_ITEMS = [
 
 export const ADMIN_PROVIDER_ITEMS = [
   { label: "Nhà cung cấp Vận tải", icon: Van, href: "/admin/transport-providers" },
-  { label: "Nhà cung cấp Khách sạn", icon: Bed, href: "/admin/hotel-providers" },
+  { label: "Nhà cung cấp Khách sạn", icon: Bed, href: "/admin/hotels/suppliers" },
+] as const;
+
+export const ADMIN_HOTEL_MANAGEMENT_ITEMS = [
+  { label: "Tồn kho phòng", icon: Archive, href: "/admin/hotels/inventory" },
+  { label: "Chặn phòng", icon: CalendarBlank, href: "/admin/hotels/blocks" },
 ] as const;
 
 export const ADMIN_TOUR_ITEMS = [
@@ -72,6 +79,7 @@ export const ADMIN_TOUR_ITEMS = [
 export const ADMIN_NAV_ITEMS = [
   ...ADMIN_USER_ITEMS,
   ...ADMIN_PROVIDER_ITEMS,
+  ...ADMIN_HOTEL_MANAGEMENT_ITEMS,
   ...ADMIN_TOUR_ITEMS,
 ];
 
@@ -149,9 +157,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
   // For admin, build enriched nav with section labels
   const renderAdminNav = () => {
     type AdminNavItem = { label: string; icon: typeof ADMIN_USER_ITEMS[number]["icon"]; href: string };
-  const sections: Array<{ sectionLabel?: string; items: readonly AdminNavItem[] }> = [
+    const sections: Array<{ sectionLabel?: string; items: readonly AdminNavItem[] }> = [
       { sectionLabel: "QUẢN LÝ NGƯỜI DÙNG", items: ADMIN_USER_ITEMS },
       { sectionLabel: "QUẢN LÝ NHÀ CUNG CẤP", items: ADMIN_PROVIDER_ITEMS },
+      { sectionLabel: "QUẢN LÝ KHÁCH SẠN", items: ADMIN_HOTEL_MANAGEMENT_ITEMS },
       { sectionLabel: "QUẢN LÝ TOUR", items: ADMIN_TOUR_ITEMS },
     ];
 

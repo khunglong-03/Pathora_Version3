@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/visa" },
+  robots: { index: true, follow: true },
 };
 
 const VisaApplicationPage = dynamic(

@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/bookings" },
+  robots: { index: true, follow: true },
 };
 
 const BookingHistoryPage = dynamic(

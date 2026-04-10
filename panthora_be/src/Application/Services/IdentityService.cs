@@ -216,13 +216,7 @@ public class IdentityService(
 
         // Use roles from token generation — no duplicate FindByUserId query
         var portalRouting = AuthPortalResolver.ResolveByName(roles.Select(r => r.Name));
-        if (portalRouting.Portal == "admin")
-        {
-            return (new LoginResponse(accessToken, refreshToken, portalRouting.Portal, portalRouting.DefaultPath), roles);
-        }
-
-        var portalRoutingByType = AuthPortalResolver.Resolve(roles.Select(r => r.Type));
-        return (new LoginResponse(accessToken, refreshToken, portalRoutingByType.Portal, portalRoutingByType.DefaultPath), roles);
+        return (new LoginResponse(accessToken, refreshToken, portalRouting.Portal, portalRouting.DefaultPath), roles);
     }
 
     public async Task<ErrorOr<ExternalLoginResponse>> ExternalLogin(ExternalLoginRequest request)
@@ -481,7 +475,7 @@ public class IdentityService(
         var rolesResult = await _roleRepository.FindByUserId(userId);
         var roles = rolesResult.IsError
             ? []
-            : rolesResult.Value.Select(r => new UserRoleVm(r.Type, r.Id.ToString(), r.Name)).ToList();
+            : rolesResult.Value.Select(r => new UserRoleVm(r.Id.ToString(), r.Name)).ToList();
 
         var portalRouting = AuthPortalResolver.ResolveByName(roles.Select(role => role.Name));
 
@@ -584,16 +578,7 @@ public class IdentityService(
             return rolesResult.Errors;
         }
 
-        var roleTypes = (rolesResult.Value ?? []).Select(role => role.Type);
         var roleNames = (rolesResult.Value ?? []).Select(role => role.Name);
-        var portalRouting = AuthPortalResolver.ResolveByName(roleNames);
-
-        // Manager/Admin resolved by name; otherwise fall back to type-based
-        if (portalRouting.Portal == "admin")
-        {
-            return portalRouting;
-        }
-
-        return AuthPortalResolver.Resolve(roleTypes);
+        return AuthPortalResolver.ResolveByName(roleNames);
     }
 }

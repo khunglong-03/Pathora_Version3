@@ -26,4 +26,5 @@ export {
   type EndpointWithId,
   type EndpointWithOrderNo,
   type BookingEndpoints,
+  type RoleEndpoints,
 } from "./endpoints";

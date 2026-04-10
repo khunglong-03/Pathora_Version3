@@ -20,9 +20,7 @@ public sealed class RoleControllerTests
                 1,
                 "Admin",
                 "System admin",
-                1,
-                RoleStatus.Active,
-                [])
+                (int)RoleStatus.Active)
         };
         var response = new PaginatedListWithPermissions<RoleVm>(roles.Count, roles, new Dictionary<string, bool>());
         var (controller, probe) = ApiControllerTestHelper
@@ -61,12 +59,12 @@ public sealed class RoleControllerTests
     [Fact]
     public async Task GetLookup_WhenQuerySucceeds_ShouldReturnOkAndPayload()
     {
-        var response = new List<LookupVm>
+        var response = new List<RoleLookupVm>
         {
-            new("1", "Admin")
+            new(1, "Admin")
         };
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<RoleController, GetRoleLookupQuery, List<LookupVm>>(response, "/api/role/lookup");
+            .BuildController<RoleController, GetRoleLookupQuery, List<RoleLookupVm>>(response, "/api/role/lookup");
 
         var actionResult = await controller.GetLookup();
 
@@ -81,7 +79,7 @@ public sealed class RoleControllerTests
     [Fact]
     public async Task Create_WhenCommandSucceeds_ShouldReturnOkAndPayload()
     {
-        var command = new CreateRoleCommand("Admin", "System admin", 1, [1, 2]);
+        var command = new CreateRoleCommand("Admin", "System admin", [1, 2]);
         var response = 1;
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<RoleController, CreateRoleCommand, int>(response, "/api/role");
@@ -104,7 +102,6 @@ public sealed class RoleControllerTests
             Name: "Admin",
             Description: "Updated description",
             Status: RoleStatus.Active,
-            Type: 1,
             FunctionIds: [1, 2]);
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<RoleController, UpdateRoleCommand, Success>(Result.Success, "/api/role");

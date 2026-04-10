@@ -20,13 +20,11 @@ public interface IDepartmentService
 
 public class DepartmentService(
     IUser user,
-    IRoleService roleService,
     IDepartmentRepository departmentRepository,
     IUnitOfWork unitOfWork)
     : IDepartmentService
 {
     private readonly IUser _user = user;
-    private readonly IRoleService _roleService = roleService;
     private readonly IDepartmentRepository _departmentRepository = departmentRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 

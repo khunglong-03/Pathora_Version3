@@ -5,6 +5,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Features/AdminHotelBookings/**" />
+    <Compile Remove="Features/RoomBlocking/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Share\BuildingBlocks\BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\Share\Common\Common.csproj" />
     <ProjectReference Include="..\..\Share\Contracts\Contracts.csproj" />

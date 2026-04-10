@@ -42,12 +42,7 @@ public sealed class LanguageResolutionMiddleware(RequestDelegate next)
         }
 
         var normalizedFromHeader = NormalizeLanguage(acceptLanguageHeader);
-        if (normalizedFromHeader is not null)
-        {
-            return normalizedFromHeader;
-        }
-
-        return ILanguageContext.DefaultLanguage;
+        return normalizedFromHeader ?? ILanguageContext.DefaultLanguage;
     }
 
     private static string? NormalizeLanguage(string? language)

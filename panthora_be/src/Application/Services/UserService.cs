@@ -26,7 +26,6 @@ public class UserService(
     IUser user,
     IUnitOfWork unitOfWork,
     IPasswordHasher passwordHasher,
-    IRoleService roleService,
     IUserRepository userRepository,
     IRoleRepository roleRepository,
     HotelServiceProviderSupplierMapper? hotelServiceProviderMapper = null)
@@ -35,7 +34,6 @@ public class UserService(
     private readonly IUser _user = user;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
-    private readonly IRoleService _roleService = roleService;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRoleRepository _roleRepository = roleRepository;
     private readonly HotelServiceProviderSupplierMapper? _hotelServiceProviderMapper = hotelServiceProviderMapper;

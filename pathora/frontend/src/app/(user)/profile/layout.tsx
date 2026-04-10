@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/profile" },
+  robots: { index: true, follow: true },
 };
 
 export default function ProfileLayout({

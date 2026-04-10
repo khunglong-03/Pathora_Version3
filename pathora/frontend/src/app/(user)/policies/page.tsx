@@ -13,6 +13,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/policies" },
+  robots: { index: true, follow: true },
 };
 
 const PolicyPage = dynamic(

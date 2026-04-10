@@ -16,7 +16,7 @@ public record UserInfoVm(
     string? PreferredLanguage = null
 );
 
-public record UserRoleVm(int Type, string Id, string Name);
+public record UserRoleVm(string Id, string Name);
 
 public record UserDepartmentVm(
     string Id,

@@ -28,7 +28,6 @@ public static class DependencyInjection
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IPositionService, PositionService>();
-        services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ISystemKeyService, SystemKeyService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITourService, TourService>();

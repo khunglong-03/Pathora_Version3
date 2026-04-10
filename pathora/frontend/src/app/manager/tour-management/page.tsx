@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: "/tour-management",
+  },
 };
 
 export default function TourManagementPage() {

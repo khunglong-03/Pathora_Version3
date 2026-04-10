@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/about" },
+  robots: { index: true, follow: true },
 };
 
 const AboutUsPage = dynamic(

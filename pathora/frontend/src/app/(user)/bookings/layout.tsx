@@ -6,6 +6,8 @@ export const metadata: Metadata = {
     title: "My Bookings | Pathora",
     type: "website",
   },
+  alternates: { canonical: "/bookings" },
+  robots: { index: true, follow: true },
 };
 
 export default function BookingsLayout({

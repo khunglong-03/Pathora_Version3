@@ -140,9 +140,9 @@ public sealed class IdentityServiceLoginTests
             IsDeleted = false
         };
 
-        // RoleEntity.Id is int (from Aggregate<int>), Type is int
-        var role1 = new RoleEntity { Id = 0, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = 9, Name = "Manager", Type = 9 };
+        // RoleEntity.Id is int (from Aggregate<int>)
+        var role1 = new RoleEntity { Id = 0, Name = "Admin" };
+        var role2 = new RoleEntity { Id = 9, Name = "Manager" };
 
         _userRepository.FindByEmail("admin@test.com").Returns(user);
         _passwordHasher.VerifyHashedPassword("hashed", "secret123").Returns(true);
@@ -210,7 +210,7 @@ public sealed class IdentityServiceLoginTests
             IsDeleted = false
         };
 
-        var adminRole = new RoleEntity { Id = 0, Name = "Admin", Type = 0 };
+        var adminRole = new RoleEntity { Id = 0, Name = "Admin" };
 
         _userRepository.FindByEmail("admin@test.com").Returns(user);
         _passwordHasher.VerifyHashedPassword("hashed", "secret123").Returns(true);
@@ -243,7 +243,7 @@ public sealed class IdentityServiceLoginTests
             IsDeleted = false
         };
 
-        var managerRole = new RoleEntity { Id = 9, Name = "Manager", Type = 9 };
+        var managerRole = new RoleEntity { Id = 9, Name = "Manager" };
 
         _userRepository.FindByEmail("manager@test.com").Returns(user);
         _passwordHasher.VerifyHashedPassword("hashed", "secret123").Returns(true);
@@ -276,7 +276,7 @@ public sealed class IdentityServiceLoginTests
             IsDeleted = false
         };
 
-        var customerRole = new RoleEntity { Id = 2, Name = "Customer", Type = 2 };
+        var customerRole = new RoleEntity { Id = 2, Name = "Customer" };
 
         _userRepository.FindByEmail("customer@test.com").Returns(user);
         _passwordHasher.VerifyHashedPassword("hashed", "secret123").Returns(true);
@@ -348,8 +348,8 @@ public sealed class IdentityServiceLoginTests
             IsDeleted = false
         };
 
-        var role1 = new RoleEntity { Id = 0, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = 9, Name = "Manager", Type = 9 };
+        var role1 = new RoleEntity { Id = 0, Name = "Admin" };
+        var role2 = new RoleEntity { Id = 9, Name = "Manager" };
         var rolesFromToken = new List<RoleEntity> { role1, role2 };
 
         _userRepository.FindByEmail("multi@test.com").Returns(user);
@@ -410,9 +410,9 @@ public sealed class IdentityServiceLoginTests
         };
 
         // Simulate 3 roles where role1 and role2 share Id=0 (duplicate assignment)
-        var role1 = new RoleEntity { Id = 0, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = 0, Name = "Admin", Type = 0 }; // DUPLICATE Id
-        var customerRole = new RoleEntity { Id = 2, Name = "Customer", Type = 2 };
+        var role1 = new RoleEntity { Id = 0, Name = "Admin" };
+        var role2 = new RoleEntity { Id = 0, Name = "Admin" }; // DUPLICATE Id
+        var customerRole = new RoleEntity { Id = 2, Name = "Customer" };
 
         _userRepository.FindByEmail("dupe@test.com").Returns(user);
         _passwordHasher.VerifyHashedPassword("hashed", "secret123").Returns(true);

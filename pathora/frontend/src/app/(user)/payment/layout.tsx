@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary" },
+  alternates: { canonical: "/payment" },
+  robots: { index: true, follow: true },
 };
 
 export default function PaymentLayout({

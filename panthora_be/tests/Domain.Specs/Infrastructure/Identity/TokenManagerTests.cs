@@ -60,11 +60,11 @@ public sealed class TokenManagerTests
             IsDeleted = false
         };
 
-        // RoleEntity.Id is int (from Aggregate<int>), Type is int
+        // RoleEntity.Id is int (from Aggregate<int>)
         var sharedRoleId = 0; // Admin role Id
-        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 }; // Same Id!
-        var role3 = new RoleEntity { Id = 9, Name = "Manager", Type = 9 };
+        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
+        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin" }; // Same Id!
+        var role3 = new RoleEntity { Id = 9, Name = "Manager" };
 
         _roleRepository.FindByUserId(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<List<RoleEntity>>>(new List<RoleEntity> { role1, role2, role3 }));
@@ -113,8 +113,8 @@ public sealed class TokenManagerTests
         // Two RoleEntity objects with the SAME Id but potentially different Names
         // (this can happen if a user is assigned the same role twice via different joins)
         var sharedRoleId = 0;
-        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
+        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
+        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
 
         _roleRepository.FindByUserId(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<List<RoleEntity>>>(new List<RoleEntity> { role1, role2 }));
@@ -154,9 +154,9 @@ public sealed class TokenManagerTests
         };
 
         var sharedRoleId = 0;
-        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
-        var role3 = new RoleEntity { Id = sharedRoleId, Name = "Admin", Type = 0 };
+        var role1 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
+        var role2 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
+        var role3 = new RoleEntity { Id = sharedRoleId, Name = "Admin" };
 
         _roleRepository.FindByUserId(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<List<RoleEntity>>>(new List<RoleEntity> { role1, role2, role3 }));
@@ -195,8 +195,8 @@ public sealed class TokenManagerTests
             IsDeleted = false
         };
 
-        var role1 = new RoleEntity { Id = 0, Name = "Admin", Type = 0 };
-        var role2 = new RoleEntity { Id = 9, Name = "Manager", Type = 9 };
+        var role1 = new RoleEntity { Id = 0, Name = "Admin" };
+        var role2 = new RoleEntity { Id = 9, Name = "Manager" };
 
         _roleRepository.FindByUserId(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<List<RoleEntity>>>(new List<RoleEntity> { role1, role2 }));
@@ -290,7 +290,7 @@ public sealed class TokenManagerTests
             IsDeleted = false
         };
 
-        var role = new RoleEntity { Id = 2, Name = "Customer", Type = 2 };
+        var role = new RoleEntity { Id = 2, Name = "Customer" };
 
         _roleRepository.FindByUserId(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<ErrorOr<List<RoleEntity>>>(new List<RoleEntity> { role }));
