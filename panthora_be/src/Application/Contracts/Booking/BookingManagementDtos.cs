@@ -376,3 +376,26 @@ public sealed record RecentBookingResponse(
 );
 
 public sealed record UpdateTourStatusRequestDto(TourStatus Status);
+
+/// <summary>
+/// DTO for creating a Supplier with its owner User in one transactional step.
+/// Used by Admin to onboard a new provider (Transport or HotelServiceProvider).
+/// </summary>
+public sealed record CreateSupplierWithOwnerDto(
+    // User fields
+    string OwnerEmail,
+    string OwnerFullName,
+    // Supplier fields
+    string SupplierCode,
+    SupplierType SupplierType,
+    string SupplierName,
+    string? Phone,
+    string? Email,
+    string? Address,
+    string? Note
+);
+
+public sealed record CreateSupplierWithOwnerResponse(
+    Guid UserId,
+    Guid SupplierId
+);

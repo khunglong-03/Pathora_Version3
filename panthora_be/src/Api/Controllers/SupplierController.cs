@@ -42,6 +42,24 @@ public class SupplierController : BaseApiController
         return HandleCreated(result);
     }
 
+    [HttpPost(SupplierEndpoint.WithOwner)]
+    public async Task<IActionResult> CreateSupplierWithOwner([FromBody] CreateSupplierWithOwnerDto request)
+    {
+        var command = new CreateSupplierWithOwnerCommand(
+            request.OwnerEmail,
+            request.OwnerFullName,
+            request.SupplierCode,
+            request.SupplierType,
+            request.SupplierName,
+            request.Phone,
+            request.Email,
+            request.Address,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
     [HttpPut(SupplierEndpoint.Id)]
     public async Task<IActionResult> UpdateSupplier(Guid id, [FromBody] UpdateSupplierDto request)
     {

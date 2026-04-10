@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Plus } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
 import type { TransportProviderListItem, PaginatedList } from "@/types/admin";
@@ -13,6 +14,7 @@ import {
   AdminErrorCard,
 } from "@/features/dashboard/components";
 import { TransportProviderCard } from "@/features/dashboard/components/TransportProviderCard";
+import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
@@ -35,6 +37,7 @@ export default function TransportProvidersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchInput, setSearchInput] = useState("");
@@ -105,6 +108,16 @@ export default function TransportProvidersPage() {
         title="Nhà cung cấp Vận tải"
         subtitle="Quản lý các đối tác vận chuyển"
         onRefresh={handleRefresh}
+        actionButtons={
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#0D9488" }}
+          >
+            <Plus size={16} weight="bold" />
+            Tạo nhà cung cấp
+          </button>
+        }
       />
 
       {/* KPI Strip */}
@@ -162,6 +175,19 @@ export default function TransportProvidersPage() {
       )}
 
       {isLoading && <SkeletonTable rows={6} columns={3} />}
+
+      <CreateSupplierModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          void loadProviders();
+        }}
+        supplierType="Transport"
+        supplierTypeLabel="Vận tải"
+        iconBg="#CCFBF1"
+        iconColor="#0D9488"
+      />
     </div>
   );
 }

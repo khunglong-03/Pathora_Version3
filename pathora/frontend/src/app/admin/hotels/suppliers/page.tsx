@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Plus } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminHotelService, type HotelSupplierItem, type PaginatedHotelList } from "@/api/services/adminHotelService";
 import {
@@ -11,6 +12,7 @@ import {
   AdminEmptyState,
   AdminErrorCard,
 } from "@/features/dashboard/components";
+import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
@@ -37,6 +39,7 @@ export default function HotelSuppliersPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchInput, setSearchInput] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const debouncedSearch = useDebounce(searchInput, 300);
 
   const loadSuppliers = useCallback(async () => {
@@ -101,6 +104,16 @@ export default function HotelSuppliersPage() {
         title="Nhà cung cấp Khách sạn"
         subtitle="Danh sách đối tác lưu trú cho HotelServiceProvider"
         onRefresh={handleRefresh}
+        actionButtons={
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#EA580C" }}
+          >
+            <Plus size={16} weight="bold" />
+            Tạo nhà cung cấp
+          </button>
+        }
       />
 
       {/* KPI Strip */}
@@ -251,6 +264,19 @@ export default function HotelSuppliersPage() {
       )}
 
       {isLoading && <SkeletonTable rows={6} columns={3} />}
+
+      <CreateSupplierModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          void loadSuppliers();
+        }}
+        supplierType="Accommodation"
+        supplierTypeLabel="Khách sạn"
+        iconBg="#FFEDD5"
+        iconColor="#EA580C"
+      />
     </div>
   );
 }

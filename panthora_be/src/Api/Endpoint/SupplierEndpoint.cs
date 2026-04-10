@@ -4,4 +4,5 @@ public static class SupplierEndpoint
 {
     public const string Base = "api/suppliers";
     public const string Id = "{id:guid}";
+    public const string WithOwner = "with-owner";
 }

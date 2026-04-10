@@ -27,8 +27,6 @@ import {
   ListChecks,
   TrendUp,
   BuildingOffice,
-  Archive,
-  CalendarBlank,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -51,7 +49,7 @@ export const MANAGER_NAV_ITEMS = [
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
-  { label: "Dashboard", icon: SquaresFour, href: "/admin/dashboard" },
+  { label: "Quản lý Người dùng", icon: SquaresFour, href: "/admin/users" },
   { label: "Settings", icon: Gear, href: "/dashboard/settings" },
 ] as const;
 
@@ -65,11 +63,6 @@ export const ADMIN_PROVIDER_ITEMS = [
   { label: "Nhà cung cấp Khách sạn", icon: Bed, href: "/admin/hotels/suppliers" },
 ] as const;
 
-export const ADMIN_HOTEL_MANAGEMENT_ITEMS = [
-  { label: "Tồn kho phòng", icon: Archive, href: "/admin/hotels/inventory" },
-  { label: "Chặn phòng", icon: CalendarBlank, href: "/admin/hotels/blocks" },
-] as const;
-
 export const ADMIN_TOUR_ITEMS = [
   { label: "Quản lý Tour Manager", icon: UsersThree, href: "/admin/tour-managers" },
   { label: "Quản lý Tour Designer", icon: PaintBrush, href: "/admin/tour-designers" },
@@ -79,7 +72,6 @@ export const ADMIN_TOUR_ITEMS = [
 export const ADMIN_NAV_ITEMS = [
   ...ADMIN_USER_ITEMS,
   ...ADMIN_PROVIDER_ITEMS,
-  ...ADMIN_HOTEL_MANAGEMENT_ITEMS,
   ...ADMIN_TOUR_ITEMS,
 ];
 
@@ -160,7 +152,6 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
     const sections: Array<{ sectionLabel?: string; items: readonly AdminNavItem[] }> = [
       { sectionLabel: "QUẢN LÝ NGƯỜI DÙNG", items: ADMIN_USER_ITEMS },
       { sectionLabel: "QUẢN LÝ NHÀ CUNG CẤP", items: ADMIN_PROVIDER_ITEMS },
-      { sectionLabel: "QUẢN LÝ KHÁCH SẠN", items: ADMIN_HOTEL_MANAGEMENT_ITEMS },
       { sectionLabel: "QUẢN LÝ TOUR", items: ADMIN_TOUR_ITEMS },
     ];
 
@@ -252,8 +243,8 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
     if (href === "/manager/dashboard") {
       return pathname === "/manager/dashboard" || pathname === "/manager/dashboard/";
     }
-    if (href === "/admin/dashboard") {
-      return pathname === "/admin/dashboard" || pathname === "/admin/dashboard/";
+    if (href === "/admin/users") {
+      return pathname === "/admin/users" || pathname === "/admin/users/";
     }
     return pathname.startsWith(href);
   };
@@ -277,7 +268,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
           style={{ borderBottom: "1px solid var(--sidebar-border)" }}
         >
           <Link
-            href={variant === "admin" ? "/admin/dashboard" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : variant === "tour-designer" ? "/tour-designer" : variant === "tour-guide" ? "/tour-guide" : "/manager/dashboard"}
+            href={variant === "admin" ? "/admin/users" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : variant === "tour-designer" ? "/tour-designer" : variant === "tour-guide" ? "/tour-guide" : "/manager/dashboard"}
             className="flex items-center gap-3 group"
           >
             {/* Logo mark */}

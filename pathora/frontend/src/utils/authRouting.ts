@@ -57,7 +57,7 @@ export const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   }
 };
 
-export const ADMIN_ROLE_DEFAULT_PATH = "/admin/dashboard";
+export const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
 export const MANAGER_ROLE_DEFAULT_PATH = "/manager";
 export const HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH = "/hotel";
 export const TRANSPORTPROVIDER_ROLE_DEFAULT_PATH = "/transport";

@@ -1,4 +1,5 @@
 export { AdminPageHeader } from "./AdminPageHeader";
+export { CreateSupplierModal } from "./CreateSupplierModal";
 export { AdminFilterTabs } from "./AdminFilterTabs";
 export type { AdminFilterTab } from "./AdminFilterTabs";
 export { AdminKpiStrip } from "./AdminKpiStrip";

@@ -50,7 +50,7 @@ export function AdminLogoutButton() {
             ?.split("=")[1]
         : undefined;
 
-    router.push(portal === "admin" ? "/admin/dashboard" : "/");
+    router.push(portal === "admin" ? "/admin/users" : "/");
   };
 
   return (

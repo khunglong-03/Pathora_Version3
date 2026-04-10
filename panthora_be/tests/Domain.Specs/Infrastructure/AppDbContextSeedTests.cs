@@ -29,7 +29,6 @@ public sealed class AppDbContextSeedTests
             SupplierCode = "SUP-HTL-001",
             SupplierType = SupplierType.Accommodation,
             Name = "Lan Rung Hotel",
-            TaxCode = "1122334455",
             Phone = "0903001001",
             Email = "booking@lanrunghotel.vn",
             Address = "78 Hung Vuong, Da Nang",

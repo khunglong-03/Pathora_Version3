@@ -26,7 +26,6 @@ public sealed class BookingManagementApiControllerTests
             null,
             null,
             null,
-            null,
             true);
 
         var (controller, probe) = ApiControllerTestHelper
@@ -53,7 +52,6 @@ public sealed class BookingManagementApiControllerTests
             "SUP-NEW",
             SupplierType.Accommodation,
             "Hotel Supplier",
-            "TAX01",
             "0900000000",
             "hotel@example.com",
             "Ha Noi",
@@ -69,9 +67,9 @@ public sealed class BookingManagementApiControllerTests
         var objectResult = Assert.IsType<ObjectResult>(actionResult);
         Assert.Equal(StatusCodes.Status201Created, objectResult.StatusCode);
 
-        var payload = Assert.IsType<ResultSharedResponse<ApiCreatedResponse<Guid>>>(objectResult.Value);
+        var payload = Assert.IsType<ResultSharedResponse<Guid>>(objectResult.Value);
         Assert.Equal(StatusCodes.Status201Created, payload.StatusCode);
-        Assert.Equal(createdId, payload.Data?.Value);
+        Assert.Equal(createdId, payload.Data);
 
         var captured = Assert.IsType<CreateSupplierCommand>(probe.CapturedRequest);
         Assert.Equal(request.SupplierCode, captured.SupplierCode);
@@ -129,8 +127,8 @@ public sealed class BookingManagementApiControllerTests
         var objectResult = Assert.IsType<ObjectResult>(actionResult);
         Assert.Equal(StatusCodes.Status201Created, objectResult.StatusCode);
 
-        var payload = Assert.IsType<ResultSharedResponse<ApiCreatedResponse<Guid>>>(objectResult.Value);
-        Assert.Equal(payableId, payload.Data?.Value);
+        var payload = Assert.IsType<ResultSharedResponse<Guid>>(objectResult.Value);
+        Assert.Equal(payableId, payload.Data);
 
         var captured = Assert.IsType<CreateSupplierPayableCommand>(probe.CapturedRequest);
         Assert.Equal(bookingId, captured.BookingId);

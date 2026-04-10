@@ -161,7 +161,7 @@ export function middleware(request: NextRequest) {
 
   if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/users", request.url));
     }
     if (hasManagerRole(authRoles)) {
       return NextResponse.redirect(new URL("/manager", request.url));
@@ -191,7 +191,7 @@ export function middleware(request: NextRequest) {
 
     // Admins can't access manager routes
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/users", request.url));
     }
 
     // Managers can't access customer routes
@@ -223,7 +223,7 @@ export function middleware(request: NextRequest) {
     // Block non-transport-providers from accessing /transport routes
     if (pathname.startsWith("/transport/") && !hasTransportProviderRole(authRoles)) {
       if (hasAdminRole(authRoles)) {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+        return NextResponse.redirect(new URL("/admin/users", request.url));
       }
       if (hasManagerRole(authRoles)) {
         return NextResponse.redirect(new URL("/manager", request.url));
@@ -237,7 +237,7 @@ export function middleware(request: NextRequest) {
     // Block non-hotel-providers from accessing /hotel routes
     if (pathname.startsWith("/hotel/") && !hasHotelServiceProviderRole(authRoles)) {
       if (hasAdminRole(authRoles)) {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+        return NextResponse.redirect(new URL("/admin/users", request.url));
       }
       if (hasManagerRole(authRoles)) {
         return NextResponse.redirect(new URL("/manager", request.url));
