@@ -14,7 +14,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
   return (
     <div
       data-testid="transport-provider-card"
-      className="rounded-xl border border-[#E5E7EB] bg-white p-5 transition-all duration-300 hover:-translate-y-1"
+      className="flex flex-col h-full rounded-xl border border-[#E5E7EB] bg-white p-5 transition-all duration-300 hover:-translate-y-1"
       style={{
         boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
       }}
@@ -78,7 +78,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
       </div>
 
       {/* Stats */}
-      <div className="flex gap-3 pt-3" style={{ borderTop: "1px solid #F3F4F6" }}>
+      <div className="flex gap-3 pt-3 mt-auto" style={{ borderTop: "1px solid #F3F4F6" }}>
         <div className="flex-1 text-center">
           <p className="text-lg font-bold" style={{ color: "#111827" }}>
             {provider.bookingCount ?? 0}

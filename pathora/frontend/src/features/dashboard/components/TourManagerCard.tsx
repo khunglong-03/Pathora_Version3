@@ -20,7 +20,7 @@ export function TourManagerCard({ manager, onViewStaff, onEdit }: TourManagerCar
   return (
     <div
       data-testid="tour-manager-card"
-      className="rounded-xl border border-[#E5E7EB] bg-white p-5 transition-all duration-300 cursor-pointer"
+      className="flex flex-col h-full rounded-xl border border-[#E5E7EB] bg-white p-5 transition-all duration-300 cursor-pointer"
       style={{
         boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
       }}
@@ -75,7 +75,7 @@ export function TourManagerCard({ manager, onViewStaff, onEdit }: TourManagerCar
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-auto">
         <button
           onClick={(e) => {
             e.stopPropagation();

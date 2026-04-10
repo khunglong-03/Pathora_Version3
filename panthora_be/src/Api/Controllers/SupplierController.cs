@@ -57,7 +57,7 @@ public class SupplierController : BaseApiController
             request.Note);
 
         var result = await Sender.Send(command);
-        return HandleCreated(result);
+        return HandleSupplierWithOwnerCreated(result);
     }
 
     [HttpPut(SupplierEndpoint.Id)]

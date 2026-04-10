@@ -8,9 +8,11 @@ using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Mails;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Features.BookingManagement.Supplier;
 
@@ -191,7 +193,7 @@ public sealed record CreateSupplierWithOwnerCommand(
     string? Phone,
     string? Email,
     string? Address,
-    string? Note) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId)>>, ICacheInvalidator
+    string? Note) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier, CacheKey.User];
 }
@@ -224,10 +226,13 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
     IRoleRepository roleRepository,
     IUnitOfWork unitOfWork,
     IPasswordHasher passwordHasher,
+    IMailRepository mailRepository,
+    IPasswordResetTokenRepository passwordResetTokenRepository,
+    IConfiguration configuration,
     ILanguageContext? languageContext = null)
-    : ICommandHandler<CreateSupplierWithOwnerCommand, ErrorOr<(Guid UserId, Guid SupplierId)>>
+    : ICommandHandler<CreateSupplierWithOwnerCommand, ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>
 {
-    public async Task<ErrorOr<(Guid UserId, Guid SupplierId)>> Handle(
+    public async Task<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>> Handle(
         CreateSupplierWithOwnerCommand request,
         CancellationToken cancellationToken)
     {
@@ -267,8 +272,8 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
 
         var roleId = roleResult.Value.Id;
 
-        // 4. Generate temp password and create user
-        var tempPassword = PasswordGenerator.Generate();
+        // 4. Create user with temp password — owner must reset via email link
+        var tempPassword = Guid.NewGuid().ToString("N")[..8] + "A1!";
         var hashedPassword = passwordHasher.HashPassword(tempPassword);
 
         var userEntity = UserEntity.Create(
@@ -282,7 +287,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
 
         Guid supplierId = default;
 
-        // 5. Transaction: create user → assign role → create supplier linked to user
+        // 5. Transaction: create user → assign role → create supplier → queue reset-email
         await unitOfWork.ExecuteTransactionAsync(async () =>
         {
             await userRepository.Create(userEntity);
@@ -306,36 +311,36 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
 
             await supplierRepository.AddAsync(supplier);
             supplierId = supplier.Id;
+
+            // 6. Generate password-reset token and queue email so owner can set their password
+            var resetToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            var tokenHash = passwordHasher.HashPassword(resetToken);
+            var expiresAt = DateTimeOffset.UtcNow.AddHours(24);
+
+            var resetTokenEntity = Domain.Entities.PasswordResetTokenEntity.Create(
+                userEntity.Id.ToString(),
+                tokenHash,
+                expiresAt);
+
+            await passwordResetTokenRepository.CreateAsync(resetTokenEntity);
+
+            var frontendUrl = configuration["AppConfig:FrontendBaseUrl"]
+                ?? throw new InvalidOperationException("AppConfig:FrontendBaseUrl is not configured.");
+
+            var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?token={resetToken}";
+
+            var mailEntity = new Domain.Mails.MailEntity
+            {
+                To = request.OwnerEmail,
+                Subject = "Password Reset",
+                Body = System.Text.Json.JsonSerializer.Serialize(
+                    new Domain.Mails.PasswordResetMail(resetLink, userEntity.Username ?? request.OwnerEmail, 24)),
+                Template = nameof(Domain.Mails.PasswordResetMail),
+            };
+
+            await mailRepository.Add(mailEntity);
         });
 
-        return (userEntity.Id, supplierId);
-    }
-}
-
-internal static class PasswordGenerator
-{
-    private static readonly Random _rng = new();
-    private const string Lower = "abcdefghijklmnopqrstuvwxyz";
-    private const string Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private const string Digits = "0123456789";
-
-    public static string Generate(int length = 10)
-    {
-        var chars = new char[length];
-        chars[0] = Lower[_rng.Next(Lower.Length)];
-        chars[1] = Upper[_rng.Next(Upper.Length)];
-        chars[2] = Digits[_rng.Next(Digits.Length)];
-        for (var i = 3; i < length; i++)
-        {
-            var all = Lower + Upper + Digits;
-            chars[i] = all[_rng.Next(all.Length)];
-        }
-        // Fisher–Yates shuffle
-        for (var i = chars.Length - 1; i > 0; i--)
-        {
-            var j = _rng.Next(i + 1);
-            (chars[i], chars[j]) = (chars[j], chars[i]);
-        }
-        return new string(chars);
+        return (userEntity.Id, supplierId, request.OwnerEmail);
     }
 }

@@ -1,4 +1,5 @@
 using Application.Common.Constant;
+using Application.Contracts.Booking;
 using Contracts.Interfaces;
 using Contracts.ModelResponse;
 using ErrorOr;
@@ -137,6 +138,21 @@ public abstract class BaseApiController : ControllerBase
             (successMessage ?? SuccessMessages.Performed).Resolve(CurrentLanguage),
             HttpContext.Request.Path,
             successStatusCode));
+    }
+
+    protected IActionResult HandleSupplierWithOwnerCreated(
+        ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)> result)
+    {
+        if (result.IsError)
+            return HandleResult(result);
+
+        var (userId, supplierId, ownerEmail) = result.Value;
+        var response = new CreateSupplierWithOwnerResponse(userId, supplierId, ownerEmail);
+        return SafeResult(StatusCodes.Status201Created, ResultSharedResponse<CreateSupplierWithOwnerResponse>.Success(
+            response,
+            SuccessMessages.Created.Resolve(CurrentLanguage),
+            HttpContext.Request.Path,
+            StatusCodes.Status201Created));
     }
 
     protected IActionResult HandleNoContent<T>(ErrorOr<T> result)

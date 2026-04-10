@@ -397,5 +397,6 @@ public sealed record CreateSupplierWithOwnerDto(
 
 public sealed record CreateSupplierWithOwnerResponse(
     Guid UserId,
-    Guid SupplierId
+    Guid SupplierId,
+    string OwnerEmail
 );
