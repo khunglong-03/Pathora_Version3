@@ -50,7 +50,7 @@ const languages = [
 const LOGO = LandingLogo;
 
 const navLinks = [
-  { labelKey: "landing.nav.home", href: "/home" },
+  { labelKey: "landing.nav.home", href: "/" },
   { labelKey: "landing.nav.aboutUs", href: "/about" },
   { labelKey: "landing.nav.tourPackages", href: "/tours" },
   { labelKey: "landing.nav.ourPolicies", href: "/policies" },
@@ -59,7 +59,7 @@ const navLinks = [
 const sidebarLinks = [
   {
     labelKey: "landing.nav.home",
-    href: "/home",
+    href: "/",
     icon: "heroicons-outline:home",
   },
   {
@@ -244,7 +244,7 @@ const MobileSidebar = ({
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
               <Link
-                href="/home"
+                href="/"
                 onClick={onClose}
                 className="flex items-center gap-3">
                 {logoVariant === "text" ? (
@@ -440,7 +440,7 @@ export const LandingHeader = ({
     } catch {
       // logOut is dispatched inside the mutation's onQueryStarted
     }
-    // Portal-aware redirect: admin portal → /home, user portal → /
+    // Portal-aware redirect: admin portal → /, user portal → /
     const portal =
       typeof document !== "undefined"
         ? document.cookie
@@ -448,7 +448,7 @@ export const LandingHeader = ({
             .find((c) => c.startsWith("auth_portal="))
             ?.split("=")[1]
         : undefined;
-    router.push(portal === "admin" ? "/home" : "/");
+    router.push(portal === "admin" ? "/" : "/");
   };
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useMobileMenu();
@@ -609,7 +609,7 @@ export const LandingHeader = ({
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/home" className="flex items-center shrink-0 group">
+            <Link href="/" className="flex items-center shrink-0 group">
               {logoVariant === "text" ? (
                 <span className="text-2xl font-bold text-white font-['Space_Grotesk'] tracking-tight">
                   Pathora

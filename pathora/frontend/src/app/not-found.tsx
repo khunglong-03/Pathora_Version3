@@ -17,7 +17,7 @@ function NotFound() {
       </div>
       <div className="max-w-75 mx-auto w-full">
         <Link
-          href="/home"
+          href="/"
           className="btn btn-dark dark:bg-slate-800 block text-center">
           Go to homepage
         </Link>

@@ -26,9 +26,6 @@ public class RoleConfiguration : IEntityTypeConfiguration<RoleEntity>
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(r => r.Type)
-            .IsRequired();
-
         builder.Property(r => r.Status)
             .IsRequired();
 

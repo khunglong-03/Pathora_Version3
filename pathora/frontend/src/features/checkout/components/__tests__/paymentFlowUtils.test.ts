@@ -155,7 +155,7 @@ describe("paymentFlowUtils", () => {
       expect(shouldRedirectToHostedCheckout("https://payos.vn/checkout")).toBe(false);
       expect(shouldRedirectToHostedCheckout("https://example.com/payment")).toBe(false);
       expect(shouldRedirectToHostedCheckout("https://vnpay.vn/pay")).toBe(false);
-      expect(shouldRedirectToHostedCheckout("https://my.payos.vn/login?redirect=/home")).toBe(false);
+      expect(shouldRedirectToHostedCheckout("https://my.payos.vn/login?redirect=/")).toBe(false);
     });
 
     it("returns false for undefined input", () => {

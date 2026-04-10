@@ -309,7 +309,7 @@ export function TourDetailPage() {
           <div className="px-6 flex flex-col items-start gap-5">
             {/* Breadcrumb Floating Pill */}
             <nav className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[11px] text-white/90 animate-reveal-up stagger-1">
-              <Link href="/home" className="hover:text-white transition-colors">
+              <Link href="/" className="hover:text-white transition-colors">
                 {t("landing.tourDetail.home")}
               </Link>
               <Icon

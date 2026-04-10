@@ -408,7 +408,7 @@ public sealed class AuthControllerTests
     public async Task GoogleCallback_WhenExternalLoginSucceeds_ShouldRedirectToFrontendWithTokens()
     {
         // Arrange
-        var externalLoginResponse = new ExternalLoginResponse("access-token", "refresh-token", "customer", "/home");
+        var externalLoginResponse = new ExternalLoginResponse("access-token", "refresh-token", "customer", "/");
         var (controller, _) = BuildControllerWithExternalLogin<ExternalLoginCommand, ExternalLoginResponse>(
             externalLoginResponse,
             "/api/auth/google-callback",

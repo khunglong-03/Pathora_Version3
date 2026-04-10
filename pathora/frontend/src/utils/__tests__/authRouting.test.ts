@@ -205,7 +205,7 @@ describe("isAdminRoutePath", () => {
   });
 
   it("returns false for non-admin routes", () => {
-    expect(isAdminRoutePath("/home")).toBe(false);
+    expect(isAdminRoutePath("/")).toBe(false);
     expect(isAdminRoutePath("/tours")).toBe(false);
     expect(isAdminRoutePath("/about")).toBe(false);
     expect(isAdminRoutePath("/admin/something")).toBe(false);
@@ -223,7 +223,7 @@ describe("isManagerRoutePath", () => {
   });
 
   it("returns false for non-manager routes", () => {
-    expect(isManagerRoutePath("/home")).toBe(false);
+    expect(isManagerRoutePath("/")).toBe(false);
     expect(isManagerRoutePath("/tour-requests")).toBe(false);
     expect(isManagerRoutePath("/pricing-policies")).toBe(false);
     expect(isManagerRoutePath("/admin/dashboard")).toBe(false);
@@ -234,7 +234,7 @@ describe("isSafeNextPath", () => {
   it("returns true for valid internal paths", () => {
     expect(isSafeNextPath("/tours/custom")).toBe(true);
     expect(isSafeNextPath("/dashboard")).toBe(true);
-    expect(isSafeNextPath("/home?foo=bar")).toBe(true);
+    expect(isSafeNextPath("/?foo=bar")).toBe(true);
     expect(isSafeNextPath("/a")).toBe(true);
   });
 
@@ -246,7 +246,7 @@ describe("isSafeNextPath", () => {
   it("returns false for paths not starting with /", () => {
     expect(isSafeNextPath("tours/custom")).toBe(false);
     expect(isSafeNextPath("")).toBe(false);
-    expect(isSafeNextPath(" /home")).toBe(false);
+    expect(isSafeNextPath(" /")).toBe(false);
   });
 
   it("returns false for external URLs", () => {
@@ -263,18 +263,6 @@ describe("isSafeNextPath", () => {
 describe("isLoginEntryPath", () => {
   it("returns true for root path", () => {
     expect(isLoginEntryPath("/", new URLSearchParams())).toBe(true);
-  });
-
-  it("returns true for /home with login=true", () => {
-    expect(
-      isLoginEntryPath("/home", new URLSearchParams("login=true")),
-    ).toBe(true);
-  });
-
-  it("returns false for /home without login param", () => {
-    expect(isLoginEntryPath("/home", new URLSearchParams())).toBe(false);
-    const params = new URLSearchParams("foo=bar");
-    expect(isLoginEntryPath("/home", params)).toBe(false);
   });
 
   it("returns false for other paths", () => {
@@ -296,10 +284,10 @@ describe("resolveLoginDestination", () => {
     expect(
       resolveLoginDestination({
         next: "https://evil.com",
-        defaultPath: "/home",
+        defaultPath: "/",
         portal: "user",
       }),
-    ).toBe("/home");
+    ).toBe("/");
   });
 
   it("ignores next for admin portal", () => {
@@ -360,7 +348,7 @@ describe("resolveAuthPortal", () => {
   });
 
   it("infers user portal from user default path", () => {
-    expect(resolveAuthPortal(null, "/home")).toBe("user");
+    expect(resolveAuthPortal(null, "/")).toBe("user");
     expect(resolveAuthPortal(undefined, "/my-custom-tour-requests")).toBe("user");
   });
 
@@ -370,7 +358,7 @@ describe("resolveAuthPortal", () => {
   });
 
   it("prefers explicit portal over inferred from defaultPath", () => {
-    expect(resolveAuthPortal("admin", "/home")).toBe("admin");
+    expect(resolveAuthPortal("admin", "/")).toBe("admin");
     expect(resolveAuthPortal("user", "/admin/dashboard")).toBe("user");
   });
 });

@@ -8,6 +8,7 @@ using Application.Features.Admin.Queries.GetAllManagerUsers;
 using Application.Features.Admin.Queries.GetAllUsers;
 using Application.Features.Admin.Queries.GetAdminDashboardOverview;
 using Application.Features.Admin.Queries.GetHotelProviders;
+using Application.Features.Admin.Queries.GetHotelProviderById;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
 using Application.Features.Admin.Queries.GetTransportProviderById;
@@ -95,6 +96,13 @@ public class AdminController : BaseApiController
         [FromQuery] Domain.Enums.Continent? continent = null)
     {
         var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize, search, status, continent));
+        return HandleResult(result);
+    }
+
+    [HttpGet("hotel-providers/{id:guid}")]
+    public async Task<IActionResult> GetHotelProviderById(Guid id)
+    {
+        var result = await Sender.Send(new GetHotelProviderByIdQuery(id));
         return HandleResult(result);
     }
 

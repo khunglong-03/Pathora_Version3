@@ -23,7 +23,6 @@ function normalizeLanguage(lang: string): string {
 
 const PUBLIC_PATH_PREFIXES = [
   "/",
-  "/home",
   "/tour-detail",
   "/about",
   "/visa",
@@ -232,7 +231,7 @@ export function middleware(request: NextRequest) {
       if (hasHotelServiceProviderRole(authRoles)) {
         return NextResponse.redirect(new URL("/hotel", request.url));
       }
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
     // Block non-hotel-providers from accessing /hotel routes
@@ -252,7 +251,7 @@ export function middleware(request: NextRequest) {
       if (hasTourGuideRole(authRoles)) {
         return NextResponse.redirect(new URL("/tour-guide", request.url));
       }
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
     // Tour Designers must stay in tour-designer routes (except public paths)
@@ -275,12 +274,12 @@ export function middleware(request: NextRequest) {
 
     // Block non-tour-designers from accessing /tour-designer routes
     if (pathname.startsWith("/tour-designer") && !hasTourDesignerRole(authRoles)) {
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
     // Block non-tour-guides from accessing /tour-guide routes
     if (pathname.startsWith("/tour-guide") && !hasTourGuideRole(authRoles)) {
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
   }

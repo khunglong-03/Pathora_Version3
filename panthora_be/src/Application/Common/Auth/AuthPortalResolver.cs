@@ -39,5 +39,5 @@ public sealed record PortalRouting(string Portal, string DefaultPath)
     /// </summary>
     public static PortalRouting Manager { get; } = new("admin", "/manager");
 
-    public static PortalRouting User { get; } = new("user", "/home");
+    public static PortalRouting User { get; } = new("user", "/");
 }

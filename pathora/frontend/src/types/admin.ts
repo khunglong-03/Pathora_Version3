@@ -203,6 +203,33 @@ export interface HotelProviderListItem {
   createdAt?: string;
 }
 
+export interface HotelAccommodationSummary {
+  id: string;
+  roomType: string;
+  totalRooms: number;
+  name: string | null;
+  locationArea: string | null;
+}
+
+export interface HotelProviderDetail {
+  id: string;
+  supplierName: string;
+  supplierCode: string;
+  taxCode: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+  status: string;
+  createdOnUtc: string | null;
+  accommodations: HotelAccommodationSummary[];
+  accommodationCount: number;
+  totalRooms: number;
+  bookingCount: number;
+  activeBookingCount: number;
+  completedBookingCount: number;
+}
+
 // ─── TourManager Hierarchy ───────────────────────────────────────
 export interface TourManagerStaffDto {
   id: string;

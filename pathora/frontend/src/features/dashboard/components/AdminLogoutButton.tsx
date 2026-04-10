@@ -40,7 +40,7 @@ export function AdminLogoutButton() {
       // auth slice is cleared in onQueryStarted even when API logout fails
     }
 
-    // Portal-aware redirect: admin portal → /home, user portal → /
+    // Portal-aware redirect: admin portal → /, user portal → /
     // Read auth_portal before cookies are cleared by the mutation
     const portal =
       typeof document !== "undefined"
@@ -50,7 +50,7 @@ export function AdminLogoutButton() {
             ?.split("=")[1]
         : undefined;
 
-    router.push(portal === "admin" ? "/home" : "/");
+    router.push(portal === "admin" ? "/" : "/");
   };
 
   return (

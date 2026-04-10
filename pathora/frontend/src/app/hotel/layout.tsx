@@ -23,7 +23,7 @@ export default async function HotelLayout({ children }: { children: ReactNode })
   const hasProviderRole = roles.some((role) => HOTELSERVICEPROVIDER_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasProviderRole) {
-    redirect("/home");
+    redirect("/");
   }
 
   return <AdminShell variant="provider" providerPortal="hotel">{children}</AdminShell>;

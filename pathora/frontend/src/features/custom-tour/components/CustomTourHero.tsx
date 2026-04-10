@@ -18,7 +18,7 @@ export function CustomTourHero({ title, subtitle, backLabel }: CustomTourHeroPro
       </div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 text-center">
         <Link
-          href="/home"
+          href="/"
           className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors"
         >
           <Icon icon="heroicons:arrow-left" className="w-4 h-4" />

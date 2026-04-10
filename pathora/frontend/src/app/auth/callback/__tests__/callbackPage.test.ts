@@ -45,9 +45,9 @@ describe("Auth Callback Page Behavior", () => {
 
     it("should redirect to home when user fetch fails", () => {
       const userFetchSuccess = false;
-      const redirectTarget = userFetchSuccess ? "/dashboard" : "/home";
+      const redirectTarget = userFetchSuccess ? "/dashboard" : "/";
 
-      expect(redirectTarget).toBe("/home");
+      expect(redirectTarget).toBe("/");
     });
 
     it("should use resolvePostLoginPath for successful login", () => {
@@ -62,7 +62,7 @@ describe("Auth Callback Page Behavior", () => {
         if (info.roles.includes("admin") || info.roles.includes("tour_manager")) {
           return info.defaultPath || "/dashboard";
         }
-        return info.defaultPath || "/home";
+        return info.defaultPath || "/";
       };
 
       expect(getPostLoginPath(userInfo)).toBe("/tours");

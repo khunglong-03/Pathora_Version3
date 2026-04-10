@@ -29,7 +29,7 @@ export default async function DashboardRouteGroupLayout({
   const hasManagerRole = roles.some((role) => MANAGER_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasManagerRole) {
-    redirect("/home");
+    redirect("/");
   }
 
   return (

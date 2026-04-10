@@ -42,7 +42,7 @@ export const BoldFooter = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div>
-            <Link href="/home" className="inline-block mb-4">
+            <Link href="/" className="inline-block mb-4">
               <span
                 className="text-2xl font-bold text-white"
                 style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}

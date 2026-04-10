@@ -153,4 +153,28 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
             ? (0, 0, 0)
             : (details.Total, details.Active, details.Completed);
     }
+
+    public async Task<(int Total, int Active, int Completed)> GetHotelBookingCountsByOwnerAsync(
+        Guid ownerUserId, CancellationToken cancellationToken = default)
+    {
+        var supplier = await FindByOwnerUserIdAsync(ownerUserId, cancellationToken);
+        if (supplier is null)
+            return (0, 0, 0);
+
+        var details = await _context.BookingAccommodationDetails
+            .AsNoTracking()
+            .Where(b => b.SupplierId == supplier.Id)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Active = g.Count(b => b.Status != ReservationStatus.Completed && b.Status != ReservationStatus.Cancelled),
+                Completed = g.Count(b => b.Status == ReservationStatus.Completed)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return details is null
+            ? (0, 0, 0)
+            : (details.Total, details.Active, details.Completed);
+    }
 }

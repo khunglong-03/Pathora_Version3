@@ -23,7 +23,7 @@ export default async function TransportLayout({ children }: { children: ReactNod
   const hasProviderRole = roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasProviderRole) {
-    redirect("/home");
+    redirect("/");
   }
 
   return <AdminShell variant="provider" providerPortal="transport">{children}</AdminShell>;

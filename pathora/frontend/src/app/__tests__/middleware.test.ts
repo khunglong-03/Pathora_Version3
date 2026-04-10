@@ -56,7 +56,7 @@ describe("middleware routing logic", () => {
   });
 
   describe("unauthenticated routing", () => {
-    it("unauthenticated accessing protected /dashboard redirects to /home?login=true", () => {
+    it("unauthenticated accessing protected /dashboard redirects to /?login=true", () => {
       // No auth cookies means unauthenticated
       expect(Boolean(undefined)).toBe(false);
       expect(Boolean(null)).toBe(false);
@@ -67,16 +67,16 @@ describe("middleware routing logic", () => {
   });
 
   describe("login entry path resolution", () => {
-    it("Admin at /home?login=true redirects to /admin/dashboard", () => {
+    it("Admin at /?login=true redirects to /admin/dashboard", () => {
       const roles = [{ name: "Admin" }];
       expect(hasAdminRole(roles)).toBe(true);
-      expect(isLoginEntryPath("/home", new URLSearchParams("login=true"))).toBe(true);
+      expect(isLoginEntryPath("/", new URLSearchParams("login=true"))).toBe(true);
     });
 
-    it("Manager at /home?login=true redirects to /dashboard", () => {
+    it("Manager at /?login=true redirects to /dashboard", () => {
       const roles = [{ name: "Manager" }];
       expect(hasManagerRole(roles)).toBe(true);
-      expect(isLoginEntryPath("/home", new URLSearchParams("login=true"))).toBe(true);
+      expect(isLoginEntryPath("/", new URLSearchParams("login=true"))).toBe(true);
     });
 
     it("root path is login entry", () => {

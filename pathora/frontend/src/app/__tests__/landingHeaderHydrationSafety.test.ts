@@ -19,13 +19,13 @@ describe("landing header hydration safety", () => {
     ).toBe(true);
   });
 
-  it("keeps public home navigation pointing to /home", () => {
+  it("keeps public home navigation pointing to /", () => {
     const source = readFile("src/features/shared/components/LandingHeader.tsx");
 
     expect(
-      source.includes('{ labelKey: "landing.nav.home", href: "/home" },'),
+      source.includes('{ labelKey: "landing.nav.home", href: "/" },'),
     ).toBe(true);
-    expect(source.includes('href="/home"')).toBe(true);
+    expect(source.includes('href="/"')).toBe(true);
   });
 
   it("suppresses hydration warnings for react-icons used in header controls", () => {

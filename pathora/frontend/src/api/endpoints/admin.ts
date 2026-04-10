@@ -90,6 +90,7 @@ export interface AdminEndpoints {
   GET_TRANSPORT_PROVIDERS: string;
   GET_TRANSPORT_PROVIDER_DETAIL: EndpointWithId;
   GET_HOTEL_PROVIDERS: string;
+  GET_HOTEL_PROVIDER_DETAIL: EndpointWithId;
   GET_TOUR_MANAGER_STAFF: EndpointWithId;
   REASSIGN_STAFF: (managerId: string, staffId: string) => string;
   GET_DASHBOARD_OVERVIEW: string;
@@ -207,6 +208,7 @@ export const ADMIN: AdminEndpoints = {
   GET_TRANSPORT_PROVIDERS: "/api/admin/transport-providers",
   GET_TRANSPORT_PROVIDER_DETAIL: (id: string): string => `/api/admin/transport-providers/${id}`,
   GET_HOTEL_PROVIDERS: "/api/admin/hotel-providers",
+  GET_HOTEL_PROVIDER_DETAIL: (id: string): string => `/api/admin/hotel-providers/${id}`,
   GET_TOUR_MANAGER_STAFF: (id: string): string => `/api/admin/tour-managers/${id}/staff`,
   REASSIGN_STAFF: (managerId: string, staffId: string): string =>
     `/api/admin/tour-managers/${managerId}/staff/${staffId}/reassign`,

@@ -1,6 +1,6 @@
 import type { UserRoleVm } from "@/store/domain/auth";
 
-export const USER_DEFAULT_PATH = "/home";
+export const USER_DEFAULT_PATH = "/";
 
 const ADMIN_PORTAL = "admin";
 
@@ -113,7 +113,7 @@ export const inferPortalFromDefaultPath = (
 
   if (
     USER_PRIVATE_ROUTE_PREFIXES.some((prefix) => startsWithRoutePrefix(path, prefix)) ||
-    startsWithRoutePrefix(path, "/home")
+    startsWithRoutePrefix(path, "/")
   ) {
     return "user";
   }
@@ -204,11 +204,7 @@ export const isLoginEntryPath = (
   pathname: string,
   searchParams: URLSearchParams,
 ): boolean => {
-  if (pathname === "/") {
-    return true;
-  }
-
-  return pathname === "/home" && searchParams.get("login") === "true";
+  return pathname === "/";
 };
 
 /**

@@ -9,7 +9,7 @@ const readFile = (relativePath: string): string => {
 
 describe("suspense boundaries and prefetching", () => {
   it("wraps lazy home sections in suspense boundaries with section-shaped fallbacks", () => {
-    const source = readFile("src/app/(user)/home/page.tsx");
+    const source = readFile("src/app/(user)/page.tsx");
 
     expect(source.includes("<Suspense fallback={<SectionSkeleton")).toBe(true);
     expect(source.includes("animate-pulse")).toBe(true);

@@ -307,7 +307,7 @@ export default function PaymentStatusPage() {
             <h1 className="text-xl font-bold text-gray-900 mb-2">Payment Error</h1>
             <p className="text-gray-600 mb-6">{error || "Unable to load transaction"}</p>
             <Link
-              href="/home"
+              href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
               <Icon icon="heroicons:home" className="size-5" />
               Back to Home
@@ -395,7 +395,7 @@ export default function PaymentStatusPage() {
 
             <div className="flex gap-3">
               <Link
-                href="/home"
+                href="/"
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
                 Back to Home
               </Link>
@@ -431,7 +431,7 @@ export default function PaymentStatusPage() {
 
             <div className="flex gap-3">
               <Link
-                href="/home"
+                href="/"
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
                 Back to Home
               </Link>

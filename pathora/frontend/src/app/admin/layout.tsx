@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const hasAdminRole = roles.some((role) => ADMIN_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasAdminRole) {
-    redirect("/home");
+    redirect("/");
   }
 
   return <AdminShell>{children}</AdminShell>;

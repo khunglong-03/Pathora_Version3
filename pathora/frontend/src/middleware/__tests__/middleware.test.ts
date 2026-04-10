@@ -101,7 +101,7 @@ describe("isManagerRoutePath (middleware)", () => {
   });
 
   it("returns false for public routes", () => {
-    expect(isManagerRoutePath("/home")).toBe(false);
+    expect(isManagerRoutePath("/")).toBe(false);
     expect(isManagerRoutePath("/tours")).toBe(false);
     expect(isManagerRoutePath("/about")).toBe(false);
   });
@@ -114,7 +114,7 @@ describe("isManagerRoutePath (middleware)", () => {
  * - Authenticated + Manager role + /admin/* path → redirect to /dashboard
  * - Authenticated + Admin role + /dashboard or manager path → redirect to /admin/dashboard
  * - Authenticated + Manager role + /dashboard → allowed (Manager home)
- * - Unauthenticated + protected path → redirect to /home?login=true
+ * - Unauthenticated + protected path → redirect to /?login=true
  * - Malformed auth_roles cookie → treated as no roles (empty array)
  */
 
@@ -222,7 +222,7 @@ describe("middleware routing rules", () => {
   describe("public path detection", () => {
     const PUBLIC_PATH_PREFIXES = [
       "/",
-      "/home",
+      "/",
       "/tour-detail",
       "/about",
       "/visa",
@@ -242,8 +242,8 @@ describe("middleware routing rules", () => {
       );
     };
 
-    it("/home is public", () => {
-      expect(isPublicPath("/home")).toBe(true);
+    it("/ is public", () => {
+      expect(isPublicPath("/")).toBe(true);
     });
 
     it("/ is public", () => {

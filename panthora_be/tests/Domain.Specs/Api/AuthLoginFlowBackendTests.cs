@@ -124,7 +124,7 @@ public sealed class AuthLoginFlowBackendTests
         var sender = Substitute.For<ISender>();
         sender
             .Send(Arg.Any<ExternalLoginCommand>(), Arg.Any<CancellationToken>())
-            .Returns(new ExternalLoginResponse("access-token", "refresh-token", "customer", "/home"));
+            .Returns(new ExternalLoginResponse("access-token", "refresh-token", "customer", "/"));
 
         var authenticateResult = AuthenticateResult.Success(
             new AuthenticationTicket(

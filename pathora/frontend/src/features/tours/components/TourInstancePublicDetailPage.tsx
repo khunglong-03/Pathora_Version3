@@ -246,7 +246,7 @@ export function TourInstancePublicDetailPage() {
           <div className="flex flex-col items-start gap-4">
             {/* Breadcrumb */}
             <nav className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[11px] text-white/90 animate-reveal-up">
-              <Link href="/home" className="hover:text-white transition-colors">
+              <Link href="/" className="hover:text-white transition-colors">
                 {t("landing.tourDetail.home", "Home")}
               </Link>
               <Icon icon="heroicons:chevron-right" className="size-2.5 opacity-50" />
@@ -990,7 +990,7 @@ export function TourInstancePublicDetailPage() {
                     disabled={spotsLeft === 0}
                     onClick={() => {
                       if (!isAuthenticated) {
-                        router.push(`/home?login=true&returnUrl=/tours/instances/${id}`);
+                        router.push(`/?login=true&returnUrl=/tours/instances/${id}`);
                         return;
                       }
                       const params = new URLSearchParams({

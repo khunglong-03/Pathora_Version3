@@ -3,7 +3,6 @@
     "Id": 1,
     "Name": "Admin",
     "Description": "Quản trị viên, quản lý hệ thống",
-    "Type": 9,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -19,7 +18,6 @@
     "Id": 2,
     "Name": "Manager",
     "Description": "Quản lý vận hành",
-    "Type": 1,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -35,7 +33,6 @@
     "Id": 3,
     "Name": "TourDesigner",
     "Description": "Người thiết kế tour du lịch",
-    "Type": 2,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -51,7 +48,6 @@
     "Id": 4,
     "Name": "TourGuide",
     "Description": "Hướng dẫn viên du lịch",
-    "Type": 2,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -67,7 +63,6 @@
     "Id": 5,
     "Name": "Customer",
     "Description": "Khách hàng đăng ký tài khoản",
-    "Type": 3,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -83,7 +78,6 @@
     "Id": 6,
     "Name": "TransportProvider",
     "Description": "Người cung cấp dịch vụ vận chuyển",
-    "Type": 2,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {
@@ -99,7 +93,6 @@
     "Id": 7,
     "Name": "HotelServiceProvider",
     "Description": "Người cung cấp dịch vụ khách sạn",
-    "Type": 2,
     "Status": 1,
     "IsDeleted": false,
     "Translations": {

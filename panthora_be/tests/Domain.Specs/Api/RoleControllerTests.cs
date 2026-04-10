@@ -1,8 +1,8 @@
 using Api.Controllers;
-using Contracts;
 using Application.Contracts.Role;
 using Application.Features.Role.Commands;
 using Application.Features.Role.Queries;
+using Contracts;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -16,11 +16,7 @@ public sealed class RoleControllerTests
     {
         var roles = new List<RoleVm>
         {
-            new(
-                1,
-                "Admin",
-                "System admin",
-                (int)RoleStatus.Active)
+            new(1, "Admin", "System admin", (int)RoleStatus.Active)
         };
         var response = new PaginatedListWithPermissions<RoleVm>(roles.Count, roles, new Dictionary<string, bool>());
         var (controller, probe) = ApiControllerTestHelper
@@ -37,15 +33,15 @@ public sealed class RoleControllerTests
     }
 
     [Fact]
-    public async Task GetDetail_WhenRoleMissing_ShouldReturnNotFoundResponse()
+    public async Task GetById_WhenRoleMissing_ShouldReturnNotFoundResponse()
     {
         const int roleId = 0;
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<RoleController, GetRoleDetailQuery, RoleDetailVm>(
+            .BuildController<RoleController, GetRoleDetailQuery, RoleDetailResponse?>(
                 Error.NotFound("Role.NotFound", "Không tìm thấy vai trò"),
                 "/api/role/0");
 
-        var actionResult = await controller.GetDetail(roleId);
+        var actionResult = await controller.GetById(roleId);
 
         ApiControllerTestHelper.AssertErrorResponse(
             actionResult,
@@ -59,12 +55,12 @@ public sealed class RoleControllerTests
     [Fact]
     public async Task GetLookup_WhenQuerySucceeds_ShouldReturnOkAndPayload()
     {
-        var response = new List<RoleLookupVm>
+        var response = new List<LookupVm>
         {
-            new(1, "Admin")
+            new("1", "Admin")
         };
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<RoleController, GetRoleLookupQuery, List<RoleLookupVm>>(response, "/api/role/lookup");
+            .BuildController<RoleController, GetRoleLookupQuery, List<LookupVm>>(response, "/api/role/lookup");
 
         var actionResult = await controller.GetLookup();
 
@@ -79,8 +75,8 @@ public sealed class RoleControllerTests
     [Fact]
     public async Task Create_WhenCommandSucceeds_ShouldReturnOkAndPayload()
     {
-        var command = new CreateRoleCommand("Admin", "System admin", [1, 2]);
-        var response = 1;
+        var command = new CreateRoleCommand("Admin", "System admin");
+        const int response = 1;
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<RoleController, CreateRoleCommand, int>(response, "/api/role");
 
@@ -101,8 +97,7 @@ public sealed class RoleControllerTests
             RoleId: 1,
             Name: "Admin",
             Description: "Updated description",
-            Status: RoleStatus.Active,
-            FunctionIds: [1, 2]);
+            Status: RoleStatus.Active);
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<RoleController, UpdateRoleCommand, Success>(Result.Success, "/api/role");
 

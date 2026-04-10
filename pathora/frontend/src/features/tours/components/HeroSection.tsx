@@ -52,7 +52,7 @@ export const HeroSection = () => {
           className="absolute top-6 left-1/2 -translate-x-1/2 lg:left-8 lg:translate-x-0 flex items-center gap-2 text-sm"
         >
           <Link
-            href="/home"
+            href="/"
             className="text-white/50 hover:text-white transition-colors"
           >
             {safeT("landing.nav.home", "Home")}

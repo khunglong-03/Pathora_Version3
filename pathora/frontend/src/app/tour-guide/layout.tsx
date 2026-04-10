@@ -23,7 +23,7 @@ export default async function TourGuideLayout({ children }: { children: ReactNod
   const hasTourGuideRole = roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));
 
   if (!authenticated || !hasTourGuideRole) {
-    redirect("/home");
+    redirect("/");
   }
 
   return <AdminShell variant="tour-guide" providerPortal="tour-guide">{children}</AdminShell>;

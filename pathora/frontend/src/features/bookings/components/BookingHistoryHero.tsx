@@ -26,7 +26,7 @@ export function BookingHistoryHero({
     <div className="bg-linear-to-r from-[#05073c] to-[#05073c]/90 pt-24 pb-10">
       <div className="max-w-330 mx-auto px-4 md:px-6">
         <Link
-          href="/home"
+          href="/"
           className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors mb-6"
         >
           <Icon icon="heroicons:arrow-left" className="size-4" />

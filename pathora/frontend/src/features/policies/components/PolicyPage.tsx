@@ -54,7 +54,7 @@ const HeroBanner = () => {
         {/* Breadcrumb */}
         <div className="mt-6 flex items-center gap-2 text-sm">
           <Link
-            href="/home"
+            href="/"
             className="text-white/50 hover:text-white/80 transition-colors">
             {t("landing.nav.home")}
           </Link>

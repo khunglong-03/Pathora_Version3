@@ -18,4 +18,5 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
     Task<List<Guid>> GetTransportSupplierIdsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<(int Total, int Active, int Completed)> GetTransportBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
+    Task<(int Total, int Active, int Completed)> GetHotelBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
 }

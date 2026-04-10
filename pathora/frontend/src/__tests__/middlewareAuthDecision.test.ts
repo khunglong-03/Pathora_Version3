@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest";
 
 const PUBLIC_PATH_PREFIXES = [
   "/",
-  "/home",
   "/tour-detail",
   "/about",
   "/visa",

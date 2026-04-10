@@ -46,9 +46,9 @@ describe("HotelServiceProvider routing", () => {
       expect(result).not.toBe("/transport");
     });
 
-    it("falls back to /home when no roles", () => {
-      expect(resolveRoleDefaultPath(null)).toBe("/home");
-      expect(resolveRoleDefaultPath([])).toBe("/home");
+    it("falls back to / when no roles", () => {
+      expect(resolveRoleDefaultPath(null)).toBe("/");
+      expect(resolveRoleDefaultPath([])).toBe("/");
     });
   });
 
@@ -73,7 +73,7 @@ describe("HotelServiceProvider routing", () => {
     });
 
     it("returns false for user routes", () => {
-      expect(isProviderRoutePath("/home")).toBe(false);
+      expect(isProviderRoutePath("/")).toBe(false);
       expect(isProviderRoutePath("/bookings")).toBe(false);
     });
 

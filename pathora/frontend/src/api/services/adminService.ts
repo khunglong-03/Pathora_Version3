@@ -8,6 +8,7 @@ import type {
   AdminUserDetail,
   TransportProviderListItem,
   HotelProviderListItem,
+  HotelProviderDetail,
   TourManagerStaffDto,
   ManagerSummaryDto,
   AdminDashboardOverview,
@@ -110,6 +111,13 @@ export const adminService = {
       { params: { page: 1, limit: 10, ...params } },
     );
     return extractResult<PaginatedList<HotelProviderListItem>>(response.data);
+  },
+
+  getHotelProviderDetail: async (id: string) => {
+    const response = await api.get<ApiResponse<HotelProviderDetail>>(
+      API_ENDPOINTS.ADMIN.GET_HOTEL_PROVIDER_DETAIL(id),
+    );
+    return extractResult<HotelProviderDetail>(response.data);
   },
 
   getTourManagerStaff: async (managerId: string) => {

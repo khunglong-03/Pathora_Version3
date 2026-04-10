@@ -30,7 +30,6 @@
     <ItemGroup>
         <Compile Remove="Api/AuthGetMeFlowTests.cs" />
         <Compile Remove="Infrastructure/UnitOfWorkTests.cs" />
-        <Compile Remove="Api/RoleControllerTests.cs" />
         <Compile Remove="Api/HotelProviderControllerTests.cs" />
         <Compile Remove="Api/CreateTourValidationTests.cs" />
         <Compile Remove="Api/TourControllerTests.cs" />

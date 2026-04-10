@@ -466,7 +466,7 @@ export const TourDiscoveryPage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => router.push("/home")}
+                      onClick={() => router.push("/")}
                       className="inline-flex items-center justify-center rounded-xl bg-[#fa8b02] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#e67a00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02]"
                     >
                       {safeT("landing.tourDiscovery.exploreDestinations", "Explore Destinations")}
@@ -504,7 +504,7 @@ export const TourDiscoveryPage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => router.push("/home")}
+                      onClick={() => router.push("/")}
                       className="inline-flex items-center justify-center rounded-xl bg-[#fa8b02] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#e67a00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02]"
                     >
                       {safeT("landing.tourDiscovery.exploreDestinations", "Explore Destinations")}

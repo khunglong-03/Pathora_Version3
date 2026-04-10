@@ -51,7 +51,7 @@ function CallbackHandler() {
         router.replace(resolveRoleDefaultPath(userInfo.roles));
       } else {
         dispatch(logOut());
-        router.replace("/home");
+        router.replace("/");
       }
     });
   }, [searchParams, dispatch, router, user]);

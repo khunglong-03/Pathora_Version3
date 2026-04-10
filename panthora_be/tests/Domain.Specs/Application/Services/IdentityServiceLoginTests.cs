@@ -293,7 +293,7 @@ public sealed class IdentityServiceLoginTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal("user", result.Value.Response.Portal);
-        Assert.Equal("/home", result.Value.Response.DefaultPath);
+        Assert.Equal("/", result.Value.Response.DefaultPath);
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public sealed class IdentityServiceLoginTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal("user", result.Value.Response.Portal);
-        Assert.Equal("/home", result.Value.Response.DefaultPath);
+        Assert.Equal("/", result.Value.Response.DefaultPath);
     }
 
     [Fact]

@@ -90,7 +90,7 @@ describe("7.3: Admin blocked from /manager", () => {
 /**
  * Integration test 7.4: Non-manager blocked from /manager
  *
- * Manager layout: User without Manager role accessing /manager → redirect to /home
+ * Manager layout: User without Manager role accessing /manager → redirect to /
  */
 describe("7.4: Non-manager blocked from /manager layout", () => {
   it("User role without manager access is redirected", () => {
@@ -105,7 +105,7 @@ describe("7.4: Non-manager blocked from /manager layout", () => {
     expect(hasManagerRole(undefined)).toBe(false);
   });
 
-  it("Empty roles resolved path is /home (not /manager)", () => {
+  it("Empty roles resolved path is / (not /manager)", () => {
     expect(resolveRoleDefaultPath([])).toBe(USER_DEFAULT_PATH);
     expect(resolveRoleDefaultPath(null)).toBe(USER_DEFAULT_PATH);
   });
@@ -114,7 +114,7 @@ describe("7.4: Non-manager blocked from /manager layout", () => {
 /**
  * Integration test 7.5: Unauthenticated redirect
  *
- * Manager layout: Unauthenticated user accessing /manager → redirect to /home?login=true
+ * Manager layout: Unauthenticated user accessing /manager → redirect to /?login=true
  */
 describe("7.5: Unauthenticated redirect", () => {
   it("No auth cookies means unauthenticated", () => {
@@ -129,9 +129,9 @@ describe("7.5: Unauthenticated redirect", () => {
     expect(isManagerRoutePath("/manager")).toBe(true);
   });
 
-  it("Unauthenticated + protected path → redirect destination is /home", () => {
+  it("Unauthenticated + protected path → redirect destination is /", () => {
     // The redirect destination for unauthenticated access
-    expect(USER_DEFAULT_PATH).toBe("/home");
+    expect(USER_DEFAULT_PATH).toBe("/");
   });
 });
 
@@ -176,7 +176,7 @@ describe("7.6: AdminSidebar manager variant nav items", () => {
   it("Non-manager routes are excluded", () => {
     expect(isManagerRoutePath("/admin/dashboard")).toBe(false);
     expect(isManagerRoutePath("/admin/users")).toBe(false);
-    expect(isManagerRoutePath("/home")).toBe(false);
+    expect(isManagerRoutePath("/")).toBe(false);
     expect(isManagerRoutePath("/tours")).toBe(false);
   });
 
@@ -263,6 +263,6 @@ describe("7.9: Rate limiter contract", () => {
     const corruptedResponse = "rate-limited-html-content";
     const roles = parseAuthRoles(corruptedResponse);
     expect(roles).toEqual([]);
-    // Empty roles means user gets /home — not a silent crash
+    // Empty roles means user gets / — not a silent crash
   });
 });

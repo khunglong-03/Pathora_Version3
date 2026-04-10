@@ -14,20 +14,17 @@ public class RoleEntity : Aggregate<int>
     public string Name { get; set; } = null!;
     /// <summary>Mô tả vai trò.</summary>
     public string Description { get; set; } = null!;
-    /// <summary>Loại vai trò (ví dụ: 1=System, 2=Custom).</summary>
-    public int Type { get; set; }
     /// <summary>Trạng thái: Active hoặc Inactive.</summary>
     public RoleStatus Status { get; set; } = RoleStatus.Active;
     /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
-    public static RoleEntity Create(string name, string description, int type, string performedBy)
+    public static RoleEntity Create(string name, string description, string performedBy)
     {
         return new RoleEntity
         {
             Name = name,
             Description = description,
-            Type = type,
             Status = RoleStatus.Active,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
@@ -36,11 +33,10 @@ public class RoleEntity : Aggregate<int>
         };
     }
 
-    public void Update(string name, string description, int type, RoleStatus status, string performedBy)
+    public void Update(string name, string description, RoleStatus status, string performedBy)
     {
         Name = name;
         Description = description;
-        Type = type;
         Status = status;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
