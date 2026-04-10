@@ -15,10 +15,7 @@ public sealed record UpdateRoleCommand(
     string Name,
     string Description,
     RoleStatus Status)
-    : ICommand<ErrorOr<Success>>, ICacheInvalidator
-{
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Role];
-}
+    : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>
 {

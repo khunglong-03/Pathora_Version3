@@ -4,7 +4,6 @@ using Application.Contracts.Role;
 using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
-using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
 
@@ -13,10 +12,7 @@ namespace Application.Features.Role.Commands;
 public sealed record CreateRoleCommand(
     string Name,
     string Description)
-    : ICommand<ErrorOr<int>>, ICacheInvalidator
-{
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Role];
-}
+    : ICommand<ErrorOr<int>>;
 
 public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>
 {

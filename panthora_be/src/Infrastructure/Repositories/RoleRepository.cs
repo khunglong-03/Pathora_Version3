@@ -14,6 +14,9 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
 
     public async Task<ErrorOr<Success>> Create(RoleEntity role, CancellationToken cancellationToken = default)
     {
+        var maxId = await _context.Roles.MaxAsync(r => (int?)r.Id, cancellationToken);
+        role.Id = (maxId ?? 0) + 1;
+
         await _context.Roles.AddAsync(role, cancellationToken);
         return Result.Success;
     }
