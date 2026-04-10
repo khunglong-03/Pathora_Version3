@@ -30,7 +30,7 @@ const QUARTER_TABS: { key: QuarterFilter; label: string }[] = [
   { key: 4, label: "Q4" },
 ];
 
-const YEAR_OPTIONS = [2026, 2025, 2024];
+const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
 const formatVND = (value: number): string => {
   return new Intl.NumberFormat("vi-VN", {

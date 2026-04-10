@@ -17,13 +17,12 @@ const VEHICLE_TYPES = [
   { value: 4, label: "Xe van" },
   { value: 5, label: "Xe coach" },
   { value: 6, label: "Xe máy" },
-  { value: 7, label: "Khác" },
 ];
 
 export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
   const [formData, setFormData] = useState<CreateVehicleDto>({
     vehiclePlate: vehicle?.vehiclePlate ?? "",
-    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.label === vehicle.vehicleType)?.value ?? 1) : 1,
+    vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.value === vehicle.vehicleType)?.value ?? 1) : 1,
     brand: vehicle?.brand,
     model: vehicle?.model,
     seatCapacity: vehicle?.seatCapacity ?? 4,
@@ -231,6 +230,14 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
               className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 transition-colors duration-150 outline-none focus:border-indigo-400 resize-none"
             />
           </div>
+
+          {/*
+            vehicleImageUrls field is supported by the backend (CreateVehicleDto / Vehicle entity)
+            but no image upload endpoint exists yet. The field is pre-populated from
+            vehicle?.vehicleImageUrls and will be persisted on save once upload is implemented.
+            TODO: Add a proper image upload input (e.g., file picker → backend upload endpoint)
+            once the backend provides a /vehicles/{id}/images upload handler.
+          */}
         </div>
 
         {/* Footer */}

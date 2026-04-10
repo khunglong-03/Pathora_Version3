@@ -18,7 +18,6 @@ const LICENSE_TYPES = [
   { value: 4, label: "Bằng D" },
   { value: 5, label: "Bằng E" },
   { value: 6, label: "Bằng F" },
-  { value: 7, label: "Khác" },
 ];
 
 // Backend returns numeric license type, map to label for display
@@ -29,13 +28,7 @@ const LICENSE_TYPE_LABELS: Record<number, string> = {
   4: "Bằng D",
   5: "Bằng E",
   6: "Bằng F",
-  7: "Khác",
 };
-
-function getLicenseTypeDisplay(value: number | undefined): string {
-  if (value === undefined || value === null) return "-";
-  return LICENSE_TYPE_LABELS[value] ?? `Bằng ${value}`;
-}
 
 export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps) {
   const [formData, setFormData] = useState<CreateDriverDto>({
@@ -229,6 +222,26 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
               className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 transition-colors duration-150 outline-none focus:border-indigo-400 resize-none"
             />
           </div>
+
+          {/*
+            avatarUrl field is supported by the backend (CreateDriverDto / Driver entity)
+            but no image upload endpoint exists yet. The field is pre-populated from
+            driver?.avatarUrl and will be persisted on save once upload is implemented.
+            TODO: Add a proper image upload input (e.g., file picker → backend upload endpoint)
+            once the backend provides a /drivers/{id}/avatar upload handler.
+          */}
+          {formData.avatarUrl && (
+            <div>
+              <span className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
+                Ảnh đại diện
+              </span>
+              <img
+                src={formData.avatarUrl}
+                alt={formData.fullName}
+                className="w-16 h-16 rounded-xl object-cover border border-gray-200"
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer */}

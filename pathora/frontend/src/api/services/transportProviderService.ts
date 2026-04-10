@@ -80,6 +80,7 @@ export interface TripAssignment {
   vehiclePlate: string;
   driverName: string;
   status: TripStatus;
+  createdOnUtc: string;
 }
 
 export interface TripAssignmentDetail extends TripAssignment {
@@ -88,13 +89,6 @@ export interface TripAssignmentDetail extends TripAssignment {
   driverPhone: string;
   driverLicense: string;
   notes: string;
-  statusHistory: TripStatusHistoryItem[];
-}
-
-export interface TripStatusHistoryItem {
-  status: TripStatus;
-  updatedAt: string;
-  updatedBy?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -284,7 +278,7 @@ class TransportProviderService {
 
   async rejectTripAssignment(id: string, reason?: string): Promise<boolean> {
     try {
-      await axiosInstance.put(`/transport-provider/trip-assignments/${id}/reject`, { reason });
+      await axiosInstance.put(`/transport-provider/trip-assignments/${id}/reject`, { Reason: reason });
       return true;
     } catch (error) {
       handleApiError(error);
@@ -294,7 +288,7 @@ class TransportProviderService {
 
   async updateTripStatus(id: string, status: TripStatus): Promise<boolean> {
     try {
-      await axiosInstance.put(`/transport-provider/trip-assignments/${id}/status`, { status });
+      await axiosInstance.patch(`/transport-provider/trip-assignments/${id}/status`, { status });
       return true;
     } catch (error) {
       handleApiError(error);

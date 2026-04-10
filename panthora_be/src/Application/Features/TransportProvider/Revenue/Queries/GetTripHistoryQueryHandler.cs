@@ -9,6 +9,8 @@ public sealed class GetTripHistoryQueryHandler(
         ITourDayActivityRouteTransportRepository repository)
     : IQueryHandler<GetTripHistoryQuery, ErrorOr<TripHistoryResponseDto>>
 {
+    // TODO: Map from actual booking/trip revenue data when available.
+    // Currently using placeholder value; replace with real revenue calculation.
     private const long RevenuePerTrip = 1_000_000L;
 
     public async Task<ErrorOr<TripHistoryResponseDto>> Handle(
