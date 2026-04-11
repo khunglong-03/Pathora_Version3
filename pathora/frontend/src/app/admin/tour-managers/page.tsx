@@ -22,9 +22,9 @@ import { CreateStaffModal } from "@/features/dashboard/components/CreateStaffMod
 export default function TourManagersPage() {
   const [managers, setManagers] = useState<TourManagerSummary[]>([]);
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const [leftView, setLeftView] = useState<"managers" | "staff">("managers");
   const [isLoadingManagers, setIsLoadingManagers] = useState(true);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
-  const [staffError, setStaffError] = useState<string | null>(null);
   const [staff, setStaff] = useState<StaffMemberDto[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -64,7 +64,6 @@ export default function TourManagersPage() {
   const loadStaff = useCallback(async () => {
     if (!selectedManagerId) return;
     setIsLoadingStaff(true);
-    setStaffError(null);
 
     const result = await adminService.getTourManagerStaff(selectedManagerId);
 
@@ -87,6 +86,7 @@ export default function TourManagersPage() {
 
   const handleManagerSelect = (managerId: string) => {
     setSelectedManagerId(managerId);
+    setLeftView("staff");
   };
 
   const handleReassign = async (targetManagerId: string) => {
@@ -174,6 +174,10 @@ export default function TourManagersPage() {
               selectedManagerId={selectedManagerId}
               onSelect={handleManagerSelect}
               isLoading={isLoadingManagers}
+              leftView={leftView}
+              setLeftView={setLeftView}
+              staff={staff}
+              onReassign={(s) => setReassignTarget(s)}
             />
           </div>
 
@@ -184,14 +188,9 @@ export default function TourManagersPage() {
           >
             <div className="flex-1 min-h-0 overflow-hidden">
               <StaffDetailPanel
-                managerId={selectedManagerId}
                 manager={selectedManager}
-                staff={staff}
-                managers={managers}
                 isLoading={isLoadingStaff}
-                error={staffError}
                 onRefresh={handleRefresh}
-                onReassign={(s) => setReassignTarget(s)}
               />
             </div>
 

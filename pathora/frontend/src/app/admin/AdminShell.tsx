@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/features/dashboard/components/AdminSidebar";
 
 interface AdminShellProps {
@@ -20,24 +20,24 @@ const parseAuthRoles = (cookieValue: string | undefined): string[] => {
   }
 };
 
-const getIsAdmin = (): boolean => {
-  const authRolesRaw = document.cookie
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith("auth_roles="))
-    ?.slice("auth_roles=".length);
-
-  const roles = parseAuthRoles(authRolesRaw);
-  return roles.includes(ADMIN_ROLE_NAME);
-};
-
 export default function AdminShell({
   children,
   variant = "admin",
   providerPortal,
 }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const isAdmin = getIsAdmin();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const authRolesRaw = document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("auth_roles="))
+      ?.slice("auth_roles=".length);
+
+    const roles = parseAuthRoles(authRolesRaw);
+    setIsAdmin(roles.includes(ADMIN_ROLE_NAME));
+  }, []);
 
   return (
     <AdminSidebar
