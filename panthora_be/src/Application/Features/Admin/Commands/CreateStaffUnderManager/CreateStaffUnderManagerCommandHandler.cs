@@ -1,3 +1,5 @@
+using Application.Common.Interfaces;
+
 namespace Application.Features.Admin.Commands.CreateStaffUnderManager;
 
 using Application.Common.Constant;
@@ -25,7 +27,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
         CancellationToken cancellationToken)
     {
         if (request.ManagerId != _currentUser.Id)
-            return Error.Forbidden(ErrorConstants.Authorization.Forbidden);
+            return Error.Forbidden(ErrorConstants.Authorization.UnauthorizedDescription);
 
         var manager = await userRepository.FindById(request.ManagerId);
         if (manager is null)
@@ -86,7 +88,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
                 userEntity.Id,
                 null,
                 null,
-                _currentUser.Id.ToString());
+                _currentUser.Id is not null ? _currentUser.Id.ToString()! : "system");
 
             await assignmentRepository.AssignAsync(assignment, cancellationToken);
         });

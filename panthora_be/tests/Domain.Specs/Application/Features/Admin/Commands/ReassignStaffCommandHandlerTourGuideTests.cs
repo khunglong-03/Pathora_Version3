@@ -1,4 +1,5 @@
 using Application.Features.Admin.Commands.ReassignStaff;
+using Application.Common.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -11,12 +12,14 @@ namespace Domain.Specs.Application.Features.Admin.Commands;
 public sealed class ReassignStaffCommandHandlerTourGuideTests
 {
     private readonly ITourManagerAssignmentRepository _assignmentRepository;
+    private readonly ICurrentUser _currentUser;
     private readonly ReassignStaffCommandHandler _handler;
 
     public ReassignStaffCommandHandlerTourGuideTests()
     {
         _assignmentRepository = Substitute.For<ITourManagerAssignmentRepository>();
-        _handler = new ReassignStaffCommandHandler(_assignmentRepository);
+        _currentUser = Substitute.For<ICurrentUser>();
+        _handler = new ReassignStaffCommandHandler(_assignmentRepository, _currentUser);
     }
 
     [Fact]

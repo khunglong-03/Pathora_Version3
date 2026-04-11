@@ -331,7 +331,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
                 Id = userIds[0],
                 FullName = "Pending Provider",
                 Email = "pending@test.com",
-                Status = UserStatus.Pending
+                Status = UserStatus.Inactive
             }
         };
         var vehicleData = new Dictionary<Guid, (int Count, List<Continent> Continents)>

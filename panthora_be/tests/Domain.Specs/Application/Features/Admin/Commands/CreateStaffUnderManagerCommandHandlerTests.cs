@@ -1,5 +1,6 @@
 using Application.Contracts.Admin;
 using Application.Features.Admin.Commands.CreateStaffUnderManager;
+using Application.Common.Interfaces;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -18,6 +19,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
     private readonly ITourManagerAssignmentRepository _assignmentRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ICurrentUser _currentUser;
     private readonly CreateStaffUnderManagerCommandHandler _handler;
 
     public CreateStaffUnderManagerCommandHandlerTests()
@@ -27,12 +29,14 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
         _assignmentRepository = Substitute.For<ITourManagerAssignmentRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
+        _currentUser = Substitute.For<ICurrentUser>();
         _handler = new CreateStaffUnderManagerCommandHandler(
             _userRepository,
             _roleRepository,
             _assignmentRepository,
             _unitOfWork,
-            _passwordHasher);
+            _passwordHasher,
+            _currentUser);
 
         // Default transaction mocks (IUnitOfWork methods take no arguments)
         _unitOfWork.BeginTransactionAsync().Returns(Task.CompletedTask);

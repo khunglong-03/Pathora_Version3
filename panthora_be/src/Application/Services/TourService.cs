@@ -76,7 +76,7 @@ public class TourService(
             var images = request.Images?.Select(ToImageEntity).ToList() ?? [];
 
             var tourDesignerId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
-                ? userIdGuid
+                ? (Guid?)userIdGuid
                 : null;
 
             var tour = TourEntity.Create(
