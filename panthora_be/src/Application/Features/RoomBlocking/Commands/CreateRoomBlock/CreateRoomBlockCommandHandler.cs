@@ -60,7 +60,7 @@ public sealed class CreateRoomBlockCommandHandler(
             request.BookingAccommodationDetailId,
             request.BookingId);
 
-        await roomBlockRepository.AddAsync(entity);
+        roomBlockRepository.Add(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return new RoomBlockDto(

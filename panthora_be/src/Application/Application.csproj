@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <Compile Remove="Features/AdminHotelBookings/**" />
-    <Compile Remove="Features/RoomBlocking/**" />
   </ItemGroup>
 
   <ItemGroup>

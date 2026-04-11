@@ -173,7 +173,7 @@ export const hotelProviderService = {
     toDate: string,
   ): Promise<RoomAvailability[]> => {
     const response = await api.get<ApiResponse<RoomAvailability[]>>(
-      "/api/hotel-room-availability",
+      "/hotel-room-availability",
       { params: { fromDate, toDate } },
     );
     return extractResult<RoomAvailability[]>(response.data) ?? [];
@@ -184,7 +184,7 @@ export const hotelProviderService = {
     params: ArrivalFilterParams = {},
   ): Promise<GuestArrivalItem[]> => {
     const response = await api.get<ApiResponse<GuestArrivalItem[]>>(
-      "/api/guest-arrivals",
+      "/guest-arrivals",
       { params },
     );
     return extractResult<GuestArrivalItem[]>(response.data) ?? [];
@@ -194,7 +194,7 @@ export const hotelProviderService = {
     accommodationDetailId: string,
   ): Promise<GuestArrivalDetail> => {
     const response = await api.get<ApiResponse<GuestArrivalDetail>>(
-      `/api/guest-arrivals/accommodation/${accommodationDetailId}`,
+      `/guest-arrivals/accommodation/${accommodationDetailId}`,
     );
     return extractResult<GuestArrivalDetail>(
       response.data,
@@ -205,7 +205,7 @@ export const hotelProviderService = {
     data: SubmitGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
     const response = await api.post<ApiResponse<GuestArrivalItem>>(
-      "/api/guest-arrivals",
+      "/guest-arrivals",
       data,
     );
     return extractResult<GuestArrivalItem>(
@@ -218,7 +218,7 @@ export const hotelProviderService = {
     data: UpdateGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
     const response = await api.put<ApiResponse<GuestArrivalItem>>(
-      `/api/guest-arrivals/${id}`,
+      `/guest-arrivals/${id}`,
       data,
     );
     return extractResult<GuestArrivalItem>(
@@ -247,7 +247,7 @@ export const hotelProviderService = {
     data: UpdateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
     const response = await api.put<ApiResponse<HotelSupplierInfo>>(
-      "/api/hotel-supplier/info",
+      "/hotel-supplier/info",
       data,
     );
     return extractResult<HotelSupplierInfo>(response.data) as HotelSupplierInfo;

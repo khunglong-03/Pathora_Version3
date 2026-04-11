@@ -1,10 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-password -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"test@test.com\", \"newPassword\": \"thehieu03\"}')"
-    ]
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-password -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"test@test.com\", \"newPassword\": \"thehieu03\"}')",
+      "Bash(env)",
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -H 'ASPNETCORE_ENVIRONMENT: Development' -d '{\"newPassword\": \"thehieu03\"}')",
+      "Bash(kill 71273)",
+      "Bash(dotnet run:*)",
+      "Bash(curl -s http://localhost:5182/api/auth/login-with-roles -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"duc.tv@transport.vn\", \"password\": \"thehieu03\"}')",
+      "Bash(PGPASSWORD=123abc@A psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\", \\\\\"Password\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
+      "Bash(/opt/homebrew/bin/psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
+      "Bash(/usr/local/bin/psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-password -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"duc.tv@transport.vn\", \"newPassword\": \"thehieu03\"}')"
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true
 }
