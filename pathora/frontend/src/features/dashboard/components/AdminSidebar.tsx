@@ -65,7 +65,6 @@ export const ADMIN_PROVIDER_ITEMS = [
 
 export const ADMIN_TOUR_ITEMS = [
   { label: "Quản lý Tour Manager", icon: UsersThree, href: "/admin/tour-managers" },
-  { label: "Quản lý Tour Designer", icon: PaintBrush, href: "/admin/tour-designers" },
 ] as const;
 
 // Flat nav items list (used by the component)

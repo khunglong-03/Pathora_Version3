@@ -197,6 +197,7 @@ export default function AdminUsersPage() {
           totalPages={totalPages}
           total={total}
           onPageChange={handlePageChange}
+          onStatusChange={handleRefresh}
         />
       )}
 

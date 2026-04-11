@@ -25,7 +25,7 @@
 | **Production** | `PPPPathora` | Remote server uses this name |
 
 ---
-
+```
 ## Config Files Hierarchy
 
 .NET reads configs in this order (each overrides previous):

@@ -58,4 +58,11 @@ public class UserController : BaseApiController
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
+
+    [HttpPut(UserEndpoint.Ban)]
+    public async Task<IActionResult> UpdateStatus([FromBody] UpdateUserStatusCommand command)
+    {
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
 }

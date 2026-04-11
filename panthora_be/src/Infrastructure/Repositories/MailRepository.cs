@@ -17,6 +17,12 @@ public class MailRepository(AppDbContext context) : IMailRepository
         return Result.Success;
     }
 
+    public async Task AddWithoutSaveAsync(MailEntity record, CancellationToken ct = default)
+    {
+        await _context.Mails.AddAsync(record, ct);
+        // No SaveChangesAsync — caller (e.g. ExecuteTransactionAsync) is responsible for saving
+    }
+
     public async Task<ErrorOr<Success>> AddRange(List<MailEntity> records, CancellationToken ct = default)
     {
         await _context.Mails.AddRangeAsync(records, ct);

@@ -18,23 +18,22 @@ export const metadata: Metadata = {
 };
 
 import {
-  BoldHeroSection,
-  BoldStatsStrip,
-  BoldTrendingDestinations,
-  BoldVideoShowcase,
-  BoldFeaturedTrips,
-  BoldLatestTours,
-  BoldWhyChooseUs,
-  BoldCtaSection,
-  BoldReviewsSection,
-  BoldFooter,
+  HeroSection,
+  StatsSection,
+  TrendingDestinationsSection,
+  FeaturedTripsSection,
+  LatestToursSection,
+  WhyChooseSection,
+  CTASection,
+  ReviewsSection,
 } from "@/features/home/components";
+import { LandingHeader, LandingFooter } from "@/features/shared/components";
 
 const SectionSkeleton = ({ className }: { className: string }) => {
   return (
     <div
       aria-hidden="true"
-      className={`mx-auto w-full max-w-7xl rounded-2xl bg-white/5 animate-pulse ${className}`}
+      className={`mx-auto w-full max-w-7xl rounded-2xl bg-black/5 animate-pulse ${className}`}
     />
   );
 };
@@ -44,54 +43,52 @@ export default function Home() {
     <main
       id="main-content"
       tabIndex={-1}
-      className="bold-theme min-h-screen overflow-x-hidden"
+      className="bg-background min-h-screen overflow-x-hidden"
     >
+      {/* Header */}
+      <LandingHeader />
+
       {/* Hero */}
       <Suspense fallback={<SectionSkeleton className="h-screen" />}>
-        <BoldHeroSection />
+        <HeroSection />
       </Suspense>
 
-      {/* Stats Strip */}
-      <BoldStatsStrip />
+      {/* Stats */}
+      <StatsSection />
 
       {/* Trending Destinations */}
-      <Suspense fallback={<SectionSkeleton className="h-96" />}>
-        <BoldTrendingDestinations />
+      <Suspense fallback={<SectionSkeleton className="h-96 mt-16" />}>
+        <TrendingDestinationsSection />
       </Suspense>
 
-      {/* Video Showcase */}
-      <Suspense fallback={<SectionSkeleton className="h-[500px]" />}>
-        <BoldVideoShowcase />
-      </Suspense>
-
-      {/* Featured Trips (Bento Grid) */}
-      <Suspense fallback={<SectionSkeleton className="h-[800px]" />}>
-        <BoldFeaturedTrips />
+      {/* Featured Trips */}
+      <Suspense fallback={<SectionSkeleton className="h-[800px] mt-16" />}>
+        <FeaturedTripsSection />
       </Suspense>
 
       {/* Latest Tours */}
-      <Suspense fallback={<SectionSkeleton className="h-72" />}>
-        <BoldLatestTours />
+      <Suspense fallback={<SectionSkeleton className="h-72 mt-16" />}>
+        <LatestToursSection />
       </Suspense>
 
       {/* Why Choose Us */}
-      <Suspense fallback={<SectionSkeleton className="h-64" />}>
-        <BoldWhyChooseUs />
+      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
+        <WhyChooseSection />
       </Suspense>
 
       {/* CTA */}
-      <Suspense fallback={<SectionSkeleton className="h-64" />}>
-        <BoldCtaSection />
+      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
+        <CTASection />
       </Suspense>
 
       {/* Reviews */}
-      <Suspense fallback={<SectionSkeleton className="h-80" />}>
-        <BoldReviewsSection />
+      <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
+        <ReviewsSection />
       </Suspense>
 
       {/* Footer */}
-      <Suspense fallback={<SectionSkeleton className="h-64" />}>
-        <BoldFooter />
+      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
+        <LandingFooter />
       </Suspense>
     </main>
   );

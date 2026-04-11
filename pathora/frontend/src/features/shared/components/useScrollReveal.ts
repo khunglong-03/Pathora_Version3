@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 
 export function useScrollReveal(threshold = 0.1) {

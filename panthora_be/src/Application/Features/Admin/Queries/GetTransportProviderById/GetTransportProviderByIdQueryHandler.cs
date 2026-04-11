@@ -21,18 +21,12 @@ public sealed class GetTransportProviderByIdQueryHandler(
         if (user is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
 
-        // Fetch supplier, vehicles, drivers, and booking counts in parallel
-        var supplierTask = supplierRepository.FindByOwnerUserIdAsync(user.Id);
-        var vehiclesTask = vehicleRepository.FindAllByOwnerIdAsync(user.Id, cancellationToken);
-        var driversTask = driverRepository.FindAllByUserIdAsync(user.Id, cancellationToken);
-        var bookingCountsTask = supplierRepository.GetTransportBookingCountsByOwnerAsync(user.Id, cancellationToken);
-
-        await Task.WhenAll(supplierTask, vehiclesTask, driversTask, bookingCountsTask);
-
-        var supplier = supplierTask.Result;
-        var vehicles = vehiclesTask.Result;
-        var drivers = driversTask.Result;
-        var (bookingCount, activeBookingCount, completedBookingCount) = bookingCountsTask.Result;
+        // Fetch supplier, vehicles, drivers, and booking counts sequentially
+        // (DbContext is not thread-safe — parallel queries on the same context throw InvalidOperationException)
+        var supplier = await supplierRepository.FindByOwnerUserIdAsync(user.Id);
+        var vehicles = await vehicleRepository.FindAllByOwnerIdAsync(user.Id, cancellationToken);
+        var drivers = await driverRepository.FindAllByUserIdAsync(user.Id, cancellationToken);
+        var (bookingCount, activeBookingCount, completedBookingCount) = await supplierRepository.GetTransportBookingCountsByOwnerAsync(user.Id, cancellationToken);
 
         var vehicleSummaries = vehicles.Select(v => new VehicleSummaryDto(
             v.Id,

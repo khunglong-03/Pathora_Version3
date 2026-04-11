@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { DotsThreeVertical, Eye } from "@phosphor-icons/react";
+import { DotsThreeVertical, Eye, ShieldSlash, CheckCircle } from "@phosphor-icons/react";
+import { userService } from "@/api/services/userService";
 import type { AdminUserListItem } from "@/api/services/adminService";
 import Pagination from "@/components/ui/Pagination";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
@@ -30,6 +31,7 @@ interface AdminUserTableProps {
   totalPages?: number;
   total?: number;
   onPageChange?: (page: number) => void;
+  onStatusChange?: () => void;
 }
 
 export function AdminUserTable({
@@ -39,8 +41,10 @@ export function AdminUserTable({
   totalPages = 1,
   total = 0,
   onPageChange,
+  onStatusChange,
 }: AdminUserTableProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const handlePageChange = (page: number) => {
     onPageChange?.(page);
@@ -56,10 +60,10 @@ export function AdminUserTable({
 
   return (
     <div>
-      <div className="rounded-xl border border-[#E5E7EB] bg-white overflow-hidden">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white pb-2">
         {/* Table header */}
         <div
-          className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 border-b border-[#F3F4F6]"
+          className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-5 py-3 border-b border-[#F3F4F6] rounded-t-xl"
           style={{ backgroundColor: "#FAFAFA" }}
         >
           <span className="text-xs font-semibold" style={{ color: "#9CA3AF", width: "80px" }}>Avatar</span>
@@ -78,8 +82,7 @@ export function AdminUserTable({
           return (
             <div
               key={user.id}
-              className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center border-b border-[#F9FAFB] last:border-0 hover:bg-[#FAFAFA] transition-all duration-200 cursor-pointer"
-              style={{ transform: "translateY(0)" }}
+              className={`grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center border-b border-[#F9FAFB] last:border-0 hover:bg-[#FAFAFA] transition-all duration-200 cursor-pointer ${openDropdown === user.id ? "relative z-50" : ""}`}
             >
               {/* Avatar */}
               <div
@@ -144,17 +147,54 @@ export function AdminUserTable({
 
                 {openDropdown === user.id && (
                   <div
-                    className="absolute right-0 top-full mt-1 z-10 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 min-w-[160px]"
-                    onClick={() => setOpenDropdown(null)}
+                    className="absolute right-0 top-full mt-1 z-10 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 min-w-[180px]"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Link
                       href={`/admin/users/${user.id}`}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#FAFAFA] transition-colors"
                       style={{ color: "#374151" }}
+                      onClick={() => setOpenDropdown(null)}
                     >
                       <Eye size={14} weight="bold" />
                       Xem chi tiết
                     </Link>
+
+                    {user.role !== "Admin" && (
+                      <button
+                        disabled={togglingId === user.id}
+                        onClick={async () => {
+                          setTogglingId(user.id);
+                          try {
+                            const newStatus = user.status === "Active" ? "Inactive" : "Active";
+                            await userService.updateStatus({
+                              userId: user.id,
+                              newStatus,
+                            });
+                            onStatusChange?.();
+                          } catch {
+                            // error silently — table still shows current status
+                          } finally {
+                            setTogglingId(null);
+                            setOpenDropdown(null);
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm w-full text-left hover:bg-[#FAFAFA] transition-colors disabled:opacity-50"
+                        style={{ color: user.status === "Active" ? "#DC2626" : "#059669" }}
+                      >
+                        {user.status === "Active" ? (
+                          <>
+                            <ShieldSlash size={14} weight="bold" />
+                            Khóa tài khoản
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={14} weight="bold" />
+                            Mở khóa tài khoản
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

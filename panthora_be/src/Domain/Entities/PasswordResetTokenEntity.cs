@@ -24,6 +24,7 @@ public class PasswordResetTokenEntity
     {
         return new PasswordResetTokenEntity
         {
+            Id = Guid.CreateVersion7(),
             UserId = userId,
             TokenHash = tokenHash,
             ExpiresAt = expiresAt

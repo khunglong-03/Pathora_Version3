@@ -13,15 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize(Policy = "HotelServiceProviderOnly")]
-public class GuestArrivalController : BaseApiController
+public class GuestArrivalController(ISupplierRepository supplierRepository) : BaseApiController
 {
-    private readonly ISupplierRepository _supplierRepository;
-
-    public GuestArrivalController(ISupplierRepository supplierRepository)
-    {
-        _supplierRepository = supplierRepository;
-    }
-
     // ─── Get Arrivals ───────────────────────────────────────────────────────
 
     /// <summary>List all guest arrivals for the current user's hotel (supplier).</summary>
@@ -35,7 +28,7 @@ public class GuestArrivalController : BaseApiController
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(userId);
+        var supplier = await supplierRepository.FindByOwnerUserIdAsync(userId);
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return HandleResult<List<GuestArrivalListDto>>(new List<GuestArrivalListDto>());
 
@@ -75,7 +68,7 @@ public class GuestArrivalController : BaseApiController
             GuestArrivalId: id,
             CheckedInByUserId: request.CheckedInByUserId,
             CheckedOutByUserId: request.CheckedOutByUserId,
-            MarkNoShow: request.Status == Domain.Enums.GuestStayStatus.NoShow ? Domain.Enums.GuestStayStatus.NoShow : null,
+            MarkNoShow: request.Status == GuestStayStatus.NoShow ? Domain.Enums.GuestStayStatus.NoShow : null,
             SubmissionStatus: request.SubmissionStatus,
             Note: request.Note);
         var result = await Sender.Send(command);
@@ -92,7 +85,7 @@ public class GuestArrivalController : BaseApiController
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = _supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        var supplier = supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return StatusCode(403, "You do not have an accommodation supplier.");
 

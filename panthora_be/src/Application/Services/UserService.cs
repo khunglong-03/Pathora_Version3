@@ -17,6 +17,7 @@ public interface IUserService
     Task<ErrorOr<UserDetailVm>> GetDetail(Guid id);
     Task<ErrorOr<Guid>> Create(CreateUserRequest request);
     Task<ErrorOr<Success>> Update(UpdateUserRequest request);
+    Task<ErrorOr<Success>> UpdateStatus(Guid userId, UserStatus status);
     Task<ErrorOr<Success>> ChangePassword(ChangePasswordRequest request);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> IsEmailUnique(string email);
@@ -187,6 +188,21 @@ public class UserService(
             await _unitOfWork.RollbackTransactionAsync();
             throw;
         }
+
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> UpdateStatus(Guid userId, UserStatus status)
+    {
+        var userEntity = await _userRepository.FindById(userId);
+        if (userEntity is null)
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+
+        userEntity.Status = status;
+        userEntity.LastModifiedBy = _user.Id ?? "admin";
+        userEntity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        _userRepository.Update(userEntity);
+        await _unitOfWork.SaveChangeAsync();
 
         return Result.Success;
     }

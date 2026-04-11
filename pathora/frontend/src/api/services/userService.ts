@@ -9,6 +9,11 @@ type PaginatedUsersResponse = {
   buttonShow?: Record<string, boolean>;
 };
 
+export interface UpdateUserStatusPayload {
+  userId: string;
+  newStatus: "Active" | "Inactive" | "Banned";
+}
+
 export const userService = {
   getAll: async (textSearch?: string, pageNumber = 1, pageSize = 100) => {
     const params = new URLSearchParams();
@@ -26,5 +31,14 @@ export const userService = {
       params: { role: "TourGuide", pageSize: 100 },
     });
     return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
+  },
+
+  /** PUT /api/user/status — Admin-only. Ban/unban a user account. */
+  updateStatus: async (payload: UpdateUserStatusPayload) => {
+    const response = await api.put(API_ENDPOINTS.USER.UPDATE_STATUS, {
+      userId: payload.userId,
+      newStatus: payload.newStatus,
+    });
+    return extractResult<{ success: boolean }>(response.data);
   },
 };

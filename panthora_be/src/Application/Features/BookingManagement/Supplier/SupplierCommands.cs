@@ -288,10 +288,15 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
         Guid supplierId = default;
 
         // 5. Transaction: create user → assign role → create supplier → queue reset-email
+        //    NOTE: userRepository.Create() calls SaveChangesAsync internally, which is fine as the
+        //    first operation. All subsequent additions must NOT call SaveChangesAsync — we rely on
+        //    ExecuteTransactionAsync's final SaveChangesAsync to persist everything atomically.
         await unitOfWork.ExecuteTransactionAsync(async () =>
         {
+            // Create user (this calls SaveChangesAsync internally — OK as first op)
             await userRepository.Create(userEntity);
 
+            // Assign role (AddUser only adds to context, no save)
             var roleAddResult = await roleRepository.AddUser(userEntity.Id, [roleId]);
             if (roleAddResult.IsError)
             {
@@ -309,6 +314,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 request.Note,
                 ownerUserId: userEntity.Id);
 
+            // AddAsync only adds to context — no SaveChangesAsync
             await supplierRepository.AddAsync(supplier);
             supplierId = supplier.Id;
 
@@ -322,7 +328,8 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 tokenHash,
                 expiresAt);
 
-            await passwordResetTokenRepository.CreateAsync(resetTokenEntity);
+            // Add token directly without calling CreateAsync (which triggers SaveChangesAsync)
+            await passwordResetTokenRepository.AddWithoutSaveAsync(resetTokenEntity);
 
             var frontendUrl = configuration["AppConfig:FrontendBaseUrl"]
                 ?? throw new InvalidOperationException("AppConfig:FrontendBaseUrl is not configured.");
@@ -338,7 +345,8 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 Template = nameof(Domain.Mails.PasswordResetMail),
             };
 
-            await mailRepository.Add(mailEntity);
+            // Add mail directly without calling Add (which triggers SaveChangesAsync)
+            await mailRepository.AddWithoutSaveAsync(mailEntity);
         });
 
         return (userEntity.Id, supplierId, request.OwnerEmail);

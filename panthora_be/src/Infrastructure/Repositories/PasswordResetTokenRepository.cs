@@ -27,6 +27,22 @@ public class PasswordResetTokenRepository(AppDbContext context) : IPasswordReset
         return Result.Success;
     }
 
+    public async Task AddWithoutSaveAsync(PasswordResetTokenEntity token, CancellationToken ct = default)
+    {
+        // Delete any existing tokens for this user first
+        var existingTokens = await _context.Set<PasswordResetTokenEntity>()
+            .Where(t => t.UserId == token.UserId && !t.IsDeleted)
+            .ToListAsync(ct);
+
+        foreach (var existingToken in existingTokens)
+        {
+            existingToken.IsDeleted = true;
+        }
+
+        await _context.Set<PasswordResetTokenEntity>().AddAsync(token, ct);
+        // No SaveChangesAsync — caller (e.g. ExecuteTransactionAsync) is responsible for saving
+    }
+
     public async Task<ErrorOr<PasswordResetTokenEntity?>> GetByTokenHashAsync(string tokenHash, CancellationToken ct = default)
     {
         var token = await _context.Set<PasswordResetTokenEntity>()

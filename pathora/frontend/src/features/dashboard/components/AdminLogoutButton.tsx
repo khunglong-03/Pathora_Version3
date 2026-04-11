@@ -5,43 +5,20 @@ import { motion } from "framer-motion";
 import { SignOut } from "@phosphor-icons/react";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
 
-const REFRESH_TOKEN_COOKIE_KEY = "refresh_token=";
-
-const extractRefreshToken = (cookieSource: string): string => {
-  const tokenValue = cookieSource
-    .split(";")
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith(REFRESH_TOKEN_COOKIE_KEY))
-    ?.slice(REFRESH_TOKEN_COOKIE_KEY.length);
-
-  if (!tokenValue) {
-    return "";
-  }
-
-  try {
-    return decodeURIComponent(tokenValue);
-  } catch {
-    return tokenValue;
-  }
-};
-
 export function AdminLogoutButton() {
   const router = useRouter();
   const [logout, { isLoading }] = useLogoutMutation();
 
   const handleLogout = async () => {
-    const refreshToken = extractRefreshToken(
-      typeof document === "undefined" ? "" : document.cookie,
-    );
-
-    try {
-      await logout({ refreshToken }).unwrap();
-    } catch {
-      // auth slice is cleared in onQueryStarted even when API logout fails
+    // Clear cookies immediately so no more authenticated requests fire
+    if (typeof document !== "undefined") {
+      ["access_token", "refresh_token", "auth_status"].forEach((name) => {
+        document.cookie =
+          `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+      });
     }
 
     // Portal-aware redirect: admin portal → /, user portal → /
-    // Read auth_portal before cookies are cleared by the mutation
     const portal =
       typeof document !== "undefined"
         ? document.cookie
@@ -50,7 +27,12 @@ export function AdminLogoutButton() {
             ?.split("=")[1]
         : undefined;
 
-    router.push(portal === "admin" ? "/admin/users" : "/");
+    // Fire-and-forget server-side revocation (auth state already cleared client-side)
+    logout({ refreshToken: "" }).catch(() => {
+      // intentionally ignored — client state is already clean
+    });
+
+    router.push(portal === "admin" ? "/" : "/");
   };
 
   return (
