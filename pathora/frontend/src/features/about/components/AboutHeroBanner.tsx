@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import Link from "next/link";
 import Image from "@/features/shared/components/LandingImage";
 import { Icon } from "@/components/ui";
 import { HERO_BG } from "./AboutUsPageData";
@@ -30,11 +31,11 @@ const HeroBanner = () => {
           {t("landing.aboutUs.heroSubtitle")}
         </p>
         <div className="mt-6 flex items-center gap-2 text-sm">
-          <a
+          <Link
             href="/"
             className="text-white/50 hover:text-white/80 transition-colors">
             {t("landing.nav.home")}
-          </a>
+          </Link>
           <Icon
             icon="heroicons-outline:chevron-right"
             className="w-3.5 h-3.5 text-white/50"

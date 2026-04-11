@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
 import type { TourFormValues } from "@/schemas/tour-form";
@@ -68,8 +67,6 @@ export function InsuranceSection({
   onUpdateInsurance,
 }: InsuranceSectionProps) {
   const { t } = useTranslation();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { errors } = useFormState<TourFormValues>({ name: "insurances" } as any);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">

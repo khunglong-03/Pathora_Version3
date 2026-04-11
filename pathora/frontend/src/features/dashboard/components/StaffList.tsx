@@ -6,8 +6,8 @@ import type { StaffMemberDto } from "@/types/admin";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  TourDesigner: { bg: "#EDE9FE", text: "#7C3AED", label: "Tour Designer" },
-  TourGuide: { bg: "#DBEAFE", text: "#2563EB", label: "Tour Guide" },
+  "Tour Designer": { bg: "#EDE9FE", text: "#7C3AED", label: "Tour Designer" },
+  "Tour Guide": { bg: "#DBEAFE", text: "#2563EB", label: "Tour Guide" },
 };
 
 function getInitials(name: string): string {
@@ -33,9 +33,7 @@ export function StaffList({ staff, managers, managerId, onReassign }: StaffListP
     acc[role].push(member);
     return acc;
   }, {});
-
-  const roleOrder = ["TourDesigner", "TourGuide"];
-
+  const roleOrder = ["Tour Designer", "Tour Guide", "Staff"];
   if (staff.length === 0) {
     return (
       <div className="text-center py-12 text-sm" style={{ color: "#9CA3AF" }}>

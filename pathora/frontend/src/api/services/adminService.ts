@@ -9,7 +9,7 @@ import type {
   TransportProviderListItem,
   HotelProviderListItem,
   HotelProviderDetail,
-  TourManagerStaffDto,
+  TourManagerStaffResponse,
   ManagerSummaryDto,
   AdminDashboardOverview,
   PaginatedList,
@@ -47,7 +47,8 @@ export interface GetProvidersParams {
 }
 
 export interface CreateStaffRequest {
-  role: string;
+  /** 1 = TourDesigner, 2 = TourGuide — matches backend CreateStaffUnderManagerRequest.StaffType */
+  staffType: 1 | 2;
   email: string;
   fullName: string;
 }
@@ -121,10 +122,10 @@ export const adminService = {
   },
 
   getTourManagerStaff: async (managerId: string) => {
-    const response = await api.get<ApiResponse<TourManagerStaffDto[]>>(
+    const response = await api.get<ApiResponse<TourManagerStaffResponse>>(
       API_ENDPOINTS.ADMIN.GET_TOUR_MANAGER_STAFF(managerId),
     );
-    return extractResult<TourManagerStaffDto[]>(response.data);
+    return extractResult<TourManagerStaffResponse>(response.data);
   },
 
   reassignStaff: async (managerId: string, staffId: string, targetManagerId: string) => {

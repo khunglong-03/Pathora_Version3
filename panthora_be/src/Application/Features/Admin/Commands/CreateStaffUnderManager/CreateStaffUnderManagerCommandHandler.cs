@@ -55,14 +55,13 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             null,
             forcePasswordChange: true);
 
-        UserEntity? createdUser = null;
-
-        try
+        // Use ExecuteTransactionAsync to be compatible with NpgsqlRetryingExecutionStrategy.
+        // All operations use AddAsync (no internal SaveChangesAsync) — the single SaveChanges
+        // is called by ExecuteTransactionAsync at the end of the lambda.
+        await unitOfWork.ExecuteTransactionAsync(async () =>
         {
-            await unitOfWork.BeginTransactionAsync();
-
-            await userRepository.Create(userEntity);
-            createdUser = userEntity;
+            var userRepo = unitOfWork.GenericRepository<UserEntity>();
+            await userRepo.AddAsync(userEntity);
 
             var settingsRepo = unitOfWork.GenericRepository<UserSettingEntity>();
             var settings = UserSettingEntity.Create(userEntity.Id, "admin");
@@ -86,22 +85,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
                 "admin");
 
             await assignmentRepository.AssignAsync(assignment, cancellationToken);
-
-            await unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            await unitOfWork.RollbackTransactionAsync();
-
-            if (createdUser is not null)
-            {
-                createdUser.SoftDelete("admin");
-                userRepository.Update(createdUser);
-                await unitOfWork.SaveChangeAsync();
-            }
-
-            throw;
-        }
+        });
 
         var displayRoleName = request.Request.StaffType switch
         {
@@ -111,12 +95,12 @@ public sealed class CreateStaffUnderManagerCommandHandler(
         };
 
         return new StaffMemberDto(
-            createdUser!.Id,
-            createdUser.FullName ?? createdUser.Username,
-            createdUser.Email,
-            createdUser.AvatarUrl,
+            userEntity.Id,
+            userEntity.FullName ?? userEntity.Username,
+            userEntity.Email,
+            userEntity.AvatarUrl,
             displayRoleName,
             "Member",
-            createdUser.IsDeleted ? "Khóa" : "Hoạt động");
+            userEntity.IsDeleted ? "Khóa" : "Hoạt động");
     }
 }

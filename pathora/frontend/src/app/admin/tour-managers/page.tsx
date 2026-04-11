@@ -68,8 +68,8 @@ export default function TourManagersPage() {
 
     const result = await adminService.getTourManagerStaff(selectedManagerId);
 
-    if (result && Array.isArray(result)) {
-      setStaff(result as StaffMemberDto[]);
+    if (result && Array.isArray(result.staffList)) {
+      setStaff(result.staffList);
     } else {
       setStaff([]);
     }
@@ -179,23 +179,25 @@ export default function TourManagersPage() {
 
           {/* Right: Staff detail */}
           <div
-            className="overflow-hidden"
+            className="overflow-hidden flex flex-col"
             style={{ maxHeight: "calc(100vh - 14rem)" }}
           >
-            <StaffDetailPanel
-              managerId={selectedManagerId}
-              manager={selectedManager}
-              staff={staff}
-              managers={managers}
-              isLoading={isLoadingStaff}
-              error={staffError}
-              onRefresh={handleRefresh}
-              onReassign={(s) => setReassignTarget(s)}
-            />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <StaffDetailPanel
+                managerId={selectedManagerId}
+                manager={selectedManager}
+                staff={staff}
+                managers={managers}
+                isLoading={isLoadingStaff}
+                error={staffError}
+                onRefresh={handleRefresh}
+                onReassign={(s) => setReassignTarget(s)}
+              />
+            </div>
 
-            {/* Action buttons overlay at bottom-right */}
+            {/* Action buttons footer */}
             {selectedManagerId && !isLoadingStaff && (
-              <div className="flex gap-2 justify-end px-4 pb-4">
+              <div className="flex gap-2 justify-end px-4 py-4 border-t border-stone-200 bg-stone-50 shrink-0 mt-auto">
                 <button
                   onClick={() => setAssignExistingRole("TourDesigner")}
                   className="px-4 py-2 rounded-lg text-xs font-medium border transition-all duration-200 hover:bg-[#EDE9FE]"

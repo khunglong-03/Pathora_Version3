@@ -214,7 +214,7 @@ export const ADMIN: AdminEndpoints = {
     `/api/admin/tour-managers/${managerId}/staff/${staffId}/reassign`,
   GET_DASHBOARD_OVERVIEW: "/api/admin/dashboard/overview",
   CREATE_STAFF_UNDER_MANAGER: (managerId: string): string =>
-    `/api/admin/tour-managers/${managerId}/staff`,
+    `/api/admin/tour-managers/${managerId}/staff/create`,
   GET_ALL_MANAGERS: "/api/admin/managers",
 };
 

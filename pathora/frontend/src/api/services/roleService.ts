@@ -11,7 +11,7 @@ export interface RoleVm {
   status: number;
 }
 
-export interface RoleDetailVm extends RoleVm {}
+export type RoleDetailVm = RoleVm;
 
 export interface LookupVm {
   id: number;

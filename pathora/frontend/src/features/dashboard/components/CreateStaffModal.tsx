@@ -10,17 +10,18 @@ interface CreateStaffModalProps {
   onSubmit: (data: CreateStaffRequest) => Promise<void>;
 }
 
-const ROLES: Array<{ value: string; label: string; bg: string; text: string }> = [
-  { value: "TourDesigner", label: "Tour Designer", bg: "#EDE9FE", text: "#7C3AED" },
-  { value: "TourGuide", label: "Tour Guide", bg: "#DBEAFE", text: "#2563EB" },
+const ROLES: Array<{ value: 1 | 2; label: string; bg: string; text: string }> = [
+  { value: 1, label: "Tour Designer", bg: "#EDE9FE", text: "#7C3AED" },
+  { value: 2, label: "Tour Guide", bg: "#DBEAFE", text: "#2563EB" },
 ];
 
 export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModalProps) {
-  const [selectedRole, setSelectedRole] = useState<string>("TourDesigner");
+  const [staffType, setStaffType] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; email?: string }>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const validate = () => {
     const errs: { fullName?: string; email?: string } = {};
@@ -38,13 +39,23 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
     e.preventDefault();
     if (!validate()) return;
     setIsSubmitting(true);
+    setApiError(null);
     try {
-      await onSubmit({ role: selectedRole, email: email.trim(), fullName: fullName.trim() });
+      await onSubmit({ staffType, email: email.trim(), fullName: fullName.trim() });
       // Reset form on success
       setFullName("");
       setEmail("");
-      setSelectedRole("TourDesigner");
+      setStaffType(1);
       setErrors({});
+      setApiError(null);
+    } catch (err: unknown) {
+      // 409 = duplicate email
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        setErrors((prev) => ({ ...prev, email: "Email này đã được sử dụng trong hệ thống." }));
+      } else {
+        setApiError("Đã xảy ra lỗi. Vui lòng thử lại.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -54,15 +65,16 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
     if (!isSubmitting) {
       setFullName("");
       setEmail("");
-      setSelectedRole("TourDesigner");
+      setStaffType(1);
       setErrors({});
+      setApiError(null);
       onClose();
     }
   };
 
   if (!isOpen) return null;
 
-  const currentRole = ROLES.find((r) => r.value === selectedRole) ?? ROLES[0];
+  const currentRole = ROLES.find((r) => r.value === staffType) ?? ROLES[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -114,10 +126,10 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
                   <button
                     key={role.value}
                     type="button"
-                    onClick={() => setSelectedRole(role.value)}
+                    onClick={() => setStaffType(role.value)}
                     className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 border"
                     style={
-                      selectedRole === role.value
+                      staffType === role.value
                         ? {
                             backgroundColor: role.bg,
                             color: role.text,

@@ -135,16 +135,13 @@ export default function TourImageUpload({
 }: TourImageUploadProps) {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [showExistingThumbnail, setShowExistingThumbnail] = useState(
-    !!existingThumbnail,
-  );
+  const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
-  // Sync showExistingThumbnail when existingThumbnail prop changes (e.g., on edit mode load)
-  useEffect(() => {
-    if (existingThumbnail?.publicURL) {
-      setShowExistingThumbnail(true);
-    }
-  }, [existingThumbnail]);
+  const thumbnailUrl = selectedThumbnail ? URL.createObjectURL(selectedThumbnail) : null;
+
+  // Show existing thumbnail when user removed a new selection and the prop is still set
+  const showExistingThumbnail = !selectedThumbnail && !!existingThumbnail?.publicURL;
 
   const handleThumbnailChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

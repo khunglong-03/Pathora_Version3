@@ -15,6 +15,12 @@ import {
 } from "@/types/tour";
 import { extractResult } from "@/utils/apiResponse";
 
+interface AddCustomDayResponse {
+  id: string;
+  title: string;
+  actualDate: string;
+}
+
 export interface CreateTourInstancePayload {
   tourId: string;
   classificationId: string;
@@ -287,7 +293,7 @@ export const tourInstanceService = {
   addCustomDay: async (
     instanceId: string,
     payload: { title: string; actualDate: string; description?: string },
-  ): Promise<any> => {
+  ): Promise<AddCustomDayResponse> => {
     const response = await api.post(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}/${instanceId}/days`,
       payload,
