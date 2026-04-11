@@ -67,8 +67,8 @@ export default function TourManagersPage() {
 
     const result = await adminService.getTourManagerStaff(selectedManagerId);
 
-    if (result && Array.isArray(result.staffList)) {
-      setStaff(result.staffList);
+    if (result && Array.isArray(result.staff)) {
+      setStaff(result.staff);
     } else {
       setStaff([]);
     }

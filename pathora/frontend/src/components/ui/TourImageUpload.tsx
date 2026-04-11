@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Icon from "@/components/ui/Icon";
 
@@ -135,13 +135,11 @@ export default function TourImageUpload({
 }: TourImageUploadProps) {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
-  const thumbnailUrl = selectedThumbnail ? URL.createObjectURL(selectedThumbnail) : null;
+  const thumbnailUrl = thumbnail ? URL.createObjectURL(thumbnail) : null;
 
   // Show existing thumbnail when user removed a new selection and the prop is still set
-  const showExistingThumbnail = !selectedThumbnail && !!existingThumbnail?.publicURL;
+  const showExistingThumbnail = !thumbnail && !!existingThumbnail?.publicURL;
 
   const handleThumbnailChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,11 +148,10 @@ export default function TourImageUpload({
       const error = validateFile(file, t);
       onThumbnailError?.(error);
       if (!error) {
-        setShowExistingThumbnail(false);
         setThumbnail(file);
       }
     },
-    [setThumbnail, onThumbnailError, setShowExistingThumbnail, t],
+    [setThumbnail, onThumbnailError, t],
   );
 
   const handleGalleryChange = useCallback(
@@ -197,8 +194,6 @@ export default function TourImageUpload({
     },
     [images, setImages],
   );
-
-  const thumbnailUrl = thumbnail ? URL.createObjectURL(thumbnail) : null;
 
   return (
     <div className="space-y-5">
@@ -263,14 +258,13 @@ export default function TourImageUpload({
               </p>
             )}
           </div>
-        ) : showExistingThumbnail && existingThumbnail?.publicURL ? (
+        ) : showExistingThumbnail ? (
           <ExistingThumbnailPreview
-            url={existingThumbnail.publicURL}
+            url={existingThumbnail!.publicURL!}
             t={t}
             onReplace={() => thumbnailInputRef.current?.click()}
             onRemove={() => {
               onRemoveExistingThumbnail?.();
-              setShowExistingThumbnail(false);
             }}
             thumbnailError={thumbnailError}
             onThumbnailError={onThumbnailError}

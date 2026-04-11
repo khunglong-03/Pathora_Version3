@@ -46,8 +46,8 @@ export default function TourManagerStaffPage() {
 
     const manager = (allManagersResult.data ?? []).find((m) => m.managerId === managerId);
 
-    if (staffResult && Array.isArray(staffResult)) {
-      setStaff(staffResult as StaffMemberDto[]);
+    if (staffResult && Array.isArray(staffResult.staff)) {
+      setStaff(staffResult.staff);
     } else {
       setStaff([]);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { handleApiError } from "@/utils/apiResponse";
@@ -78,14 +78,6 @@ export function AvatarUpload({ value, fullName, disabled = false, onChange, onVa
   const previousValueRef = useRef(value);
 
   const initials = getInitials(fullName);
-
-  // Sync preview when value changes externally (e.g., after profile update)
-  useEffect(() => {
-    if (state === "idle" || state === "success") {
-      setPreviewUrl(value || "");
-    }
-    previousValueRef.current = value;
-  }, [value, state]);
 
   const handleFileSelect = useCallback((file: File | null) => {
     if (!file) return;

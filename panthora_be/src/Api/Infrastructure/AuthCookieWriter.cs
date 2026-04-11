@@ -43,12 +43,13 @@ public static class AuthCookieWriter
     public static void WriteAuthStatusCookie(HttpResponse response, bool secure)
     {
         // auth_status lifetime matches refresh token lifetime
-        response.Cookies.Append(AuthStatusCookieName, "1", BuildOptions(TimeSpan.FromHours(168), secure));
+        // Intentionally HttpOnly=false so frontend can clear it on logout
+        response.Cookies.Append(AuthStatusCookieName, "1", BuildNonHttpOnlyOptions(TimeSpan.FromHours(168), secure));
     }
 
     public static void ClearAuthCookies(HttpResponse response, bool secure)
     {
-        response.Cookies.Delete(AccessTokenCookieName, BuildOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(AccessTokenCookieName, BuildAccessTokenOptions(TimeSpan.Zero, secure));
         response.Cookies.Delete(RefreshTokenCookieName, BuildOptions(TimeSpan.Zero, secure));
         ClearAuthStatusCookie(response, secure);
         ClearAuthPortalCookie(response, secure);
@@ -56,18 +57,19 @@ public static class AuthCookieWriter
 
     public static void ClearAuthStatusCookie(HttpResponse response, bool secure)
     {
-        response.Cookies.Delete(AuthStatusCookieName, BuildOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(AuthStatusCookieName, BuildNonHttpOnlyOptions(TimeSpan.Zero, secure));
     }
 
     public static void WriteAuthPortalCookie(HttpResponse response, string? portal, bool secure)
     {
         // auth_portal lifetime matches refresh token lifetime
-        response.Cookies.Append(AuthPortalCookieName, NormalizePortal(portal), BuildOptions(TimeSpan.FromHours(168), secure));
+        // Intentionally HttpOnly=false so frontend can read it for routing
+        response.Cookies.Append(AuthPortalCookieName, NormalizePortal(portal), BuildNonHttpOnlyOptions(TimeSpan.FromHours(168), secure));
     }
 
     public static void ClearAuthPortalCookie(HttpResponse response, bool secure)
     {
-        response.Cookies.Delete(AuthPortalCookieName, BuildOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(AuthPortalCookieName, BuildNonHttpOnlyOptions(TimeSpan.Zero, secure));
     }
 
     private static CookieOptions BuildOptions(TimeSpan maxAge, bool secure)
@@ -90,9 +92,14 @@ public static class AuthCookieWriter
     /// </summary>
     private static CookieOptions BuildAccessTokenOptions(TimeSpan maxAge, bool secure)
     {
+        return BuildNonHttpOnlyOptions(maxAge, secure);
+    }
+
+    private static CookieOptions BuildNonHttpOnlyOptions(TimeSpan maxAge, bool secure)
+    {
         return new CookieOptions
         {
-            HttpOnly = false, // <-- JS-readable so frontend can read for Authorization header
+            HttpOnly = false, // JS-readable
             IsEssential = true,
             MaxAge = maxAge,
             Path = "/",

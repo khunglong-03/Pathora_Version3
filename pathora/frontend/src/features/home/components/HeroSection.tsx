@@ -148,55 +148,42 @@ export const HeroSection = () => {
 
         <div
           ref={searchRef}
-          className="bg-white/35 backdrop-blur-md border border-white/30 rounded-xl px-3 md:px-5 pt-5 pb-5 flex flex-col items-start justify-center w-full max-w-4xl">
-          <div className="flex -mb-px">
+          className="w-full max-w-5xl flex flex-col items-center gap-5">
+          {/* Elegant pill tabs */}
+          <div className="flex p-1.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full shadow-lg">
             <Button
               onClick={() => setTourType("public")}
-              className={`flex items-center gap-2.5 px-3 md:px-4 py-3 md:py-4 rounded-tl-xl transition-colors ${
-                tourType === "public" ? "bg-white" : "bg-white/40"
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-300 ${
+                tourType === "public" 
+                  ? "bg-white shadow-md text-landing-accent" 
+                  : "text-white hover:bg-white/20"
               }`}>
-              <FaGlobe
-                suppressHydrationWarning
-                className={`w-5 md:w-6 h-5 md:h-6 ${
-                  tourType === "public" ? "text-landing-accent" : "text-white"
-                }`}
-              />
-              <span
-                suppressHydrationWarning
-                className={`font-semibold text-base md:text-lg ${
-                  tourType === "public" ? "text-landing-accent" : "text-white"
-                }`}>
+              <FaGlobe suppressHydrationWarning className="w-5 h-5" />
+              <span suppressHydrationWarning className="font-semibold text-sm md:text-base">
                 {t("landing.hero.publicTours")}
               </span>
             </Button>
             <Button
               onClick={() => setTourType("private")}
-              className={`flex items-center gap-2.5 px-3 md:px-4 py-3 md:py-4 rounded-tr-xl transition-colors ${
-                tourType === "private" ? "bg-white" : "bg-white/40"
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full transition-all duration-300 ${
+                tourType === "private" 
+                  ? "bg-white shadow-md text-landing-accent" 
+                  : "text-white hover:bg-white/20"
               }`}>
-              <FaLock
-                suppressHydrationWarning
-                className={`w-5 md:w-6 h-5 md:h-6 ${
-                  tourType === "private" ? "text-landing-accent" : "text-white"
-                }`}
-              />
-              <span
-                suppressHydrationWarning
-                className={`font-semibold text-base md:text-lg ${
-                  tourType === "private" ? "text-landing-accent" : "text-white"
-                }`}>
+              <FaLock suppressHydrationWarning className="w-5 h-5" />
+              <span suppressHydrationWarning className="font-semibold text-sm md:text-base">
                 {t("landing.hero.privateTours")}
               </span>
             </Button>
           </div>
 
-          <div className="bg-white rounded-bl-xl rounded-br-xl rounded-tr-xl flex flex-col md:flex-row items-stretch md:items-center gap-0 w-full">
+          {/* Main search card */}
+          <div className="bg-white rounded-[2rem] shadow-2xl p-2 w-full flex flex-col md:flex-row items-stretch md:items-center gap-0 border border-white/50 backdrop-blur-xl relative">
             <div className={`relative w-full md:flex-[1.2] md:min-w-0 ${openField === "people" ? "z-20" : "z-0"}`}>
               <SelectField
                 icon={<FaUsers suppressHydrationWarning className="w-4 h-4 md:w-5 md:h-5" />}
                 label={t("landing.hero.fields.people.label")}
                 placeholder={t("landing.hero.fields.people.placeholder")}
-                rounded="rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
                 isOpen={openField === "people"}
                 onToggle={() => toggleField("people")}
                 displayValue={people ? `${people} ${people === 1 ? t("landing.hero.fields.people.single") : t("landing.hero.fields.people.plural")}` : ""}>
@@ -239,10 +226,10 @@ export const HeroSection = () => {
                 <ListDropdown items={classifications} value={classification} onChange={(v) => { setClassification(v); setOpenField(null); }} />
               </SelectField>
             </div>
-            <div className="p-3 md:p-0 md:pl-2 w-full md:w-auto md:shrink-0 flex justify-center">
+            <div className="p-2 md:p-0 md:pl-2 w-full md:w-auto md:shrink-0 flex justify-center">
               <Button
                 onClick={handleSearch}
-                className="bg-landing-accent rounded-lg md:rounded-xl h-11 md:h-12 px-4 md:px-5 hover:bg-landing-accent-hover transition-colors shrink-0 w-full md:w-full flex items-center justify-center gap-2"
+                className="bg-landing-accent rounded-xl md:rounded-[1.5rem] h-12 md:h-14 px-6 md:px-8 shadow-lg shadow-landing-accent/30 hover:shadow-xl hover:shadow-landing-accent/40 hover:-translate-y-0.5 transition-all duration-300 shrink-0 w-full md:w-auto flex items-center justify-center gap-3"
                 ariaLabel={t("landing.hero.searchAria")}
                 suppressHydrationWarning>
                 <span suppressHydrationWarning className="text-white font-medium text-sm md:text-base whitespace-nowrap">

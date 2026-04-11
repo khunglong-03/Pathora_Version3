@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import Icon from "@/components/ui/Icon";
-import type { TourManagerStaffDto } from "@/types/admin";
+import type { StaffMemberDto } from "@/types/admin";
 import { AddStaffModal } from "./AddStaffModal";
 
 interface ManagerSupervisionPanelProps {
   managerId: string;
-  staff: TourManagerStaffDto[];
+  staff: StaffMemberDto[];
   onStaffAdded: () => void;
 }
 
@@ -123,7 +123,7 @@ export function ManagerSupervisionPanel({
   );
 }
 
-function StaffCard({ staff, roleColor }: { staff: TourManagerStaffDto; roleColor: string }) {
+function StaffCard({ staff, roleColor }: { staff: StaffMemberDto; roleColor: string }) {
   const getInitials = (name: string) => {
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();

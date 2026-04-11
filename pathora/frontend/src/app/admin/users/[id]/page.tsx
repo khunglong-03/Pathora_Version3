@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { adminService } from "@/api/services/adminService";
-import type { AdminUserDetail, TourManagerStaffDto } from "@/api/services/adminService";
+import type { AdminUserDetail, TourManagerStaffDto, StaffMemberDto } from "@/api/services/adminService";
 import {
   AdminPageHeader,
   AdminEmptyState,
@@ -51,7 +51,7 @@ export default function AdminUserDetailPage() {
   const [reloadToken, setReloadToken] = useState(0);
 
   // Manager supervision state
-  const [supervisedStaff, setSupervisedStaff] = useState<TourManagerStaffDto[]>([]);
+  const [supervisedStaff, setSupervisedStaff] = useState<StaffMemberDto[]>([]);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
   const [staffReloadToken, setStaffReloadToken] = useState(0);
 
@@ -78,7 +78,7 @@ export default function AdminUserDetailPage() {
     try {
       const result = await adminService.getTourManagerStaff(userId);
       if (result) {
-        setSupervisedStaff(result);
+        setSupervisedStaff(result.staff);
       } else {
         setSupervisedStaff([]);
       }

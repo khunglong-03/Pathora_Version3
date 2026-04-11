@@ -146,7 +146,7 @@ class TransportProviderService {
     try {
       const params = locationArea !== undefined ? { locationArea } : {};
       const response = await axiosInstance.get<Vehicle[]>("/transport-provider/vehicles", { params });
-      return extractItems(response);
+      return extractItems(response.data);
     } catch (error) {
       handleApiError(error);
       return [];
@@ -156,7 +156,7 @@ class TransportProviderService {
   async getVehicleByPlate(plate: string): Promise<Vehicle | null> {
     try {
       const response = await axiosInstance.get<Vehicle>(`/transport-provider/vehicles/${plate}`);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -166,7 +166,7 @@ class TransportProviderService {
   async createVehicle(data: CreateVehicleDto): Promise<Vehicle | null> {
     try {
       const response = await axiosInstance.post<Vehicle>("/transport-provider/vehicles", data);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -176,7 +176,7 @@ class TransportProviderService {
   async updateVehicle(plate: string, data: UpdateVehicleDto): Promise<Vehicle | null> {
     try {
       const response = await axiosInstance.put<Vehicle>(`/transport-provider/vehicles/${plate}`, data);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -197,7 +197,7 @@ class TransportProviderService {
   async getDrivers(): Promise<Driver[]> {
     try {
       const response = await axiosInstance.get<Driver[]>("/transport-provider/drivers");
-      return extractItems(response);
+      return extractItems(response.data);
     } catch (error) {
       handleApiError(error);
       return [];
@@ -207,7 +207,7 @@ class TransportProviderService {
   async getDriverById(id: string): Promise<Driver | null> {
     try {
       const response = await axiosInstance.get<Driver>(`/transport-provider/drivers/${id}`);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -217,7 +217,7 @@ class TransportProviderService {
   async createDriver(data: CreateDriverDto): Promise<Driver | null> {
     try {
       const response = await axiosInstance.post<Driver>("/transport-provider/drivers", data);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -227,7 +227,7 @@ class TransportProviderService {
   async updateDriver(id: string, data: UpdateDriverDto): Promise<Driver | null> {
     try {
       const response = await axiosInstance.put<Driver>(`/transport-provider/drivers/${id}`, data);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -249,7 +249,7 @@ class TransportProviderService {
     try {
       const params = status !== undefined ? { status } : {};
       const response = await axiosInstance.get<TripAssignment[]>("/transport-provider/trip-assignments", { params });
-      return extractItems(response);
+      return extractItems(response.data);
     } catch (error) {
       handleApiError(error);
       return [];
@@ -259,7 +259,7 @@ class TransportProviderService {
   async getTripAssignmentDetail(id: string): Promise<TripAssignmentDetail | null> {
     try {
       const response = await axiosInstance.get<TripAssignmentDetail>(`/transport-provider/trip-assignments/${id}`);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -302,7 +302,7 @@ class TransportProviderService {
       const params: Record<string, number> = { year };
       if (quarter !== undefined) params.quarter = quarter;
       const response = await axiosInstance.get<RevenueSummary>("/transport-provider/revenue/summary", { params });
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -315,7 +315,7 @@ class TransportProviderService {
       if (year !== undefined) params.year = year;
       if (quarter !== undefined) params.quarter = quarter;
       const response = await axiosInstance.get<PaginatedResponse<TripHistoryItem>>("/transport-provider/revenue/history", { params });
-      return extractResult(response);
+      return extractResult(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -326,7 +326,7 @@ class TransportProviderService {
   async getCompanyProfile(): Promise<TransportCompanyProfile | null> {
     try {
       const response = await axiosInstance.get<TransportCompanyProfile>("/transport-provider/company");
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;
@@ -336,7 +336,7 @@ class TransportProviderService {
   async updateCompanyProfile(data: UpdateCompanyProfileDto): Promise<TransportCompanyProfile | null> {
     try {
       const response = await axiosInstance.put<TransportCompanyProfile>("/transport-provider/company", data);
-      return extractData(response);
+      return extractData(response.data);
     } catch (error) {
       handleApiError(error);
       return null;

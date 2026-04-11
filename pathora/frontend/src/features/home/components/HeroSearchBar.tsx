@@ -129,8 +129,8 @@ export const CalendarDropdown = ({
             onClick={() => onChange(new Date(viewYear, viewMonth, day))}
             className={`w-11 h-11 mx-auto rounded-full text-sm flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${
               isSelected(day)
-                ? "bg-landing-accent text-white font-bold"
-                : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700"
+                ? "bg-landing-accent text-white font-bold shadow-md shadow-landing-accent/30"
+                : "text-gray-700 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-slate-700"
             }`}>
             {day}
           </Button>
@@ -156,10 +156,10 @@ export const ListDropdown = ({
         type="button"
         key={item}
         onClick={() => onChange(item)}
-        className={`w-full min-h-11 text-left px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${
+        className={`w-full min-h-11 text-left px-4 py-2.5 text-sm transition-all duration-200 rounded-lg cursor-pointer ${
           value === item
-            ? "bg-landing-accent/10 text-landing-accent font-medium"
-            : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+            ? "bg-[#fff8f0] text-landing-accent font-semibold"
+            : "text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700"
         }`}>
         {item}
       </Button>
@@ -185,10 +185,10 @@ export const NumberDropdown = ({
         type="button"
         key={num}
         onClick={() => onChange(num)}
-        className={`w-full min-h-11 text-left px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${
+        className={`w-full min-h-11 text-left px-4 py-2.5 text-sm transition-all duration-200 rounded-lg cursor-pointer ${
           value === num
-            ? "bg-landing-accent/10 text-landing-accent font-medium"
-            : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"
+            ? "bg-[#fff8f0] text-landing-accent font-semibold"
+            : "text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700"
         }`}>
         {num} {num === 1 ? singleLabel : pluralLabel}
       </Button>
@@ -224,8 +224,8 @@ export const SelectField = ({
       onClick={onToggle}
       aria-expanded={isOpen}
       aria-haspopup={children ? "listbox" : undefined}
-      className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 min-h-11 bg-white dark:bg-slate-800 w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${rounded ?? ""} ${
-        isOpen ? "ring-2 ring-landing-accent/30" : ""
+      className={`flex items-center gap-3 p-3 md:p-3.5 min-h-[3.5rem] bg-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/50 rounded-2xl transition-colors w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${rounded ?? ""} ${
+        isOpen ? "ring-2 ring-landing-accent/30 bg-slate-50/50 dark:bg-slate-800/50" : ""
       }`}>
       <div className="relative w-4 h-4 md:w-6 md:h-6 shrink-0 flex items-center justify-center text-landing-accent">
         {icon}
@@ -254,7 +254,7 @@ export const SelectField = ({
 
     {/* Dropdown panel */}
     {isOpen && children && (
-      <div className="absolute top-full left-0 right-0 md:left-auto md:right-auto md:min-w-full mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 z-50">
+      <div className="absolute top-full left-0 right-0 md:left-auto md:right-auto md:min-w-full mt-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-black/10 border border-gray-100 dark:border-slate-700 z-[60] overflow-hidden">
         {children}
       </div>
     )}

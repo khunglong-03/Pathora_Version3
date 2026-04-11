@@ -9,7 +9,7 @@ import type {
   TransportProviderListItem,
   HotelProviderListItem,
   HotelProviderDetail,
-  TourManagerStaffResponse,
+  TourManagerStaffDto,
   ManagerSummaryDto,
   AdminDashboardOverview,
   PaginatedList,
@@ -122,10 +122,10 @@ export const adminService = {
   },
 
   getTourManagerStaff: async (managerId: string) => {
-    const response = await api.get<ApiResponse<TourManagerStaffResponse>>(
+    const response = await api.get<ApiResponse<TourManagerStaffDto>>(
       API_ENDPOINTS.ADMIN.GET_TOUR_MANAGER_STAFF(managerId),
     );
-    return extractResult<TourManagerStaffResponse>(response.data);
+    return extractResult<TourManagerStaffDto>(response.data);
   },
 
   reassignStaff: async (managerId: string, staffId: string, targetManagerId: string) => {

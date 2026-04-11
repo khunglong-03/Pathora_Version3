@@ -46,7 +46,9 @@ export default function Home() {
       className="bg-background min-h-screen overflow-x-hidden"
     >
       {/* Header */}
-      <LandingHeader />
+      <Suspense fallback={<div className="h-20 bg-white" />}>
+        <LandingHeader />
+      </Suspense>
 
       {/* Hero */}
       <Suspense fallback={<SectionSkeleton className="h-screen" />}>

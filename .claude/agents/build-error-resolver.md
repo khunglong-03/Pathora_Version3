@@ -1,7 +1,7 @@
 ---
 name: build-error-resolver
 description: Build/TypeScript error resolution + code simplification specialist. Fixes build errors with minimal diffs, no architecture changes. Simplifies code for clarity while preserving behavior.
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "TaskCreate", "TaskUpdate"]
 model: opus
 ---
 

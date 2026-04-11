@@ -32,6 +32,7 @@ export default function BookingAccommodationDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadDetail();
   }, [loadDetail]);
 

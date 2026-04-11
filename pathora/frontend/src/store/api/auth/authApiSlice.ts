@@ -112,13 +112,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const tokens = data.data;
           if (!tokens) return;
 
-          if (!tokens.portal) {
-            console.warn("[authApiSlice] login response: tokens.portal is null — user may be misclassified");
-          }
-
-          setCookie("access_token", tokens.accessToken);
-          setCookie("refresh_token", tokens.refreshToken, DAY_SECONDS * 7);
-          setAuthSessionCookies(tokens.portal);
+          // Cookies (access_token, refresh_token, auth_status, auth_portal) 
+          // are automatically set by the browser via backend's Set-Cookie headers.
+          // Redundant JS setting removed to prevent HttpOnly conflicts.
           dispatch(setToken(tokens.accessToken));
 
           // Fetch user info right after login to populate Redux
@@ -130,7 +126,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           if ("data" in result && result.data?.data) {
             dispatch(setUser(result.data.data));
 
-            // Set auth_roles cookie for middleware role-based routing
+            // auth_roles is not set as a cookie by the backend; we manage it here
             const roleNames = result.data.data.roles.map((r) => r.name);
             setAuthRolesCookie(roleNames);
 
@@ -216,9 +212,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const tokens = data.data;
           if (!tokens) return;
 
-          setCookie("access_token", tokens.accessToken);
-          setCookie("refresh_token", tokens.refreshToken, DAY_SECONDS * 7);
-          setAuthSessionCookies(tokens.portal);
+          // Cookies (access_token, refresh_token, auth_status, auth_portal) 
+          // are automatically set by the browser via backend's Set-Cookie headers.
+          // Redundant JS setting removed to prevent HttpOnly conflicts.
           dispatch(setToken(tokens.accessToken));
 
           // Re-fetch user info to sync roles cookie after token refresh
@@ -233,6 +229,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           }
         } catch {
           // token expired — force logout
+          // Let the error flow clear what it can
           removeCookie("access_token");
           removeCookie("refresh_token");
           clearAuthSessionCookies();

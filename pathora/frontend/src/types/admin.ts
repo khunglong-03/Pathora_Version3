@@ -231,14 +231,14 @@ export interface HotelProviderDetail {
 }
 
 // ─── TourManager Hierarchy ───────────────────────────────────────
-export interface TourManagerStaffResponse {
+export interface TourManagerStaffDto {
   manager: {
     id: string;
     fullName: string;
     email: string;
     avatarUrl?: string;
   };
-  staffList: StaffMemberDto[];
+  staff: StaffMemberDto[];
 }
 
 export interface StaffMemberDto {

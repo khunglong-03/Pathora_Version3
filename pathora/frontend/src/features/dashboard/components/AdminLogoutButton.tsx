@@ -12,7 +12,7 @@ export function AdminLogoutButton() {
   const handleLogout = async () => {
     // Clear cookies immediately so no more authenticated requests fire
     if (typeof document !== "undefined") {
-      ["access_token", "refresh_token", "auth_status"].forEach((name) => {
+      ["access_token", "refresh_token", "auth_status", "auth_portal", "auth_roles"].forEach((name) => {
         document.cookie =
           `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
       });
@@ -27,12 +27,14 @@ export function AdminLogoutButton() {
             ?.split("=")[1]
         : undefined;
 
-    // Fire-and-forget server-side revocation (auth state already cleared client-side)
-    logout({ refreshToken: "" }).catch(() => {
-      // intentionally ignored — client state is already clean
-    });
+    // Wait for server-side revocation to ensure HttpOnly cookies are cleared
+    try {
+      await logout({ refreshToken: "" }).unwrap();
+    } catch {
+      // intentionally ignored — client state is already clean or cleared in onQueryStarted
+    }
 
-    router.push(portal === "admin" ? "/" : "/");
+    router.push("/");
   };
 
   return (
