@@ -4,19 +4,15 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { SignOut } from "@phosphor-icons/react";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
+import { clearAuthSession } from "@/utils/authSession";
 
 export function AdminLogoutButton() {
   const router = useRouter();
   const [logout, { isLoading }] = useLogoutMutation();
 
   const handleLogout = async () => {
-    // Clear cookies immediately so no more authenticated requests fire
-    if (typeof document !== "undefined") {
-      ["access_token", "refresh_token", "auth_status", "auth_portal", "auth_roles"].forEach((name) => {
-        document.cookie =
-          `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-      });
-    }
+    // Clear all auth cookies via the standard helper (includes refresh_token + auth_roles)
+    clearAuthSession();
 
     // Portal-aware redirect: admin portal → /, user portal → /
     const portal =

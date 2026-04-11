@@ -132,7 +132,7 @@ export default function AdminUserDetailPage() {
     <div className="p-6">
       <AdminPageHeader
         title="Chi tiết người dùng"
-        subtitle={user.fullName}
+        subtitle={user.fullName ?? user.username}
         backHref="/admin/users"
         onRefresh={handleRefresh}
       />
@@ -149,11 +149,11 @@ export default function AdminUserDetailPage() {
               className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
               style={{ backgroundColor: "#C9873A" }}
             >
-              {getInitials(user.fullName)}
+              {getInitials(user.fullName ?? user.username)}
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold" style={{ color: "#111827" }}>{user.fullName}</h2>
+              <h2 className="text-xl font-bold" style={{ color: "#111827" }}>{user.fullName ?? user.username}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -187,16 +187,10 @@ export default function AdminUserDetailPage() {
 
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            <InfoRow label="Tên đăng nhập" value={user.username} icon="User" />
             <InfoRow label="Email" value={user.email} icon="EnvelopeSimple" />
             <InfoRow label="Điện thoại" value={user.phone ?? "—"} icon="Phone" />
-            <InfoRow label="Ngày tạo" value={formatDate(user.createdAt)} icon="Calendar" />
-            <InfoRow label="Đăng nhập cuối" value={formatDate(user.lastLogin)} icon="Clock" />
-            {user.address && (
-              <InfoRow label="Địa chỉ" value={user.address} icon="MapPin" />
-            )}
-            {user.nationality && (
-              <InfoRow label="Quốc tịch" value={user.nationality} icon="Globe" />
-            )}
+            <InfoRow label="Trạng thái xác minh" value={user.verifyStatus ?? "—"} icon="ShieldCheck" />
           </div>
         </div>
 

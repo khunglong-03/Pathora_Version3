@@ -16,7 +16,10 @@
       "Bash(node \"/Users/namhai/Desktop/Pathora_Version3/GitNexus/gitnexus/dist/cli/index.js\" status)",
       "Bash(node:*)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "mcp__gitnexus__query",
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}')",
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}' -v)"
     ]
   }
 }

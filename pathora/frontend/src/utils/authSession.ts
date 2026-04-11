@@ -40,6 +40,7 @@ export const clearAuthSession = (): void => {
   deleteCookie("refresh_token");
   deleteCookie("auth_status");
   deleteCookie("auth_portal");
+  deleteCookie("auth_roles");
 
   if (typeof window !== "undefined") {
     window.localStorage.removeItem("user");

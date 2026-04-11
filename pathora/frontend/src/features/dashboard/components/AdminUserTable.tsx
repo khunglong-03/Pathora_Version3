@@ -14,14 +14,26 @@ const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   TourDesigner: { bg: "#EDE9FE", text: "#7C3AED" },
   TourGuide: { bg: "#DBEAFE", text: "#2563EB" },
   Customer: { bg: "#F3F4F6", text: "#6B7280" },
-  Transport: { bg: "#CCFBF1", text: "#0D9488" },
-  Hotel: { bg: "#FFEDD5", text: "#EA580C" },
+  TransportProvider: { bg: "#CCFBF1", text: "#0D9488" },
+  HotelServiceProvider: { bg: "#FFEDD5", text: "#EA580C" },
 };
 
-function getInitials(name: string): string {
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "?";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getDisplayRole(user: AdminUserListItem): string {
+  if (user.roles.length > 0) return user.roles[0];
+  if (user.role) return user.role;
+  return "—";
+}
+
+function getRoleStyle(user: AdminUserListItem) {
+  const role = getDisplayRole(user);
+  return ROLE_COLORS[role] ?? ROLE_COLORS["Customer"];
 }
 
 interface AdminUserTableProps {
@@ -76,8 +88,9 @@ export function AdminUserTable({
 
         {/* Table rows */}
         {users.map((user, index) => {
-          const roleStyle = ROLE_COLORS[user.role] ?? ROLE_COLORS["Customer"];
+          const roleStyle = getRoleStyle(user);
           const isActive = user.status === "Active";
+          const displayRole = getDisplayRole(user);
 
           return (
             <div
@@ -89,7 +102,7 @@ export function AdminUserTable({
                 className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                 style={{ backgroundColor: "#C9873A", width: "80px" }}
               >
-                <span style={{ color: "#FFFFFF" }}>{getInitials(user.fullName)}</span>
+                <span style={{ color: "#FFFFFF" }}>{getInitials(user.fullName ?? user.username)}</span>
               </div>
 
               {/* Full Name */}
@@ -97,7 +110,7 @@ export function AdminUserTable({
                 className="text-sm font-medium truncate"
                 style={{ color: "#111827" }}
               >
-                {user.fullName}
+                {user.fullName ?? user.username}
               </span>
 
               {/* Email */}
@@ -117,7 +130,7 @@ export function AdminUserTable({
                   minWidth: "80px",
                 }}
               >
-                {user.role}
+                {displayRole}
               </span>
 
               {/* Status */}
@@ -160,7 +173,7 @@ export function AdminUserTable({
                       Xem chi tiết
                     </Link>
 
-                    {user.role !== "Admin" && (
+                    {displayRole !== "Admin" && (
                       <button
                         disabled={togglingId === user.id}
                         onClick={async () => {

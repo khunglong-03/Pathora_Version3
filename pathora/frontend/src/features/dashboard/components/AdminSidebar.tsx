@@ -25,7 +25,6 @@ import {
   Truck,
   Car,
   ListChecks,
-  TrendUp,
   BuildingOffice,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
@@ -96,7 +95,6 @@ export const TRANSPORT_PROVIDER_NAV_ITEMS = [
   { label: "Quản lý xe", icon: Car, href: "/transport/vehicles" },
   { label: "Quản lý tài xế", icon: UsersThree, href: "/transport/drivers" },
   { label: "Phân công chuyến", icon: ListChecks, href: "/transport/trips" },
-  { label: "Doanh thu", icon: TrendUp, href: "/transport/revenue" },
   { label: "Công ty", icon: BuildingOffice, href: "/transport/profile" },
 ] as const;
 

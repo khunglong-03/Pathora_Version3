@@ -113,28 +113,36 @@ export interface PaginatedList<T> {
 // ─── User Management ─────────────────────────────────────────────
 export interface AdminUserListItem {
   id: string;
-  fullName: string;
+  username: string;
+  fullName: string | null;
   email: string;
-  phone?: string;
-  role: string;
+  phone: string | null;
+  avatarUrl: string | null;
   status: string;
-  createdAt?: string;
-  lastLogin?: string;
+  verifyStatus: string;
+  roles: string[];
+  role?: string; // legacy, may be present for backwards compatibility
 }
 
 export interface AdminUserDetail {
   id: string;
-  fullName: string;
+  username: string;
+  fullName: string | null;
   email: string;
-  phone?: string;
-  status: string;
+  phone: string | null;
+  avatar: string | null;
+  status: string; // UserStatus enum — "Active", "Inactive", "Suspended", "Banned"
+  verifyStatus: string; // VerifyStatus enum
   roles: string[];
-  createdAt?: string;
-  lastLogin?: string;
-  avatar?: string;
-  address?: string;
-  dateOfBirth?: string;
-  nationality?: string;
+  recentBookings: BookingSummaryItem[];
+}
+
+export interface BookingSummaryItem {
+  bookingId: string;
+  tourName: string;
+  totalAmount: number;
+  createdOn: string;
+  status: string;
 }
 
 // ─── Transport Provider ─────────────────────────────────────────
