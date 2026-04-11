@@ -11,5 +11,6 @@ public sealed record GetTransportProvidersQuery(
     int PageSize = 10,
     string? Search = null,
     string? Status = null,
-    Continent? Continent = null)
+    Continent? Continent = null,
+    List<Continent>? Continents = null)
     : IQuery<ErrorOr<PaginatedList<TransportProviderListItemDto>>>;

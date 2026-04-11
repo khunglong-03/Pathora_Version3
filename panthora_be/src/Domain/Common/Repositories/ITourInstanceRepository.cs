@@ -13,8 +13,8 @@ public interface ITourInstanceRepository
     Task UpdateInstanceDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default);
     Task AddDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default);
     Task UpdateTourDayActivity(TourDayActivityEntity activity, CancellationToken cancellationToken = default);
-    Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountAll(string? searchText, TourInstanceStatus? status, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default);
+    Task<int> CountAll(string? searchText, TourInstanceStatus? status, Guid? principalId = null, CancellationToken cancellationToken = default);
     Task Create(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);
     Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);
     Task SoftDelete(Guid id, CancellationToken cancellationToken = default);

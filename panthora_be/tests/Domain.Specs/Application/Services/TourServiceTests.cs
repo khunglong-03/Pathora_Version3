@@ -2063,4 +2063,74 @@ public sealed class TourServiceTests
     }
 
     #endregion
+
+    #region T3.1: Create should set TourDesignerId from current user
+
+    [Fact]
+    public async Task Create_ShouldSetTourDesignerIdToCurrentUser()
+    {
+        // Arrange
+        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        _user.Id.Returns(userId.ToString());
+        TourEntity? capturedTour = null;
+        _tourRepository.Create(Arg.Do<TourEntity>(t => capturedTour = t))
+            .Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var command = CreateBaseValidCommand();
+        var service = CreateService();
+
+        // Act
+        var result = await service.Create(command);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.NotNull(capturedTour);
+        Assert.Equal(userId, capturedTour!.TourDesignerId);
+    }
+
+    #endregion
+
+    #region T3.4: Update should not change TourDesignerId
+
+    [Fact]
+    public async Task Update_ShouldPreserveTourDesignerId()
+    {
+        // Arrange
+        var tourId = Guid.NewGuid();
+        var originalTourDesignerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            "performer@test.com",
+            Domain.Enums.TourStatus.Active);
+        existingTour.Id = tourId;
+        existingTour.TourDesignerId = originalTourDesignerId;
+
+        _user.Id.Returns("updater@test.com");
+        _tourRepository.FindById(tourId, Arg.Any<bool>()).Returns(existingTour);
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), tourId).Returns(false);
+        _tourRepository.Update(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            TourName = "Updated Tour Name",
+            ShortDescription = "Updated short",
+            LongDescription = "Updated long"
+        };
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(originalTourDesignerId, existingTour.TourDesignerId);
+    }
+
+    #endregion
 }

@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.Admin;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "ManagerOnly")]
 [Route(AdminEndpoint.Base)]
 public class AdminController : BaseApiController
 {
@@ -106,10 +106,11 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    // Group 4: TourManager Staff
-    [HttpGet("tour-managers/{managerId:guid}/staff")]
-    public async Task<IActionResult> GetTourManagerStaff(Guid managerId)
+    // Group 4: TourManager Staff (staff under current manager only)
+    [HttpGet("staff")]
+    public async Task<IActionResult> GetTourManagerStaff()
     {
+        var managerId = Guid.Parse(CurrentUserId);
         var result = await Sender.Send(new GetTourManagerStaffQuery(managerId));
         return HandleResult(result);
     }
@@ -128,7 +129,16 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    // Group 5: Dashboard
+    // Group 5: Manager Dashboard (scoped to current manager's tours)
+    [HttpGet("manager-dashboard")]
+    public async Task<IActionResult> GetManagerDashboard()
+    {
+        var managerId = Guid.Parse(CurrentUserId);
+        var result = await Sender.Send(new Application.Features.Manager.Queries.GetManagerDashboardQuery(managerId));
+        return HandleResult(result);
+    }
+
+    // Group 6: Admin Dashboard
     [HttpGet("dashboard/overview")]
     public async Task<IActionResult> GetAdminDashboardOverview()
     {
@@ -137,10 +147,4 @@ public class AdminController : BaseApiController
     }
 
     // Group 6: Managers
-    [HttpGet(AdminEndpoint.GetAllManagers)]
-    public async Task<IActionResult> GetAllManagers()
-    {
-        var result = await Sender.Send(new GetAllManagerUsersQuery());
-        return HandleResult(result);
-    }
 }

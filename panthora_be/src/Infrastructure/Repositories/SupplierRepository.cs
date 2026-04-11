@@ -69,6 +69,18 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Guid>> FindOwnerUserIdsWithAccommodationsInContinentsAsync(
+        List<Continent> continents, CancellationToken cancellationToken = default)
+    {
+        return await _context.Suppliers
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && s.SupplierType == SupplierType.Accommodation)
+            .Where(s => _context.HotelRoomInventories.Any(h => h.SupplierId == s.Id && h.LocationArea.HasValue && continents.Contains(h.LocationArea.Value)))
+            .Select(s => s.OwnerUserId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Dictionary<Guid, (int Count, List<Continent> Continents)>> GetAccommodationDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default)
     {

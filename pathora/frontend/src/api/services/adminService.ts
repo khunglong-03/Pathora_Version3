@@ -44,6 +44,7 @@ export interface GetProvidersParams {
   limit?: number;
   status?: string;
   search?: string;
+  continents?: string[];
 }
 
 export interface CreateStaffRequest {

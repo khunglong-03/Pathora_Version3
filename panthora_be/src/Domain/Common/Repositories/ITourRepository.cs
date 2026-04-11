@@ -7,8 +7,8 @@ public interface ITourRepository
     Task<TourEntity?> FindById(Guid id, bool asNoTracking = false, CancellationToken cancellationToken = default);
     Task<TourEntity?> FindByIdForUpdate(Guid id, CancellationToken cancellationToken = default);
     Task<bool> ExistsByTourCode(string tourCode, Guid? excludeId = null, CancellationToken cancellationToken = default);
-    Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountAll(string? searchText, CancellationToken cancellationToken = default);
+    Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default);
+    Task<int> CountAll(string? searchText, Guid? principalId = null, CancellationToken cancellationToken = default);
     Task<List<TourEntity>> FindAllAdmin(string? searchText, Domain.Enums.TourStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<int> CountAllAdmin(string? searchText, Domain.Enums.TourStatus? status, CancellationToken cancellationToken = default);
     Task Create(TourEntity tour, CancellationToken cancellationToken = default);

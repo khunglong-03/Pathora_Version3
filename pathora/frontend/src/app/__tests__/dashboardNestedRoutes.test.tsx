@@ -16,7 +16,6 @@ import DashboardVisaPage from "../manager/dashboard/visa/page";
 import DashboardCustomersPage from "../manager/dashboard/customers/page";
 import DashboardInsurancePage from "../manager/dashboard/insurance/page";
 import DashboardPaymentsPage from "../manager/dashboard/payments/page";
-import DashboardSettingsPage from "../manager/dashboard/settings/page";
 import DashboardPoliciesPage from "../manager/dashboard/policies/page";
 import DashboardSiteContentPage from "../manager/dashboard/site-content/page";
 
@@ -61,10 +60,6 @@ describe("dashboard nested routes", () => {
     expect(React.isValidElement(element)).toBe(true);
   });
 
-  it("renders settings dashboard page component", () => {
-    const element = DashboardSettingsPage();
-    expect(React.isValidElement(element)).toBe(true);
-  });
 
   it("renders policies dashboard page component", () => {
     const element = DashboardPoliciesPage();

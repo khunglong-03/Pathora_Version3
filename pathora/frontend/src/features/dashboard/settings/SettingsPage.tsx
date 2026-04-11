@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { AdminSidebar, TopBar } from "@/features/dashboard/components/AdminSidebar";
 import { SettingsNav, type SettingsTabMeta } from "./components/SettingsNav";
 import { SettingsTabSkeleton } from "./components/SettingsTabSkeleton";
 import { springTransition } from "./components/springTransition";
@@ -127,7 +126,6 @@ function renderTab(tab: SettingsTabId) {
 export function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsTabId>("general");
 
   const tabs: SettingsTabMeta[] = [
@@ -149,18 +147,16 @@ export function SettingsPage() {
     if (!VALID_TAB_IDS.includes(tabId as SettingsTabId)) return;
     const normalized = tabId as SettingsTabId;
     setActiveTab(normalized);
-    router.replace(`/dashboard/settings?tab=${normalized}`);
+    router.replace(`/admin/settings?tab=${normalized}`);
   };
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+    <>
       <Suspense fallback={null}>
         <TabUrlSync onTabChange={setActiveTab} />
       </Suspense>
 
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
-      <main id="main-content" className="px-4 pb-16 pt-4 lg:px-8 max-w-[87.5rem] mx-auto w-full">
+      <main id="main-content" className="px-4 pb-16 pt-6 lg:px-8 max-w-[87.5rem] mx-auto w-full">
         {/* Page Header */}
         <div className="mb-6 lg:mb-10">
           <motion.div
@@ -200,7 +196,7 @@ export function SettingsPage() {
           </div>
         </div>
       </main>
-    </AdminSidebar>
+    </>
   );
 }
 

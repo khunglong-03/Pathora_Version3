@@ -75,6 +75,10 @@ public class TourService(
             var thumbnail = request.Thumbnail is not null ? ToImageEntity(request.Thumbnail) : new ImageEntity();
             var images = request.Images?.Select(ToImageEntity).ToList() ?? [];
 
+            var tourDesignerId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
+                ? userIdGuid
+                : null;
+
             var tour = TourEntity.Create(
             request.TourName,
             request.ShortDescription,
@@ -90,7 +94,8 @@ public class TourService(
             visaPolicyId: request.VisaPolicyId,
             depositPolicyId: request.DepositPolicyId,
             pricingPolicyId: request.PricingPolicyId,
-            cancellationPolicyId: request.CancellationPolicyId);
+            cancellationPolicyId: request.CancellationPolicyId,
+            tourDesignerId: tourDesignerId);
 
             const int maxTourCodeGenerationAttempts = 10;
             var tourCodeGenerationAttempts = 0;
@@ -419,7 +424,8 @@ public class TourService(
             visaPolicyId: request.VisaPolicyId,
             depositPolicyId: request.DepositPolicyId,
             pricingPolicyId: request.PricingPolicyId,
-            cancellationPolicyId: request.CancellationPolicyId);
+            cancellationPolicyId: request.CancellationPolicyId,
+            tourDesignerId: tour.TourDesignerId);
         MergeTranslations(tour, request.Translations);
 
         // Nested classifications update (upsert)
@@ -642,8 +648,14 @@ public class TourService(
 
     public async Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request)
     {
-        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize);
-        var total = await _tourRepository.CountAll(request.SearchText);
+        var userIdString = _user.Id;
+        if (string.IsNullOrWhiteSpace(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        {
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+        }
+
+        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize, principalId: userId);
+        var total = await _tourRepository.CountAll(request.SearchText, principalId: userId);
         var currentLanguage = _languageContext.CurrentLanguage;
 
         var tourVms = tours.Select(t =>

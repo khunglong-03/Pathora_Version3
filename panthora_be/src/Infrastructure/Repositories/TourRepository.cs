@@ -92,7 +92,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .AsSplitQuery();
     }
 
-    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted && t.Status == TourStatus.Active);
         if (!string.IsNullOrWhiteSpace(searchText))
@@ -102,6 +102,25 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 t.TourName.ToLower().Contains(search) ||
                 t.TourCode.ToLower().Contains(search));
         }
+
+        if (principalId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == principalId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            if (!designerIds.Contains(principalId.Value))
+            {
+                designerIds.Add(principalId.Value);
+            }
+
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+        }
+
         return await query
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
@@ -111,7 +130,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.Where(t => !t.IsDeleted && t.Status == TourStatus.Active);
         if (!string.IsNullOrWhiteSpace(searchText))
@@ -121,6 +140,25 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 t.TourName.ToLower().Contains(search) ||
                 t.TourCode.ToLower().Contains(search));
         }
+
+        if (principalId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == principalId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            if (!designerIds.Contains(principalId.Value))
+            {
+                designerIds.Add(principalId.Value);
+            }
+
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+        }
+
         return await query.CountAsync(cancellationToken);
     }
 

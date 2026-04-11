@@ -260,4 +260,110 @@ public sealed class GetTransportProvidersQueryHandlerTests
         Assert.False(result.IsError);
         await _userRepository.Received(1).FindProvidersByRoleAsync(6, null, null, 1, 10, Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_WithContinent_FiltersByContinent()
+    {
+        // Arrange
+        var continent = Continent.Asia;
+        var userIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        var users = new List<UserEntity>
+        {
+            new UserEntity
+            {
+                Id = userIds[0],
+                FullName = "Provider A",
+                Email = "a@test.com",
+                Status = UserStatus.Active
+            },
+            new UserEntity
+            {
+                Id = userIds[1],
+                FullName = "Provider B",
+                Email = "b@test.com",
+                Status = UserStatus.Active
+            }
+        };
+        var vehicleData = new Dictionary<Guid, (int Count, List<Continent> Continents)>
+        {
+            [userIds[0]] = (2, new List<Continent> { Continent.Asia }),
+            [userIds[1]] = (1, new List<Continent> { Continent.Asia })
+        };
+        var supplierAddressData = new Dictionary<Guid, string>();
+
+        var query = new TpQry.GetTransportProvidersQuery
+        {
+            Continent = continent
+        };
+
+        _vehicleRepository.FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>())
+            .Returns(userIds);
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, userIds, 1, 10, Arg.Any<CancellationToken>())
+            .Returns(users);
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>())
+            .Returns(2);
+        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+            .Returns(vehicleData);
+        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+            .Returns(supplierAddressData);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(2, result.Value.Total);
+        Assert.Equal(2, result.Value.Items.Count);
+        await _vehicleRepository.Received(1).FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WithContinent_PendingCountRespectsFilter()
+    {
+        // Arrange
+        var continent = Continent.Asia;
+        var userIds = new List<Guid> { Guid.NewGuid() };
+        var users = new List<UserEntity>
+        {
+            new UserEntity
+            {
+                Id = userIds[0],
+                FullName = "Pending Provider",
+                Email = "pending@test.com",
+                Status = UserStatus.Pending
+            }
+        };
+        var vehicleData = new Dictionary<Guid, (int Count, List<Continent> Continents)>
+        {
+            [userIds[0]] = (1, new List<Continent> { Continent.Asia })
+        };
+        var supplierAddressData = new Dictionary<Guid, string>();
+
+        var query = new TpQry.GetTransportProvidersQuery
+        {
+            Continent = continent
+        };
+
+        _vehicleRepository.FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>())
+            .Returns(userIds);
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, userIds, 1, 10, Arg.Any<CancellationToken>())
+            .Returns(users);
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>())
+            .Returns(1);
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, "Pending", userIds, Arg.Any<CancellationToken>())
+            .Returns(1);
+        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+            .Returns(vehicleData);
+        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+            .Returns(supplierAddressData);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert: verify pending count method was called with filtered userIds
+        await _userRepository.Received(1).CountProvidersByRoleWithIdsAsync(6, null, "Pending", userIds, Arg.Any<CancellationToken>());
+        // Verify the global pending count method was NOT called (if bug is fixed)
+        await _userRepository.DidNotReceive().CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>());
+    }
 }

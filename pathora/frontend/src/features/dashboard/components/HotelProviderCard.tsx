@@ -69,6 +69,15 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
         )}
       </div>
 
+      {/* Continents */}
+      {provider.continents && provider.continents.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {provider.continents.map((continent) => (
+            <span key={continent} className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">{continent}</span>
+          ))}
+        </div>
+      )}
+
       {/* Stats */}
       <div className="flex gap-3 pt-3 mt-auto" style={{ borderTop: "1px solid #F3F4F6" }}>
         <div className="flex-1 text-center">

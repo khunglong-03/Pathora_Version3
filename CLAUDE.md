@@ -676,7 +676,7 @@ Specs (4): `admin-dashboard-routing`, `admin-tour-request-detail`, `dashboard-na
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (13317 symbols, 31441 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Doan2** (12849 symbols, 30974 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -692,7 +692,7 @@ This project is indexed by GitNexus as **Pathora_Version3** (13317 symbols, 3144
 
 1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
 2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/Pathora_Version3/process/{processName}` — trace the full execution flow step by step
+3. `READ gitnexus://repo/Doan2/process/{processName}` — trace the full execution flow step by step
 4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
 
 ## When Refactoring
@@ -731,10 +731,10 @@ This project is indexed by GitNexus as **Pathora_Version3** (13317 symbols, 3144
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/Pathora_Version3/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
-| `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
-| `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/Doan2/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Doan2/clusters` | All functional areas |
+| `gitnexus://repo/Doan2/processes` | All execution flows |
+| `gitnexus://repo/Doan2/process/{name}` | Step-by-step execution trace |
 
 ## Self-Check Before Finishing
 
@@ -774,3 +774,48 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## gstack — Web Browsing & Design Tools
+
+This workspace is configured to use **gstack** for all web browsing and design tasks. The `/browse` skill replaces any `mcp__claude-in-chrome__*` tools.
+
+**Important:** Always use gstack skills for web-related operations. Do not use MCP Chrome tools.
+
+### Available gstack Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `/browse` | Browse websites and retrieve content |
+| `/office-hours` | Schedule and manage office hours |
+| `/plan-ceo-review` | Plan CEO review sessions |
+| `/plan-eng-review` | Plan engineering reviews |
+| `/plan-design-review` | Plan design reviews |
+| `/design-consultation` | Get design consultation |
+| `/design-shotgun` | Rapid design exploration |
+| `/design-html` | Generate HTML from designs |
+| `/review` | Conduct reviews |
+| `/ship` | Ship/deploy features |
+| `/land-and-deploy` | Land and deploy changes |
+| `/canary` | Manage canary releases |
+| `/benchmark` | Performance benchmarking |
+| `/connect-chrome` | Connect to Chrome browser |
+| `/qa` | Quality assurance testing |
+| `/qa-only` | QA-focused testing only |
+| `/design-review` | Design review process |
+| `/setup-browser-cookies` | Configure browser cookies |
+| `/setup-deploy` | Setup deployment |
+| `/retro` | Retrospective meetings |
+| `/investigate` | Investigate issues |
+| `/document-release` | Document releases |
+| `/codex` | Code documentation |
+| `/cso` | Customer success operations |
+| `/autoplan` | Auto-generate plans |
+| `/plan-devex-review` | Plan developer experience reviews |
+| `/devex-review` | Developer experience review |
+| `/careful` | Caution mode for risky operations |
+| `/freeze` | Freeze changes |
+| `/guard` | Guard/protect resources |
+| `/unfreeze` | Unfreeze changes |
+| `/gstack-upgrade` | Upgrade gstack itself |
+| `/learn` | Learning resources |
+

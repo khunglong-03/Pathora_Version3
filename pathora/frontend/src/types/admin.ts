@@ -156,6 +156,7 @@ export interface TransportProviderListItem {
   bookingCount?: number;
   vehicleCount?: number;
   createdAt?: string;
+  continents: string[];
 }
 
 // ─── Transport Provider Detail ──────────────────────────────────
@@ -196,6 +197,7 @@ export interface TransportProviderDetail {
   bookingCount: number;
   activeBookingCount: number;
   completedBookingCount: number;
+  continents: string[];
 }
 
 // ─── Hotel Provider ──────────────────────────────────────────────
@@ -209,6 +211,7 @@ export interface HotelProviderListItem {
   accommodationCount?: number;
   roomCount?: number;
   createdAt?: string;
+  continents: string[];
 }
 
 export interface HotelAccommodationSummary {
@@ -236,6 +239,7 @@ export interface HotelProviderDetail {
   bookingCount: number;
   activeBookingCount: number;
   completedBookingCount: number;
+  continents: string[];
 }
 
 // ─── TourManager Hierarchy ───────────────────────────────────────

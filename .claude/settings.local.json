@@ -19,7 +19,21 @@
       "Bash(chmod:*)",
       "mcp__gitnexus__query",
       "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}')",
-      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}' -v)"
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}' -v)",
+      "Bash(dir \"d:\\\\Doan2\\\\pathora\\\\frontend\\\\src\\\\app\\\\manager\")",
+      "Bash(grep -E \"page\\\\.tsx$|^page\\\\.tsx$\")",
+      "Bash(grep \"page.tsx$\")",
+      "Bash(dotnet build:*)",
+      "Bash(xargs grep:*)",
+      "Bash(npx openspec:*)",
+      "Bash(openspec --version)",
+      "Bash(openspec status:*)",
+      "Bash(openspec --help)",
+      "Bash(openspec new:*)",
+      "Bash(openspec instructions:*)",
+      "mcp__gitnexus__impact",
+      "mcp__gitnexus__context",
+      "Bash(taskkill /F /PID 28104)"
     ]
   }
 }

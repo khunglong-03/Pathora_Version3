@@ -34,7 +34,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -59,6 +59,36 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.Status == status.Value);
         }
 
+        if (principalId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == principalId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            if (!designerIds.Contains(principalId.Value))
+            {
+                designerIds.Add(principalId.Value);
+            }
+
+            // Subquery: tour IDs where TourDesignerId is in designerIds
+            var allowedTourIds = _context.Tours
+                .AsNoTracking()
+                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Select(t => t.Id);
+
+            // Subquery: instance IDs directly assigned to principal
+            var allowedInstanceIds = _context.Set<TourInstanceManagerEntity>()
+                .AsNoTracking()
+                .Where(m => m.UserId == principalId.Value)
+                .Select(m => m.TourInstanceId);
+
+            query = query.Where(ti => allowedTourIds.Contains(ti.TourId) || allowedInstanceIds.Contains(ti.Id));
+        }
+
         return await query
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
@@ -66,7 +96,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -82,6 +112,34 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (principalId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == principalId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            if (!designerIds.Contains(principalId.Value))
+            {
+                designerIds.Add(principalId.Value);
+            }
+
+            var allowedTourIds = _context.Tours
+                .AsNoTracking()
+                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Select(t => t.Id);
+
+            var allowedInstanceIds = _context.Set<TourInstanceManagerEntity>()
+                .AsNoTracking()
+                .Where(m => m.UserId == principalId.Value)
+                .Select(m => m.TourInstanceId);
+
+            query = query.Where(ti => allowedTourIds.Contains(ti.TourId) || allowedInstanceIds.Contains(ti.Id));
         }
 
         return await query.CountAsync(cancellationToken);

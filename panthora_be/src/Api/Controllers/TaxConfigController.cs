@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "ManagerOnly")]
+[Authorize(Policy = "AdminOnly")]
 [Route(TaxConfigEndpoint.Base)]
 public class TaxConfigController : BaseApiController
 {

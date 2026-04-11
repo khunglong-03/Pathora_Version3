@@ -14,6 +14,7 @@ public interface IVehicleRepository : IRepository<VehicleEntity>
     Task<int> CountAllAsync(string? searchText, CancellationToken cancellationToken = default);
     Task SoftDeleteAsync(Guid id, string performedBy, CancellationToken cancellationToken = default);
     Task<List<Guid>> FindOwnerIdsWithVehicleInContinentAsync(Domain.Enums.Continent continent, CancellationToken cancellationToken = default);
+    Task<List<Guid>> FindOwnerIdsWithVehiclesInContinentsAsync(List<Domain.Enums.Continent> continents, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (int Count, List<Domain.Enums.Continent> Continents)>> GetVehicleDataGroupedByOwnerAsync(
         List<Guid> ownerIds, CancellationToken cancellationToken = default);
 }

@@ -16,6 +16,7 @@ import { CreateSupplierModal } from "@/features/dashboard/components/CreateSuppl
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
+import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
 import { Bed, Phone, EnvelopeSimple, ArrowRight } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
@@ -41,6 +42,7 @@ export default function HotelSuppliersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const debouncedSearch = useDebounce(searchInput, 300);
+  const [selectedContinents, setSelectedContinents] = useState<string[]>([]);
 
   const loadSuppliers = useCallback(async () => {
     setIsLoading(true);
@@ -51,6 +53,7 @@ export default function HotelSuppliersPage() {
       limit: 12,
       search: debouncedSearch || undefined,
       ...(statusFilter !== "all" && { status: statusFilter }),
+      ...(selectedContinents.length > 0 && { continents: selectedContinents }),
     };
 
     try {
@@ -67,13 +70,17 @@ export default function HotelSuppliersPage() {
       setSuppliers([]);
     }
     setIsLoading(false);
-  }, [currentPage, debouncedSearch, statusFilter]);
+  }, [currentPage, debouncedSearch, statusFilter, selectedContinents]);
 
   useEffect(() => {
     void loadSuppliers();
   }, [loadSuppliers]);
 
   const handleRefresh = () => setReloadToken((t) => t + 1);
+  const handleContinentsChange = (continents: string[]) => {
+    setSelectedContinents(continents);
+    setCurrentPage(1);
+  };
 
   const activeCount = suppliers.filter((s) => s.status === "Active").length;
 
@@ -120,20 +127,29 @@ export default function HotelSuppliersPage() {
       <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabs
-          tabs={STATUS_TABS}
-          activeValue={statusFilter}
-          onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
-        />
-        <div className="w-full md:w-72">
-          <TextInput
-            type="text"
-            placeholder="Tìm kiếm nhà cung cấp..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            icon="MagnifyingGlass"
-            hasicon={false}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <AdminFilterTabs
+            tabs={STATUS_TABS}
+            activeValue={statusFilter}
+            onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
+          />
+          <div className="w-full md:w-72">
+            <TextInput
+              type="text"
+              placeholder="Tìm kiếm nhà cung cấp..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              icon="MagnifyingGlass"
+              hasicon={false}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium" style={{ color: "#6B7280" }}>Châu lục:</span>
+          <MultiSelectContinentDropdown
+            selected={selectedContinents}
+            onChange={handleContinentsChange}
           />
         </div>
       </div>
@@ -216,6 +232,15 @@ export default function HotelSuppliersPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Continents */}
+                    {supplier.continents && supplier.continents.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {supplier.continents.map((continent) => (
+                          <span key={continent} className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">{continent}</span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Stats */}
                     <div className="flex gap-3 pt-3" style={{ borderTop: "1px solid #F3F4F6" }}>

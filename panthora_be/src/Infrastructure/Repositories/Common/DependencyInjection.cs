@@ -55,6 +55,7 @@ internal static class DependencyInjection
         services.AddScoped<ITourDayActivityGuideRepository, TourDayActivityGuideRepository>();
         services.AddScoped<IAdminOverviewRepository, AdminOverviewRepository>();
         services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
+        services.AddScoped<IManagerDashboardRepository, ManagerDashboardRepository>();
         services.AddScoped<ITourManagerAssignmentRepository, TourManagerAssignmentRepository>();
 
         services.AddScoped<ICustomerPaymentRepository, CustomerPaymentRepository>();

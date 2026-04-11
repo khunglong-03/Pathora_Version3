@@ -120,6 +120,17 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Guid>> FindOwnerIdsWithVehiclesInContinentsAsync(
+        List<Continent> continents, CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.LocationArea.HasValue && continents.Contains(v.LocationArea.Value) && !v.IsDeleted)
+            .Select(v => v.OwnerId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Dictionary<Guid, (int Count, List<Continent> Continents)>> GetVehicleDataGroupedByOwnerAsync(
         List<Guid> ownerIds, CancellationToken cancellationToken = default)
     {

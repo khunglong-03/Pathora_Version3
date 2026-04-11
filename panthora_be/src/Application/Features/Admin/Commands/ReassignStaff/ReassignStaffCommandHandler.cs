@@ -1,21 +1,28 @@
 namespace Application.Features.Admin.Commands.ReassignStaff;
 
 using Application.Common.Constant;
+using Application.Common.Interfaces;
 using global::Contracts.ModelResponse;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using MediatR;
+using Application.Common.Interfaces;
+using System.Linq;
 
 public sealed class ReassignStaffCommandHandler(
-        ITourManagerAssignmentRepository assignmentRepository)
+        ITourManagerAssignmentRepository assignmentRepository,
+        ICurrentUser _currentUser)
     : IRequestHandler<ReassignStaffCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(
         ReassignStaffCommand request,
         CancellationToken cancellationToken)
     {
+        if (request.ManagerId != _currentUser.Id)
+            return Error.Forbidden(ErrorConstants.Authorization.Forbidden);
+
         // Idempotency: same manager = no-op
         if (request.ManagerId == request.TargetManagerId)
             return Result.Success;
@@ -37,11 +44,11 @@ public sealed class ReassignStaffCommandHandler(
         // Create new assignment under target manager
         var newAssignment = TourManagerAssignmentEntity.Create(
             request.TargetManagerId,
-            targetAssignment.AssignedEntityType,
+            targetAssignment.AssignedEventType,
             request.StaffId,
             null,
             targetAssignment.AssignedRoleInTeam,
-            "admin");
+            _currentUser.Id.ToString());
 
         await assignmentRepository.AssignAsync(newAssignment, cancellationToken);
 

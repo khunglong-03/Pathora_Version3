@@ -15,6 +15,7 @@ export interface HotelSupplierItem {
   email: string | null;
   address: string | null;
   status: string;
+  continents?: string[];
   accommodationCount: number;
   roomCount: number;
   createdAt: string | null;
@@ -173,6 +174,7 @@ export interface HotelSupplierFilterParams {
   limit?: number;
   status?: string;
   search?: string;
+  continents?: string[];
 }
 
 export interface RoomInventoryFilterParams {

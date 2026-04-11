@@ -16,13 +16,17 @@ public sealed class CreateStaffUnderManagerCommandHandler(
         IRoleRepository roleRepository,
         ITourManagerAssignmentRepository assignmentRepository,
         IUnitOfWork unitOfWork,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        ICurrentUser _currentUser)
     : ICommandHandler<CreateStaffUnderManagerCommand, ErrorOr<StaffMemberDto>>
 {
     public async Task<ErrorOr<StaffMemberDto>> Handle(
         CreateStaffUnderManagerCommand request,
         CancellationToken cancellationToken)
     {
+        if (request.ManagerId != _currentUser.Id)
+            return Error.Forbidden(ErrorConstants.Authorization.Forbidden);
+
         var manager = await userRepository.FindById(request.ManagerId);
         if (manager is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
@@ -82,7 +86,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
                 userEntity.Id,
                 null,
                 null,
-                "admin");
+                _currentUser.Id.ToString());
 
             await assignmentRepository.AssignAsync(assignment, cancellationToken);
         });

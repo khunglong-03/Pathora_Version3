@@ -12,6 +12,8 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
     Task<int> CountActiveHotelProvidersAsync(CancellationToken cancellationToken);
     Task<List<Guid>> FindOwnerUserIdsWithAccommodationInContinentAsync(
         Domain.Enums.Continent continent, CancellationToken cancellationToken = default);
+    Task<List<Guid>> FindOwnerUserIdsWithAccommodationsInContinentsAsync(
+        List<Domain.Enums.Continent> continents, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (int Count, List<Domain.Enums.Continent> Continents)>> GetAccommodationDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, string>> GetTransportSupplierAddressByOwnerAsync(

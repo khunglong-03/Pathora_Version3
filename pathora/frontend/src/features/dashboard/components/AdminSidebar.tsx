@@ -44,7 +44,6 @@ export const MANAGER_NAV_ITEMS = [
   { label: "Customers", icon: UsersThree, href: "/manager/dashboard/customers" },
   { label: "Insurance", icon: ShieldCheck, href: "/manager/dashboard/insurance" },
   { label: "Visa Applications", icon: Certificate, href: "/manager/dashboard/visa" },
-  { label: "Settings", icon: Gear, href: "/manager/dashboard/settings" },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
@@ -66,11 +65,16 @@ export const ADMIN_TOUR_ITEMS = [
   { label: "Quản lý Tour Manager", icon: UsersThree, href: "/admin/tour-managers" },
 ] as const;
 
+export const ADMIN_SETTINGS_ITEMS = [
+  { label: "Cấu hình hệ thống", icon: Gear, href: "/admin/settings" },
+] as const;
+
 // Flat nav items list (used by the component)
 export const ADMIN_NAV_ITEMS = [
   ...ADMIN_USER_ITEMS,
   ...ADMIN_PROVIDER_ITEMS,
   ...ADMIN_TOUR_ITEMS,
+  ...ADMIN_SETTINGS_ITEMS,
 ];
 
 export const NAV_ITEMS = MANAGER_NAV_ITEMS;
@@ -147,9 +151,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
   const renderAdminNav = () => {
     type AdminNavItem = { label: string; icon: typeof ADMIN_USER_ITEMS[number]["icon"]; href: string };
     const sections: Array<{ sectionLabel?: string; items: readonly AdminNavItem[] }> = [
-      { sectionLabel: "QUẢN LÝ NGƯỜI DÙNG", items: ADMIN_USER_ITEMS },
-      { sectionLabel: "QUẢN LÝ NHÀ CUNG CẤP", items: ADMIN_PROVIDER_ITEMS },
-      { sectionLabel: "QUẢN LÝ TOUR", items: ADMIN_TOUR_ITEMS },
+      { sectionLabel: "QUẢN LÝ TÀI KHOẢN", items: ADMIN_USER_ITEMS },
+      { sectionLabel: "ĐỐI TÁC", items: ADMIN_PROVIDER_ITEMS },
+      { sectionLabel: "ĐIỀU HÀNH TOUR", items: ADMIN_TOUR_ITEMS },
+      { sectionLabel: "HỆ THỐNG", items: ADMIN_SETTINGS_ITEMS },
     ];
 
     return (
