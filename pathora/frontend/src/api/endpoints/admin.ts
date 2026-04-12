@@ -96,6 +96,9 @@ export interface AdminEndpoints {
   GET_DASHBOARD_OVERVIEW: string;
   CREATE_STAFF_UNDER_MANAGER: (managerId: string) => string;
   GET_ALL_MANAGERS: string;
+  GET_MANAGERS_BANK_ACCOUNTS: string;
+  UPDATE_MANAGER_BANK_ACCOUNT: (managerId: string) => string;
+  VERIFY_MANAGER_BANK_ACCOUNT: (managerId: string) => string;
 }
 
 export interface SiteContentEndpoints {
@@ -216,6 +219,11 @@ export const ADMIN: AdminEndpoints = {
   CREATE_STAFF_UNDER_MANAGER: (managerId: string): string =>
     `/api/admin/tour-managers/${managerId}/staff/create`,
   GET_ALL_MANAGERS: "/api/admin/managers",
+  GET_MANAGERS_BANK_ACCOUNTS: "/api/admin/managers/bank-accounts",
+  UPDATE_MANAGER_BANK_ACCOUNT: (managerId: string): string =>
+    `/api/admin/managers/${managerId}/bank-account`,
+  VERIFY_MANAGER_BANK_ACCOUNT: (managerId: string): string =>
+    `/api/admin/managers/${managerId}/bank-account/verify`,
 };
 
 export const SITE_CONTENT: SiteContentEndpoints = {

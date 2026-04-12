@@ -246,7 +246,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
     {
         return await _context.UserRoles
             .AsNoTracking()
-            .Where(ur => ur.RoleId == 2) // Manager role
+            .Where(ur => ur.RoleId == (int)AssignedRole.TourManager)
             .Join(_context.Users.Where(u => !u.IsDeleted),
                 ur => ur.UserId,
                 u => u.Id,

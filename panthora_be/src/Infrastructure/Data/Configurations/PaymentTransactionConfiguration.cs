@@ -88,6 +88,16 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
         builder.Property(x => x.BeneficiaryBank)
             .HasMaxLength(255);
 
+        // Manager bank account (audit fields for manager-direct-payment)
+        builder.Property(x => x.ManagerAccountNumber)
+            .HasMaxLength(50);
+
+        builder.Property(x => x.ManagerBankCode)
+            .HasMaxLength(20);
+
+        builder.Property(x => x.ManagerAccountName)
+            .HasMaxLength(200);
+
         // Error tracking
         builder.Property(x => x.ErrorCode)
             .HasMaxLength(50);

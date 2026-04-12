@@ -226,3 +226,23 @@ VALUES ('20260407185606_AddTourManagerAssignment', '10.0.0');
 
 COMMIT;
 
+START TRANSACTION;
+
+-- Add manager bank account fields to Users table
+ALTER TABLE "Users" ADD COLUMN "BankAccountNumber" character varying(50);
+ALTER TABLE "Users" ADD COLUMN "BankCode" character varying(20);
+ALTER TABLE "Users" ADD COLUMN "BankAccountName" character varying(200);
+ALTER TABLE "Users" ADD COLUMN "BankAccountVerified" boolean NOT NULL DEFAULT false;
+ALTER TABLE "Users" ADD COLUMN "BankAccountVerifiedAt" timestamp with time zone;
+ALTER TABLE "Users" ADD COLUMN "BankAccountVerifiedBy" uuid;
+
+-- Add manager account audit fields to PaymentTransactions table
+ALTER TABLE "PaymentTransactions" ADD COLUMN "ManagerAccountNumber" character varying(50);
+ALTER TABLE "PaymentTransactions" ADD COLUMN "ManagerBankCode" character varying(20);
+ALTER TABLE "PaymentTransactions" ADD COLUMN "ManagerAccountName" character varying(200);
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260412044004_AddManagerBankAccountFields', '10.0.0');
+
+COMMIT;
+

@@ -33,7 +33,8 @@
       "Bash(openspec instructions:*)",
       "mcp__gitnexus__impact",
       "mcp__gitnexus__context",
-      "Bash(taskkill /F /PID 28104)"
+      "Bash(taskkill /F /PID 28104)",
+      "Bash(dotnet test:*)"
     ]
   }
 }

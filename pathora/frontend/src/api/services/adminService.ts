@@ -19,6 +19,18 @@ import type {
 import { extractData, extractResult } from "@/utils/apiResponse";
 import { type TourManagerSummary } from "./tourManagerAssignmentService";
 
+export interface ManagerBankAccountDto {
+  userId: string;
+  username: string;
+  fullName: string | null;
+  email: string;
+  bankAccountNumber: string | null;
+  bankCode: string | null;
+  bankAccountName: string | null;
+  bankAccountVerified: boolean;
+  bankAccountVerifiedAt: string | null;
+}
+
 export interface AdminBooking {
   id: string | number;
   customerName?: string;
@@ -159,7 +171,48 @@ export const adminService = {
     // Returns TourManagerSummary[] | null — null on error, extracted from ApiResponse
     return extractData<TourManagerSummary[]>(response.data);
   },
+
+  getManagersBankAccounts: async (params?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const response = await api.get<ApiResponse<{
+      items: ManagerBankAccountDto[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>>(API_ENDPOINTS.ADMIN.GET_MANAGERS_BANK_ACCOUNTS, {
+      params: { page: 1, limit: 50, ...params },
+    });
+    return extractResult(response.data);
+  },
+
+  updateManagerBankAccount: async (
+    managerId: string,
+    data: {
+      bankAccountNumber: string;
+      bankCode: string;
+      bankAccountName?: string;
+    }
+  ) => {
+    const response = await api.put<ApiResponse<ManagerBankAccountDto>>(
+      API_ENDPOINTS.ADMIN.UPDATE_MANAGER_BANK_ACCOUNT(managerId),
+      data
+    );
+    return extractResult(response.data);
+  },
+
+  verifyManagerBankAccount: async (managerId: string) => {
+    const response = await api.post<ApiResponse<null>>(
+      API_ENDPOINTS.ADMIN.VERIFY_MANAGER_BANK_ACCOUNT(managerId),
+      {}
+    );
+    return extractResult(response.data);
+  },
 };
 
 export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto, TransportProviderDetail };
 export type { TourManagerSummary };
+export type { ManagerBankAccountDto };

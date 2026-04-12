@@ -138,7 +138,19 @@ public sealed class PaymentServiceTests
     public async Task CreatePaymentTransactionAsync_GeneratesRefCode_Exactly12Characters()
     {
         // Arrange
-        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>())
+        var bookingId = Guid.NewGuid();
+        var booking = BookingEntity.Create(
+            tourInstanceId: Guid.NewGuid(),
+            customerName: "Customer",
+            customerPhone: "0123456789",
+            numberAdult: 1,
+            totalPrice: 100000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "test@test.com");
+
+        _bookingRepo.GetByIdAsync(bookingId).Returns(booking);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
             .Returns(OutboxMessage.Create("test", "{}"));
@@ -149,7 +161,6 @@ public sealed class PaymentServiceTests
         _configuration["VietQR:TemplateId"].Returns("compact2");
 
         var service = CreateService();
-        var bookingId = Guid.NewGuid();
 
         // Act
         var result = await service.CreatePaymentTransactionAsync(
@@ -171,13 +182,25 @@ public sealed class PaymentServiceTests
 
     #endregion
 
-    #region TC05: CreatePaymentTransactionAsync refCode format is yyyyMMddHHmm + 2 random
+    #region TC05: CreatePaymentTransactionAsync refCode format is yyMMddHH + 4 Base36 random
 
     [Fact]
-    public async Task CreatePaymentTransactionAsync_RefCodeFormat_IsDateTimePlus2Random()
+    public async Task CreatePaymentTransactionAsync_RefCodeFormat_IsDateTimePlus4Random()
     {
         // Arrange
-        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>())
+        var bookingId = Guid.NewGuid();
+        var booking = BookingEntity.Create(
+            tourInstanceId: Guid.NewGuid(),
+            customerName: "Customer",
+            customerPhone: "0123456789",
+            numberAdult: 1,
+            totalPrice: 100000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "test@test.com");
+
+        _bookingRepo.GetByIdAsync(bookingId).Returns(booking);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
             .Returns(OutboxMessage.Create("test", "{}"));
@@ -191,7 +214,7 @@ public sealed class PaymentServiceTests
 
         // Act
         var result = await service.CreatePaymentTransactionAsync(
-            bookingId: Guid.NewGuid(),
+            bookingId: bookingId,
             type: TransactionType.Deposit,
             amount: 100000m,
             paymentMethod: PaymentMethod.BankTransfer,
@@ -202,14 +225,17 @@ public sealed class PaymentServiceTests
         Assert.False(result.IsError);
         var refCode = result.Value.ReferenceCode!;
 
-        // First 10 chars should be digits (yyMMddHHmm)
-        var datetimePart = refCode[..10];
+        // Format: yyMMddHH (8 digits) + 4 Base36 random = 12 total
+        Assert.Equal(12, refCode.Length);
+
+        // First 8 chars should be digits (yyMMddHH)
+        var datetimePart = refCode[..8];
         Assert.True(datetimePart.All(char.IsDigit), $"datetime part should be all digits: {datetimePart}");
 
-        // Last 2 chars should be alphanumeric
-        var randomPart = refCode[^2..];
+        // Last 4 chars should be alphanumeric (Base36)
+        var randomPart = refCode[^4..];
         Assert.True(randomPart.All(c => char.IsDigit(c) || (c >= 'A' && c <= 'Z')),
-            $"random part should be alphanumeric: {randomPart}");
+            $"random part should be alphanumeric Base36: {randomPart}");
     }
 
     #endregion
@@ -220,7 +246,19 @@ public sealed class PaymentServiceTests
     public async Task CreatePaymentTransactionAsync_ExpiresAt_DefaultsTo30Minutes()
     {
         // Arrange
-        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>())
+        var bookingId = Guid.NewGuid();
+        var booking = BookingEntity.Create(
+            tourInstanceId: Guid.NewGuid(),
+            customerName: "Customer",
+            customerPhone: "0123456789",
+            numberAdult: 1,
+            totalPrice: 100000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "test@test.com");
+
+        _bookingRepo.GetByIdAsync(bookingId).Returns(booking);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
             .Returns(OutboxMessage.Create("test", "{}"));
@@ -235,20 +273,19 @@ public sealed class PaymentServiceTests
 
         // Act
         var result = await service.CreatePaymentTransactionAsync(
-            bookingId: Guid.NewGuid(),
+            bookingId: bookingId,
             type: TransactionType.Deposit,
             amount: 100000m,
             paymentMethod: PaymentMethod.BankTransfer,
             paymentNote: "Test",
             createdBy: "test@test.com",
-            expirationMinutes: null); // explicitly null
+            expirationMinutes: null);
 
         // Assert
         Assert.False(result.IsError);
         var transaction = result.Value;
         Assert.NotNull(transaction.ExpiredAt);
 
-        // ExpiredAt should be approximately 30 minutes from now (within 1 second tolerance)
         var expectedExpiry = before.AddMinutes(30);
         var tolerance = TimeSpan.FromSeconds(2);
         Assert.InRange(transaction.ExpiredAt.Value, expectedExpiry - tolerance, expectedExpiry + tolerance);
@@ -284,7 +321,7 @@ public sealed class PaymentServiceTests
         // Act
         var result = await service.ProcessSepayCallbackAsync(transactionData);
 
-        // Assert — payment should still succeed despite booking update failure
+        // Assert
         Assert.False(result.IsError);
         _logger.ReceivedWithAnyArgs().Log(
             LogLevel.Error,
@@ -292,6 +329,464 @@ public sealed class PaymentServiceTests
             Arg.Any<object>(),
             Arg.Any<Exception>(),
             Arg.Any<Func<object, Exception?, string>>());
+    }
+
+    #endregion
+
+    #region TC07: CreatePaymentTransactionAsync with manager having bank account uses manager account
+
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_WithManagerHavingBankAccount_UsesManagerAccount()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var managerId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var manager = new UserEntity
+        {
+            Username = "manager",
+            Email = "manager@example.com",
+            FullName = "Manager Name",
+            Password = "hash",
+            BankAccountNumber = "1234567890",
+            BankCode = "MB",
+            BankAccountName = "Manager Name"
+        };
+
+        var tourInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(),
+            classificationId: Guid.NewGuid(),
+            title: "Tour",
+            tourName: "Tour",
+            tourCode: "T001",
+            classificationName: "Standard",
+            instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow,
+            endDate: DateTimeOffset.UtcNow.AddDays(3),
+            maxParticipation: 20,
+            basePrice: 1000m,
+            performedBy: "system",
+            location: "Hanoi");
+        var managerAssignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: managerId,
+            role: TourInstanceManagerRole.Manager,
+            performedBy: "system");
+        managerAssignment.User = manager;
+        tourInstance.Managers.Add(managerAssignment);
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Customer",
+            customerPhone: "0987654321",
+            numberAdult: 2,
+            totalPrice: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "customer@example.com");
+
+        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("9999999999");
+        _configuration["VietQR:AccountName"].Returns("Default Account");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.Deposit,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Test payment",
+            createdBy: "customer@example.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        var transaction = result.Value;
+        Assert.Equal("1234567890", transaction.ManagerAccountNumber);
+        Assert.Equal("MB", transaction.ManagerBankCode);
+        Assert.Equal("Manager Name", transaction.ManagerAccountName);
+    }
+
+    #endregion
+
+    #region TC08: CreatePaymentTransactionAsync without manager account uses default config
+
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_WithoutManagerAccount_UsesDefaultConfig()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var managerId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var manager = new UserEntity
+        {
+            Username = "manager",
+            Email = "manager@example.com",
+            FullName = "Manager Name",
+            Password = "hash"
+        };
+        // Bank account fields are null/empty
+
+        var tourInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(),
+            classificationId: Guid.NewGuid(),
+            title: "Tour",
+            tourName: "Tour",
+            tourCode: "T001",
+            classificationName: "Standard",
+            instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow,
+            endDate: DateTimeOffset.UtcNow.AddDays(3),
+            maxParticipation: 20,
+            basePrice: 1000m,
+            performedBy: "system",
+            location: "Hanoi");
+        var managerAssignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: managerId,
+            role: TourInstanceManagerRole.Manager,
+            performedBy: "system");
+        managerAssignment.User = manager;
+        tourInstance.Managers.Add(managerAssignment);
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Customer",
+            customerPhone: "0987654321",
+            numberAdult: 2,
+            totalPrice: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "customer@example.com");
+
+        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("8888888888");
+        _configuration["VietQR:AccountName"].Returns("Default Account");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.Deposit,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Test payment",
+            createdBy: "customer@example.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        var transaction = result.Value;
+        // Should fall back to default config
+        Assert.Equal("8888888888", transaction.ManagerAccountNumber);
+        Assert.Equal("970405", transaction.ManagerBankCode);
+        Assert.Equal("Default Account", transaction.ManagerAccountName);
+    }
+
+    #endregion
+
+    #region TC09: CreatePaymentTransactionAsync no managers falls back to default config
+
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_NoManagers_FallsBackToDefaultConfig()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var tourInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(),
+            classificationId: Guid.NewGuid(),
+            title: "Tour",
+            tourName: "Tour",
+            tourCode: "T001",
+            classificationName: "Standard",
+            instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow,
+            endDate: DateTimeOffset.UtcNow.AddDays(3),
+            maxParticipation: 20,
+            basePrice: 1000m,
+            performedBy: "system",
+            location: "Hanoi");
+        // Managers list is empty
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Customer",
+            customerPhone: "0987654321",
+            numberAdult: 2,
+            totalPrice: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "customer@example.com");
+
+        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("7777777777");
+        _configuration["VietQR:AccountName"].Returns("Fallback Account");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.Deposit,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Test payment",
+            createdBy: "customer@example.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        var transaction = result.Value;
+        Assert.Equal("7777777777", transaction.ManagerAccountNumber);
+        Assert.Equal("970405", transaction.ManagerBankCode);
+        Assert.Equal("Fallback Account", transaction.ManagerAccountName);
+    }
+
+    #endregion
+
+    #region TC10: CreatePaymentTransactionAsync prefers Manager role over Guide
+
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_PrefersManagerRole_OverGuide()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var managerId = Guid.NewGuid();
+        var guideId = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var manager = new UserEntity
+        {
+            Username = "manager",
+            Email = "manager@example.com",
+            FullName = "The Manager",
+            Password = "hash",
+            BankAccountNumber = "1111111111",
+            BankCode = "TCB",
+            BankAccountName = "The Manager"
+        };
+
+        var guide = new UserEntity
+        {
+            Username = "guide",
+            Email = "guide@example.com",
+            FullName = "Guide Person",
+            Password = "hash",
+            BankAccountNumber = "2222222222",
+            BankCode = "VCB",
+            BankAccountName = "Guide Person"
+        };
+
+        var tourInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(),
+            classificationId: Guid.NewGuid(),
+            title: "Tour",
+            tourName: "Tour",
+            tourCode: "T001",
+            classificationName: "Standard",
+            instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow,
+            endDate: DateTimeOffset.UtcNow.AddDays(3),
+            maxParticipation: 20,
+            basePrice: 1000m,
+            performedBy: "system",
+            location: "Hanoi");
+
+        // Guide assigned first (before Manager) to test role preference
+        var guideAssignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: guideId,
+            role: TourInstanceManagerRole.Guide,
+            performedBy: "system");
+        guideAssignment.User = guide;
+        tourInstance.Managers.Add(guideAssignment);
+
+        var managerAssignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: managerId,
+            role: TourInstanceManagerRole.Manager,
+            performedBy: "system");
+        managerAssignment.User = manager;
+        tourInstance.Managers.Add(managerAssignment);
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Customer",
+            customerPhone: "0987654321",
+            numberAdult: 2,
+            totalPrice: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "customer@example.com");
+
+        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("9999999999");
+        _configuration["VietQR:AccountName"].Returns("Default");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.Deposit,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Test payment",
+            createdBy: "customer@example.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        var transaction = result.Value;
+        // Should use Manager's account, not the Guide's (even though Guide was assigned first)
+        Assert.Equal("1111111111", transaction.ManagerAccountNumber);
+        Assert.Equal("TCB", transaction.ManagerBankCode);
+    }
+
+    #endregion
+
+    #region TC11: CreatePaymentTransactionAsync no Manager role uses first assignment
+
+    [Fact]
+    public async Task CreatePaymentTransactionAsync_NoManagerRole_UsesFirstAssignment()
+    {
+        // Arrange
+        var tourInstanceId = Guid.NewGuid();
+        var guide1Id = Guid.NewGuid();
+        var guide2Id = Guid.NewGuid();
+        var bookingId = Guid.NewGuid();
+
+        var guide1 = new UserEntity
+        {
+            Username = "guide1",
+            Email = "guide1@example.com",
+            FullName = "Guide One",
+            Password = "hash",
+            BankAccountNumber = "3333333333",
+            BankCode = "ACB",
+            BankAccountName = "Guide One"
+        };
+
+        var guide2 = new UserEntity
+        {
+            Username = "guide2",
+            Email = "guide2@example.com",
+            FullName = "Guide Two",
+            Password = "hash"
+        };
+
+        var tourInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(),
+            classificationId: Guid.NewGuid(),
+            title: "Tour",
+            tourName: "Tour",
+            tourCode: "T001",
+            classificationName: "Standard",
+            instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow,
+            endDate: DateTimeOffset.UtcNow.AddDays(3),
+            maxParticipation: 20,
+            basePrice: 1000m,
+            performedBy: "system",
+            location: "Hanoi");
+
+        // Guide1 assigned first
+        var guide1Assignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: guide1Id,
+            role: TourInstanceManagerRole.Guide,
+            performedBy: "system");
+        guide1Assignment.User = guide1;
+        tourInstance.Managers.Add(guide1Assignment);
+
+        // Guide2 assigned second
+        var guide2Assignment = TourInstanceManagerEntity.Create(
+            tourInstanceId: tourInstanceId,
+            userId: guide2Id,
+            role: TourInstanceManagerRole.Guide,
+            performedBy: "system");
+        guide2Assignment.User = guide2;
+        tourInstance.Managers.Add(guide2Assignment);
+
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Customer",
+            customerPhone: "0987654321",
+            numberAdult: 2,
+            totalPrice: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "customer@example.com");
+
+        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(tourInstance);
+        _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
+            .Returns(OutboxMessage.Create("test", "{}"));
+        _configuration["VietQR:ApiUrl"].Returns("https://api.vietqr.io");
+        _configuration["VietQR:BankBin"].Returns("970405");
+        _configuration["VietQR:AccountNo"].Returns("9999999999");
+        _configuration["VietQR:AccountName"].Returns("Default");
+        _configuration["VietQR:TemplateId"].Returns("compact2");
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.CreatePaymentTransactionAsync(
+            bookingId: bookingId,
+            type: TransactionType.Deposit,
+            amount: 500000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            paymentNote: "Test payment",
+            createdBy: "customer@example.com");
+
+        // Assert
+        Assert.False(result.IsError);
+        var transaction = result.Value;
+        // Should use first assignment (guide1's account)
+        Assert.Equal("3333333333", transaction.ManagerAccountNumber);
+        Assert.Equal("ACB", transaction.ManagerBankCode);
     }
 
     #endregion

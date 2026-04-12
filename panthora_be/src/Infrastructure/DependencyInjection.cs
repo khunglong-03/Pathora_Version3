@@ -38,6 +38,7 @@ public static class DependencyInjection
 
         return services
            .AddScoped<HotelServiceProviderSupplierMapper>()
+           .AddScoped<Application.Common.Interfaces.ICurrentUser, CurrentUserService>()
            .AddDbContext<AppDbContext>(options =>
             {
                 options.UseNpgsql(configuration.GetConnectionString("Default"), npgsqlOptions =>

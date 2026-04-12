@@ -67,6 +67,9 @@ public class PaymentTransactionEntity : Aggregate<Guid>
     public string? SenderAccountNumber { get; set; }
     /// <summary>Tên ngân hàng người nhận.</summary>
     public string? BeneficiaryBank { get; set; }
+    public string? ManagerAccountNumber { get; set; }
+    public string? ManagerBankCode { get; set; }
+    public string? ManagerAccountName { get; set; }
 
     // Error tracking
     /// <summary>Mã lỗi từ cổng thanh toán.</summary>

@@ -1,6 +1,8 @@
 using Api.Endpoint;
 using Application.Common.Constant;
 using Application.Contracts.Admin;
+using Application.Features.Admin.Commands.UpdateBankAccount;
+using Application.Features.Admin.Commands.VerifyBankAccount;
 using Application.Features.Admin.Commands.CreateStaffUnderManager;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.Queries;
@@ -9,6 +11,7 @@ using Application.Features.Admin.Queries.GetAllUsers;
 using Application.Features.Admin.Queries.GetAdminDashboardOverview;
 using Application.Features.Admin.Queries.GetHotelProviders;
 using Application.Features.Admin.Queries.GetHotelProviderById;
+using Application.Features.Admin.Queries.GetManagersBankAccount;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
 using Application.Features.Admin.Queries.GetTransportProviderById;
@@ -48,7 +51,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 1: User Management
-    [HttpGet("users")]
+    [HttpGet(AdminEndpoint.Users)]
     public async Task<IActionResult> GetAllUsers(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -59,7 +62,7 @@ public class AdminController : BaseApiController
         var result = await Sender.Send(new GetAllUsersQuery(pageNumber, pageSize, searchText, status, role));
         return HandleResult(result);
     }
-    [HttpGet("users/{id:guid}")]
+    [HttpGet(AdminEndpoint.UserById)]
     public async Task<IActionResult> GetUserDetail(Guid id)
     {
         var result = await Sender.Send(new GetUserDetailQuery(id));
@@ -67,7 +70,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 2: Transport Provider
-    [HttpGet("transport-providers")]
+    [HttpGet(AdminEndpoint.TransportProviders)]
     public async Task<IActionResult> GetTransportProviders(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -79,7 +82,7 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet("transport-providers/{id:guid}")]
+    [HttpGet(AdminEndpoint.TransportProviderById)]
     public async Task<IActionResult> GetTransportProviderById(Guid id)
     {
         var result = await Sender.Send(new GetTransportProviderByIdQuery(id));
@@ -87,7 +90,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 3: Hotel Provider
-    [HttpGet("hotel-providers")]
+    [HttpGet(AdminEndpoint.HotelProviders)]
     public async Task<IActionResult> GetHotelProviders(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -99,7 +102,7 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet("hotel-providers/{id:guid}")]
+    [HttpGet(AdminEndpoint.HotelProviderById)]
     public async Task<IActionResult> GetHotelProviderById(Guid id)
     {
         var result = await Sender.Send(new GetHotelProviderByIdQuery(id));
@@ -107,7 +110,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 4: TourManager Staff (staff under current manager only)
-    [HttpGet("staff")]
+    [HttpGet(AdminEndpoint.Staff)]
     public async Task<IActionResult> GetTourManagerStaff()
     {
         var managerId = Guid.Parse(CurrentUserId);
@@ -115,14 +118,14 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPut("tour-managers/{managerId:guid}/staff/{staffId:guid}/reassign")]
+    [HttpPut(AdminEndpoint.ReassignStaff)]
     public async Task<IActionResult> ReassignStaff(Guid managerId, Guid staffId, [FromBody] ReassignStaffRequest request)
     {
         var result = await Sender.Send(new ReassignStaffCommand(managerId, staffId, request.TargetManagerId));
         return HandleResult(result);
     }
 
-    [HttpPost("tour-managers/{managerId:guid}/staff/create")]
+    [HttpPost(AdminEndpoint.CreateStaffUnderManager)]
     public async Task<IActionResult> CreateStaffUnderManager(Guid managerId, [FromBody] CreateStaffUnderManagerRequest request)
     {
         var result = await Sender.Send(new CreateStaffUnderManagerCommand(managerId, request));
@@ -130,7 +133,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 5: Manager Dashboard (scoped to current manager's tours)
-    [HttpGet("manager-dashboard")]
+    [HttpGet(AdminEndpoint.ManagerDashboard)]
     public async Task<IActionResult> GetManagerDashboard()
     {
         var managerId = Guid.Parse(CurrentUserId);
@@ -139,7 +142,7 @@ public class AdminController : BaseApiController
     }
 
     // Group 6: Admin Dashboard
-    [HttpGet("dashboard/overview")]
+    [HttpGet(AdminEndpoint.AdminDashboardOverview)]
     public async Task<IActionResult> GetAdminDashboardOverview()
     {
         var result = await Sender.Send(new GetAdminDashboardOverviewQuery());
@@ -147,4 +150,32 @@ public class AdminController : BaseApiController
     }
 
     // Group 6: Managers
+
+    // Group 7: Manager Bank Accounts
+    [HttpGet(AdminEndpoint.ManagersBankAccounts)]
+    public async Task<IActionResult> GetManagersBankAccount(
+        [FromQuery] string? role,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int limit = 50)
+    {
+        var result = await Sender.Send(new GetManagersBankAccountQuery(role, search, page, limit));
+        return HandleResult(result);
+    }
+
+    [HttpPut(AdminEndpoint.ManagerBankAccount)]
+    public async Task<IActionResult> UpdateBankAccount(
+        Guid managerId,
+        [FromBody] UpdateBankAccountRequest request)
+    {
+        var result = await Sender.Send(new UpdateBankAccountCommand(managerId, request));
+        return HandleResult(result);
+    }
+
+    [HttpPost(AdminEndpoint.VerifyBankAccount)]
+    public async Task<IActionResult> VerifyBankAccount(Guid managerId)
+    {
+        var result = await Sender.Send(new VerifyBankAccountCommand(managerId));
+        return HandleResult(result);
+    }
 }

@@ -9,12 +9,13 @@ using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = Domain.Entities.OutboxMessage;
+using System.Linq;
 
 namespace Application.Services;
 
 public interface IPaymentService
 {
-    Task<ErrorOr<string>> GetQR(string note, long amount);
+    Task<ErrorOr<string>> GetQR(string note, long amount, string? bankBin = null, string? accountNo = null, string? accountName = null);
     Task<ErrorOr<PaymentTransactionEntity>> CreatePaymentTransactionAsync(
         Guid bookingId,
         TransactionType type,
@@ -78,11 +79,15 @@ public class PaymentService : IPaymentService
         _vietQrTemplateId = NormalizeConfigValue(configuration["VietQR:TemplateId"]);
     }
 
-    public Task<ErrorOr<string>> GetQR(string note, long amount)
+    public Task<ErrorOr<string>> GetQR(string note, long amount, string? bankBin = null, string? accountNo = null, string? accountName = null)
     {
+        var effectiveBankBin = bankBin ?? _vietQrBankBin;
+        var effectiveAccountNo = accountNo ?? _vietQrAccountNo;
+        var effectiveAccountName = accountName ?? _vietQrAccountName;
+
         if (string.IsNullOrWhiteSpace(_vietQrApiUrl)
-            || string.IsNullOrWhiteSpace(_vietQrBankBin)
-            || string.IsNullOrWhiteSpace(_vietQrAccountNo)
+            || string.IsNullOrWhiteSpace(effectiveBankBin)
+            || string.IsNullOrWhiteSpace(effectiveAccountNo)
             || string.IsNullOrWhiteSpace(_vietQrTemplateId))
         {
             return Task.FromResult<ErrorOr<string>>(
@@ -93,13 +98,13 @@ public class PaymentService : IPaymentService
 
         // Use the note parameter (refCode) directly as addInfo.
         // Note: note IS the refCode passed from CreatePaymentTransactionAsync, not free text.
-        var encodedAccountName = Uri.EscapeDataString(_vietQrAccountName);
+        var encodedAccountName = Uri.EscapeDataString(effectiveAccountName);
         var encodedAddInfo = Uri.EscapeDataString(note);
 
         // VietQR URL format:
         // https://api.vietqr.io/image/{bankBin}-{accountNo}-{templateId}.jpg
         //     ?accountName={name}&amount={amount}&addInfo={refCode}
-        var imageId = $"{_vietQrBankBin}-{_vietQrAccountNo}-{_vietQrTemplateId}";
+        var imageId = $"{effectiveBankBin}-{effectiveAccountNo}-{_vietQrTemplateId}";
         var url = $"{_vietQrApiUrl.TrimEnd('/')}/{imageId}.jpg?accountName={encodedAccountName}&amount={amount}&addInfo={encodedAddInfo}";
 
         return Task.FromResult<ErrorOr<string>>(url);
@@ -114,6 +119,13 @@ public class PaymentService : IPaymentService
         string createdBy,
         int? expirationMinutes = null)
     {
+        // Fetch the booking to get tour instance
+        var booking = await _bookingRepository.GetByIdAsync(bookingId);
+        if (booking == null)
+        {
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+        }
+
         var transactionCode = $"PAY-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
         var expiredAt = DateTimeOffset.UtcNow.AddMinutes(expirationMinutes ?? 30);
 
@@ -123,6 +135,32 @@ public class PaymentService : IPaymentService
         var refCode = $"{DateTimeOffset.UtcNow:yyMMddHH}{randomChars}";
 
         var paymentNoteWithRef = $"{transactionCode}|{refCode}|{paymentNote}";
+
+        // Determine manager's bank account
+        string? managerAccountNumber = null;
+        string? managerBankCode = null;
+        string? managerAccountName = null;
+
+        var manager = await GetPrimaryManagerForTourInstanceAsync(booking.TourInstanceId);
+        if (manager != null && !string.IsNullOrWhiteSpace(manager.BankAccountNumber) && !string.IsNullOrWhiteSpace(manager.BankCode))
+        {
+            managerAccountNumber = manager.BankAccountNumber;
+            managerBankCode = manager.BankCode;
+            managerAccountName = manager.BankAccountName;
+            _logger.LogInformation("Using manager {ManagerId} bank account for payment transaction", manager.Id);
+        }
+        else
+        {
+            _logger.LogWarning("Manager for tour instance {TourInstanceId} has no verified bank account; using default config", booking.TourInstanceId);
+        }
+
+        // Fallback to VietQR config if not set
+        if (string.IsNullOrWhiteSpace(managerAccountNumber) || string.IsNullOrWhiteSpace(managerBankCode))
+        {
+            managerAccountNumber = _vietQrAccountNo;
+            managerBankCode = _vietQrBankBin;
+            managerAccountName = _vietQrAccountName;
+        }
 
         var transaction = PaymentTransactionEntity.Create(
             bookingId: bookingId,
@@ -135,8 +173,13 @@ public class PaymentService : IPaymentService
             expiredAt: expiredAt,
             referenceCode: refCode);
 
-        // VietQR path: generate QR URL using the new 12-char refCode
-        var qrResult = await GetQR(refCode, (long)amount);
+        // Store the manager account used
+        transaction.ManagerAccountNumber = managerAccountNumber;
+        transaction.ManagerBankCode = managerBankCode;
+        transaction.ManagerAccountName = managerAccountName;
+
+        // Generate QR using dynamic account parameters
+        var qrResult = await GetQR(refCode, (long)amount, bankBin: managerBankCode, accountNo: managerAccountNumber, accountName: managerAccountName);
         if (qrResult.IsError)
         {
             return qrResult.Errors;
@@ -374,6 +417,18 @@ public class PaymentService : IPaymentService
         await _unitOfWork.SaveChangeAsync();
 
         return transaction;
+    }
+
+    private async Task<UserEntity?> GetPrimaryManagerForTourInstanceAsync(Guid tourInstanceId)
+    {
+        var tourInstance = await _tourInstanceRepository.FindById(tourInstanceId);
+        if (tourInstance == null) return null;
+
+        var managerAssignment = tourInstance.Managers
+            .FirstOrDefault(m => m.Role == TourInstanceManagerRole.Manager)
+            ?? tourInstance.Managers.FirstOrDefault();
+
+        return managerAssignment?.User;
     }
 
     private static string ExtractTransactionCode(string? paymentContent)

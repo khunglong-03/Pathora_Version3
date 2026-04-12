@@ -479,8 +479,8 @@ public class TourRepository(AppDbContext context) : ITourRepository
 
         return await _context.TourPlanLocations
             .AsNoTracking()
-            .Where(l=>Enumerable.Contains(attractionTypes,l.LocationType))
-            .Where(l=>l.City!=null&&l.Country!=null)
+            .Where(l => Enumerable.Contains(attractionTypes, l.LocationType))
+            .Where(l => l.City != null && l.Country != null)
             .Take(limit)
             .ToListAsync(cancellationToken);
     }
