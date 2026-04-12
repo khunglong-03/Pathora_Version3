@@ -1,11 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <InternalsVisibleTo Include="Domain.Specs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Features/AdminHotelBookings/**" />
   </ItemGroup>
 
   <ItemGroup>

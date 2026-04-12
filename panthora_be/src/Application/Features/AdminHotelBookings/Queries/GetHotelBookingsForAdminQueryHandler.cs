@@ -5,7 +5,7 @@ using Application.Common.Constant;
 using Application.Dtos;
 using Application.Features.AdminHotelBookings.DTOs;
 using BuildingBlocks.CORS;
-using Contracts;
+using global::Contracts;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -41,7 +41,7 @@ public sealed class GetHotelBookingsForAdminQueryHandler(
                         booking.CustomerName,
                         booking.CustomerPhone,
                         booking.CustomerEmail,
-                        booking.TourInstance?.Name ?? "-",
+                        booking.TourInstance?.Title ?? "-",
                         booking.TourInstance?.StartDate ?? DateTimeOffset.MinValue,
                         booking.TourInstance?.DurationDays ?? 0,
                         booking.Status,

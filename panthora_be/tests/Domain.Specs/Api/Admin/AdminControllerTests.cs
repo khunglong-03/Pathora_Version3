@@ -9,7 +9,6 @@ using Application.Features.Admin.Queries.GetHotelProviders;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
 using Application.Features.Admin.Queries.GetUserDetail;
-using Contracts.ModelResponse;
 using global::Contracts;
 using Domain.Enums;
 using ErrorOr;
@@ -409,7 +408,7 @@ public sealed class AdminControllerTests
             12,
             8,
             7,
-            new List<ActivityItemDto>
+            new List<Contracts.ModelResponse.ActivityItemDto>
             {
                 new("UserRegistration", "New user registered", DateTimeOffset.UtcNow)
             });
@@ -433,7 +432,7 @@ public sealed class AdminControllerTests
     {
         var overview = new AdminDashboardOverviewDto(
             0, 0, 0, 0, 0,
-            new List<ActivityItemDto>());
+            new List<Contracts.ModelResponse.ActivityItemDto>());
 
         var (controller, _) = ApiControllerTestHelper
             .BuildController<AdminController, GetAdminDashboardOverviewQuery, AdminDashboardOverviewDto>(

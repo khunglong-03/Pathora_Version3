@@ -2,10 +2,10 @@ namespace Application.Features.AdminHotelBookings.Queries;
 
 using Application.Features.AdminHotelBookings.DTOs;
 using BuildingBlocks.CORS;
-using Contracts;
+using Application.Common;
+using global::Contracts;
 using Domain.Enums;
 using ErrorOr;
-using Application.Common;
 
 public sealed record GetHotelBookingsForAdminQuery(
     int PageNumber = 1,

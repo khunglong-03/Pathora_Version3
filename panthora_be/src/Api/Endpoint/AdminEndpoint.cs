@@ -22,9 +22,9 @@ public static class AdminEndpoint
 
     // Tour Manager Staff
     public const string Staff = "staff";
-    public const string TourManagerStaff = "tour-managers/{managerId:guid}/staff";
-    public const string ReassignStaff = "tour-managers/{managerId:guid}/staff/{staffId:guid}/reassign";
-    public const string CreateStaffUnderManager = "tour-managers/{managerId:guid}/staff/create";
+    public const string TourManagerStaff = "tour-managers/{managerId}/staff";
+    public const string ReassignStaff = "tour-managers/{managerId}/staff/{staffId}/reassign";
+    public const string CreateStaffUnderManager = "tour-managers/{managerId}/staff/create";
 
     // Manager Dashboard
     public const string ManagerDashboard = "manager-dashboard";
@@ -34,6 +34,6 @@ public static class AdminEndpoint
 
     // Manager Bank Accounts
     public const string ManagersBankAccounts = "managers/bank-accounts";
-    public const string ManagerBankAccount = "managers/{managerId:guid}/bank-account";
-    public const string VerifyBankAccount = "managers/{managerId:guid}/bank-account/verify";
+    public const string ManagerBankAccount = "managers/{managerId}/bank-account";
+    public const string VerifyBankAccount = "managers/{managerId}/bank-account/verify";
 }

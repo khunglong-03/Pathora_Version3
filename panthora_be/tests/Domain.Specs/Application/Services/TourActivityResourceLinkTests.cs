@@ -103,7 +103,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -168,7 +168,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -231,7 +231,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -294,7 +294,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -363,7 +363,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -437,7 +437,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -504,7 +504,7 @@ public sealed class TourActivityResourceLinkTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -637,7 +637,7 @@ public sealed class TourActivityResourceLinkUpdateTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -720,7 +720,7 @@ public sealed class TourActivityResourceLinkUpdateTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -761,7 +761,7 @@ public sealed class TourActivityResourceLinkUpdateTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -855,7 +855,7 @@ public sealed class TourActivityResourceLinkUpdateTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);

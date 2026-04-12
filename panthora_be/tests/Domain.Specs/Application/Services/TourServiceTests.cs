@@ -60,7 +60,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -86,7 +86,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -112,7 +112,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -134,7 +134,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.True(result.IsError);
@@ -159,7 +159,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -195,7 +195,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -304,7 +304,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -377,7 +377,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         var activity = capturedTour!.Classifications[0].Plans[0].Activities[0];
@@ -443,7 +443,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         var activity = capturedTour!.Classifications[0].Plans[0].Activities[0];
@@ -505,7 +505,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.Equal(
@@ -584,7 +584,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.Equal(
@@ -657,7 +657,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -692,7 +692,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -766,7 +766,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         var cls = capturedTour!.Classifications[0];
@@ -817,7 +817,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -859,7 +859,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert - TourService uses Price when both are provided, falls back to SalePrice
         Assert.Equal(100, capturedTour!.Resources[0].Price);
@@ -918,7 +918,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -979,7 +979,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        await service.Create(command);
+        await service.Create(command, isManager: true);
 
         // Assert
         Assert.NotNull(capturedTour);
@@ -1038,7 +1038,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.Create(command));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.Create(command, isManager: true));
     }
 
     #endregion
@@ -1112,7 +1112,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1215,7 +1215,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1276,7 +1276,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1501,7 +1501,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1587,7 +1587,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1676,7 +1676,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1719,7 +1719,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1767,7 +1767,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1808,7 +1808,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1884,7 +1884,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -1956,7 +1956,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -2011,7 +2011,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -2081,7 +2081,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Create(command);
+        var result = await service.Create(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);
@@ -2125,7 +2125,7 @@ public sealed class TourServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.Update(command);
+        var result = await service.Update(command, isManager: true);
 
         // Assert
         Assert.False(result.IsError);

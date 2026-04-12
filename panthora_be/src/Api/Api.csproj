@@ -43,7 +43,6 @@
     <Folder Include="Controllers\Admin\" />
     <Folder Include="Controllers\HotelProvider\" />
     <Folder Include="Controllers\TransportProvider\" />
-    <Compile Remove="Controllers\**\AdminHotelBookingController.cs" />
     <Compile Remove="Controllers\**\RoomBlockController.cs" />
     <Folder Include="Controllers\User\" />
   </ItemGroup>
