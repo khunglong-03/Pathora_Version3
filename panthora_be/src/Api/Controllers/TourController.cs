@@ -6,6 +6,7 @@ using Application.Common.Interfaces;
 using Application.Contracts.Booking;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
+using Application.Tours.Commands;
 using Application.Features.Tour.Commands.PurgeTour;
 using Application.Features.Tour.Queries;
 using Application.Services;
@@ -22,7 +23,8 @@ namespace Api.Controllers;
 public class TourController(
     IFileService fileService,
     IFileManager fileManager,
-    ITourRepository tourRepository) : BaseApiController
+    ITourRepository tourRepository,
+    ITourService tourService) : BaseApiController
 {
     private static readonly HashSet<string> AllowedImageMimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -165,7 +167,8 @@ public class TourController(
                 continent,
                 customerSegment);
 
-            var result = await Sender.Send(command);
+            var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
+            var result = await tourService.Create(command, isManager);
             return HandleResult(result);
         }
         catch
@@ -311,7 +314,8 @@ public class TourController(
             parsedDeletedClassificationIds, parsedDeletedActivityIds,
             tourScope, continent, customerSegment);
 
-        var result = await Sender.Send(command);
+        var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
+        var result = await tourService.Update(command, isManager);
         return HandleResult(result);
     }
 
@@ -322,10 +326,19 @@ public class TourController(
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPut(TourEndpoint.Status)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTourStatusRequestDto dto)
     {
         var result = await Sender.Send(new UpdateTourStatusCommand(id, dto.Status));
+        return HandleResult(result);
+    }
+
+    [HttpPost("{id}/review")]
+    [Authorize(Policy = "ManagerOnly")]
+    public async Task<IActionResult> Review(Guid id, [FromBody] ReviewTourRequest request)
+    {
+        var result = await tourService.ReviewTour(id, request.Action, request.Reason);
         return HandleResult(result);
     }
 

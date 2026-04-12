@@ -73,10 +73,10 @@ function SearchContent() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {searchText ? `Search: "${searchText}"` : "All Tours"}
           </h1>
-          <p className="text-sm text-stone-400 mt-0.5 font-normal">
+          <p className="text-sm text-muted-foreground mt-0.5 font-normal">
             {results.length > 0 ? `${results.length} result${results.length !== 1 ? "s" : ""} found` : "No tours found"}
           </p>
         </div>
@@ -92,28 +92,28 @@ function SearchContent() {
       {/* Search Params Display */}
       {(searchParams.get("destination") || searchParams.get("classification") || searchParams.get("date") || searchParams.get("people")) && (
         <Card bodyClass="p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-stone-400 mb-3">Applied Filters</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-3">Applied Filters</h2>
           <div className="flex flex-wrap gap-2">
             {searchParams.get("destination") && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-stone-100 text-xs font-medium text-stone-600">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-xs font-medium text-foreground">
                 <Icon icon="heroicons:map-pin" className="size-3" />
                 {searchParams.get("destination")}
               </span>
             )}
             {searchParams.get("classification") && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-stone-100 text-xs font-medium text-stone-600">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-xs font-medium text-foreground">
                 <Icon icon="heroicons:tag" className="size-3" />
                 {searchParams.get("classification")}
               </span>
             )}
             {searchParams.get("date") && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-stone-100 text-xs font-medium text-stone-600">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-xs font-medium text-foreground">
                 <Icon icon="heroicons:calendar" className="size-3" />
                 {searchParams.get("date")}
               </span>
             )}
             {searchParams.get("people") && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-stone-100 text-xs font-medium text-stone-600">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-xs font-medium text-foreground">
                 <Icon icon="heroicons:user-group" className="size-3" />
                 {searchParams.get("people")} people
               </span>
@@ -127,11 +127,11 @@ function SearchContent() {
         {state === "loading" && <SkeletonTable rows={5} columns={5} />}
         {state === "error" && (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <Icon icon="heroicons:exclamation-triangle" className="size-8 text-red-400" />
+            <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <Icon icon="heroicons:exclamation-triangle" className="size-8 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold text-stone-700 mb-2">Failed to load tours</h3>
-            <p className="text-sm text-stone-400">{errorMsg}</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Failed to load tours</h3>
+            <p className="text-sm text-muted-foreground">{errorMsg}</p>
             <Button type="button" className="btn btn-outline-dark btn-sm mt-4" onClick={fetchResults}>
               Try Again
             </Button>
@@ -139,11 +139,11 @@ function SearchContent() {
         )}
         {state === "empty" && (
           <div className="p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-stone-100 flex items-center justify-center mb-4">
-              <Icon icon="heroicons:magnifying-glass" className="size-8 text-stone-400" />
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <Icon icon="heroicons:magnifying-glass" className="size-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-stone-700 mb-2">No tours found</h3>
-            <p className="text-sm text-stone-400 max-w-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-2">No tours found</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
               {searchText ? `No tours match "${searchText}". Try a different search term.` : "No tours available. Create your first tour to get started."}
             </p>
           </div>
@@ -153,40 +153,40 @@ function SearchContent() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-stone-200 bg-stone-50/50">
-                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-stone-500 px-4 py-3">Tour</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-stone-500 px-4 py-3">Code</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-stone-500 px-4 py-3">Status</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-stone-500 px-4 py-3">Created</th>
-                    <th className="text-right text-xs font-semibold uppercase tracking-[0.05em] text-stone-500 px-4 py-3">Actions</th>
+                  <tr className="border-b border-input bg-muted/50">
+                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground px-4 py-3">Tour</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground px-4 py-3">Code</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground px-4 py-3">Status</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground px-4 py-3">Created</th>
+                    <th className="text-right text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground px-4 py-3">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-input">
                   {results.map((tour) => (
-                    <tr key={tour.id} className="hover:bg-stone-50/50 transition-colors">
+                    <tr key={tour.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                             {tour.thumbnail?.publicURL ? (
                               <img src={tour.thumbnail.publicURL} alt={tour.tourName} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Icon icon="heroicons:photo" className="size-5 text-stone-300" />
+                                <Icon icon="heroicons:photo" className="size-5 text-muted-foreground" />
                               </div>
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-stone-900 truncate">{tour.tourName || "Untitled Tour"}</p>
-                            <p className="text-xs text-stone-400 truncate mt-0.5">{tour.shortDescription || "—"}</p>
+                            <p className="text-sm font-medium text-foreground truncate">{tour.tourName || "Untitled Tour"}</p>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{tour.shortDescription || "—"}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-xs font-mono text-stone-500 bg-stone-100 px-2 py-1 rounded">{tour.tourCode || "—"}</span>
+                        <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">{tour.tourCode || "—"}</span>
                       </td>
                       <td className="px-4 py-3">{statusBadge(tour.status)}</td>
                       <td className="px-4 py-3">
-                        <span className="text-xs text-stone-400">
+                        <span className="text-xs text-muted-foreground">
                           {tour.createdOnUtc ? new Date(tour.createdOnUtc).toLocaleDateString() : "—"}
                         </span>
                       </td>
@@ -194,13 +194,13 @@ function SearchContent() {
                         <div className="flex items-center justify-end gap-1">
                           <Button
                             type="button"
-                            className="text-stone-400 hover:text-stone-600 p-1.5"
+                            className="text-muted-foreground hover:text-foreground p-1.5"
                             onClick={() => window.location.href = `/tour-management/${tour.id}`}>
                             <Icon icon="heroicons:eye" className="size-4" />
                           </Button>
                           <Button
                             type="button"
-                            className="text-stone-400 hover:text-stone-600 p-1.5"
+                            className="text-muted-foreground hover:text-foreground p-1.5"
                             onClick={() => window.location.href = `/tour-management/${tour.id}/edit`}>
                             <Icon icon="heroicons:pencil-square" className="size-4" />
                           </Button>
@@ -212,8 +212,8 @@ function SearchContent() {
               </table>
             </div>
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-stone-200 bg-stone-50/50">
-                <span className="text-xs text-stone-400">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-input bg-muted/50">
+                <span className="text-xs text-muted-foreground">
                   Page {page} of {totalPages}
                 </span>
                 <div className="flex items-center gap-2">

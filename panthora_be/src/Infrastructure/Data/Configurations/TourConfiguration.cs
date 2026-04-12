@@ -44,6 +44,10 @@ public class TourConfiguration : IEntityTypeConfiguration<TourEntity>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(t => t.RejectionReason)
+            .HasMaxLength(1000)
+            .IsRequired(false);
+
         builder.Property(t => t.TourScope)
             .HasConversion<string>()
             .HasMaxLength(50)

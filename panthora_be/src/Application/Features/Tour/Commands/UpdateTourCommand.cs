@@ -43,7 +43,7 @@ public sealed class UpdateTourCommandHandler(ITourService tourService)
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTourCommand request, CancellationToken cancellationToken)
     {
-        return await tourService.Update(request);
+        return await tourService.Update(request, isManager: false);
     }
 }
 

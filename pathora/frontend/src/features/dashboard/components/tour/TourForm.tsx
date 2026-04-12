@@ -35,6 +35,10 @@ export interface TourFormProps {
   /** Existing server images for edit mode (managed by parent) */
   existingImages?: ImageDto[];
   /**
+   * When true, status field is read-only (designers cannot change status)
+   */
+  isDesignerMode?: boolean;
+  /**
    * Called when the form is submitted.
    * For create: calls tourService.createTour
    * For edit: calls tourService.updateTour with full FormData including id, existingImages, deleted IDs

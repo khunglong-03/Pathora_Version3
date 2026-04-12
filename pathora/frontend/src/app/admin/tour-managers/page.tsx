@@ -131,23 +131,23 @@ export default function TourManagersPage() {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Quản lý Tour Manager
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Danh sách và phân công nhân viên cho Tour Manager
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setReloadToken((t) => t + 1)}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-background border border-input text-foreground hover:bg-muted transition-colors"
           >
             Làm mới
           </button>
           <Link
             href="/admin/tour-managers/create"
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             + Thêm Tour Manager
           </Link>
@@ -158,13 +158,13 @@ export default function TourManagersPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm"
+        className="bg-card border border-input rounded-2xl overflow-hidden shadow-sm"
         style={{ minHeight: "calc(100vh - 14rem)" }}
       >
         <div className="grid grid-cols-[380px_1fr]" style={{ minHeight: "calc(100vh - 14rem)" }}>
           {/* Left: Manager list */}
           <div
-            className="border-r border-stone-200 overflow-hidden"
+            className="border-r border-input overflow-hidden"
             style={{ maxHeight: "calc(100vh - 14rem)" }}
           >
             <ManagerListPanel
@@ -192,25 +192,22 @@ export default function TourManagersPage() {
 
             {/* Action buttons footer */}
             {selectedManagerId && !isLoadingStaff && (
-              <div className="flex gap-2 justify-end px-4 py-4 border-t border-stone-200 bg-stone-50 shrink-0 mt-auto">
+              <div className="flex gap-2 justify-end px-4 py-4 border-t border-input bg-muted shrink-0 mt-auto">
                 <button
                   onClick={() => setAssignExistingRole("TourDesigner")}
-                  className="px-4 py-2 rounded-lg text-xs font-medium border transition-all duration-200 hover:bg-[#EDE9FE]"
-                  style={{ borderColor: "#C4B5FD", color: "#7C3AED", backgroundColor: "#FAFAFA" }}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors"
                 >
                   + Gán Designer
                 </button>
                 <button
                   onClick={() => setAssignExistingRole("TourGuide")}
-                  className="px-4 py-2 rounded-lg text-xs font-medium border transition-all duration-200 hover:bg-[#DBEAFE]"
-                  style={{ borderColor: "#BFDBFE", color: "#2563EB", backgroundColor: "#FAFAFA" }}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
                 >
                   + Gán Guide
                 </button>
                 <button
                   onClick={() => setCreateModalOpen(true)}
-                  className="px-4 py-2 rounded-lg text-xs font-medium text-white transition-all duration-200 hover:opacity-90"
-                  style={{ backgroundColor: "#C9873A" }}
+                  className="px-4 py-2 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   + Tạo nhân viên
                 </button>

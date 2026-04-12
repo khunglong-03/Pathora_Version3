@@ -44,6 +44,7 @@ export const MANAGER_NAV_ITEMS = [
   { label: "Customers", icon: UsersThree, href: "/manager/dashboard/customers" },
   { label: "Insurance", icon: ShieldCheck, href: "/manager/dashboard/insurance" },
   { label: "Visa Applications", icon: Certificate, href: "/manager/dashboard/visa" },
+  { label: "Bank Accounts", icon: Buildings, href: "/manager/bank-accounts" },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [

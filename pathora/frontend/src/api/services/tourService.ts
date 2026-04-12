@@ -179,6 +179,14 @@ export const tourService = {
     return extractResult<unknown>(response.data);
   },
 
+  reviewTour: async (tourId: string, action: "Approve" | "Reject", reason?: string) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR.REVIEW(tourId),
+      { Action: action, Reason: reason },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
   getPublicTourDetail: async (id: string, language?: string) => {
     const response = await api.get<ApiResponse<TourDto>>(
       buildPublicTourDetailUrl(id, language),

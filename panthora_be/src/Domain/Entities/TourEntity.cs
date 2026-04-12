@@ -26,6 +26,8 @@ public class TourEntity : Aggregate<Guid>
     public string? SEODescription { get; set; }
     /// <summary>Trạng thái tour: Pending, Active, Inactive, Archived.</summary>
     public TourStatus Status { get; set; } = TourStatus.Pending;
+    /// <summary>Lý do từ chối khi manager reject tour (nullable, only set when Status = Rejected).</summary>
+    public string? RejectionReason { get; set; }
     /// <summary>Phạm vi tour: Domestic (trong nước) hoặc International (quốc tế).</summary>
     public TourScope TourScope { get; set; } = TourScope.Domestic;
     /// <summary>Châu lục (cho tour quốc tế): Asia, Europe, v.v.</summary>

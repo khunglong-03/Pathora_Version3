@@ -151,7 +151,7 @@ public sealed class CreateTourCommandHandler(ITourService tourService)
 {
     public async Task<ErrorOr<Guid>> Handle(CreateTourCommand request, CancellationToken cancellationToken)
     {
-        return await tourService.Create(request);
+        return await tourService.Create(request, isManager: false);
     }
 }
 

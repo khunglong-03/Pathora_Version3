@@ -102,6 +102,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RoomBlockEntity> RoomBlocks => Set<RoomBlockEntity>();
     public DbSet<GuestArrivalEntity> GuestArrivals => Set<GuestArrivalEntity>();
     public DbSet<GuestArrivalParticipantEntity> GuestArrivalParticipants => Set<GuestArrivalParticipantEntity>();
+    public DbSet<ManagerBankAccountEntity> ManagerBankAccounts => Set<ManagerBankAccountEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

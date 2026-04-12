@@ -6,6 +6,7 @@ using Application.Dtos;
 using Application.Features.Tour.Commands;
 using Application.Features.Tour.Queries;
 using Application.Features.Admin.Queries;
+using Application.Tours.Commands;
 using AutoMapper;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -19,13 +20,14 @@ namespace Application.Services;
 
 public interface ITourService
 {
-    Task<ErrorOr<Guid>> Create(CreateTourCommand request);
-    Task<ErrorOr<Success>> Update(UpdateTourCommand request);
+    Task<ErrorOr<Guid>> Create(CreateTourCommand request, bool isManager);
+    Task<ErrorOr<Success>> Update(UpdateTourCommand request, bool isManager);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> UpdateStatus(Guid id, TourStatus status);
     Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request);
     Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request);
     Task<ErrorOr<TourDto>> GetDetail(Guid id);
+    Task<ErrorOr<TourDto>> ReviewTour(Guid tourId, TourReviewAction action, string? reason);
 }
 
 public class TourService(
@@ -67,7 +69,7 @@ public class TourService(
             : null;
     }
 
-    public async Task<ErrorOr<Guid>> Create(CreateTourCommand request)
+    public async Task<ErrorOr<Guid>> Create(CreateTourCommand request, bool isManager)
     {
         _locationCache = new Dictionary<(string Name, string? City, string? Country), TourPlanLocationEntity>();
         try
@@ -358,7 +360,7 @@ public class TourService(
         }
     }
 
-    public async Task<ErrorOr<Success>> Update(UpdateTourCommand request)
+    public async Task<ErrorOr<Success>> Update(UpdateTourCommand request, bool isManager)
     {
         var tour = await _tourRepository.FindByIdForUpdate(request.Id);
         if (tour is null)
@@ -368,6 +370,24 @@ public class TourService(
             return Error.Conflict(
                 ErrorConstants.Tour.DuplicateCodeCode,
                 string.Format(ErrorConstants.Tour.DuplicateCodeDescriptionTemplate, tour.TourCode));
+
+        // Access control for TourDesigners
+        if (!isManager)
+        {
+            var currentUserIdGuid = Guid.TryParse(_user.Id, out var userIdGuid) ? userIdGuid : Guid.Empty;
+            if (tour.TourDesignerId != currentUserIdGuid)
+            {
+                return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+            }
+
+            if (request.Status != tour.Status)
+            {
+                return Error.Conflict(ErrorConstants.Tour.ConcurrencyConflictCode, "Tour designers cannot change status.");
+            }
+        }
+
+        var effectiveStatus = isManager ? request.Status : tour.Status;
+        var effectiveTourDesignerId = tour.TourDesignerId;
 
         // Update thumbnail in-place if provided (avoids shared-type EF Core issue)
         // Update images in-place — EF Core can track owned entities this way
@@ -701,6 +721,41 @@ public class TourService(
         var tour = await _tourRepository.FindById(id, asNoTracking: true);
         if (tour is null)
             return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        tour.ApplyResolvedTranslations(_languageContext.CurrentLanguage);
+        return _mapper.Map<TourDto>(tour);
+    }
+
+    public async Task<ErrorOr<TourDto>> ReviewTour(Guid tourId, TourReviewAction action, string? reason)
+    {
+        var tour = await _tourRepository.FindById(tourId);
+        if (tour is null)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        if (tour.Status != TourStatus.Pending)
+            return Error.Conflict("Tour.InvalidStatus", "Only pending tours can be reviewed.");
+
+        switch (action)
+        {
+            case TourReviewAction.Approve:
+                tour.Status = TourStatus.Active;
+                tour.RejectionReason = null;
+                break;
+
+            case TourReviewAction.Reject:
+                if (string.IsNullOrWhiteSpace(reason))
+                    return Error.Validation("Tour.ReasonRequired", "Rejection reason is required.");
+                tour.Status = TourStatus.Rejected;
+                tour.RejectionReason = reason;
+                break;
+
+            default:
+                return Error.Validation("Tour.InvalidAction", $"Invalid review action: {action}");
+        }
+
+        tour.LastModifiedBy = _user.Id ?? string.Empty;
+        tour.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        await _unitOfWork.SaveChangeAsync();
 
         tour.ApplyResolvedTranslations(_languageContext.CurrentLanguage);
         return _mapper.Map<TourDto>(tour);

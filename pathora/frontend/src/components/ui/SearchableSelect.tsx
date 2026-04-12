@@ -75,7 +75,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+        <label className="block text-sm font-medium text-foreground mb-1.5">
           {label}
         </label>
       )}
@@ -85,31 +85,31 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
           type="button"
           disabled={disabled}
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-left ${
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg border transition-colors outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-left ${
             error
-              ? "border-danger-500 bg-white dark:bg-slate-800 text-danger-600 dark:text-danger-400"
-              : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-          } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-orange-400"}`}
+              ? "border-destructive bg-background text-destructive"
+              : "border-input bg-card text-foreground"
+          } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50"}`}
         >
-          <span className={selectedOption ? "text-slate-900 dark:text-white" : "text-slate-400"}>
+          <span className={selectedOption ? "text-foreground" : "text-muted-foreground"}>
             {selectedOption ? (
               <span>
                 {selectedOption.label}
                 {selectedOption.subLabel && (
-                  <span className="ml-1 text-slate-500 text-xs">
+                  <span className="ml-1 text-muted-foreground text-xs">
                     — {selectedOption.subLabel}
                   </span>
                 )}
               </span>
             ) : (
-              <span className="text-slate-400 italic">-- Select --</span>
+              <span className="text-muted-foreground italic">-- Select --</span>
             )}
           </span>
           <span className="flex items-center gap-1 shrink-0">
             {selectedOption && !disabled && (
               <span
                 onClick={handleClear}
-                className="text-slate-400 hover:text-danger-500 transition-colors p-0.5"
+                className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
                 role="button"
                 aria-label="Clear selection"
               >
@@ -118,20 +118,20 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
             )}
             <Icon
               icon="heroicons:chevron-down"
-              className={`size-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+              className={`size-4 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
             />
           </span>
         </button>
 
         {/* Dropdown panel */}
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
+          <div className="absolute z-50 mt-1 w-full bg-card border border-input rounded-lg shadow-lg overflow-hidden">
             {/* Search input */}
-            <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+            <div className="p-2 border-b border-input">
               <div className="relative">
                 <Icon
                   icon="heroicons:magnifying-glass"
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400"
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                 />
                 <input
                   ref={inputRef}
@@ -139,7 +139,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={placeholder}
-                  className="w-full pl-8 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm bg-muted border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
             </div>
@@ -147,7 +147,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
             {/* Options list */}
             <div className="max-h-60 overflow-y-auto">
               {filtered.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-slate-400 text-center">
+                <div className="px-4 py-3 text-sm text-muted-foreground text-center">
                   No results found
                 </div>
               ) : (
@@ -158,16 +158,16 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
                     onClick={() => handleSelect(opt.value)}
                     className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
                       opt.value === value
-                        ? "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400"
-                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-muted"
                     }`}
                   >
                     {opt.label}
                     {opt.subLabel && (
-                      <span className="ml-1 text-slate-400 text-xs">{opt.subLabel}</span>
+                      <span className="ml-1 text-muted-foreground text-xs">{opt.subLabel}</span>
                     )}
                     {opt.value === value && (
-                      <Icon icon="bi:check-lg" className="inline ml-2 size-3 text-orange-500" />
+                      <Icon icon="bi:check-lg" className="inline ml-2 size-3 text-primary" />
                     )}
                   </button>
                 ))
@@ -177,7 +177,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
         )}
       </div>
       {error && (
-        <p className="mt-1.5 text-xs text-danger-500">{error}</p>
+        <p className="mt-1.5 text-xs text-destructive">{error}</p>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ export interface TourEndpoints {
   UPDATE: string;
   DELETE: EndpointWithId;
   UPDATE_STATUS: EndpointWithId;
+  REVIEW: EndpointWithId;
   UPSERT_CLASSIFICATION_PRICING_TIERS: EndpointWithId;
 }
 
@@ -49,6 +50,7 @@ export const TOUR: TourEndpoints = {
   UPDATE: "/api/tour",
   DELETE: (id: string): string => `/api/tour/${id}`,
   UPDATE_STATUS: (id: string): string => `/api/tour/${id}/status`,
+  REVIEW: (id: string): string => `/api/tour/${id}/review`,
   UPSERT_CLASSIFICATION_PRICING_TIERS: (classificationId: string): string =>
     `/api/tour/classifications/${classificationId}/pricing-tiers`,
 };

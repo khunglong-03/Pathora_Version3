@@ -78,6 +78,8 @@ internal static class DependencyInjection
         services.AddScoped<IRoomBlockRepository, RoomBlockRepository>();
         services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
 
+        services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
+
         return services;
     }
 }
