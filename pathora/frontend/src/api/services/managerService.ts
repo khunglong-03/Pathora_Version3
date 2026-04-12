@@ -12,7 +12,7 @@ export interface ManagerBankAccountDto {
 }
 
 export const managerService = {
-  getMyBankAccount: async () => {
+  getMyBankAccount: async (): Promise<ManagerBankAccountDto | null> => {
     const response = await api.get<ApiResponse<ManagerBankAccountDto>>(
       "/api/manager/me/bank-account"
     );

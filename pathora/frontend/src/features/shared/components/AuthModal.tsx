@@ -12,6 +12,7 @@ import {
   authApiSlice,
   useLoginMutation,
   useRegisterMutation,
+  useForgotPasswordMutation,
 } from "@/store/api/auth/authApiSlice";
 import type { AppDispatch } from "@/store";
 import { GOOGLE_LOGIN_URL } from "@/configs/apiGateway";
@@ -483,11 +484,22 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [forgotPassword] = useForgotPasswordMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Note: This would integrate with a password reset API in production
-    setSubmitted(true);
+    setIsLoading(true);
+    try {
+      await forgotPassword(email).unwrap();
+      setSubmitted(true);
+    } catch {
+      // Always show success to prevent email enumeration
+      // (backend also always returns success per security design)
+      setSubmitted(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (submitted) {
@@ -547,8 +559,11 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
         />
       </div>
 
-      <button type="submit" className={PRIMARY_ACTION_CLASS}>
-        {t("landing.auth.resetPassword")}
+      <button type="submit" disabled={isLoading} className={PRIMARY_ACTION_CLASS}>
+        {isLoading && (
+          <Icon icon="heroicons-outline:arrow-path" className="h-5 w-5 animate-spin" />
+        )}
+        {isLoading ? t("common.processing") : t("landing.auth.resetPassword")}
       </button>
 
       <button

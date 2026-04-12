@@ -22,7 +22,6 @@ import { CreateStaffModal } from "@/features/dashboard/components/CreateStaffMod
 export default function TourManagersPage() {
   const [managers, setManagers] = useState<TourManagerSummary[]>([]);
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
-  const [leftView, setLeftView] = useState<"managers" | "staff">("managers");
   const [isLoadingManagers, setIsLoadingManagers] = useState(true);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
   const [staff, setStaff] = useState<StaffMemberDto[]>([]);
@@ -86,7 +85,6 @@ export default function TourManagersPage() {
 
   const handleManagerSelect = (managerId: string) => {
     setSelectedManagerId(managerId);
-    setLeftView("staff");
   };
 
   const handleReassign = async (targetManagerId: string) => {
@@ -174,10 +172,6 @@ export default function TourManagersPage() {
               selectedManagerId={selectedManagerId}
               onSelect={handleManagerSelect}
               isLoading={isLoadingManagers}
-              leftView={leftView}
-              setLeftView={setLeftView}
-              staff={staff}
-              onReassign={(s) => setReassignTarget(s)}
             />
           </div>
 
@@ -191,6 +185,8 @@ export default function TourManagersPage() {
                 manager={selectedManager}
                 isLoading={isLoadingStaff}
                 onRefresh={handleRefresh}
+                staff={staff}
+                managers={managers}
               />
             </div>
 

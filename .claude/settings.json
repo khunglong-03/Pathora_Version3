@@ -11,7 +11,9 @@
       "Bash(PGPASSWORD=123abc@A psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\", \\\\\"Password\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
       "Bash(/opt/homebrew/bin/psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
       "Bash(/usr/local/bin/psql -h 34.143.220.132 -p 5432 -U postgres -d PPPPathora -c \"SELECT \\\\\"Email\\\\\", \\\\\"Status\\\\\", \\\\\"IsDeleted\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"Email\\\\\" = 'duc.tv@transport.vn';\")",
-      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-password -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"duc.tv@transport.vn\", \"newPassword\": \"thehieu03\"}')"
+      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-password -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"email\": \"duc.tv@transport.vn\", \"newPassword\": \"thehieu03\"}')",
+      "Bash(npm --prefix \"pathora/frontend\" run build)",
+      "Bash(npm run:*)"
     ],
     "defaultMode": "bypassPermissions"
   },

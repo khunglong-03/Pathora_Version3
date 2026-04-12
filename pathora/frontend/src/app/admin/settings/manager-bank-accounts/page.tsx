@@ -41,7 +41,7 @@ interface PaginatedManagersResponse {
 interface EditBankAccountForm {
   bankAccountNumber: string;
   bankCode: string;
-  bankAccountName: string;
+  bankAccountName?: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -139,8 +139,10 @@ export default function ManagerBankAccountsPage() {
     bankAccountName: yup.string().optional(),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editForm = useForm<EditBankAccountForm>({
-    resolver: yupResolver(editSchema),
+    resolver: yupResolver(editSchema) as any,
     defaultValues: {
       bankAccountNumber: "",
       bankCode: "",

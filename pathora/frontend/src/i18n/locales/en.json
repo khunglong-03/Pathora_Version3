@@ -1632,7 +1632,22 @@
       "resetPassword": "Reset Password",
       "checkYourEmail": "Check your email",
       "resetLinkSentTo": "We sent a password reset link to",
-      "backToLogin": "Back to Login"
+      "backToLogin": "Back to Login",
+      "resetPasswordNoToken": "Invalid link",
+      "resetPasswordNoTokenHelp": "The password reset link does not exist or has expired. Please request a new one.",
+      "createNewPassword": "Create New Password",
+      "createNewPasswordHelp": "Enter your new password for your account.",
+      "newPassword": "New Password",
+      "enterNewPassword": "Enter new password",
+      "confirmPassword": "Confirm Password",
+      "enterConfirmPassword": "Re-enter your new password",
+      "updatePassword": "Update Password",
+      "passwordResetSuccess": "Password reset successful!",
+      "passwordResetFailed": "Unable to reset password. The link may have expired.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "passwordMinLength": "Password must be at least 8 characters.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
     },
     "latest": {
       "eyebrow": "Just Added",
@@ -3400,11 +3415,7 @@
       "policies": "All Policies",
       "cancellationPolicies": "Cancellation Policies",
       "visaPolicies": "Visa Policies",
-      "depositPolicies": "Deposit Policies",
-      "notifications": "Notifications",
-      "security": "Security",
-      "billing": "Billing",
-      "integrations": "Integrations"
+      "depositPolicies": "Deposit Policies"
     },
     "general": {
       "organization": "Organization",

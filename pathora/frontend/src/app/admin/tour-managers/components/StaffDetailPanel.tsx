@@ -3,11 +3,15 @@
 import React from "react";
 import { ArrowClockwise } from "@phosphor-icons/react";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
+import type { StaffMemberDto } from "@/types/admin";
+import { StaffList } from "@/features/dashboard/components/StaffList";
 
 interface StaffDetailPanelProps {
   manager: TourManagerSummary | null;
   isLoading: boolean;
   onRefresh: () => void;
+  staff: StaffMemberDto[];
+  managers: TourManagerSummary[];
 }
 
 function getInitials(name: string): string {
@@ -20,6 +24,8 @@ export function StaffDetailPanel({
   manager,
   isLoading,
   onRefresh,
+  staff,
+  managers,
 }: StaffDetailPanelProps) {
   // Loading state
   if (isLoading) {
@@ -51,56 +57,51 @@ export function StaffDetailPanel({
     );
   }
 
-  // Manager header card (full width)
+  // Manager header + staff list (full height, scrollable)
   return (
-    <div className="flex items-center justify-center h-full p-8">
+    <div className="flex flex-col h-full overflow-y-auto p-6">
+      {/* Manager header card */}
       <div
-        className="w-full max-w-2xl rounded-2xl border bg-white p-6"
+        className="w-full rounded-2xl border bg-white p-5 shrink-0"
         style={{
-          boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)",
+          boxShadow: "0 4px 12px -4px rgba(0,0,0,0.05)",
           borderLeft: "6px solid #C9873A",
         }}
       >
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
+            className="w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-white shrink-0"
             style={{ backgroundColor: "#C9873A" }}
           >
             {getInitials(manager.managerName)}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-semibold" style={{ color: "#111827" }}>
+            <h3 className="text-lg font-semibold" style={{ color: "#111827" }}>
               {manager.managerName}
             </h3>
             <p className="text-sm" style={{ color: "#6B7280" }}>
               {manager.managerEmail}
             </p>
           </div>
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            <button
-              onClick={onRefresh}
-              className="w-10 h-10 flex items-center justify-center rounded-xl transition-colors hover:bg-stone-100"
-              title="Làm mới"
-              aria-label="Làm mới"
-            >
-              <ArrowClockwise size={20} style={{ color: "#6B7280" }} />
-            </button>
-            <div className="flex gap-2">
-              <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: "#EDE9FE", color: "#7C3AED" }}
-              >
-                {manager.designerCount ?? 0} Designers
-              </span>
-              <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: "#DBEAFE", color: "#2563EB" }}
-              >
-                {manager.guideCount ?? 0} Guides
-              </span>
-            </div>
-          </div>
+          <button
+            onClick={onRefresh}
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-colors hover:bg-stone-100 shrink-0"
+            title="Làm mới"
+            aria-label="Làm mới"
+          >
+            <ArrowClockwise size={18} style={{ color: "#6B7280" }} />
+          </button>
         </div>
+      </div>
+
+      {/* Staff list below the manager card */}
+      <div className="mt-6">
+        <StaffList
+          staff={staff}
+          managers={managers}
+          managerId={manager.managerId}
+          onReassign={() => {}}
+        />
       </div>
     </div>
   );

@@ -1,10 +1,8 @@
 "use client";
 
 import React from "react";
-import { User, ArrowLeft } from "@phosphor-icons/react";
-import type { StaffMemberDto } from "@/types/admin";
+import { User } from "@phosphor-icons/react";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
-import { StaffList } from "@/features/dashboard/components/StaffList";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 
 interface ManagerListPanelProps {
@@ -12,10 +10,6 @@ interface ManagerListPanelProps {
   selectedManagerId: string;
   onSelect: (managerId: string) => void;
   isLoading: boolean;
-  leftView: "managers" | "staff";
-  setLeftView: (view: "managers" | "staff") => void;
-  staff: StaffMemberDto[];
-  onReassign: (staff: StaffMemberDto) => void;
 }
 
 function getInitials(name: string): string {
@@ -29,12 +23,7 @@ export function ManagerListPanel({
   selectedManagerId,
   onSelect,
   isLoading,
-  leftView,
-  setLeftView,
-  staff,
-  onReassign,
 }: ManagerListPanelProps) {
-  const selectedManager = managers.find((m) => m.managerId === selectedManagerId) ?? null;
 
   if (isLoading) {
     return (
@@ -44,51 +33,6 @@ export function ManagerListPanel({
         </div>
         <div className="flex-1 p-2">
           <SkeletonTable rows={6} columns={2} />
-        </div>
-      </div>
-    );
-  }
-
-  // Staff view — left panel shows staff list
-  if (leftView === "staff" && selectedManager) {
-    return (
-      <div className="flex flex-col h-full">
-        {/* Back header */}
-        <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/80">
-          <button
-            onClick={() => setLeftView("managers")}
-            className="flex items-center gap-2 text-xs font-medium hover:text-amber-600 transition-colors"
-            style={{ color: "#92400E" }}
-          >
-            <ArrowLeft size={14} weight="bold" />
-            Danh sách Manager
-          </button>
-          <div className="mt-2 flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-              style={{ backgroundColor: "#C9873A" }}
-            >
-              {getInitials(selectedManager.managerName)}
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold truncate" style={{ color: "#111827" }}>
-                {selectedManager.managerName}
-              </p>
-              <p className="text-[10px] truncate" style={{ color: "#6B7280" }}>
-                {selectedManager.managerEmail}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Staff list */}
-        <div className="flex-1 overflow-y-auto p-2">
-          <StaffList
-            staff={staff}
-            managers={managers}
-            managerId={selectedManagerId}
-            onReassign={onReassign}
-          />
         </div>
       </div>
     );

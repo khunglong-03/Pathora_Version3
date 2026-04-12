@@ -1610,7 +1610,22 @@
       "resetPassword": "Đặt lại mật khẩu",
       "checkYourEmail": "Kiểm tra email của bạn",
       "resetLinkSentTo": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến",
-      "backToLogin": "Quay lại đăng nhập"
+      "backToLogin": "Quay lại đăng nhập",
+      "resetPasswordNoToken": "Liên kết không hợp lệ",
+      "resetPasswordNoTokenHelp": "Liên kết đặt lại mật khẩu không tồn tại hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.",
+      "createNewPassword": "Tạo mật khẩu mới",
+      "createNewPasswordHelp": "Nhập mật khẩu mới cho tài khoản của bạn.",
+      "newPassword": "Mật khẩu mới",
+      "enterNewPassword": "Nhập mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "enterConfirmPassword": "Nhập lại mật khẩu mới",
+      "updatePassword": "Cập nhật mật khẩu",
+      "passwordResetSuccess": "Đặt lại mật khẩu thành công!",
+      "passwordResetFailed": "Không thể đặt lại mật khẩu. Liên kết có thể đã hết hạn.",
+      "passwordsDoNotMatch": "Mật khẩu không khớp.",
+      "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự.",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
     },
     "latest": {
       "eyebrow": "Mới nhất",
@@ -3356,11 +3371,7 @@
       "policies": "Tất cả Chính sách",
       "cancellationPolicies": "Chính sách Hủy",
       "visaPolicies": "Chính sách Visa",
-      "depositPolicies": "Chính sách Đặt cọc",
-      "notifications": "Thông báo",
-      "security": "Bảo mật",
-      "billing": "Thanh toán",
-      "integrations": "Tích hợp"
+      "depositPolicies": "Chính sách Đặt cọc"
     },
     "general": {
       "organization": "Tổ chức",

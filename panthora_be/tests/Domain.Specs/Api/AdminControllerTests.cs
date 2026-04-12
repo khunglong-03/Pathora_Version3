@@ -156,7 +156,7 @@ public sealed class AdminControllerTests
             .BuildController<AdminController, GetTourManagerStaffQuery, TourManagerStaffDto>(
                 dto, $"{BasePath}/tour-managers/{managerId}/staff");
 
-        var actionResult = await controller.GetTourManagerStaff();
+        var actionResult = await controller.GetTourManagerStaff(managerId);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
@@ -174,7 +174,7 @@ public sealed class AdminControllerTests
                 Error.NotFound("User.NotFound", "User not found."),
                 $"{BasePath}/tour-managers/{managerId}/staff");
 
-        var actionResult = await controller.GetTourManagerStaff();
+        var actionResult = await controller.GetTourManagerStaff(managerId);
 
         ApiControllerTestHelper.AssertErrorResponse(
             actionResult,

@@ -176,7 +176,7 @@ export const adminService = {
     search?: string;
     page?: number;
     limit?: number;
-  }) => {
+  }): Promise<{ items: ManagerBankAccountDto[]; total: number; page: number; limit: number; totalPages: number } | null> => {
     const response = await api.get<ApiResponse<{
       items: ManagerBankAccountDto[];
       total: number;
@@ -215,4 +215,3 @@ export const adminService = {
 
 export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto, TransportProviderDetail };
 export type { TourManagerSummary };
-export type { ManagerBankAccountDto };

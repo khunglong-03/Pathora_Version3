@@ -22,6 +22,7 @@ public static class AdminEndpoint
 
     // Tour Manager Staff
     public const string Staff = "staff";
+    public const string TourManagerStaff = "tour-managers/{managerId:guid}/staff";
     public const string ReassignStaff = "tour-managers/{managerId:guid}/staff/{staffId:guid}/reassign";
     public const string CreateStaffUnderManager = "tour-managers/{managerId:guid}/staff/create";
 

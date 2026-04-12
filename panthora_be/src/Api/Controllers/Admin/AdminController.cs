@@ -110,10 +110,9 @@ public class AdminController : BaseApiController
     }
 
     // Group 4: TourManager Staff (staff under current manager only)
-    [HttpGet(AdminEndpoint.Staff)]
-    public async Task<IActionResult> GetTourManagerStaff()
+    [HttpGet(AdminEndpoint.TourManagerStaff)]
+    public async Task<IActionResult> GetTourManagerStaff(Guid managerId)
     {
-        var managerId = Guid.Parse(CurrentUserId);
         var result = await Sender.Send(new GetTourManagerStaffQuery(managerId));
         return HandleResult(result);
     }
@@ -150,6 +149,12 @@ public class AdminController : BaseApiController
     }
 
     // Group 6: Managers
+    [HttpGet(AdminEndpoint.GetAllManagers)]
+    public async Task<IActionResult> GetAllManagers()
+    {
+        var result = await Sender.Send(new GetAllManagerUsersQuery());
+        return HandleResult(result);
+    }
 
     // Group 7: Manager Bank Accounts
     [HttpGet(AdminEndpoint.ManagersBankAccounts)]

@@ -12,19 +12,11 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { handleApiError } from "@/utils/apiResponse";
+import { managerService, type ManagerBankAccountDto } from "@/api/services/managerService";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-interface ManagerBankAccountDto {
-  userId: string;
-  bankAccountNumber: string | null;
-  bankCode: string | null;
-  bankAccountName: string | null;
-  bankAccountVerified: boolean;
-  bankAccountVerifiedAt: string | null;
-}
 
 interface BankAccountFormData {
   bankAccountNumber: string;
@@ -59,8 +51,6 @@ const bankAccountSchema = yup.object({
 // ---------------------------------------------------------------------------
 // API
 // ---------------------------------------------------------------------------
-
-import { managerService } from "@/api/services/managerService";
 
 async function fetchBankAccount(): Promise<ManagerBankAccountDto | null> {
   try {
@@ -104,7 +94,8 @@ function EditBankAccountModal({
     reset,
     formState: { errors },
   } = useForm<BankAccountFormData>({
-    resolver: yupResolver(bankAccountSchema) as unknown as Parameters<typeof useForm>[0]["resolver"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: yupResolver(bankAccountSchema) as any,
     defaultValues: {
       bankAccountNumber: initialData?.bankAccountNumber ?? "",
       bankCode: initialData?.bankCode ?? "",

@@ -309,6 +309,30 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Auth"],
     }),
+
+    /**
+     * POST /api/auth/forgot-password
+     * Sends a password reset link to the user's email.
+     */
+    forgotPassword: builder.mutation<ApiSharedResponse<void>, string>({
+      query: (email) => ({
+        url: "/api/auth/forgot-password",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
+    /**
+     * POST /api/auth/reset-password
+     * Resets the user's password using the token from the email link.
+     */
+    resetPassword: builder.mutation<ApiSharedResponse<void>, { token: string; newPassword: string }>({
+      query: (body) => ({
+        url: "/api/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
   overrideExisting: (process.env.NODE_ENV !== "production"),
 });
@@ -323,4 +347,6 @@ export const {
   useUpdateUserMutation,
   useGetUserSettingsQuery,
   useUpdateUserSettingsMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApiSlice;

@@ -13,26 +13,6 @@ const GeneralTab = dynamic(() => import("./tabs/GeneralTab").then((mod) => mod.G
   ssr: false,
   loading: () => <SettingsTabSkeleton />,
 });
-const TeamTab = dynamic(() => import("./tabs/TeamTab").then((mod) => mod.TeamTab), {
-  ssr: false,
-  loading: () => <SettingsTabSkeleton />,
-});
-const NotificationsTab = dynamic(() => import("./tabs/NotificationsTab").then((mod) => mod.NotificationsTab), {
-  ssr: false,
-  loading: () => <SettingsTabSkeleton />,
-});
-const SecurityTab = dynamic(() => import("./tabs/SecurityTab").then((mod) => mod.SecurityTab), {
-  ssr: false,
-  loading: () => <SettingsTabSkeleton />,
-});
-const BillingTab = dynamic(() => import("./tabs/BillingTab").then((mod) => mod.BillingTab), {
-  ssr: false,
-  loading: () => <SettingsTabSkeleton />,
-});
-const IntegrationsTab = dynamic(() => import("./tabs/IntegrationsTab").then((mod) => mod.IntegrationsTab), {
-  ssr: false,
-  loading: () => <SettingsTabSkeleton />,
-});
 
 // existing policy pages
 const TaxConfigsPage = dynamic(
@@ -62,17 +42,12 @@ const CancellationPoliciesPage = dynamic(
 
 const VALID_TAB_IDS = [
   "general",
-  "team",
   "tax-configs",
   "policies",
   "pricing-policies",
   "cancellation-policies",
   "deposit-policies",
   "visa-policies",
-  "notifications",
-  "security",
-  "billing",
-  "integrations",
 ] as const;
 
 type SettingsTabId = (typeof VALID_TAB_IDS)[number];
@@ -94,10 +69,6 @@ function renderTab(tab: SettingsTabId) {
   switch (tab) {
     case "general":
       return <GeneralTab />;
-    case "team":
-      return <TeamTab />;
-    case "team":
-      return <TeamTab />;
     case "tax-configs":
       return <TaxConfigsPage />;
     case "policies":
@@ -110,14 +81,6 @@ function renderTab(tab: SettingsTabId) {
       return <DepositPoliciesSettings />;
     case "visa-policies":
       return <VisaPoliciesPage />;
-    case "notifications":
-      return <NotificationsTab />;
-    case "security":
-      return <SecurityTab />;
-    case "billing":
-      return <BillingTab />;
-    case "integrations":
-      return <IntegrationsTab />;
     default:
       return <GeneralTab />;
   }
@@ -130,17 +93,12 @@ export function SettingsPage() {
 
   const tabs: SettingsTabMeta[] = [
     { id: "general", label: t("settings.tabs.general") },
-    { id: "team", label: t("settings.teamMembers.title") },
     { id: "tax-configs", label: t("settings.tabs.taxConfigs") },
     { id: "policies", label: t("settings.tabs.policies") },
     { id: "pricing-policies", label: t("settings.tabs.pricingPolicies") },
     { id: "cancellation-policies", label: t("settings.tabs.cancellationPolicies") },
     { id: "deposit-policies", label: t("settings.tabs.depositPolicies") },
     { id: "visa-policies", label: t("settings.tabs.visaPolicies") },
-    { id: "notifications", label: t("settings.tabs.notifications") },
-    { id: "security", label: t("settings.tabs.security") },
-    { id: "billing", label: t("settings.tabs.billing") },
-    { id: "integrations", label: t("settings.tabs.integrations") },
   ];
 
   const handleTabClick = (tabId: string) => {
