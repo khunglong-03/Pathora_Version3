@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TourDesignerLayout } from "@/features/tour-designer/components/TourDesignerLayout";
+
 import { TourFormPage } from "@/features/tour-designer/components/TourFormPage";
 
 export const metadata: Metadata = {
@@ -8,8 +8,6 @@ export const metadata: Metadata = {
 
 export default function CreateTourPage() {
   return (
-    <TourDesignerLayout>
-      <TourFormPage mode="create" showPolicySections={false} />
-    </TourDesignerLayout>
+    <TourFormPage mode="create" showPolicySections={false} />
   );
 }

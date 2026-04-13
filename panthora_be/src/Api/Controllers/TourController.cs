@@ -65,6 +65,14 @@ public class TourController(
     [HttpGet(TourEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {
+        var tour = await tourRepository.FindById(id, asNoTracking: true);
+        if (tour == null)
+            return HandleResult<TourDto>(Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription));
+
+        var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
+        if (!authResult.Succeeded)
+            return Forbid();
+
         var result = await Sender.Send(new GetTourDetailQuery(id));
         return HandleResult(result);
     }

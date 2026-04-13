@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourManagerOnly")]
+[Authorize(Policy = "AdminAndTourDesigner")]
 [Route(VisaPolicyEndpoint.Base)]
 public class VisaPolicyController : BaseApiController
 {
@@ -25,6 +25,7 @@ public class VisaPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateVisaPolicyCommand command)
     {
@@ -32,6 +33,7 @@ public class VisaPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateVisaPolicyCommand command)
     {
@@ -39,6 +41,7 @@ public class VisaPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(VisaPolicyEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {

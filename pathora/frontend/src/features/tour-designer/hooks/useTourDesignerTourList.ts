@@ -61,7 +61,7 @@ export function useTourDesignerTourList(
       } catch (error: unknown) {
         if (!active) return;
         setState("error");
-        setErrorMessage(handleApiError(error));
+        setErrorMessage(handleApiError(error).message);
       }
     };
 

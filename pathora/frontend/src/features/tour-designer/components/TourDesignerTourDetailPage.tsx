@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { PencilSimple, Eye } from "@phosphor-icons/react";
-import { TourDesignerLayout } from "./TourDesignerLayout";
+
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { tourService } from "@/api/services/tourService";
 import type { TourDto } from "@/types/tour";
@@ -56,17 +56,16 @@ export function TourDesignerTourDetailPage() {
 
   if (dataState === "loading") {
     return (
-      <TourDesignerLayout>
+      <div className="max-w-6xl w-full mx-auto p-6">
         <div className="max-w-5xl">
           <SkeletonTable rows={3} columns={3} />
         </div>
-      </TourDesignerLayout>
+      </div>
     );
   }
-
   if (dataState === "error" || !tour) {
     return (
-      <TourDesignerLayout>
+      <div className="max-w-6xl w-full mx-auto p-6">
         <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-center">
           <p className="text-red-700 font-medium mb-3">
             {errorMessage ?? t("tourDesigner.messages.errorLoading", "Failed to load tour")}
@@ -78,16 +77,15 @@ export function TourDesignerTourDetailPage() {
             {t("tourDesigner.actions.retry", "Retry")}
           </button>
         </div>
-      </TourDesignerLayout>
+      </div>
     );
   }
-
   const statusKey = String(tour.status ?? "");
   const badge = STATUS_BADGE[statusKey] ?? { bg: "bg-gray-100", text: "text-gray-700", label: statusKey };
   const canEdit = statusKey === "3"; // Only Pending status can be edited
 
   return (
-    <TourDesignerLayout>
+    <div className="max-w-6xl w-full mx-auto p-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
         <Link href="/tour-designer/tours" className="hover:text-indigo-600 transition-colors">
@@ -263,6 +261,6 @@ export function TourDesignerTourDetailPage() {
           </div>
         </div>
       </div>
-    </TourDesignerLayout>
+    </div>
   );
 }

@@ -1868,7 +1868,7 @@
     },
     "createPage": {
       "title": "Tạo Tour Trọn Gói Mới",
-      "stepOf": "Bước {current} trong {total}",
+      "stepOf": "Bước {{current}} trong {{total}}",
       "cancel": "Hủy",
       "saveDraft": "Lưu Nháp",
       "publishTour": "Xuất bản Tour"

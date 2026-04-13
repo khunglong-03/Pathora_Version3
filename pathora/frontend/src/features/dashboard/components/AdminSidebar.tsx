@@ -26,6 +26,8 @@ import {
   Car,
   ListChecks,
   BuildingOffice,
+  House,
+  Plus,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -89,6 +91,8 @@ export const HOTEL_PROVIDER_NAV_ITEMS = [
 
 export const TOURDESIGNER_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFour, href: "/tour-designer" },
+  { label: "Tour Của Tôi", icon: House, href: "/tour-designer/tours" },
+  { label: "Tạo Tour", icon: Plus, href: "/tour-designer/tours/create" },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
@@ -243,13 +247,24 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
   }, [variant, loadPendingCount, loadCompanyName]);
 
   const isActive = (href: string) => {
-    if (href === "/manager/dashboard") {
-      return pathname === "/manager/dashboard" || pathname === "/manager/dashboard/";
+    const exactMatchHrefs = [
+      "/manager/dashboard",
+      "/admin/users",
+      "/tour-designer",
+      "/tour-guide",
+      "/hotel",
+      "/transport"
+    ];
+    if (exactMatchHrefs.includes(href)) {
+      return pathname === href || pathname === href + "/";
     }
-    if (href === "/admin/users") {
-      return pathname === "/admin/users" || pathname === "/admin/users/";
+
+    // Prevent highlighting parent "Tours" when exactly on "Create Tour"
+    if (href === "/tour-designer/tours" && pathname.startsWith("/tour-designer/tours/create")) {
+      return false;
     }
-    return pathname.startsWith(href);
+
+    return pathname === href || pathname.startsWith(href + "/");
   };
 
   return (

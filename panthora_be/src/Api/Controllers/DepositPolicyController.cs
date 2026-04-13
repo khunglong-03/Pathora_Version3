@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourManagerOnly")]
+[Authorize(Policy = "AdminAndTourDesigner")]
 [Route(DepositPolicyEndpoint.Base)]
 public class DepositPolicyController : BaseApiController
 {
@@ -25,6 +25,7 @@ public class DepositPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDepositPolicyCommand command)
     {
@@ -32,6 +33,7 @@ public class DepositPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateDepositPolicyCommand command)
     {
@@ -39,6 +41,7 @@ public class DepositPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(DepositPolicyEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {

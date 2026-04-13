@@ -71,6 +71,7 @@ export const tourService = {
 
   getAllToursAdmin: async (
     searchText?: string,
+    status?: string,
     pageNumber = 1,
     pageSize = 10,
   ) => {
@@ -79,6 +80,9 @@ export const tourService = {
       pageNumber: String(pageNumber),
       pageSize: String(pageSize),
     });
+    if (status && status !== "all") {
+      params.append("status", status);
+    }
     // Backend returns { data: { data: TourVm[], total: number }, ... }
     type AdminTourPage = { data: TourVm[]; total: number };
     const response = await api.get<ApiResponse<AdminTourPage>>(

@@ -1868,7 +1868,7 @@
     },
     "createPage": {
       "title": "Create New Package Tour",
-      "stepOf": "Step {current} of {total}",
+      "stepOf": "Step {{current}} of {{total}}",
       "cancel": "Cancel",
       "saveDraft": "Save Draft",
       "publishTour": "Publish Tour"

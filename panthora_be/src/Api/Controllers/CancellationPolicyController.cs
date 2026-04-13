@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourManagerOnly")]
+[Authorize(Policy = "AdminAndTourDesigner")]
 [Route(CancellationPolicyEndpoint.Base)]
 public class CancellationPolicyController : BaseApiController
 {

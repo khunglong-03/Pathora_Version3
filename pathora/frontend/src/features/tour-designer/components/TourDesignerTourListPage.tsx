@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
-import { TourDesignerLayout } from "./TourDesignerLayout";
+
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTourDesignerTourList } from "../hooks/useTourDesignerTourList";
@@ -43,8 +43,7 @@ export function TourDesignerTourListPage() {
   const reload = () => setReloadToken((v) => v + 1);
 
   return (
-    <TourDesignerLayout>
-      <div className="max-w-6xl">
+    <div className="max-w-6xl w-full mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -241,7 +240,6 @@ export function TourDesignerTourListPage() {
             )}
           </div>
         )}
-      </div>
-    </TourDesignerLayout>
+    </div>
   );
 }

@@ -871,12 +871,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       classifications.forEach((cls, i) => {
         if (!cls.name.trim())
           newErrors[`cls_${i}_name`] = t("tourAdmin.required", "Required");
-        if (!cls.enName.trim())
-          newErrors[`cls_${i}_enName`] = t("tourAdmin.required", "Required");
         if (!cls.description.trim())
           newErrors[`cls_${i}_description`] = t("tourAdmin.required", "Required");
-        if (!cls.enDescription.trim())
-          newErrors[`cls_${i}_enDescription`] = t("tourAdmin.required", "Required");
         if (!cls.durationDays || Number(cls.durationDays) <= 0)
           newErrors[`cls_${i}_duration`] = t(
             "tourAdmin.invalidDuration",
@@ -899,12 +895,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       plans.forEach((plan, i) => {
         if (!plan.title.trim())
           newErrors[`plan_${i}_title`] = t("tourAdmin.required", "Required");
-        if (!plan.enTitle.trim())
-          newErrors[`plan_${i}_enTitle`] = t("tourAdmin.required", "Required");
         if (!plan.description.trim())
           newErrors[`plan_${i}_description`] = t("tourAdmin.required", "Required");
-        if (!plan.enDescription.trim())
-          newErrors[`plan_${i}_enDescription`] = t("tourAdmin.required", "Required");
       });
 
       // Validate linkToResources URLs
@@ -1094,12 +1086,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (ins.insuranceName.trim() || ins.enInsuranceName.trim()) {
           if (!ins.insuranceName.trim())
             newErrors[`ins_${i}_name`] = t("tourAdmin.required", "Required");
-          if (!ins.enInsuranceName.trim())
-            newErrors[`ins_${i}_enName`] = t("tourAdmin.required", "Required");
           if (!ins.coverageDescription.trim())
             newErrors[`ins_${i}_coverage`] = t("tourAdmin.required", "Required");
-          if (!ins.enCoverageDescription.trim())
-            newErrors[`ins_${i}_enCoverage`] = t("tourAdmin.required", "Required");
           const amount = Number(ins.coverageAmount);
           if (!ins.coverageAmount.trim() || isNaN(amount) || amount <= 0)
             newErrors[`ins_${i}_amount`] = t(
@@ -1160,6 +1148,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       const nextStep = Math.min(currentStep + 1, WIZARD_STEPS.length - 1);
       setCurrentStep(nextStep);
       setMaxNavigableStep((max) => Math.max(max, nextStep));
+    } else {
+      toast.error(t("tourAdmin.validation.pleaseFixErrors", "Please fix validation errors before proceeding."));
     }
   };
 
@@ -3259,13 +3249,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   {act.routes.map((route, ri) => {
                                     const routeKey = ci + "_" + di + "_" + ai + "_" + ri;
                                     const isExpanded = expandedRoutes[routeKey] ?? false;
+                                    const hasRouteError = 
+                                      errors[`route_${ci}_${di}_${ai}_${ri}_from`] ||
+                                      errors[`route_${ci}_${di}_${ai}_${ri}_to`] ||
+                                      errors[`route_${ci}_${di}_${ai}_${ri}_duration`] ||
+                                      errors[`route_${ci}_${di}_${ai}_${ri}_price`];
+                                      
                                     return (
                                       <div
                                         key={route.id}
-                                        className="bg-slate-50 dark:bg-slate-800/30 rounded-lg p-3 mb-2 border border-slate-100 dark:border-slate-700/50">
+                                        className={`bg-slate-50 dark:bg-slate-800/30 rounded-lg p-3 mb-2 border ${hasRouteError ? "border-red-300 dark:border-red-500/50" : "border-slate-100 dark:border-slate-700/50"}`}>
                                         <div className="flex items-center justify-between mb-2">
-                                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                          <span className={`text-xs font-medium ${hasRouteError ? "text-red-500 font-semibold" : "text-slate-600 dark:text-slate-400"}`}>
                                             {t("tourAdmin.itineraries.route", "Route")} #{ri + 1}
+                                            {hasRouteError && " (Invalid)"}
                                           </span>
                                           <div className="flex items-center gap-2">
                                             <button

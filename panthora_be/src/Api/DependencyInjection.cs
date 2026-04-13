@@ -177,6 +177,11 @@ public static class DependencyInjection
             options.AddPolicy("AdminOnly", policy =>
                 policy.RequireRole("Admin"));
 
+            // AdminAndTourDesigner: Admin OR TourDesigner (access to read-only policies for tour creation)
+            options.AddPolicy("AdminAndTourDesigner", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("TourDesigner")));
+
             // ManagerOnly: Admin is included because seed data admin users have role "Admin",
             // not "Manager". Admin is a superuser with full access including manager operations.
             options.AddPolicy("ManagerOnly", policy =>
