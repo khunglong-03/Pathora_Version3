@@ -7,7 +7,7 @@ import { taxConfigService } from "@/api/services/taxConfigService";
 import type { TaxConfig } from "@/types/taxConfig";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { Icon } from "@/components/ui/Icon";
-import { PencilSimple, Trash } from "@phosphor-icons/react";
+import { PencilSimple, TrashIcon } from "@phosphor-icons/react";
 
 interface TaxConfigListProps {
   onEdit: (config: TaxConfig) => void;
@@ -241,7 +241,7 @@ export function TaxConfigList({ onEdit, onDelete, refreshKey: _refreshKey }: Tax
                       onClick={() => onDelete(config.id)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-stone-600 hover:text-red-600 hover:bg-red-50 active:scale-[0.98] transition-all duration-200"
                     >
-                      <Trash className="size-3.5" weight="bold" />
+                      <TrashIcon className="size-3.5" weight="bold" />
                       {t("common.delete")}
                     </button>
                   </div>

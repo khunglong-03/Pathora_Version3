@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import type { StaffMemberDto } from "@/types/admin";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
@@ -110,7 +110,7 @@ export function StaffList({ staff, managers, managerId, onReassign }: StaffListP
                         style={{ color: "#C9873A" }}
                         aria-label={`Reassign ${member.fullName}`}
                       >
-                        <ArrowRight size={12} weight="bold" />
+                        <ArrowRightIcon size={12} weight="bold" />
                         Chuyển
                       </button>
                     )}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Van, Phone, EnvelopeSimple, MapPin } from "@phosphor-icons/react";
+import { VanIcon, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon } from "@phosphor-icons/react";
 import type { TransportProviderListItem } from "@/types/admin";
 
 interface TransportProviderCardProps {
@@ -25,7 +25,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{ backgroundColor: "#CCFBF1" }}
         >
-          <Van size={24} weight="fill" style={{ color: "#0D9488" }} />
+          <VanIcon size={24} weight="fill" style={{ color: "#0D9488" }} />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold truncate" style={{ color: "#111827" }}>
@@ -53,7 +53,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
       <div className="space-y-2 mb-4">
         {provider.email && (
           <div className="flex items-center gap-2">
-            <EnvelopeSimple size={14} style={{ color: "#9CA3AF" }} />
+            <EnvelopeSimpleIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs truncate" style={{ color: "#6B7280" }}>
               {provider.email}
             </span>
@@ -61,7 +61,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
         )}
         {provider.phone && (
           <div className="flex items-center gap-2">
-            <Phone size={14} style={{ color: "#9CA3AF" }} />
+            <PhoneIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs" style={{ color: "#6B7280" }}>
               {provider.phone}
             </span>
@@ -69,7 +69,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
         )}
         {provider.address && (
           <div className="flex items-center gap-2">
-            <MapPin size={14} style={{ color: "#9CA3AF" }} />
+            <MapPinIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs truncate" style={{ color: "#6B7280" }}>
               {provider.address}
             </span>

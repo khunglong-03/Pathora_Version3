@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Bed, Phone, EnvelopeSimple } from "@phosphor-icons/react";
+import { BedIcon, PhoneIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
 import type { HotelProviderListItem } from "@/types/admin";
 
 interface HotelProviderCardProps {
@@ -25,7 +25,7 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{ backgroundColor: "#FFEDD5" }}
         >
-          <Bed size={24} weight="fill" style={{ color: "#EA580C" }} />
+          <BedIcon size={24} weight="fill" style={{ color: "#EA580C" }} />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold truncate" style={{ color: "#111827" }}>
@@ -53,7 +53,7 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
       <div className="space-y-2 mb-4">
         {provider.email && (
           <div className="flex items-center gap-2">
-            <EnvelopeSimple size={14} style={{ color: "#9CA3AF" }} />
+            <EnvelopeSimpleIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs truncate" style={{ color: "#6B7280" }}>
               {provider.email}
             </span>
@@ -61,7 +61,7 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
         )}
         {provider.phone && (
           <div className="flex items-center gap-2">
-            <Phone size={14} style={{ color: "#9CA3AF" }} />
+            <PhoneIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs" style={{ color: "#6B7280" }}>
               {provider.phone}
             </span>

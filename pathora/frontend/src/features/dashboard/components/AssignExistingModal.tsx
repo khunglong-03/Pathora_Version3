@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, UserPlus, MagnifyingGlass } from "@phosphor-icons/react";
+import { XIcon, UserPlusIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { userService } from "@/api/services/userService";
 import { AdminErrorCard } from "@/features/dashboard/components/AdminErrorCard";
 
@@ -114,7 +114,7 @@ export function AssignExistingModal({
               className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ backgroundColor: role === "TourDesigner" ? "#EDE9FE" : "#DBEAFE" }}
             >
-              <UserPlus
+              <UserPlusIcon
                 size={18}
                 weight="bold"
                 style={{ color: role === "TourDesigner" ? "#7C3AED" : "#2563EB" }}
@@ -134,14 +134,14 @@ export function AssignExistingModal({
             className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[#F3F4F6]"
             aria-label="Đóng"
           >
-            <X size={18} weight="bold" style={{ color: "#6B7280" }} />
+            <XIcon size={18} weight="bold" style={{ color: "#6B7280" }} />
           </button>
         </div>
 
         {/* Search */}
         <div className="px-6 pt-4">
           <div className="relative">
-            <MagnifyingGlass
+            <MagnifyingGlassIcon
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2"
               style={{ color: "#9CA3AF" }}

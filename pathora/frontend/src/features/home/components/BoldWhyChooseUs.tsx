@@ -2,7 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
-import { Trophy, Compass, ChatCircle, ArrowsClockwise } from "@phosphor-icons/react";
+import { Trophy, CompassIcon, ChatCircleIcon, ArrowsClockwiseIcon } from "@phosphor-icons/react";
 
 const features = [
   {
@@ -12,19 +12,19 @@ const features = [
     color: "#fb8b02",
   },
   {
-    Icon: Compass,
+    Icon: CompassIcon,
     titleKey: "landing.whyChoose.items.guides.title",
     descKey: "landing.whyChoose.items.guides.desc",
     color: "#3b82f6",
   },
   {
-    Icon: ChatCircle,
+    Icon: ChatCircleIcon,
     titleKey: "landing.whyChoose.items.support.title",
     descKey: "landing.whyChoose.items.support.desc",
     color: "#10b981",
   },
   {
-    Icon: ArrowsClockwise,
+    Icon: ArrowsClockwiseIcon,
     titleKey: "landing.whyChoose.items.flexible.title",
     descKey: "landing.whyChoose.items.flexible.desc",
     color: "#fb8b02",

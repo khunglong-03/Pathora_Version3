@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Pencil } from "@phosphor-icons/react";
+import { PencilIcon } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type { AccommodationItem, HotelSupplierInfo } from "@/api/services/hotelProviderService";
 import {
@@ -84,7 +84,7 @@ export default function HotelProfilePage() {
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
                 style={{ backgroundColor: "#6366F1" }}
               >
-                <Pencil size={14} />
+                <PencilIcon size={14} />
                 Chỉnh sửa
               </button>
             </div>

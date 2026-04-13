@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Eye,
-  CheckCircle,
-  XCircle,
-  X,
+  EyeIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import type {
@@ -253,7 +253,7 @@ export default function TransportTripsPage() {
                         style={{ color: "#6B7280" }}
                         aria-label={`Xem chi tiết chuyến ${trip.id}`}
                       >
-                        <Eye size={16} />
+                        <EyeIcon size={16} />
                       </button>
                       {trip.status === "Pending" && (
                         <>
@@ -264,7 +264,7 @@ export default function TransportTripsPage() {
                             style={{ color: "#22C55E" }}
                             aria-label="Nhận chuyến"
                           >
-                            <CheckCircle size={16} />
+                            <CheckCircleIcon size={16} />
                           </button>
                           <button
                             onClick={() => void handleAction(trip.id, "reject")}
@@ -273,7 +273,7 @@ export default function TransportTripsPage() {
                             style={{ color: "#EF4444" }}
                             aria-label="Từ chối chuyến"
                           >
-                            <XCircle size={16} />
+                            <XCircleIcon size={16} />
                           </button>
                         </>
                       )}
@@ -286,7 +286,7 @@ export default function TransportTripsPage() {
                             style={{ color: "#22C55E" }}
                             aria-label="Hoàn thành chuyến"
                           >
-                            <CheckCircle size={16} />
+                            <CheckCircleIcon size={16} />
                           </button>
                           <button
                             onClick={() => void handleAction(trip.id, "cancel")}
@@ -295,7 +295,7 @@ export default function TransportTripsPage() {
                             style={{ color: "#EF4444" }}
                             aria-label="Hủy chuyến"
                           >
-                            <X size={16} />
+                            <XIcon size={16} />
                           </button>
                         </>
                       )}
@@ -340,7 +340,7 @@ export default function TransportTripsPage() {
                 className="p-2 rounded-lg transition-colors duration-150 hover:bg-gray-100"
                 aria-label="Đóng"
               >
-                <X size={20} style={{ color: "#6B7280" }} />
+                <XIcon size={20} style={{ color: "#6B7280" }} />
               </button>
             </div>
 

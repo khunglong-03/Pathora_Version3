@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { DotsThreeVertical, Eye, ShieldSlash, CheckCircle } from "@phosphor-icons/react";
+import { DotsThreeVerticalIcon, EyeIcon, ShieldSlashIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { userService } from "@/api/services/userService";
 import type { AdminUserListItem } from "@/api/services/adminService";
 import Pagination from "@/components/ui/Pagination";
@@ -155,7 +155,7 @@ export function AdminUserTable({
                   className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#F3F4F6]"
                   aria-label="Actions"
                 >
-                  <DotsThreeVertical size={16} weight="bold" style={{ color: "#6B7280" }} />
+                  <DotsThreeVerticalIcon size={16} weight="bold" style={{ color: "#6B7280" }} />
                 </button>
 
                 {openDropdown === user.id && (
@@ -169,7 +169,7 @@ export function AdminUserTable({
                       style={{ color: "#374151" }}
                       onClick={() => setOpenDropdown(null)}
                     >
-                      <Eye size={14} weight="bold" />
+                      <EyeIcon size={14} weight="bold" />
                       Xem chi tiết
                     </Link>
 
@@ -197,12 +197,12 @@ export function AdminUserTable({
                       >
                         {user.status === "Active" ? (
                           <>
-                            <ShieldSlash size={14} weight="bold" />
+                            <ShieldSlashIcon size={14} weight="bold" />
                             Khóa tài khoản
                           </>
                         ) : (
                           <>
-                            <CheckCircle size={14} weight="bold" />
+                            <CheckCircleIcon size={14} weight="bold" />
                             Mở khóa tài khoản
                           </>
                         )}

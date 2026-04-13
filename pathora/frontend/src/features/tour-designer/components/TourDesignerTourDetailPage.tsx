@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { PencilSimple, Eye } from "@phosphor-icons/react";
+import { PencilSimple, EyeIcon } from "@phosphor-icons/react";
 
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { tourService } from "@/api/services/tourService";
@@ -185,7 +185,7 @@ export function TourDesignerTourDetailPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <Eye size={24} />
+                        <EyeIcon size={24} />
                       </div>
                     )}
                   </div>

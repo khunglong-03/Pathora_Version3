@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User } from "@phosphor-icons/react";
+import { UserIcon } from "@phosphor-icons/react";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 
@@ -53,7 +53,7 @@ export function ManagerListPanel({
         {managers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-12 h-12 bg-stone-100 rounded-2xl flex items-center justify-center mb-3">
-              <User size={24} className="text-stone-400" />
+              <UserIcon size={24} className="text-stone-400" />
             </div>
             <p className="text-sm font-medium text-stone-500 mb-1">Chưa có Tour Manager</p>
             <p className="text-xs text-stone-400">Tạo Tour Manager đầu tiên để bắt đầu.</p>

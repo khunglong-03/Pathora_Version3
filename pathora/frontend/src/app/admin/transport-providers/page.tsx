@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus } from "@phosphor-icons/react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
 import type { TransportProviderListItem, PaginatedList } from "@/types/admin";
@@ -121,7 +121,7 @@ export default function TransportProvidersPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
             style={{ backgroundColor: "#0D9488" }}
           >
-            <Plus size={16} weight="bold" />
+            <PlusIcon size={16} weight="bold" />
             Tạo nhà cung cấp
           </button>
         }

@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { Plus, MagnifyingGlass, MapTrifold, CaretRight, WarningCircle, ImageBreak } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { PlusIcon, MagnifyingGlassIcon, MapTrifoldIcon, CaretRightIcon, WarningCircleIcon, ImageSquareIcon } from "@phosphor-icons/react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTourDesignerTourList } from "../hooks/useTourDesignerTourList";
@@ -26,7 +26,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; ring: string }> =
 };
 
 // --- FRAGMENT ANIMATIONS ---
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -34,7 +34,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { 
     opacity: 1, 
@@ -93,7 +93,7 @@ export function TourDesignerTourListPage() {
           href="/tour-designer/tours/create"
           className="flex items-center gap-2 px-6 py-3 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-sm active:scale-[0.98]"
         >
-          <Plus size={18} weight="bold" />
+          <PlusIcon size={18} weight="bold" />
           {t("tourDesigner.actions.create", "Tạo Tour")}
         </Link>
       </div>
@@ -132,7 +132,7 @@ export function TourDesignerTourListPage() {
 
         {/* Search */}
         <div className="relative w-full max-w-sm">
-          <MagnifyingGlass
+          <MagnifyingGlassIcon
             size={18}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
           />
@@ -171,7 +171,7 @@ export function TourDesignerTourListPage() {
             className="flex flex-col items-center justify-center py-20 text-center"
           >
             <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-rose-50/50">
-              <WarningCircle size={32} weight="duotone" className="text-rose-500" />
+              <WarningCircleIcon size={32} weight="duotone" className="text-rose-500" />
             </div>
             <h3 className="text-xl font-bold text-zinc-950 tracking-tight mb-2">
               {t("tourDesigner.messages.errorLoadingTitle", "Không thể tải dữ liệu")}
@@ -197,7 +197,7 @@ export function TourDesignerTourListPage() {
             className="flex flex-col items-center justify-center py-24 text-center border border-dashed border-zinc-200 rounded-[2.5rem] bg-zinc-50/50"
           >
             <div className="w-20 h-20 bg-white shadow-sm rounded-full flex items-center justify-center mb-6 ring-1 ring-zinc-200/50">
-              <MapTrifold size={40} weight="thin" className="text-zinc-300" />
+              <MapTrifoldIcon size={40} weight="thin" className="text-zinc-300" />
             </div>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight mb-3">
               {t("tourDesigner.empty.title", "Chưa có Tour nào")}
@@ -212,7 +212,7 @@ export function TourDesignerTourListPage() {
                 href="/tour-designer/tours/create"
                 className="inline-flex items-center gap-2 px-8 py-3.5 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-lg active:scale-95"
               >
-                <Plus size={18} weight="bold" />
+                <PlusIcon size={18} weight="bold" />
                 {t("tourDesigner.actions.createFirst", "Bắt đầu thiết kế")}
               </Link>
             )}
@@ -252,10 +252,12 @@ export function TourDesignerTourListPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300">
-                        <ImageBreak size={48} weight="thin" />
-                        <span className="text-xs font-medium mt-2">No Image</span>
-                      </div>
+                    <div className="w-full h-full bg-stone-100 flex flex-col justify-center items-center">
+                      <ImageSquareIcon className="size-8 text-stone-300 mb-2 drop-shadow-sm" weight="duotone" />
+                      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                        {t("common.noImage", "NO IMAGE")}
+                      </span>
+                    </div>
                     )}
                   </div>
 
@@ -286,7 +288,7 @@ export function TourDesignerTourListPage() {
                           className="p-2 text-zinc-500 bg-zinc-50 hover:bg-zinc-100 hover:text-zinc-950 rounded-xl transition-colors active:scale-90"
                           aria-label="View Details"
                         >
-                          <CaretRight size={20} weight="bold" />
+                          <CaretRightIcon size={20} weight="bold" />
                         </Link>
                         {tour.status === "3" && (
                           <Link
@@ -307,7 +309,7 @@ export function TourDesignerTourListPage() {
       </AnimatePresence>
 
       {/* Pagination */}
-      {state === "ready" && total > 12 && (
+      {state === "ready" && total > 0 && (
         <div className="mt-12 flex items-center justify-center gap-4">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -317,7 +319,7 @@ export function TourDesignerTourListPage() {
             {t("tourDesigner.prev", "Quay lại")}
           </button>
           <span className="text-sm font-medium tracking-tight text-zinc-500">
-            {currentPage} / {Math.ceil(total / 12)}
+            {currentPage} / {Math.max(1, Math.ceil(total / 12))}
           </span>
           <button
             onClick={() => setCurrentPage((p) => p + 1)}

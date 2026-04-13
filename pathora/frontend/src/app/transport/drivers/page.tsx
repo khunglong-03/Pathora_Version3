@@ -2,11 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Plus,
-  PencilSimple,
-  Trash,
-  UsersThree,
-  Warning,
+  PlusIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+  UsersThreeIcon,
+  WarningIcon,
 } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import type { Driver, CreateDriverDto, UpdateDriverDto } from "@/api/services/transportProviderService";
@@ -156,7 +156,7 @@ export default function TransportDriversPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 hover:opacity-90"
             style={{ backgroundColor: "#6366F1" }}
           >
-            <Plus size={16} weight="bold" />
+            <PlusIcon size={16} weight="bold" />
             Thêm tài xế
           </button>
         }
@@ -199,7 +199,7 @@ export default function TransportDriversPage() {
 
       {!error && !isLoading && filteredDrivers.length === 0 && (
         <AdminEmptyState
-          icon="UsersThree"
+          icon="UsersThreeIcon"
           heading="Chưa có tài xế nào"
           description="Thêm tài xế để bắt đầu quản lý."
           action={
@@ -208,7 +208,7 @@ export default function TransportDriversPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm"
               style={{ backgroundColor: "#6366F1" }}
             >
-              <Plus size={16} />
+              <PlusIcon size={16} />
               Thêm tài xế
             </button>
           }
@@ -273,7 +273,7 @@ export default function TransportDriversPage() {
                           style={{ color: "#6B7280" }}
                           aria-label={`Sửa tài xế ${driver.fullName}`}
                         >
-                          <PencilSimple size={16} />
+                          <PencilSimpleIcon size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(driver.id)}
@@ -282,7 +282,7 @@ export default function TransportDriversPage() {
                           style={{ color: "#EF4444" }}
                           aria-label={`Xóa tài xế ${driver.fullName}`}
                         >
-                          <Trash size={16} />
+                          <TrashIcon size={16} />
                         </button>
                       </div>
                     </td>

@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
-  Calculator,
-  CreditCard,
-  FileText,
-  GearSix,
-  PuzzlePiece,
+  CalculatorIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  GearSixIcon,
+  PuzzlePieceIcon,
 } from "@phosphor-icons/react";
 import Button from "@/components/ui/Button";
 import { SectionCard } from "../components/SectionCard";
@@ -15,11 +15,11 @@ import { useIntegrationSettings } from "../hooks/useSettings";
 import { springTransition } from "../components/springTransition";
 
 const ICON_MAP = {
-  CreditCard,
-  FileText,
-  GearSix,
-  Calculator,
-  PuzzlePiece,
+  CreditCardIcon,
+  FileTextIcon,
+  GearSixIcon,
+  CalculatorIcon,
+  PuzzlePieceIcon,
 } as const;
 
 export function IntegrationsTab() {
@@ -41,7 +41,7 @@ export function IntegrationsTab() {
         </SectionCard>
       ) : (
         integrations.map((integration, i) => {
-          const IconComponent = ICON_MAP[integration.iconName as keyof typeof ICON_MAP] ?? GearSix;
+          const IconComponent = ICON_MAP[integration.iconName as keyof typeof ICON_MAP] ?? GearSixIcon;
           const loading = isUpdating === integration.id;
 
           return (

@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DynamicPricingDto } from "@/types/tour";
-import { Plus, Trash, StarHalf } from "@phosphor-icons/react";
+import { Plus, TrashIcon, StarHalfIcon } from "@phosphor-icons/react";
 
 interface PricingTierEditorProps {
   title: string;
@@ -147,7 +147,7 @@ export function PricingTierEditor({
       {tiers.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-stone-200 bg-stone-50/50 p-10 text-center">
           <div className="w-12 h-12 rounded-3xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
-            <StarHalf className="w-6 h-6 text-stone-400" weight="duotone" />
+            <StarHalfIcon className="w-6 h-6 text-stone-400" weight="duotone" />
           </div>
           <p className="text-sm text-stone-500 font-medium">No pricing tiers configured</p>
           <p className="text-xs text-stone-400 mt-1">Add a tier to define pricing by group size</p>
@@ -236,7 +236,7 @@ export function PricingTierEditor({
                       className="w-8 h-8 rounded-2xl flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-500/20 mt-1"
                       aria-label="Remove pricing tier"
                     >
-                      <Trash className="w-4 h-4" weight="regular" />
+                      <TrashIcon className="w-4 h-4" weight="regular" />
                     </motion.button>
                   </div>
                 </div>

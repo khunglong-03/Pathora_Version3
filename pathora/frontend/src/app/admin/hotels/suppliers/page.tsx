@@ -2,22 +2,22 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus } from "@phosphor-icons/react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminHotelService, type HotelSupplierItem, type PaginatedHotelList } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeader,
-  AdminKpiStrip,
-  AdminFilterTabs,
-  AdminEmptyState,
-  AdminErrorCard,
+  AdminPageHeaderIcon,
+  AdminKpiStripIcon,
+  AdminFilterTabsIcon,
+  AdminEmptyStateIcon,
+  AdminErrorCardIcon,
 } from "@/features/dashboard/components";
 import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
 import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
-import { Bed, Phone, EnvelopeSimple, ArrowRight } from "@phosphor-icons/react";
+import { Bed, PhoneIcon, EnvelopeSimpleIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
 type StatusFilter = "all" | "Active" | "Inactive";
@@ -107,7 +107,7 @@ export default function HotelSuppliersPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeader
+      <AdminPageHeaderIcon
         title="Nhà cung cấp Khách sạn"
         subtitle="Danh sách đối tác lưu trú cho HotelServiceProvider"
         onRefresh={handleRefresh}
@@ -117,19 +117,19 @@ export default function HotelSuppliersPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
             style={{ backgroundColor: "#EA580C" }}
           >
-            <Plus size={16} weight="bold" />
+            <PlusIcon size={16} weight="bold" />
             Tạo nhà cung cấp
           </button>
         }
       />
 
       {/* KPI Strip */}
-      <AdminKpiStrip kpis={kpis} />
+      <AdminKpiStripIcon kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <AdminFilterTabs
+          <AdminFilterTabsIcon
             tabs={STATUS_TABS}
             activeValue={statusFilter}
             onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
@@ -155,10 +155,10 @@ export default function HotelSuppliersPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && suppliers.length === 0 && (
-        <AdminEmptyState
+        <AdminEmptyStateIcon
           icon="Bed"
           heading="Không có nhà cung cấp nào"
           description="Không tìm thấy nhà cung cấp lưu trú phù hợp."
@@ -210,14 +210,14 @@ export default function HotelSuppliersPage() {
                           </span>
                         </div>
                       </div>
-                      <ArrowRight size={16} style={{ color: "#9CA3AF" }} className="shrink-0 mt-1" />
+                      <ArrowRightIcon size={16} style={{ color: "#9CA3AF" }} className="shrink-0 mt-1" />
                     </div>
 
                     {/* Contact info */}
                     <div className="space-y-2 mb-4">
                       {supplier.email && (
                         <div className="flex items-center gap-2">
-                          <EnvelopeSimple size={14} style={{ color: "#9CA3AF" }} />
+                          <EnvelopeSimpleIcon size={14} style={{ color: "#9CA3AF" }} />
                           <span className="text-xs truncate" style={{ color: "#6B7280" }}>
                             {supplier.email}
                           </span>
@@ -225,7 +225,7 @@ export default function HotelSuppliersPage() {
                       )}
                       {supplier.phone && (
                         <div className="flex items-center gap-2">
-                          <Phone size={14} style={{ color: "#9CA3AF" }} />
+                          <PhoneIcon size={14} style={{ color: "#9CA3AF" }} />
                           <span className="text-xs" style={{ color: "#6B7280" }}>
                             {supplier.phone}
                           </span>

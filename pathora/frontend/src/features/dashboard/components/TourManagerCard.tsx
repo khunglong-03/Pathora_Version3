@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { UsersThree, PencilSimple } from "@phosphor-icons/react";
+import { UsersThreeIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
 function getInitials(name: string): string {
@@ -84,7 +84,7 @@ export function TourManagerCard({ manager, onViewStaff, onEdit }: TourManagerCar
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-[#E5E7EB] transition-all duration-200 hover:bg-[#FAFAFA]"
           style={{ color: "#374151" }}
         >
-          <UsersThree size={14} weight="bold" />
+          <UsersThreeIcon size={14} weight="bold" />
           Xem nhân viên
         </button>
         <button
@@ -96,7 +96,7 @@ export function TourManagerCard({ manager, onViewStaff, onEdit }: TourManagerCar
           style={{ color: "#374151" }}
           aria-label="Edit manager"
         >
-          <PencilSimple size={14} weight="bold" />
+          <PencilSimpleIcon size={14} weight="bold" />
         </button>
       </div>
     </div>

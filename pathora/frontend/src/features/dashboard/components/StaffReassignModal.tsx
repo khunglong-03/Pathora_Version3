@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X } from "@phosphor-icons/react";
+import { XIcon } from "@phosphor-icons/react";
 import type { StaffMemberDto } from "@/types/admin";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
@@ -62,7 +62,7 @@ export function StaffReassignModal({
             className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[#F3F4F6]"
             aria-label="Close modal"
           >
-            <X size={18} weight="bold" style={{ color: "#6B7280" }} />
+            <XIcon size={18} weight="bold" style={{ color: "#6B7280" }} />
           </button>
         </div>
 

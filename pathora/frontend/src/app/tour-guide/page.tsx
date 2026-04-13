@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MapTrifold } from "@phosphor-icons/react";
+import { MapTrifoldIcon } from "@phosphor-icons/react";
 import { AdminPageHeader } from "@/features/dashboard/components";
 
 export default function TourGuidePage() {
@@ -23,7 +23,7 @@ export default function TourGuidePage() {
             className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
             style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
           >
-            <MapTrifold size={32} style={{ color: "#22C55E" }} />
+            <MapTrifoldIcon size={32} style={{ color: "#22C55E" }} />
           </div>
           <h2
             className="text-lg font-semibold mb-2"

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, UsersThree } from "@phosphor-icons/react";
+import { XIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import type { Driver, CreateDriverDto } from "@/api/services/transportProviderService";
 
 interface DriverFormProps {
@@ -100,7 +100,7 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: "#6366F112" }}
           >
-            <UsersThree size={20} style={{ color: "#6366F1" }} />
+            <UsersThreeIcon size={20} style={{ color: "#6366F1" }} />
           </div>
           <div>
             <h2 className="text-lg font-semibold" style={{ color: "#111827" }}>
@@ -116,7 +116,7 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
           className="p-2 rounded-lg transition-colors duration-150 hover:bg-gray-100"
           aria-label="Đóng"
         >
-          <X size={20} style={{ color: "#6B7280" }} />
+          <XIcon size={20} style={{ color: "#6B7280" }} />
         </button>
       </div>
 

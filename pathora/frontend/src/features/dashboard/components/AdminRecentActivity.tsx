@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import type { ActivityItem } from "@/types/admin";
-import { Clock } from "@phosphor-icons/react";
+import { ClockIcon } from "@phosphor-icons/react";
 
 function formatRelativeTime(timestamp: string): string {
   try {
@@ -91,7 +91,7 @@ export function AdminRecentActivity({ activities = [], maxItems = 10 }: AdminRec
                 )}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <Clock size={11} style={{ color: "#9CA3AF" }} />
+                <ClockIcon size={11} style={{ color: "#9CA3AF" }} />
                 <span className="text-xs" style={{ color: "#9CA3AF" }}>
                   {formatRelativeTime(activity.timestamp)}
                 </span>

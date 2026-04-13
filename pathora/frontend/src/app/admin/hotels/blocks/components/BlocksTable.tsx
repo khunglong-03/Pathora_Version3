@@ -1,5 +1,5 @@
 import React from "react";
-import { Bed } from "@phosphor-icons/react";
+import { BedIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 import type { RoomBlockItem } from "@/api/services/adminHotelService";
 
@@ -39,7 +39,7 @@ export function BlocksTable({ blocks, onDeleteBlock }: BlocksTableProps) {
                       className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                       style={{ backgroundColor: "#FFEDD5" }}
                     >
-                      <Bed size={18} weight="fill" style={{ color: "#EA580C" }} />
+                      <BedIcon size={18} weight="fill" style={{ color: "#EA580C" }} />
                     </div>
                     <div>
                       <p className="text-sm font-medium" style={{ color: "#111827" }}>

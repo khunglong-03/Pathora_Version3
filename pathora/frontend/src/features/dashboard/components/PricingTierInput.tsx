@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { PricingPolicyTier } from "@/types/pricingPolicy";
 
 const createUniqueId = () => `tier-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-import { StarHalf, Trash, Plus } from "@phosphor-icons/react";
+import { StarHalf, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 
 interface PricingTierInputProps {
   tiers: PricingPolicyTier[];
@@ -46,7 +46,7 @@ export function PricingTierInput({ tiers, onChange }: PricingTierInputProps) {
           onClick={addTier}
           className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-amber-50 text-stone-600 hover:text-amber-600 text-sm font-semibold rounded-2xl border border-stone-200 hover:border-amber-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
         >
-          <Plus className="w-4 h-4" weight="bold" />
+          <PlusIcon className="w-4 h-4" weight="bold" />
           Add Tier
         </motion.button>
       </div>
@@ -158,7 +158,7 @@ export function PricingTierInput({ tiers, onChange }: PricingTierInputProps) {
                       className="w-8 h-8 rounded-2xl flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                       title="Remove tier"
                     >
-                      <Trash className="w-4 h-4" weight="regular" />
+                      <TrashIcon className="w-4 h-4" weight="regular" />
                     </motion.button>
                   </div>
                 </div>

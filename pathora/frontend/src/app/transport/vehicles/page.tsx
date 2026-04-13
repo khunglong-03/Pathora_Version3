@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Plus,
-  PencilSimple,
-  Trash,
-  Car,
+  PlusIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+  CarIcon,
 } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import type { Vehicle, CreateVehicleDto, UpdateVehicleDto } from "@/api/services/transportProviderService";
@@ -17,7 +17,7 @@ import {
 import VehicleForm from "@/components/transport/VehicleForm";
 import { toast } from "react-toastify";
 
-// Backend returns numeric VehicleType (1=Car, 2=Bus, 3=Minibus, 4=Van, 5=Coach, 6=Motorbike)
+// Backend returns numeric VehicleType (1=CarIcon, 2=Bus, 3=Minibus, 4=Van, 5=Coach, 6=Motorbike)
 const VEHICLE_TYPE_LABELS: Record<number, string> = {
   1: "Xe 4 chỗ",
   2: "Xe buýt",
@@ -137,7 +137,7 @@ export default function TransportVehiclesPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 hover:opacity-90"
             style={{ backgroundColor: "#6366F1" }}
           >
-            <Plus size={16} weight="bold" />
+            <PlusIcon size={16} weight="bold" />
             Thêm xe
           </button>
         }
@@ -181,7 +181,7 @@ export default function TransportVehiclesPage() {
 
       {!error && !isLoading && filteredVehicles.length === 0 && (
         <AdminEmptyState
-          icon="Car"
+          icon="CarIcon"
           heading="Chưa có phương tiện nào"
           description="Thêm phương tiện để bắt đầu quản lý đội xe."
           action={
@@ -190,7 +190,7 @@ export default function TransportVehiclesPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm"
               style={{ backgroundColor: "#6366F1" }}
             >
-              <Plus size={16} />
+              <PlusIcon size={16} />
               Thêm xe
             </button>
           }
@@ -253,7 +253,7 @@ export default function TransportVehiclesPage() {
                           style={{ color: "#6B7280" }}
                           aria-label={`Sửa xe ${vehicle.vehiclePlate}`}
                         >
-                          <PencilSimple size={16} />
+                          <PencilSimpleIcon size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(vehicle.vehiclePlate)}
@@ -262,7 +262,7 @@ export default function TransportVehiclesPage() {
                           style={{ color: "#EF4444" }}
                           aria-label={`Xóa xe ${vehicle.vehiclePlate}`}
                         >
-                          <Trash size={16} />
+                          <TrashIcon size={16} />
                         </button>
                       </div>
                     </td>

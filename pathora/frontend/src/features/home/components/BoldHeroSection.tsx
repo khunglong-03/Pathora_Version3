@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { MagnifyingGlass, MapPin, CalendarBlank } from "@phosphor-icons/react";
+import { MagnifyingGlass, MapPinIcon, CalendarBlankIcon } from "@phosphor-icons/react";
 import { homeService } from "@/api/services/homeService";
 
 interface HeroStats {
@@ -118,7 +118,7 @@ export const BoldHeroSection = () => {
               }}
             >
               <div className="flex-1 w-full relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={18} weight="regular" />
+                <MapPinIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={18} weight="regular" />
                 <input
                   suppressHydrationWarning
                   type="text"
@@ -131,7 +131,7 @@ export const BoldHeroSection = () => {
               </div>
               <div className="flex gap-3 w-full md:w-auto">
                 <div className="flex-1 md:flex-none md:w-44 relative">
-                  <CalendarBlank className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={18} weight="regular" />
+                  <CalendarBlankIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={18} weight="regular" />
                   <input
                     type="date"
                     className="w-full bg-transparent text-white pl-10 pr-4 py-3 rounded-xl outline-none border border-white/[0.05] focus:border-[#fb8b02]/40 transition-colors"

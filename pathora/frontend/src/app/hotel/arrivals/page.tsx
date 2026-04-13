@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type {
   GuestArrivalItem,
@@ -161,7 +161,7 @@ export default function ArrivalsPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
             style={{ backgroundColor: "#6366F1" }}
           >
-            <Plus size={16} />
+            <PlusIcon size={16} />
             Gửi thông tin check-in
           </button>
         </div>

@@ -5,29 +5,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  SquaresFour,
-  GlobeHemisphereWest,
-  CalendarDots,
-  ClipboardText,
-  Ticket,
-  CreditCard,
-  UsersThree,
-  ShieldCheck,
-  Certificate,
-  Gear,
-  X,
-  List,
-  Bell,
-  Buildings,
-  Van,
-  Bed,
-  PaintBrush,
-  Truck,
-  Car,
-  ListChecks,
-  BuildingOffice,
-  House,
-  Plus,
+  SquaresFourIcon,
+  GlobeHemisphereWestIcon,
+  CalendarDotsIcon,
+  ClipboardTextIcon,
+  TicketIcon,
+  CreditCardIcon,
+  UsersThreeIcon,
+  ShieldCheckIcon,
+  CertificateIcon,
+  GearIcon,
+  XIcon,
+  ListIcon,
+  BellIcon,
+  BuildingsIcon,
+  VanIcon,
+  BedIcon,
+  PaintBrushIcon,
+  TruckIcon,
+  CarIcon,
+  ListChecksIcon,
+  BuildingOfficeIcon,
+  HouseIcon,
+  PlusIcon,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -37,39 +37,39 @@ import { AdminLogoutButton } from "./AdminLogoutButton";
    Navigation Items - Single Source of Truth
    ══════════════════════════════════════════════════════════════ */
 export const MANAGER_NAV_ITEMS = [
-  { label: "Dashboard", icon: SquaresFour, href: "/manager/dashboard" },
-  { label: "Tours", icon: GlobeHemisphereWest, href: "/manager/tour-management" },
-  { label: "Tour Instances", icon: CalendarDots, href: "/manager/tour-instances" },
-  { label: "Tour Requests", icon: ClipboardText, href: "/manager/dashboard/tour-requests" },
-  { label: "Bookings", icon: Ticket, href: "/manager/dashboard/bookings" },
-  { label: "Payments", icon: CreditCard, href: "/manager/dashboard/payments" },
-  { label: "Customers", icon: UsersThree, href: "/manager/dashboard/customers" },
-  { label: "Insurance", icon: ShieldCheck, href: "/manager/dashboard/insurance" },
-  { label: "Visa Applications", icon: Certificate, href: "/manager/dashboard/visa" },
-  { label: "Bank Accounts", icon: Buildings, href: "/manager/bank-accounts" },
+  { label: "Dashboard", icon: SquaresFourIcon, href: "/manager/dashboard" },
+  { label: "Tours", icon: GlobeHemisphereWestIcon, href: "/manager/tour-management" },
+  { label: "Tour Instances", icon: CalendarDotsIcon, href: "/manager/tour-instances" },
+  { label: "Tour Requests", icon: ClipboardTextIcon, href: "/manager/dashboard/tour-requests" },
+  { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
+  { label: "Payments", icon: CreditCardIcon, href: "/manager/dashboard/payments" },
+  { label: "Customers", icon: UsersThreeIcon, href: "/manager/dashboard/customers" },
+  { label: "Insurance", icon: ShieldCheckIcon, href: "/manager/dashboard/insurance" },
+  { label: "Visa Applications", icon: CertificateIcon, href: "/manager/dashboard/visa" },
+  { label: "Bank Accounts", icon: BuildingsIcon, href: "/manager/bank-accounts" },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
-  { label: "Quản lý Người dùng", icon: SquaresFour, href: "/admin/users" },
-  { label: "Settings", icon: Gear, href: "/dashboard/settings" },
+  { label: "Quản lý Người dùng", icon: SquaresFourIcon, href: "/admin/users" },
+  { label: "Settings", icon: GearIcon, href: "/dashboard/settings" },
 ] as const;
 
 // Admin navigation groups with section labels
 export const ADMIN_USER_ITEMS = [
-  { label: "Quản lý Người dùng", icon: UsersThree, href: "/admin/users" },
+  { label: "Quản lý Người dùng", icon: UsersThreeIcon, href: "/admin/users" },
 ] as const;
 
 export const ADMIN_PROVIDER_ITEMS = [
-  { label: "Nhà cung cấp Vận tải", icon: Van, href: "/admin/transport-providers" },
-  { label: "Nhà cung cấp Khách sạn", icon: Bed, href: "/admin/hotels/suppliers" },
+  { label: "Nhà cung cấp Vận tải", icon: VanIcon, href: "/admin/transport-providers" },
+  { label: "Nhà cung cấp Khách sạn", icon: BedIcon, href: "/admin/hotels/suppliers" },
 ] as const;
 
 export const ADMIN_TOUR_ITEMS = [
-  { label: "Quản lý Tour Manager", icon: UsersThree, href: "/admin/tour-managers" },
+  { label: "Quản lý Tour Manager", icon: UsersThreeIcon, href: "/admin/tour-managers" },
 ] as const;
 
 export const ADMIN_SETTINGS_ITEMS = [
-  { label: "Cấu hình hệ thống", icon: Gear, href: "/admin/settings" },
+  { label: "Cấu hình hệ thống", icon: GearIcon, href: "/admin/settings" },
 ] as const;
 
 // Flat nav items list (used by the component)
@@ -83,28 +83,28 @@ export const ADMIN_NAV_ITEMS = [
 export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
 export const HOTEL_PROVIDER_NAV_ITEMS = [
-  { label: "KS của tôi", icon: Bed, href: "/hotel" },
-  { label: "Quản lý phòng", icon: Bed, href: "/hotel/rooms" },
-  { label: "Nhận khách", icon: Buildings, href: "/hotel/arrivals" },
-  { label: "Công ty", icon: BuildingOffice, href: "/hotel/profile" },
+  { label: "KS của tôi", icon: BedIcon, href: "/hotel" },
+  { label: "Quản lý phòng", icon: BedIcon, href: "/hotel/rooms" },
+  { label: "Nhận khách", icon: BuildingsIcon, href: "/hotel/arrivals" },
+  { label: "Công ty", icon: BuildingOfficeIcon, href: "/hotel/profile" },
 ] as const;
 
 export const TOURDESIGNER_NAV_ITEMS = [
-  { label: "Trang chủ", icon: SquaresFour, href: "/tour-designer" },
-  { label: "Tour Của Tôi", icon: House, href: "/tour-designer/tours" },
-  { label: "Tạo Tour", icon: Plus, href: "/tour-designer/tours/create" },
+  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-designer" },
+  { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-designer/tours" },
+  { label: "Tạo Tour", icon: PlusIcon, href: "/tour-designer/tours/create" },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
-  { label: "Trang chủ", icon: SquaresFour, href: "/tour-guide" },
+  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-guide" },
 ] as const;
 
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
-  { label: "VT của tôi", icon: Truck, href: "/transport" },
-  { label: "Quản lý xe", icon: Car, href: "/transport/vehicles" },
-  { label: "Quản lý tài xế", icon: UsersThree, href: "/transport/drivers" },
-  { label: "Phân công chuyến", icon: ListChecks, href: "/transport/trips" },
-  { label: "Công ty", icon: BuildingOffice, href: "/transport/profile" },
+  { label: "VT của tôi", icon: TruckIcon, href: "/transport" },
+  { label: "Quản lý xe", icon: CarIcon, href: "/transport/vehicles" },
+  { label: "Quản lý tài xế", icon: UsersThreeIcon, href: "/transport/drivers" },
+  { label: "Phân công chuyến", icon: ListChecksIcon, href: "/transport/trips" },
+  { label: "Công ty", icon: BuildingOfficeIcon, href: "/transport/profile" },
 ] as const;
 
 // Keep old export for backward compat during migration
@@ -296,7 +296,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                 backgroundColor: "var(--accent)",
               }}
             >
-              <Buildings weight="fill" size={18} className="text-stone-900" />
+              <BuildingsIcon weight="fill" size={18} className="text-stone-900" />
               {/* Subtle shine */}
               <div
                 className="absolute inset-0 rounded-xl pointer-events-none"
@@ -334,7 +334,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
             className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
             style={{ color: "var(--sidebar-text-muted)" }}
           >
-            <X size={18} weight="bold" />
+            <XIcon size={18} weight="bold" />
           </button>
         </div>
 
@@ -614,7 +614,7 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
         aria-label="Open menu"
         className="lg:hidden text-stone-400 hover:text-stone-600 rounded-lg p-2 -ml-2 transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
       >
-        <List size={22} weight="bold" />
+        <ListIcon size={22} weight="bold" />
       </button>
       {title && (
         <div className="flex-1">
@@ -633,7 +633,7 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
           aria-label="Notifications"
           className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
-          <Bell size={20} weight="regular" />
+          <BellIcon size={20} weight="regular" />
           {/* Notification dot */}
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
         </button>

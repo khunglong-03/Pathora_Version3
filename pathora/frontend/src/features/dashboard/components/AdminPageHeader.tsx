@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowsClockwiseIcon } from "@phosphor-icons/react";
 
 interface AdminPageHeaderProps {
   title: string;
@@ -37,7 +37,7 @@ export function AdminPageHeader({
             style={{ color: "#C9873A" }}
             aria-label="Go back"
           >
-            <ArrowLeft size={16} weight="bold" />
+            <ArrowLeftIcon size={16} weight="bold" />
           </Link>
         )}
         <div>
@@ -67,7 +67,7 @@ export function AdminPageHeader({
               border: "1px solid #E5E7EB",
             }}
           >
-            <ArrowsClockwise size={16} weight="bold" />
+            <ArrowsClockwiseIcon size={16} weight="bold" />
           </button>
         )}
         {actionButtons}

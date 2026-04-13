@@ -6,7 +6,7 @@ import { adminHotelService, type BookingAccommodationDetailFull, type BookingGue
 import { AdminPageHeader } from "@/features/dashboard/components";
 import { AdminErrorCard } from "@/features/dashboard/components";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
-import { Bed, Calendar, Users, Ticket, ArrowRight } from "@phosphor-icons/react";
+import { Bed, CalendarIcon, UsersIcon, TicketIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
 export default function BookingAccommodationDetailPage() {
@@ -130,7 +130,7 @@ export default function BookingAccommodationDetailPage() {
           {detail.orderNumber && (
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Ticket size={14} style={{ color: "#9CA3AF" }} />
+                <TicketIcon size={14} style={{ color: "#9CA3AF" }} />
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                   Mã đơn
                 </p>
@@ -140,7 +140,7 @@ export default function BookingAccommodationDetailPage() {
           )}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Calendar size={14} style={{ color: "#9CA3AF" }} />
+              <CalendarIcon size={14} style={{ color: "#9CA3AF" }} />
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                 Check-in
               </p>
@@ -151,7 +151,7 @@ export default function BookingAccommodationDetailPage() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Calendar size={14} style={{ color: "#9CA3AF" }} />
+              <CalendarIcon size={14} style={{ color: "#9CA3AF" }} />
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                 Check-out
               </p>
@@ -162,7 +162,7 @@ export default function BookingAccommodationDetailPage() {
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Users size={14} style={{ color: "#9CA3AF" }} />
+              <UsersIcon size={14} style={{ color: "#9CA3AF" }} />
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
                 Số phòng / Khách
               </p>
@@ -214,7 +214,7 @@ export default function BookingAccommodationDetailPage() {
         </div>
         {detail.guestDetails.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Users size={32} style={{ color: "#D1D5DB" }} />
+            <UsersIcon size={32} style={{ color: "#D1D5DB" }} />
             <p className="text-sm font-medium mt-3" style={{ color: "#9CA3AF" }}>Chưa có thông tin khách</p>
           </div>
         ) : (

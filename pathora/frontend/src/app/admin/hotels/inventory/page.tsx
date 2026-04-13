@@ -4,16 +4,16 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminHotelService, type RoomInventoryItem, type PaginatedHotelList } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeader,
-  AdminKpiStrip,
-  AdminFilterTabs,
-  AdminEmptyState,
-  AdminErrorCard,
+  AdminPageHeaderIcon,
+  AdminKpiStripIcon,
+  AdminFilterTabsIcon,
+  AdminEmptyStateIcon,
+  AdminErrorCardIcon,
 } from "@/features/dashboard/components";
 import TextInput from "@/components/ui/TextInput";
 import Pagination from "@/components/ui/Pagination";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
-import { Bed, Calendar } from "@phosphor-icons/react";
+import { Bed, CalendarIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
 type DateFilter = "all" | "today" | "this_week" | "this_month";
@@ -131,18 +131,18 @@ export default function HotelInventoryPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeader
+      <AdminPageHeaderIcon
         title="Tồn kho Phòng Khách sạn"
         subtitle="Quản lý số lượng phòng khả dụng theo ngày"
         onRefresh={handleRefresh}
       />
 
       {/* KPI Strip */}
-      <AdminKpiStrip kpis={kpis} />
+      <AdminKpiStripIcon kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabs
+        <AdminFilterTabsIcon
           tabs={DATE_TABS}
           activeValue={dateFilter}
           onChange={(v) => { setDateFilter(v as DateFilter); setCurrentPage(1); }}
@@ -160,10 +160,10 @@ export default function HotelInventoryPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && inventory.length === 0 && (
-        <AdminEmptyState
+        <AdminEmptyStateIcon
           icon="Bed"
           heading="Không có dữ liệu tồn kho"
           description="Không tìm thấy dữ liệu phòng trong khoảng thời gian đã chọn."
@@ -214,7 +214,7 @@ export default function HotelInventoryPage() {
                     </td>
                     <td className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <Calendar size={14} style={{ color: "#9CA3AF" }} />
+                        <CalendarIcon size={14} style={{ color: "#9CA3AF" }} />
                         <span className="text-sm" style={{ color: "#374151" }}>{formatDate(item.date)}</span>
                       </div>
                     </td>

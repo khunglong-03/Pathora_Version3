@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bed, CalendarCheck, ClockCountdown, DoorOpen, Plus, ListChecks } from "@phosphor-icons/react";
+import { BedIcon, CalendarCheckIcon, ClockCountdownIcon, DoorOpenIcon, PlusIcon, ListChecksIcon } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type {
   AccommodationItem,
@@ -81,25 +81,25 @@ export default function HotelDashboardPage() {
     {
       label: "Tổng phòng",
       value: totalRooms.toString(),
-      icon: "Bed",
+      icon: "BedIcon",
       accent: "#6366F1",
     },
     {
       label: "Đang trống",
       value: availableRooms < 0 ? "-" : availableRooms.toString(),
-      icon: "DoorOpen",
+      icon: "DoorOpenIcon",
       accent: "#22C55E",
     },
     {
       label: "Check-in hôm nay",
       value: todayCheckins.toString(),
-      icon: "CalendarCheck",
+      icon: "CalendarCheckIcon",
       accent: "#F59E0B",
     },
     {
       label: "Chờ check-in",
       value: pendingArrivals.toString(),
-      icon: "ClockCountdown",
+      icon: "ClockCountdownIcon",
       accent: "#C9873A",
     },
   ];
@@ -127,7 +127,7 @@ export default function HotelDashboardPage() {
           className="flex items-center gap-2 px-5 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90"
           style={{ backgroundColor: "#6366F1" }}
         >
-          <Bed size={18} />
+          <BedIcon size={18} />
           Quản lý phòng
         </Link>
         <Link
@@ -138,7 +138,7 @@ export default function HotelDashboardPage() {
             color: "var(--text-primary)",
           }}
         >
-          <ListChecks size={18} />
+          <ListChecksIcon size={18} />
           Check-in khách
         </Link>
       </div>
@@ -150,7 +150,7 @@ export default function HotelDashboardPage() {
 
       {!error && !isLoading && accommodations.length === 0 && (
         <AdminEmptyState
-          icon="Bed"
+          icon="BedIcon"
           heading="Chưa có phòng nào"
           description="Hãy thêm loại phòng để bắt đầu quản lý khách sạn."
           action={
@@ -159,7 +159,7 @@ export default function HotelDashboardPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm"
               style={{ backgroundColor: "#6366F1" }}
             >
-              <Plus size={16} />
+              <PlusIcon size={16} />
               Thêm loại phòng
             </Link>
           }

@@ -9,16 +9,16 @@ import {
   type PaginatedHotelList,
 } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeader,
-  AdminKpiStrip,
-  AdminFilterTabs,
-  AdminEmptyState,
-  AdminErrorCard,
+  AdminPageHeaderIcon,
+  AdminKpiStripIcon,
+  AdminFilterTabsIcon,
+  AdminEmptyStateIcon,
+  AdminErrorCardIcon,
 } from "@/features/dashboard/components";
 import TextInput from "@/components/ui/TextInput";
 import Pagination from "@/components/ui/Pagination";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
-import { Bed, Calendar, Users, Ticket, ArrowRight } from "@phosphor-icons/react";
+import { Bed, CalendarIcon, UsersIcon, TicketIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
 type StatusFilter = "all" | "Confirmed" | "Pending" | "Cancelled" | "Completed";
@@ -85,7 +85,7 @@ export default function BookingAccommodationListPage() {
     {
       label: "Tổng đặt phòng",
       value: total.toString(),
-      icon: "Ticket",
+      icon: "TicketIcon",
       accent: "#EA580C",
     },
     {
@@ -104,18 +104,18 @@ export default function BookingAccommodationListPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeader
+      <AdminPageHeaderIcon
         title="Đặt phòng Lưu trú"
         subtitle="Danh sách đặt phòng khách sạn"
         onRefresh={handleRefresh}
       />
 
       {/* KPI Strip */}
-      <AdminKpiStrip kpis={kpis} />
+      <AdminKpiStripIcon kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabs
+        <AdminFilterTabsIcon
           tabs={STATUS_TABS}
           activeValue={statusFilter}
           onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
@@ -133,11 +133,11 @@ export default function BookingAccommodationListPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && bookings.length === 0 && (
-        <AdminEmptyState
-          icon="Ticket"
+        <AdminEmptyStateIcon
+          icon="TicketIcon"
           heading="Không có đặt phòng"
           description="Không tìm thấy dữ liệu đặt phòng lưu trú."
         />
@@ -196,7 +196,7 @@ export default function BookingAccommodationListPage() {
                       </td>
                       <td className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Calendar size={14} style={{ color: "#9CA3AF" }} />
+                          <CalendarIcon size={14} style={{ color: "#9CA3AF" }} />
                           <span className="text-sm" style={{ color: "#374151" }}>
                             {booking.checkInDate ? formatDate(booking.checkInDate) : "—"}
                           </span>
@@ -204,7 +204,7 @@ export default function BookingAccommodationListPage() {
                       </td>
                       <td className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Calendar size={14} style={{ color: "#9CA3AF" }} />
+                          <CalendarIcon size={14} style={{ color: "#9CA3AF" }} />
                           <span className="text-sm" style={{ color: "#374151" }}>
                             {booking.checkOutDate ? formatDate(booking.checkOutDate) : "—"}
                           </span>
@@ -212,7 +212,7 @@ export default function BookingAccommodationListPage() {
                       </td>
                       <td className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Users size={14} style={{ color: "#9CA3AF" }} />
+                          <UsersIcon size={14} style={{ color: "#9CA3AF" }} />
                           <span className="text-sm" style={{ color: "#374151" }}>
                             {booking.roomCount}/{booking.guestCount}
                           </span>
@@ -232,7 +232,7 @@ export default function BookingAccommodationListPage() {
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200"
                             style={{ backgroundColor: "#F9FAFB", color: "#6B7280", border: "1px solid #E5E7EB" }}
                           >
-                            Chi tiết <ArrowRight size={12} weight="bold" />
+                            Chi tiết <ArrowRightIcon size={12} weight="bold" />
                           </span>
                         </Link>
                       </td>

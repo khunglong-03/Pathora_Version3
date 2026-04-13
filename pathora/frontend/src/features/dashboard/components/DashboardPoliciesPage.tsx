@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ArrowClockwise, FileText, MagnifyingGlass, Funnel, X } from "@phosphor-icons/react";
+import { ArrowClockwise, FileTextIcon, MagnifyingGlassIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
 import { Icon } from "@/components/ui";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
@@ -123,7 +123,7 @@ export function DashboardPoliciesPage() {
             href="/dashboard/site-content"
             className="inline-flex items-center gap-2 rounded-2xl border border-stone-200/70 px-3.5 py-2 text-sm font-medium text-stone-600 transition-all duration-200 hover:bg-stone-100 hover:text-stone-800 active:scale-[0.98]"
           >
-            <FileText className="size-4" weight="bold" />
+            <FileTextIcon className="size-4" weight="bold" />
             <span className="hidden sm:inline">{t("dashboard.siteContent.title", "Site Content")}</span>
           </Link>
         </div>
@@ -187,7 +187,7 @@ export function DashboardPoliciesPage() {
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
-            <MagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" weight="bold" />
+            <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" weight="bold" />
             <input
               type="search"
               value={searchQuery}
@@ -201,7 +201,7 @@ export function DashboardPoliciesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Funnel className="size-4 text-stone-400" weight="bold" />
+            <FunnelIcon className="size-4 text-stone-400" weight="bold" />
             {STATUS_FILTERS.map((filter) => {
               const isActive = statusFilter === filter;
               return (
@@ -228,7 +228,7 @@ export function DashboardPoliciesPage() {
                 onClick={handleResetFilters}
                 className="inline-flex items-center gap-1.5 rounded-2xl border border-stone-200/70 px-3 py-2 text-xs font-medium text-stone-600 transition-all duration-200 hover:bg-stone-100 active:scale-[0.98]"
               >
-                <X className="size-3" weight="bold" />
+                <XIcon className="size-3" weight="bold" />
                 {t("dashboard.policies.actions.reset", "Reset")}
               </button>
             )}
@@ -304,7 +304,7 @@ export function DashboardPoliciesPage() {
           transition={{ type: "spring" as const, stiffness: 100, damping: 20 }}
         >
           <div className="mx-auto size-16 rounded-full bg-stone-100 flex items-center justify-center">
-            <FileText className="size-7 text-stone-400" weight="duotone" />
+            <FileTextIcon className="size-7 text-stone-400" weight="duotone" />
           </div>
           <p className="mt-5 text-lg font-bold tracking-tight text-stone-800">
             {t("dashboard.policies.states.emptyTitle", "No policies found")}
@@ -328,7 +328,7 @@ export function DashboardPoliciesPage() {
           transition={{ type: "spring" as const, stiffness: 100, damping: 20 }}
         >
           <div className="mx-auto size-16 rounded-full bg-stone-100 flex items-center justify-center">
-            <MagnifyingGlass className="size-7 text-stone-400" weight="duotone" />
+            <MagnifyingGlassIcon className="size-7 text-stone-400" weight="duotone" />
           </div>
           <p className="mt-5 text-lg font-bold tracking-tight text-stone-800">
             {t("dashboard.policies.states.filteredEmptyTitle", "No matching policies")}
@@ -344,7 +344,7 @@ export function DashboardPoliciesPage() {
             onClick={handleResetFilters}
             className="mt-6 inline-flex items-center gap-2 rounded-2xl border border-stone-200/70 px-4 py-2 text-sm font-medium text-stone-600 transition-all duration-200 hover:bg-stone-100 active:scale-[0.98]"
           >
-            <X className="size-3.5" weight="bold" />
+            <XIcon className="size-3.5" weight="bold" />
             {t("dashboard.policies.actions.reset", "Reset filters")}
           </button>
         </motion.div>

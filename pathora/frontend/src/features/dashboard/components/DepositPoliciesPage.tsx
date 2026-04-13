@@ -92,11 +92,11 @@ export function DepositPoliciesPage() {
               <Icon icon="heroicons:banknotes" className="size-4 text-amber-500" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-widest text-amber-600">
-              Policies
+              PoliciesIcon
             </span>
           </div>
           <h1 className="text-4xl font-bold text-stone-900 tracking-tight leading-none">
-            Deposit Policies
+            Deposit PoliciesIcon
           </h1>
           <p className="mt-2 text-sm text-stone-500 max-w-[55ch] leading-relaxed">
             Manage deposit requirements and payment rules based on booking timing.

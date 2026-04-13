@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, UserPlus } from "@phosphor-icons/react";
+import { XIcon, UserPlusIcon } from "@phosphor-icons/react";
 import type { CreateStaffRequest } from "@/api/services/adminService";
 
 interface CreateStaffModalProps {
@@ -97,7 +97,7 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
               className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ backgroundColor: currentRole.bg }}
             >
-              <UserPlus size={18} weight="bold" style={{ color: currentRole.text }} />
+              <UserPlusIcon size={18} weight="bold" style={{ color: currentRole.text }} />
             </div>
             <h2 className="text-base font-bold" style={{ color: "#111827" }}>
               Tạo nhân viên mới
@@ -109,7 +109,7 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
             className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[#F3F4F6] disabled:opacity-50"
             aria-label="Đóng"
           >
-            <X size={18} weight="bold" style={{ color: "#6B7280" }} />
+            <XIcon size={18} weight="bold" style={{ color: "#6B7280" }} />
           </button>
         </div>
 

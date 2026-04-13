@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Truck, Clock, MapPin, CurrencyDollar } from "@phosphor-icons/react";
+import { TruckIcon, ClockIcon, MapPinIcon, CurrencyDollarIcon } from "@phosphor-icons/react";
 import {
   AdminPageHeader,
   AdminKpiStrip,
@@ -22,25 +22,25 @@ export default function TransportDashboardPage() {
     {
       label: "Phương tiện",
       value: "-",
-      icon: "Truck",
+      icon: "TruckIcon",
       accent: "#6366F1",
     },
     {
       label: "Chuyến đi hôm nay",
       value: "-",
-      icon: "Clock",
+      icon: "ClockIcon",
       accent: "#F59E0B",
     },
     {
       label: "Tuyến đường",
       value: "-",
-      icon: "MapPin",
+      icon: "MapPinIcon",
       accent: "#22C55E",
     },
     {
       label: "Doanh thu tháng",
       value: "-",
-      icon: "CurrencyDollar",
+      icon: "CurrencyDollarIcon",
       accent: "#EF4444",
     },
   ];
@@ -60,7 +60,7 @@ export default function TransportDashboardPage() {
 
       {!error && !isLoading && (
         <AdminEmptyState
-          icon="Truck"
+          icon="TruckIcon"
           heading="Chưa có dữ liệu"
           description="Các tính năng quản lý vận tải sẽ sớm được cập nhật."
         />

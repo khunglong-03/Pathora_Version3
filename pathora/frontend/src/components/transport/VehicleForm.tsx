@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Car } from "@phosphor-icons/react";
+import { XIcon, CarIcon } from "@phosphor-icons/react";
 import type { Vehicle, CreateVehicleDto } from "@/api/services/transportProviderService";
 
 interface VehicleFormProps {
@@ -94,7 +94,7 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: "#6366F112" }}
           >
-            <Car size={20} style={{ color: "#6366F1" }} />
+            <CarIcon size={20} style={{ color: "#6366F1" }} />
           </div>
           <div>
             <h2 className="text-lg font-semibold" style={{ color: "#111827" }}>
@@ -110,7 +110,7 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
           className="p-2 rounded-lg transition-colors duration-150 hover:bg-gray-100"
           aria-label="Đóng"
         >
-          <X size={20} style={{ color: "#6B7280" }} />
+          <XIcon size={20} style={{ color: "#6B7280" }} />
         </button>
       </div>
 

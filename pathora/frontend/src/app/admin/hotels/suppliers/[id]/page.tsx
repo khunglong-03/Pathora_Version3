@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import { adminService } from "@/api/services/adminService";
 import type { HotelProviderDetail, HotelAccommodationSummary } from "@/types/admin";
 import {
-  AdminPageHeader,
-  AdminEmptyState,
-  AdminErrorCard,
-  AdminFilterTabs,
-  AdminKpiStrip,
+  AdminPageHeaderIcon,
+  AdminEmptyStateIcon,
+  AdminErrorCardIcon,
+  AdminFilterTabsIcon,
+  AdminKpiStripIcon,
 } from "@/features/dashboard/components";
-import { Bed, Phone, EnvelopeSimple, MapPin, FileText, CheckCircle } from "@phosphor-icons/react";
+import { Bed, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon, FileTextIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 
 // Tab type
@@ -60,7 +60,7 @@ export default function HotelProviderDetailPage() {
   if (isLoading) {
     return (
       <div className="p-6">
-        <AdminPageHeader title="Đang tải..." subtitle="" />
+        <AdminPageHeaderIcon title="Đang tải..." subtitle="" />
         <div className="mt-6 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-32 rounded-xl animate-pulse bg-muted" />
@@ -73,8 +73,8 @@ export default function HotelProviderDetailPage() {
   if (error || !entity) {
     return (
       <div className="p-6">
-        <AdminPageHeader title="Chi tiết nhà cung cấp khách sạn" backHref="/admin/hotels/suppliers" />
-        <AdminErrorCard
+        <AdminPageHeaderIcon title="Chi tiết nhà cung cấp khách sạn" backHref="/admin/hotels/suppliers" />
+        <AdminErrorCardIcon
           message={error ?? "Không tìm thấy nhà cung cấp"}
           onRetry={handleRefresh}
         />
@@ -102,7 +102,7 @@ export default function HotelProviderDetailPage() {
     {
       label: "Tổng phòng",
       value: entity.totalRooms.toString(),
-      icon: "CheckCircle",
+      icon: "CheckCircleIcon",
       accent: "#0D9488",
     },
     {
@@ -114,7 +114,7 @@ export default function HotelProviderDetailPage() {
     {
       label: "Hoàn thành",
       value: entity.completedBookingCount.toString(),
-      icon: "CheckCircle",
+      icon: "CheckCircleIcon",
       accent: "#22C55E",
     },
   ];
@@ -145,7 +145,7 @@ export default function HotelProviderDetailPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeader
+      <AdminPageHeaderIcon
         title={entity.supplierName}
         subtitle="Chi tiết nhà cung cấp khách sạn"
         backHref="/admin/hotels/suppliers"
@@ -163,12 +163,12 @@ export default function HotelProviderDetailPage() {
 
       {/* KPI Strip */}
       <div className="mt-4">
-        <AdminKpiStrip kpis={kpis} />
+        <AdminKpiStripIcon kpis={kpis} />
       </div>
 
       {/* Tabs */}
       <div className="mt-6">
-        <AdminFilterTabs
+        <AdminFilterTabsIcon
           tabs={tabsWithCounts}
           activeValue={activeTab}
           onChange={(v) => setActiveTab(v as TabValue)}
@@ -289,7 +289,7 @@ export default function HotelProviderDetailPage() {
 
         {activeTab === "bookings" && (
           <div className="rounded-xl border bg-card p-12 text-center">
-            <CheckCircle size={40} className="mx-auto mb-3 text-muted-foreground" />
+            <CheckCircleIcon size={40} className="mx-auto mb-3 text-muted-foreground" />
             <p className="text-muted-foreground">
               Tổng {entity.bookingCount} đặt phòng — {entity.activeBookingCount} đang hoạt động, {entity.completedBookingCount} hoàn thành
             </p>

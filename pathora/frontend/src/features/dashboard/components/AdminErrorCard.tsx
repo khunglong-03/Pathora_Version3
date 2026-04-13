@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Warning } from "@phosphor-icons/react";
+import { WarningIcon } from "@phosphor-icons/react";
 
 interface AdminErrorCardProps {
   message?: string;
@@ -23,7 +23,7 @@ export function AdminErrorCard({ message, onRetry }: AdminErrorCardProps) {
         className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
         style={{ backgroundColor: "#FEE2E2" }}
       >
-        <Warning size={24} weight="fill" />
+        <WarningIcon size={24} weight="fill" />
       </div>
       <p className="text-sm font-medium mb-4" style={{ color: "#991B1B" }}>
         {message || "Something went wrong. Please try again."}

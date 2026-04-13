@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, Trash, Eye } from "@phosphor-icons/react";
+import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type {
   AccommodationItem,
@@ -168,7 +168,7 @@ export default function RoomsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all"
           style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
         >
-          <Eye size={16} />
+          <EyeIcon size={16} />
           Xem tình trạng phòng
         </button>
         <button
@@ -176,7 +176,7 @@ export default function RoomsPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90"
           style={{ backgroundColor: "#6366F1" }}
         >
-          <Plus size={16} />
+          <PlusIcon size={16} />
           Thêm loại phòng
         </button>
       </div>
@@ -196,7 +196,7 @@ export default function RoomsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm"
               style={{ backgroundColor: "#6366F1" }}
             >
-              <Plus size={16} />
+              <PlusIcon size={16} />
               Thêm loại phòng
             </button>
           }
@@ -269,7 +269,7 @@ export default function RoomsPage() {
                           className="p-1 rounded hover:bg-gray-100"
                           title="Sửa số phòng"
                         >
-                          <Pencil size={14} />
+                          <PencilIcon size={14} />
                         </button>
                       </div>
                     )}
@@ -291,7 +291,7 @@ export default function RoomsPage() {
                       className="p-1.5 rounded hover:bg-red-50 text-red-500"
                       title="Xóa"
                     >
-                      <Trash size={16} />
+                      <TrashIcon size={16} />
                     </button>
                   </td>
                 </tr>

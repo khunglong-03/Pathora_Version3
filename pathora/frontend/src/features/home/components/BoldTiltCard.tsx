@@ -2,7 +2,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin } from "@phosphor-icons/react";
+import { MapPinIcon } from "@phosphor-icons/react";
 
 interface BoldTiltCardProps {
   image: string;
@@ -111,7 +111,7 @@ export const BoldTiltCard = ({
           </h3>
           {subtitle && (
             <p className="text-white/60 text-sm flex items-center gap-1">
-              <MapPin size={14} weight="fill" className="text-[#fb8b02]/70" /> {subtitle}
+              <MapPinIcon size={14} weight="fill" className="text-[#fb8b02]/70" /> {subtitle}
             </p>
           )}
           {/* CTA reveal on hover */}

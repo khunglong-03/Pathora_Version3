@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowClockwise } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 import type { StaffMemberDto } from "@/types/admin";
 import { StaffList } from "@/features/dashboard/components/StaffList";
@@ -89,7 +89,7 @@ export function StaffDetailPanel({
             title="Làm mới"
             aria-label="Làm mới"
           >
-            <ArrowClockwise size={18} style={{ color: "#6B7280" }} />
+            <ArrowClockwiseIcon size={18} style={{ color: "#6B7280" }} />
           </button>
         </div>
       </div>
