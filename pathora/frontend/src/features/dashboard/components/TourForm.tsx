@@ -40,6 +40,8 @@ export interface TourFormProps {
     deletedActivityIds?: string[],
   ) => Promise<void>;
   onCancel?: () => void;
+  /** Show policy/policy selector sections (hide for TourDesigner role) */
+  showPolicySections?: boolean;
 }
 
 /* ── Types ──────────────────────────────────────────────────── */
@@ -424,7 +426,7 @@ const emptyService = (): ServiceForm => ({
    Note: Accommodations, Locations, Transportation steps removed —
          their data is now embedded in activity forms.
    ══════════════════════════════════════════════════════════════ */
-export default function TourForm({ mode, initialData, existingImages: initialExistingImages, onSubmit, onCancel }: TourFormProps) {
+export default function TourForm({ mode, initialData, existingImages: initialExistingImages, onSubmit, onCancel, showPolicySections = true }: TourFormProps) {
   const { t } = useTranslation();
 
   const isEditMode = mode === "edit";
@@ -2167,56 +2169,58 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 </div>
               )}
 
-              {/* ── Policy Selectors ──────────────────────────── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200 mt-6">
-                {/* Pricing Policy */}
-                <SearchableSelect
-                  label={t("tourAdmin.basicInfo.pricingPolicy")}
-                  placeholder={t("tourAdmin.basicInfo.searchPricingPolicy")}
-                  value={selectedPricingPolicyId}
-                  onChange={setSelectedPricingPolicyId}
-                  options={pricingPolicies.map((p) => ({
-                    value: p.id,
-                    label: p.name,
-                  }))}
-                />
+              {/* ── Policy Selectors (TourDesigner hides these) ─── */}
+              {showPolicySections ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200 mt-6">
+                  {/* Pricing Policy */}
+                  <SearchableSelect
+                    label={t("tourAdmin.basicInfo.pricingPolicy")}
+                    placeholder={t("tourAdmin.basicInfo.searchPricingPolicy")}
+                    value={selectedPricingPolicyId}
+                    onChange={setSelectedPricingPolicyId}
+                    options={pricingPolicies.map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                    }))}
+                  />
 
-                {/* Deposit Policy */}
-                <SearchableSelect
-                  label={t("tourAdmin.basicInfo.depositPolicy")}
-                  placeholder={t("tourAdmin.basicInfo.searchDepositPolicy")}
-                  value={selectedDepositPolicyId}
-                  onChange={setSelectedDepositPolicyId}
-                  options={depositPolicies.map((p) => ({
-                    value: p.id,
-                    label: `${p.tourScopeName} - ${p.depositTypeName} ${p.depositValue}${p.depositType === 2 ? "%" : ""}`,
-                  }))}
-                />
+                  {/* Deposit Policy */}
+                  <SearchableSelect
+                    label={t("tourAdmin.basicInfo.depositPolicy")}
+                    placeholder={t("tourAdmin.basicInfo.searchDepositPolicy")}
+                    value={selectedDepositPolicyId}
+                    onChange={setSelectedDepositPolicyId}
+                    options={depositPolicies.map((p) => ({
+                      value: p.id,
+                      label: `${p.tourScopeName} - ${p.depositTypeName} ${p.depositValue}${p.depositType === 2 ? "%" : ""}`,
+                    }))}
+                  />
 
-                {/* Cancellation Policy */}
-                <SearchableSelect
-                  label={t("tourAdmin.basicInfo.cancellationPolicy")}
-                  placeholder={t("tourAdmin.basicInfo.searchCancellationPolicy")}
-                  value={selectedCancellationPolicyId}
-                  onChange={setSelectedCancellationPolicyId}
-                  options={cancellationPolicies.map((p) => ({
-                    value: p.id,
-                    label: `${p.policyCode} (${p.tourScopeName}, ${p.tiers.length} tier${p.tiers.length !== 1 ? "s" : ""})`,
-                  }))}
-                />
+                  {/* Cancellation Policy */}
+                  <SearchableSelect
+                    label={t("tourAdmin.basicInfo.cancellationPolicy")}
+                    placeholder={t("tourAdmin.basicInfo.searchCancellationPolicy")}
+                    value={selectedCancellationPolicyId}
+                    onChange={setSelectedCancellationPolicyId}
+                    options={cancellationPolicies.map((p) => ({
+                      value: p.id,
+                      label: `${p.policyCode} (${p.tourScopeName}, ${p.tiers.length} tier${p.tiers.length !== 1 ? "s" : ""})`,
+                    }))}
+                  />
 
-                {/* Visa Policy */}
-                <SearchableSelect
-                  label={t("tourAdmin.basicInfo.visaPolicy")}
-                  placeholder={t("tourAdmin.basicInfo.searchVisaPolicy")}
-                  value={selectedVisaPolicyId}
-                  onChange={setSelectedVisaPolicyId}
-                  options={visaPolicies.map((p) => ({
-                    value: p.id,
-                    label: `${p.region} (${p.processingDays} days processing)`,
-                  }))}
-                />
-              </div>
+                  {/* Visa Policy */}
+                  <SearchableSelect
+                    label={t("tourAdmin.basicInfo.visaPolicy")}
+                    placeholder={t("tourAdmin.basicInfo.searchVisaPolicy")}
+                    value={selectedVisaPolicyId}
+                    onChange={setSelectedVisaPolicyId}
+                    options={visaPolicies.map((p) => ({
+                      value: p.id,
+                      label: `${p.region} (${p.processingDays} days processing)`,
+                    }))}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
 

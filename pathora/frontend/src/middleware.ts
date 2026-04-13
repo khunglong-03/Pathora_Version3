@@ -274,7 +274,32 @@ export function middleware(request: NextRequest) {
 
     // Block non-tour-designers from accessing /tour-designer routes
     if (pathname.startsWith("/tour-designer") && !hasTourDesignerRole(authRoles)) {
+      if (hasManagerRole(authRoles)) {
+        return NextResponse.redirect(new URL("/manager", request.url));
+      }
+      if (hasAdminRole(authRoles)) {
+        return NextResponse.redirect(new URL("/admin/users", request.url));
+      }
+      if (hasHotelServiceProviderRole(authRoles)) {
+        return NextResponse.redirect(new URL("/hotel", request.url));
+      }
+      if (hasTransportProviderRole(authRoles)) {
+        return NextResponse.redirect(new URL("/transport", request.url));
+      }
+      if (hasTourGuideRole(authRoles)) {
+        return NextResponse.redirect(new URL("/tour-guide", request.url));
+      }
       return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    // Block TourDesigner from accessing /manager/* and /admin/* routes
+    if (hasTourDesignerRole(authRoles)) {
+      if (pathname.startsWith("/manager/") || pathname === "/manager") {
+        return NextResponse.redirect(new URL("/tour-designer/tours", request.url));
+      }
+      if (pathname.startsWith("/admin/") || pathname === "/admin") {
+        return NextResponse.redirect(new URL("/tour-designer/tours", request.url));
+      }
     }
 
     // Block non-tour-guides from accessing /tour-guide routes

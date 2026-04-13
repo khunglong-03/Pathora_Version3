@@ -1,179 +1,108 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Image from "@/features/shared/components/LandingImage";
-import { Button } from "@/components/ui";
-import { SectionContainer } from "@/features/shared/components/shared";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { homeService } from "@/api/services/homeService";
 import { HomeStats } from "@/types/home";
+import {
+  SectionContainer,
+  ScrollReveal,
+  AnimatedCounter,
+} from "@/features/shared/components/shared";
 
-const PEOPLE_ICON = "/globe.svg";
-const EXPLORE_IMG = "/explore-bg.png";
-const BG_IMG = "/stats-bg.png";
-
-const FALLBACK_STATS = {
-  totalTravelers: 240,
-  totalTours: 3672,
-  totalDistanceKm: 92842,
+const FALLBACK: HomeStats = {
+  totalTravelers: 12500,
+  totalTours: 350,
+  totalDistanceKm: 840000,
 };
 
-export const StatsSection = () => {
-  const { t, i18n } = useTranslation();
-  const languageKey = i18n.resolvedLanguage || i18n.language;
-  const [stats, setStats] = useState(FALLBACK_STATS);
-  const [loading, setLoading] = useState(true);
+const StatsSection = () => {
+  const { t } = useTranslation();
+  const [stats, setStats] = useState<HomeStats>(FALLBACK);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const data = await homeService.getHomeStats();
-        if (data) {
-          setStats(data as HomeStats);
-        }
-      } catch {
-        // Use fallback data on error
-      } finally {
-        setLoading(false);
-      }
-    };
+    homeService
+      .getHomeStats()
+      .then((data) => {
+        if (data) setStats(data);
+      })
+      .catch(() => {});
+  }, []);
 
-    fetchStats();
-  }, [languageKey]);
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      return num.toLocaleString();
-    }
-    return num.toString();
-  };
-
-  const statsData = [
+  const statItems = [
     {
-      icon: PEOPLE_ICON,
-      value: formatNumber(stats.totalTravelers),
-      labelKey: "landing.stats.items.totalTravellers",
-      color: "text-landing-accent",
+      value: stats.totalTravelers,
+      label: t("landing.stats.items.totalTravellers"),
+      suffix: "+",
+      icon: (
+        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
     },
     {
-      icon: PEOPLE_ICON,
-      value: formatNumber(stats.totalTours),
-      labelKey: "landing.stats.items.totalTours",
-      color: "text-landing-heading",
+      value: stats.totalTours,
+      label: t("landing.stats.items.totalTours"),
+      suffix: "+",
+      icon: (
+        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+      ),
     },
     {
-      icon: PEOPLE_ICON,
-      value: formatNumber(stats.totalDistanceKm),
-      labelKey: "landing.stats.items.milesCovered",
-      color: "text-landing-heading",
+      value: stats.totalDistanceKm,
+      label: t("landing.stats.items.milesCovered"),
+      suffix: " km",
+      icon: (
+        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+          <circle cx="12" cy="9" r="2.5" />
+        </svg>
+      ),
     },
   ];
 
-  if (loading) {
-    return (
-      <section className="w-full bg-white py-8 md:py-16">
-        <SectionContainer>
-          <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
-            <div className="flex-1 flex flex-col gap-4 md:gap-6 w-full">
-              <div className="h-12 w-3/4 bg-gray-200 animate-pulse rounded" />
-              <div className="h-6 w-full bg-gray-200 animate-pulse rounded" />
-              <div className="flex flex-row md:flex-col gap-4 md:gap-5">
-                {[1, 2, 3].map((_, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
-                    <div>
-                      <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mt-1" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 relative h-50 md:h-100 w-full lg:block">
-              <div className="absolute right-0 top-0 w-[60%] md:w-75 h-[90%] md:h-95 rounded-xl md:rounded-2xl bg-gray-200 animate-pulse" />
-              <div className="absolute left-0 bottom-0 w-[50%] md:w-65 h-[80%] md:h-80 rounded-xl md:rounded-2xl bg-gray-200 animate-pulse" />
-            </div>
-          </div>
-        </SectionContainer>
-      </section>
-    );
-  }
-
   return (
-    <section className="w-full bg-white py-8 md:py-16">
+    <section className="relative -mt-20 z-20 pb-16 md:pb-24">
       <SectionContainer>
-        <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
-          <div className="flex-1 flex flex-col gap-4 md:gap-6 w-full">
-            <h2 suppressHydrationWarning className="text-2xl md:text-[38px] font-bold text-landing-heading leading-tight">
-              {t("landing.stats.titleLine1")}
-              <br />
-              {t("landing.stats.titleLine2")}
-            </h2>
-            <p suppressHydrationWarning className="text-landing-body text-sm md:text-base leading-relaxed max-w-md">
-              {t("landing.stats.description")}
-            </p>
-
-            <div className="flex flex-row md:flex-col gap-4 md:gap-5 overflow-x-auto pb-2 md:pb-0">
-              {statsData.map((stat, idx) => (
+        <ScrollReveal>
+          {/* Floating stats strip — Double-Bezel architecture */}
+          <div className="rounded-[1.5rem] md:rounded-[2rem] bg-white/[0.04] dark:bg-white/[0.02] border border-gray-200/50 dark:border-white/10 p-1.5 md:p-2 shadow-2xl shadow-black/5 backdrop-blur-sm">
+            <div className="rounded-[calc(1.5rem-0.375rem)] md:rounded-[calc(2rem-0.5rem)] bg-white dark:bg-[#1a1a2e] shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-white/10">
+              {statItems.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 bg-white shadow-sm md:shadow-none rounded-lg p-3 md:p-0 min-w-25 md:min-w-0 shrink-0">
-                  <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center shrink-0">
-                    <Image
-                      src={stat.icon}
-                      alt=""
-                      aria-hidden="true"
-                      width={28}
-                      height={28}
-                      className="w-5 h-5 md:w-7 md:h-7"
-                    />
+                  className="flex items-center gap-4 md:gap-5 px-6 md:px-8 py-6 md:py-8 group"
+                >
+                  {/* Icon container */}
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#fa8b02]/10 flex items-center justify-center text-[#fa8b02] shrink-0 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:bg-[#fa8b02] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[#fa8b02]/20">
+                    {item.icon}
                   </div>
-                  <div className="text-center md:text-left">
-                    <span
-                      className={`text-lg md:text-[28px] font-bold ${stat.color}`}>
-                      {stat.value}
-                    </span>
-                    <p suppressHydrationWarning className="text-landing-body text-[10px] md:text-sm whitespace-nowrap md:whitespace-normal">
-                      {t(stat.labelKey)}
+
+                  <div>
+                    <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white font-['Outfit',_system-ui] tracking-tight">
+                      <AnimatedCounter
+                        end={item.value}
+                        suffix={item.suffix}
+                        duration={2500}
+                      />
+                    </div>
+                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
+                      {item.label}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-
-            <Button
-              link="/tours"
-              text={t("landing.hero.exploreTours")}
-              icon="heroicons-outline:chevron-right"
-              iconPosition="right"
-              iconClass="text-[12px] md:text-[16px]"
-              className="inline-flex items-center justify-center gap-2 bg-landing-accent text-white font-semibold px-6 py-2.5 md:px-8 md:py-3 rounded-full hover:bg-landing-accent-hover transition-colors w-fit text-sm md:text-base mt-2 md:mt-0"
-              suppressHydrationWarning
-            />
           </div>
-
-          <div className="flex-1 relative h-50 md:h-100 w-full lg:block">
-            <div className="absolute right-0 top-0 w-[60%] md:w-75 h-[90%] md:h-95 rounded-xl md:rounded-2xl overflow-hidden shadow-xl">
-              <Image
-                src={EXPLORE_IMG}
-                alt={t("landing.stats.exploreImageAlt")}
-                fill
-                sizes="(max-width: 768px) 60vw, 300px"
-                className="object-cover"
-              />
-            </div>
-            <div className="absolute left-0 bottom-0 w-[50%] md:w-65 h-[80%] md:h-80 rounded-xl md:rounded-2xl overflow-hidden shadow-lg">
-              <Image
-                src={BG_IMG}
-                alt={t("landing.stats.backgroundImageAlt")}
-                fill
-                sizes="(max-width: 768px) 50vw, 260px"
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
+        </ScrollReveal>
       </SectionContainer>
     </section>
   );
 };
+
+export default StatsSection;

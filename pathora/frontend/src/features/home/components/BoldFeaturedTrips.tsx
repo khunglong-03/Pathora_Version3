@@ -16,8 +16,7 @@ type FeaturedTile = {
   size: "large" | "medium" | "wide";
 };
 
-const fallbackImage =
-  "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80";
+const fallbackImage = "";
 
 const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
   tours.map((tour, index) => ({

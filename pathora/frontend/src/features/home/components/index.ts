@@ -1,17 +1,10 @@
-export { HeroSection } from "./HeroSection";
-export { LatestToursSection } from "./LatestToursSection";
-export { FeaturedTripsSection } from "./FeaturedTripsSection";
-export { StatsSection } from "./StatsSection";
-export {
-  TrendingDestinationsSection,
-  TopAttractionsSection,
-} from "./DestinationsSection";
-export { ReviewsSection } from "./ReviewsSection";
-export {
-  CTASection,
-  WhyChooseSection,
-  TrustedBrandsSection,
-} from "./BottomSections";
+export { default as HeroSection } from "./HeroSection";
+export { default as LatestToursSection } from "./LatestToursSection";
+export { default as FeaturedTripsSection } from "./FeaturedTripsSection";
+export { default as StatsSection } from "./StatsSection";
+export { default as TrendingDestinationsSection } from "./DestinationsSection";
+export { default as ReviewsSection } from "./ReviewsSection";
+export { CTASection, WhyChooseSection } from "./BottomSections";
 
 export { BoldNavbar } from "./BoldNavbar";
 export { BoldHeroSection } from "./BoldHeroSection";

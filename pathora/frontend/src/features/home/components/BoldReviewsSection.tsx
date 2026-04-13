@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 import Image from "next/image";
+import { MapPin } from "@phosphor-icons/react";
 import { homeService } from "@/api/services/homeService";
 import type { TopReview } from "@/types/home";
 
@@ -14,8 +15,7 @@ type ReviewCard = {
   text: string;
 };
 
-const fallbackAvatar =
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80";
+const fallbackAvatar = "";
 
 const mapTopReviews = (reviews: TopReview[]): ReviewCard[] =>
   reviews.map((review) => ({
@@ -170,7 +170,7 @@ export const BoldReviewsSection = () => {
                       />
                       <div>
                         <p className="font-semibold text-white">{review.name}</p>
-                        <p className="text-white/40 text-sm">📍 {review.location}</p>
+                        <p className="text-white/40 text-sm flex items-center gap-1"><MapPin size={14} weight="fill" className="text-[#fb8b02]/60" /> {review.location}</p>
                       </div>
                     </div>
                   </div>

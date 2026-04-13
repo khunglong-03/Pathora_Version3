@@ -20,8 +20,7 @@ const formatBadgeDate = (createdAt: string): string => {
   });
 };
 
-const imageFallback =
-  "https://images.unsplash.com/photo-1528127269322-539801943592?w=400&q=80";
+const imageFallback = "";
 
 export const BoldLatestTours = () => {
   const { t, i18n } = useTranslation();

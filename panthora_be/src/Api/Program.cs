@@ -1,5 +1,5 @@
 using Api;
-using Api.Boostraping;
+using Api.Bosttraping;
 using Application;
 using Infrastructure;
 

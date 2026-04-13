@@ -58,7 +58,7 @@ public sealed class GetAllTourRequestsQueryHandler(
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
         }
 
-        var adminCheck = await EnsureAdminAsync(currentUserId, roleRepository);
+        var adminCheck = await EnsureManagerAsync(currentUserId, roleRepository);
         if (adminCheck.IsError)
         {
             return adminCheck.Errors;
@@ -82,7 +82,7 @@ public sealed class GetAllTourRequestsQueryHandler(
         return new PaginatedList<TourRequestVm>(total, entities.Select(x => x.ToVm()).ToList(), request.PageNumber, request.PageSize);
     }
 
-    private static async Task<ErrorOr<Success>> EnsureAdminAsync(Guid currentUserId, IRoleRepository roleRepository)
+    private static async Task<ErrorOr<Success>> EnsureManagerAsync(Guid currentUserId, IRoleRepository roleRepository)
     {
         var rolesResult = await roleRepository.FindByUserId(currentUserId.ToString());
         if (rolesResult.IsError)
@@ -90,10 +90,11 @@ public sealed class GetAllTourRequestsQueryHandler(
             return rolesResult.Errors;
         }
 
-        var isAdmin = rolesResult.Value.Any(role =>
-            string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
+        var isManager = rolesResult.Value.Any(role =>
+            string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.Name, "Manager", StringComparison.OrdinalIgnoreCase));
 
-        return isAdmin
+        return isManager
             ? Result.Success
             : Error.Forbidden(ErrorConstants.TourRequest.AdminOnlyCode, ErrorConstants.TourRequest.AdminOnlyDescription);
     }

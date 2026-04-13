@@ -1,14 +1,9 @@
 namespace Application.Features.AdminHotelBookings.Queries;
 
-using Application.Common;
-using Application.Common.Constant;
-using Application.Dtos;
 using Application.Features.AdminHotelBookings.DTOs;
 using BuildingBlocks.CORS;
 using global::Contracts;
 using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
 using ErrorOr;
 
 public sealed class GetHotelBookingsForAdminQueryHandler(
@@ -28,37 +23,13 @@ public sealed class GetHotelBookingsForAdminQueryHandler(
 
         foreach (var booking in bookings)
         {
-            var activities = await activityRepository.GetByBookingIdAsync(booking.Id);
+            var activities = await activityRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
 
             foreach (var activity in activities)
             {
-                var details = await accommodationDetailRepository.GetByBookingActivityReservationIdAsync(activity.Id);
+                var details = await accommodationDetailRepository.GetByBookingActivityReservationIdAsync(activity.Id, cancellationToken);
 
-                foreach (var detail in details)
-                {
-                    result.Add(new AdminHotelBookingDto(
-                        booking.Id,
-                        booking.CustomerName,
-                        booking.CustomerPhone,
-                        booking.CustomerEmail,
-                        booking.TourInstance?.Title ?? "-",
-                        booking.TourInstance?.StartDate ?? DateTimeOffset.MinValue,
-                        booking.TourInstance?.DurationDays ?? 0,
-                        booking.Status,
-                        new List<AdminAccommodationDetailDto>
-                        {
-                            new(
-                                detail.Id,
-                                detail.BookingActivityReservationId,
-                                detail.AccommodationName,
-                                detail.RoomType,
-                                detail.RoomCount,
-                                detail.CheckInAt,
-                                detail.CheckOutAt,
-                                detail.BuyPrice,
-                                detail.Status)
-                        }));
-                }
+                result.AddRange(details.Select(detail => new AdminHotelBookingDto(booking.Id, booking.CustomerName, booking.CustomerPhone, booking.CustomerEmail, booking.TourInstance?.Title ?? "-", booking.TourInstance?.StartDate ?? DateTimeOffset.MinValue, booking.TourInstance?.DurationDays ?? 0, booking.Status, [new AdminAccommodationDetailDto(detail.Id, detail.BookingActivityReservationId, detail.AccommodationName, detail.RoomType, detail.RoomCount, detail.CheckInAt, detail.CheckOutAt, detail.BuyPrice, detail.Status)])));
             }
         }
 

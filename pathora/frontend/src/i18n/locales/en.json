@@ -1456,801 +1456,131 @@
       "tourPackages": "Tour Packages",
       "ourPolicies": "Our Policies"
     },
-    "menu": "Menu",
+    "sidebar": {
+      "tourDiscovery": "Tour Discovery"
+    },
+    "a11y": {
+      "closeMenu": "Close menu",
+      "changeLanguage": "Change language"
+    },
+    "language": {
+      "title": "Language"
+    },
     "hero": {
-      "title": "Vietnam Awaits",
-      "subtitle": "Discover breathtaking landscapes and rich cultural heritage across Vietnam and beyond",
-      "eyebrow": "Vietnam's Premier Travel Platform",
-      "searchPlaceholder": "Where do you want to go?",
-      "exploreTours": "Explore Tours",
-      "fields": {
-        "people": {
-          "label": "Number of people",
-          "placeholder": "Choose number",
-          "single": "person",
-          "plural": "people"
-        },
-        "date": {
-          "label": "Date",
-          "placeholder": "Choose Date"
-        },
-        "destination": {
-          "label": "Destination",
-          "placeholder": "Select Location"
-        },
-        "classification": {
-          "label": "Classification",
-          "placeholder": "Select Classification"
-        }
-      },
-      "privateTours": "Private Tours",
-      "publicTours": "Public Tours",
-      "backgroundAlt": "Travel destination with beautiful scenery",
-      "searchAria": "Search tours",
-      "searchAlt": "Search",
-      "weekdays": [
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-        "Sun"
-      ],
-      "destinations": [
-        "Ho Chi Minh City",
-        "Ha Noi",
-        "Da Nang",
-        "Moscow",
-        "New York",
-        "California"
-      ],
-      "classifications": [
-        "Standard",
-        "VIP",
-        "Luxury"
-      ],
-      "calendar": {
-        "previousMonth": "Previous month",
-        "nextMonth": "Next month"
-      }
+      "title": "Discover The Extraordinary",
+      "subtitle": "Curated experiences. Unforgettable journeys. Your ultimate travel companion.",
+      "searchPlaceholder": "Search destinations...",
+      "searchButton": "Search",
+      "exploreBtn": "Explore Tours"
     },
     "stats": {
-      "items": {
-        "totalTours": "Tours",
-        "totalTravellers": "Travelers",
-        "support": "Support"
-      },
-      "titleLine1": "We Make",
-      "titleLine2": "World Travel Easy",
-      "description": "",
-      "exploreImageAlt": "Travel",
-      "backgroundImageAlt": "Travel background"
+      "destinations": "Destinations",
+      "tours": "Tours",
+      "happyTravelers": "Happy Travelers"
     },
     "destinations": {
-      "eyebrow": "Explore",
       "title": "Trending Destinations",
-      "viewAll": "View all destinations",
-      "tours": "tours",
-      "topAttractionsTitle": "Top Attractions",
-      "trendingTitle": "Trending Destination"
-    },
-    "aboutUs": {
-      "ourStory": "Our Story",
-      "weAre": "We Are",
-      "heroSubtitle": "We are passionate about creating unforgettable travel experiences that connect people with extraordinary destinations.",
-      "whoWeAre": "Who We Are",
-      "yearsExperience": "Years of Experience",
-      "passionateTravelers": "Passionate Travelers &",
-      "expertGuides": "Expert Guides",
-      "whoWeAreDesc1": "Pathora was founded in 2010 with a simple mission: to make travel accessible, enjoyable, and meaningful. Our team of passionate locals and seasoned professionals work together to craft tours that reveal the true soul of each destination.",
-      "whoWeAreDesc2": "From bustling cities to serene landscapes, we handle every detail so you can focus on what matters most — creating memories. With over 92,000 happy travelers and a 98% satisfaction rate, we continue to set the standard for quality travel experiences.",
-      "exploreOurTours": "Explore Our Tours",
-      "whyChooseUs": "Why Choose Us",
-      "valuesTitle": "Our Core Values",
-      "ourJourney": "Our Journey",
-      "journeyTitle": "The Pathora Story",
-      "teamSubtitle": "Meet the Team",
-      "teamTitle": "The Masters Behind Your Adventure",
-      "toursLed": "tours led",
-      "readyToExplore": "Ready to Explore?",
-      "ctaTitle": "Start Your Adventure With",
-      "ctaTitleWith": "with",
-      "ctaDescription": "Browse our curated tour packages and find the perfect journey for your next adventure.",
-      "browsePackageTours": "Browse Package Tours",
-      "stats": {
-        "destinations": "Destinations",
-        "happyTravelers": "Happy Travelers",
-        "toursOffered": "Tours Offered",
-        "satisfactionRate": "Satisfaction Rate"
-      },
-      "values": {
-        "globalExpertise": "Global Expertise",
-        "globalExpertiseDesc": "With deep knowledge of local cultures and landscapes, we bring authentic experiences to every journey.",
-        "safeTrusted": "Safe & Trusted",
-        "safeTrustedDesc": "Licensed operators, vetted guides, and comprehensive travel insurance for your peace of mind.",
-        "tailoredForYou": "Tailored For You",
-        "tailoredForYouDesc": "From solo travelers to family groups, we customize itineraries to match your interests and pace.",
-        "seamlessExperience": "Seamless Experience",
-        "seamlessExperienceDesc": "End-to-end support from booking to completion, so you can focus on the adventure."
-      },
-      "timeline": {
-        "founded": "Pathora Founded",
-        "foundedDesc": "Started as a small local tour operator in Hanoi with a dream to share Vietnam's beauty with the world.",
-        "first10k": "10,000 Travelers Milestone",
-        "first10kDesc": "Reached our first major milestone of 10,000 happy travelers and expanded operations to 3 major cities.",
-        "expanded60": "Expanded to 60+ Destinations",
-        "expanded60Desc": "Grew our network to cover 60+ destinations across Vietnam, Laos, Cambodia, Thailand, and beyond.",
-        "digitalFirst": "Digital-First Platform Launch",
-        "digitalFirstDesc": "Launched our online booking platform making it easier than ever to discover and book tours instantly.",
-        "happy92k": "92,000 Happy Travelers",
-        "happy92kDesc": "Celebrated serving over 92,000 travelers with a 98% satisfaction rating and counting."
-      }
-    },
-    "videoShowcase": {
-      "label": "Experience Vietnam",
-      "caption": "Vietnam Awaits",
-      "subcaption": "Discover breathtaking landscapes and rich cultural heritage"
+      "subtitle": "Explore the most popular places to go right now."
     },
     "featured": {
-      "eyebrow": "Handpicked",
-      "title": "Featured Adventures"
+      "title": "Featured Trips",
+      "subtitle": "Handpicked journeys for your next adventure."
+    },
+    "latestTours": {
+      "title": "Latest Tours",
+      "seeAll": "View All"
+    },
+    "whyChoose": {
+      "title": "Why Choose Us",
+      "subtitle": "We offer the best travel experiences with trusted partners worldwide",
+      "features": [
+        {
+          "title": "Trusted & Safe",
+          "desc": "Every tour is verified and insured for your peace of mind"
+        },
+        {
+          "title": "Best Price Guarantee",
+          "desc": "Competitive pricing with no hidden fees or surprise charges"
+        },
+        {
+          "title": "Global Coverage",
+          "desc": "Tours across 50+ countries with local expert guides"
+        },
+        {
+          "title": "Curated Experiences",
+          "desc": "Hand-picked itineraries designed by travel professionals"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Ready to start your journey?",
+      "subtitle": "Book your dream tour today.",
+      "button": "Book Now"
+    },
+    "reviews": {
+      "title": "What Our Travelers Say",
+      "subtitle": "Real stories from our amazing community."
+    },
+    "trustedBrands": {
+      "title": "Trusted Partners",
+      "brandAlt": "Partner"
+    },
+    "common": {
+      "starsAria": "{{count}} out of 5 stars"
+    },
+    "footer": {
+      "about": "About Us",
+      "contact": "Contact",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
     },
     "auth": {
-      "closeModal": "Close modal",
-      "close": "Close",
       "createAccount": "Create Account",
       "username": "Username",
       "enterUsername": "Enter your username",
-      "login": "Login",
-      "nameAndSurname": "Name and Surname",
-      "enterNameAndSurname": "Enter your name and surname",
+      "nameAndSurname": "Full Name",
+      "enterNameAndSurname": "Enter your full name",
       "emailAddress": "Email Address",
       "enterEmailAddress": "Enter your email address",
       "password": "Password",
       "enterPassword": "Enter your password",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
-      "agreeWith": "I agree with",
-      "mustAgreeToTerms": "You must agree to the terms and privacy policy",
-      "registrationSuccess": "Registration successful! You can now log in.",
-      "registrationFailed": "Registration failed. Please try again.",
-      "emailTemporarilyLocked": "Too many failed attempts. Please try again in {{minutes}} minutes.",
-      "loginSuccess": "Welcome back! You are now logged in.",
-      "terms": "Terms",
+      "agreeWith": "I agree with the",
+      "terms": "Terms of Service",
       "and": "and",
-      "privacy": "Privacy",
-      "or": "or",
-      "signUpWithGoogle": "Sign Up with Google",
-      "signInWithGoogle": "Sign In with Google",
+      "privacy": "Privacy Policy",
+      "mustAgreeToTerms": "You must agree to the Terms of Service and Privacy Policy.",
+      "registrationSuccess": "Registration successful!",
+      "registrationFailed": "Registration failed. Please try again.",
+      "emailTemporarilyLocked": "Your email is temporarily locked for {{minutes}} minutes.",
+      "close": "Close",
+      "closeModal": "Close modal",
+      "or": "OR",
+      "signUpWithGoogle": "Sign up with Google",
       "alreadyHaveAccount": "Already have an account?",
-      "dontHaveAccount": "Don't have an account?",
-      "logIn": "Log In",
+      "logIn": "Log in",
+      "login": "Login",
+      "loginSuccess": "Login successful!",
       "forgotYourPassword": "Forgot your password?",
-      "forgotPassword": "Forgot Password",
-      "forgotPasswordHelp": "No worries, we'll send you reset instructions.",
-      "resetPassword": "Reset Password",
+      "signInWithGoogle": "Sign in with Google",
+      "dontHaveAccount": "Don't have an account?",
       "checkYourEmail": "Check your email",
-      "resetLinkSentTo": "We sent a password reset link to",
-      "backToLogin": "Back to Login",
-      "resetPasswordNoToken": "Invalid link",
-      "resetPasswordNoTokenHelp": "The password reset link does not exist or has expired. Please request a new one.",
-      "createNewPassword": "Create New Password",
-      "createNewPasswordHelp": "Enter your new password for your account.",
-      "newPassword": "New Password",
-      "enterNewPassword": "Enter new password",
-      "confirmPassword": "Confirm Password",
-      "enterConfirmPassword": "Re-enter your new password",
-      "updatePassword": "Update Password",
-      "passwordResetSuccess": "Password reset successful!",
-      "passwordResetFailed": "Unable to reset password. The link may have expired.",
-      "passwordsDoNotMatch": "Passwords do not match.",
-      "passwordMinLength": "Password must be at least 8 characters.",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password"
+      "resetLinkSentTo": "A password reset link has been sent to",
+      "backToLogin": "Back to login",
+      "forgotPassword": "Forgot Password",
+      "forgotPasswordHelp": "Enter your email address to receive a password reset link.",
+      "resetPassword": "Reset Password",
+      "signIn": "Sign In",
+      "signUp": "Sign Up"
     },
     "latest": {
-      "eyebrow": "Just Added",
       "title": "Latest Tours",
-      "viewAll": "View all"
+      "subtitle": "Freshly added experiences for you."
     },
-    "whyChoose": {
-      "eyebrow": "Why Pathora",
+    "whyChooseUs": {
       "title": "Why Choose Us",
-      "items": {
-        "price": {
-          "title": "Best Price",
-          "desc": "Guaranteed lowest prices on all tours"
-        },
-        "guides": {
-          "title": "Expert Guides",
-          "desc": "Local experts with deep knowledge"
-        },
-        "support": {
-          "title": "24/7 Support",
-          "desc": "Always here when you need us"
-        },
-        "flexible": {
-          "title": "Flexible Booking",
-          "desc": "Free cancellation up to 24 hours"
-        }
-      },
-      "subtitle": "We offer the best travel experience every time"
-    },
-    "cta": {
-      "title": "Ready for Your Next Adventure?",
-      "subtitle": "Join thousands of travelers discovering Vietnam's hidden gems with Pathora.",
-      "ctaButton": "Explore Tours",
-      "secondaryButton": "Learn More",
-      "description": "Go ahead and take that trip -- we know how important it is to travel on your schedule.",
-      "exploreNow": "Explore Now"
-    },
-    "reviews": {
-      "eyebrow": "Testimonials",
-      "title": "What Travelers Say",
-      "rating": "Rating",
-      "nextReview": "Next review",
-      "previousReview": "Previous review",
-      "reviewSlides": "Review slides",
-      "subtitle": "What our travellers say"
-    },
-    "footer": {
-      "about": "About",
-      "tours": "Tours",
-      "blog": "Blog",
-      "careers": "Careers",
-      "help": "Help Center",
-      "contact": "Contact",
-      "faq": "FAQ",
-      "policies": "Policies",
-      "destinations": "Destinations",
-      "tagline": "Vietnam's premier travel platform. Discover hidden gems, curated tours, and unforgettable adventures.",
-      "newsletter": "Stay Updated",
-      "newsletterDesc": "Get the latest travel deals and updates.",
-      "copyright": "All rights reserved.",
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "contactNested": {
-        "title": "Contact",
-        "address": "328 Queensberry Street, North Melbourne VIC 3051, Australia."
-      },
-      "company": {
-        "title": "Company"
-      },
-      "support": {
-        "title": "Support"
-      },
-      "mobileApps": {
-        "title": "Mobile Apps",
-        "ios": "iOS App",
-        "android": "Android App"
-      },
-      "followUs": "Follow Us",
-      "speakToExpert": "Speak to our expert at",
-      "backgroundAlt": "Footer background",
-      "links": {
-        "company": {
-          "aboutUs": "About Us",
-          "reviews": "Tourz Reviews",
-          "contactUs": "Contact Us",
-          "travelGuides": "Travel Guides",
-          "dataPolicy": "Data Policy",
-          "cookiePolicy": "Cookie Policy",
-          "legal": "Legal",
-          "sitemap": "Sitemap"
-        },
-        "support": {
-          "getInTouch": "Get in Touch",
-          "helpCenter": "Help center",
-          "liveChat": "Live chat",
-          "howItWorks": "How it works"
-        }
-      },
-      "newsletterNested": {
-        "title": "Newsletter",
-        "description": "Subscribe to the free newsletter and stay up to date",
-        "placeholder": "Your email address",
-        "send": "Send"
-      }
-    },
-    "policies": {
-      "transparencyFirst": "Travel Guidelines",
-      "our": "Our",
-      "policy": "Policies",
-      "heroSubtitle": "Read our policies to understand how we operate and what you can expect from our services.",
-      "lastUpdated": "Last updated:",
-      "lastUpdatedDate": "March 24, 2026",
-      "policiesApplyNote": "These policies apply to all services provided by Pathora.",
-      "introPrefix": "At Pathora, we believe in complete transparency. This document outlines our policies for bookings, payments, cancellations, and more to ensure a smooth experience for all travelers.",
-      "introSuffix": " We are committed to providing clear and fair terms for every journey you book with us.",
-      "ctaTitle": "Have Questions?",
-      "ctaDescription": "Our support team is available 24/7 to assist you with any policy-related questions.",
-      "contactSupport": "Contact Support",
-      "sections": {
-        "bookingPayment": "Booking & Payment",
-        "cancellationRefund": "Cancellation & Refund",
-        "modificationRescheduling": "Modification & Rescheduling",
-        "healthSafety": "Health & Safety",
-        "privacyPolicy": "Privacy Policy",
-        "liabilityDisclaimer": "Liability Disclaimer"
-      },
-      "items": {
-        "_deprecated": "// content served by backend API"
-      },
-      "noContentTitle": "No policies available",
-      "noContentDesc": "Policy content will appear here once added by the administrator.",
-      "errorTitle": "Failed to load policies"
-    },
-    "a11y": {
-      "openMenu": "Open menu",
-      "closeMenu": "Close menu",
-      "changeLanguage": "Change language",
-      "closeNavigationMenu": "Close navigation menu",
-      "notificationsAria": "{{count}} unread notifications"
-    },
-    "trustedBrands": {
-      "title": "Trusted by all the largest travel brands",
-      "brandAlt": "Brand"
-    },
-    "customTour": {
-      "backToHome": "Back to Home",
-      "title": "Custom Tour Request",
-      "subtitle": "Design your perfect journey -- tell us your preferences and we'll craft a personalized tour just for you.",
-      "intro": "Share your preferences and our team will contact you with a tailored proposal.",
-      "viewMyRequests": "View My Requests"
-    },
-    "tourDiscovery": {
-      "title": "Available Tour Departures",
-      "tours": "Tours",
-      "availableDepartures": "Available Departures",
-      "searchPlaceholder": "Search tours",
-      "searchFullPlaceholder": "Search tours, destinations, activities...",
-      "resultsCount": "{{count}} results",
-      "sortBy": "Sort by",
-      "sortFeatured": "Featured",
-      "whenTraveling": "When are you traveling?",
-      "tourType": "Tour Type",
-      "filterPrice": "Filter Price",
-      "featured": "FEATURED",
-      "bestPriceGuarantee": "Best Price Guarantee",
-      "from": "From",
-      "to": "To",
-      "viewDetails": "View Details",
-      "pagination": "Pages",
-      "showingResults": "Showing results {{start}}-{{end}} of {{total}}",
-      "discoverAdventures": "Discover Adventures",
-      "packageLabel": "Package",
-      "toursLabel": "Tours",
-      "heroDescription": "Discover our curated travel packages and create your perfect adventure",
-      "packageTours": "Package Tours",
-      "heroTitleLine1": "DISCOVER YOUR NEXT ADVENTURE",
-      "heroTitleLine2": "IN VIETNAM",
-      "heroStat1": "24 curated tours",
-      "heroStat2": "3,500+ travelers",
-      "heroStat3": "50+ destinations",
-      "filter": "Filter",
-      "clearAll": "Clear all",
-      "classification": "Classification",
-      "category": "Category",
-      "duration": "Duration",
-      "priceRange": "Price Range",
-      "showing": "Showing",
-      "toursLower": "tours",
-      "scheduledTours": "Scheduled Tours",
-      "recommended": "Recommended",
-      "viewType": {
-        "tour": "By Tour",
-        "tourInstance": "By Departure"
-      },
-      "toursFound": "tours found",
-      "departuresFound": "departures found",
-      "maxPax": "Max {{count}} pax",
-      "filtersLabel": "Filters",
-      "showResults": "Show Results",
-      "customizeYourTour": "Customize Your Tour",
-      "customizeDescription": "Can't find what you're looking for? Let us design a personalized tour just for you!",
-      "createCustomTour": "Create Custom Tour",
-      "byTour": "By Tour",
-      "byDeparture": "By Departure",
-      "departuresLower": "departures",
-      "noResults": "No Tours Found",
-      "noToursFound": "No tours found",
-      "noDeparturesFound": "No departures found",
-      "noResultsDescription": "Try adjusting your search or filters to find what you're looking for.",
-      "tryAdjustingFilters": "Try adjusting your filters or search terms",
-      "noInstancesTitle": "No Departures Found",
-      "noInstancesDescription": "There are no upcoming departures matching your search. Please check back later.",
-      "errorLoading": "Failed to load tours. Please try again.",
-      "errorLoadingInstances": "Failed to load departures. Please try again.",
-      "retry": "Retry",
-      "emptyStats": "2,400+ tours are waiting!",
-      "browseAllTours": "Browse All Tours",
-      "exploreDestinations": "Explore Destinations",
-      "resetAll": "Reset all",
-      "bookNow": "Book Now",
-      "reserveNow": "Reserve Now",
-      "resetAll": "Reset all",
-      "resultsRegion": "Tour search results",
-      "loadingAria": "Loading tour results",
-      "viewSwitchLabel": "Choose viewing mode",
-      "sortAria": "Sort tour results",
-      "paginationAria": "Pagination",
-      "prevPageAria": "Go to previous page",
-      "nextPageAria": "Go to next page",
-      "pageOf": "Page {{current}} of {{total}}",
-      "sort": {
-        "recommended": "Recommended",
-        "price-low": "Price: Low to High",
-        "price-high": "Price: High to Low",
-        "duration-short": "Duration: Shortest",
-        "duration-long": "Duration: Longest"
-      },
-      "classificationOptions": {
-        "standard": "Standard Tour",
-        "premium": "Premium Tour",
-        "vipLuxury": "VIP / Luxury Tour",
-        "budget": "Budget Tour",
-        "private": "Private Tour",
-        "group": "Group Tour"
-      },
-      "categoryOptions": {
-        "adventure": "Adventure Tour",
-        "cultural": "Cultural Tour",
-        "relaxation": "Relaxation Tour",
-        "eco": "Eco Tour",
-        "food": "Food Tour",
-        "religious": "Religious Tour",
-        "honeymoon": "Honeymoon Tour"
-      },
-      "filters": {
-        "departureDate": "Departure Date",
-        "destination": "Destination",
-        "duration": "Duration",
-        "visaRequirement": "Visa Requirement",
-        "depositRate": "Deposit Rate",
-        "seatsAvailability": "Seats Availability"
-      }
-    },
-    "tourDetail": {
-      "allTours": "All Tours",
-      "home": "Home",
-      "packageTours": "Package Tours",
-      "duration": "Duration",
-      "locationLabel": "Location",
-      "groupSize": "Group Size",
-      "guests": "Guests",
-      "availability": "Availability",
-      "overview": "Overview",
-      "itinerary": "Itinerary",
-      "aboutThisTour": "About This Tour",
-      "itineraryComingSoon": "Detailed itinerary will be available soon. Please contact us for more information.",
-      "youMightAlsoLike": "You Might Also Like",
-      "selectPackage": "Select Package",
-      "estimatedPrice": "Estimated Price",
-      "packageNoticeStart": "This is a",
-      "packageTour": "Package Tour",
-      "packageNoticeEnd": "Submit a booking request and our team will contact you with a customized quote.",
-      "preferredDepartureDate": "Preferred Departure Date",
-      "flexibleDates": "Flexible dates? Mention in special requests.",
-      "guestsLabel": "Guests",
-      "adults": "Adults",
-      "children": "Children",
-      "infants": "Infants",
-      "dynamicPricing": "Dynamic Pricing",
-      "serviceFee": "Service fee",
-      "estimatedTotal": "Estimated Total",
-      "requestBooking": "Request Booking",
-      "noPaymentNotice": "No payment required - Our team will contact you within 24 hours",
-      "needHelp": "Need Help?",
-      "hereForYou": "We're here 24/7",
-      "contactUs": "Contact Us",
-      "notFound": "Tour not found",
-      "notFoundDesc": "The tour you're looking for doesn't exist or has been removed.",
-      "error": "Something went wrong",
-      "errorDesc": "Failed to load tour details. Please try again.",
-      "retry": "Try Again",
-      "package": "Package",
-      "plans": "Day Plans",
-      "accommodations": {
-        "empty": "No accommodations available for this package."
-      },
-      "locations": {
-        "empty": "No locations available for this package."
-      },
-      "transportation": {
-        "empty": "No transportation routes available."
-      },
-      "services": {
-        "empty": "No other services available for this package."
-      },
-      "insurance": "Insurance",
-      "days": "days",
-      "included": "included",
-      "none": "None",
-      "fee": "Fee",
-      "coverage": "Coverage",
-      "insuranceCoverage": "Insurance Coverage",
-      "optional": "Optional",
-      "noItinerary": "No itinerary available for this package yet.",
-      "reviewsTitle": "Customer Reviews",
-      "averageRating": "Average Rating",
-      "totalReviews": "{{count}} reviews",
-      "noReviews": "No reviews yet",
-      "noReviewsCta": "Be the first to share your experience!",
-      "perPerson": "/person",
-      "selectDateFirst": "Please select a departure date first",
-      "morePhotos": "+{{count}} photos",
-      "itineraryEmpty": "No itinerary available for this package.",
-      "dayLabel": "Day {{day}}",
-      "noActivitiesInDay": "No activities available for this day.",
-      "activity": "Activity",
-      "transport": "Transport",
-      "minutes": "min",
-      "routeTime": "Route time",
-      "room": "Room",
-      "meal": "Meal",
-      "checkInOut": "Check-in / Check-out",
-      "location": "Location",
-      "estimatedCost": "Estimated cost",
-      "childrenAge": "< 12 years",
-      "infantsAge": "< 2 years",
-      "adults": "Adults",
-      "children": "Children",
-      "infants": "Infants",
-      "needHelp": "Need help booking?",
-      "hereForYou": "We're here for you",
-      "noPaymentNotice": "No payment required now. You'll be redirected to complete your booking."
-    },
-    "checkout": {
-      "backToTour": "Back to Tour",
-      "stepSelectTour": "Select Tour",
-      "stepCheckout": "Checkout",
-      "stepConfirmation": "Confirmation",
-      "bookingSummary": "Booking Summary",
-      "priceDetails": "Price Details",
-      "adults": "Adults",
-      "serviceFee": "Service fee",
-      "free": "Free",
-      "total": "Total",
-      "fullPayment": "Full Payment",
-      "fullPaymentDesc": "Pay the full amount now",
-      "deposit": "Deposit",
-      "depositDesc": "Pay remaining before departure",
-      "termsConditions": "Terms & Conditions",
-      "cancellationPolicy": "Cancellation Policy",
-      "paymentTerms": "Payment Terms",
-      "importantInfo": "Important Information",
-      "cancelItem1": "Free cancellation up to 7 days before departure",
-      "cancelItem2": "50% refund for cancellations 3-7 days before departure",
-      "cancelItem3": "No refund for cancellations less than 3 days before departure",
-      "cancelItem4": "All cancellations must be made in writing via email",
-      "payTermItem1": "Deposit of 30% required at time of booking",
-      "payTermItem2": "Remaining balance due 14 days before departure",
-      "payTermItem3": "All payments are processed in USD",
-      "payTermItem4": "Payment confirmation will be sent via email",
-      "infoItem1": "Valid passport required with at least 6 months validity",
-      "infoItem2": "Travel insurance is strongly recommended",
-      "infoItem3": "Minimum age requirement: 12 years old",
-      "infoItem4": "Medical conditions must be disclosed at time of booking",
-      "infoItem5": "Itinerary may change due to weather or unforeseen circumstances",
-      "agreeTermsPrefix": "I have read and agree to the",
-      "cancellationPolicyLink": "cancellation policy",
-      "and": "and",
-      "paymentTermsLink": "payment terms",
-      "acknowledgePrefix": "I acknowledge all",
-      "importantInfoLink": "important information",
-      "acknowledgeSuffix": "and confirm that all travelers meet the requirements",
-      "paymentMethod": "Payment Method",
-      "qrPayment": "QR Code Payment",
-      "qrPaymentDesc": "Scan to pay instantly",
-      "cashPayment": "Cash Payment",
-      "cashPaymentDesc": "Pay at our office",
-      "paymentGateway": "Payment Gateway",
-      "scanToPay": "Scan to Pay",
-      "bankingAccepted": "Banking app or e-wallet accepted",
-      "remainingBalance": "Remaining balance",
-      "confirmBooking": "Confirm Booking",
-      "secureBookingNote": "Secure booking - No hidden fees",
-      "secureBooking": "Secure Booking",
-      "dataProtected": "Your data is protected",
-      "sslEncrypted": "SSL encrypted connection",
-      "noPaymentUntilConfirmed": "No payment until confirmed",
-      "support247": "24/7 customer support",
-      "bankTransferPayment": "Bank Transfer",
-      "bankTransferPaymentDesc": "Transfer directly to our bank account",
-      "bankAccountInfo": "Bank Account Information",
-      "bankName": "Bank",
-      "accountNumber": "Account Number",
-      "accountHolder": "Account Holder",
-      "transferInstructions": "Transfer Instructions",
-      "transferNote": "Please include the transaction code in your transfer description for automatic verification.",
-      "includeTransactionCode": "Include this code in transfer description",
-      "awaitingPayment": "Awaiting Payment Confirmation",
-      "paymentReceived": "Payment Received",
-      "paymentCancelled": "Payment Cancelled",
-      "paymentCancelledDesc": "The payment was cancelled on the hosted payment page. You can return to checkout and create a new payment.",
-      "paymentExpired": "Payment Expired",
-      "paymentExpiredDesc": "The payment session expired before confirmation. Return to checkout to create a new payment.",
-      "paymentFailedDesc": "The payment could not be confirmed. Return to checkout and try again.",
-      "transactionCode": "Transaction Code",
-      "paymentPending": "Your payment is being verified. This usually takes a few minutes.",
-      "checkPaymentError": "Cannot check payment. Please try again.",
-      "paymentNotFoundYet": "Payment not received yet. Please check again later.",
-      "copyAccountNumber": "Copy Account Number",
-      "copiedToClipboard": "Copied to clipboard!",
-      "scanQrOrTransfer": "Scan QR code or transfer manually",
-      "transferAmount": "Transfer Amount",
-      "paymentFailed": "Payment Failed",
-      "transactionError": "An error occurred. Please try again.",
-      "transactionCreated": "Transaction created successfully!",
-      "tax": "Tax",
-      "children": "Children",
-      "infants": "Infants",
-      "qrAfterConfirm": "QR code will appear after confirming booking",
-      "processing": "Processing...",
-      "agreeTermsLabel": "I have read and agree to the terms & conditions",
-      "bookingConfirmed": "Booking Confirmed!",
-      "publicInstanceMessage": "Your booking has been confirmed. Get ready for your adventure!",
-      "bookingPending": "Booking Request Submitted",
-      "privateInstanceMessage": "Your request is pending admin review. We'll notify you once approved.",
-      "viewMyBookings": "View My Bookings",
-      "customerInfo": "Contact Information",
-      "fullName": "Full Name",
-      "fullNamePlaceholder": "Enter your full name",
-      "phone": "Phone Number",
-      "phonePlaceholder": "Enter your phone number",
-      "email": "Email (Optional)",
-      "emailPlaceholder": "Enter your email address",
-      "day": "Day",
-      "days": "Days",
-      "instanceJoin": "Instance Join",
-      "tourBooking": "Tour Booking",
-      "public": "Public",
-      "private": "Private",
-      "copied": "Copied to clipboard!",
-      "paymentConfirmedDesc": "Payment confirmed. You will receive an email shortly.",
-      "iHaveTransferred": "I have transferred",
-      "iHaveTransferredTooltip": "Confirm that you have successfully transferred the payment",
-      "verifyingPayment": "Verifying payment...",
-      "verifyingPaymentTooltip": "Checking with the bank..."
-    },
-    "payment": {
-      "refreshButton": "Check Status",
-      "retryAfterMessage": "Retry after {{seconds}}s",
-      "breakdown": {
-        "subtotal": "Subtotal",
-        "tax": "Tax",
-        "total": "Total"
-      }
-    },
-    "visa": {
-      "title": "Visa Applications",
-      "backToBooking": "Back to Booking Details",
-      "searchPlaceholder": "Search by name or passport number...",
-      "filter": "Filter",
-      "filterAll": "All",
-      "statusApproved": "Approved",
-      "statusPending": "Pending",
-      "statusUnderReview": "Under Review",
-      "statusRejected": "Rejected",
-      "participants": "Participants",
-      "refresh": "Refresh",
-      "typeAdult": "Adult",
-      "typeChild": "Child",
-      "noResults": "No participants found.",
-      "selectParticipant": "Select a participant to view details",
-      "processingInfo": "Visa Processing Information",
-      "infoItem1": "Standard processing time: 5-7 business days",
-      "infoItem2": "All participants must have valid passports (minimum 6 months validity)",
-      "infoItem3": "Visa approval is subject to immigration authority review",
-      "infoItem4": "Contact support if you need to update any information"
-    },
-    "bookings": {
-      "title": "My Bookings",
-      "subtitle": "Track and manage all your travel bookings in one place",
-      "backToHome": "Back to Home",
-      "searchPlaceholder": "Search by tour name or booking reference...",
-      "filter": "Filter",
-      "filterAll": "All",
-      "totalBookings": "Total Bookings",
-      "active": "Active",
-      "statusConfirmed": "Confirmed",
-      "statusCompleted": "Completed",
-      "statusPending": "Pending",
-      "statusPendingApproval": "Pending Approval",
-      "statusApproved": "Approved",
-      "statusCancelled": "Cancelled",
-      "statusRejected": "Rejected",
-      "tierStandard": "Standard",
-      "tierLuxury": "Luxury",
-      "tierPremium": "Premium",
-      "paymentPaid": "Paid",
-      "paymentPartial": "Partial",
-      "paymentUnpaid": "Unpaid",
-      "methodQRCode": "QR Code",
-      "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer",
-      "location": "Location",
-      "duration": "Duration",
-      "departure": "Departure",
-      "guests": "Guests",
-      "guest": "Guest",
-      "guestsLabel": "Guests",
-      "totalAmount": "Total Amount",
-      "remaining": "Remaining",
-      "payRemaining": "Pay Remaining",
-      "addParticipants": "Add Participants",
-      "visaStatus": "Visa Status",
-      "invoice": "Invoice",
-      "viewDetails": "View Details",
-      "noResults": "No bookings found."
-    },
-    "bookingDetail": {
-      "backToBookings": "Back to Bookings",
-      "bookingInformation": "Booking Information",
-      "bookingReference": "Booking Reference",
-      "bookingDate": "Booking Date",
-      "departureDate": "Departure Date",
-      "returnDate": "Return Date",
-      "classification": "Classification",
-      "paymentMethod": "Payment Method",
-      "guestDetails": "Guest Details",
-      "adults": "Adults",
-      "adultsAge": "Age 12+",
-      "children": "Children",
-      "childrenAge": "Age 2-11",
-      "totalGuests": "Total Guests",
-      "overview": "Overview",
-      "itinerary": "Itinerary",
-      "duration": "Duration",
-      "package": "Package",
-      "locationLabel": "Location",
-      "guestsLabel": "Guests",
-      "aboutThisTour": "About This Tour",
-      "tourHighlights": "Tour Highlights",
-      "itineraryComingSoon": "Itinerary details will be available soon.",
-      "importantInformation": "Important Information",
-      "paymentSummary": "Payment Summary",
-      "pricePerPerson": "Price per person",
-      "numberOfGuests": "Number of guests",
-      "totalAmount": "Total Amount",
-      "paidDeposit": "Paid (Deposit)",
-      "remainingBalance": "Remaining Balance",
-      "paymentStatus": "Payment Status",
-      "paymentPaid": "Fully Paid",
-      "paymentPartiallyPaid": "Partially Paid",
-      "paymentUnpaid": "Unpaid",
-      "methodQRCode": "QR Code / E-Wallet",
-      "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer",
-      "payRemainingBalance": "Pay Remaining Balance",
-      "visaStatus": "Visa Status",
-      "cancelBooking": "Cancel Booking",
-      "needHelp": "Need Help?",
-      "needHelpDesc": "Our support team is available 24/7 to assist you",
-      "phone": "Phone",
-      "email": "Email",
-      "statusConfirmed": "Confirmed",
-      "statusCompleted": "Completed",
-      "statusPending": "Pending",
-      "statusPendingApproval": "Pending Approval",
-      "statusApproved": "Approved",
-      "statusCancelled": "Cancelled",
-      "statusRejected": "Rejected",
-      "tierStandard": "Standard",
-      "tierLuxury": "Luxury",
-      "tierPremium": "Premium"
-    },
-    "language": {
-      "title": "Language"
-    },
-    "userMenu": {
-      "profile": "My Profile",
-      "changePassword": "Change Password"
-    },
-    "latestTours": {
-      "title": "Our Latest Tours",
-      "seeAll": "See all"
+      "subtitle": "We provide the best travel experiences."
     }
   },
   "booking": {
@@ -2957,7 +2287,30 @@
     "priceMayVary": "Price may vary with group discounts",
     "form": {
       "thumbnailUrl": "Thumbnail URL",
-      "thumbnailUrlPlaceholder": "https://example.com/image.jpg"
+      "thumbnailUrlPlaceholder": "https://example.com/image.jpg",
+      "imageUrls": "Image URLs",
+      "imageUrlsHint": "Add image URLs that will be associated with this tour instance.",
+      "imageUrlPlaceholder": "https://example.com/image.jpg",
+      "addImage": "Add image",
+      "actualDate": "Actual Date",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "description": "Description",
+      "note": "Note",
+      "notePlaceholder": "Admin note for this day...",
+      "activityNotePlaceholder": "Admin note for this activity...",
+      "editInformation": "Edit tour instance",
+      "media": "Media",
+      "addService": "Add service",
+      "addManager": "+ Add manager",
+      "addGuide": "+ Add guide",
+      "includedServices": "Included Services",
+      "cancel": "Cancel",
+      "save": "Save",
+      "remove": "Remove",
+      "title": "Title",
+      "imageUrl": "Image URL",
+      "currentParticipation": "Current participants"
     },
     "includedServicesPlaceholder": "Ex: Shuttle bus",
     "addService": "Add service",
@@ -3026,42 +2379,12 @@
       "title": "Concurrent Modification",
       "message": "This tour instance was modified by another user. Please refresh and try again."
     },
-    "itinerary": "Itinerary",
-    "days": "days",
     "noItinerary": "No itinerary available for this instance.",
     "activities": "Activities",
-    "optional": "Optional",
     "dayUpdated": "Day updated successfully",
     "dayUpdateError": "Failed to update day",
     "activityUpdated": "Activity updated successfully",
-    "activityUpdateError": "Failed to update activity",
-    "form": {
-      "thumbnailUrl": "Thumbnail URL",
-      "thumbnailUrlPlaceholder": "https://example.com/image.jpg",
-      "imageUrls": "Image URLs",
-      "imageUrlsHint": "Add image URLs that will be associated with this tour instance.",
-      "imageUrlPlaceholder": "https://example.com/image.jpg",
-      "addImage": "Add image",
-      "actualDate": "Actual Date",
-      "startTime": "Start Time",
-      "endTime": "End Time",
-      "description": "Description",
-      "note": "Note",
-      "notePlaceholder": "Admin note for this day...",
-      "activityNotePlaceholder": "Admin note for this activity...",
-      "editInformation": "Edit tour instance",
-      "media": "Media",
-      "addService": "Add service",
-      "addManager": "+ Add manager",
-      "addGuide": "+ Add guide",
-      "includedServices": "Included Services",
-      "cancel": "Cancel",
-      "save": "Save",
-      "remove": "Remove",
-      "title": "Title",
-      "imageUrl": "Image URL",
-      "currentParticipation": "Current participants"
-    }
+    "activityUpdateError": "Failed to update activity"
   },
   "pricingPolicy": {
     "title": "Pricing Policies",
@@ -3558,6 +2881,185 @@
     },
     "filter": {
       "all": "All"
+    }
+  },
+  "tourDesigner": {
+    "title": "Tour Designer",
+    "myTours": "My Tours",
+    "createTour": "Create Tour",
+    "editTour": "Edit Tour",
+    "tourDetail": "Tour Detail",
+    "manageTours": "Manage your tour designs",
+    "tourCount": "tour(s)",
+    "searchPlaceholder": "Search tours...",
+    "settings": "Settings",
+    "tabs": {
+      "1": "Active",
+      "3": "Pending",
+      "4": "Rejected",
+      "all": "All"
+    },
+    "statusBadge": "Status",
+    "table": {
+      "tourName": "Tour Name",
+      "status": "Status",
+      "createdDate": "Created Date",
+      "actions": "Actions"
+    },
+    "tableAriaLabel": "My Tours list",
+    "pagination": "Page {{page}} of {{total}}",
+    "prev": "Prev",
+    "next": "Next",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "rejected": "Rejected",
+      "pendingReview": "Pending Review"
+    },
+    "actions": {
+      "submitForReview": "Submit for Review",
+      "edit": "Edit",
+      "view": "View",
+      "create": "Create Tour",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "retry": "Retry",
+      "viewAria": "View tour {{name}}",
+      "editAria": "Edit tour {{name}}"
+    },
+    "messages": {
+      "created": "Tour created successfully",
+      "updated": "Tour updated successfully",
+      "submitted": "Tour submitted for manager review",
+      "cannotEdit": "This tour cannot be edited after submission",
+      "rejectionReason": "Rejection Reason",
+      "confirmSubmit": "Are you sure you want to submit this tour for review?",
+      "submitConfirmTitle": "Submit Tour",
+      "errorLoading": "Failed to load tours",
+      "errorSubmit": "Failed to submit tour"
+    },
+    "empty": {
+      "title": "No tours yet",
+      "description": "Create your first tour to get started"
+    },
+    "detail": {
+      "pending": "Đang chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "rejectionReason": "Lý do từ chối",
+      "contactManager": "Liên hệ Manager để biết thêm chi tiết.",
+      "submitTour": "Submit Tour",
+      "submitConfirm": "Are you sure you want to submit this tour for review?",
+      "submitWarning": "After submission, you cannot edit this tour.",
+      "cancel": "Cancel",
+      "submit": "Submit for Review"
+    },
+    "breadcrumb": {
+      "myTours": "My Tours",
+      "createTour": "Create Tour",
+      "editTour": "Edit Tour"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Home",
+      "aboutUs": "About Us",
+      "tourPackages": "Tour Packages",
+      "ourPolicies": "Our Policies"
+    },
+    "hero": {
+      "eyebrow": "Vietnam's Premier Travel Platform",
+      "title": "Discover The Extraordinary",
+      "subtitle": "Curated experiences. Unforgettable journeys. Your ultimate travel companion.",
+      "searchPlaceholder": "Where do you want to go?",
+      "exploreTours": "Explore Tours"
+    },
+    "stats": {
+      "items": {
+        "totalTours": "Tours",
+        "totalTravellers": "Travelers",
+        "totalDistanceKm": "Distance Covered",
+        "support": "Support"
+      },
+      "unavailable": "Statistics temporarily unavailable"
+    },
+    "destinations": {
+      "eyebrow": "Explore",
+      "title": "Trending Destinations",
+      "viewAll": "View all destinations",
+      "tours": "tours",
+      "loadError": "Unable to load destinations",
+      "retry": "Retry",
+      "empty": "No destinations available at the moment."
+    },
+    "featured": {
+      "eyebrow": "Handpicked",
+      "title": "Featured Adventures",
+      "loadError": "Unable to load featured tours",
+      "retry": "Retry",
+      "empty": "No featured tours available at the moment."
+    },
+    "latest": {
+      "eyebrow": "Just Added",
+      "title": "Latest Tours",
+      "viewAll": "View all",
+      "viewDetails": "View details",
+      "loadError": "Unable to load latest tours",
+      "retry": "Retry",
+      "empty": "No latest tours available yet."
+    },
+    "whyChoose": {
+      "eyebrow": "Why Pathora",
+      "title": "Why Choose Us",
+      "items": {
+        "price": {
+          "title": "Best Price Guarantee",
+          "desc": "We ensure competitive pricing on all tour packages without compromising quality."
+        },
+        "guides": {
+          "title": "Expert Local Guides",
+          "desc": "Our certified guides bring deep local knowledge and passion for every destination."
+        },
+        "support": {
+          "title": "24/7 Support",
+          "desc": "Round-the-clock assistance from our dedicated team wherever you travel."
+        },
+        "flexible": {
+          "title": "Flexible Booking",
+          "desc": "Free cancellations and easy rescheduling for a stress-free travel experience."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready for Your Next Adventure?",
+      "subtitle": "Join thousands of travelers discovering Vietnam's hidden gems with Pathora.",
+      "ctaButton": "Explore Tours",
+      "secondaryButton": "Learn More"
+    },
+    "reviews": {
+      "eyebrow": "Testimonials",
+      "title": "What Travelers Say",
+      "rating": "Rating",
+      "loadError": "Unable to load reviews",
+      "retry": "Retry",
+      "empty": "No reviews available yet."
+    },
+    "footer": {
+      "about": "About",
+      "tours": "Tours",
+      "blog": "Blog",
+      "careers": "Careers",
+      "help": "Help Center",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "policies": "Policies",
+      "destinations": "Destinations",
+      "tagline": "Vietnam's premier travel platform. Discover hidden gems, curated tours, and unforgettable adventures.",
+      "newsletter": "Stay Updated",
+      "newsletterDesc": "Get the latest travel deals and updates.",
+      "copyright": "All rights reserved.",
+      "privacy": "Privacy",
+      "terms": "Terms"
     }
   }
 }

@@ -224,27 +224,27 @@ export const SelectField = ({
       onClick={onToggle}
       aria-expanded={isOpen}
       aria-haspopup={children ? "listbox" : undefined}
-      className={`flex items-center gap-3 p-3 md:p-3.5 min-h-[3.5rem] bg-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/50 rounded-2xl transition-colors w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${rounded ?? ""} ${
-        isOpen ? "ring-2 ring-landing-accent/30 bg-slate-50/50 dark:bg-slate-800/50" : ""
+      className={`flex items-center gap-3 p-3 md:p-3.5 min-h-[3.5rem] bg-transparent hover:bg-white/[0.06] rounded-2xl transition-colors w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${rounded ?? ""} ${
+        isOpen ? "ring-2 ring-landing-accent/30 bg-white/[0.06]" : ""
       }`}>
       <div className="relative w-4 h-4 md:w-6 md:h-6 shrink-0 flex items-center justify-center text-landing-accent">
         {icon}
       </div>
       <div className="flex min-w-0 flex-col gap-0.5 md:gap-1 w-full">
-        <span suppressHydrationWarning className="text-[#333] dark:text-white font-semibold text-xs md:text-sm leading-tight truncate w-full block">
+        <span suppressHydrationWarning className="text-white font-semibold text-xs md:text-sm leading-tight truncate w-full block">
           {label}
         </span>
         <div className="flex min-w-0 items-center justify-between gap-1 w-full opacity-70">
           <span
             suppressHydrationWarning
             className={`text-[10px] md:text-xs font-normal truncate flex-1 ${
-              displayValue ? "text-[#333] dark:text-gray-200" : "text-[#333] dark:text-gray-300 opacity-80"
+              displayValue ? "text-white/80" : "text-white/50"
             }`}>
             {displayValue || placeholder}
           </span>
           <Icon
             icon="heroicons-outline:chevron-down"
-            className={`w-3 h-3 md:w-4 md:h-4 shrink-0 text-[#333] dark:text-gray-300 transition-transform ${
+            className={`w-3 h-3 md:w-4 md:h-4 shrink-0 text-white/50 transition-transform ${
               isOpen ? "rotate-180" : ""
             }`}
           />

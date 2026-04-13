@@ -1453,782 +1453,134 @@
     "nav": {
       "home": "Trang chủ",
       "aboutUs": "Về chúng tôi",
-      "tourPackages": "Gói tour",
+      "tourPackages": "Gói Tour",
       "ourPolicies": "Chính sách"
     },
-    "menu": "Menu",
+    "sidebar": {
+      "tourDiscovery": "Khám phá Tour"
+    },
+    "a11y": {
+      "closeMenu": "Đóng menu",
+      "changeLanguage": "Đổi ngôn ngữ"
+    },
+    "language": {
+      "title": "Ngôn ngữ"
+    },
     "hero": {
-      "title": "Việt Nam Đang Chờ Đón Bạn",
-      "subtitle": "Khám phá cảnh quan tuyệt đẹp và di sản văn hóa phong phú khắp Việt Nam và hơn thế nữa",
-      "eyebrow": "Nền tảng Du lịch hàng đầu Việt Nam",
-      "searchPlaceholder": "Bạn muốn đi đâu?",
-      "exploreTours": "Khám phá Tour",
-      "fields": {
-        "people": {
-          "label": "So luong nguoi",
-          "placeholder": "Chon so luong",
-          "single": "nguoi",
-          "plural": "nguoi"
-        },
-        "date": {
-          "label": "Ngay",
-          "placeholder": "Chon ngay"
-        },
-        "destination": {
-          "label": "Diem den",
-          "placeholder": "Chon dia diem"
-        },
-        "classification": {
-          "label": "Phan loai",
-          "placeholder": "Chon phan loai"
-        }
-      },
-      "calendar": {
-        "previousMonth": "Thang truoc",
-        "nextMonth": "Thang sau"
-      },
-      "publicTours": "Tour cong khai",
-      "privateTours": "Tour rieng",
-      "backgroundAlt": "Diem den du lich voi phong canh dep",
-      "searchAria": "Tim kiem tour",
-      "searchAlt": "Tim kiem"
+      "title": "Khám phá sự phi thường",
+      "subtitle": "Những trải nghiệm được tuyển chọn. Những hành trình khó quên. Đồng hành du lịch tuyệt đỉnh của bạn.",
+      "searchPlaceholder": "Tìm kiếm điểm đến...",
+      "searchButton": "Tìm",
+      "exploreBtn": "Khám phá Tour"
     },
     "stats": {
-      "items": {
-        "totalTours": "Tour",
-        "totalTravellers": "Du khách",
-        "support": "Hỗ trợ"
-      },
-      "titleLine1": "Chung toi lam",
-      "titleLine2": "Du lich The Gioi De Dang",
-      "description": "",
-      "exploreImageAlt": "Du lich",
-      "backgroundImageAlt": "Nen du lich"
+      "destinations": "Điểm đến",
+      "tours": "Tour",
+      "happyTravelers": "Khách du lịch hài lòng"
     },
     "destinations": {
-      "eyebrow": "Khám phá",
-      "title": "Điểm đến nổi bật",
-      "viewAll": "Xem tất cả điểm đến",
-      "tours": "tour",
-      "topAttractionsTitle": "Diem tham quan hot",
-      "trendingTitle": "Diem den noi bat"
-    },
-    "aboutUs": {
-      "ourStory": "Câu Chuyện Của Chúng Tôi",
-      "weAre": "Chúng Tôi Là",
-      "heroSubtitle": "Chúng tôi đam mê tạo ra những trải nghiệm du lịch khó quên kết nối con người với những điểm đến đặc biệt.",
-      "whoWeAre": "Chúng Tôi Là Ai",
-      "yearsExperience": "Năm Kinh Nghiệm",
-      "passionateTravelers": "Những Người Đam Mê Du Lịch &",
-      "expertGuides": "Hướng Dẫn Viên Chuyên Nghiệp",
-      "whoWeAreDesc1": "Pathora được thành lập năm 2010 với sứ mệnh đơn giản: làm cho du lịch trở nên dễ tiếp cận, thú vị và có ý nghĩa. Đội ngũ địa phương đam mê và chuyên gia giàu kinh nghiệm của chúng tôi cùng nhau tạo ra những tour khám phá tinh thần thực sự của mỗi điểm đến.",
-      "whoWeAreDesc2": "Từ thành phố nhộn nhịp đến phong cảnh yên bình, chúng tôi xử lý mọi chi tiết để bạn có thể tập trung vào điều quan trọng nhất — tạo ra những kỷ niệm. Với hơn 92.000 du khách hạnh phúc và tỷ lệ hài lòng 98%, chúng tôi tiếp tục đặt ra tiêu chuẩn cho chất lượng trải nghiệm du lịch.",
-      "exploreOurTours": "Khám Phá Tour Của Chúng Tôi",
-      "whyChooseUs": "Tại Sao Chọn Chúng Tôi",
-      "valuesTitle": "Giá Trị Cốt Lõi Của Chúng Tôi",
-      "ourJourney": "Hành Trình Của Chúng Tôi",
-      "journeyTitle": "Câu Chuyện Pathora",
-      "teamSubtitle": "Gặp Gỡ Đội Ngũ",
-      "teamTitle": "Những Bậc Thầy Đằng Sau Cuộc Phiêu Lưu Của Bạn",
-      "toursLed": "tour đã dẫn",
-      "readyToExplore": "Sẵn Sàng Khám Phá?",
-      "ctaTitle": "Bắt Đầu Cuộc Phiêu Lưu Với",
-      "ctaTitleWith": "cùng",
-      "ctaDescription": "Duyệt qua các gói tour được tuyển chọn và tìm cuộc phiêu lưu hoàn hảo cho chuyến đi tiếp theo của bạn.",
-      "browsePackageTours": "Duyệt Tour Trọn Gói",
-      "stats": {
-        "destinations": "Điểm đến",
-        "happyTravelers": "Du khách Hài lòng",
-        "toursOffered": "Tour Đang Cung Cấp",
-        "satisfactionRate": "Tỷ lệ Hài lòng"
-      },
-      "values": {
-        "globalExpertise": "Chuyên Môn Toàn Cầu",
-        "globalExpertiseDesc": "Với kiến thức sâu về văn hóa và cảnh quan địa phương, chúng tôi mang đến những trải nghiệm chân thực cho mọi hành trình.",
-        "safeTrusted": "An Toàn & Đáng Tin Cậy",
-        "safeTrustedDesc": "Nhà điều hành được cấp phép, hướng dẫn viên đã kiểm tra, và bảo hiểm du lịch toàn diện cho sự yên tâm của bạn.",
-        "tailoredForYou": "Tùy Chỉnh Cho Bạn",
-        "tailoredForYouDesc": "Từ du khách solo đến nhóm gia đình, chúng tôi tùy chỉnh lịch trình phù hợp với sở thích và nhịp độ của bạn.",
-        "seamlessExperience": "Trải Nghiệm Liền Mạch",
-        "seamlessExperienceDesc": "Hỗ trợ từ đầu đến cuối từ đặt tour đến khi hoàn thành, để bạn có thể tập trung vào cuộc phiêu lưu."
-      },
-      "timeline": {
-        "founded": "Thành Lập Pathora",
-        "foundedDesc": "Bắt đầu như một công ty lữ hành nhỏ tại Hà Nội với ước mơ chia sẻ vẻ đẹp của Việt Nam với thế giới.",
-        "first10k": "Mốc 10.000 Du Khách",
-        "first10kDesc": "Đạt mốc quan trọng đầu tiên với 10.000 du khách hài lòng và mở rộng hoạt động đến 3 thành phố lớn.",
-        "expanded60": "Mở Rộng 60+ Điểm Đến",
-        "expanded60Desc": "Phát triển mạng lưới lên 60+ điểm đến khắp Việt Nam, Lào, Campuchia, Thái Lan và hơn thế nữa.",
-        "digitalFirst": "Ra Mắt Nền Tảng Số",
-        "digitalFirstDesc": "Ra mắt nền tảng đặt tour trực tuyến giúp khám phá và đặt tour dễ dàng hơn bao giờ hết.",
-        "happy92k": "92.000 Du Khách Hài Lòng",
-        "happy92kDesc": "Ăn mừng phục vụ hơn 92.000 du khách với tỷ lệ hài lòng 98% và tiếp tục tăng."
-      }
-    },
-    "videoShowcase": {
-      "label": "Trải nghiệm Việt Nam",
-      "caption": "Việt Nam đang chờ đón bạn",
-      "subcaption": "Khám phá cảnh quan tuyệt đẹp và di sản văn hóa phong phú"
+      "title": "Điểm đến thịnh hành",
+      "subtitle": "Khám phá những địa điểm được ưa chuộng nhất hiện nay."
     },
     "featured": {
-      "eyebrow": "Tuyển chọn",
-      "title": "Những cuộc phiêu lưu nổi bật"
+      "title": "Chuyến đi nổi bật",
+      "subtitle": "Những hành trình được chọn lọc cho chuyến phiêu lưu tiếp theo."
+    },
+    "latestTours": {
+      "title": "Tour Mới Nhất",
+      "seeAll": "Xem Tất Cả"
+    },
+    "whyChoose": {
+      "title": "Tại Sao Chọn Chúng Tôi",
+      "subtitle": "Chúng tôi mang đến trải nghiệm du lịch tốt nhất với các đối tác uy tín trên toàn thế giới",
+      "features": [
+        {
+          "title": "An Toàn & Tin Cậy",
+          "desc": "Mỗi tour đều được xác minh và bảo hiểm cho sự an tâm của bạn"
+        },
+        {
+          "title": "Đảm Bảo Giá Tốt Nhất",
+          "desc": "Giá cả cạnh tranh, không phí ẩn hay phụ thu bất ngờ"
+        },
+        {
+          "title": "Phạm Vi Toàn Cầu",
+          "desc": "Tour tại hơn 50 quốc gia với hướng dẫn viên địa phương"
+        },
+        {
+          "title": "Trải Nghiệm Tuyển Chọn",
+          "desc": "Lịch trình được thiết kế bởi các chuyên gia du lịch"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Sẵn sàng khởi hành?",
+      "subtitle": "Đặt tour du lịch mơ ước ngay hôm nay.",
+      "button": "Đặt ngay"
+    },
+    "reviews": {
+      "title": "Nhận xét từ du khách",
+      "subtitle": "Câu chuyện thực tế từ cộng đồng tuyệt vời của chúng tôi."
+    },
+    "trustedBrands": {
+      "title": "Đối Tác Tin Cậy",
+      "brandAlt": "Đối tác"
+    },
+    "common": {
+      "starsAria": "{{count}} trên 5 sao"
+    },
+    "footer": {
+      "about": "Về chúng tôi",
+      "contact": "Liên hệ",
+      "privacy": "Bảo mật",
+      "terms": "Điều khoản"
     },
     "auth": {
-      "closeModal": "Đóng hộp thoại",
-      "close": "Đóng",
       "createAccount": "Tạo tài khoản",
       "username": "Tên đăng nhập",
       "enterUsername": "Nhập tên đăng nhập của bạn",
-      "login": "Đăng nhập",
       "nameAndSurname": "Họ và tên",
-      "enterNameAndSurname": "Nhập họ và tên của bạn",
-      "emailAddress": "Địa chỉ email",
+      "enterNameAndSurname": "Nhập họ và tên đầy đủ",
+      "emailAddress": "Địa chỉ Email",
       "enterEmailAddress": "Nhập địa chỉ email của bạn",
       "password": "Mật khẩu",
       "enterPassword": "Nhập mật khẩu của bạn",
       "showPassword": "Hiện mật khẩu",
       "hidePassword": "Ẩn mật khẩu",
       "agreeWith": "Tôi đồng ý với",
-      "mustAgreeToTerms": "Bạn phải đồng ý với điều khoản và chính sách riêng tư",
-      "registrationSuccess": "Đăng ký thành công! Bạn có thể đăng nhập ngay.",
-      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
-      "emailTemporarilyLocked": "Quá nhiều lần đăng ký thất bại. Vui lòng thử lại sau {{minutes}} phút.",
-      "loginSuccess": "Chào mừng trở lại! Bạn đã đăng nhập thành công.",
-      "terms": "Điều khoản",
+      "terms": "Điều khoản Dịch vụ",
       "and": "và",
-      "privacy": "Quyền riêng tư",
-      "or": "hoặc",
-      "signUpWithGoogle": "Đăng ký với Google",
-      "signInWithGoogle": "Đăng nhập với Google",
+      "privacy": "Chính sách Bảo mật",
+      "mustAgreeToTerms": "Bạn phải đồng ý với Điều khoản Dịch vụ và Chính sách Bảo mật.",
+      "registrationSuccess": "Đăng ký thành công!",
+      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
+      "emailTemporarilyLocked": "Email của bạn bị khóa tạm thời trong {{minutes}} phút.",
+      "close": "Đóng",
+      "closeModal": "Đóng cửa sổ",
+      "or": "HOẶC",
+      "signUpWithGoogle": "Đăng ký bằng Google",
       "alreadyHaveAccount": "Đã có tài khoản?",
-      "dontHaveAccount": "Chưa có tài khoản?",
       "logIn": "Đăng nhập",
+      "login": "Đăng nhập",
+      "loginSuccess": "Đăng nhập thành công!",
       "forgotYourPassword": "Quên mật khẩu?",
-      "forgotPassword": "Quên mật khẩu",
-      "forgotPasswordHelp": "Đừng lo, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.",
-      "resetPassword": "Đặt lại mật khẩu",
+      "signInWithGoogle": "Đăng nhập bằng Google",
+      "dontHaveAccount": "Chưa có tài khoản?",
       "checkYourEmail": "Kiểm tra email của bạn",
-      "resetLinkSentTo": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến",
-      "backToLogin": "Quay lại đăng nhập",
-      "resetPasswordNoToken": "Liên kết không hợp lệ",
-      "resetPasswordNoTokenHelp": "Liên kết đặt lại mật khẩu không tồn tại hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.",
-      "createNewPassword": "Tạo mật khẩu mới",
-      "createNewPasswordHelp": "Nhập mật khẩu mới cho tài khoản của bạn.",
-      "newPassword": "Mật khẩu mới",
-      "enterNewPassword": "Nhập mật khẩu mới",
-      "confirmPassword": "Xác nhận mật khẩu",
-      "enterConfirmPassword": "Nhập lại mật khẩu mới",
-      "updatePassword": "Cập nhật mật khẩu",
-      "passwordResetSuccess": "Đặt lại mật khẩu thành công!",
-      "passwordResetFailed": "Không thể đặt lại mật khẩu. Liên kết có thể đã hết hạn.",
-      "passwordsDoNotMatch": "Mật khẩu không khớp.",
-      "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự.",
-      "showPassword": "Hiện mật khẩu",
-      "hidePassword": "Ẩn mật khẩu"
+      "resetLinkSentTo": "Một liên kết đặt lại mật khẩu đã được gửi đến",
+      "backToLogin": "Trở lại đăng nhập",
+      "forgotPassword": "Quên mật khẩu",
+      "forgotPasswordHelp": "Nhập địa chỉ email của bạn để nhận liên kết đặt lại mật khẩu.",
+      "resetPassword": "Đặt lại mật khẩu",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký"
     },
     "latest": {
-      "eyebrow": "Mới nhất",
-      "title": "Tour gần đây",
-      "viewAll": "Xem tất cả"
+      "title": "Tour mới nhất",
+      "subtitle": "Những trải nghiệm mới được thêm vào dành cho bạn."
     },
-    "whyChoose": {
-      "eyebrow": "Tại sao chọn Pathora",
+    "whyChooseUs": {
       "title": "Tại sao chọn chúng tôi",
-      "items": {
-        "price": {
-          "title": "Giá tốt nhất",
-          "desc": "Đảm bảo giá thấp nhất cho mọi tour"
-        },
-        "guides": {
-          "title": "Hướng dẫn viên chuyên nghiệp",
-          "desc": "Đội ngũ am hiểu địa phương"
-        },
-        "support": {
-          "title": "Hỗ trợ 24/7",
-          "desc": "Luôn sẵn sàng khi bạn cần"
-        },
-        "flexible": {
-          "title": "Đặt tour linh hoạt",
-          "desc": "Hủy miễn phí trước 24 giờ"
-        }
-      },
-      "subtitle": "Chung toi mang den trai nghiem du lich tot nhat moi luc"
-    },
-    "cta": {
-      "title": "Sẵn sàng cho cuộc phiêu lưu tiếp theo?",
-      "subtitle": "Cùng hàng nghìn du khách khám phá những bí mật Việt Nam với Pathora.",
-      "ctaButton": "Khám phá Tour",
-      "secondaryButton": "Tìm hiểu thêm",
-      "description": "Hay bat dau chuyen di -- chung toi biet day quan trong voi ban.",
-      "exploreNow": "Kham pha ngay"
-    },
-    "reviews": {
-      "eyebrow": "Đánh giá",
-      "title": "Khách hàng nói gì",
-      "rating": "Xếp hạng",
-      "nextReview": "Danh gia tiep",
-      "previousReview": "Danh gia truoc",
-      "reviewSlides": "Trang danh gia",
-      "subtitle": "Khach hang noi gi"
-    },
-    "footer": {
-      "about": "Giới thiệu",
-      "tours": "Tour",
-      "blog": "Blog",
-      "careers": "Tuyển dụng",
-      "help": "Trung tâm trợ giúp",
-      "contact": "Liên hệ",
-      "faq": "Câu hỏi thường gặp",
-      "policies": "Chính sách",
-      "destinations": "Điểm đến",
-      "tagline": "Nền tảng du lịch hàng đầu Việt Nam. Khám phá bí mật, tour được tuyển chọn và những cuộc phiêu lưu khó quên.",
-      "newsletter": "Cập nhật tin tức",
-      "newsletterDesc": "Nhận tin tức và ưu đãi du lịch mới nhất.",
-      "copyright": "Mọi quyền được bảo lưu.",
-      "privacy": "Quyền riêng tư",
-      "terms": "Điều khoản",
-      "contactNested": {
-        "title": "Liên hệ",
-        "address": "328 Queensberry Street, North Melbourne VIC 3051, Australia."
-      },
-      "company": {
-        "title": "Cong ty"
-      },
-      "support": {
-        "title": "Ho tro"
-      },
-      "mobileApps": {
-        "title": "Ung dung di dong",
-        "ios": "Ung dung iOS",
-        "android": "Ung dung Android"
-      },
-      "followUs": "Theo doi chung toi",
-      "speakToExpert": "Noi chuyen voi chuyen gia tai",
-      "backgroundAlt": "Nen chan trang",
-      "links": {
-        "company": {
-          "aboutUs": "Ve chung toi",
-          "reviews": "Danh gia Tour",
-          "contactUs": "Lien he",
-          "travelGuides": "Huong dan du lich",
-          "dataPolicy": "Chinh sach du lieu",
-          "cookiePolicy": "Chinh sach cookie",
-          "legal": "Phap ly",
-          "sitemap": "Ban do trang"
-        },
-        "support": {
-          "getInTouch": "Lien he",
-          "helpCenter": "Tro giup",
-          "liveChat": "Chat truc tuyen",
-          "howItWorks": "Hoat dong the nao"
-        }
-      },
-      "newsletterNested": {
-        "title": "Dang ky tin",
-        "description": "Dang ky nhan tin moi nhat mien phi",
-        "placeholder": "Dia chi email cua ban",
-        "send": "Gui"
-      }
-    },
-    "policies": {
-      "transparencyFirst": "Hướng dẫn Du lịch",
-      "our": "Chính sách",
-      "policy": "Của Chúng tôi",
-      "heroSubtitle": "Đọc các chính sách của chúng tôi để hiểu cách chúng tôi hoạt động và những gì bạn có thể mong đợi từ dịch vụ.",
-      "lastUpdated": "Cập nhật lần cuối:",
-      "lastUpdatedDate": "24 tháng 3, 2026",
-      "policiesApplyNote": "Các chính sách này áp dụng cho tất cả dịch vụ do Pathora cung cấp.",
-      "introPrefix": "Tại Pathora, chúng tôi tin tưởng vào sự minh bạch hoàn toàn. Tài liệu này trình bày các chính sách về đặt tour, thanh toán, hủy tour và hơn thế nữa để đảm bảo trải nghiệm suôn sẻ cho tất cả du khách.",
-      "introSuffix": " Chúng tôi cam kết cung cấp các điều khoản rõ ràng và công bằng cho mỗi chuyến đi bạn đặt với chúng tôi.",
-      "ctaTitle": "Bạn có câu hỏi?",
-      "ctaDescription": "Đội ngũ hỗ trợ của chúng tôi hoạt động 24/7 để giúp bạn giải đáp mọi thắc mắc liên quan đến chính sách.",
-      "contactSupport": "Liên hệ Hỗ trợ",
-      "sections": {
-        "bookingPayment": "Đặt tour & Thanh toán",
-        "cancellationRefund": "Hủy tour & Hoàn tiền",
-        "modificationRescheduling": "Thay đổi & Đổi lịch",
-        "healthSafety": "Sức khỏe & An toàn",
-        "privacyPolicy": "Chính sách Quyền riêng tư",
-        "liabilityDisclaimer": "Miễn trách Nghĩa vụ"
-      },
-      "items": {
-        "_deprecated": "// noi dung phuc vu boi backend API"
-      },
-      "noContentTitle": "Không có chính sách",
-      "noContentDesc": "Nội dung chính sách sẽ xuất hiện ở đây khi quản trị viên thêm vào.",
-      "errorTitle": "Không thể tải nội dung chính sách"
-    },
-    "trustedBrands": {
-      "title": "Trusted by all the largest travel brands",
-      "brandAlt": "Brand"
-    },
-    "customTour": {
-      "backToHome": "Back to Home",
-      "title": "Custom Tour Request",
-      "subtitle": "Design your perfect journey -- tell us your preferences and we'll craft a personalized tour just for you.",
-      "intro": "Share your preferences and our team will contact you with a tailored proposal.",
-      "viewMyRequests": "View My Requests"
-    },
-    "tourDiscovery": {
-      "title": "Available Tour Departures",
-      "tours": "Tours",
-      "availableDepartures": "Available Departures",
-      "searchPlaceholder": "Search tours",
-      "searchFullPlaceholder": "Search tours, destinations, activities...",
-      "resultsCount": "{{count}} results",
-      "sortBy": "Sort by",
-      "sortFeatured": "Featured",
-      "whenTraveling": "When are you traveling?",
-      "tourType": "Tour Type",
-      "filterPrice": "Filter Price",
-      "featured": "FEATURED",
-      "bestPriceGuarantee": "Best Price Guarantee",
-      "from": "From",
-      "to": "To",
-      "viewDetails": "View Details",
-      "pagination": "Pages",
-      "showingResults": "Showing results {{start}}-{{end}} of {{total}}",
-      "discoverAdventures": "Discover Adventures",
-      "packageLabel": "Package",
-      "toursLabel": "Tours",
-      "heroDescription": "Discover our curated travel packages and create your perfect adventure",
-      "packageTours": "Gói Tour Du Lịch",
-      "heroTitleLine1": "KHÁM PHÁ CUỘC PHIÊU LƯU TIẾP THEO",
-      "heroTitleLine2": "TẠI VIỆT NAM",
-      "heroStat1": "24 tour tuyển chọn",
-      "heroStat2": "3.500+ khách du lịch",
-      "heroStat3": "50+ điểm đến",
-      "filter": "Lọc",
-      "clearAll": "Clear all",
-      "classification": "Classification",
-      "category": "Category",
-      "duration": "Duration",
-      "priceRange": "Price Range",
-      "showing": "Showing",
-      "toursLower": "tours",
-      "scheduledTours": "Scheduled Tours",
-      "recommended": "Recommended",
-      "viewType": {
-        "tour": "By Tour",
-        "tourInstance": "By Departure"
-      },
-      "toursFound": "tours found",
-      "departuresFound": "departures found",
-      "maxPax": "Max {{count}} pax",
-      "filtersLabel": "Filters",
-      "showResults": "Show Results",
-      "customizeYourTour": "Customize Your Tour",
-      "customizeDescription": "Can't find what you're looking for? Let us design a personalized tour just for you!",
-      "createCustomTour": "Create Custom Tour",
-      "byTour": "By Tour",
-      "byDeparture": "By Departure",
-      "departuresLower": "departures",
-      "noResults": "No Tours Found",
-      "noToursFound": "No tours found",
-      "noDeparturesFound": "No departures found",
-      "noResultsDescription": "Try adjusting your search or filters to find what you're looking for.",
-      "tryAdjustingFilters": "Try adjusting your filters or search terms",
-      "noInstancesTitle": "No Departures Found",
-      "noInstancesDescription": "Không có chuyến khởi hành phù hợp. Vui lòng quay lại sau.",
-      "errorLoading": "Đã xảy ra lỗi khi tải tour. Vui lòng thử lại.",
-      "errorLoadingInstances": "Đã xảy ra lỗi khi tải chuyến khởi hành. Vui lòng thử lại.",
-      "retry": "Thử lại",
-      "emptyStats": "Hơn 2.400 tour đang chờ bạn!",
-      "browseAllTours": "Xem Tất Cả Tour",
-      "exploreDestinations": "Khám Phá Điểm Đến",
-      "resetAll": "Đặt lại",
-      "bookNow": "Đặt Ngay",
-      "reserveNow": "Đặt Chỗ Ngay",
-      "resetAll": "Đặt lại tất cả",
-      "resultsRegion": "Kết quả tìm kiếm tour",
-      "loadingAria": "Đang tải kết quả tour",
-      "viewSwitchLabel": "Chọn chế độ hiển thị",
-      "sortAria": "Sắp xếp kết quả tour",
-      "paginationAria": "Phân trang",
-      "prevPageAria": "Đến trang trước",
-      "nextPageAria": "Đến trang sau",
-      "pageOf": "Trang {{current}} trên {{total}}",
-      "sort": {
-        "recommended": "Recommended",
-        "price-low": "Price: Low to High",
-        "price-high": "Price: High to Low",
-        "duration-short": "Duration: Shortest",
-        "duration-long": "Duration: Longest"
-      },
-      "classificationOptions": {
-        "standard": "Standard Tour",
-        "premium": "Premium Tour",
-        "vipLuxury": "VIP / Luxury Tour",
-        "budget": "Budget Tour",
-        "private": "Private Tour",
-        "group": "Group Tour"
-      },
-      "categoryOptions": {
-        "adventure": "Adventure Tour",
-        "cultural": "Cultural Tour",
-        "relaxation": "Relaxation Tour",
-        "eco": "Eco Tour",
-        "food": "Food Tour",
-        "religious": "Religious Tour",
-        "honeymoon": "Honeymoon Tour"
-      },
-      "filters": {
-        "departureDate": "Departure Date",
-        "destination": "Destination",
-        "duration": "Duration",
-        "visaRequirement": "Visa Requirement",
-        "depositRate": "Deposit Rate",
-        "seatsAvailability": "Seats Availability"
-      }
-    },
-    "tourDetail": {
-      "allTours": "All Tours",
-      "home": "Home",
-      "packageTours": "Package Tours",
-      "duration": "Duration",
-      "locationLabel": "Location",
-      "groupSize": "Group Size",
-      "guests": "Guests",
-      "availability": "Availability",
-      "overview": "Overview",
-      "itinerary": "Lich trinh",
-      "aboutThisTour": "About This Tour",
-      "itineraryComingSoon": "Detailed itinerary will be available soon. Please contact us for more information.",
-      "youMightAlsoLike": "You Might Also Like",
-      "selectPackage": "Select Package",
-      "estimatedPrice": "Estimated Price",
-      "packageNoticeStart": "This is a",
-      "packageTour": "Package Tour",
-      "packageNoticeEnd": "Submit a booking request and our team will contact you with a customized quote.",
-      "preferredDepartureDate": "Preferred Departure Date",
-      "flexibleDates": "Flexible dates? Mention in special requests.",
-      "guestsLabel": "Guests",
-      "adults": "Adults",
-      "children": "Children",
-      "infants": "Infants",
-      "dynamicPricing": "Dynamic Pricing",
-      "serviceFee": "Service fee",
-      "estimatedTotal": "Estimated Total",
-      "requestBooking": "Request Booking",
-      "noPaymentNotice": "No payment required - Our team will contact you within 24 hours",
-      "needHelp": "Need Help?",
-      "hereForYou": "We're here 24/7",
-      "contactUs": "Contact Us",
-      "notFound": "Tour not found",
-      "notFoundDesc": "The tour you're looking for doesn't exist or has been removed.",
-      "error": "Something went wrong",
-      "errorDesc": "Failed to load tour details. Please try again.",
-      "retry": "Try Again",
-      "package": "Package",
-      "plans": "Day Plans",
-      "accommodations": {
-        "empty": "No accommodations available for this package."
-      },
-      "locations": {
-        "empty": "No locations available for this package."
-      },
-      "transportation": {
-        "empty": "No transportation routes available."
-      },
-      "services": {
-        "empty": "No other services available for this package."
-      },
-      "insurance": "Insurance",
-      "days": "days",
-      "included": "included",
-      "none": "None",
-      "fee": "Fee",
-      "coverage": "Coverage",
-      "insuranceCoverage": "Insurance Coverage",
-      "optional": "Optional",
-      "noItinerary": "No itinerary available for this package yet.",
-      "reviewsTitle": "Customer Reviews",
-      "averageRating": "Average Rating",
-      "totalReviews": "{{count}} reviews",
-      "noReviews": "No reviews yet",
-      "noReviewsCta": "Be the first to share your experience!",
-      "perPerson": "/person",
-      "selectDateFirst": "Please select a departure date first",
-      "morePhotos": "+{{count}} photos",
-      "itineraryEmpty": "Không có lịch trình cho gói này.",
-      "dayLabel": "Ngày {{day}}",
-      "noActivitiesInDay": "Chưa có hoạt động cho ngày này.",
-      "activity": "Hoạt động",
-      "transport": "Di chuyển",
-      "minutes": "phút",
-      "routeTime": "Giờ di chuyển",
-      "room": "Phòng",
-      "meal": "Bữa ăn",
-      "checkInOut": "Giờ nhận / trả phòng",
-      "location": "Địa điểm",
-      "estimatedCost": "Chi phí ước tính",
-      "childrenAge": "< 12 tuổi",
-      "infantsAge": "< 2 tuổi",
-      "adults": "Người lớn",
-      "children": "Trẻ em",
-      "infants": "Trẻ sơ sinh",
-      "needHelp": "Cần hỗ trợ đặt tour?",
-      "hereForYou": "Chúng tôi luôn sẵn sàng",
-      "noPaymentNotice": "Không yêu cầu thanh toán ngay. Bạn sẽ được chuyển đến trang hoàn tất đặt chỗ."
-    },
-    "checkout": {
-      "backToTour": "Back to Tour",
-      "stepSelectTour": "Select Tour",
-      "stepCheckout": "Checkout",
-      "stepConfirmation": "Confirmation",
-      "bookingSummary": "Booking Summary",
-      "priceDetails": "Price Details",
-      "adults": "Adults",
-      "serviceFee": "Service fee",
-      "free": "Free",
-      "total": "Total",
-      "fullPayment": "Full Payment",
-      "fullPaymentDesc": "Pay the full amount now",
-      "deposit": "Deposit",
-      "depositDesc": "Pay remaining before departure",
-      "termsConditions": "Terms & Conditions",
-      "cancellationPolicy": "Cancellation Policy",
-      "paymentTerms": "Payment Terms",
-      "importantInfo": "Important Information",
-      "cancelItem1": "Free cancellation up to 7 days before departure",
-      "cancelItem2": "50% refund for cancellations 3-7 days before departure",
-      "cancelItem3": "No refund for cancellations less than 3 days before departure",
-      "cancelItem4": "All cancellations must be made in writing via email",
-      "payTermItem1": "Deposit of 30% required at time of booking",
-      "payTermItem2": "Remaining balance due 14 days before departure",
-      "payTermItem3": "All payments are processed in USD",
-      "payTermItem4": "Payment confirmation will be sent via email",
-      "infoItem1": "Valid passport required with at least 6 months validity",
-      "infoItem2": "Travel insurance is strongly recommended",
-      "infoItem3": "Minimum age requirement: 12 years old",
-      "infoItem4": "Medical conditions must be disclosed at time of booking",
-      "infoItem5": "Itinerary may change due to weather or unforeseen circumstances",
-      "agreeTermsPrefix": "I have read and agree to the",
-      "cancellationPolicyLink": "cancellation policy",
-      "and": "and",
-      "paymentTermsLink": "payment terms",
-      "acknowledgePrefix": "I acknowledge all",
-      "importantInfoLink": "important information",
-      "acknowledgeSuffix": "and confirm that all travelers meet the requirements",
-      "paymentMethod": "Payment Method",
-      "qrPayment": "QR Code Payment",
-      "qrPaymentDesc": "Scan to pay instantly",
-      "cashPayment": "Cash Payment",
-      "cashPaymentDesc": "Pay at our office",
-      "paymentGateway": "Cổng thanh toán",
-      "scanToPay": "Scan to Pay",
-      "bankingAccepted": "Banking app or e-wallet accepted",
-      "remainingBalance": "Remaining balance",
-      "confirmBooking": "Confirm Booking",
-      "secureBookingNote": "Secure booking - No hidden fees",
-      "secureBooking": "Secure Booking",
-      "dataProtected": "Your data is protected",
-      "sslEncrypted": "SSL encrypted connection",
-      "noPaymentUntilConfirmed": "No payment until confirmed",
-      "support247": "24/7 customer support",
-      "bankTransferPayment": "Bank Transfer",
-      "bankTransferPaymentDesc": "Transfer directly to our bank account",
-      "bankAccountInfo": "Bank Account Information",
-      "bankName": "Bank",
-      "accountNumber": "Account Number",
-      "accountHolder": "Account Holder",
-      "transferInstructions": "Transfer Instructions",
-      "transferNote": "Please include the transaction code in your transfer description for automatic verification.",
-      "includeTransactionCode": "Include this code in transfer description",
-      "awaitingPayment": "Awaiting Payment Confirmation",
-      "paymentReceived": "Payment Received",
-      "paymentCancelled": "Payment Cancelled",
-      "paymentCancelledDesc": "The payment was cancelled on the hosted payment page. You can return to checkout and create a new payment.",
-      "paymentExpired": "Giao dịch đã hết hạn",
-      "paymentExpiredDesc": "Phiên thanh toán đã hết hạn trước khi xác nhận. Quay lại checkout để tạo thanh toán mới.",
-      "paymentFailedDesc": "The payment could not be confirmed. Return to checkout and try again.",
-      "transactionCode": "Transaction Code",
-      "paymentPending": "Your payment is being verified. This usually takes a few minutes.",
-      "checkPaymentError": "Không thể kiểm tra giao dịch. Vui lòng thử lại.",
-      "paymentNotFoundYet": "Chưa nhận được thanh toán. Vui lòng kiểm tra lại sau.",
-      "copyAccountNumber": "Copy Account Number",
-      "copiedToClipboard": "Copied to clipboard!",
-      "scanQrOrTransfer": "Scan QR code or transfer manually",
-      "transferAmount": "Transfer Amount",
-      "paymentFailed": "Payment Failed",
-      "transactionError": "An error occurred. Please try again.",
-      "transactionCreated": "Transaction created successfully!",
-      "tax": "Tax",
-      "children": "Children",
-      "infants": "Infants",
-      "qrAfterConfirm": "QR code will appear after confirming booking",
-      "processing": "Processing...",
-      "agreeTermsLabel": "I have read and agree to the terms & conditions",
-      "bookingConfirmed": "Booking Confirmed!",
-      "publicInstanceMessage": "Your booking has been confirmed. Get ready for your adventure!",
-      "bookingPending": "Booking Request Submitted",
-      "privateInstanceMessage": "Your request is pending admin review. We'll notify you once approved.",
-      "viewMyBookings": "View My Bookings",
-      "customerInfo": "Contact Information",
-      "fullName": "Full Name",
-      "fullNamePlaceholder": "Enter your full name",
-      "phone": "Phone Number",
-      "phonePlaceholder": "Enter your phone number",
-      "email": "Email (Optional)",
-      "emailPlaceholder": "Enter your email address",
-      "day": "Day",
-      "days": "Days",
-      "instanceJoin": "Instance Join",
-      "tourBooking": "Tour Booking",
-      "public": "Public",
-      "private": "Private",
-      "copied": "Copied to clipboard!",
-      "paymentConfirmedDesc": "Thanh toan da duoc xac nhan. Ban se nhan email som.",
-      "iHaveTransferred": "Toi da chuyen khoan",
-      "iHaveTransferredTooltip": "Xac nhan ban da chuyen khoan thanh cong",
-      "verifyingPayment": "Dang xac minh thanh toan...",
-      "verifyingPaymentTooltip": "Dang kiem tra voi ngan hang..."
-    },
-    "payment": {
-      "refreshButton": "Kiem tra trang thai",
-      "retryAfterMessage": "Thu lai sau {{seconds}}s",
-      "breakdown": {
-        "subtotal": "Tong phu",
-        "tax": "Thue",
-        "total": "Tong cong"
-      }
-    },
-    "visa": {
-      "title": "Visa Applications",
-      "backToBooking": "Back to Booking Details",
-      "searchPlaceholder": "Search by name or passport number...",
-      "filter": "Filter",
-      "filterAll": "All",
-      "statusApproved": "Approved",
-      "statusPending": "Pending",
-      "statusUnderReview": "Under Review",
-      "statusRejected": "Rejected",
-      "participants": "Participants",
-      "refresh": "Refresh",
-      "typeAdult": "Adult",
-      "typeChild": "Child",
-      "noResults": "No participants found.",
-      "selectParticipant": "Select a participant to view details",
-      "processingInfo": "Visa Processing Information",
-      "infoItem1": "Standard processing time: 5-7 business days",
-      "infoItem2": "All participants must have valid passports (minimum 6 months validity)",
-      "infoItem3": "Visa approval is subject to immigration authority review",
-      "infoItem4": "Contact support if you need to update any information"
-    },
-    "bookings": {
-      "title": "My Bookings",
-      "subtitle": "Track and manage all your travel bookings in one place",
-      "backToHome": "Back to Home",
-      "searchPlaceholder": "Search by tour name or booking reference...",
-      "filter": "Filter",
-      "filterAll": "All",
-      "totalBookings": "Total Bookings",
-      "active": "Active",
-      "statusConfirmed": "Confirmed",
-      "statusCompleted": "Completed",
-      "statusPending": "Pending",
-      "statusPendingApproval": "Pending Approval",
-      "statusApproved": "Approved",
-      "statusCancelled": "Cancelled",
-      "statusRejected": "Rejected",
-      "tierStandard": "Standard",
-      "tierLuxury": "Luxury",
-      "tierPremium": "Premium",
-      "paymentPaid": "Paid",
-      "paymentPartial": "Partial",
-      "paymentUnpaid": "Unpaid",
-      "methodQRCode": "QR Code",
-      "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer",
-      "location": "Location",
-      "duration": "Duration",
-      "departure": "Departure",
-      "guests": "Guests",
-      "guest": "Guest",
-      "guestsLabel": "Guests",
-      "totalAmount": "Total Amount",
-      "remaining": "Remaining",
-      "payRemaining": "Pay Remaining",
-      "addParticipants": "Add Participants",
-      "visaStatus": "Visa Status",
-      "invoice": "Invoice",
-      "viewDetails": "View Details",
-      "noResults": "No bookings found."
-    },
-    "bookingDetail": {
-      "backToBookings": "Back to Bookings",
-      "bookingInformation": "Booking Information",
-      "bookingReference": "Booking Reference",
-      "bookingDate": "Booking Date",
-      "departureDate": "Departure Date",
-      "returnDate": "Return Date",
-      "classification": "Classification",
-      "paymentMethod": "Payment Method",
-      "guestDetails": "Guest Details",
-      "adults": "Adults",
-      "adultsAge": "Age 12+",
-      "children": "Children",
-      "childrenAge": "Age 2-11",
-      "totalGuests": "Total Guests",
-      "overview": "Overview",
-      "itinerary": "Itinerary",
-      "duration": "Duration",
-      "package": "Package",
-      "locationLabel": "Location",
-      "guestsLabel": "Guests",
-      "aboutThisTour": "About This Tour",
-      "tourHighlights": "Tour Highlights",
-      "itineraryComingSoon": "Itinerary details will be available soon.",
-      "importantInformation": "Important Information",
-      "paymentSummary": "Payment Summary",
-      "pricePerPerson": "Price per person",
-      "numberOfGuests": "Number of guests",
-      "totalAmount": "Total Amount",
-      "paidDeposit": "Paid (Deposit)",
-      "remainingBalance": "Remaining Balance",
-      "paymentStatus": "Payment Status",
-      "paymentPaid": "Fully Paid",
-      "paymentPartiallyPaid": "Partially Paid",
-      "paymentUnpaid": "Unpaid",
-      "methodQRCode": "QR Code / E-Wallet",
-      "methodCash": "Cash",
-      "methodBankTransfer": "Bank Transfer",
-      "payRemainingBalance": "Pay Remaining Balance",
-      "visaStatus": "Visa Status",
-      "cancelBooking": "Cancel Booking",
-      "needHelp": "Need Help?",
-      "needHelpDesc": "Our support team is available 24/7 to assist you",
-      "phone": "Phone",
-      "email": "Email",
-      "statusConfirmed": "Confirmed",
-      "statusCompleted": "Completed",
-      "statusPending": "Pending",
-      "statusPendingApproval": "Pending Approval",
-      "statusApproved": "Approved",
-      "statusCancelled": "Cancelled",
-      "statusRejected": "Rejected",
-      "tierStandard": "Standard",
-      "tierLuxury": "Luxury",
-      "tierPremium": "Premium"
-    },
-    "language": {
-      "title": "Language"
-    },
-    "userMenu": {
-      "profile": "My Profile",
-      "changePassword": "Change Password"
-    },
-    "a11y": {
-      "openMenu": "Open menu",
-      "closeMenu": "Close menu",
-      "changeLanguage": "Change language",
-      "closeNavigationMenu": "Close navigation menu",
-      "notificationsAria": "{{count}} unread notifications"
-    },
-    "latestTours": {
-      "title": "Tour Gan Day",
-      "seeAll": "Xem tat ca"
+      "subtitle": "Chúng tôi cung cấp những trải nghiệm du lịch tốt nhất."
     }
   },
   "booking": {
@@ -2996,31 +2348,6 @@
         "validationFailed": "Vui lòng điền đầy đủ các trường bắt buộc"
       },
       "form": {
-        "thumbnailUrl": "URL Ảnh đại diện",
-        "thumbnailUrlPlaceholder": "https://example.com/image.jpg"
-      },
-      "createdBanner": {
-        "title": "Tạo tour instance thành công!",
-        "dismiss": "Đóng"
-      },
-      "immutableField": "Không thể thay đổi sau khi tạo",
-      "immutableFields": {
-        "note": "Trường này bị khóa sau khi instance được tạo"
-      },
-      "concurrencyConflict": {
-        "title": "Thay Đổi Đồng Thời",
-        "message": "Lịch khởi hành này đã được sửa bởi người khác. Vui lòng tải lại và thử lại."
-      },
-      "itinerary": "Lịch Trình",
-      "days": "ngày",
-      "noItinerary": "Không có lịch trình cho lịch khởi hành này.",
-      "activities": "Hoạt Động",
-      "optional": "Tùy Chọn",
-      "dayUpdated": "Ngày đã được cập nhật thành công",
-      "dayUpdateError": "Không thể cập nhật ngày",
-      "activityUpdated": "Hoạt động đã được cập nhật thành công",
-      "activityUpdateError": "Không thể cập nhật hoạt động",
-      "form": {
         "thumbnailUrl": "Đường Dẫn Ảnh Đại Diện",
         "thumbnailUrlPlaceholder": "https://example.com/image.jpg",
         "imageUrls": "Đường Dẫn Hình Ảnh",
@@ -3046,7 +2373,28 @@
         "title": "Tiêu Đề",
         "imageUrl": "Đường Dẫn Ảnh",
         "currentParticipation": "Số người tham gia hiện tại"
-      }
+      },
+      "createdBanner": {
+        "title": "Tạo tour instance thành công!",
+        "dismiss": "Đóng"
+      },
+      "immutableField": "Không thể thay đổi sau khi tạo",
+      "immutableFields": {
+        "note": "Trường này bị khóa sau khi instance được tạo"
+      },
+      "concurrencyConflict": {
+        "title": "Thay Đổi Đồng Thời",
+        "message": "Lịch khởi hành này đã được sửa bởi người khác. Vui lòng tải lại và thử lại."
+      },
+      "itinerary": "Lịch Trình",
+      "days": "ngày",
+      "noItinerary": "Không có lịch trình cho lịch khởi hành này.",
+      "activities": "Hoạt Động",
+      "optional": "Tùy Chọn",
+      "dayUpdated": "Ngày đã được cập nhật thành công",
+      "dayUpdateError": "Không thể cập nhật ngày",
+      "activityUpdated": "Hoạt động đã được cập nhật thành công",
+      "activityUpdateError": "Không thể cập nhật hoạt động"
     },
     "wizard": {
       "step": "Bước",
@@ -3566,6 +2914,185 @@
         "effectiveDateRequired": "Ngày có hiệu lực là bắt buộc",
         "saveFailed": "Không thể lưu cấu hình thuế"
       }
+    }
+  },
+  "tourDesigner": {
+    "title": "Nhân Viên Thiết Kế Tour",
+    "myTours": "Tour Của Tôi",
+    "createTour": "Tạo Tour",
+    "editTour": "Sửa Tour",
+    "tourDetail": "Chi Tiết Tour",
+    "manageTours": "Quản lý thiết kế tour của bạn",
+    "tourCount": "tour(s)",
+    "searchPlaceholder": "Tìm kiếm tour...",
+    "settings": "Cài đặt",
+    "tabs": {
+      "1": "Đã duyệt",
+      "3": "Chờ duyệt",
+      "4": "Từ chối",
+      "all": "Tất cả"
+    },
+    "statusBadge": "Trạng thái",
+    "table": {
+      "tourName": "Tên Tour",
+      "status": "Trạng thái",
+      "createdDate": "Ngày tạo",
+      "actions": "Thao tác"
+    },
+    "tableAriaLabel": "Danh sách tour của tôi",
+    "pagination": "Trang {{page}} / {{total}}",
+    "prev": "Trước",
+    "next": "Sau",
+    "status": {
+      "pending": "Chờ duyệt",
+      "active": "Đã duyệt",
+      "rejected": "Từ chối",
+      "pendingReview": "Chờ duyệt"
+    },
+    "actions": {
+      "submitForReview": "Gửi duyệt",
+      "edit": "Sửa",
+      "view": "Xem",
+      "create": "Tạo Tour",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận",
+      "retry": "Thử lại",
+      "viewAria": "Xem tour {{name}}",
+      "editAria": "Sửa tour {{name}}"
+    },
+    "messages": {
+      "created": "Tạo tour thành công",
+      "updated": "Cập nhật tour thành công",
+      "submitted": "Tour đã được gửi duyệt",
+      "cannotEdit": "Tour không thể sửa sau khi gửi duyệt",
+      "rejectionReason": "Lý do từ chối",
+      "confirmSubmit": "Bạn có chắc muốn gửi tour này để duyệt không?",
+      "submitConfirmTitle": "Gửi Tour",
+      "errorLoading": "Tải danh sách tour thất bại",
+      "errorSubmit": "Gửi duyệt thất bại"
+    },
+    "empty": {
+      "title": "Chưa có tour nào",
+      "description": "Tạo tour đầu tiên của bạn"
+    },
+    "detail": {
+      "pending": "Đang chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "rejectionReason": "Lý do từ chối",
+      "contactManager": "Liên hệ Manager để biết thêm chi tiết.",
+      "submitTour": "Gửi Tour",
+      "submitConfirm": "Bạn có chắc muốn gửi tour này để duyệt không?",
+      "submitWarning": "Sau khi gửi, bạn không thể chỉnh sửa tour.",
+      "cancel": "Hủy",
+      "submit": "Gửi duyệt"
+    },
+    "breadcrumb": {
+      "myTours": "Tour Của Tôi",
+      "createTour": "Tạo Tour",
+      "editTour": "Sửa Tour"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Trang Chủ",
+      "aboutUs": "Về Chúng Tôi",
+      "tourPackages": "Gói Tour",
+      "ourPolicies": "Chính Sách"
+    },
+    "hero": {
+      "eyebrow": "Nền Tảng Du Lịch Hàng Đầu Việt Nam",
+      "title": "Khám Phá Điều Phi Thường",
+      "subtitle": "Trải nghiệm được tuyển chọn. Hành trình khó quên. Người bạn đồng hành lý tưởng của bạn.",
+      "searchPlaceholder": "Bạn muốn đi đâu?",
+      "exploreTours": "Khám Phá Tour"
+    },
+    "stats": {
+      "items": {
+        "totalTours": "Tour",
+        "totalTravellers": "Du Khách",
+        "totalDistanceKm": "Quãng Đường",
+        "support": "Hỗ Trợ"
+      },
+      "unavailable": "Thống kê tạm thời không khả dụng"
+    },
+    "destinations": {
+      "eyebrow": "Khám Phá",
+      "title": "Điểm Đến Thịnh Hành",
+      "viewAll": "Xem tất cả điểm đến",
+      "tours": "tour",
+      "loadError": "Không thể tải danh sách điểm đến",
+      "retry": "Thử lại",
+      "empty": "Hiện chưa có điểm đến nào."
+    },
+    "featured": {
+      "eyebrow": "Được Chọn Lọc",
+      "title": "Hành Trình Nổi Bật",
+      "loadError": "Không thể tải tour nổi bật",
+      "retry": "Thử lại",
+      "empty": "Hiện chưa có tour nổi bật nào."
+    },
+    "latest": {
+      "eyebrow": "Mới Nhất",
+      "title": "Tour Mới Nhất",
+      "viewAll": "Xem tất cả",
+      "viewDetails": "Xem chi tiết",
+      "loadError": "Không thể tải tour mới nhất",
+      "retry": "Thử lại",
+      "empty": "Chưa có tour mới nào."
+    },
+    "whyChoose": {
+      "eyebrow": "Tại Sao Chọn Pathora",
+      "title": "Tại Sao Chọn Chúng Tôi",
+      "items": {
+        "price": {
+          "title": "Cam Kết Giá Tốt Nhất",
+          "desc": "Chúng tôi đảm bảo mức giá cạnh tranh cho mọi gói tour mà không ảnh hưởng đến chất lượng."
+        },
+        "guides": {
+          "title": "Hướng Dẫn Viên Chuyên Nghiệp",
+          "desc": "Đội ngũ hướng dẫn viên được chứng nhận với kiến thức địa phương sâu rộng và niềm đam mê."
+        },
+        "support": {
+          "title": "Hỗ Trợ 24/7",
+          "desc": "Hỗ trợ xuyên suốt từ đội ngũ tận tâm dù bạn đi bất cứ đâu."
+        },
+        "flexible": {
+          "title": "Đặt Tour Linh Hoạt",
+          "desc": "Miễn phí hủy tour và dễ dàng đổi lịch cho trải nghiệm du lịch không lo lắng."
+        }
+      }
+    },
+    "cta": {
+      "title": "Sẵn Sàng Cho Cuộc Phiêu Lưu Tiếp Theo?",
+      "subtitle": "Tham gia cùng hàng nghìn du khách khám phá những viên ngọc ẩn giấu của Việt Nam cùng Pathora.",
+      "ctaButton": "Khám Phá Tour",
+      "secondaryButton": "Tìm Hiểu Thêm"
+    },
+    "reviews": {
+      "eyebrow": "Nhận Xét",
+      "title": "Du Khách Nói Gì",
+      "rating": "Đánh Giá",
+      "loadError": "Không thể tải nhận xét",
+      "retry": "Thử lại",
+      "empty": "Chưa có nhận xét nào."
+    },
+    "footer": {
+      "about": "Giới Thiệu",
+      "tours": "Tour Du Lịch",
+      "blog": "Blog",
+      "careers": "Tuyển Dụng",
+      "help": "Trung Tâm Hỗ Trợ",
+      "contact": "Liên Hệ",
+      "faq": "Câu Hỏi Thường Gặp",
+      "policies": "Chính Sách",
+      "destinations": "Điểm Đến",
+      "tagline": "Nền tảng du lịch hàng đầu Việt Nam. Khám phá những điểm đến ẩn giấu, tour được tuyển chọn và những cuộc phiêu lưu đáng nhớ.",
+      "newsletter": "Cập Nhật Tin Mới",
+      "newsletterDesc": "Nhận ưu đãi du lịch và tin tức mới nhất.",
+      "copyright": "Bảo lưu mọi quyền.",
+      "privacy": "Bảo Mật",
+      "terms": "Điều Khoản"
     }
   }
 }

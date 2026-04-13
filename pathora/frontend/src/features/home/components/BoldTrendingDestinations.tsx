@@ -15,8 +15,7 @@ type DestinationCard = {
   tours: number;
 };
 
-const fallbackImage =
-  "https://images.unsplash.com/photo-1509030969356-4dd11f51c5e8?w=600&q=80";
+const fallbackImage = "";
 
 const mapTrendingToDestinations = (data: TrendingDestination[]): DestinationCard[] =>
   data.map((dest) => ({
@@ -128,7 +127,7 @@ export const BoldTrendingDestinations = () => {
                   image={dest.image}
                   title={dest.name}
                   subtitle={dest.country}
-                  badge={`${dest.tours} ${t("landing.destinations.tours") || "tour"}`}
+                  badge={`${dest.tours} ${dest.tours === 1 ? "tour" : t("landing.destinations.tours") || "tours"}`}
                   href="/tours"
                 />
               </div>

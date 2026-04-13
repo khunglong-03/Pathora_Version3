@@ -29,11 +29,11 @@ type AuthModalProps = {
 };
 
 const PRIMARY_ACTION_CLASS =
-  "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-landing-accent px-5 py-3 text-sm sm:text-base font-semibold text-white shadow-sm transition-colors hover:bg-landing-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/50 disabled:cursor-not-allowed disabled:opacity-70";
+  "inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white shadow-[0_4px_14px_0_rgb(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all hover:-translate-y-[1px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-black dark:shadow-[0_4px_14px_0_rgb(255,255,255,0.1)] hover:dark:shadow-[0_6px_20px_rgba(255,255,255,0.15)] focus-visible:dark:ring-white/50 active:scale-[0.98]";
 const OUTLINE_ACTION_CLASS =
-  "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm sm:text-base font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800";
+  "inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/50 px-5 py-3 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all hover:bg-slate-50 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 hover:dark:bg-white/10 active:scale-[0.98]";
 const LINK_ACTION_CLASS =
-  "font-semibold text-landing-accent transition-colors hover:text-landing-accent-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/40 rounded";
+  "font-medium text-slate-900 transition-all hover:text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 rounded dark:text-white dark:hover:text-slate-300";
 
 /* ── Shared modal shell ────────────────────────────────────── */
 const ModalShell = ({
@@ -49,16 +49,16 @@ const ModalShell = ({
   closeLabel: string;
   dialogRef?: React.RefObject<HTMLDivElement | null>;
 }) => (
-  <div className="fixed inset-0 z-200 flex items-center justify-center p-4 sm:p-6">
+  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 perspective-[1000px]">
     <button
       type="button"
-      className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]"
+      className="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px] transition-opacity"
       onClick={onClose}
       aria-label={closeLabel}
     />
     <div
       ref={dialogRef}
-      className="relative w-full max-w-[32.5rem] max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 px-5 py-6 shadow-2xl backdrop-blur-xl sm:px-8 sm:py-7 dark:border-slate-700 dark:bg-slate-900/95"
+      className="relative w-full max-w-[32.5rem] max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white/80 px-8 py-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-slate-900/5 backdrop-blur-2xl sm:px-12 sm:py-12 dark:bg-slate-950/70 dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] dark:ring-white/10"
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}>
@@ -90,7 +90,7 @@ const InputField = ({
   <div className="flex flex-col gap-2">
     <label
       htmlFor={id ?? name}
-      className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
       {label}
     </label>
     <div className="relative">
@@ -101,7 +101,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`!rounded-xl !border-slate-300 !bg-white !px-4 !py-3 !text-sm !text-slate-900 placeholder:!text-slate-400 focus:!border-landing-accent focus-visible:!ring-landing-accent/30 dark:!border-slate-700 dark:!bg-slate-950/70 dark:!text-slate-100 dark:placeholder:!text-slate-500 ${trailing ? "!pr-12" : ""}`}
+        className={`!rounded-xl !border-0 !bg-slate-100/50 !px-4 !py-3.5 !text-sm !text-slate-900 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)] transition-all placeholder:!text-slate-400 focus:!bg-white focus:!shadow-[inset_0_0_0_2px_rgba(0,0,0,0.8)] focus-visible:!ring-0 dark:!bg-slate-800/50 dark:!text-slate-100 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] focus:dark:!bg-slate-900 focus:dark:!shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)] dark:placeholder:!text-slate-500 ${trailing ? "!pr-12" : ""}`}
       />
       {trailing}
     </div>
@@ -169,7 +169,7 @@ const SignUpView = ({
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
           {t("landing.auth.createAccount")}
         </h2>
         <button
@@ -371,7 +371,7 @@ const LoginView = ({
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
           {t("landing.auth.login")}
         </h2>
         <button
@@ -539,7 +539,7 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
         <Icon icon="heroicons-outline:key" className="h-6 w-6 text-landing-accent" />
       </div>
 
-      <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">
+      <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
         {t("landing.auth.forgotPassword")}
       </h2>
       <p className="-mt-2 text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">

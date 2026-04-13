@@ -2,28 +2,29 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
+import { Trophy, Compass, ChatCircle, ArrowsClockwise } from "@phosphor-icons/react";
 
 const features = [
   {
-    icon: "🏆",
+    Icon: Trophy,
     titleKey: "landing.whyChoose.items.price.title",
     descKey: "landing.whyChoose.items.price.desc",
     color: "#fb8b02",
   },
   {
-    icon: "🧭",
+    Icon: Compass,
     titleKey: "landing.whyChoose.items.guides.title",
     descKey: "landing.whyChoose.items.guides.desc",
     color: "#3b82f6",
   },
   {
-    icon: "💬",
+    Icon: ChatCircle,
     titleKey: "landing.whyChoose.items.support.title",
     descKey: "landing.whyChoose.items.support.desc",
-    color: "#ec4899",
+    color: "#10b981",
   },
   {
-    icon: "🔄",
+    Icon: ArrowsClockwise,
     titleKey: "landing.whyChoose.items.flexible.title",
     descKey: "landing.whyChoose.items.flexible.desc",
     color: "#fb8b02",
@@ -44,20 +45,20 @@ export const BoldWhyChooseUs = () => {
           }`}
         >
           <span className="text-sm font-medium text-white/40 uppercase tracking-widest">
-            {t("landing.whyChoose.eyebrow") || "Why Pathora"}
+            {t("landing.whyChoose.eyebrow")}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-white"
+            className="mt-3 text-4xl md:text-5xl font-bold text-white tracking-tight"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
           >
-            {t("landing.whyChoose.title") || "Why Choose Us"}
+            {t("landing.whyChoose.title")}
           </h2>
         </div>
 
         {/* 4-Column Grid */}
         <div
           ref={ref}
-          className={`grid grid-cols-2 md:grid-cols-4 gap-6 transition-all duration-1000 ${
+          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 transition-all duration-1000 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
@@ -65,12 +66,15 @@ export const BoldWhyChooseUs = () => {
             <div
               key={idx}
               className="p-6 rounded-2xl bg-[#111827]/50 border border-white/5 hover:border-white/10 hover:bg-[#111827]/80 transition-all duration-300 group text-center"
+              style={{
+                transitionDelay: isVisible ? `${idx * 100}ms` : "0ms",
+              }}
             >
               <div
-                className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
                 style={{ background: `${feature.color}15`, border: `1px solid ${feature.color}30` }}
               >
-                {feature.icon}
+                <feature.Icon size={26} weight="duotone" color={feature.color} />
               </div>
               <h3 className="text-white font-semibold text-sm mb-2">
                 {t(feature.titleKey)}

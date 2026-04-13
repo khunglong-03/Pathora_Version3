@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace Api.Boostraping;
+namespace Api.Bosttraping;
 
 public static class RegisterMiddleware
 {
