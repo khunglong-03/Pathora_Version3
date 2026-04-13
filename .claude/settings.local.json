@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git checkout:*)",
       "mcp__gitnexus__list_repos",
-      "Bash(awk 'BEGIN {skip=0} /<!-- gitnexus:start -->/ {skip=1; next} /<!-- gitnexus:end -->/ {skip=0; next} !skip' AGENTS.md)"
+      "Bash(awk 'BEGIN {skip=0} /<!-- gitnexus:start -->/ {skip=1; next} /<!-- gitnexus:end -->/ {skip=0; next} !skip' AGENTS.md)",
+      "Bash(pip --version)"
     ]
   }
 }

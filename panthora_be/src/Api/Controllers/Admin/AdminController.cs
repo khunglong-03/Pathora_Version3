@@ -134,16 +134,7 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    // Group 5: Manager Dashboard (scoped to current manager's tours)
-    [HttpGet(AdminEndpoint.ManagerDashboard)]
-    public async Task<IActionResult> GetManagerDashboard()
-    {
-        var managerId = Guid.Parse(CurrentUserId);
-        var result = await Sender.Send(new Application.Features.Manager.Queries.GetManagerDashboardQuery(managerId));
-        return HandleResult(result);
-    }
-
-    // Group 6: Admin Dashboard
+    // Group 5: Admin Dashboard
     [HttpGet(AdminEndpoint.AdminDashboardOverview)]
     public async Task<IActionResult> GetAdminDashboardOverview()
     {

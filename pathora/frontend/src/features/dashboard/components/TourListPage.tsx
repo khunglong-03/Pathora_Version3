@@ -11,7 +11,7 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { tourService } from "@/api/services/tourService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
-import { TourVm, TourDto, TourStatus, TourStatusMap } from "@/types/tour";
+import { TourVm, TourDto, TourStatus } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
 import TourForm from "./tour/TourForm";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
@@ -50,17 +50,6 @@ export function TourListPage() {
   const searchParams = useSearchParams();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(() =>
-    searchParams.get("create") === "true"
-  );
-
-  const closeCreateForm = () => {
-    setShowCreateForm(false);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("create");
-    const newUrl = params.toString() ? `/tour-management?${params}` : "/tour-management";
-    router.push(newUrl, { scroll: false });
-  };
   const [tours, setTours] = useState<TourVm[]>([]);
   const [dataState, setDataState] = useState<TourListDataState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -179,9 +168,9 @@ export function TourListPage() {
   /* ── Derived stat counts ──────────────────────────────────── */
   const statCounts = {
     total: totalItems,
-    active: filteredTours.filter((tour) => TourStatusMap[tour.status]?.toLowerCase() === "active").length,
-    inactive: filteredTours.filter((tour) => TourStatusMap[tour.status]?.toLowerCase() === "inactive").length,
-    rejected: filteredTours.filter((tour) => TourStatusMap[tour.status]?.toLowerCase() === "rejected").length,
+    active: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "active").length,
+    inactive: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "inactive").length,
+    rejected: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "rejected").length,
   };
 
   /* ── Pagination ───────────────────────────────────────────── */
@@ -208,12 +197,6 @@ export function TourListPage() {
               {safeT("tourList.pageSubtitle", "Manage your tour packages and itineraries")}
             </p>
           </div>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 shrink-0">
-            <Icon icon="heroicons:plus" className="size-4" />
-            {safeT("tourList.addNewTour", "Add New Tour")}
-          </button>
         </motion.div>
 
         {/* ── Stat Cards (asymmetric: 3+1) ─────────────────── */}
@@ -453,7 +436,7 @@ export function TourListPage() {
                               defaultText;
                             return (
                               <select
-                                value={TourStatusMap[tour.status] ?? "Unknown"}
+                                value={tour.status ?? "Unknown"}
                                 disabled={updatingStatusId === tour.id}
                                 onChange={async (e) => {
                                   const newStatus = e.target.value;
@@ -669,39 +652,7 @@ export function TourListPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Create Tour Modal ─────────────────────────────── */}
-      <AnimatePresence>
-        {showCreateForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) closeCreateForm();
-            }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="w-full max-w-4xl mx-4 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
-              <TourForm
-                mode="create"
-                onSubmit={async (formData) => {
-                  toast.loading("Creating tour...", { toastId: "creating-tour" });
-                  await tourService.createTour(formData);
-                  toast.dismiss("creating-tour");
-                  toast.success("Tour created successfully!");
-                  closeCreateForm();
-                  setReloadToken((v) => v + 1);
-                }}
-                onCancel={closeCreateForm}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* ── Delete Confirmation Dialog ────────────────────────── */}
       <ConfirmationDialog

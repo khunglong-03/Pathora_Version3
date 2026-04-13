@@ -48,6 +48,8 @@ import type {
 } from "./policy";
 import type { UserEndpoints } from "./user";
 import { USER } from "./user";
+import type { ManagerEndpoints } from "./manager";
+import { MANAGER } from "./manager";
 import type { RoleEndpoints } from "./role";
 import type { AdminHotelEndpoints } from "./adminHotel";
 import { ADMIN_HOTEL } from "./adminHotel";
@@ -96,6 +98,7 @@ export type {
   TourManagerAssignmentEndpoints,
 } from "./admin";
 
+export type { ManagerEndpoints } from "./manager";
 export type { RoleEndpoints } from "./role";
 export type { AdminHotelEndpoints } from "./adminHotel";
 
@@ -173,6 +176,7 @@ export {
 export { USER } from "./user";
 export { ROLE } from "./role";
 export { ADMIN_HOTEL } from "./adminHotel";
+export { MANAGER } from "./manager";
 
 // Composite interface
 export interface ApiEndpoints {
@@ -203,6 +207,7 @@ export interface ApiEndpoints {
   ROLE: RoleEndpoints;
   HOTEL: AdminHotelEndpoints;
   TOUR_MANAGER_ASSIGNMENT: TourManagerAssignmentEndpoints;
+  MANAGER: ManagerEndpoints;
 }
 
 // Main endpoint object
@@ -234,6 +239,7 @@ export const API_ENDPOINTS: ApiEndpoints = {
   ROLE,
   HOTEL: ADMIN_HOTEL,
   TOUR_MANAGER_ASSIGNMENT,
+  MANAGER,
 };
 
 // Backwards-compatible default export

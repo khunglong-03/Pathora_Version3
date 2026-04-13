@@ -1,6 +1,8 @@
 import { api } from "@/api/axiosInstance";
 import { extractResult } from "@/utils/apiResponse";
 import type { ApiResponse } from "@/types/home";
+import type { ManagerDashboardReport } from "@/types/manager";
+import { API_ENDPOINTS } from "@/api/endpoints";
 
 export interface ManagerBankAccountDto {
   userId: string;
@@ -58,6 +60,14 @@ export interface VietQRBank {
 }
 
 export const managerService = {
+  // ── Dashboard ──
+  getDashboard: async (): Promise<ManagerDashboardReport | null> => {
+    const response = await api.get<ApiResponse<ManagerDashboardReport>>(
+      API_ENDPOINTS.MANAGER.GET_DASHBOARD,
+    );
+    return extractResult<ManagerDashboardReport>(response.data);
+  },
+
   // ── Legacy single bank account ──
   getMyBankAccount: async (): Promise<ManagerBankAccountDto | null> => {
     const response = await api.get<ApiResponse<ManagerBankAccountDto>>(

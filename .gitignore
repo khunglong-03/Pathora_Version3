@@ -1,4 +1,4 @@
-# Claude Opus settings (local config)
+﻿# Claude Opus settings (local config)
 .claude/settings.local.json
 .gstack/
 
@@ -126,3 +126,10 @@ docker-compose.override.yml
 ndepend.out
 ndepend.xml
 .gitnexus
+
+
+# Local workspace clutter
+/obj/
+/bin/
+/.voice-tools/
+/manager_dashboard_redesign_plan.md

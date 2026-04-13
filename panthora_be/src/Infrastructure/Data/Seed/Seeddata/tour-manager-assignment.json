@@ -1,0 +1,28 @@
+[
+  {
+    "Id": "019527a0-0000-7000-8000-000000000201",
+    "TourManagerId": "019527a0-0000-7000-8000-000000000101",
+    "AssignedEntityType": 1,
+    "AssignedUserId": "019527a0-0000-7000-8000-000000000122",
+    "AssignedTourId": null,
+    "AssignedRoleInTeam": null,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z",
+    "IsDeleted": false
+  },
+  {
+    "Id": "019527a0-0000-7000-8000-000000000202",
+    "TourManagerId": "019527a0-0000-7000-8000-000000000101",
+    "AssignedEntityType": 1,
+    "AssignedUserId": "019527a0-0000-7000-8000-000000000123",
+    "AssignedTourId": null,
+    "AssignedRoleInTeam": null,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z",
+    "IsDeleted": false
+  }
+]

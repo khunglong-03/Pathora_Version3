@@ -87,6 +87,7 @@ public static class AppDbContextSeed
         seeded |= SeedTable(context, "tour-plan-location.json", context.TourPlanLocations);
         seeded |= SeedTable(context, "tour-plan-accommodation.json", context.TourPlanAccommodations);
         seeded |= SeedTable(context, "tour-plan-route.json", context.TourPlanRoutes);
+        seeded |= SeedTable(context, "tour-manager-assignment.json", context.TourManagerAssignments);
         return seeded;
     }
 

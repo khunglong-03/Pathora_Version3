@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { AdminDashboardPage } from "@/features/dashboard/components/AdminDashboardPage";
+import { ManagerDashboardPage } from "@/features/dashboard/components/ManagerDashboardPage";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard | Pathora",
-  description: "Pathora Admin Dashboard - Manage tours, bookings, customers, and more.",
+  title: "Manager Dashboard | Pathora",
+  description: "Pathora Manager Dashboard - Overview of tours, bookings, staff and more.",
   robots: {
     index: false,
     follow: false,
   },
   alternates: {
-    canonical: "/dashboard",
+    canonical: "/manager/dashboard",
   },
 };
 
 export default function DashboardPage() {
-  return <AdminDashboardPage />;
+  return <ManagerDashboardPage />;
 }
