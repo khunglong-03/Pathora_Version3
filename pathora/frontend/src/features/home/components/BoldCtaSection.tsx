@@ -35,6 +35,7 @@ export const BoldCtaSection = () => {
 
       <div className="relative max-w-3xl mx-auto px-4 md:px-8 text-center">
         <h2
+          suppressHydrationWarning
           className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
           style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
         >

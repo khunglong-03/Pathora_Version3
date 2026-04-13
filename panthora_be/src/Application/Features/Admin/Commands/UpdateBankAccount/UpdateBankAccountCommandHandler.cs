@@ -4,11 +4,11 @@ using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
-using Domain.Entities;
 using Domain.UnitOfWork;
 using ErrorOr;
 
 public sealed class UpdateBankAccountCommandHandler(
+    IManagerBankAccountRepository bankAccountRepository,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<UpdateBankAccountCommand, ErrorOr<UserBankAccountDto>>
@@ -17,29 +17,35 @@ public sealed class UpdateBankAccountCommandHandler(
         UpdateBankAccountCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.FindById(request.ManagerId, cancellationToken);
-        if (user is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+        // Get the default bank account for this manager
+        var account = await bankAccountRepository.GetDefaultByUserIdAsync(request.ManagerId, cancellationToken);
+        account ??= (await bankAccountRepository.GetByUserIdAsync(request.ManagerId, cancellationToken)).FirstOrDefault();
 
-        user.BankAccountNumber = request.Request.BankAccountNumber;
-        user.BankCode = request.Request.BankCode;
-        user.BankAccountName = request.Request.BankAccountName;
-        user.LastModifiedBy = "admin";
-        user.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        if (account is null)
+        {
+            return Error.NotFound(ErrorConstants.Payment.NoBankAccountCode, ErrorConstants.Payment.NoBankAccountDescription);
+        }
 
-        userRepository.Update(user);
+        account.BankAccountNumber = request.Request.BankAccountNumber;
+        account.BankCode = request.Request.BankCode;
+        account.BankAccountName = request.Request.BankAccountName;
+        account.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
+        // Load user info for the DTO
+        var user = await userRepository.FindById(request.ManagerId, cancellationToken);
+
         return new UserBankAccountDto(
-            UserId: user.Id,
-            Username: user.Username,
-            FullName: user.FullName,
-            Email: user.Email,
-            BankAccountNumber: user.BankAccountNumber,
-            BankCode: user.BankCode,
-            BankAccountName: user.BankAccountName,
-            BankAccountVerified: user.BankAccountVerified,
-            BankAccountVerifiedAt: user.BankAccountVerifiedAt
+            UserId: account.UserId,
+            Username: user?.Username ?? string.Empty,
+            FullName: user?.FullName,
+            Email: user?.Email ?? string.Empty,
+            BankAccountNumber: account.BankAccountNumber,
+            BankCode: account.BankCode,
+            BankAccountName: account.BankAccountName,
+            BankAccountVerified: account.IsVerified,
+            BankAccountVerifiedAt: account.VerifiedAt
         );
     }
 }

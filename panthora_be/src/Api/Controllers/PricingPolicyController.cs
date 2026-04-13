@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(PricingPolicyEndpoint.Base)]
 public class PricingPolicyController : BaseApiController
 {
@@ -25,6 +25,7 @@ public class PricingPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePricingPolicyCommand command)
     {
@@ -32,6 +33,7 @@ public class PricingPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdatePricingPolicyCommand command)
     {
@@ -39,6 +41,7 @@ public class PricingPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(PricingPolicyEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -46,6 +49,7 @@ public class PricingPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut(PricingPolicyEndpoint.SetDefault)]
     public async Task<IActionResult> SetAsDefault(Guid id)
     {

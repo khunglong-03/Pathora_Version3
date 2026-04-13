@@ -9,8 +9,8 @@ public interface ITourRepository
     Task<bool> ExistsByTourCode(string tourCode, Guid? excludeId = null, CancellationToken cancellationToken = default);
     Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default);
     Task<int> CountAll(string? searchText, Guid? principalId = null, CancellationToken cancellationToken = default);
-    Task<List<TourEntity>> FindAllAdmin(string? searchText, Domain.Enums.TourStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountAllAdmin(string? searchText, Domain.Enums.TourStatus? status, CancellationToken cancellationToken = default);
+    Task<List<TourEntity>> FindAllAdmin(string? searchText, Domain.Enums.TourStatus? status, int pageNumber, int pageSize, Guid? managerId = null, CancellationToken cancellationToken = default);
+    Task<int> CountAllAdmin(string? searchText, Domain.Enums.TourStatus? status, Guid? managerId = null, CancellationToken cancellationToken = default);
     Task Create(TourEntity tour, CancellationToken cancellationToken = default);
     Task Update(TourEntity tour, CancellationToken cancellationToken = default);
     Task<int> UpdateStatus(Guid id, TourStatus status, string userId, CancellationToken cancellationToken = default);

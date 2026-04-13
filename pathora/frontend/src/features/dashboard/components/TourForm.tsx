@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import Icon from "@/components/ui/Icon";
@@ -428,6 +429,11 @@ const emptyService = (): ServiceForm => ({
    ══════════════════════════════════════════════════════════════ */
 export default function TourForm({ mode, initialData, existingImages: initialExistingImages, onSubmit, onCancel, showPolicySections = true }: TourFormProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isManagerOrAdmin = (() => {
+    const roles: string[] = (user as unknown as { roles?: string[] })?.roles ?? [];
+    return roles.some((r) => r === "Manager" || r === "Admin");
+  })();
 
   const isEditMode = mode === "edit";
 
@@ -1871,25 +1877,34 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   {t("tourAdmin.status.label", "Status")}
                 </label>
                 <div className="flex items-center gap-3">
-                  <select
-                    value={basicInfo.status}
-                    onChange={(e) =>
-                      setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
-                    }
-                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                  >
-                    <option value="1">{TourStatusMap[1]}</option>
-                    <option value="2">{TourStatusMap[2]}</option>
-                    <option value="3">{TourStatusMap[3]}</option>
-                    <option value="4">{TourStatusMap[4]}</option>
-                  </select>
-                  {isEditMode && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {t("tourAdmin.status.currently", "Currently:")}{" "}
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
-                      </span>
-                    </span>
+                  {!isManagerOrAdmin ? (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      {!isEditMode ? "Pending (Wait for Review)" : (TourStatusMap[Number(basicInfo.status)] ?? "Pending")}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        value={basicInfo.status}
+                        onChange={(e) =>
+                          setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
+                        }
+                        className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      >
+                        <option value="1">{TourStatusMap[1]}</option>
+                        <option value="2">{TourStatusMap[2]}</option>
+                        <option value="3">{TourStatusMap[3]}</option>
+                        <option value="4">{TourStatusMap[4]}</option>
+                      </select>
+                      {isEditMode && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                          {t("tourAdmin.status.currently", "Currently:")}{" "}
+                          <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
+                          </span>
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

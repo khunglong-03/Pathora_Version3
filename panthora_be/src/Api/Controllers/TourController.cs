@@ -1,5 +1,5 @@
 using System.Text.Json;
-
+using ErrorOr;
 using Api.Endpoint;
 using Application.Common.Constant;
 using Application.Common.Interfaces;
@@ -24,7 +24,8 @@ public class TourController(
     IFileService fileService,
     IFileManager fileManager,
     ITourRepository tourRepository,
-    ITourService tourService) : BaseApiController
+    ITourService tourService,
+    IAuthorizationService authorizationService) : BaseApiController
 {
     private static readonly HashSet<string> AllowedImageMimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -314,7 +315,17 @@ public class TourController(
             parsedDeletedClassificationIds, parsedDeletedActivityIds,
             tourScope, continent, customerSegment);
 
-        var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
+        var isManager = false;
+        if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+        {
+            var tour = await tourRepository.FindById(id, asNoTracking: true);
+            if (tour != null)
+            {
+                var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
+                isManager = authResult.Succeeded;
+            }
+        }
+
         var result = await tourService.Update(command, isManager);
         return HandleResult(result);
     }
@@ -330,6 +341,14 @@ public class TourController(
     [HttpPut(TourEndpoint.Status)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTourStatusRequestDto dto)
     {
+        var tour = await tourRepository.FindById(id, asNoTracking: true);
+        if (tour == null)
+            return HandleResult<Success>(Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription));
+
+        var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
+        if (!authResult.Succeeded)
+            return Forbid();
+
         var result = await Sender.Send(new UpdateTourStatusCommand(id, dto.Status));
         return HandleResult(result);
     }
@@ -338,6 +357,14 @@ public class TourController(
     [Authorize(Policy = "ManagerOnly")]
     public async Task<IActionResult> Review(Guid id, [FromBody] ReviewTourRequest request)
     {
+        var tour = await tourRepository.FindById(id, asNoTracking: true);
+        if (tour == null)
+            return HandleResult<TourDto>(Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription));
+
+        var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
+        if (!authResult.Succeeded)
+            return Forbid();
+
         var result = await tourService.ReviewTour(id, request.Action, request.Reason);
         return HandleResult(result);
     }

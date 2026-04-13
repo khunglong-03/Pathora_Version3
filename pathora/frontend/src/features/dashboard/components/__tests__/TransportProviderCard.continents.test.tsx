@@ -15,7 +15,7 @@ const mockProviderWithContinents = {
 };
 
 const mockProviderWithoutContinents = {
-  ...mockProviderWithContines，
+  ...mockProviderWithContinents,
   continents: [],
 };
 

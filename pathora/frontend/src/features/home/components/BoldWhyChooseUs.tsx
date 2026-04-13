@@ -44,7 +44,7 @@ export const BoldWhyChooseUs = () => {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <span className="text-sm font-medium text-white/40 uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-white/40 uppercase tracking-widest">
             {t("landing.whyChoose.eyebrow")}
           </span>
           <h2

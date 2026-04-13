@@ -50,7 +50,7 @@ export const BoldFooter = () => {
                 Pathora
               </span>
             </Link>
-            <p className="text-white/40 text-sm leading-relaxed mb-6">
+            <p suppressHydrationWarning className="text-white/40 text-sm leading-relaxed mb-6">
               {t("landing.footer.tagline") || "Vietnam's premier travel platform. Discover hidden gems, curated tours, and unforgettable adventures."}
             </p>
             {/* Social */}

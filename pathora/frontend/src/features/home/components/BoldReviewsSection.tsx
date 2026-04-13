@@ -92,7 +92,7 @@ export const BoldReviewsSection = () => {
       <div className="max-w-4xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="text-sm font-medium text-white/40 uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-white/40 uppercase tracking-widest">
             {t("landing.reviews.eyebrow") || "Testimonials"}
           </span>
           <h2
@@ -161,13 +161,19 @@ export const BoldReviewsSection = () => {
 
                     {/* Author */}
                     <div className="flex items-center gap-4">
-                      <Image
-                        src={review.avatar}
-                        alt={review.name}
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-white/10"
-                      />
+                      {review.avatar ? (
+                        <Image
+                          src={review.avatar}
+                          alt={review.name}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-white/10"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full border-2 border-white/10 bg-[#fb8b02]/20 flex items-center justify-center text-[#fb8b02] font-bold text-lg leading-none">
+                          {review.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <p className="font-semibold text-white">{review.name}</p>
                         <p className="text-white/40 text-sm flex items-center gap-1"><MapPin size={14} weight="fill" className="text-[#fb8b02]/60" /> {review.location}</p>

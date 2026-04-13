@@ -212,47 +212,48 @@ internal sealed class TourPurgeExecutor : ITourPurgeExecutor
     {
         var objectNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Tour thumbnail
-        var tourThumbnail = await _context.Tours
+        // 1. Batch load Tour media
+        var tourData = await _context.Tours
             .Where(t => t.Id == tourId)
-            .Select(t => t.Thumbnail.FileId)
+            .Select(t => new
+            {
+                ThumbnailId = t.Thumbnail.FileId,
+                ImageIds = t.Images.Select(img => img.FileId).ToList()
+            })
             .FirstOrDefaultAsync(cancellationToken);
-        if (!string.IsNullOrEmpty(tourThumbnail))
-            objectNames.Add(tourThumbnail);
 
-        // Tour images
-        var tourImages = await _context.Entry(new TourEntity { Id = tourId })
-            .Collection(t => t.Images)
-            .Query()
-            .Select(i => i.FileId)
-            .Where(f => !string.IsNullOrEmpty(f))
-            .ToListAsync(cancellationToken);
-        foreach (var img in tourImages)
-            objectNames.Add(img!);
-
-        // TourInstance thumbnails and images
-        var instanceIds = await _context.TourInstances
-            .Where(i => i.TourId == tourId)
-            .Select(i => i.Id)
-            .ToListAsync(cancellationToken);
-
-        foreach (var instanceId in instanceIds)
+        if (tourData != null)
         {
-            var instanceThumbnail = await _context.TourInstances
-                .Where(i => i.Id == instanceId)
-                .Select(i => i.Thumbnail.FileId)
-                .FirstOrDefaultAsync(cancellationToken);
-            if (!string.IsNullOrEmpty(instanceThumbnail))
-                objectNames.Add(instanceThumbnail);
+            if (!string.IsNullOrEmpty(tourData.ThumbnailId))
+                objectNames.Add(tourData.ThumbnailId);
 
-            var instanceImages = await _context.Entry(new TourInstanceEntity { Id = instanceId })
-                .Collection(i => i.Images)
-                .Query()
-                .Select(img => img.FileId)
-                .Where(f => !string.IsNullOrEmpty(f))
-                .ToListAsync(cancellationToken);
-            foreach (var img in instanceImages)
-                objectNames.Add(img!);
+            foreach (var img in tourData.ImageIds)
+            {
+                if (!string.IsNullOrEmpty(img))
+                    objectNames.Add(img!);
+            }
+        }
+
+        // 2. Batch load all TourInstance media in ONE query
+        var instanceMediaData = await _context.TourInstances
+            .Where(i => i.TourId == tourId)
+            .Select(i => new
+            {
+                ThumbnailId = i.Thumbnail.FileId,
+                ImageIds = i.Images.Select(img => img.FileId).ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var data in instanceMediaData)
+        {
+            if (!string.IsNullOrEmpty(data.ThumbnailId))
+                objectNames.Add(data.ThumbnailId);
+
+            foreach (var img in data.ImageIds)
+            {
+                if (!string.IsNullOrEmpty(img))
+                    objectNames.Add(img!);
+            }
         }
 
         return objectNames.ToList();

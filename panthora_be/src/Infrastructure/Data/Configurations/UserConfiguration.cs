@@ -49,22 +49,6 @@ public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
             .HasPrecision(18, 2)
             .HasDefaultValue(0m);
 
-        builder.Property(u => u.BankAccountNumber)
-            .HasMaxLength(50);
-
-        builder.Property(u => u.BankCode)
-            .HasMaxLength(20);
-
-        builder.Property(u => u.BankAccountName)
-            .HasMaxLength(200);
-
-        builder.Property(u => u.BankAccountVerified)
-            .HasDefaultValue(false);
-
-        builder.Property(u => u.BankAccountVerifiedAt);
-
-        builder.Property(u => u.BankAccountVerifiedBy);
-
         builder.HasIndex(u => u.GoogleId)
             .IsUnique()
             .HasFilter("\"GoogleId\" IS NOT NULL");

@@ -59,13 +59,17 @@ export const BoldTiltCard = ({
         onMouseLeave={handleMouseLeave}
       >
         {/* Background Image */}
-        <Image
-          src={image}
-          alt={title}
-          fill
-          sizes="280px"
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-        />
+        {image ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="280px"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-white/5 transition-transform duration-700 group-hover:scale-110" />
+        )}
 
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />

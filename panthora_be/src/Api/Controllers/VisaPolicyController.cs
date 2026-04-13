@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(VisaPolicyEndpoint.Base)]
 public class VisaPolicyController : BaseApiController
 {

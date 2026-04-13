@@ -57,7 +57,7 @@ export const BoldLatestTours = () => {
           }`}
         >
           <div>
-            <span className="text-sm font-medium text-[#3b82f6] uppercase tracking-widest">
+            <span suppressHydrationWarning className="text-sm font-medium text-[#3b82f6] uppercase tracking-widest">
               {t("landing.latest.eyebrow") || "Just Added"}
             </span>
             <h2

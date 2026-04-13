@@ -23,7 +23,14 @@ export default function AppProviders({
   const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
-    // Force re-render after language change
+    // 1. Sync language after component mounts to avoid hydration mismatch
+    const match = document.cookie.match(/i18next=([^;]+)/);
+    const savedLang = match ? match[1].toLowerCase().split("-")[0] : null;
+    if (savedLang && ["en", "vi"].includes(savedLang) && i18n.language !== savedLang) {
+      i18n.changeLanguage(savedLang);
+    }
+
+    // 2. Force re-render after language change
     const handleLanguageChanged = (lng: string) => {
       console.log("[i18n] Language changed to:", lng);
       setRefresh((r) => r + 1);

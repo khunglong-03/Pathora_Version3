@@ -23,14 +23,6 @@ public class UserEntity : Aggregate<Guid>
     public bool ForcePasswordChange { get; set; }
     public bool IsDeleted { get; set; } = false;
 
-    // Bank account fields for manager payments
-    public string? BankAccountNumber { get; set; }
-    public string? BankCode { get; set; }
-    public string? BankAccountName { get; set; }
-    public bool BankAccountVerified { get; set; } = false;
-    public DateTimeOffset? BankAccountVerifiedAt { get; set; }
-    public Guid? BankAccountVerifiedBy { get; set; }
-
     public static UserEntity Create(string username, string? fullName, string email, string hashedPassword, string performedBy, string? avatar = null, bool forcePasswordChange = false)
     {
         return new UserEntity

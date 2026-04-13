@@ -164,7 +164,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<List<TourEntity>> FindAllAdmin(string? searchText, TourStatus? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourEntity>> FindAllAdmin(string? searchText, TourStatus? status, int pageNumber, int pageSize, Guid? managerId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted);
         if (status.HasValue)
@@ -178,6 +178,20 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 t.TourName.ToLower().Contains(search) ||
                 t.TourCode.ToLower().Contains(search));
         }
+
+        if (managerId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == managerId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+        }
+
         return await query
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
@@ -187,7 +201,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAllAdmin(string? searchText, TourStatus? status, CancellationToken cancellationToken = default)
+    public async Task<int> CountAllAdmin(string? searchText, TourStatus? status, Guid? managerId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.Where(t => !t.IsDeleted);
         if (status.HasValue)
@@ -201,6 +215,20 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 t.TourName.ToLower().Contains(search) ||
                 t.TourCode.ToLower().Contains(search));
         }
+
+        if (managerId.HasValue)
+        {
+            var designerIds = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => a.TourManagerId == managerId.Value
+                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedUserId != null)
+                .Select(a => a.AssignedUserId!.Value)
+                .ToListAsync(cancellationToken);
+
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+        }
+
         return await query.CountAsync(cancellationToken);
     }
 

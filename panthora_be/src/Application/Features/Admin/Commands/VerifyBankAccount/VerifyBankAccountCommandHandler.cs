@@ -4,12 +4,11 @@ using Application.Common.Interfaces;
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
-using Domain.Entities;
 using Domain.UnitOfWork;
 using ErrorOr;
 
 public sealed class VerifyBankAccountCommandHandler(
-    IUserRepository userRepository,
+    IManagerBankAccountRepository bankAccountRepository,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
     : ICommandHandler<VerifyBankAccountCommand, ErrorOr<Success>>
@@ -18,17 +17,20 @@ public sealed class VerifyBankAccountCommandHandler(
         VerifyBankAccountCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.FindById(request.ManagerId, cancellationToken);
-        if (user is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+        // Get the default bank account for this manager
+        var account = await bankAccountRepository.GetDefaultByUserIdAsync(request.ManagerId, cancellationToken);
+        account ??= (await bankAccountRepository.GetByUserIdAsync(request.ManagerId, cancellationToken)).FirstOrDefault();
 
-        user.BankAccountVerified = true;
-        user.BankAccountVerifiedAt = DateTimeOffset.UtcNow;
-        user.BankAccountVerifiedBy = currentUser.Id;
-        user.LastModifiedBy = "admin";
-        user.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        if (account is null)
+        {
+            return Error.NotFound(ErrorConstants.Payment.NoBankAccountCode, ErrorConstants.Payment.NoBankAccountDescription);
+        }
 
-        userRepository.Update(user);
+        account.IsVerified = true;
+        account.VerifiedAt = DateTimeOffset.UtcNow;
+        account.VerifiedBy = currentUser.Id;
+        account.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return Result.Success;

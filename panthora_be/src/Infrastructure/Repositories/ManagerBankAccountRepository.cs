@@ -61,4 +61,53 @@ public sealed class ManagerBankAccountRepository(AppDbContext context) : IManage
     {
         _context.ManagerBankAccounts.Remove(entity);
     }
+
+    public async Task<List<ManagerBankAccountEntity>> GetAllWithUserAsync(string? search, int pageNumber, int pageSize, CancellationToken ct = default)
+    {
+        var query = _context.ManagerBankAccounts
+            .Include(a => a.User)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(a =>
+                (a.User.Username != null && a.User.Username.ToLower().Contains(term)) ||
+                (a.User.FullName != null && a.User.FullName.ToLower().Contains(term)) ||
+                (a.User.Email != null && a.User.Email.ToLower().Contains(term)) ||
+                (a.BankAccountNumber != null && a.BankAccountNumber.Contains(term)));
+        }
+
+        return await query
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+    }
+
+    public async Task<int> CountAllAsync(string? search, CancellationToken ct = default)
+    {
+        var query = _context.ManagerBankAccounts
+            .Include(a => a.User)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(a =>
+                (a.User.Username != null && a.User.Username.ToLower().Contains(term)) ||
+                (a.User.FullName != null && a.User.FullName.ToLower().Contains(term)) ||
+                (a.User.Email != null && a.User.Email.ToLower().Contains(term)) ||
+                (a.BankAccountNumber != null && a.BankAccountNumber.Contains(term)));
+        }
+
+        return await query.CountAsync(ct);
+    }
+
+    public async Task<ManagerBankAccountEntity?> GetDefaultByManagerIdAsync(Guid managerId, CancellationToken ct = default)
+    {
+        return await _context.ManagerBankAccounts
+            .FirstOrDefaultAsync(a => a.UserId == managerId && a.IsDefault, ct);
+    }
 }

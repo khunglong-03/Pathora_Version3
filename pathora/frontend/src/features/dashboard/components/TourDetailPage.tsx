@@ -26,6 +26,7 @@ import {
   InsuranceTypeMap,
 } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TourDetailDataState = "loading" | "ready" | "empty" | "error";
 
@@ -887,6 +888,124 @@ function ItineraryTab({ classification }: { classification: TourClassificationDt
 /* ══════════════════════════════════════════════════════════════
    Status Dropdown
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   Review Panel — shown only to Manager/Admin when tour is Pending
+   ══════════════════════════════════════════════════════════════ */
+function ReviewPanel({
+  tourId,
+  onReviewed,
+}: {
+  tourId: string;
+  onReviewed: () => void;
+}) {
+  const { t } = useTranslation();
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleApprove = async () => {
+    setIsSubmitting(true);
+    try {
+      await tourService.reviewTour(tourId, "Approve");
+      toast.success(t("tourAdmin.review.approved", "Tour approved and published successfully."));
+      onReviewed();
+    } catch (err: unknown) {
+      const apiError = handleApiError(err);
+      toast.error(apiError.message || t("tourAdmin.review.approveFailed", "Failed to approve tour."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) {
+      toast.error(t("tourAdmin.review.reasonRequired", "Please enter a rejection reason."));
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await tourService.reviewTour(tourId, "Reject", rejectionReason.trim());
+      toast.success(t("tourAdmin.review.rejected", "Tour rejected."));
+      onReviewed();
+    } catch (err: unknown) {
+      const apiError = handleApiError(err);
+      toast.error(apiError.message || t("tourAdmin.review.rejectFailed", "Failed to reject tour."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="mx-8 mb-5 rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+          <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-amber-900">
+            {t("tourAdmin.review.title", "Tour Pending Review")}
+          </p>
+          <p className="text-xs text-amber-700 mt-0.5">
+            {t("tourAdmin.review.subtitle", "This tour was submitted by a Tour Designer and is awaiting your approval.")}
+          </p>
+
+          {showRejectInput ? (
+            <div className="mt-3 space-y-2">
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder={t("tourAdmin.review.rejectionPlaceholder", "Enter reason for rejection…")}
+                rows={3}
+                className="w-full text-sm border border-amber-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none resize-none bg-white"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleReject()}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-60"
+                >
+                  {isSubmitting
+                    ? t("common.processing", "Processing…")
+                    : t("tourAdmin.review.confirmReject", "Confirm Rejection")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowRejectInput(false); setRejectionReason(""); }}
+                  className="px-4 py-2 text-sm font-semibold text-amber-700 bg-white border border-amber-300 rounded-xl hover:bg-amber-100 transition-colors"
+                >
+                  {t("common.cancel", "Cancel")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => void handleApprove()}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-60 shadow-sm"
+              >
+                <Icon icon="heroicons:check-circle" className="size-4" />
+                {isSubmitting ? t("common.processing", "Processing…") : t("tourAdmin.review.approve", "Approve Tour")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRejectInput(true)}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-700 bg-white border border-red-300 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-60"
+              >
+                <Icon icon="heroicons:x-circle" className="size-4" />
+                {t("tourAdmin.review.reject", "Reject")}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const STATUS_OPTIONS = [
   { value: 1, label: "Active", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   { value: 2, label: "Inactive", bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
@@ -994,6 +1113,12 @@ export function TourDetailPage() {
   const router = useRouter();
   const params = useParams();
   const tourId = params?.id as string;
+
+  const { user } = useAuth();
+  const isManagerOrAdmin = (() => {
+    const roles: string[] = (user as unknown as { roles?: string[] })?.roles ?? [];
+    return roles.some((r) => r === "Manager" || r === "Admin");
+  })();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tour, setTour] = useState<TourDto | null>(null);
@@ -1196,7 +1321,6 @@ export function TourDetailPage() {
             {/* Header Section */}
             <div className="bg-white border-b border-stone-200/80">
               <div className="px-8 pt-5 pb-0 max-w-[87.5rem] mx-auto">
-                {/* Back + Actions */}
                 <div className="flex items-center justify-between mb-5">
                   <Link
                     href="/tour-management"
@@ -1205,11 +1329,20 @@ export function TourDetailPage() {
                     Back to Tours
                   </Link>
                   <div className="flex items-center gap-3">
-                    <StatusDropdown
-                      currentStatus={tour.status}
-                      isLoading={statusUpdating}
-                      onChange={handleStatusChange}
-                    />
+                    {/* For pending tours, Managers use the ReviewPanel — don't show raw status changer */}
+                    {(tour.status !== 3 || !isManagerOrAdmin) && (
+                      <StatusDropdown
+                        currentStatus={tour.status}
+                        isLoading={statusUpdating}
+                        onChange={handleStatusChange}
+                      />
+                    )}
+                    {tour.status === 3 && isManagerOrAdmin && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        Wait for Review
+                      </span>
+                    )}
                     <button
                       onClick={() => router.push(`/tour-management/${tourId}/edit`)}
                       className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md">
@@ -1218,6 +1351,14 @@ export function TourDetailPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Review Panel — visible to Manager/Admin only when tour is Pending */}
+                {tour.status === 3 && isManagerOrAdmin && (
+                  <ReviewPanel
+                    tourId={tourId}
+                    onReviewed={() => setReloadToken((v) => v + 1)}
+                  />
+                )}
 
                 {/* Tour Info Header */}
                 <div className="flex gap-5 mb-5">

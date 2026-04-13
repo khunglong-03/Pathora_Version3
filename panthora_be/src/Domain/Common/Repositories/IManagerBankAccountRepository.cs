@@ -12,4 +12,7 @@ public interface IManagerBankAccountRepository
     Task<ManagerBankAccountEntity?> GetLatestByUserIdAsync(Guid userId, Guid? excludeId = null, CancellationToken ct = default);
     Task AddAsync(ManagerBankAccountEntity entity, CancellationToken ct = default);
     void Remove(ManagerBankAccountEntity entity);
+    Task<List<ManagerBankAccountEntity>> GetAllWithUserAsync(string? search, int pageNumber, int pageSize, CancellationToken ct = default);
+    Task<int> CountAllAsync(string? search, CancellationToken ct = default);
+    Task<ManagerBankAccountEntity?> GetDefaultByManagerIdAsync(Guid managerId, CancellationToken ct = default);
 }

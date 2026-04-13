@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(DepositPolicyEndpoint.Base)]
 public class DepositPolicyController : BaseApiController
 {

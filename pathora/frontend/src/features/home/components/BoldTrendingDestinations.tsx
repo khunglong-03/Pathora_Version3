@@ -64,7 +64,7 @@ export const BoldTrendingDestinations = () => {
           }`}
         >
           <div>
-            <span className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest mb-3 block">
+            <span suppressHydrationWarning className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest mb-3 block">
               {t("landing.destinations.eyebrow") || "Explore"}
             </span>
             <h2

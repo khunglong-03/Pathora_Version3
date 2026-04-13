@@ -50,6 +50,7 @@ public class PaymentService : IPaymentService
     private readonly IBookingRepository _bookingRepository;
     private readonly IOutboxRepository _outboxRepository;
     private readonly ITourInstanceRepository _tourInstanceRepository;
+    private readonly IManagerBankAccountRepository _managerBankAccountRepository;
     private readonly ILogger<PaymentService> _logger;
     private readonly Domain.UnitOfWork.IUnitOfWork _unitOfWork;
 
@@ -58,6 +59,7 @@ public class PaymentService : IPaymentService
         IBookingRepository bookingRepository,
         IOutboxRepository outboxRepository,
         ITourInstanceRepository tourInstanceRepository,
+        IManagerBankAccountRepository managerBankAccountRepository,
         ILogger<PaymentService> logger,
         IConfiguration configuration,
         Domain.UnitOfWork.IUnitOfWork unitOfWork)
@@ -66,6 +68,7 @@ public class PaymentService : IPaymentService
         _bookingRepository = bookingRepository;
         _outboxRepository = outboxRepository;
         _tourInstanceRepository = tourInstanceRepository;
+        _managerBankAccountRepository = managerBankAccountRepository;
         _logger = logger;
         _unitOfWork = unitOfWork;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
@@ -136,22 +139,37 @@ public class PaymentService : IPaymentService
 
         var paymentNoteWithRef = $"{transactionCode}|{refCode}|{paymentNote}";
 
-        // Determine manager's bank account
+        // Determine manager's bank account from ManagerBankAccountEntity
         string? managerAccountNumber = null;
         string? managerBankCode = null;
         string? managerAccountName = null;
 
-        var manager = await GetPrimaryManagerForTourInstanceAsync(booking.TourInstanceId);
-        if (manager != null && !string.IsNullOrWhiteSpace(manager.BankAccountNumber) && !string.IsNullOrWhiteSpace(manager.BankCode))
+        var managerId = await GetPrimaryManagerIdForTourInstanceAsync(booking.TourInstanceId);
+        if (managerId.HasValue)
         {
-            managerAccountNumber = manager.BankAccountNumber;
-            managerBankCode = manager.BankCode;
-            managerAccountName = manager.BankAccountName;
-            _logger.LogInformation("Using manager {ManagerId} bank account for payment transaction", manager.Id);
+            // Try default account first, then first verified, then any account
+            var bankAccount = await _managerBankAccountRepository.GetDefaultByUserIdAsync(managerId.Value);
+            if (bankAccount is null)
+            {
+                var allAccounts = await _managerBankAccountRepository.GetByUserIdAsync(managerId.Value);
+                bankAccount = allAccounts.FirstOrDefault(a => a.IsVerified) ?? allAccounts.FirstOrDefault();
+            }
+
+            if (bankAccount is not null && !string.IsNullOrWhiteSpace(bankAccount.BankAccountNumber) && !string.IsNullOrWhiteSpace(bankAccount.BankCode))
+            {
+                managerAccountNumber = bankAccount.BankAccountNumber;
+                managerBankCode = bankAccount.BankCode;
+                managerAccountName = bankAccount.BankAccountName;
+                _logger.LogInformation("Using manager {ManagerId} bank account {AccountId} for payment transaction", managerId.Value, bankAccount.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Manager {ManagerId} for tour instance {TourInstanceId} has no valid bank account; using default config", managerId.Value, booking.TourInstanceId);
+            }
         }
         else
         {
-            _logger.LogWarning("Manager for tour instance {TourInstanceId} has no verified bank account; using default config", booking.TourInstanceId);
+            _logger.LogWarning("No manager found for tour instance {TourInstanceId}; using default config", booking.TourInstanceId);
         }
 
         // Fallback to VietQR config if not set
@@ -419,7 +437,7 @@ public class PaymentService : IPaymentService
         return transaction;
     }
 
-    private async Task<UserEntity?> GetPrimaryManagerForTourInstanceAsync(Guid tourInstanceId)
+    private async Task<Guid?> GetPrimaryManagerIdForTourInstanceAsync(Guid tourInstanceId)
     {
         var tourInstance = await _tourInstanceRepository.FindById(tourInstanceId);
         if (tourInstance == null) return null;
@@ -428,7 +446,7 @@ public class PaymentService : IPaymentService
             .FirstOrDefault(m => m.Role == TourInstanceManagerRole.Manager)
             ?? tourInstance.Managers.FirstOrDefault();
 
-        return managerAssignment?.User;
+        return managerAssignment?.UserId;
     }
 
     private static string ExtractTransactionCode(string? paymentContent)

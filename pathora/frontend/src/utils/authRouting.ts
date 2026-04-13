@@ -165,6 +165,12 @@ export const resolveRoleDefaultPath = (
   if (roles.some((role) => role.name === "TransportProvider")) {
     return TRANSPORTPROVIDER_ROLE_DEFAULT_PATH;
   }
+  if (roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role.name))) {
+    return TOURDESIGNER_ROLE_DEFAULT_PATH;
+  }
+  if (roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role.name))) {
+    return TOURGUIDE_ROLE_DEFAULT_PATH;
+  }
   return USER_DEFAULT_PATH;
 };
 

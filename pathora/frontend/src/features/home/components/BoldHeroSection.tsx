@@ -90,13 +90,14 @@ export const BoldHeroSection = () => {
             {/* Eyebrow */}
             <div className="mb-8 inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-[#fb8b02] animate-pulse" />
-              <span className="text-sm font-medium text-white/50 tracking-wide">
+              <span suppressHydrationWarning className="text-sm font-medium text-white/50 tracking-wide">
                 {t("landing.hero.eyebrow")}
               </span>
             </div>
 
             {/* Headline */}
             <h1
+              suppressHydrationWarning
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tighter mb-6"
               style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             >
@@ -104,7 +105,7 @@ export const BoldHeroSection = () => {
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg text-white/50 max-w-[50ch] mb-10 leading-relaxed">
+            <p suppressHydrationWarning className="text-lg text-white/50 max-w-[50ch] mb-10 leading-relaxed">
               {t("landing.hero.subtitle")}
             </p>
 
@@ -119,6 +120,7 @@ export const BoldHeroSection = () => {
               <div className="flex-1 w-full relative">
                 <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={18} weight="regular" />
                 <input
+                  suppressHydrationWarning
                   type="text"
                   value={heroSearchText}
                   onChange={(e) => setHeroSearchText(e.target.value)}
@@ -141,28 +143,28 @@ export const BoldHeroSection = () => {
                   className="flex-1 md:flex-none px-8 py-3 bg-gradient-to-r from-[#fb8b02] to-[#e67d00] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#fb8b02]/20 transition-all whitespace-nowrap inline-flex items-center justify-center gap-2 active:scale-[0.98]"
                 >
                   <MagnifyingGlass size={18} weight="bold" />
-                  <span>{t("landing.hero.exploreTours")}</span>
+                  <span suppressHydrationWarning>{t("landing.hero.exploreTours")}</span>
                 </button>
               </div>
             </div>
 
             {/* Quick stats */}
             <div className="flex items-center gap-8 mt-10 text-white/35 text-sm">
-              <span className="flex items-center gap-2">
+              <span suppressHydrationWarning className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#fb8b02]" />
                 {statsLoading
                   ? "..."
                   : `${Math.max(0, stats?.tours ?? 0).toLocaleString()}+`}{" "}
                 {t("landing.stats.items.totalTours")}
               </span>
-              <span className="flex items-center gap-2">
+              <span suppressHydrationWarning className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                 {statsLoading
                   ? "..."
                   : `${Math.max(0, Math.round((stats?.travellers ?? 0) / 1000))}K+`}{" "}
                 {t("landing.stats.items.totalTravellers")}
               </span>
-              <span className="flex items-center gap-2">
+              <span suppressHydrationWarning className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 4.9&#9733; {t("landing.reviews.rating")}
               </span>

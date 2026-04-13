@@ -36,7 +36,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithValidCredentials_ShouldReturnHttp200Or401WithSafeBody()
     {
-         using var host = await BuildTestHostAsync();
+        using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -80,7 +80,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithInvalidCredentials_ShouldReturnHttp401AndNoAuthCookies()
     {
-         using var host = await BuildTestHostAsync();
+        using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -112,7 +112,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithMalformedEmail_ShouldReturnBadRequestOrUnauthorized()
     {
-         using var host = await BuildTestHostAsync();
+        using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var requestBody = new
@@ -138,7 +138,7 @@ public sealed class AuthControllerLoginIntegrationTests
     [Fact]
     public async Task Login_WithMissingBody_ShouldReturnBadRequestOrServerError()
     {
-         using var host = await BuildTestHostAsync();
+        using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
         var response = await client.PostAsync(

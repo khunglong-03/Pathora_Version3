@@ -66,4 +66,63 @@ dir_root.js
 .gitnexus
 openspec/
 .agent/
+.agents/
+.claude/
 .opencode/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+.rider/
+*.sln.iml
+
+# Test results (xUnit, Vitest, etc.)
+TestResults/
+pathora/frontend/.vitest/
+pathora/frontend/.vscode-test/
+
+# Temporary files
+*.tmp
+*.temp
+*.pid
+*.seed
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Database (local dev)
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker (local override)
+docker-compose.override.yml
+.docker/
+
+# Package caches (additional)
+.npm/
+.yarn/
+.pnpm-store/
+
+# Build logs
+*.buildlog
+
+# NDepend
+ndepend.out
+ndepend.xml

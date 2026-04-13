@@ -217,8 +217,13 @@ public static class DependencyInjection
             options.AddPolicy("TourGuideOnly", policy =>
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("TourGuide")));
+
+            // CanManageTour: Resource-based authorization for strict ownership validation
+            options.AddPolicy("CanManageTour", policy =>
+                policy.Requirements.Add(new global::Infrastructure.Identity.Authorization.ManageTourRequirement()));
         });
 
+        services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, global::Infrastructure.Identity.Authorization.ManageTourRequirementHandler>();
         services.AddSingleton<IUser, CurrentUser>();
         services.AddSingleton<IToken, CurrentToken>();
         services.AddScoped<IPaymentNotificationService, PaymentNotificationService>();

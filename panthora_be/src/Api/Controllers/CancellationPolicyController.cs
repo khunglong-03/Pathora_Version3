@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "TourManagerOnly")]
 [Route(CancellationPolicyEndpoint.Base)]
 public class CancellationPolicyController : BaseApiController
 {
@@ -25,6 +25,7 @@ public class CancellationPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCancellationPolicyCommand command)
     {
@@ -32,6 +33,7 @@ public class CancellationPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateCancellationPolicyCommand command)
     {
@@ -39,6 +41,7 @@ public class CancellationPolicyController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(CancellationPolicyEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {

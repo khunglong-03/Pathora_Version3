@@ -22,12 +22,14 @@ public sealed class PaymentServiceTests
     private readonly ILogger<PaymentService> _logger = Substitute.For<ILogger<PaymentService>>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
+    private readonly IManagerBankAccountRepository _managerBankAccountRepo = Substitute.For<IManagerBankAccountRepository>();
 
     private PaymentService CreateService() => new(
         _transactionRepo,
         _bookingRepo,
         _outboxRepo,
         _tourInstanceRepo,
+        _managerBankAccountRepo,
         _logger,
         _configuration,
         _unitOfWork);
@@ -348,10 +350,17 @@ public sealed class PaymentServiceTests
             Username = "manager",
             Email = "manager@example.com",
             FullName = "Manager Name",
-            Password = "hash",
+            Password = "hash"
+        };
+
+        var managerBankAccount = new ManagerBankAccountEntity
+        {
+            UserId = managerId,
             BankAccountNumber = "1234567890",
             BankCode = "MB",
-            BankAccountName = "Manager Name"
+            BankBin = "970422",
+            BankAccountName = "Manager Name",
+            IsDefault = true
         };
 
         var tourInstance = TourInstanceEntity.Create(
@@ -389,6 +398,8 @@ public sealed class PaymentServiceTests
         _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
         _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(tourInstance);
+        _managerBankAccountRepo.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(managerBankAccount);
         _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
@@ -437,7 +448,7 @@ public sealed class PaymentServiceTests
             FullName = "Manager Name",
             Password = "hash"
         };
-        // Bank account fields are null/empty
+        // No bank account in ManagerBankAccountEntity → falls back to config
 
         var tourInstance = TourInstanceEntity.Create(
             tourId: Guid.NewGuid(),
@@ -474,6 +485,10 @@ public sealed class PaymentServiceTests
         _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
         _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(tourInstance);
+        _managerBankAccountRepo.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns((ManagerBankAccountEntity?)null);
+        _managerBankAccountRepo.GetByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<ManagerBankAccountEntity>());
         _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
@@ -591,10 +606,17 @@ public sealed class PaymentServiceTests
             Username = "manager",
             Email = "manager@example.com",
             FullName = "The Manager",
-            Password = "hash",
+            Password = "hash"
+        };
+
+        var managerBankAccount = new ManagerBankAccountEntity
+        {
+            UserId = managerId,
             BankAccountNumber = "1111111111",
             BankCode = "TCB",
-            BankAccountName = "The Manager"
+            BankBin = "970407",
+            BankAccountName = "The Manager",
+            IsDefault = true
         };
 
         var guide = new UserEntity
@@ -602,10 +624,7 @@ public sealed class PaymentServiceTests
             Username = "guide",
             Email = "guide@example.com",
             FullName = "Guide Person",
-            Password = "hash",
-            BankAccountNumber = "2222222222",
-            BankCode = "VCB",
-            BankAccountName = "Guide Person"
+            Password = "hash"
         };
 
         var tourInstance = TourInstanceEntity.Create(
@@ -653,6 +672,8 @@ public sealed class PaymentServiceTests
         _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
         _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(tourInstance);
+        _managerBankAccountRepo.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(managerBankAccount);
         _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())
@@ -700,10 +721,17 @@ public sealed class PaymentServiceTests
             Username = "guide1",
             Email = "guide1@example.com",
             FullName = "Guide One",
-            Password = "hash",
+            Password = "hash"
+        };
+
+        var guide1BankAccount = new ManagerBankAccountEntity
+        {
+            UserId = guide1Id,
             BankAccountNumber = "3333333333",
             BankCode = "ACB",
-            BankAccountName = "Guide One"
+            BankBin = "970416",
+            BankAccountName = "Guide One",
+            IsDefault = true
         };
 
         var guide2 = new UserEntity
@@ -760,6 +788,8 @@ public sealed class PaymentServiceTests
         _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
         _tourInstanceRepo.FindById(booking.TourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(tourInstance);
+        _managerBankAccountRepo.GetDefaultByUserIdAsync(guide1Id, Arg.Any<CancellationToken>())
+            .Returns(guide1BankAccount);
         _transactionRepo.AddAsync(Arg.Any<PaymentTransactionEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _outboxRepo.AddAsync(Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>())

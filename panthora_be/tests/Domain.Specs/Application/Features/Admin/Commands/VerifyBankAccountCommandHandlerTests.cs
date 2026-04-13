@@ -12,12 +12,12 @@ using global::Xunit;
 
 public sealed class VerifyBankAccountCommandHandlerTests
 {
-    private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
+    private readonly IManagerBankAccountRepository _bankAccountRepository = Substitute.For<IManagerBankAccountRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
 
     private global::Application.Features.Admin.Commands.VerifyBankAccount.VerifyBankAccountCommandHandler CreateHandler() =>
-        new(_userRepository, _unitOfWork, _currentUser);
+        new(_bankAccountRepository, _unitOfWork, _currentUser);
 
     #region Handle — valid verification
 
@@ -27,19 +27,17 @@ public sealed class VerifyBankAccountCommandHandlerTests
         // Arrange
         var managerId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
-        var manager = new UserEntity
+        var account = new ManagerBankAccountEntity
         {
-            Username = "manager1",
-            Email = "manager@example.com",
-            FullName = "Manager One",
-            Password = "hash",
+            UserId = managerId,
             BankAccountNumber = "1234567890",
             BankCode = "MB",
-            BankAccountVerified = false
+            BankBin = "970422",
+            IsVerified = false
         };
 
-        _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns(manager);
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(account);
         _currentUser.Id.Returns(adminId);
 
         var command = new VerifyBankAccountCommand(managerId);
@@ -50,24 +48,25 @@ public sealed class VerifyBankAccountCommandHandlerTests
 
         // Assert
         Assert.False(result.IsError);
-        Assert.True(manager.BankAccountVerified);
-        Assert.NotNull(manager.BankAccountVerifiedAt);
-        Assert.Equal(adminId, manager.BankAccountVerifiedBy);
-        _userRepository.Received().Update(manager);
+        Assert.True(account.IsVerified);
+        Assert.NotNull(account.VerifiedAt);
+        Assert.Equal(adminId, account.VerifiedBy);
         await _unitOfWork.Received().SaveChangeAsync(Arg.Any<CancellationToken>());
     }
 
     #endregion
 
-    #region Handle — manager not found
+    #region Handle — manager has no bank account
 
     [Fact]
-    public async Task Handle_ManagerNotFound_ReturnsNotFound()
+    public async Task Handle_NoBankAccount_ReturnsNotFound()
     {
         // Arrange
         var managerId = Guid.NewGuid();
-        _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns((UserEntity?)null);
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns((ManagerBankAccountEntity?)null);
+        _bankAccountRepository.GetByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<ManagerBankAccountEntity>());
 
         var command = new VerifyBankAccountCommand(managerId);
         var handler = CreateHandler();
@@ -77,7 +76,7 @@ public sealed class VerifyBankAccountCommandHandlerTests
 
         // Assert
         Assert.True(result.IsError);
-        Assert.Contains(result.Errors, e => e.Code == ErrorConstants.User.NotFoundCode);
+        Assert.Contains(result.Errors, e => e.Code == ErrorConstants.Payment.NoBankAccountCode);
     }
 
     #endregion
@@ -93,21 +92,19 @@ public sealed class VerifyBankAccountCommandHandlerTests
         var newAdminId = Guid.NewGuid();
         var originalTime = DateTimeOffset.UtcNow.AddDays(-1);
 
-        var manager = new UserEntity
+        var account = new ManagerBankAccountEntity
         {
-            Username = "manager1",
-            Email = "manager@example.com",
-            FullName = "Manager One",
-            Password = "hash",
+            UserId = managerId,
             BankAccountNumber = "1234567890",
             BankCode = "MB",
-            BankAccountVerified = true,
-            BankAccountVerifiedAt = originalTime,
-            BankAccountVerifiedBy = originalAdminId
+            BankBin = "970422",
+            IsVerified = true,
+            VerifiedAt = originalTime,
+            VerifiedBy = originalAdminId
         };
 
-        _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns(manager);
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(account);
         _currentUser.Id.Returns(newAdminId);
 
         var command = new VerifyBankAccountCommand(managerId);
@@ -118,9 +115,9 @@ public sealed class VerifyBankAccountCommandHandlerTests
 
         // Assert
         Assert.False(result.IsError);
-        Assert.True(manager.BankAccountVerified);
-        Assert.True(manager.BankAccountVerifiedAt > originalTime);
-        Assert.Equal(newAdminId, manager.BankAccountVerifiedBy);
+        Assert.True(account.IsVerified);
+        Assert.True(account.VerifiedAt > originalTime);
+        Assert.Equal(newAdminId, account.VerifiedBy);
     }
 
     #endregion

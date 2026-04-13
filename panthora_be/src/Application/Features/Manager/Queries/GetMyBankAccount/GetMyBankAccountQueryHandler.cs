@@ -8,7 +8,7 @@ using ErrorOr;
 namespace Application.Features.Manager.Queries.GetMyBankAccount;
 
 public sealed class GetMyBankAccountQueryHandler(
-    IUserRepository userRepository,
+    IManagerBankAccountRepository bankAccountRepository,
     ICurrentUser currentUser)
     : IQueryHandler<GetMyBankAccountQuery, ErrorOr<ManagerBankAccountDto>>
 {
@@ -19,17 +19,29 @@ public sealed class GetMyBankAccountQueryHandler(
         var userId = currentUser.Id
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
 
-        var user = await userRepository.FindById(userId, cancellationToken);
-        if (user is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+        // Get the default bank account, or first account if no default
+        var account = await bankAccountRepository.GetDefaultByUserIdAsync(userId, cancellationToken);
+        account ??= (await bankAccountRepository.GetByUserIdAsync(userId, cancellationToken)).FirstOrDefault();
+
+        if (account is null)
+        {
+            return new ManagerBankAccountDto(
+                UserId: userId,
+                BankAccountNumber: null,
+                BankCode: null,
+                BankAccountName: null,
+                BankAccountVerified: false,
+                BankAccountVerifiedAt: null
+            );
+        }
 
         return new ManagerBankAccountDto(
-            UserId: user.Id,
-            BankAccountNumber: user.BankAccountNumber,
-            BankCode: user.BankCode,
-            BankAccountName: user.BankAccountName,
-            BankAccountVerified: user.BankAccountVerified,
-            BankAccountVerifiedAt: user.BankAccountVerifiedAt
+            UserId: account.UserId,
+            BankAccountNumber: account.BankAccountNumber,
+            BankCode: account.BankCode,
+            BankAccountName: account.BankAccountName,
+            BankAccountVerified: account.IsVerified,
+            BankAccountVerifiedAt: account.VerifiedAt
         );
     }
 }

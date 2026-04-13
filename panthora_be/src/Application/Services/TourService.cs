@@ -81,12 +81,16 @@ public class TourService(
                 ? (Guid?)userIdGuid
                 : null;
 
+            // Non-managers (TourDesigners) cannot set the status themselves —
+            // tours must always start as Pending and go through the Manager review workflow.
+            var effectiveStatus = isManager ? request.Status : TourStatus.Pending;
+
             var tour = TourEntity.Create(
             request.TourName,
             request.ShortDescription,
             request.LongDescription,
             _user.Id ?? string.Empty,
-            request.Status,
+            effectiveStatus,
             tourScope: request.TourScope,
             customerSegment: request.CustomerSegment,
             seoTitle: request.SEOTitle,
@@ -435,7 +439,7 @@ public class TourService(
             request.TourName,
             request.ShortDescription,
             request.LongDescription,
-            request.Status,
+            effectiveStatus,
             _user.Id ?? string.Empty,
             tourScope: request.TourScope,
             customerSegment: request.CustomerSegment,
@@ -696,8 +700,8 @@ public class TourService(
 
     public async Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request)
     {
-        var tours = await _tourRepository.FindAllAdmin(request.SearchText, request.Status, request.PageNumber, request.PageSize);
-        var total = await _tourRepository.CountAllAdmin(request.SearchText, request.Status);
+        var tours = await _tourRepository.FindAllAdmin(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ManagerId);
+        var total = await _tourRepository.CountAllAdmin(request.SearchText, request.Status, request.ManagerId);
         var currentLanguage = _languageContext.CurrentLanguage;
 
         var tourVms = tours.Select(t =>

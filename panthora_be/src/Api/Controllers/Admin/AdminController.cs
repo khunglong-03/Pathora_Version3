@@ -46,7 +46,10 @@ public class AdminController : BaseApiController
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await Sender.Send(new GetAdminTourManagementQuery(searchText, status, pageNumber, pageSize));
+        var isManager = User.IsInRole("Manager") && !User.IsInRole("Admin");
+        var managerId = isManager && Guid.TryParse(CurrentUserId, out var parsedId) ? (Guid?)parsedId : null;
+
+        var result = await Sender.Send(new GetAdminTourManagementQuery(searchText, status, pageNumber, pageSize, managerId));
         return HandleResult(result);
     }
 

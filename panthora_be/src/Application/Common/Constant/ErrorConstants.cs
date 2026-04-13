@@ -357,6 +357,10 @@ public static class ErrorConstants
         public const string TransactionAlreadyCancelledCode = "Payment.TransactionAlreadyCancelled";
         public static readonly LocalizedMessage TransactionAlreadyCancelledDescription =
             new("Giao dịch thanh toán đã bị hủy", "Payment transaction already cancelled");
+
+        public const string NoBankAccountCode = "Payment.NoBankAccount";
+        public static readonly LocalizedMessage NoBankAccountDescription =
+            new("Quản lý chưa có tài khoản ngân hàng được thiết lập", "Manager does not have a bank account configured");
     }
 
     public static class ActivityStatus

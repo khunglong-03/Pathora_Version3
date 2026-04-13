@@ -67,7 +67,7 @@ export const BoldFeaturedTrips = () => {
             titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <span className="text-sm font-medium text-[#ec4899] uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-[#ec4899] uppercase tracking-widest">
             {t("landing.featured.eyebrow") || "Handpicked"}
           </span>
           <h2

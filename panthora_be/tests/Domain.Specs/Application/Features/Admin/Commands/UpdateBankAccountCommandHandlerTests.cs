@@ -13,11 +13,12 @@ using global::Xunit;
 
 public sealed class UpdateBankAccountCommandHandlerTests
 {
+    private readonly IManagerBankAccountRepository _bankAccountRepository = Substitute.For<IManagerBankAccountRepository>();
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     private global::Application.Features.Admin.Commands.UpdateBankAccount.UpdateBankAccountCommandHandler CreateHandler() =>
-        new(_userRepository, _unitOfWork);
+        new(_bankAccountRepository, _userRepository, _unitOfWork);
 
     #region Handle — valid request
 
@@ -26,18 +27,26 @@ public sealed class UpdateBankAccountCommandHandlerTests
     {
         // Arrange
         var managerId = Guid.NewGuid();
-        var manager = new UserEntity
+        var account = new ManagerBankAccountEntity
+        {
+            UserId = managerId,
+            BankAccountNumber = "1234567890",
+            BankCode = "MB",
+            BankBin = "970422",
+            BankAccountName = "Manager One"
+        };
+        var user = new UserEntity
         {
             Username = "manager1",
             Email = "manager@example.com",
             FullName = "Manager One",
-            Password = "hash",
-            BankAccountNumber = "1234567890",
-            BankCode = "MB",
-            BankAccountName = "Manager One"
+            Password = "hash"
         };
+
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(account);
         _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns(manager);
+            .Returns(user);
 
         var command = new UpdateBankAccountCommand(
             managerId,
@@ -51,28 +60,26 @@ public sealed class UpdateBankAccountCommandHandlerTests
         // Assert
         Assert.False(result.IsError);
         var dto = result.Value;
-        Assert.Equal(manager.Id, dto.UserId);
+        Assert.Equal(managerId, dto.UserId);
         Assert.Equal("1234567890", dto.BankAccountNumber);
         Assert.Equal("MB", dto.BankCode);
         Assert.Equal("Manager One", dto.BankAccountName);
-        _userRepository.Received().Update(Arg.Is<UserEntity>(u =>
-            u.BankAccountNumber == "1234567890" &&
-            u.BankCode == "MB" &&
-            u.BankAccountName == "Manager One"));
         await _unitOfWork.Received().SaveChangeAsync(Arg.Any<CancellationToken>());
     }
 
     #endregion
 
-    #region Handle — manager not found
+    #region Handle — no bank account found
 
     [Fact]
-    public async Task Handle_ManagerNotFound_ReturnsNotFound()
+    public async Task Handle_NoBankAccount_ReturnsNotFound()
     {
         // Arrange
         var managerId = Guid.NewGuid();
-        _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns((UserEntity?)null);
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns((ManagerBankAccountEntity?)null);
+        _bankAccountRepository.GetByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(new List<ManagerBankAccountEntity>());
 
         var command = new UpdateBankAccountCommand(
             managerId,
@@ -85,7 +92,7 @@ public sealed class UpdateBankAccountCommandHandlerTests
 
         // Assert
         Assert.True(result.IsError);
-        Assert.Contains(result.Errors, e => e.Code == ErrorConstants.User.NotFoundCode);
+        Assert.Contains(result.Errors, e => e.Code == ErrorConstants.Payment.NoBankAccountCode);
     }
 
     #endregion
@@ -97,15 +104,25 @@ public sealed class UpdateBankAccountCommandHandlerTests
     {
         // Arrange
         var managerId = Guid.NewGuid();
-        var manager = new UserEntity
+        var account = new ManagerBankAccountEntity
+        {
+            UserId = managerId,
+            BankAccountNumber = "9876543210",
+            BankCode = "TCB",
+            BankBin = "970407"
+        };
+        var user = new UserEntity
         {
             Username = "manager2",
             Email = "manager2@example.com",
             FullName = "Manager Two",
             Password = "hash"
         };
+
+        _bankAccountRepository.GetDefaultByUserIdAsync(managerId, Arg.Any<CancellationToken>())
+            .Returns(account);
         _userRepository.FindById(managerId, Arg.Any<CancellationToken>())
-            .Returns(manager);
+            .Returns(user);
 
         var command = new UpdateBankAccountCommand(
             managerId,

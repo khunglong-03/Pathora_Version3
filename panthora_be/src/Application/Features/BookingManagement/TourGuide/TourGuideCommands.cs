@@ -224,19 +224,19 @@ public sealed class GetBookingTourManagerQueryHandler(
     }
 }
 
-public sealed record GetBookingTourOperatorsQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTourDesignersQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-operators:{BookingId}";
+    public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-designers:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
-public sealed class GetBookingTourOperatorsQueryHandler(
+public sealed class GetBookingTourDesignersQueryHandler(
     IBookingRepository bookingRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     IOwnershipValidator ownershipValidator)
-    : IQueryHandler<GetBookingTourOperatorsQuery, ErrorOr<List<BookingTeamMemberDto>>>
+    : IQueryHandler<GetBookingTourDesignersQuery, ErrorOr<List<BookingTeamMemberDto>>>
 {
-    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourOperatorsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourDesignersQuery request, CancellationToken cancellationToken)
     {
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)

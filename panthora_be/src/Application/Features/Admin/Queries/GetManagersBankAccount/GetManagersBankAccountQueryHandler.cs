@@ -6,39 +6,33 @@ using ErrorOr;
 namespace Application.Features.Admin.Queries.GetManagersBankAccount;
 
 public sealed class GetManagersBankAccountQueryHandler(
-    IUserRepository userRepository)
+    IManagerBankAccountRepository bankAccountRepository)
     : IQueryHandler<GetManagersBankAccountQuery, ErrorOr<PaginatedResult<UserBankAccountDto>>>
 {
     public async Task<ErrorOr<PaginatedResult<UserBankAccountDto>>> Handle(
         GetManagersBankAccountQuery request,
         CancellationToken cancellationToken)
     {
-        const int ManagerRoleId = 2; // Manager role
-
-        var users = await userRepository.FindProvidersByRoleAsync(
-            roleId: ManagerRoleId,
+        var accounts = await bankAccountRepository.GetAllWithUserAsync(
             search: request.SearchQuery,
-            status: null,
             pageNumber: request.Page,
             pageSize: request.Limit,
-            cancellationToken: cancellationToken);
+            ct: cancellationToken);
 
-        var total = await userRepository.CountProvidersByRoleAsync(
-            roleId: ManagerRoleId,
+        var total = await bankAccountRepository.CountAllAsync(
             search: request.SearchQuery,
-            status: null,
-            cancellationToken: cancellationToken);
+            ct: cancellationToken);
 
-        var dtos = users.Select(u => new UserBankAccountDto(
-            UserId: u.Id,
-            Username: u.Username,
-            FullName: u.FullName,
-            Email: u.Email,
-            BankAccountNumber: MaskAccount(u.BankAccountNumber),
-            BankCode: u.BankCode,
-            BankAccountName: u.BankAccountName,
-            BankAccountVerified: u.BankAccountVerified,
-            BankAccountVerifiedAt: u.BankAccountVerifiedAt
+        var dtos = accounts.Select(a => new UserBankAccountDto(
+            UserId: a.UserId,
+            Username: a.User.Username,
+            FullName: a.User.FullName,
+            Email: a.User.Email,
+            BankAccountNumber: MaskAccount(a.BankAccountNumber),
+            BankCode: a.BankCode,
+            BankAccountName: a.BankAccountName,
+            BankAccountVerified: a.IsVerified,
+            BankAccountVerifiedAt: a.VerifiedAt
         )).ToList();
 
         return new PaginatedResult<UserBankAccountDto>(dtos, total, request.Page, request.Limit);

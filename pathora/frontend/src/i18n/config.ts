@@ -16,9 +16,10 @@ const normalizeLanguageCode = (value?: string): SupportedLanguage => {
 };
 
 const getLanguageFromCookie = (): SupportedLanguage => {
-  if (typeof document === "undefined") return DEFAULT_LANGUAGE;
-  const match = document.cookie.match(/i18next=([^;]+)/);
-  return match ? normalizeLanguageCode(match[1]) : DEFAULT_LANGUAGE;
+  // Always return DEFAULT_LANGUAGE initially to ensure SSR matches the first Client render
+  // and prevent React hydration mismatches. The actual preferred language is applied 
+  // inside AppProviders.tsx after the component mounts.
+  return DEFAULT_LANGUAGE;
 };
 
 const resources = {
