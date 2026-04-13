@@ -7,6 +7,8 @@ import { Icon } from "@/components/ui";
 import { useTranslation } from "react-i18next";
 import { formatCurrency } from "@/utils/format";
 import { NormalizedTourInstanceVm } from "@/types/tour";
+import { getFallbackImage } from "@/utils/imageFallback";
+import { motion } from "framer-motion";
 
 interface TourInstanceCardProps {
   tour: NormalizedTourInstanceVm;
@@ -20,7 +22,10 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
       ? "vi-VN"
       : "en-US";
 
-  const imageUrl = tour.thumbnail?.publicURL || "/images/placeholder-tour.jpg";
+  const imageSrc =
+    imgError || !tour.thumbnail?.publicURL
+      ? getFallbackImage(tour.tourId, "tour")
+      : tour.thumbnail.publicURL;
 
   // Guard: only show location row if truthy
   const hasLocation = Boolean(tour.location);
@@ -53,32 +58,26 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
   };
 
   return (
-    <Link href={`/tours/instances/${tour.id}`} className="group block">
-      <div className="bg-white rounded-2xl overflow-hidden shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] border border-slate-100 transition-all duration-300 hover:-translate-y-1">
+    <motion.div
+      whileHover={{ y: -4, scale: 0.99 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="group block bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+    >
+      <Link href={`/tours/instances/${tour.id}`} className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fa8b02] rounded-[2rem]">
         {/* Horizontal layout: 60/40 grid (desktop), stacked (mobile) */}
-        <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr]">
+        <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] h-full p-2 gap-2">
           {/* Image section */}
-          <div className="relative aspect-video overflow-hidden">
+          <div className="relative aspect-video sm:aspect-auto sm:h-full overflow-hidden rounded-[1.5rem] bg-slate-100">
             {/* Dark overlay on hover */}
-            <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity duration-300" />
-
-            {(imgError || !tour.thumbnail?.publicURL) ? (
-              <div className="w-full h-full bg-linear-to-br from-[#05073c] to-[#1a1c5e] flex items-center justify-center">
-                <Icon
-                  icon="heroicons-outline:calendar-days"
-                  className="w-10 h-10 text-white/40"
-                />
-              </div>
-            ) : (
-              <Image
-                src={imageUrl}
-                alt={tour.tourName}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={() => setImgError(true)}
-              />
-            )}
+            <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-500" />
+            <Image
+              src={imageSrc}
+              alt={tour.tourName}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
 
             {/* Status Badge — top-right corner */}
             {tour.status && (
@@ -96,12 +95,12 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
           </div>
 
           {/* Info section */}
-          <div className="p-5 flex flex-col justify-between">
+          <div className="p-5 flex flex-col justify-between h-full bg-white/40 rounded-[1.5rem]">
             <div>
               {/* Classification badge */}
               {hasClassification && (
-                <div className="mb-1.5">
-                  <span className="badge-base bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                <div className="mb-2">
+                  <span className="bg-white/90 backdrop-blur-md rounded-full text-xs px-3 py-1 text-landing-heading font-semibold shadow-sm inline-block">
                     {tour.classificationName}
                   </span>
                 </div>
@@ -109,35 +108,35 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
 
               {/* Location */}
               {hasLocation && (
-                <div className="flex items-center gap-1 text-sm text-slate-500 mb-1">
+                <div className="flex items-center gap-1 text-xs text-landing-body font-medium mb-2 uppercase tracking-wider">
                   <Icon icon="heroicons-outline:map-pin" className="w-3.5 h-3.5" />
                   <span className="line-clamp-1">{tour.location}</span>
                 </div>
               )}
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-[#1a1a2e] leading-tight mb-2 line-clamp-2 group-hover:text-[#fa8b02] transition-colors">
+              <h3 className="text-xl font-bold text-landing-heading leading-tight mb-2 line-clamp-2 group-hover:text-[#fa8b02] transition-colors">
                 {tour.title || tour.tourName}
               </h3>
 
               {/* Date row */}
               {formatDateRange() && (
-                <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-2">
-                  <Icon icon="heroicons-outline:calendar" className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-1.5 text-sm text-landing-body mb-4 font-medium">
+                  <Icon icon="heroicons-outline:calendar" className="w-4 h-4 text-landing-heading" />
                   <span>{formatDateRange()}</span>
                 </div>
               )}
 
               {/* Meta — duration + group */}
-              <div className="grid grid-cols-2 gap-2 text-sm text-slate-500 mb-3">
-                <div className="flex items-center gap-1.5">
-                  <Icon icon="heroicons-outline:clock" className="w-4 h-4 text-slate-400" />
+              <div className="grid grid-cols-2 gap-2 text-sm text-landing-body mb-4">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Icon icon="heroicons-outline:clock" className="w-4 h-4 text-landing-heading" />
                   <span>
                     {tour.durationDays} {t("tourInstance.days", "days")}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Icon icon="heroicons-outline:user-group" className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Icon icon="heroicons-outline:user-group" className="w-4 h-4 text-landing-heading" />
                   <span className="line-clamp-1">
                     {tour.maxParticipation} {t("tourInstance.people", "people")}
                   </span>
@@ -147,13 +146,13 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
               {/* Spots available progress bar */}
               {maxParticipation > 0 && (
                 <div className="mb-2">
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                  <div className="flex items-center justify-between text-xs text-landing-body mb-2 font-medium">
                     <span>{spotsLeft} {t("tourInstance.spotsAvailable", "spots available")}</span>
-                    <span className="font-medium">{registeredParticipants}/{maxParticipation}</span>
+                    <span>{registeredParticipants}/{maxParticipation}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#C9873A] rounded-full transition-all duration-300"
+                      className="h-full bg-[#fa8b02] rounded-full transition-all duration-300"
                       style={{ width: `${spotsProgress}%` }}
                     />
                   </div>
@@ -162,21 +161,21 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
             </div>
 
             {/* Price + CTA — bottom aligned */}
-            <div className="mt-2 pt-3 border-t border-slate-100">
-              <div className="flex flex-col gap-2">
+            <div className="mt-4 pt-4 border-t border-slate-100/50">
+              <div className="flex flex-col gap-3">
                 {hasPrice && (
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-extrabold text-[#1a1a2e]">
+                    <span className="text-2xl font-extrabold text-landing-heading">
                       {formatCurrency(tour.basePrice!)}
                     </span>
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-landing-body">
                       {t("tourInstance.perPersonShort", "/person")}
                     </span>
                   </div>
                 )}
                 <button
                   type="button"
-                  className="w-full inline-flex items-center justify-center rounded-lg bg-[#fa8b02] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#e67a00] transition-colors"
+                  className="w-full inline-flex items-center justify-center rounded-[1rem] bg-[#fa8b02] px-4 py-3 text-sm font-semibold text-white hover:bg-[#e67a00] transition-colors"
                 >
                   {t("tourDiscovery.reserveNow", "Reserve Now")}
                 </button>
@@ -184,7 +183,7 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 };

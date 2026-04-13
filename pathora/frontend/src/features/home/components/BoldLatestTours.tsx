@@ -20,7 +20,7 @@ const formatBadgeDate = (createdAt: string): string => {
   });
 };
 
-const imageFallback = "";
+import { getFallbackImage } from "@/utils/imageFallback";
 
 export const BoldLatestTours = () => {
   const { t, i18n } = useTranslation();
@@ -119,7 +119,7 @@ export const BoldLatestTours = () => {
               >
                 <div className="relative h-40 rounded-xl overflow-hidden mb-3 bg-[#111827]">
                   <Image
-                    src={tour.thumbnail || imageFallback}
+                    src={tour.thumbnail || getFallbackImage(tour.id)}
                     alt={tour.tourName}
                     fill
                     sizes="256px"

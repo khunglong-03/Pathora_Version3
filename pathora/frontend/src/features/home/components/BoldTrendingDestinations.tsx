@@ -15,14 +15,14 @@ type DestinationCard = {
   tours: number;
 };
 
-const fallbackImage = "";
+import { getFallbackImage } from "@/utils/imageFallback";
 
 const mapTrendingToDestinations = (data: TrendingDestination[]): DestinationCard[] =>
-  data.map((dest) => ({
+  data.map((dest, idx) => ({
     id: `${dest.city}-${dest.country}`,
     name: dest.city,
     country: dest.country,
-    image: dest.imageUrl ?? fallbackImage,
+    image: dest.imageUrl || getFallbackImage(idx),
     tours: dest.toursCount,
   }));
 

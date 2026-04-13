@@ -47,8 +47,8 @@ export const SearchBar = ({
   };
 
   return (
-    <div className="sticky top-0 z-40 backdrop-blur-sm bg-white/95 border-b border-slate-200 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-3 md:py-4">
+    <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/70 border-b border-white/20 shadow-[0_4px_30px_rgb(0,0,0,0.04)]">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
         <div className="flex items-center gap-3">
           {/* Search Input */}
           <form
@@ -60,14 +60,14 @@ export const SearchBar = ({
           >
             <Icon
               icon="heroicons-outline:search"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+              className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-landing-body"
             />
             <TextInput
               type="text"
               value={searchText}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={safeT("landing.tourDiscovery.searchFullPlaceholder", "Search tours, destinations, activities...")}
-              className="!h-12 !bg-white !border-slate-200 !rounded-xl !pl-12 !pr-4 !text-sm !text-slate-900 placeholder:!text-slate-400 focus:!ring-[#fa8b02]/20 focus:!border-[#fa8b02] transition-colors"
+              className="!h-14 !bg-white/80 backdrop-blur-md !border-none !rounded-2xl !pl-14 !pr-6 text-base !text-landing-heading shadow-sm placeholder:!text-slate-400 focus:!ring-2 focus:!ring-[#fa8b02]/30 transition-all"
             />
           </form>
 
@@ -85,15 +85,15 @@ export const SearchBar = ({
         </div>
 
         {/* Quick destination chips */}
-        <div className="mt-2 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+        <div className="mt-4 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
           {QUICK_DESTINATIONS.map((dest) => (
             <button
               key={dest.value}
               type="button"
               onClick={() => handleChipClick(dest.value)}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-amber-50 border border-amber-200 rounded-full hover:bg-amber-100 hover:shadow-sm transition-colors"
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-landing-heading bg-white border border-white/40 shadow-sm rounded-full hover:bg-slate-50 hover:-translate-y-0.5 transition-all"
             >
-              <Icon icon="heroicons-outline:map-pin" className="w-3.5 h-3.5 text-[#fa8b02]" />
+              <Icon icon="heroicons-outline:map-pin" className="w-4 h-4 text-[#fa8b02]" />
               {dest.label}
             </button>
           ))}

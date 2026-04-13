@@ -28,7 +28,10 @@ import { extractItems, extractResult } from "@/utils/apiResponse";
 import i18n from "@/i18n/config";
 
 const normalizeStatus = (status: string): string =>
-  status.trim().toLowerCase().replace(/[\s_]+/g, "");
+  status
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
 
 const normalizePublicInstance = (
   item: TourInstanceVm,
@@ -60,7 +63,7 @@ export const homeService = {
   getFeaturedTours: async (limit = 8, language?: string) => {
     const lang = language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
     const response = await api.get<FeaturedTourResponse>(
-      `${API_ENDPOINTS.PUBLIC_HOME.GET_FEATURED_TOURS(limit)}&lang=${lang}`
+      `${API_ENDPOINTS.PUBLIC_HOME.GET_FEATURED_TOURS(limit)}&lang=${lang}`,
     );
     return extractItems<FeaturedTour>(response.data);
   },
@@ -68,35 +71,35 @@ export const homeService = {
   getLatestTours: async (limit = 6, language?: string) => {
     const lang = language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
     const response = await api.get<LatestTourResponse>(
-      `${API_ENDPOINTS.PUBLIC_HOME.GET_LATEST_TOURS(limit)}&lang=${lang}`
+      `${API_ENDPOINTS.PUBLIC_HOME.GET_LATEST_TOURS(limit)}&lang=${lang}`,
     );
     return extractItems<LatestTour>(response.data);
   },
 
   getTrendingDestinations: async (limit = 6) => {
     const response = await api.get<TrendingDestinationResponse>(
-      API_ENDPOINTS.PUBLIC_HOME.GET_TRENDING_DESTINATIONS(limit)
+      API_ENDPOINTS.PUBLIC_HOME.GET_TRENDING_DESTINATIONS(limit),
     );
     return extractItems<TrendingDestination>(response.data);
   },
 
   getTopAttractions: async (limit = 8) => {
     const response = await api.get<TopAttractionResponse>(
-      API_ENDPOINTS.PUBLIC_HOME.GET_TOP_ATTRACTIONS(limit)
+      API_ENDPOINTS.PUBLIC_HOME.GET_TOP_ATTRACTIONS(limit),
     );
     return extractItems<TopAttraction>(response.data);
   },
 
   getHomeStats: async () => {
     const response = await api.get<HomeStatsResponse>(
-      API_ENDPOINTS.PUBLIC_HOME.GET_HOME_STATS
+      API_ENDPOINTS.PUBLIC_HOME.GET_HOME_STATS,
     );
     return extractResult<HomeStats>(response.data);
   },
 
   getTopReviews: async (limit = 6) => {
     const response = await api.get<TopReviewResponse>(
-      API_ENDPOINTS.PUBLIC_HOME.GET_TOP_REVIEWS(limit)
+      API_ENDPOINTS.PUBLIC_HOME.GET_TOP_REVIEWS(limit),
     );
     return extractItems<TopReview>(response.data);
   },
@@ -115,16 +118,18 @@ export const homeService = {
     pageSize?: number;
     language?: string;
   }) => {
-    const lang = params?.language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
+    const lang =
+      params?.language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
     const response = await api.get<SearchTourResponse>(
-      `${API_ENDPOINTS.PUBLIC_HOME.SEARCH_TOURS(params)}&lang=${lang}`
+      `${API_ENDPOINTS.PUBLIC_HOME.SEARCH_TOURS(params)}&lang=${lang}`,
     );
-    return extractResult<{ total: number; data: SearchTour[] }>(response.data);
+    const result = extractResult<SearchTourResponse["data"]>(response.data);
+    return result ? { total: result.total, data: result.items } : null;
   },
 
   getDestinations: async () => {
     const response = await api.get<ApiResponse<string[]>>(
-      API_ENDPOINTS.PUBLIC_HOME.GET_DESTINATIONS
+      API_ENDPOINTS.PUBLIC_HOME.GET_DESTINATIONS,
     );
     return extractItems<string>(response.data);
   },
@@ -145,8 +150,12 @@ export const homeService = {
 
     const response = await api.get<
       ApiResponse<PaginatedResponse<TourInstanceVm>>
-    >(`${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_AVAILABLE}?${params.toString()}&lang=${lang}`);
-    const result = extractResult<PaginatedResponse<TourInstanceVm>>(response.data);
+    >(
+      `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_AVAILABLE}?${params.toString()}&lang=${lang}`,
+    );
+    const result = extractResult<PaginatedResponse<TourInstanceVm>>(
+      response.data,
+    );
     if (!result) {
       return null;
     }
@@ -160,7 +169,7 @@ export const homeService = {
   getPublicInstanceDetail: async (id: string, language?: string) => {
     const lang = language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
     const response = await api.get<ApiResponse<TourInstanceDto>>(
-      `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_DETAIL(id)}?lang=${lang}`
+      `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_DETAIL(id)}?lang=${lang}`,
     );
     const result = extractResult<TourInstanceDto>(response.data);
     return result ? normalizePublicInstanceDetail(result) : null;

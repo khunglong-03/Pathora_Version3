@@ -258,7 +258,7 @@ export const TourDiscoveryPage = () => {
     <>
       <LandingHeader />
 
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-[#F8F8F6]">
         <HeroSection />
 
         <SearchBar
@@ -282,7 +282,7 @@ export const TourDiscoveryPage = () => {
             {/* Main Content */}
             <div className="flex-1 min-w-0">
               {/* Toolbar: view toggle + sort + results count */}
-              <div className="mb-6 flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-6 flex flex-col gap-4 rounded-[1.5rem] bg-white/70 backdrop-blur-xl border border-white/20 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:flex-row sm:items-center sm:justify-between">
                 {/* Left: view toggle + count */}
                 <div className="flex flex-wrap items-center gap-3">
                   {/* View type toggle */}
@@ -291,10 +291,10 @@ export const TourDiscoveryPage = () => {
                       type="button"
                       onClick={() => handleViewTypeChange("tours")}
                       aria-pressed={viewType === "tours"}
-                      className={`rounded-full px-5 py-2 text-sm font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
+                      className={`rounded-full px-5 py-2 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
                         viewType === "tours"
-                          ? "bg-[#1a1a2e] text-white"
-                          : "bg-transparent text-slate-500 hover:text-slate-700"
+                          ? "bg-slate-900 text-white shadow-sm"
+                          : "bg-transparent text-slate-500 hover:text-slate-900"
                       }`}
                     >
                       {safeT("landing.tourDiscovery.viewType.tour", "By Tour")}
@@ -303,10 +303,10 @@ export const TourDiscoveryPage = () => {
                       type="button"
                       onClick={() => handleViewTypeChange("instances")}
                       aria-pressed={viewType === "instances"}
-                      className={`rounded-full px-5 py-2 text-sm font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
+                      className={`rounded-full px-5 py-2 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
                         viewType === "instances"
-                          ? "bg-[#1a1a2e] text-white"
-                          : "bg-transparent text-slate-500 hover:text-slate-700"
+                          ? "bg-slate-900 text-white shadow-sm"
+                          : "bg-transparent text-slate-500 hover:text-slate-900"
                       }`}
                     >
                       {safeT("landing.tourDiscovery.viewType.tourInstance", "By Departure")}
@@ -335,7 +335,7 @@ export const TourDiscoveryPage = () => {
                       id="sort-select"
                       value={sortBy}
                       onChange={(e) => handleSortChange(e.target.value)}
-                      className="appearance-none bg-white border border-slate-100 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#fa8b02]/20 focus:border-[#fa8b02] cursor-pointer shadow-[var(--shadow-card)]"
+                      className="appearance-none bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-[1rem] px-5 py-2.5 pr-10 text-sm font-semibold text-landing-heading focus:outline-none focus:ring-2 focus:ring-[#fa8b02]/20 focus:border-[#fa8b02] cursor-pointer shadow-sm hover:bg-white transition-colors"
                       aria-label={safeT("landing.tourDiscovery.sortAria", "Sort tour results")}
                     >
                       <option value="recommended">{safeT("landing.tourDiscovery.sort.recommended", "Recommended")}</option>

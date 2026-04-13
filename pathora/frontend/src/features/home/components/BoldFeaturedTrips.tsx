@@ -16,7 +16,7 @@ type FeaturedTile = {
   size: "large" | "medium" | "wide";
 };
 
-const fallbackImage = "";
+import { getFallbackImage } from "@/utils/imageFallback";
 
 const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
   tours.map((tour, index) => ({
@@ -25,7 +25,7 @@ const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
     duration: `${tour.durationDays} ${tour.durationDays > 1 ? "days" : "day"}`,
     price: `$${tour.basePrice.toLocaleString()}`,
     rating: Number((tour.rating ?? 4.8).toFixed(1)),
-    image: tour.thumbnail || fallbackImage,
+    image: tour.thumbnail || getFallbackImage(index),
     size: index === 0 ? "large" : index === 3 ? "wide" : "medium",
   }));
 

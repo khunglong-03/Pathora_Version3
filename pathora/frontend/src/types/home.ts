@@ -73,6 +73,10 @@ export type TopAttractionResponse = ApiResponse<TopAttraction[]>;
 export type HomeStatsResponse = ApiResponse<HomeStats>;
 export type TopReviewResponse = ApiResponse<TopReview[]>;
 export type SearchTourResponse = ApiResponse<{
+  items: SearchTour[];
+  pageNumber: number;
+  totalPages: number;
   total: number;
-  data: SearchTour[];
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }>;

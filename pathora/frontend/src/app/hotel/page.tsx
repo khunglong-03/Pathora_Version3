@@ -49,16 +49,17 @@ const STATUS_CONFIG: Record<GuestStayStatus, { label: string; color: string; bg:
 };
 
 // --- Framer Motion Config ---
-const variants = {
-  container: { animate: { transition: { staggerChildren: 0.08 } } } as Variants,
-  item: {
-    initial: { opacity: 0, y: 20 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 300, damping: 28 },
-    },
-  } as Variants,
+const containerVariants: Variants = {
+  animate: { transition: { staggerChildren: 0.08 } }
+};
+
+const itemVariants: Variants = {
+  initial: { opacity: 0, y: 20 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 28 },
+  },
 };
 
 // --- Sub-components ---
@@ -96,7 +97,7 @@ function PulseDot({ color }: { color: string }) {
 function StatCard({ label, value, icon: Icon, color, bg, span = 1 }: any) {
   return (
     <motion.div
-      variants={variants.item}
+      variants={itemVariants}
       whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 30 } }}
       style={{
         gridColumn: `span ${span}`,
@@ -142,7 +143,7 @@ function OccupancyHeroCard({ total, available }: { total: number; available: num
 
   return (
     <motion.div
-      variants={variants.item}
+      variants={itemVariants}
       style={{
         gridColumn: "span 2",
         backgroundColor: T.cardBg,
@@ -332,7 +333,7 @@ export default function HotelDashboardPage() {
 
         {/* Main Dashboard Content */}
         {!isLoading && !error && (
-          <motion.div variants={variants.container} initial="initial" animate="animate" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <motion.div variants={containerVariants} initial="initial" animate="animate" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             
             {/* Upper Grid (4 Columns) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
@@ -356,7 +357,7 @@ export default function HotelDashboardPage() {
 
             {/* Lower Grid (Arrivals Table) */}
             <motion.div
-              variants={variants.item}
+              variants={itemVariants}
               style={{
                 backgroundColor: T.cardBg,
                 borderRadius: T.radius,

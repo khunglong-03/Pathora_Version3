@@ -105,21 +105,20 @@ const FilterCheckboxList = ({
         key={option.value}
         className="flex items-center gap-3 cursor-pointer py-1 text-sm text-slate-600 hover:text-slate-900 transition-colors"
       >
-        {/* Radio-style circle selector with teal active state */}
         <div
           role="checkbox"
           aria-checked={selected.includes(option.value)}
           tabIndex={0}
           onClick={() => onToggle(option.value)}
           onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onToggle(option.value); } }}
-          className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors duration-200 flex-shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d9488] ${
+          className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors duration-200 flex-shrink-0 flex items-center justify-center focus-visible:outline-none focus:ring-2 focus:ring-[#fa8b02]/50 ${
             selected.includes(option.value)
-              ? "border-teal-600 bg-teal-600"
-              : "border-slate-300 bg-white hover:border-teal-400"
+              ? "border-[#fa8b02] bg-[#fa8b02]"
+              : "border-slate-300 bg-white hover:border-[#fa8b02]/50"
           }`}
         >
           {selected.includes(option.value) && (
-            <div className="w-1.5 h-1.5 rounded-full bg-white" />
+            <div className="w-1.5 h-1.5 rounded-full bg-white transition-all scale-100" />
           )}
         </div>
         <span>{getLabel(option.labelKey, option.fallback)}</span>
@@ -149,16 +148,16 @@ export const FilterSidebar = ({
 
   return (
     <aside className="w-full lg:w-[280px] shrink-0">
-      <div className="bg-white rounded-xl p-5 sticky top-24 shadow-[var(--shadow-card)]">
+      <div className="bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2rem] p-6 sticky top-24 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         {/* Filter Header */}
         <div className="flex items-center justify-between gap-2 pb-4 mb-4">
           <div className="flex items-center gap-2">
-            <Icon icon="lucide:sliders-horizontal" className="w-4 h-4 text-slate-900" />
-            <span className="text-sm font-semibold text-slate-900">
+            <Icon icon="lucide:sliders-horizontal" className="w-4 h-4 text-landing-heading" />
+            <span className="text-sm font-semibold text-landing-heading">
               {safeT("landing.tourDiscovery.filter", "Filters")}
             </span>
             {hasActiveFilters && (
-              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-teal-100 text-teal-700 rounded-full">
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-[#fa8b02]/10 text-[#fa8b02] rounded-full">
                 {selectedClassifications.length}
               </span>
             )}
@@ -192,10 +191,7 @@ export const FilterSidebar = ({
         )}
 
         {/* Classification Filter */}
-        <FilterSection title={safeT("landing.tourDiscovery.classification", "Classification").toUpperCase()}>
-          <div className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2 pb-1 border-b border-slate-100">
-            {safeT("landing.tourDiscovery.classification", "Classification")}
-          </div>
+        <FilterSection title={safeT("landing.tourDiscovery.classifications", "Classifications").toUpperCase()}>
           <FilterCheckboxList
             options={CLASSIFICATION_OPTIONS}
             selected={selectedClassifications}

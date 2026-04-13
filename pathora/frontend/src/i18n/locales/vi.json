@@ -1459,6 +1459,91 @@
     "sidebar": {
       "tourDiscovery": "Khám phá Tour"
     },
+    "tourDiscovery": {
+      "viewSwitchLabel": "Chọn chế độ xem",
+      "viewType": {
+        "tour": "Theo Tour",
+        "tourInstance": "Theo Lịch trình"
+      },
+      "toursFound": "tour được tìm thấy",
+      "departuresFound": "lịch trình được tìm thấy",
+      "sortBy": "Sắp xếp theo",
+      "sortAria": "Sắp xếp kết quả tour",
+      "sort": {
+        "recommended": "Đề xuất",
+        "price-low": "Giá: Thấp đến Cao",
+        "price-high": "Giá: Cao đến Thấp",
+        "duration-short": "Thời gian: Ngắn nhất",
+        "duration-long": "Thời gian: Dài nhất"
+      },
+      "loadingAria": "Đang tải kết quả",
+      "errorLoading": "Không thể tải danh sách tour",
+      "errorLoadingInstances": "Không thể tải danh sách lịch trình",
+      "retry": "Thử lại",
+      "resultsRegion": "Kết quả tìm kiếm",
+      "noToursFound": "Không tìm thấy tour nào",
+      "tryAdjustingFilters": "Vui lòng thử điều chỉnh bộ lọc của bạn",
+      "emptyStats": "Hơn 2,000+ tour đang chờ bạn",
+      "browseAllTours": "Xem tất cả Tour",
+      "exploreDestinations": "Khám phá Điểm đến",
+      "noDeparturesFound": "Không tìm thấy lịch trình",
+      "noInstancesDescription": "Không có lịch trình khởi hành nào phù hợp với bộ lọc.",
+      "paginationAria": "Phân trang",
+      "prevPageAria": "Trang trước",
+      "pageOf": "Trang {{current}} / {{total}}",
+      "nextPageAria": "Trang tiếp",
+      "bookNow": "Đặt ngay",
+      "searchPlaceholder": "Tìm kiếm điểm đến...",
+      "filter": "Bộ lọc",
+      "clearAll": "Xóa bộ lọc",
+      "apply": "Áp dụng",
+      "classifications": "Hạng Tour",
+      "days": "Ngày"
+    },
+    "footer": {
+      "speakToExpert": "Liên hệ chuyên gia",
+      "followUs": "Theo dõi",
+      "contactNested": {
+        "title": "Liên hệ",
+        "address": "Tòa nhà Pathora, 123 Đường Ethereal, Wonderland"
+      },
+      "company": {
+        "title": "Công ty"
+      },
+      "support": {
+        "title": "Hỗ trợ"
+      },
+      "newsletterNested": {
+        "title": "Bản tin",
+        "description": "Đăng ký để nhận tin tức và ưu đãi độc quyền.",
+        "placeholder": "Nhập địa chỉ email",
+        "send": "Gửi"
+      },
+      "mobileApps": {
+        "title": "Tải Ứng Dụng",
+        "ios": "App Store",
+        "android": "Google Play"
+      },
+      "copyright": "© {{year}} Pathora. Đã đăng ký bản quyền.",
+      "links": {
+        "company": {
+          "aboutUs": "Về chúng tôi",
+          "reviews": "Đánh giá",
+          "contactUs": "Liên hệ",
+          "travelGuides": "Cẩm nang du lịch",
+          "dataPolicy": "Chính sách dữ liệu",
+          "cookiePolicy": "Chính sách cookie",
+          "legal": "Pháp lý",
+          "sitemap": "Sơ đồ trang"
+        },
+        "support": {
+          "getInTouch": "Liên hệ",
+          "helpCenter": "Trung tâm hỗ trợ",
+          "liveChat": "Trò chuyện trực tuyến",
+          "howItWorks": "Cách hoạt động"
+        }
+      }
+    },
     "a11y": {
       "closeMenu": "Đóng menu",
       "changeLanguage": "Đổi ngôn ngữ"

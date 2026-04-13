@@ -1459,6 +1459,91 @@
     "sidebar": {
       "tourDiscovery": "Tour Discovery"
     },
+    "tourDiscovery": {
+      "viewSwitchLabel": "Choose viewing mode",
+      "viewType": {
+        "tour": "By Tour",
+        "tourInstance": "By Departure"
+      },
+      "toursFound": "tours found",
+      "departuresFound": "departures found",
+      "sortBy": "Sort by",
+      "sortAria": "Sort tour results",
+      "sort": {
+        "recommended": "Recommended",
+        "price-low": "Price: Low to High",
+        "price-high": "Price: High to Low",
+        "duration-short": "Duration: Shortest",
+        "duration-long": "Duration: Longest"
+      },
+      "loadingAria": "Loading tour results",
+      "errorLoading": "Failed to load tours",
+      "errorLoadingInstances": "Failed to load departures",
+      "retry": "Retry",
+      "resultsRegion": "Search Results",
+      "noToursFound": "No tours found",
+      "tryAdjustingFilters": "Try adjusting your filters",
+      "emptyStats": "Over 2,000+ tours are waiting",
+      "browseAllTours": "Browse All Tours",
+      "exploreDestinations": "Explore Destinations",
+      "noDeparturesFound": "No departures found",
+      "noInstancesDescription": "There are no upcoming departures matching your criteria.",
+      "paginationAria": "Pagination",
+      "prevPageAria": "Previous Page",
+      "pageOf": "Page {{current}} of {{total}}",
+      "nextPageAria": "Next Page",
+      "bookNow": "Book Now",
+      "searchPlaceholder": "Search destinations...",
+      "filter": "Filter",
+      "clearAll": "Clear All",
+      "apply": "Apply",
+      "classifications": "Classifications",
+      "days": "Days"
+    },
+    "footer": {
+      "speakToExpert": "Speak to our expert at",
+      "followUs": "Follow Us",
+      "contactNested": {
+        "title": "Contact",
+        "address": "Pathora Tower, 123 Ethereal Way, Wonderland"
+      },
+      "company": {
+        "title": "Company"
+      },
+      "support": {
+        "title": "Support"
+      },
+      "newsletterNested": {
+        "title": "Newsletter",
+        "description": "Subscribe to our exclusive news and offers.",
+        "placeholder": "Enter your email address",
+        "send": "Send"
+      },
+      "mobileApps": {
+        "title": "Get The App",
+        "ios": "App Store",
+        "android": "Google Play"
+      },
+      "copyright": "© {{year}} Pathora. All rights reserved.",
+      "links": {
+        "company": {
+          "aboutUs": "About Us",
+          "reviews": "Reviews",
+          "contactUs": "Contact Us",
+          "travelGuides": "Travel Guides",
+          "dataPolicy": "Data Policy",
+          "cookiePolicy": "Cookie Policy",
+          "legal": "Legal",
+          "sitemap": "Sitemap"
+        },
+        "support": {
+          "getInTouch": "Get In Touch",
+          "helpCenter": "Help Center",
+          "liveChat": "Live Chat",
+          "howItWorks": "How It Works"
+        }
+      }
+    },
     "a11y": {
       "closeMenu": "Close menu",
       "changeLanguage": "Change language"
