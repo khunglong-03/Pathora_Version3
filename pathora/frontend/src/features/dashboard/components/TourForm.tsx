@@ -1072,10 +1072,12 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     if (step === 3) {
       // Step 3 = Services (was step 6)
       services.forEach((svc, i) => {
-        if (!svc.serviceName.trim())
-          newErrors[`svc_${i}_name`] = t("tourAdmin.required", "Required");
-        if (!svc.pricingType.trim())
-          newErrors[`svc_${i}_pricingType`] = t("tourAdmin.required", "Required");
+        if (svc.serviceName.trim() || svc.pricingType.trim() || svc.price.trim()) {
+          if (!svc.serviceName.trim())
+            newErrors[`svc_${i}_name`] = t("tourAdmin.required", "Required");
+          if (!svc.pricingType.trim())
+            newErrors[`svc_${i}_pricingType`] = t("tourAdmin.required", "Required");
+        }
       });
     }
 

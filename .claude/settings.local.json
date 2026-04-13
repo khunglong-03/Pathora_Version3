@@ -1,42 +1,9 @@
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
   "permissions": {
     "allow": [
-      "Bash(python3 -c \"import json; json.load\\(open\\(''/Users/namhai/Desktop/Pathora_Version3/.claude/settings.json''\\)\\)\")",
-      "Bash(python -c \"import json; json.load\\(open\\(''/Users/namhai/Desktop/Pathora_Version3/.claude/settings.json''\\)\\)\")",
-      "mcp__plugin_everything-claude-code_github__get_file_contents",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(npx gitnexus@latest list)",
-      "Bash(npx gitnexus@latest analyze)",
-      "Bash(git -C \"/Users/namhai/Desktop/Pathora_Version3/panthora_be\" rev-parse --git-dir)",
-      "Bash(git -C \"/Users/namhai/Desktop/Pathora_Version3/pathora\" rev-parse --git-dir)",
-      "Bash(npx gitnexus@latest analyze --force)",
-      "Bash(node \"/Users/namhai/Desktop/Pathora_Version3/GitNexus/gitnexus/dist/cli/index.js\" status)",
-      "Bash(node:*)",
-      "Bash(echo \"Exit: $?\")",
-      "Bash(chmod:*)",
-      "mcp__gitnexus__query",
-      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}')",
-      "Bash(curl -s -X POST http://localhost:5182/api/auth/dev-reset-all-passwords -H 'Content-Type: application/json' -H 'X-Dev-Api-Key: dev-key-123' -d '{\"newPassword\": \"thehieu03\"}' -v)",
-      "Bash(dir \"d:\\\\Doan2\\\\pathora\\\\frontend\\\\src\\\\app\\\\manager\")",
-      "Bash(grep -E \"page\\\\.tsx$|^page\\\\.tsx$\")",
-      "Bash(grep \"page.tsx$\")",
-      "Bash(dotnet build:*)",
-      "Bash(xargs grep:*)",
-      "Bash(npx openspec:*)",
-      "Bash(openspec --version)",
-      "Bash(openspec status:*)",
-      "Bash(openspec --help)",
-      "Bash(openspec new:*)",
-      "Bash(openspec instructions:*)",
-      "mcp__gitnexus__impact",
-      "mcp__gitnexus__context",
-      "Bash(taskkill /F /PID 28104)",
-      "Bash(dotnet test:*)",
-      "Bash(dotnet ef:*)",
-      "Bash(git:*)"
+      "Bash(git checkout:*)",
+      "mcp__gitnexus__list_repos",
+      "Bash(awk 'BEGIN {skip=0} /<!-- gitnexus:start -->/ {skip=1; next} /<!-- gitnexus:end -->/ {skip=0; next} !skip' AGENTS.md)"
     ]
   }
 }

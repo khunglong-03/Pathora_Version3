@@ -38,10 +38,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var designer = CreateTourDesignerUser(designerId, "designer@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(designerId).Returns(designer);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { designer });
         _roleRepository.FindByUserId(designerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "TourDesigner" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { designerId, new List<RoleEntity> { new() { Name = "TourDesigner" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -68,10 +72,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var guide = CreateTourGuideUser(guideId, "guide@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(guideId).Returns(guide);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(guideId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { guide });
         _roleRepository.FindByUserId(guideId.ToString()).Returns(new List<RoleEntity> { new() { Name = "TourGuide" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(guideId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { guideId, new List<RoleEntity> { new() { Name = "TourGuide" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -98,9 +106,12 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var tourInstance = CreateTourInstance(tourId);
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _tourInstanceRepository.FindById(tourId, true).Returns(tourInstance);
+        _tourInstanceRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(tourId)), Arg.Any<CancellationToken>()).Returns(new List<TourInstanceEntity> { tourInstance });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -130,10 +141,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
             managerId, AssignedEntityType.TourDesigner, designerId, null, null, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity> { existingAssignment });
         _userRepository.FindById(designerId).Returns(designer);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { designer });
         _roleRepository.FindByUserId(designerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "TourDesigner" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { designerId, new List<RoleEntity> { new() { Name = "TourDesigner" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -158,10 +173,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
             managerId, AssignedEntityType.TourDesigner, designerId, null, null, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity> { existingAssignment });
         _userRepository.FindById(designerId).Returns(designer);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { designer });
         _roleRepository.FindByUserId(designerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "TourDesigner" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(designerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { designerId, new List<RoleEntity> { new() { Name = "TourDesigner" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -182,9 +201,12 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var manager = CreateManagerUser(managerId, "manager@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(nonexistentId).Returns((UserEntity?)null);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(nonexistentId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity>());
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -204,6 +226,7 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var managerId = Guid.NewGuid();
 
         _userRepository.FindById(managerId).Returns((UserEntity?)null);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity>());
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -226,10 +249,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var anotherManager = CreateManagerUser(anotherManagerId, "another@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(anotherManagerId).Returns(anotherManager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(anotherManagerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { anotherManager });
         _roleRepository.FindByUserId(anotherManagerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(anotherManagerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { anotherManagerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -250,7 +277,9 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var manager = CreateManagerUser(managerId, "manager@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
@@ -274,10 +303,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var customer = new UserEntity { Id = customerId, Email = "customer@example.com", Username = "customer" };
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(customerId).Returns(customer);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(customerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { customer });
         _roleRepository.FindByUserId(customerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Customer" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(customerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { customerId, new List<RoleEntity> { new() { Name = "Customer" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -300,10 +333,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var otherManager = CreateManagerUser(otherManagerId, "manager2@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _userRepository.FindById(otherManagerId).Returns(otherManager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(otherManagerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { otherManager });
         _roleRepository.FindByUserId(otherManagerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(otherManagerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { otherManagerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -335,7 +372,9 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var manager = CreateManagerUser(managerId, "manager@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>());
 
@@ -353,7 +392,9 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var manager = CreateManagerUser(managerId, "manager@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Admin" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Admin" } } } });
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {
@@ -375,9 +416,12 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         var manager = CreateManagerUser(managerId, "manager@example.com");
 
         _userRepository.FindById(managerId).Returns(manager);
+        _userRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new List<UserEntity> { manager });
         _roleRepository.FindByUserId(managerId.ToString()).Returns(new List<RoleEntity> { new() { Name = "Manager" } });
+        _roleRepository.FindByUserIds(Arg.Is<List<Guid>>(l => l.Contains(managerId)), Arg.Any<CancellationToken>()).Returns(new Dictionary<Guid, List<RoleEntity>> { { managerId, new List<RoleEntity> { new() { Name = "Manager" } } } });
         _repository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>()).Returns(new List<TourManagerAssignmentEntity>());
         _tourInstanceRepository.FindById(tourId, true).Returns((TourInstanceEntity?)null);
+        _tourInstanceRepository.FindByIds(Arg.Is<List<Guid>>(l => l.Contains(tourId)), Arg.Any<CancellationToken>()).Returns(new List<TourInstanceEntity>());
 
         var command = new AssignTourManagerTeamCommand(managerId.ToString(), new List<AssignmentItem>
         {

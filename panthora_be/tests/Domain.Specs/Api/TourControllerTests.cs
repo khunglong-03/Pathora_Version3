@@ -94,7 +94,7 @@ public sealed class TourControllerTests
     }
 
     [Fact]
-    public async Task GetAll_WhenQuerySucceeds_ShouldReturnOkAndPayload()
+    public async Task GetMyTours_WhenQuerySucceeds_ShouldReturnOkAndPayload()
     {
         var tours = new List<TourVm>
         {
@@ -109,17 +109,17 @@ public sealed class TourControllerTests
         };
         var response = new PaginatedList<TourVm>(tours.Count, tours, 1, 10);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<TourController, GetAllToursQuery, PaginatedList<TourVm>>(
+            .BuildController<TourController, GetMyToursQuery, PaginatedList<TourVm>>(
                 response, "/api/tour", StubFileService(), StubFileManager());
 
-        var actionResult = await controller.GetAll(searchText: "Đà Nẵng", pageNumber: 2, pageSize: 5);
+        var actionResult = await controller.GetMyTours(searchText: "Đà Nẵng", status: null, pageNumber: 2, pageSize: 5);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
             expectedInstance: "/api/tour",
             expectedData: response);
-        Assert.Equal(new GetAllToursQuery("Đà Nẵng", 2, 5), probe.CapturedRequest);
+        Assert.Equal(new GetMyToursQuery("Đà Nẵng", null, 2, 5), probe.CapturedRequest);
     }
 
     [Fact]

@@ -11,7 +11,7 @@ Instructional context for Gemini CLI in the `Pathora_Version3` workspace.
 ### Core Technologies
 - **Frontend:** Next.js 16 (App Router, React 18.3.1), Tailwind CSS v4, Redux Toolkit + RTK Query, Axios, Vitest, Playwright.
 - **Backend:** .NET 10, Clean Architecture, CQRS (MediatR), EF Core, FluentValidation, `ErrorOr<T>`, xUnit.
-- **Code Intelligence:** GitNexus (Graph-based symbol indexing and impact analysis).
+
 - **Change Management:** OpenSpec (Structured tracking of features, tasks, and decisions).
 - **Infrastructure:** Docker (PostgreSQL, Redis, MinIO, Portainer).
 
@@ -46,13 +46,6 @@ Instructional context for Gemini CLI in the `Pathora_Version3` workspace.
 | **Run Tests** | `dotnet test "panthora_be/LocalService.slnx"` |
 | **Format** | `dotnet format "panthora_be/LocalService.slnx"` |
 
-### GitNexus (Code Intel)
-| Action | Command |
-| :--- | :--- |
-| **Status** | `npm --prefix "panthora_be" run gitnexus:status` |
-| **Analyze/Re-index**| `npm --prefix "panthora_be" run gitnexus:analyze` |
-| **CI Check** | `npm --prefix "panthora_be" run gitnexus:check` |
-
 ---
 
 ## Development Conventions
@@ -74,15 +67,11 @@ Instructional context for Gemini CLI in the `Pathora_Version3` workspace.
 - **Error Handling:** Use `ErrorOr<T>` for business logic failures; avoid throwing exceptions for expected cases.
 - **Standards:** File-scoped namespaces, nullable enabled, primary constructors, `sealed` classes.
 
-### GitNexus Workflow
-- **Impact Analysis:** Always run `gitnexus_impact` before modifying shared symbols to check the "blast radius."
-- **Change Detection:** Run `gitnexus_detect_changes` before committing to verify the scope of modifications.
-
 ---
 
 ## Troubleshooting & Resources
 
-- **Stale Index:** If GitNexus symbols are missing/outdated, run `npm --prefix "panthora_be" run gitnexus:analyze`.
+
 - **Port Conflict:** Frontend defaults to **3003**. Backend API typically runs on **5182**.
 - **Change Logs:** Check `openspec/changes/` for the history and status of specific features.
 - **Agent Rules:** Detailed coding standards are in `.claude/rules/` and `CLAUDE.md`.

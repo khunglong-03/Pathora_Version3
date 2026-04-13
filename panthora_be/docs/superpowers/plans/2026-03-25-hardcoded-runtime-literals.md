@@ -6,7 +6,7 @@
 
 **Architecture:** Reuse the repository's current constants pattern: all FluentValidation text goes through `Application.Common.Constant.ValidationMessages`, and all business error codes/descriptions go through `Application.Common.Constant.ErrorConstants`. Execute in small TDD batches so each validator or service keeps the same behavior while replacing inline literals with centralized constants.
 
-**Tech Stack:** .NET 10, xUnit, FluentValidation, FluentValidation.TestHelper, ErrorOr, GitNexus impact analysis
+**Tech Stack:** .NET 10, xUnit, FluentValidation, FluentValidation.TestHelper, ErrorOr, Impact analysis
 
 ---
 

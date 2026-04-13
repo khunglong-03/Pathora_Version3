@@ -24,7 +24,7 @@ public interface ITourService
     Task<ErrorOr<Success>> Update(UpdateTourCommand request, bool isManager);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> UpdateStatus(Guid id, TourStatus status);
-    Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request);
+    Task<ErrorOr<PaginatedList<TourVm>>> GetMyTours(GetMyToursQuery request);
     Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request);
     Task<ErrorOr<TourDto>> GetDetail(Guid id);
     Task<ErrorOr<TourDto>> ReviewTour(Guid tourId, TourReviewAction action, string? reason);
@@ -670,7 +670,7 @@ public class TourService(
         }
     }
 
-    public async Task<ErrorOr<PaginatedList<TourVm>>> GetAll(GetAllToursQuery request)
+    public async Task<ErrorOr<PaginatedList<TourVm>>> GetMyTours(GetMyToursQuery request)
     {
         var userIdString = _user.Id;
         if (string.IsNullOrWhiteSpace(userIdString) || !Guid.TryParse(userIdString, out var userId))
@@ -678,8 +678,8 @@ public class TourService(
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
         }
 
-        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize, principalId: userId);
-        var total = await _tourRepository.CountAll(request.SearchText, principalId: userId);
+        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize, principalId: userId, status: request.Status);
+        var total = await _tourRepository.CountAll(request.SearchText, principalId: userId, status: request.Status);
         var currentLanguage = _languageContext.CurrentLanguage;
 
         var tourVms = tours.Select(t =>

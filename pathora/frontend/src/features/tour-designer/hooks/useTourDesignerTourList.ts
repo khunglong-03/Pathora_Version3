@@ -48,7 +48,7 @@ export function useTourDesignerTourList(
         setErrorMessage(null);
         const effectiveStatus =
           statusFilter === "all" ? undefined : statusFilter;
-        const result = await tourService.getAllToursAdmin(
+        const result = await tourService.getMyTours(
           searchText || undefined,
           effectiveStatus,
           pageNumber,

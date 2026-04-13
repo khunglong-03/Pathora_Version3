@@ -69,7 +69,7 @@ export const tourService = {
     };
   },
 
-  getAllToursAdmin: async (
+  getMyTours: async (
     searchText?: string,
     status?: string,
     pageNumber = 1,
@@ -83,15 +83,15 @@ export const tourService = {
     if (status && status !== "all") {
       params.append("status", status);
     }
-    // Backend returns { data: { data: TourVm[], total: number }, ... }
-    type AdminTourPage = { data: TourVm[]; total: number };
-    const response = await api.get<ApiResponse<AdminTourPage>>(
-      `${API_ENDPOINTS.TOUR.GET_ALL_ADMIN}?${params.toString()}`,
+    // Backend returns PaginatedList<T> mapped as { items: TourVm[], total: number } or { data: ..., totalCount: ... }
+    type MyTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
+    const response = await api.get<ApiResponse<MyTourPage>>(
+      `${API_ENDPOINTS.TOUR.GET_MY_TOURS}?${params.toString()}`,
     );
-    const result = extractResult<AdminTourPage>(response.data);
+    const result = extractResult<MyTourPage>(response.data);
     return {
-      total: result?.total ?? 0,
-      data: result?.data ?? [],
+      total: result?.total ?? result?.totalCount ?? 0,
+      data: result?.items ?? result?.data ?? [],
     };
   },
 
@@ -109,14 +109,14 @@ export const tourService = {
     if (status && status !== "all") {
       params.append("status", status);
     }
-    type AdminTourPage = { data: TourVm[]; total: number };
+    type AdminTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
     const response = await api.get<ApiResponse<AdminTourPage>>(
       `${API_ENDPOINTS.TOUR.GET_ALL_ADMIN_TOUR_MANAGEMENT}?${params.toString()}`,
     );
     const result = extractResult<AdminTourPage>(response.data);
     return {
-      total: result?.total ?? 0,
-      data: result?.data ?? [],
+      total: result?.total ?? result?.totalCount ?? 0,
+      data: result?.items ?? result?.data ?? [],
     };
   },
 

@@ -63,7 +63,6 @@ cookies.txt
 delete_corrupted_analyzers.ps1
 download_serilog.ps1
 dir_root.js
-.gitnexus
 openspec/
 .agent/
 .agents/
@@ -126,3 +125,4 @@ docker-compose.override.yml
 # NDepend
 ndepend.out
 ndepend.xml
+.gitnexus

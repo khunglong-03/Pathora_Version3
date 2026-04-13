@@ -53,12 +53,13 @@ public class TourController(
     };
 
     [HttpGet]
-    public async Task<IActionResult> GetAll(
+    public async Task<IActionResult> GetMyTours(
         [FromQuery] string? searchText,
+        [FromQuery] TourStatus? status,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await Sender.Send(new GetAllToursQuery(searchText, pageNumber, pageSize));
+        var result = await Sender.Send(new GetMyToursQuery(searchText, status, pageNumber, pageSize));
         return HandleResult(result);
     }
 

@@ -92,9 +92,15 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .AsSplitQuery();
     }
 
-    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, TourStatus? status = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted && t.Status == TourStatus.Active);
+        var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted);
+
+        if (status.HasValue)
+        {
+            query = query.Where(t => t.Status == status.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var search = searchText.ToLower();
@@ -132,9 +138,15 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, Guid? principalId = null, TourStatus? status = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.Tours.Where(t => !t.IsDeleted && t.Status == TourStatus.Active);
+        var query = _context.Tours.Where(t => !t.IsDeleted);
+
+        if (status.HasValue)
+        {
+            query = query.Where(t => t.Status == status.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var search = searchText.ToLower();
