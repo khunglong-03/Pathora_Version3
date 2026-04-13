@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize(Policy = "TourAdminOnly")]
+[Authorize(Policy = "TransportProviderOnly")]
 public class TourTransportController : BaseApiController
 {
     [HttpPut(TourTransportAssignmentEndpoint.Assign)]

@@ -50,7 +50,8 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
             request.MinDays,
             request.MaxDays,
             request.Page,
-            request.PageSize);
+            request.PageSize,
+            cancellationToken);
 
         var total = await _tourRepository.CountSearchTours(
             request.Q,
@@ -61,7 +62,8 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
             request.MinPrice,
             request.MaxPrice,
             request.MinDays,
-            request.MaxDays);
+            request.MaxDays,
+            cancellationToken);
 
         foreach (var tour in tours)
         {
@@ -76,7 +78,7 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
                 t.TourName,
                 t.Thumbnail?.PublicURL,
                 t.ShortDescription,
-                GetMainLocation(t),
+                GetMainLocation(t, request.ResolvedLanguage),
                 classification?.NumberOfDay ?? 0,
                 classification?.BasePrice ?? 0,
                 classification?.Name,
@@ -86,28 +88,21 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
         return new PaginatedList<SearchTourVm>(total, result, request.Page, request.PageSize);
     }
 
-    private static string? GetMainLocation(TourEntity tour)
+    private static string? GetMainLocation(TourEntity tour, string language)
     {
-        var firstClassification = tour.Classifications.FirstOrDefault();
-        if (firstClassification?.Plans == null || !firstClassification.Plans.Any())
+        var location = tour.PlanLocations.FirstOrDefault();
+        if (location == null)
             return null;
 
-        var firstDay = firstClassification.Plans.FirstOrDefault();
-        if (firstDay?.Activities == null || !firstDay.Activities.Any())
-            return null;
+        if (location.Translations.TryGetValue(language, out var translation)
+            && !string.IsNullOrWhiteSpace(translation.LocationName))
+        {
+            return translation.LocationName;
+        }
 
-        var firstActivity = firstDay.Activities.FirstOrDefault();
-        if (firstActivity?.Routes == null || !firstActivity.Routes.Any())
-            return null;
+        if (!string.IsNullOrWhiteSpace(location.LocationName))
+            return location.LocationName;
 
-        var firstRoute = firstActivity.Routes.FirstOrDefault();
-        if (firstRoute == null)
-            return null;
-
-        var translation = firstRoute.ResolveTranslation("vi");
-        if (!string.IsNullOrWhiteSpace(translation.FromLocationName))
-            return translation.FromLocationName;
-
-        return firstRoute.Note;
+        return location.City;
     }
 }

@@ -25,7 +25,7 @@ public sealed class GetPublicTourDetailQueryHandler(ITourRepository tourReposito
 {
     public async Task<ErrorOr<TourDto>> Handle(GetPublicTourDetailQuery request, CancellationToken cancellationToken)
     {
-        var tour = await tourRepository.FindById(request.Id, asNoTracking: true);
+        var tour = await tourRepository.FindById(request.Id, asNoTracking: true, cancellationToken);
 
         if (tour is null || tour.IsDeleted || tour.Status != TourStatus.Active)
             return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.PublicNotFoundDescription);

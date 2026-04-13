@@ -32,7 +32,7 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
                 description: ErrorConstants.User.InvalidIdDescription);
         }
 
-        var manager = await _userRepository.FindById(managerId);
+        var manager = await _userRepository.FindById(managerId, cancellationToken);
         if (manager == null)
         {
             return Error.NotFound(
@@ -40,7 +40,7 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
                 description: "Tour manager not found.");
         }
 
-        var managerRolesResult = await _roleRepository.FindByUserId(request.ManagerId);
+        var managerRolesResult = await _roleRepository.FindByUserId(request.ManagerId, cancellationToken);
         if (managerRolesResult.IsError)
             return managerRolesResult.Errors;
         var managerRoleNames = managerRolesResult.Value.Select(r => r.Name).ToList();
@@ -73,7 +73,7 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
 
         if (userIds.Count > 0)
         {
-            var usersResult = await _userRepository.FindByIds(userIds);
+            var usersResult = await _userRepository.FindByIds(userIds, cancellationToken);
             var foundIds = usersResult.Select(u => u.Id).ToHashSet();
             var missingId = userIds.FirstOrDefault(id => !foundIds.Contains(id));
             if (missingId != Guid.Empty)
@@ -83,7 +83,7 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
                     description: $"User with ID {missingId} not found.");
             }
 
-            var rolesResult = await _roleRepository.FindByUserIds(userIds);
+            var rolesResult = await _roleRepository.FindByUserIds(userIds, cancellationToken);
             if (rolesResult.IsError)
                 return rolesResult.Errors;
             var managerUsers = rolesResult.Value
@@ -106,7 +106,7 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
 
         if (tourIds.Count > 0)
         {
-            var tours = await _tourInstanceRepository.FindByIds(tourIds);
+            var tours = await _tourInstanceRepository.FindByIds(tourIds, cancellationToken);
             var foundTourIds = tours.Select(t => t.Id).ToHashSet();
             var missingTourId = tourIds.FirstOrDefault(id => !foundTourIds.Contains(id));
             if (missingTourId != Guid.Empty)

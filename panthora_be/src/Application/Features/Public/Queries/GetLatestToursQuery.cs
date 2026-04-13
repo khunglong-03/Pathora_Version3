@@ -24,7 +24,7 @@ public sealed class GetLatestToursQueryHandler(ITourRepository tourRepository)
 
     public async Task<ErrorOr<List<LatestTourVm>>> Handle(GetLatestToursQuery request, CancellationToken cancellationToken)
     {
-        var tours = await _tourRepository.FindLatestTours(request.Limit);
+        var tours = await _tourRepository.FindLatestTours(request.Limit, cancellationToken);
 
         foreach (var tour in tours)
         {

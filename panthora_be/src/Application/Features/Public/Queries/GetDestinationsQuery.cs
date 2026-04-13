@@ -20,7 +20,7 @@ public sealed class GetDestinationsQueryHandler(ITourRepository tourRepository)
 
     public async Task<ErrorOr<List<string>>> Handle(GetDestinationsQuery request, CancellationToken cancellationToken)
     {
-        var destinations = await _tourRepository.GetAllDestinations();
+        var destinations = await _tourRepository.GetAllDestinations(cancellationToken);
         return destinations;
     }
 }

@@ -55,13 +55,16 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
     {
         var totalRevenue = 0m;
 
-        var totalBookings = await _context.Bookings
+        // Single query for both total and cancelled bookings
+        var bookingCounts = await _context.Bookings
             .AsNoTracking()
-            .CountAsync(cancellationToken);
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
 
-        var cancelledBookings = await _context.Bookings
-            .AsNoTracking()
-            .CountAsync(x => x.Status == BookingStatus.Cancelled, cancellationToken);
+        var bookingCountMap = bookingCounts.ToDictionary(x => x.Status, x => x.Count);
+        var totalBookings = bookingCountMap.Values.Sum();
+        var cancelledBookings = bookingCountMap.GetValueOrDefault(BookingStatus.Cancelled);
 
         var activeTours = await _context.TourInstances
             .AsNoTracking()
@@ -75,16 +78,17 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
             .AsNoTracking()
             .CountAsync(x => !x.IsDeleted, cancellationToken);
 
-        var approvedVisaCount = await _context.TourRequests
+        // Single query for tour request status counts
+        var requestCounts = await _context.TourRequests
             .AsNoTracking()
-            .CountAsync(x => x.Status == TourRequestStatus.Approved, cancellationToken);
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
 
-        var finalizedVisaCount = await _context.TourRequests
-            .AsNoTracking()
-            .CountAsync(
-                x => x.Status == TourRequestStatus.Approved
-                    || x.Status == TourRequestStatus.Rejected,
-                cancellationToken);
+        var requestCountMap = requestCounts.ToDictionary(x => x.Status, x => x.Count);
+        var approvedVisaCount = requestCountMap.GetValueOrDefault(TourRequestStatus.Approved);
+        var finalizedVisaCount = approvedVisaCount
+            + requestCountMap.GetValueOrDefault(TourRequestStatus.Rejected);
 
         var cancellationRate = totalBookings == 0
             ? 0m
@@ -330,17 +334,16 @@ public sealed class AdminDashboardRepository(AppDbContext context, IOptions<Admi
 
     private async Task<AdminDashboardVisaSummaryReport> BuildVisaSummary(CancellationToken cancellationToken)
     {
-        var totalApplications = await _context.TourRequests
+        var statusCounts = await _context.TourRequests
             .AsNoTracking()
-            .CountAsync(cancellationToken);
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
 
-        var approved = await _context.TourRequests
-            .AsNoTracking()
-            .CountAsync(x => x.Status == TourRequestStatus.Approved, cancellationToken);
-
-        var rejected = await _context.TourRequests
-            .AsNoTracking()
-            .CountAsync(x => x.Status == TourRequestStatus.Rejected, cancellationToken);
+        var countMap = statusCounts.ToDictionary(x => x.Status, x => x.Count);
+        var totalApplications = countMap.Values.Sum();
+        var approved = countMap.GetValueOrDefault(TourRequestStatus.Approved);
+        var rejected = countMap.GetValueOrDefault(TourRequestStatus.Rejected);
 
         var decided = approved + rejected;
         var approvalRate = decided == 0

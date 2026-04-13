@@ -7,6 +7,7 @@ using Application.Features.HotelRoomInventory.Commands.DeleteHotelRoomInventory;
 using Application.Features.HotelRoomInventory.Commands.UpdateHotelRoomInventory;
 using Application.Features.HotelRoomInventory.DTOs;
 using Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventory;
+using Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventoryById;
 using Application.Features.RoomBlocking.DTOs;
 using Application.Features.RoomBlocking.Queries.GetHotelRoomAvailability;
 using BuildingBlocks.CORS;
@@ -28,6 +29,13 @@ public class HotelRoomInventoryController(ISupplierRepository supplierRepository
         if (supplierIdResult is not null) return supplierIdResult;
 
         var result = await Sender.Send(new GetHotelRoomInventoryQuery(_resolvedSupplierId!.Value));
+        return HandleResult(result);
+    }
+
+    [HttpGet($"{HotelRoomInventoryEndpoint.Base}/{{id:guid}}")]
+    public async Task<IActionResult> GetInventoryById(Guid id)
+    {
+        var result = await Sender.Send(new GetHotelRoomInventoryByIdQuery(id));
         return HandleResult(result);
     }
 

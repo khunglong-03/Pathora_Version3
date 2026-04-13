@@ -33,7 +33,7 @@ public sealed class AssignTourManagerTeamCommandHandler(
                 description: ErrorConstants.User.InvalidIdDescription);
         }
 
-        var manager = await _userRepository.FindById(managerId);
+        var manager = await _userRepository.FindById(managerId, cancellationToken);
         if (manager == null)
         {
             return Error.NotFound(
@@ -41,7 +41,7 @@ public sealed class AssignTourManagerTeamCommandHandler(
                 description: "Tour manager not found.");
         }
 
-        var managerRolesResult = await _roleRepository.FindByUserId(request.TourManagerUserId);
+        var managerRolesResult = await _roleRepository.FindByUserId(request.TourManagerUserId, cancellationToken);
         if (managerRolesResult.IsError)
             return managerRolesResult.Errors;
         var managerRoleNames = managerRolesResult.Value.Select(r => r.Name).ToList();
@@ -71,10 +71,18 @@ public sealed class AssignTourManagerTeamCommandHandler(
             .Select(a => a.AssignedUserId!.Value)
             .ToHashSet();
 
+        // Batch-load all users and roles instead of querying per-user in a loop
+        var assignedUsers = await _userRepository.FindByIds(userIds, cancellationToken);
+        var assignedUserMap = assignedUsers.ToDictionary(u => u.Id);
+
+        var rolesMapResult = await _roleRepository.FindByUserIds(userIds, cancellationToken);
+        if (rolesMapResult.IsError)
+            return rolesMapResult.Errors;
+        var rolesMap = rolesMapResult.Value;
+
         foreach (var uid in userIds)
         {
-            var assignedUser = await _userRepository.FindById(uid);
-            if (assignedUser == null)
+            if (!assignedUserMap.ContainsKey(uid))
             {
                 return Error.NotFound(
                     code: "User.NotFound",
@@ -95,10 +103,10 @@ public sealed class AssignTourManagerTeamCommandHandler(
                     description: $"User {uid} is already assigned to this manager's team.");
             }
 
-            var rolesResult = await _roleRepository.FindByUserId(uid.ToString());
-            if (rolesResult.IsError)
-                return rolesResult.Errors;
-            var roles = rolesResult.Value.Select(r => r.Name).ToList();
+            var roles = rolesMap.TryGetValue(uid, out var userRoles)
+                ? userRoles.Select(r => r.Name).ToList()
+                : [];
+
             if (roles.Contains("Manager"))
             {
                 return Error.Validation(
@@ -123,14 +131,19 @@ public sealed class AssignTourManagerTeamCommandHandler(
             .Distinct()
             .ToList();
 
-        foreach (var tid in tourIds)
+        // Batch-load all tours instead of querying per-tour in a loop
+        if (tourIds.Count > 0)
         {
-            var tour = await _tourInstanceRepository.FindById(tid, asNoTracking: true);
-            if (tour == null)
+            var tours = await _tourInstanceRepository.FindByIds(tourIds, cancellationToken);
+            var foundTourIds = tours.Select(t => t.Id).ToHashSet();
+            foreach (var tid in tourIds)
             {
-                return Error.NotFound(
-                    code: ErrorConstants.Tour.NotFoundCode,
-                    description: ErrorConstants.Tour.NotFoundDescription);
+                if (!foundTourIds.Contains(tid))
+                {
+                    return Error.NotFound(
+                        code: ErrorConstants.Tour.NotFoundCode,
+                        description: ErrorConstants.Tour.NotFoundDescription);
+                }
             }
         }
 

@@ -182,11 +182,17 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
     public async Task<(int Total, int Available, int Confirmed, int SoldOut)> GetStats(CancellationToken cancellationToken = default)
     {
-        var query = _context.TourInstances.Where(t => !t.IsDeleted);
-        var total = await query.CountAsync(cancellationToken);
-        var available = await query.CountAsync(t => t.Status == TourInstanceStatus.Available, cancellationToken);
-        var confirmed = await query.CountAsync(t => t.Status == TourInstanceStatus.Confirmed, cancellationToken);
-        var soldOut = await query.CountAsync(t => t.Status == TourInstanceStatus.SoldOut, cancellationToken);
+        var statusCounts = await _context.TourInstances
+            .Where(t => !t.IsDeleted)
+            .GroupBy(t => t.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var countMap = statusCounts.ToDictionary(x => x.Status, x => x.Count);
+        var total = countMap.Values.Sum();
+        var available = countMap.GetValueOrDefault(TourInstanceStatus.Available);
+        var confirmed = countMap.GetValueOrDefault(TourInstanceStatus.Confirmed);
+        var soldOut = countMap.GetValueOrDefault(TourInstanceStatus.SoldOut);
         return (total, available, confirmed, soldOut);
     }
 

@@ -124,9 +124,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await query
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
+            .Include(t => t.PlanLocations)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 
@@ -266,12 +268,9 @@ public class TourRepository(AppDbContext context) : ITourRepository
     {
         return await _context.Tours
             .AsNoTracking()
-            .Include(t => t.Classifications)
-                .ThenInclude(c => c.Plans)
-                    .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.FromLocation)
             .Include(t => t.Thumbnail)
+            .Include(t => t.Classifications)
+            .Include(t => t.PlanLocations)
             .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)
@@ -284,7 +283,6 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await _context.Tours
             .AsNoTracking()
             .Include(t => t.Thumbnail)
-            .Include(t => t.Classifications)
             .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)
@@ -315,12 +313,9 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 maxPrice,
                 minDays,
                 maxDays)
-            .Include(t => t.Classifications)
-                .ThenInclude(c => c.Plans)
-                    .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.FromLocation)
             .Include(t => t.Thumbnail)
+            .Include(t => t.Classifications)
+            .Include(t => t.PlanLocations)
             .AsSplitQuery();
 
         return await query

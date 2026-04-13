@@ -23,7 +23,7 @@ public sealed class GetTrendingDestinationsQueryHandler(ITourRepository tourRepo
 
     public async Task<ErrorOr<List<TrendingDestinationVm>>> Handle(GetTrendingDestinationsQuery request, CancellationToken cancellationToken)
     {
-        var destinations = await _tourRepository.GetTrendingDestinations(request.Limit);
+        var destinations = await _tourRepository.GetTrendingDestinations(request.Limit, cancellationToken);
 
         var result = destinations.Select(d => new TrendingDestinationVm(
             d.City,

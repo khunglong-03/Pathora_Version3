@@ -20,7 +20,7 @@ public sealed class GetTopReviewsQueryHandler(IReviewRepository reviewRepository
 
     public async Task<ErrorOr<List<TopReviewVm>>> Handle(GetTopReviewsQuery request, CancellationToken cancellationToken)
     {
-        var reviews = await _reviewRepository.GetTopReviews(request.Limit);
+        var reviews = await _reviewRepository.GetTopReviews(request.Limit, cancellationToken);
 
         var result = reviews.Select(r => new TopReviewVm(
             r.User.Username,

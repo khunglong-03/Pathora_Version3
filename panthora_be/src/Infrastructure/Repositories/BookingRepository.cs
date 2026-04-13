@@ -72,13 +72,8 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     {
         var query = _context.Bookings
             .AsNoTracking()
-            .AsSplitQuery()
             .Include(b => b.TourInstance)
-            .Include(b => b.User)
-            .Include(b => b.BookingParticipants)
-                .ThenInclude(bp => bp.Passport)
-            .Include(b => b.BookingActivityReservations)
-            .Include(b => b.BookingTourGuides);
+            .Include(b => b.User);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query

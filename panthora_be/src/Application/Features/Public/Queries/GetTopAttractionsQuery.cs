@@ -24,7 +24,7 @@ public sealed class GetTopAttractionsQueryHandler(ITourRepository tourRepository
 
     public async Task<ErrorOr<List<TopAttractionVm>>> Handle(GetTopAttractionsQuery request, CancellationToken cancellationToken)
     {
-        var attractions = await _tourRepository.GetTopAttractions(request.Limit);
+        var attractions = await _tourRepository.GetTopAttractions(request.Limit, cancellationToken);
 
         foreach (var attraction in attractions)
         {
