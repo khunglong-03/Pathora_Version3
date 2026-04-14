@@ -13,6 +13,7 @@ public sealed record TourDto
     public string LongDescription { get; init; } = null!;
     public TourStatus Status { get; init; } = default;
     public TourScope TourScope { get; init; } = default;
+    public Continent? Continent { get; init; }
     public CustomerSegment CustomerSegment { get; init; } = default;
     public string? SEOTitle { get; init; }
     public string? SEODescription { get; init; }

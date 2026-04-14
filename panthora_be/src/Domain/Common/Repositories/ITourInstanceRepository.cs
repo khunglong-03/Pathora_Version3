@@ -23,4 +23,6 @@ public interface ITourInstanceRepository
     Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindPublicById(Guid id, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> CountProviderAssigned(Guid providerId, CancellationToken cancellationToken = default);
 }

@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourManagerOnly")]
 [Route(TourInstanceEndpoint.Base)]
 public class TourInstanceController : BaseApiController
 {
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? searchText,
@@ -24,6 +24,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpGet(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {
@@ -31,6 +32,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTourInstanceCommand command)
     {
@@ -38,6 +40,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateTourInstanceCommand command)
     {
@@ -45,6 +48,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpDelete(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -52,6 +56,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpGet(TourInstanceEndpoint.Stats)]
     public async Task<IActionResult> GetStats()
     {
@@ -59,6 +64,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPatch(TourInstanceEndpoint.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request)
     {
@@ -66,6 +72,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpGet(TourInstanceEndpoint.CheckDuplicate)]
     public async Task<IActionResult> CheckDuplicate(
         [FromQuery] Guid tourId,
@@ -76,6 +83,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
@@ -84,6 +92,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPost(TourInstanceEndpoint.Days)]
     public async Task<IActionResult> CreateDay(Guid id, [FromBody] CreateTourInstanceDayCommand command)
     {
@@ -92,6 +101,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPatch(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> UpdateActivity(Guid id, Guid dayId, Guid activityId, [FromBody] UpdateTourInstanceActivityCommand command)
     {
@@ -99,6 +109,26 @@ public class TourInstanceController : BaseApiController
         var result = await Sender.Send(updatedCommand);
         return HandleResult(result);
     }
+
+    [Authorize]
+    [HttpGet(TourInstanceEndpoint.ProviderAssigned)]
+    public async Task<IActionResult> GetProviderAssigned(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = await Sender.Send(new GetProviderAssignedTourInstancesQuery(pageNumber, pageSize));
+        return HandleResult(result);
+    }
+
+    [Authorize]
+    [HttpPost(TourInstanceEndpoint.ProviderApprove)]
+    public async Task<IActionResult> ProviderApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    {
+        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note));
+        return HandleResult(result);
+    }
 }
+
+public sealed record ProviderApproveRequest(bool IsApproved, string? Note);
 
 public sealed record ChangeTourInstanceStatusRequest(TourInstanceStatus Status);

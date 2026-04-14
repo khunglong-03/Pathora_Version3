@@ -18,6 +18,7 @@ public class ReviewRepository(AppDbContext context) : IReviewRepository
             .OrderByDescending(r => r.Rating)
             .ThenByDescending(r => r.CreatedOnUtc)
             .Take(limit)
+            .AsSplitQuery()
             .ToListAsync(ct);
     }
 

@@ -34,6 +34,9 @@ public class SupplierEntity : Aggregate<Guid>
     /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
+    /// <summary>Châu lục mà nhà cung cấp này hoạt động (phục vụ filter theo tour).</summary>
+    public Continent? Continent { get; set; }
+
     public static SupplierEntity Create(
         string supplierCode,
         SupplierType supplierType,
@@ -43,6 +46,7 @@ public class SupplierEntity : Aggregate<Guid>
         string? email = null,
         string? address = null,
         string? note = null,
+        Continent? continent = null,
         Guid? ownerUserId = null)
     {
         return new SupplierEntity
@@ -54,6 +58,7 @@ public class SupplierEntity : Aggregate<Guid>
             Email = email,
             Address = address,
             Note = note,
+            Continent = continent,
             OwnerUserId = ownerUserId,
             IsActive = true,
             CreatedBy = performedBy,
@@ -72,6 +77,7 @@ public class SupplierEntity : Aggregate<Guid>
         string? email = null,
         string? address = null,
         string? note = null,
+        Continent? continent = null,
         bool? isActive = null)
     {
         SupplierCode = supplierCode;
@@ -81,6 +87,7 @@ public class SupplierEntity : Aggregate<Guid>
         Email = email;
         Address = address;
         Note = note;
+        Continent = continent;
         IsActive = isActive ?? IsActive;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;

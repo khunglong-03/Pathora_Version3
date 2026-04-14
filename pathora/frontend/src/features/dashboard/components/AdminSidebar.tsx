@@ -84,6 +84,7 @@ export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
 export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: BedIcon, href: "/hotel" },
+  { label: "Phê duyệt Tour", icon: ListChecksIcon, href: "/hotel/tour-approvals" },
   { label: "Quản lý phòng", icon: BedIcon, href: "/hotel/rooms" },
   { label: "Nhận khách", icon: BuildingsIcon, href: "/hotel/arrivals" },
   { label: "Công ty", icon: BuildingOfficeIcon, href: "/hotel/profile" },
@@ -93,6 +94,7 @@ export const TOURDESIGNER_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-designer" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-designer/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-designer/tours/create" },
+  { label: "Quản lý Đợt Tour", icon: CalendarDotsIcon, href: "/tour-designer/tour-instances" },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
@@ -101,6 +103,7 @@ export const TOURGUIDE_NAV_ITEMS = [
 
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
   { label: "VT của tôi", icon: TruckIcon, href: "/transport" },
+  { label: "Phê duyệt Tour", icon: ListChecksIcon, href: "/transport/tour-approvals" },
   { label: "Quản lý xe", icon: CarIcon, href: "/transport/vehicles" },
   { label: "Quản lý tài xế", icon: UsersThreeIcon, href: "/transport/drivers" },
   { label: "Phân công chuyến", icon: ListChecksIcon, href: "/transport/trips" },

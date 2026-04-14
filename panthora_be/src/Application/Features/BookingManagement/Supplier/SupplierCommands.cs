@@ -67,7 +67,8 @@ public sealed class CreateSupplierCommandHandler(
             request.Phone,
             request.Email,
             request.Address,
-            request.Note);
+            request.Note,
+            continent: null);
 
         await supplierRepository.AddAsync(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -141,7 +142,8 @@ public sealed class UpdateSupplierCommandHandler(
             request.Email,
             request.Address,
             request.Note,
-            request.IsActive);
+            continent: null,
+            isActive: request.IsActive);
 
         supplierRepository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -312,6 +314,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 request.Email,
                 request.Address,
                 request.Note,
+                continent: null,
                 ownerUserId: userEntity.Id);
 
             // AddAsync only adds to context — no SaveChangesAsync

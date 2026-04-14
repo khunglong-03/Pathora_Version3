@@ -72,6 +72,8 @@ export const tourService = {
   getMyTours: async (
     searchText?: string,
     status?: string,
+    tourScope?: string,
+    continent?: string,
     pageNumber = 1,
     pageSize = 10,
   ) => {
@@ -82,6 +84,12 @@ export const tourService = {
     });
     if (status && status !== "all") {
       params.append("status", status);
+    }
+    if (tourScope && tourScope !== "all") {
+      params.append("tourScope", tourScope);
+    }
+    if (continent && continent !== "all") {
+      params.append("continent", continent);
     }
     // Backend returns PaginatedList<T> mapped as { items: TourVm[], total: number } or { data: ..., totalCount: ... }
     type MyTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
@@ -98,6 +106,8 @@ export const tourService = {
   getAdminTourManagement: async (
     searchText?: string,
     status?: string,
+    tourScope?: string,
+    continent?: string,
     pageNumber = 1,
     pageSize = 10,
   ) => {
@@ -108,6 +118,12 @@ export const tourService = {
     });
     if (status && status !== "all") {
       params.append("status", status);
+    }
+    if (tourScope && tourScope !== "all") {
+      params.append("tourScope", tourScope);
+    }
+    if (continent && continent !== "all") {
+      params.append("continent", continent);
     }
     type AdminTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
     const response = await api.get<ApiResponse<AdminTourPage>>(

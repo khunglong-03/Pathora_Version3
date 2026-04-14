@@ -31,6 +31,8 @@ export interface TourInstanceEndpoints {
   CHECK_DUPLICATE: string;
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string) => string;
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
+  GET_PROVIDER_ASSIGNED: string;
+  PROVIDER_APPROVE: (id: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -73,6 +75,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/days/${dayId}`,
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
+  GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
+  PROVIDER_APPROVE: (id: string): string => `/api/tour-instance/${id}/provider-approve`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {

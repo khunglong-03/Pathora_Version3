@@ -20,6 +20,25 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Classification được sử dụng cho instance này.</summary>
     public virtual TourClassificationEntity Classification { get; set; } = null!;
 
+    // Provider Assignment & Approval
+    /// <summary>ID của Hotel Provider (Accommodation Supplier).</summary>
+    public Guid? HotelProviderId { get; set; }
+    /// <summary>Khách sạn/nhà cung cấp chỗ ở cho đợt tour này.</summary>
+    public virtual SupplierEntity? HotelProvider { get; set; }
+    /// <summary>Trạng thái duyệt của Hotel Provider.</summary>
+    public ProviderApprovalStatus HotelApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
+    /// <summary>Ghi chú/lý do từ chối của Hotel Provider.</summary>
+    public string? HotelApprovalNote { get; set; }
+
+    /// <summary>ID của Transport Provider.</summary>
+    public Guid? TransportProviderId { get; set; }
+    /// <summary>Đơn vị vận chuyển cho đợt tour này.</summary>
+    public virtual SupplierEntity? TransportProvider { get; set; }
+    /// <summary>Trạng thái duyệt của Transport Provider.</summary>
+    public ProviderApprovalStatus TransportApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
+    /// <summary>Ghi chú/lý do từ chối của Transport Provider.</summary>
+    public string? TransportApprovalNote { get; set; }
+
     // Instance identity
     /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
     public string TourInstanceCode { get; set; } = null!;
@@ -114,6 +133,8 @@ public class TourInstanceEntity : Aggregate<Guid>
         int maxParticipation,
         decimal basePrice,
         string performedBy,
+        Guid? hotelProviderId = null,
+        Guid? transportProviderId = null,
         string? location = null,
         ImageEntity? thumbnail = null,
         List<ImageEntity>? images = null,
@@ -128,13 +149,17 @@ public class TourInstanceEntity : Aggregate<Guid>
             Id = Guid.CreateVersion7(),
             TourId = tourId,
             ClassificationId = classificationId,
+            HotelProviderId = hotelProviderId,
+            TransportProviderId = transportProviderId,
+            HotelApprovalStatus = hotelProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
+            TransportApprovalStatus = transportProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
             TourName = tourName,
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = TourInstanceStatus.Available,
+            Status = TourInstanceStatus.PendingApproval,
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),
@@ -205,6 +230,36 @@ public class TourInstanceEntity : Aggregate<Guid>
             throw new InvalidOperationException($"Không thể thêm {count} người. Đã đạt giới hạn tối đa {MaxParticipation} người.");
         CurrentParticipation += count;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void ApproveByProvider(Guid providerId, bool isApproved, string? reason)
+    {
+        if (HotelProviderId == providerId)
+        {
+            HotelApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
+            HotelApprovalNote = reason;
+        }
+        else if (TransportProviderId == providerId)
+        {
+            TransportApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
+            TransportApprovalNote = reason;
+        }
+
+        CheckAndActivateTourInstance();
+    }
+
+    private void CheckAndActivateTourInstance()
+    {
+        if (Status != TourInstanceStatus.PendingApproval) return;
+
+        bool hotelOk = !HotelProviderId.HasValue || HotelApprovalStatus == ProviderApprovalStatus.Approved;
+        bool transportOk = !TransportProviderId.HasValue || TransportApprovalStatus == ProviderApprovalStatus.Approved;
+
+        if (hotelOk && transportOk)
+        {
+            Status = TourInstanceStatus.Available;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        }
     }
 
     public void RemoveParticipant(int count = 1)

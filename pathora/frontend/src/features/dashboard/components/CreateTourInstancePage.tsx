@@ -13,6 +13,7 @@ import {
 import { tourService } from "@/api/services/tourService";
 import { userService } from "@/api/services/userService";
 import { tourRequestService } from "@/api/services/tourRequestService";
+import { supplierService } from "@/api/services/supplierService";
 import type { TourRequestDetailDto } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -31,6 +32,8 @@ type FormState = {
   guideUserIds: string[];
   thumbnailUrl: string;
   imageUrls: string[];
+  hotelProviderId: string;
+  transportProviderId: string;
 };
 
 type Translate = (key: string, fallback?: string) => string;
@@ -48,6 +51,8 @@ const INITIAL_FORM: FormState = {
   guideUserIds: [],
   thumbnailUrl: "",
   imageUrls: [],
+  hotelProviderId: "",
+  transportProviderId: "",
 };
 
 // ─── Wizard Step Constants ────────────────────────────────────────────────────
@@ -284,6 +289,8 @@ function ManagerChip({ user, onRemove }: ManagerChipProps) {
   );
 }
 
+import { SupplierItem } from "@/api/services/supplierService";
+
 // ─── InstanceDetailsStep ───────────────────────────────────────────────────────
 interface InstanceDetailsStepProps {
   form: FormState;
@@ -292,6 +299,8 @@ interface InstanceDetailsStepProps {
   t: Translate;
   updateField: <K extends keyof FormState>(field: K, value: FormState[K]) => void;
   guides: UserInfo[];
+  hotelProviders: SupplierItem[];
+  transportProviders: SupplierItem[];
   submitting: boolean;
   selectedClassification: TourClassificationDto | null;
   duplicateWarning: CheckDuplicateResult | null;
@@ -311,6 +320,8 @@ function InstanceDetailsStep({
   t,
   updateField,
   guides,
+  hotelProviders,
+  transportProviders,
   submitting,
   selectedClassification,
   duplicateWarning,
@@ -587,6 +598,50 @@ function InstanceDetailsStep({
         </div>
       </CollapsibleSection>
 
+      {/* Provider Assignment */}
+      <CollapsibleSection
+        title={t("tourInstance.wizard.section.providers", "Provider Assignment")}
+        defaultOpen={true}
+      >
+        <div className="grid gap-4 md:grid-cols-2 text-sm text-stone-700">
+          <div className="space-y-2">
+            <label className="font-semibold text-stone-700">
+              {t("tourInstance.form.hotelProvider", "Hotel Provider")}
+            </label>
+            <select
+              className={inputClassName}
+              value={form.hotelProviderId}
+              onChange={(e) => updateField("hotelProviderId", e.target.value)}
+            >
+              <option value="">{t("tourInstance.form.selectHotel", "Select Hotel Provider...")}</option>
+              {hotelProviders.map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-semibold text-stone-700">
+              {t("tourInstance.form.transportProvider", "Transport Provider")}
+            </label>
+            <select
+              className={inputClassName}
+              value={form.transportProviderId}
+              onChange={(e) => updateField("transportProviderId", e.target.value)}
+            >
+              <option value="">{t("tourInstance.form.selectTransport", "Select Transport Provider...")}</option>
+              {transportProviders.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </CollapsibleSection>
+
       {/* Media */}
       <CollapsibleSection
         title={t("tourInstance.wizard.section.media", "Media")}
@@ -774,6 +829,10 @@ export function CreateTourInstancePage({
   const [availableServices, setAvailableServices] = useState<string[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<CheckDuplicateResult | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+
+  // Providers
+  const [hotelProviders, setHotelProviders] = useState<SupplierItem[]>([]);
+  const [transportProviders, setTransportProviders] = useState<SupplierItem[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [prefillTourRequest, setPrefillTourRequest] = useState<TourRequestDetailDto | null>(null);
 
@@ -812,7 +871,14 @@ export function CreateTourInstancePage({
     try {
       setLoading(true);
       setLoadError(null);
-      const result = await tourService.getAllTours(undefined, 1, 100);
+      let result;
+      try {
+        result = await tourService.getMyTours(undefined, "1", "all", "all", 1, 100);
+      } catch (err) {
+        // Fallback for admins/managers if getMyTours fails
+        result = await tourService.getAdminTourManagement(undefined, "1", "all", "all", 1, 100);
+      }
+      // @ts-ignore - TourVm and SearchTourVm are compatible for id and name
       setTours(result?.data ?? []);
     } catch (error: unknown) {
       const handledError = handleApiError(error);
@@ -834,10 +900,25 @@ export function CreateTourInstancePage({
     }
   }, []);
 
+  // Fetch Providers
+  const fetchProviders = useCallback(async () => {
+    try {
+      const [hotels, transports] = await Promise.all([
+        supplierService.getSuppliers(1), // Hotel = 1
+        supplierService.getSuppliers(0), // Transport = 0
+      ]);
+      setHotelProviders(hotels ?? []);
+      setTransportProviders(transports ?? []);
+    } catch (error) {
+      console.error("Failed to fetch providers:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTours();
     fetchGuides();
-  }, [fetchTours, fetchGuides]);
+    fetchProviders();
+  }, [fetchTours, fetchGuides, fetchProviders]);
 
   useEffect(() => {
     if (effectiveTourRequestId) {

@@ -43,13 +43,15 @@ public class AdminController : BaseApiController
     public async Task<IActionResult> GetTourManagement(
         [FromQuery] string? searchText,
         [FromQuery] Domain.Enums.TourStatus? status,
+        [FromQuery] Domain.Enums.TourScope? tourScope,
+        [FromQuery] Domain.Enums.Continent? continent,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
         var isManager = User.IsInRole("Manager") && !User.IsInRole("Admin");
         var managerId = isManager && Guid.TryParse(CurrentUserId, out var parsedId) ? (Guid?)parsedId : null;
 
-        var result = await Sender.Send(new GetAdminTourManagementQuery(searchText, status, pageNumber, pageSize, managerId));
+        var result = await Sender.Send(new GetAdminTourManagementQuery(searchText, status, tourScope, continent, pageNumber, pageSize, managerId));
         return HandleResult(result);
     }
 

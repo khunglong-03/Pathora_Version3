@@ -23,6 +23,8 @@ public interface ITourInstanceService
     Task<ErrorOr<Success>> Update(UpdateTourInstanceCommand request);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus);
+    Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, CancellationToken cancellationToken = default);
+    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
     Task<ErrorOr<TourInstanceDto>> GetDetail(Guid id);
     Task<ErrorOr<TourInstanceStatsDto>> GetStats();
@@ -38,6 +40,7 @@ public class TourInstanceService(
     ITourInstanceRepository tourInstanceRepository,
     ITourRepository tourRepository,
     ITourRequestRepository tourRequestRepository,
+    ISupplierRepository supplierRepository,
     IMailRepository mailRepository,
     IUser user,
     IMapper mapper,
@@ -46,6 +49,7 @@ public class TourInstanceService(
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ITourRequestRepository _tourRequestRepository = tourRequestRepository;
+    private readonly ISupplierRepository _supplierRepository = supplierRepository;
     private readonly IMailRepository _mailRepository = mailRepository;
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
@@ -111,7 +115,9 @@ public class TourInstanceService(
             performedBy: performedBy,
             thumbnail: thumbnail,
             images: request.ImageUrls?.Select(url => new ImageEntity { PublicURL = url }).ToList(),
-            includedServices: request.IncludedServices);
+            includedServices: request.IncludedServices,
+            hotelProviderId: request.HotelProviderId,
+            transportProviderId: request.TransportProviderId);
 
         if (request.GuideUserIds?.Count > 0)
         {
@@ -292,6 +298,43 @@ public class TourInstanceService(
         entity.ChangeStatus(newStatus, performedBy);
         await _tourInstanceRepository.Update(entity);
         return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(_user.Id, out var currentUserId))
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+
+        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (supplier is null)
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+
+        var instance = await _tourInstanceRepository.FindById(instanceId);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (supplier.Id != instance.HotelProviderId && supplier.Id != instance.TransportProviderId)
+            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as a provider for this tour instance.");
+
+        instance.ApproveByProvider(supplier.Id, isApproved, note);
+        await _tourInstanceRepository.Update(instance);
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(_user.Id, out var currentUserId))
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+
+        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (supplier is null)
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+
+        var entities = await _tourInstanceRepository.FindProviderAssigned(supplier.Id, pageNumber, pageSize, cancellationToken);
+        var total = await _tourInstanceRepository.CountProviderAssigned(supplier.Id, cancellationToken);
+
+        var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
+        return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 
     public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request)

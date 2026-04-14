@@ -56,10 +56,12 @@ public class TourController(
     public async Task<IActionResult> GetMyTours(
         [FromQuery] string? searchText,
         [FromQuery] TourStatus? status,
+        [FromQuery] TourScope? tourScope,
+        [FromQuery] Continent? continent,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await Sender.Send(new GetMyToursQuery(searchText, status, pageNumber, pageSize));
+        var result = await Sender.Send(new GetMyToursQuery(searchText, status, tourScope, continent, pageNumber, pageSize));
         return HandleResult(result);
     }
 

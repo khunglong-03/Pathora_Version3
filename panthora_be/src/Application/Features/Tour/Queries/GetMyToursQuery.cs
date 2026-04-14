@@ -9,10 +9,10 @@ using ErrorOr;
 
 namespace Application.Features.Tour.Queries;
 
-public sealed record GetMyToursQuery(string? SearchText, TourStatus? Status = null, int PageNumber = 1, int PageSize = 10)
+public sealed record GetMyToursQuery(string? SearchText, TourStatus? Status = null, TourScope? TourScope = null, Continent? Continent = null, int PageNumber = 1, int PageSize = 10)
     : IQuery<ErrorOr<PaginatedList<TourVm>>>, ICacheable
 {
-    public string CacheKey => $"{Common.CacheKey.Tour}:my:{PageNumber}:{PageSize}:{SearchText}:{Status}";
+    public string CacheKey => $"{Common.CacheKey.Tour}:my:{PageNumber}:{PageSize}:{SearchText}:{Status}:{TourScope}:{Continent}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 

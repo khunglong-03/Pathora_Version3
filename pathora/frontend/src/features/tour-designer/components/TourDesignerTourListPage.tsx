@@ -62,18 +62,29 @@ export function TourDesignerTourListPage() {
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [tourScope, setTourScope] = useState("all");
+  const [continent, setContinent] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [reloadToken, setReloadToken] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const debouncedSearch = useDebounce(searchText, 400);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { tours, total, state, errorMessage } = useTourDesignerTourList({
     searchText: debouncedSearch,
     statusFilter,
+    tourScope,
+    continent,
     pageNumber: currentPage,
     pageSize: 12, // Increased page size for grid layout
   });
 
   const reload = () => setReloadToken((v) => v + 1);
+
+  if (!mounted) return null;
 
   return (
     <div className="max-w-[1400px] w-full mx-auto p-6 lg:p-8">
@@ -130,22 +141,54 @@ export function TourDesignerTourListPage() {
           })}
         </div>
 
-        {/* Search */}
-        <div className="relative w-full max-w-sm">
-          <MagnifyingGlassIcon
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
-          />
-          <input
-            type="text"
-            placeholder={t("tourDesigner.searchPlaceholder", "Tìm kiếm theo tên hoặc mã...")}
-            value={searchText}
+        {/* Filters & Search */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+          <select
+            value={tourScope}
             onChange={(e) => {
-              setSearchText(e.target.value);
+              setTourScope(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-11 pr-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all placeholder:text-zinc-400 shadow-sm"
-          />
+            className="w-full sm:w-auto px-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all shadow-sm"
+          >
+            <option value="all">{t("tourDesigner.scopes.all", "Tất cả vùng")}</option>
+            <option value="1">{t("tourDesigner.scopes.domestic", "Trong nước")}</option>
+            <option value="2">{t("tourDesigner.scopes.international", "Quốc tế")}</option>
+          </select>
+
+          <select
+            value={continent}
+            onChange={(e) => {
+              setContinent(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full sm:w-auto px-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all shadow-sm"
+          >
+            <option value="all">{t("tourDesigner.continents.all", "Tất cả châu lục")}</option>
+            <option value="1">{t("tourDesigner.continents.asia", "Châu Á")}</option>
+            <option value="2">{t("tourDesigner.continents.europe", "Châu Âu")}</option>
+            <option value="3">{t("tourDesigner.continents.africa", "Châu Phi")}</option>
+            <option value="4">{t("tourDesigner.continents.americas", "Châu Mỹ")}</option>
+            <option value="5">{t("tourDesigner.continents.oceania", "Châu Đại Dương")}</option>
+            <option value="6">{t("tourDesigner.continents.antarctica", "Châu Nam Cực")}</option>
+          </select>
+
+          <div className="relative w-full sm:w-64">
+            <MagnifyingGlassIcon
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+            />
+            <input
+              type="text"
+              placeholder={t("tourDesigner.searchPlaceholder", "Tìm kiếm theo tên hoặc mã...")}
+              value={searchText}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-11 pr-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+            />
+          </div>
         </div>
       </div>
 

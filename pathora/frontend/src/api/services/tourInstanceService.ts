@@ -35,6 +35,8 @@ export interface CreateTourInstancePayload {
   thumbnailUrl?: string | null;
   imageUrls?: string[];
   tourRequestId?: string | null;
+  hotelProviderId?: string | null;
+  transportProviderId?: string | null;
 }
 
 export interface UpdateInstanceDayPayload {
@@ -206,6 +208,8 @@ export const tourInstanceService = {
       thumbnailUrl: data.thumbnailUrl || null,
       imageUrls: normalizeStringArray(data.imageUrls),
       tourRequestId: data.tourRequestId || null,
+      hotelProviderId: data.hotelProviderId || null,
+      transportProviderId: data.transportProviderId || null,
     };
 
     const response = await api.post<ApiResponse<TourInstanceDto>>(
@@ -299,5 +303,38 @@ export const tourInstanceService = {
       payload,
     );
     return extractResult(response);
+  },
+
+  getProviderAssigned: async (
+    pageNumber = 1,
+    pageSize = 10,
+  ) => {
+    const params = new URLSearchParams();
+    params.append("pageNumber", pageNumber.toString());
+    params.append("pageSize", pageSize.toString());
+
+    const response = await api.get<ApiResponse<PaginatedResponse<TourInstanceVm>>>(
+      `${API_ENDPOINTS.TOUR_INSTANCE.GET_PROVIDER_ASSIGNED}?${params.toString()}`,
+    );
+
+    const result = extractResult<PaginatedResponse<TourInstanceVm>>(response.data);
+    if (!result) return null;
+
+    return {
+      ...result,
+      data: (result.data ?? []).map(normalizeInstanceVm),
+    } as PaginatedResponse<NormalizedTourInstanceVm>;
+  },
+
+  providerApprove: async (
+    id: string,
+    isApproved: boolean,
+    note?: string,
+  ) => {
+    const response = await api.post<ApiResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PROVIDER_APPROVE(id),
+      { isApproved, note },
+    );
+    return extractResult<string>(response.data);
   },
 };

@@ -101,7 +101,8 @@ public class TourService(
             depositPolicyId: request.DepositPolicyId,
             pricingPolicyId: request.PricingPolicyId,
             cancellationPolicyId: request.CancellationPolicyId,
-            tourDesignerId: tourDesignerId);
+            tourDesignerId: tourDesignerId,
+            continent: request.Continent);
 
             const int maxTourCodeGenerationAttempts = 10;
             var tourCodeGenerationAttempts = 0;
@@ -449,7 +450,8 @@ public class TourService(
             depositPolicyId: request.DepositPolicyId,
             pricingPolicyId: request.PricingPolicyId,
             cancellationPolicyId: request.CancellationPolicyId,
-            tourDesignerId: tour.TourDesignerId);
+            tourDesignerId: tour.TourDesignerId,
+            continent: request.Continent);
         MergeTranslations(tour, request.Translations);
 
         // Nested classifications update (upsert)
@@ -678,8 +680,8 @@ public class TourService(
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
         }
 
-        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize, principalId: userId, status: request.Status);
-        var total = await _tourRepository.CountAll(request.SearchText, principalId: userId, status: request.Status);
+        var tours = await _tourRepository.FindAll(request.SearchText, request.PageNumber, request.PageSize, principalId: userId, status: request.Status, tourScope: request.TourScope, continent: request.Continent);
+        var total = await _tourRepository.CountAll(request.SearchText, principalId: userId, status: request.Status, tourScope: request.TourScope, continent: request.Continent);
         var currentLanguage = _languageContext.CurrentLanguage;
 
         var tourVms = tours.Select(t =>
@@ -700,8 +702,8 @@ public class TourService(
 
     public async Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request)
     {
-        var tours = await _tourRepository.FindAllAdmin(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ManagerId);
-        var total = await _tourRepository.CountAllAdmin(request.SearchText, request.Status, request.ManagerId);
+        var tours = await _tourRepository.FindAllAdmin(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ManagerId, tourScope: request.TourScope, continent: request.Continent);
+        var total = await _tourRepository.CountAllAdmin(request.SearchText, request.Status, request.ManagerId, tourScope: request.TourScope, continent: request.Continent);
         var currentLanguage = _languageContext.CurrentLanguage;
 
         var tourVms = tours.Select(t =>

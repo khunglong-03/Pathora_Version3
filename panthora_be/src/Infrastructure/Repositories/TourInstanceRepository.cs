@@ -19,6 +19,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await query
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Include(t => t.InstanceDays)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
@@ -273,6 +274,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.ToLocation)
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.Accommodation)
             .Include(d => d.TourDay).ThenInclude(td => td.Activities).ThenInclude(a => a.ResourceLinks)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(d => d.Id == dayId && d.TourInstanceId == instanceId, cancellationToken);
     }
 
@@ -314,5 +316,27 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 && t.ClassificationId == classificationId
                 && t.StartDate.Date == startDate.Date)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .AsNoTracking()
+            .Include(t => t.Tour)
+            .Include(t => t.Classification)
+            .Include(t => t.Thumbnail)
+            .Where(t => !t.IsDeleted && (t.HotelProviderId == providerId || t.TransportProviderId == providerId))
+            .OrderByDescending(t => t.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountProviderAssigned(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Where(t => !t.IsDeleted && (t.HotelProviderId == providerId || t.TransportProviderId == providerId))
+            .CountAsync(cancellationToken);
     }
 }

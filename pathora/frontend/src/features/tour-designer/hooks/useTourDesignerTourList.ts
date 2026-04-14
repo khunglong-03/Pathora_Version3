@@ -8,6 +8,8 @@ export type TourListState = "loading" | "ready" | "empty" | "error";
 interface UseTourDesignerTourListOptions {
   searchText?: string;
   statusFilter?: string;
+  tourScope?: string;
+  continent?: string;
   pageNumber?: number;
   pageSize?: number;
 }
@@ -26,6 +28,8 @@ export function useTourDesignerTourList(
   const {
     searchText = "",
     statusFilter = "all",
+    tourScope = "all",
+    continent = "all",
     pageNumber = 1,
     pageSize = 10,
   } = options;
@@ -48,9 +52,15 @@ export function useTourDesignerTourList(
         setErrorMessage(null);
         const effectiveStatus =
           statusFilter === "all" ? undefined : statusFilter;
+        const effectiveTourScope =
+          tourScope === "all" ? undefined : tourScope;
+        const effectiveContinent =
+          continent === "all" ? undefined : continent;
         const result = await tourService.getMyTours(
           searchText || undefined,
           effectiveStatus,
+          effectiveTourScope,
+          effectiveContinent,
           pageNumber,
           pageSize,
         );
@@ -69,7 +79,7 @@ export function useTourDesignerTourList(
     return () => {
       active = false;
     };
-  }, [searchText, statusFilter, pageNumber, pageSize, reloadToken]);
+  }, [searchText, statusFilter, tourScope, continent, pageNumber, pageSize, reloadToken]);
 
   return { tours, total, state, errorMessage, refetch };
 }

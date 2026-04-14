@@ -129,7 +129,7 @@ public sealed class AdminApiCompleteTests
                 response,
                 "/" + AdminEndpoint.TourManagement);
 
-        var actionResult = await controller.GetTourManagement(null, null, 1, 10);
+        var actionResult = await controller.GetTourManagement(null, null, null, null, 1, 10);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
@@ -147,7 +147,7 @@ public sealed class AdminApiCompleteTests
                 emptyResponse,
                 "/" + AdminEndpoint.TourManagement);
 
-        var actionResult = await controller.GetTourManagement(null, Domain.Enums.TourStatus.Active, 1, 10);
+        var actionResult = await controller.GetTourManagement(null, Domain.Enums.TourStatus.Active, null, null, 1, 10);
 
         var captured = Assert.IsType<GetAdminTourManagementQuery>(probe.CapturedRequest);
         Assert.Equal(Domain.Enums.TourStatus.Active, captured.Status);
@@ -162,7 +162,7 @@ public sealed class AdminApiCompleteTests
                 emptyResponse,
                 "/" + AdminEndpoint.TourManagement);
 
-        var actionResult = await controller.GetTourManagement("Vietnam", null, 1, 10);
+        var actionResult = await controller.GetTourManagement("Vietnam", null, null, null, 1, 10);
 
         var captured = Assert.IsType<GetAdminTourManagementQuery>(probe.CapturedRequest);
         Assert.Equal("Vietnam", captured.SearchText);

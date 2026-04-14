@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.Admin;
 
-[Authorize(Policy = "AdminOnly")]
 [Route(SupplierEndpoint.Base)]
 public class SupplierController : BaseApiController
 {
     [HttpGet]
+    [Authorize(Policy = "TourManagerOnly")]
     public async Task<IActionResult> GetSuppliers([FromQuery] SupplierType? supplierType)
     {
         var result = await Sender.Send(new GetSuppliersQuery(supplierType));
@@ -20,6 +20,7 @@ public class SupplierController : BaseApiController
     }
 
     [HttpGet(SupplierEndpoint.Id)]
+    [Authorize(Policy = "TourManagerOnly")]
     public async Task<IActionResult> GetSupplierById(Guid id)
     {
         var result = await Sender.Send(new GetSupplierByIdQuery(id));
@@ -27,6 +28,7 @@ public class SupplierController : BaseApiController
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierDto request)
     {
         var command = new CreateSupplierCommand(
@@ -43,6 +45,7 @@ public class SupplierController : BaseApiController
     }
 
     [HttpPost(SupplierEndpoint.WithOwner)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> CreateSupplierWithOwner([FromBody] CreateSupplierWithOwnerDto request)
     {
         var command = new CreateSupplierWithOwnerCommand(
@@ -61,6 +64,7 @@ public class SupplierController : BaseApiController
     }
 
     [HttpPut(SupplierEndpoint.Id)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> UpdateSupplier(Guid id, [FromBody] UpdateSupplierDto request)
     {
         var command = new UpdateSupplierCommand(
@@ -79,6 +83,7 @@ public class SupplierController : BaseApiController
     }
 
     [HttpDelete(SupplierEndpoint.Id)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> DeleteSupplier(Guid id)
     {
         var result = await Sender.Send(new DeleteSupplierCommand(id));

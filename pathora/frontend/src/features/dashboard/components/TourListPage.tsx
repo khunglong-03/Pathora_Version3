@@ -54,8 +54,10 @@ export function TourListPage() {
   const [dataState, setDataState] = useState<TourListDataState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
-  const debouncedSearch = useDebounce(searchText, 400);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [tourScope, setTourScope] = useState("all");
+  const [continent, setContinent] = useState("all");
+  const debouncedSearch = useDebounce(searchText, 400);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -132,9 +134,13 @@ export function TourListPage() {
         setErrorMessage(null);
         setCurrentPage(1);
         const effectiveStatus = statusFilter === "all" ? undefined : statusFilter;
+        const effectiveTourScope = tourScope === "all" ? undefined : tourScope;
+        const effectiveContinent = continent === "all" ? undefined : continent;
         const result = await tourService.getAdminTourManagement(
           debouncedSearch || undefined,
           effectiveStatus,
+          effectiveTourScope,
+          effectiveContinent,
           1,
           pageSize,
         );
@@ -160,7 +166,7 @@ export function TourListPage() {
     };
     void doFetch();
     return () => { active = false; };
-  }, [debouncedSearch, pageSize, reloadToken, statusFilter]);
+  }, [debouncedSearch, statusFilter, tourScope, continent, pageSize, reloadToken]);
 
   /* ── Filtered tours ───────────────────────────────────────── */
   const filteredTours = tours;
@@ -241,6 +247,36 @@ export function TourListPage() {
           initial="hidden"
           animate="show"
           className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+          <select
+            value={tourScope}
+            onChange={(e) => {
+              setTourScope(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full sm:w-auto px-4 py-2.5 bg-white text-sm font-medium text-stone-700 hover:bg-stone-50 focus:ring-2 focus:ring-stone-900 border border-stone-200 rounded-xl transition-all outline-none"
+          >
+            <option value="all">{safeT("tourList.scopes.all", "Tất cả vùng")}</option>
+            <option value="1">{safeT("tourList.scopes.domestic", "Trong nước")}</option>
+            <option value="2">{safeT("tourList.scopes.international", "Quốc tế")}</option>
+          </select>
+
+          <select
+            value={continent}
+            onChange={(e) => {
+              setContinent(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full sm:w-auto px-4 py-2.5 bg-white text-sm font-medium text-stone-700 hover:bg-stone-50 focus:ring-2 focus:ring-stone-900 border border-stone-200 rounded-xl transition-all outline-none"
+          >
+            <option value="all">{safeT("tourList.continents.all", "Tất cả châu lục")}</option>
+            <option value="1">{safeT("tourList.continents.asia", "Châu Á")}</option>
+            <option value="2">{safeT("tourList.continents.europe", "Châu Âu")}</option>
+            <option value="3">{safeT("tourList.continents.africa", "Châu Phi")}</option>
+            <option value="4">{safeT("tourList.continents.americas", "Châu Mỹ")}</option>
+            <option value="5">{safeT("tourList.continents.oceania", "Châu Đại Dương")}</option>
+            <option value="6">{safeT("tourList.continents.antarctica", "Châu Nam Cực")}</option>
+          </select>
+
           <div className="relative flex-1 max-w-sm w-full">
             <Icon
               icon="heroicons:magnifying-glass"

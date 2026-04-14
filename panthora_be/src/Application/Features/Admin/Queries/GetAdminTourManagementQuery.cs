@@ -6,7 +6,7 @@ using ErrorOr;
 
 namespace Application.Features.Admin.Queries;
 
-public sealed record GetAdminTourManagementQuery(string? SearchText, TourStatus? Status, int PageNumber = 1, int PageSize = 10, Guid? ManagerId = null)
+public sealed record GetAdminTourManagementQuery(string? SearchText, TourStatus? Status, TourScope? TourScope = null, Continent? Continent = null, int PageNumber = 1, int PageSize = 10, Guid? ManagerId = null)
     : IQuery<ErrorOr<PaginatedList<TourVm>>>
 {
 }

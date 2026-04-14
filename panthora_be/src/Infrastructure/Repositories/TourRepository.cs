@@ -60,6 +60,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .Include(t => t.DepositPolicy)
             .Include(t => t.CancellationPolicy)
             .Include(t => t.VisaPolicy)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
@@ -92,13 +93,23 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .AsSplitQuery();
     }
 
-    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, TourStatus? status = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourEntity>> FindAll(string? searchText, int pageNumber, int pageSize, Guid? principalId = null, TourStatus? status = null, TourScope? tourScope = null, Continent? continent = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted);
 
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (tourScope.HasValue)
+        {
+            query = query.Where(t => t.TourScope == tourScope.Value);
+        }
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(searchText))
@@ -138,13 +149,23 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, Guid? principalId = null, TourStatus? status = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, Guid? principalId = null, TourStatus? status = null, TourScope? tourScope = null, Continent? continent = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.Where(t => !t.IsDeleted);
 
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (tourScope.HasValue)
+        {
+            query = query.Where(t => t.TourScope == tourScope.Value);
+        }
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(searchText))
@@ -176,12 +197,22 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await query.CountAsync(cancellationToken);
     }
 
-    public async Task<List<TourEntity>> FindAllAdmin(string? searchText, TourStatus? status, int pageNumber, int pageSize, Guid? managerId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourEntity>> FindAllAdmin(string? searchText, TourStatus? status, int pageNumber, int pageSize, Guid? managerId = null, TourScope? tourScope = null, Continent? continent = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.AsNoTracking().Where(t => !t.IsDeleted);
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (tourScope.HasValue)
+        {
+            query = query.Where(t => t.TourScope == tourScope.Value);
+        }
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
         }
         if (!string.IsNullOrWhiteSpace(searchText))
         {
@@ -210,15 +241,26 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAllAdmin(string? searchText, TourStatus? status, Guid? managerId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAllAdmin(string? searchText, TourStatus? status, Guid? managerId = null, TourScope? tourScope = null, Continent? continent = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Tours.Where(t => !t.IsDeleted);
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (tourScope.HasValue)
+        {
+            query = query.Where(t => t.TourScope == tourScope.Value);
+        }
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
         }
         if (!string.IsNullOrWhiteSpace(searchText))
         {
@@ -326,6 +368,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 

@@ -19,12 +19,13 @@ public sealed class TourInstanceServiceTests
     private readonly ITourRepository _tourRepository = Substitute.For<ITourRepository>();
     private readonly ITourRequestRepository _tourRequestRepository = Substitute.For<ITourRequestRepository>();
     private readonly IMailRepository _mailRepository = Substitute.For<IMailRepository>();
+    private readonly ISupplierRepository _supplierRepository = Substitute.For<ISupplierRepository>();
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IMapper _mapper = Substitute.For<IMapper>();
     private readonly ILogger<TourInstanceService> _logger = Substitute.For<ILogger<TourInstanceService>>();
 
     private TourInstanceService CreateService() =>
-        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _mailRepository, _user, _mapper, _logger);
+        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _user, _mapper, _logger);
 
     private static TourEntity CreateTourWithClassification(Guid classificationId)
     {

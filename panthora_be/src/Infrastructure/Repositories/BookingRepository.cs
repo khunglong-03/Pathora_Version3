@@ -14,6 +14,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         return await _context.Bookings
             .AsNoTracking()
             .Include(b => b.TourInstance)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -25,6 +26,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.TourRequest)
             .Include(b => b.Deposits)
             .Include(b => b.Payments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -36,6 +38,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.TourInstance)
             .Where(b => b.TourInstanceId == tourInstanceId)
             .OrderByDescending(b => b.BookingDate)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 
@@ -47,6 +50,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.TourInstance).ThenInclude(ti => ti.Images)
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.BookingDate)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 
@@ -65,6 +69,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.BookingDate)
             .Take(count)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
 
@@ -73,7 +78,8 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         var query = _context.Bookings
             .AsNoTracking()
             .Include(b => b.TourInstance)
-            .Include(b => b.User);
+            .Include(b => b.User)
+            .AsSplitQuery();
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
@@ -100,6 +106,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     {
         return await _context.Bookings
             .Include(b => b.PaymentTransactions)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.PaymentTransactions.Any(pt => pt.TransactionCode == transactionCode), cancellationToken);
     }
 }

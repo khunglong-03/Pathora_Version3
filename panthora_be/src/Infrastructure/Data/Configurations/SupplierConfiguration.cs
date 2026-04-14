@@ -43,6 +43,10 @@ public class SupplierConfiguration : IEntityTypeConfiguration<SupplierEntity>
             .HasDefaultValue(true)
             .IsRequired();
 
+        builder.Property(s => s.Continent)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
         builder.Property(s => s.IsDeleted)
             .HasDefaultValue(false)
             .IsRequired();

@@ -74,7 +74,7 @@ public class TourEntity : Aggregate<Guid>
         var sequence = Random.Shared.Next(0, Domain.Options.TourOptions.CodeSequenceMaxValue);
         return $"TOUR-{datePart}-{sequence:00000}";
     }
-    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? visaPolicyId = null, Guid? depositPolicyId = null, Guid? pricingPolicyId = null, Guid? cancellationPolicyId = null, Guid? tourDesignerId = null)
+    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? visaPolicyId = null, Guid? depositPolicyId = null, Guid? pricingPolicyId = null, Guid? cancellationPolicyId = null, Guid? tourDesignerId = null, Continent? continent = null)
     {
         return new TourEntity
         {
@@ -87,7 +87,7 @@ public class TourEntity : Aggregate<Guid>
             SEODescription = seoDescription,
             Status = status,
             TourScope = tourScope,
-            Continent = null,
+            Continent = continent,
             CustomerSegment = customerSegment,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
