@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useSyncExternalStore } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,10 +11,8 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { tourService } from "@/api/services/tourService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
-import { TourVm, TourDto, TourStatus } from "@/types/tour";
+import { TourVm, TourStatus } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
-import TourForm from "./tour/TourForm";
-import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 
 /* ── Animation Variants ───────────────────────────────────── */
 const containerVariants = {
@@ -47,14 +45,13 @@ export function TourListPage() {
   const safeT = (key: string, fallback: string) =>
     mounted ? t(key, fallback) : fallback;
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tours, setTours] = useState<TourVm[]>([]);
   const [dataState, setDataState] = useState<TourListDataState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [tourScope, setTourScope] = useState("all");
   const [continent, setContinent] = useState("all");
   const debouncedSearch = useDebounce(searchText, 400);
@@ -64,66 +61,30 @@ export function TourListPage() {
   const [failedThumbnailIds, setFailedThumbnailIds] = useState<Set<string>>(new Set());
   const [reloadToken, setReloadToken] = useState(0);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
-  const [editTourId, setEditTourId] = useState<string | null>(() =>
-    searchParams.get("edit") === "true" ? searchParams.get("id") : null
-  );
-  const [editLoading, setEditLoading] = useState(false);
-  const [editTour, setEditTour] = useState<TourDto | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedTourId, setSelectedTourId] = useState<string | null>(null);
-  const [selectedTourName, setSelectedTourName] = useState("");
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, rejected: 0 });
 
-  const closeEditModal = useCallback(() => {
-    setEditTourId(null);
-    setEditTour(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("edit");
-    params.delete("id");
-    const newUrl = params.toString() ? `/tour-management?${params}` : "/tour-management";
-    router.push(newUrl, { scroll: false });
-  }, [router, searchParams]);
-
-  const openEditModal = useCallback(async (tourId: string) => {
-    setEditTourId(tourId);
-    setEditLoading(true);
-    try {
-      const data = await tourService.getTourDetail(tourId);
-      if (data) {
-        setEditTour(data);
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("edit", "true");
-        params.set("id", tourId);
-        router.push(`/tour-management?${params}`, { scroll: false });
-      } else {
-        toast.error("Tour not found");
-        setEditTourId(null);
+  /* ── Fetch stats (independent of current status filter and page) ── */
+  useEffect(() => {
+    let active = true;
+    const fetchStats = async () => {
+      try {
+        const effectiveTourScope = tourScope === "all" ? undefined : tourScope;
+        const effectiveContinent = continent === "all" ? undefined : continent;
+        const result = await tourService.getAdminTourManagementStats(
+          debouncedSearch || undefined,
+          effectiveTourScope,
+          effectiveContinent,
+        );
+        if (active && result) {
+          setStats(result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tour stats:", error);
       }
-    } catch (error: unknown) {
-      const handledError = handleApiError(error);
-      console.error("Failed to load tour for edit:", handledError.message);
-      toast.error("Failed to load tour");
-      setEditTourId(null);
-    } finally {
-      setEditLoading(false);
-    }
-  }, [router, searchParams]);
-
-  const handleDelete = async (tourId: string) => {
-    if (!tourId) return;
-    try {
-      await tourService.deleteTour(tourId);
-      toast.success(t("tourAdmin.deleteSuccess", "Tour deleted successfully"));
-      setShowDeleteConfirm(false);
-      setSelectedTourId(null);
-      setSelectedTourName("");
-      setReloadToken((v) => v + 1);
-    } catch (error: unknown) {
-      const handledError = handleApiError(error);
-      console.error("Failed to delete tour:", handledError.message);
-      toast.error(t("tourAdmin.deleteError", "Failed to delete tour"));
-      setShowDeleteConfirm(false);
-    }
-  };
+    };
+    void fetchStats();
+    return () => { active = false; };
+  }, [debouncedSearch, tourScope, continent, reloadToken]);
 
   /* ── Fetch tours (always uses page 1, resets on search/filter change) ── */
   useEffect(() => {
@@ -172,12 +133,7 @@ export function TourListPage() {
   const filteredTours = tours;
 
   /* ── Derived stat counts ──────────────────────────────────── */
-  const statCounts = {
-    total: totalItems,
-    active: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "active").length,
-    inactive: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "inactive").length,
-    rejected: filteredTours.filter((tour) => (tour.status || "").toLowerCase() === "rejected").length,
-  };
+  const statCounts = stats;
 
   /* ── Pagination ───────────────────────────────────────────── */
   const totalPages = Math.ceil(totalItems / pageSize);
@@ -520,30 +476,11 @@ export function TourListPage() {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() =>
-                                router.push(`/tour-management/${tour.id}/edit`)
+                                router.push(`/manager/tour-management/${tour.id}`)
                               }
                               aria-label={`View ${tour.tourName}`}
                               className="p-2.5 rounded-xl text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-inset">
                               <Icon icon="heroicons:eye" className="size-4" />
-                            </button>
-                            <button
-                              onClick={() => openEditModal(tour.id)}
-                              aria-label={`Edit ${tour.tourName}`}
-                              className="p-2.5 rounded-xl text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-inset">
-                              <Icon
-                                icon="heroicons:pencil-square"
-                                className="size-4"
-                              />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedTourId(tour.id);
-                                setSelectedTourName(tour.tourName ?? "");
-                                setShowDeleteConfirm(true);
-                              }}
-                              aria-label={`Delete ${tour.tourName}`}
-                              className="p-2.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset">
-                              <Icon icon="heroicons:trash" className="size-4" />
                             </button>
                           </div>
                         </td>
@@ -638,76 +575,6 @@ export function TourListPage() {
           </div>
         )}
       </main>
-
-      {/* ── Edit Tour Modal ──────────────────────────────── */}
-      <AnimatePresence>
-        {editTourId && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) closeEditModal();
-            }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="w-full max-w-4xl mx-4 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
-              {editLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-500 border-t-transparent" />
-                </div>
-              ) : editTour ? (
-                <TourForm
-                  mode="edit"
-                  initialData={editTour}
-                  existingImages={editTour.images ?? []}
-                  onSubmit={async (formData) => {
-                    toast.loading("Updating tour...", { toastId: "updating-tour" });
-                    try {
-                      await tourService.updateTour(formData);
-                      toast.dismiss("updating-tour");
-                      toast.success("Tour updated successfully!");
-                      closeEditModal();
-                      setReloadToken((v) => v + 1);
-                    } catch (err: unknown) {
-                      toast.dismiss("updating-tour");
-                      const apiError = err as { message?: string; details?: unknown };
-                      const errorMsg = apiError?.message || t("tourAdmin.updateError", "Failed to update tour");
-                      toast.error(errorMsg);
-                    }
-                  }}
-                  onCancel={closeEditModal}
-                />
-              ) : null}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-
-
-      {/* ── Delete Confirmation Dialog ────────────────────────── */}
-      <ConfirmationDialog
-        active={showDeleteConfirm}
-        onClose={() => {
-          setShowDeleteConfirm(false);
-          setSelectedTourId(null);
-          setSelectedTourName("");
-        }}
-        onConfirm={() => {
-          if (selectedTourId) {
-            handleDelete(selectedTourId);
-          }
-        }}
-        title={safeT("tourAdmin.confirmDelete.title", "Delete tour")}
-        message={`${safeT("tourAdmin.confirmDelete.message", "Are you sure you want to delete")} "${selectedTourName}"?`}
-        confirmLabel={safeT("tourAdmin.confirmDelete.confirm", "Delete")}
-        cancelLabel={safeT("tourAdmin.confirmDelete.cancel", "Cancel")}
-      />
     </AdminSidebar>
   );
 }

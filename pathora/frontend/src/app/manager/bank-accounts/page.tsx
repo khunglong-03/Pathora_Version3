@@ -210,6 +210,8 @@ function BankAccountModal({
 }: BankAccountModalProps) {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<BankAccountFormData | null>(null);
   const isEditing = !!initialData;
 
   const {

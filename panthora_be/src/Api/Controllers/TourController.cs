@@ -344,6 +344,14 @@ public class TourController(
     [HttpDelete(TourEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
+        var tour = await tourRepository.FindById(id, asNoTracking: true);
+        if (tour == null)
+            return HandleResult<Success>(Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription));
+
+        var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
+        if (!authResult.Succeeded)
+            return Forbid();
+
         var result = await Sender.Send(new DeleteTourCommand(id));
         return HandleResult(result);
     }

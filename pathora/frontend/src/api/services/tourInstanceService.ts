@@ -126,16 +126,22 @@ export const tourInstanceService = {
     params.append("pageNumber", pageNumber.toString());
     params.append("pageSize", pageSize.toString());
 
-    const response = await api.get<ApiResponse<PaginatedResponse<TourInstanceVm>>>(
+    // Backend returns PaginatedList<T> mapped as { items: [], totalCount: 0 }
+    type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
+
+    const response = await api.get<ApiResponse<TourInstancePage>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}?${params.toString()}`,
     );
 
-    const result = extractResult<PaginatedResponse<TourInstanceVm>>(response.data);
+    const result = extractResult<TourInstancePage>(response.data);
     if (!result) return null;
 
+    const items = result.items ?? result.data ?? [];
+    const total = result.totalCount ?? result.total ?? 0;
+
     return {
-      ...result,
-      data: (result.data ?? []).map(normalizeInstanceVm),
+      total,
+      data: items.map(normalizeInstanceVm),
     } as PaginatedResponse<NormalizedTourInstanceVm>;
   },
 
@@ -313,16 +319,21 @@ export const tourInstanceService = {
     params.append("pageNumber", pageNumber.toString());
     params.append("pageSize", pageSize.toString());
 
-    const response = await api.get<ApiResponse<PaginatedResponse<TourInstanceVm>>>(
+    type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
+
+    const response = await api.get<ApiResponse<TourInstancePage>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_PROVIDER_ASSIGNED}?${params.toString()}`,
     );
 
-    const result = extractResult<PaginatedResponse<TourInstanceVm>>(response.data);
+    const result = extractResult<TourInstancePage>(response.data);
     if (!result) return null;
 
+    const items = result.items ?? result.data ?? [];
+    const total = result.totalCount ?? result.total ?? 0;
+
     return {
-      ...result,
-      data: (result.data ?? []).map(normalizeInstanceVm),
+      total,
+      data: items.map(normalizeInstanceVm),
     } as PaginatedResponse<NormalizedTourInstanceVm>;
   },
 

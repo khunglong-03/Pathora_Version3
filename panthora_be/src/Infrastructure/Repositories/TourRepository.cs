@@ -232,13 +232,18 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
 
+            if (!designerIds.Contains(managerId.Value))
+            {
+                designerIds.Add(managerId.Value);
+            }
+
             query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
         }
 
         return await query
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
-            .OrderByDescending(t => t.CreatedOnUtc)
+            .OrderByDescending(t => t.LastModifiedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .AsSplitQuery()
@@ -279,6 +284,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
+
+            if (!designerIds.Contains(managerId.Value))
+            {
+                designerIds.Add(managerId.Value);
+            }
 
             query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
         }

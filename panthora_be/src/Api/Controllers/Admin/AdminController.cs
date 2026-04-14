@@ -21,16 +21,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.Admin;
 
-[Authorize(Policy = "ManagerOnly")]
+[Authorize(Policy = "AdminOnly")]
 [Route(AdminEndpoint.Base)]
 public class AdminController : BaseApiController
 {
-    [HttpGet(AdminEndpoint.Overview)]
-    public async Task<IActionResult> GetOverview()
-    {
-        var result = await Sender.Send(new GetAdminOverviewQuery());
-        return HandleResult(result);
-    }
+
 
     [HttpGet(AdminEndpoint.Dashboard)]
     public async Task<IActionResult> GetDashboard()
@@ -39,21 +34,7 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet(AdminEndpoint.TourManagement)]
-    public async Task<IActionResult> GetTourManagement(
-        [FromQuery] string? searchText,
-        [FromQuery] Domain.Enums.TourStatus? status,
-        [FromQuery] Domain.Enums.TourScope? tourScope,
-        [FromQuery] Domain.Enums.Continent? continent,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
-    {
-        var isManager = User.IsInRole("Manager") && !User.IsInRole("Admin");
-        var managerId = isManager && Guid.TryParse(CurrentUserId, out var parsedId) ? (Guid?)parsedId : null;
 
-        var result = await Sender.Send(new GetAdminTourManagementQuery(searchText, status, tourScope, continent, pageNumber, pageSize, managerId));
-        return HandleResult(result);
-    }
 
     // Group 1: User Management
     [HttpGet(AdminEndpoint.Users)]
@@ -74,67 +55,9 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    // Group 2: Transport Provider
-    [HttpGet(AdminEndpoint.TransportProviders)]
-    public async Task<IActionResult> GetTransportProviders(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? search = null,
-        [FromQuery] string? status = null,
-        [FromQuery] Domain.Enums.Continent? continent = null)
-    {
-        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status, continent));
-        return HandleResult(result);
-    }
 
-    [HttpGet(AdminEndpoint.TransportProviderById)]
-    public async Task<IActionResult> GetTransportProviderById(Guid id)
-    {
-        var result = await Sender.Send(new GetTransportProviderByIdQuery(id));
-        return HandleResult(result);
-    }
 
-    // Group 3: Hotel Provider
-    [HttpGet(AdminEndpoint.HotelProviders)]
-    public async Task<IActionResult> GetHotelProviders(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? search = null,
-        [FromQuery] string? status = null,
-        [FromQuery] Domain.Enums.Continent? continent = null)
-    {
-        var result = await Sender.Send(new GetHotelProvidersQuery(pageNumber, pageSize, search, status, continent));
-        return HandleResult(result);
-    }
 
-    [HttpGet(AdminEndpoint.HotelProviderById)]
-    public async Task<IActionResult> GetHotelProviderById(Guid id)
-    {
-        var result = await Sender.Send(new GetHotelProviderByIdQuery(id));
-        return HandleResult(result);
-    }
-
-    // Group 4: TourManager Staff (staff under current manager only)
-    [HttpGet(AdminEndpoint.TourManagerStaff)]
-    public async Task<IActionResult> GetTourManagerStaff(Guid managerId)
-    {
-        var result = await Sender.Send(new GetTourManagerStaffQuery(managerId));
-        return HandleResult(result);
-    }
-
-    [HttpPut(AdminEndpoint.ReassignStaff)]
-    public async Task<IActionResult> ReassignStaff(Guid managerId, Guid staffId, [FromBody] ReassignStaffRequest request)
-    {
-        var result = await Sender.Send(new ReassignStaffCommand(managerId, staffId, request.TargetManagerId));
-        return HandleResult(result);
-    }
-
-    [HttpPost(AdminEndpoint.CreateStaffUnderManager)]
-    public async Task<IActionResult> CreateStaffUnderManager(Guid managerId, [FromBody] CreateStaffUnderManagerRequest request)
-    {
-        var result = await Sender.Send(new CreateStaffUnderManagerCommand(managerId, request));
-        return HandleResult(result);
-    }
 
     // Group 5: Admin Dashboard
     [HttpGet(AdminEndpoint.AdminDashboardOverview)]

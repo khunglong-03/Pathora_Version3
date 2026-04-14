@@ -7,6 +7,8 @@ using Application.Features.Tour.Commands;
 using Application.Features.Tour.Queries;
 using Application.Features.Admin.Queries;
 using Application.Tours.Commands;
+using Application.Features.Manager.DTOs;
+using Application.Features.Manager.Queries;
 using AutoMapper;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -28,6 +30,7 @@ public interface ITourService
     Task<ErrorOr<PaginatedList<TourVm>>> GetAdminTourManagement(GetAdminTourManagementQuery request);
     Task<ErrorOr<TourDto>> GetDetail(Guid id);
     Task<ErrorOr<TourDto>> ReviewTour(Guid tourId, TourReviewAction action, string? reason);
+    Task<ErrorOr<TourManagementStatsDto>> GetAdminTourManagementStats(Application.Features.Manager.Queries.GetTourManagementStatsQuery request);
 }
 
 public class TourService(
@@ -1174,6 +1177,21 @@ public class TourService(
             }
         }
         await Task.CompletedTask;
+    }
+
+    public async Task<ErrorOr<Application.Features.Manager.DTOs.TourManagementStatsDto>> GetAdminTourManagementStats(Application.Features.Manager.Queries.GetTourManagementStatsQuery request)
+    {
+        var total = await _tourRepository.CountAllAdmin(request.SearchText, null, request.ManagerId, request.TourScope, request.Continent);
+        var active = await _tourRepository.CountAllAdmin(request.SearchText, TourStatus.Active, request.ManagerId, request.TourScope, request.Continent);
+        var inactive = await _tourRepository.CountAllAdmin(request.SearchText, TourStatus.Inactive, request.ManagerId, request.TourScope, request.Continent);
+        var rejected = await _tourRepository.CountAllAdmin(request.SearchText, TourStatus.Rejected, request.ManagerId, request.TourScope, request.Continent);
+
+        return new Application.Features.Manager.DTOs.TourManagementStatsDto(
+            Total: total,
+            Active: active,
+            Inactive: inactive,
+            Rejected: rejected
+        );
     }
 
     private sealed class FallbackLanguageContext : ILanguageContext

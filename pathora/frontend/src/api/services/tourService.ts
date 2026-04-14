@@ -136,6 +136,39 @@ export const tourService = {
     };
   },
 
+  getAdminTourManagementStats: async (
+    searchText?: string,
+    tourScope?: string,
+    continent?: string,
+  ) => {
+    const params = new URLSearchParams({
+      searchText: searchText || "",
+    });
+    if (tourScope && tourScope !== "all") {
+      params.append("tourScope", tourScope);
+    }
+    if (continent && continent !== "all") {
+      params.append("continent", continent);
+    }
+    
+    type AdminTourStats = {
+      total: number;
+      active: number;
+      inactive: number;
+      rejected: number;
+    };
+    
+    const response = await api.get<ApiResponse<AdminTourStats>>(
+      `${API_ENDPOINTS.TOUR.GET_ALL_MANAGER_TOUR_MANAGEMENT_STATS}?${params.toString()}`,
+    );
+    return extractResult<AdminTourStats>(response.data) ?? {
+      total: 0,
+      active: 0,
+      inactive: 0,
+      rejected: 0
+    };
+  },
+
   getTourDetail: async (id: string) => {
     const response = await api.get<ApiResponse<TourDto>>(
       API_ENDPOINTS.TOUR.GET_DETAIL(id),

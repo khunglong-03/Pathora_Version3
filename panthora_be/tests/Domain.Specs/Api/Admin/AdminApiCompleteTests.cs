@@ -1,6 +1,7 @@
 using AdminDTOs = Application.Features.Admin.DTOs;
 using AdminContracts = Application.Contracts.Admin;
 using Api.Controllers.Admin;
+using Api.Controllers.Manager;
 using Api.Endpoint;
 using Application.Features.Admin.Commands.CreateStaffUnderManager;
 using Application.Features.Admin.Commands.UpdateBankAccount;
@@ -125,16 +126,16 @@ public sealed class AdminApiCompleteTests
         var response = new PaginatedList<TourVm>(tours.Count, tours, 1, 10);
 
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<AdminController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
+            .BuildController<ManagerController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
                 response,
-                "/" + AdminEndpoint.TourManagement);
+                "/" + ManagerEndpoint.TourManagement);
 
         var actionResult = await controller.GetTourManagement(null, null, null, null, 1, 10);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "/" + AdminEndpoint.TourManagement,
+            expectedInstance: "/" + ManagerEndpoint.TourManagement,
             expectedData: response);
     }
 
@@ -143,9 +144,9 @@ public sealed class AdminApiCompleteTests
     {
         var emptyResponse = new PaginatedList<TourVm>(0, new List<TourVm>(), 1, 10);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
+            .BuildController<ManagerController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
                 emptyResponse,
-                "/" + AdminEndpoint.TourManagement);
+                "/" + ManagerEndpoint.TourManagement);
 
         var actionResult = await controller.GetTourManagement(null, Domain.Enums.TourStatus.Active, null, null, 1, 10);
 
@@ -158,9 +159,9 @@ public sealed class AdminApiCompleteTests
     {
         var emptyResponse = new PaginatedList<TourVm>(0, new List<TourVm>(), 1, 10);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
+            .BuildController<ManagerController, GetAdminTourManagementQuery, PaginatedList<TourVm>>(
                 emptyResponse,
-                "/" + AdminEndpoint.TourManagement);
+                "/" + ManagerEndpoint.TourManagement);
 
         var actionResult = await controller.GetTourManagement("Vietnam", null, null, null, 1, 10);
 
@@ -384,7 +385,7 @@ public sealed class AdminApiCompleteTests
             Guid.NewGuid(), "Staff Member", "staff@example.com", null, "TourGuide", "Guide", "Active");
 
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, CreateStaffUnderManagerCommand, AdminDTOs.StaffMemberDto>(
+            .BuildController<ManagerController, CreateStaffUnderManagerCommand, AdminDTOs.StaffMemberDto>(
                 resultDto,
                 "/tour-managers/" + managerId + "/staff/create");
 
@@ -408,7 +409,7 @@ public sealed class AdminApiCompleteTests
         );
 
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<AdminController, CreateStaffUnderManagerCommand, AdminDTOs.StaffMemberDto>(
+            .BuildController<ManagerController, CreateStaffUnderManagerCommand, AdminDTOs.StaffMemberDto>(
                 Error.Validation("Email.Invalid", "Invalid email format."),
                 "/tour-managers/" + managerId + "/staff/create");
 

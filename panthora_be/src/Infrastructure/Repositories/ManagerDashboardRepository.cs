@@ -29,6 +29,12 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
             .Select(a => a.AssignedUserId!.Value)
             .ToListAsync(cancellationToken);
 
+        // Include the manager themselves so their own data is shown
+        if (!designerIds.Contains(managerId))
+        {
+            designerIds.Add(managerId);
+        }
+
         // Also get TourGuide IDs for staff overview
         var guideIds = await _context.TourManagerAssignments
             .AsNoTracking()

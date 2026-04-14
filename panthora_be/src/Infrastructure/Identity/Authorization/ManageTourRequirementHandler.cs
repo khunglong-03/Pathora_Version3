@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Identity.Authorization;
 
-public class ManageTourRequirementHandler(AppDbContext context) : AuthorizationHandler<ManageTourRequirement, TourEntity>
+public class ManageTourRequirementHandler : AuthorizationHandler<ManageTourRequirement, TourEntity>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext contextAuth, ManageTourRequirement requirement, TourEntity resource)
     {
-        // 1. Admin implicitly has access to all tours
-        if (contextAuth.User.IsInRole("Admin"))
+        // 1. Admin and Manager implicitly have access to all tours
+        if (contextAuth.User.IsInRole("Admin") || contextAuth.User.IsInRole("Manager"))
         {
             contextAuth.Succeed(requirement);
             return;
@@ -26,23 +26,6 @@ public class ManageTourRequirementHandler(AppDbContext context) : AuthorizationH
             {
                 contextAuth.Succeed(requirement);
                 return;
-            }
-
-            // 3. For Managers: check if the TourDesigner who created this tour is managed by this Manager
-            if (contextAuth.User.IsInRole("Manager") && resource.TourDesignerId.HasValue)
-            {
-                var targetDesignerId = resource.TourDesignerId.Value;
-
-                var isManaged = await context.TourManagerAssignments
-                    .AnyAsync(a => a.TourManagerId == userId
-                                   && a.AssignedEntityType == AssignedEntityType.TourDesigner
-                                   && a.AssignedUserId == targetDesignerId);
-
-                if (isManaged)
-                {
-                    contextAuth.Succeed(requirement);
-                    return;
-                }
             }
         }
 

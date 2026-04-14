@@ -1,10 +1,10 @@
 export const PREMIUM_FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop", // Halong Bay
-  "https://images.unsplash.com/photo-1557315124-bcaabff02008?q=80&w=2070&auto=format&fit=crop", // Hanoi Temple
-  "https://images.unsplash.com/photo-1540306129994-0cfce28328f4?q=80&w=2048&auto=format&fit=crop", // Bali Rice Terraces
+  "/images/fallback/hanoi-temple.png", // Hanoi Temple
+  "/images/fallback/bali-terrace.png", // Bali Rice Terraces
   "https://images.unsplash.com/photo-1480796927426-f609979314bd?q=80&w=2000&auto=format&fit=crop", // Tokyo Cityscape / Shrine
   "https://images.unsplash.com/photo-1506452819137-0422416856b8?q=80&w=2000&auto=format&fit=crop", // Mountains / Asia
-  "https://images.unsplash.com/photo-1550605330-804153eb268a?q=80&w=2127&auto=format&fit=crop", // Thai Islands
+  "/images/fallback/thai-islands.png", // Thai Islands
   "https://images.unsplash.com/photo-1562602833-0f4ab021fb15?q=80&w=2070&auto=format&fit=crop", // Old architecture
   "https://images.unsplash.com/photo-1520635441113-dcfd9ab5774a?q=80&w=2000&auto=format&fit=crop", // Kyoto
 ];

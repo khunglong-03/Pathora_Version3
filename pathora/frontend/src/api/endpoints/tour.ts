@@ -6,6 +6,7 @@ export interface TourEndpoints {
   GET_ALL: string;
   GET_MY_TOURS: string;
   GET_ALL_ADMIN_TOUR_MANAGEMENT: string;
+  GET_ALL_MANAGER_TOUR_MANAGEMENT_STATS: string;
   GET_DETAIL: EndpointWithId;
   GET_CLASSIFICATION_PRICING_TIERS: EndpointWithId;
   CREATE: string;
@@ -44,7 +45,8 @@ export interface PublicTourInstanceEndpoints {
 export const TOUR: TourEndpoints = {
   GET_ALL: "/api/tour",
   GET_MY_TOURS: "/api/tour",
-  GET_ALL_ADMIN_TOUR_MANAGEMENT: "/api/admin/tour-management",
+  GET_ALL_ADMIN_TOUR_MANAGEMENT: "/api/manager/tour-management",
+  GET_ALL_MANAGER_TOUR_MANAGEMENT_STATS: "/api/manager/tour-management/stats",
   GET_DETAIL: (id: string): string => `/api/tour/${id}`,
   GET_CLASSIFICATION_PRICING_TIERS: (classificationId: string): string =>
     `/api/tour/classifications/${classificationId}/pricing-tiers`,

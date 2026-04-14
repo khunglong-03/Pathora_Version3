@@ -218,12 +218,13 @@ function OtherServicesTab({
 
   if (insurances.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:wrench-screwdriver" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:wrench-screwdriver" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">
-          No other services available for {classification.name}
+        <p className="text-sm font-medium text-stone-500 relative z-10">
+          No other services available for <span className="font-bold text-stone-700">{classification.name}</span>
         </p>
       </div>
     );
@@ -294,12 +295,13 @@ function InsuranceTab({
 
   if (insurances.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:shield-check" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:shield-check" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">
-          No insurance packages available for {classification.name}
+        <p className="text-sm font-medium text-stone-500 relative z-10">
+          No insurance packages available for <span className="font-bold text-stone-700">{classification.name}</span>
         </p>
       </div>
     );
@@ -440,11 +442,12 @@ function AccommodationsTab({
 
   if (accommodations.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:home-modern" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:home-modern" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm font-medium text-stone-500 relative z-10">
           {t("tourDetail.accommodations.empty", "No accommodations available for this package.")}
         </p>
       </div>
@@ -558,12 +561,13 @@ function LocationsTab({ classification }: { classification: TourClassificationDt
 
   if (locations.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:map-pin" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:map-pin" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">
-          No locations available{classification.name ? ` for ${classification.name}` : ""}
+        <p className="text-sm font-medium text-stone-500 relative z-10">
+          No locations available {classification.name ? `for ` : ""}<span className="font-bold text-stone-700">{classification.name || ""}</span>
         </p>
       </div>
     );
@@ -669,12 +673,13 @@ function TransportationTab({
 }) {
   if (routes.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:truck" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:truck" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">
-          No transportation routes available{packageName ? ` for ${packageName}` : ""}
+        <p className="text-sm font-medium text-stone-500 relative z-10">
+          No transportation routes available {packageName ? `for ` : ""}<span className="font-bold text-stone-700">{packageName || ""}</span>
         </p>
       </div>
     );
@@ -782,11 +787,14 @@ function ItineraryTab({ classification }: { classification: TourClassificationDt
 
   if (days.length === 0) {
     return (
-      <div className="bg-white border border-stone-200/50 rounded-[2.5rem] p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
-          <Icon icon="heroicons:map" className="size-6 text-stone-300" />
+      <div className="bg-stone-50/50 border-2 border-dashed border-stone-200/60 rounded-[2rem] p-12 text-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm ring-1 ring-stone-900/5 flex items-center justify-center mx-auto mb-4 relative z-10 transition-transform duration-300 group-hover:scale-105">
+          <Icon icon="heroicons:map" className="size-6 text-stone-300 group-hover:text-amber-500 transition-colors" />
         </div>
-        <p className="text-sm text-stone-500">No itinerary available for this package.</p>
+        <p className="text-sm font-medium text-stone-500 relative z-10">
+          No itinerary available for this package.
+        </p>
       </div>
     );
   }
@@ -1115,10 +1123,9 @@ export function TourDetailPage() {
   const tourId = params?.id as string;
 
   const { user } = useAuth();
-  const isManagerOrAdmin = (() => {
-    const roles: string[] = (user as unknown as { roles?: string[] })?.roles ?? [];
-    return roles.some((r) => r === "Manager" || r === "Admin");
-  })();
+  const userRoles: string[] = (user as unknown as { roles?: string[] })?.roles ?? [];
+  const isManagerOrAdmin = userRoles.some((r) => r === "Manager" || r === "Admin");
+  const isAdmin = userRoles.includes("Admin");
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tour, setTour] = useState<TourDto | null>(null);
@@ -1177,22 +1184,7 @@ export function TourDetailPage() {
     });
   }, [tour]);
 
-  useEffect(() => {
-    if (!selectedPackage?.id) return;
-    let mounted = true;
-    const fetchClassificationTiers = async () => {
-      try {
-        const tiers = await tourService.getClassificationPricingTiers(selectedPackage.id);
-        if (!mounted) return;
-        setClassificationTiers((current) => ({ ...current, [selectedPackage.id]: tiers }));
-      } catch (error: unknown) {
-        const handledError = handleApiError(error);
-        console.error("Failed to load classification pricing tiers:", handledError.message);
-      }
-    };
-    fetchClassificationTiers();
-    return () => { mounted = false; };
-  }, [selectedPackage?.id]);
+
 
   /* ── Format helpers ───────────────────────────────────────── */
   const formatDate = (dateStr?: string | null) => {
@@ -1318,77 +1310,95 @@ export function TourDetailPage() {
         {/* Main Content */}
         {dataState === "ready" && tour && (
           <>
-            {/* Header Section */}
-            <div className="bg-white border-b border-stone-200/80">
-              <div className="px-8 pt-5 pb-0 max-w-[87.5rem] mx-auto">
-                <div className="flex items-center justify-between mb-5">
+            {/* Premium Hero Header Section */}
+            <div className="relative bg-white border-b border-stone-200/80 overflow-hidden shadow-sm">
+              {/* Subtle glassmorphism background effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-stone-50 via-white to-stone-50 z-0" />
+              {tour.thumbnail?.publicURL && (
+                <div className="absolute inset-0 z-0 opacity-5 blur-3xl pointer-events-none">
+                  <img src={tour.thumbnail.publicURL} alt="bg blur" className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              <div className="relative z-10 px-8 pt-8 pb-0 max-w-[87.5rem] mx-auto">
+                <div className="flex items-center justify-between mb-8">
                   <Link
                     href="/tour-management"
-                    className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-700 text-sm font-semibold transition-colors duration-150">
-                    <Icon icon="heroicons:arrow-left" className="size-4" />
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 text-xs font-bold uppercase tracking-wider transition-all duration-200 ring-1 ring-stone-900/5 hover:shadow-sm">
+                    <Icon icon="heroicons:arrow-left" className="size-3.5" />
                     Back to Tours
                   </Link>
                   <div className="flex items-center gap-3">
                     {/* For pending tours, Managers use the ReviewPanel — don't show raw status changer */}
                     {(tour.status !== 3 || !isManagerOrAdmin) && (
-                      <StatusDropdown
-                        currentStatus={tour.status}
-                        isLoading={statusUpdating}
-                        onChange={handleStatusChange}
-                      />
+                      <div className="shadow-sm rounded-xl">
+                        <StatusDropdown
+                          currentStatus={tour.status}
+                          isLoading={statusUpdating}
+                          onChange={handleStatusChange}
+                        />
+                      </div>
                     )}
                     {tour.status === 3 && isManagerOrAdmin && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
                         Wait for Review
                       </span>
                     )}
-                    <button
-                      onClick={() => router.push(`/tour-management/${tourId}/edit`)}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md">
-                      <Icon icon="heroicons:pencil-square" className="size-4" />
-                      Edit Tour
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => router.push(`/tour-management/${tourId}/edit`)}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] ring-1 ring-stone-900/10">
+                        <Icon icon="heroicons:pencil-square" className="size-4" />
+                        Edit Tour
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {/* Review Panel — visible to Manager/Admin only when tour is Pending */}
                 {tour.status === 3 && isManagerOrAdmin && (
-                  <ReviewPanel
-                    tourId={tourId}
-                    onReviewed={() => setReloadToken((v) => v + 1)}
-                  />
+                  <div className="mb-8">
+                    <ReviewPanel
+                      tourId={tourId}
+                      onReviewed={() => setReloadToken((v) => v + 1)}
+                    />
+                  </div>
                 )}
 
                 {/* Tour Info Header */}
-                <div className="flex gap-5 mb-5">
-                  <div className="w-24 h-24 rounded-2xl border-2 border-stone-200/80 bg-stone-100 flex items-center justify-center shrink-0 overflow-hidden hover:border-amber-300 transition-colors duration-200">
+                <div className="flex flex-col md:flex-row gap-6 lg:gap-8 mb-10 items-start">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2rem] border-[3px] border-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.15)] bg-stone-50 flex items-center justify-center shrink-0 overflow-hidden relative group">
                     {tour.thumbnail?.publicURL ? (
-                      <img src={tour.thumbnail.publicURL} alt={tour.tourName} className="w-full h-full object-cover rounded-2xl" />
+                      <img src={tour.thumbnail.publicURL} alt={tour.tourName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     ) : (
-                      <Icon icon="heroicons:photo" className="size-8 text-stone-400" />
+                      <Icon icon="heroicons:photo" className="size-10 text-stone-300" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h1 className="text-3xl font-bold tracking-tight text-stone-900">{tour.tourName}</h1>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold border border-amber-200/60">
+                  <div className="flex-1 min-w-0 pt-2">
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-stone-100 text-stone-600 text-[10px] font-black uppercase tracking-widest border border-stone-200/60 shadow-sm">
                         {tour.tourCode}
                       </span>
                     </div>
-                    <p className="text-sm text-stone-500 mb-2">{tour.shortDescription}</p>
-                    <div className="flex items-center gap-5 text-xs text-stone-400">
-                      <span className="inline-flex items-center gap-1">
-                        <Icon icon="heroicons:calendar" className="size-3.5" />
-                        Created: {formatDate(tour.createdOnUtc)}
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 mb-3 drop-shadow-sm leading-tight">
+                      {tour.tourName}
+                    </h1>
+                    <p className="text-base text-stone-500 mb-5 max-w-4xl font-medium leading-relaxed">
+                      {tour.shortDescription}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-stone-500 font-medium bg-stone-50/50 p-4 rounded-2xl border border-stone-100">
+                      <span className="inline-flex items-center gap-2">
+                        <Icon icon="heroicons:calendar" className="size-4 text-stone-400" />
+                        Created: <span className="text-stone-900">{formatDate(tour.createdOnUtc)}</span>
                       </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Icon icon="heroicons:clock" className="size-3.5" />
-                        Updated: {formatDate(tour.lastModifiedOnUtc)}
+                      <span className="inline-flex items-center gap-2">
+                        <Icon icon="heroicons:clock" className="size-4 text-stone-400" />
+                        Updated: <span className="text-stone-900">{formatDate(tour.lastModifiedOnUtc)}</span>
                       </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Icon icon="heroicons:cube" className="size-3.5" />
-                        {classifications.length} Packages
+                      <span className="inline-flex items-center gap-2 text-amber-600 font-bold bg-amber-50 px-3 py-1 rounded-lg">
+                        <Icon icon="heroicons:cube" className="size-4" />
+                        {classifications.length} Packages Available
                       </span>
                     </div>
                   </div>
@@ -1396,51 +1406,70 @@ export function TourDetailPage() {
 
                 {/* Package Selector */}
                 {classifications.length > 0 && (
-                  <div className="mb-5">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-2">
-                      Select Package to View Details
+                  <div className="mb-10">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-stone-400 mb-4 ml-1">
+                      Explore Tour Packages
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {classifications.map((cls, idx) => (
-                        <button
-                          key={cls.id}
-                          onClick={() => setSelectedPackageIdx(idx)}
-                          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
-                            idx === selectedPackageIdx
-                              ? "bg-amber-500 border-amber-500 text-white shadow-sm"
-                              : "bg-white border-stone-200/80 text-stone-600 hover:border-stone-300 active:scale-[0.98]"
-                          }`}>
-                          <span>{cls.name}</span>
-                          <span className={`text-xs ${idx === selectedPackageIdx ? "opacity-80" : "text-stone-400"}`}>
-                            {formatCurrency(cls.salePrice || cls.price)}
-                          </span>
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap gap-4">
+                      {classifications.map((cls, idx) => {
+                        const isSelected = idx === selectedPackageIdx;
+                        return (
+                          <button
+                            key={cls.id}
+                            onClick={() => setSelectedPackageIdx(idx)}
+                            className={`relative flex flex-col items-start px-6 py-4 rounded-[1.5rem] text-left transition-all duration-300 w-full sm:min-w-[240px] sm:w-auto ${
+                              isSelected
+                                ? "bg-stone-900 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] ring-1 ring-stone-800 scale-[1.02]"
+                                : "bg-white hover:bg-stone-50 shadow-sm ring-1 ring-stone-200/80 hover:ring-stone-300"
+                            }`}>
+                            <span className={`text-base font-bold mb-1 ${isSelected ? "text-white" : "text-stone-800"}`}>
+                              {cls.name}
+                            </span>
+                            <span className={`text-sm tracking-tight ${isSelected ? "text-amber-400 font-semibold" : "text-stone-500"}`}>
+                              {formatCurrency(cls.salePrice || cls.price)}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                     {selectedPackage && (
-                      <p className="text-sm text-stone-500 mt-2">
-                        <span className="font-semibold">Package Details:</span>{" "}
-                        {selectedPackage.description}
-                      </p>
+                      <motion.div
+                        key={selectedPackage.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-5 p-4 rounded-2xl bg-amber-50/50 border border-amber-100/50 flex items-start gap-3">
+                        <Icon icon="heroicons:information-circle" className="size-5 text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-sm text-stone-600 leading-relaxed max-w-4xl">
+                          <span className="font-bold text-stone-800 tracking-tight">Package Detail —</span> {selectedPackage.description}
+                        </p>
+                      </motion.div>
                     )}
                   </div>
                 )}
 
-                {/* Content Tabs */}
-                <div className="flex gap-1 border-t border-stone-200/80 -mx-8 px-8 overflow-x-auto">
-                  {CONTENT_TABS.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors duration-150 ${
-                        activeTab === tab.id
-                          ? "border-amber-500 text-amber-600"
-                          : "border-transparent text-stone-400 hover:text-stone-600 hover:border-stone-200"
-                      }`}>
-                      <Icon icon={tab.icon} className="size-4" />
-                      {tab.label}
-                    </button>
-                  ))}
+                {/* Modern Content Tabs */}
+                <div className="flex gap-2 border-b border-stone-200 mt-4 overflow-x-auto no-scrollbar scroll-smooth snap-x">
+                  {CONTENT_TABS.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative flex items-center gap-2.5 px-5 py-4 text-sm font-bold whitespace-nowrap transition-colors duration-200 snap-center ${
+                          isActive ? "text-stone-900" : "text-stone-400 hover:text-stone-600"
+                        }`}>
+                        <Icon icon={tab.icon} className={`size-4.5 ${isActive ? "text-amber-500" : ""}`} />
+                        {tab.label}
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeTabIndicator"
+                            className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500 rounded-t-full"
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
