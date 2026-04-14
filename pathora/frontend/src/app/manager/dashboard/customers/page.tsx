@@ -1,9 +1,9 @@
 import dynamic from "next/dynamic";
 
-const CustomersPage = dynamic(
-  () => import("@/features/dashboard/components/CustomersPage"),
+const StaffTrackingPage = dynamic(
+  () => import("@/features/dashboard/components/StaffTrackingPage"),
 );
 
-export default function DashboardCustomersPage() {
-  return <CustomersPage />;
+export default function DashboardStaffPage() {
+  return <StaffTrackingPage />;
 }

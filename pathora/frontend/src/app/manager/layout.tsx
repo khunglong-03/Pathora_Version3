@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import ManagerShell from "./ManagerShell";
 
-const MANAGER_ROLE_NAMES = new Set(["Manager"]);
+const MANAGER_ROLE_NAMES = new Set(["Manager", "Admin"]);
 
 export default async function DashboardRouteGroupLayout({
   children,

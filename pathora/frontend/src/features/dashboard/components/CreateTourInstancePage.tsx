@@ -18,6 +18,7 @@ import type { TourRequestDetailDto } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SearchTourVm, TourClassificationDto, TourDto, UserInfo } from "@/types/tour";
+import dayjs from "dayjs";
 
 type FormState = {
   tourId: string;
@@ -373,7 +374,7 @@ function InstanceDetailsStep({
               {duplicateWarning.existingInstances.map((inst) => (
                 <a
                   key={inst.id}
-                  href={`/tour-instances/${inst.id}`}
+                  href={`/manager/tour-instances/${inst.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 flex items-center gap-1.5 text-sm text-amber-800 hover:text-amber-600 underline underline-offset-2"
@@ -473,12 +474,14 @@ function InstanceDetailsStep({
               </label>
               <input
                 type="date"
-                className={inputClassName}
+                className={`${inputClassName} cursor-not-allowed bg-stone-100 opacity-70`}
                 value={form.endDate}
-                onChange={(event) =>
-                  updateField("endDate", event.target.value)
-                }
+                readOnly
+                disabled
               />
+              <p className="text-xs text-stone-400 mt-1">
+                {t("tourInstance.endDateAutoCalculated", "Auto-calculated based on tour duration")}
+              </p>
               {errors.endDate && (
                 <p className="text-xs text-red-600">{errors.endDate}</p>
               )}
@@ -614,8 +617,8 @@ function InstanceDetailsStep({
               onChange={(e) => updateField("hotelProviderId", e.target.value)}
             >
               <option value="">{t("tourInstance.form.selectHotel", "Select Hotel Provider...")}</option>
-              {hotelProviders.map((h) => (
-                <option key={h.id} value={h.id}>
+              {hotelProviders.map((h, idx) => (
+                <option key={h.id ?? `hotel-${idx}`} value={h.id}>
                   {h.name}
                 </option>
               ))}
@@ -632,9 +635,9 @@ function InstanceDetailsStep({
               onChange={(e) => updateField("transportProviderId", e.target.value)}
             >
               <option value="">{t("tourInstance.form.selectTransport", "Select Transport Provider...")}</option>
-              {transportProviders.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+              {transportProviders.map((tp, idx) => (
+                <option key={tp.id ?? `transport-${idx}`} value={tp.id}>
+                  {tp.name}
                 </option>
               ))}
             </select>
@@ -1049,6 +1052,23 @@ export function CreateTourInstancePage({
     });
   }, [selectedClassification, selectedTour?.tourName]);
 
+  // Auto-calculate endDate from startDate + classification's numberOfDay
+  useEffect(() => {
+    if (!form.startDate || !selectedClassification) return;
+    
+    // Fallback to 1 if numberOfDay missing or 0
+    const duration = selectedClassification.numberOfDay && selectedClassification.numberOfDay > 0 
+      ? selectedClassification.numberOfDay 
+      : 1;
+      
+    // Subtract 1 day because a 3-day tour starting on the 10th ends on the 12th
+    const endDate = dayjs(form.startDate).add(duration - 1, 'day').format("YYYY-MM-DD");
+    
+    if (form.endDate !== endDate) {
+      setForm((current) => ({ ...current, endDate }));
+    }
+  }, [form.startDate, selectedClassification]);
+
   // Check for duplicate on startDate change (debounced)
   useEffect(() => {
     // Only check on Step 2, when all required fields are present
@@ -1186,6 +1206,16 @@ export function CreateTourInstancePage({
         "Base price must be 0 or greater",
       );
 
+    // Validate startDate is not in the past
+    if (form.startDate) {
+      const today = new Date().toISOString().split("T")[0];
+      if (form.startDate < today)
+        newErrors.startDate = t(
+          "tourInstance.validation.startDatePast",
+          "Ngày bắt đầu không được nằm trong quá khứ",
+        );
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error(t("tourInstance.validationFailed", "Please fill in all required fields"));
@@ -1211,6 +1241,8 @@ export function CreateTourInstancePage({
         thumbnailUrl: form.thumbnailUrl.trim() || undefined,
         imageUrls: form.imageUrls.map((url) => url.trim()).filter(Boolean),
         tourRequestId: effectiveTourRequestId ?? undefined,
+        hotelProviderId: form.hotelProviderId || undefined,
+        transportProviderId: form.transportProviderId || undefined,
       };
 
       const instance = await tourInstanceService.createInstance(payload);
@@ -1225,7 +1257,7 @@ export function CreateTourInstancePage({
         } catch {
           // sessionStorage may fail if data is too large — detail page will fall back to GET
         }
-        router.push(`/tour-instances/${instance.id}`);
+        router.push(`/manager/tour-instances/${instance.id}`);
       }
     } catch (error: unknown) {
       const handledError = handleApiError(error);
@@ -1319,7 +1351,7 @@ export function CreateTourInstancePage({
             updateField={updateField}
             setReloadToken={setReloadToken}
             onNext={() => setCurrentStep(INSTANCE_DETAILS_STEP)}
-            onCancel={() => router.push("/tour-instances")}
+            onCancel={() => router.push("/manager/tour-instances")}
             inputClassName={inputClassName}
             t={safeT}
           />
@@ -1328,6 +1360,8 @@ export function CreateTourInstancePage({
             form={form}
             errors={errors}
             guides={guides}
+            hotelProviders={hotelProviders}
+            transportProviders={transportProviders}
             submitting={submitting}
             selectedClassification={selectedClassification}
             duplicateWarning={duplicateWarning}

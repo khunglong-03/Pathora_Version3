@@ -9,11 +9,11 @@ import {
   type PaginatedHotelList,
 } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeaderIcon,
-  AdminKpiStripIcon,
-  AdminFilterTabsIcon,
-  AdminEmptyStateIcon,
-  AdminErrorCardIcon,
+  AdminPageHeader,
+  AdminKpiStrip,
+  AdminFilterTabs,
+  AdminEmptyState,
+  AdminErrorCard,
 } from "@/features/dashboard/components";
 import TextInput from "@/components/ui/TextInput";
 import Pagination from "@/components/ui/Pagination";
@@ -104,18 +104,18 @@ export default function BookingAccommodationListPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeaderIcon
+      <AdminPageHeader
         title="Đặt phòng Lưu trú"
         subtitle="Danh sách đặt phòng khách sạn"
         onRefresh={handleRefresh}
       />
 
       {/* KPI Strip */}
-      <AdminKpiStripIcon kpis={kpis} />
+      <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabsIcon
+        <AdminFilterTabs
           tabs={STATUS_TABS}
           activeValue={statusFilter}
           onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
@@ -133,10 +133,10 @@ export default function BookingAccommodationListPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && bookings.length === 0 && (
-        <AdminEmptyStateIcon
+        <AdminEmptyState
           icon="TicketIcon"
           heading="Không có đặt phòng"
           description="Không tìm thấy dữ liệu đặt phòng lưu trú."

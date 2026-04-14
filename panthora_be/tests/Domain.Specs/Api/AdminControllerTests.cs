@@ -1,4 +1,5 @@
 using Api.Controllers.Admin;
+using Api.Controllers.Manager;
 using Api.Endpoint;
 using Application.Contracts.User;
 using Application.Features.Admin.DTOs;
@@ -103,7 +104,7 @@ public sealed class AdminControllerTests
         var response = new PaginatedList<TransportProviderListItemDto>(
             providers.Count, providers, 1, 10);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, GetTransportProvidersQuery, PaginatedList<TransportProviderListItemDto>>(
+            .BuildController<ManagerController, GetTransportProvidersQuery, PaginatedList<TransportProviderListItemDto>>(
                 response, $"{BasePath}/transport-providers");
 
         var actionResult = await controller.GetTransportProviders(1, 10);
@@ -129,7 +130,7 @@ public sealed class AdminControllerTests
         var response = new PaginatedList<HotelProviderListItemDto>(
             providers.Count, providers, 1, 10);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, GetHotelProvidersQuery, PaginatedList<HotelProviderListItemDto>>(
+            .BuildController<ManagerController, GetHotelProvidersQuery, PaginatedList<HotelProviderListItemDto>>(
                 response, $"{BasePath}/hotel-providers");
 
         var actionResult = await controller.GetHotelProviders(1, 10);
@@ -153,7 +154,7 @@ public sealed class AdminControllerTests
             new UserSummaryDto(managerId, "Manager", "manager@example.com", null),
             new List<StaffMemberDto>());
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, GetTourManagerStaffQuery, TourManagerStaffDto>(
+            .BuildController<ManagerController, GetTourManagerStaffQuery, TourManagerStaffDto>(
                 dto, $"{BasePath}/tour-managers/{managerId}/staff");
 
         var actionResult = await controller.GetTourManagerStaff(managerId);
@@ -170,7 +171,7 @@ public sealed class AdminControllerTests
     {
         var managerId = Guid.NewGuid();
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<AdminController, GetTourManagerStaffQuery, TourManagerStaffDto>(
+            .BuildController<ManagerController, GetTourManagerStaffQuery, TourManagerStaffDto>(
                 Error.NotFound("User.NotFound", "User not found."),
                 $"{BasePath}/tour-managers/{managerId}/staff");
 

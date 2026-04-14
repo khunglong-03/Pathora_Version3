@@ -308,7 +308,7 @@ export const tourInstanceService = {
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}/${instanceId}/days`,
       payload,
     );
-    return extractResult(response);
+    return extractResult(response.data);
   },
 
   getProviderAssigned: async (

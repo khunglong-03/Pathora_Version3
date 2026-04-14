@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { TopBar } from "@/app/admin/AdminShell";
+import { TopBar } from "@/features/dashboard/components/AdminSidebar";
 import { Icon } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";

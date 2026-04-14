@@ -38,6 +38,13 @@ public sealed class UpdateTourInstanceDayCommandValidator : AbstractValidator<Up
 
         RuleFor(x => x.ActualDate)
             .NotEmpty().WithMessage("Actual date is required.");
+
+        When(x => x.StartTime.HasValue && x.EndTime.HasValue, () =>
+        {
+            RuleFor(x => x)
+                .Must(x => x.StartTime!.Value < x.EndTime!.Value)
+                .WithMessage("Giờ bắt đầu phải trước giờ kết thúc.");
+        });
     }
 }
 

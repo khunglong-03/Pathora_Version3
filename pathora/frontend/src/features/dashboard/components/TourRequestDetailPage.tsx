@@ -615,7 +615,7 @@ export function TourRequestDetailPage() {
                     {normalizedStatus === "Approved" && !detail.tourInstanceId && (
                       <button
                         type="button"
-                        onClick={() => router.push(`/tour-instances/create?tourRequestId=${detail.id}`)}
+                        onClick={() => router.push(`/manager/tour-instances/create?tourRequestId=${detail.id}`)}
                         className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 active:scale-[0.98] transition-colors shadow-sm"
                       >
                         <Icon icon="heroicons:plus" className="size-4" />

@@ -6,11 +6,11 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminHotelService, type HotelSupplierItem, type PaginatedHotelList } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeaderIcon,
-  AdminKpiStripIcon,
-  AdminFilterTabsIcon,
-  AdminEmptyStateIcon,
-  AdminErrorCardIcon,
+  AdminPageHeader,
+  AdminKpiStrip,
+  AdminFilterTabs,
+  AdminEmptyState,
+  AdminErrorCard,
 } from "@/features/dashboard/components";
 import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
@@ -107,7 +107,7 @@ export default function HotelSuppliersPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeaderIcon
+      <AdminPageHeader
         title="Nhà cung cấp Khách sạn"
         subtitle="Danh sách đối tác lưu trú cho HotelServiceProvider"
         onRefresh={handleRefresh}
@@ -124,12 +124,12 @@ export default function HotelSuppliersPage() {
       />
 
       {/* KPI Strip */}
-      <AdminKpiStripIcon kpis={kpis} />
+      <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <AdminFilterTabsIcon
+          <AdminFilterTabs
             tabs={STATUS_TABS}
             activeValue={statusFilter}
             onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
@@ -155,10 +155,10 @@ export default function HotelSuppliersPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && suppliers.length === 0 && (
-        <AdminEmptyStateIcon
+        <AdminEmptyState
           icon="Bed"
           heading="Không có nhà cung cấp nào"
           description="Không tìm thấy nhà cung cấp lưu trú phù hợp."

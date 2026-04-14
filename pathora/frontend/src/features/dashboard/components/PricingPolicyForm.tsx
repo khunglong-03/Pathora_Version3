@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { pricingPolicyService } from "@/api/services/pricingPolicyService";
-import type { PricingPolicy, PricingPolicyTierIcon, CreatePricingPolicyRequestIcon, UpdatePricingPolicyRequestIcon, PricingPolicyTranslations } from "@/types/pricingPolicy";
+import type { PricingPolicy, PricingPolicyTier, CreatePricingPolicyRequest, UpdatePricingPolicyRequest, PricingPolicyTranslations } from "@/types/pricingPolicy";
 import { PricingTierInput } from "./PricingTierInput";
 import { TranslationTabForm, TranslationField } from "./TranslationTabForm";
 import { PencilSimple, TagIcon } from "@phosphor-icons/react";
@@ -41,7 +41,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [tiers, setTiers] = useState<PricingPolicyTierIcon[]>(policy?.tiers || []);
+  const [tiers, setTiers] = useState<PricingPolicyTier[]>(policy?.tiers || []);
   const [translations, setTranslations] = useState<PricingPolicyTranslations>(
     policy?.translations || { vi: { name: "", description: "" }, en: { name: "", description: "" } }
   );
@@ -84,7 +84,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
     try {
       let response;
       if (policy) {
-        const payload: UpdatePricingPolicyRequestIcon = {
+        const payload: UpdatePricingPolicyRequest = {
           id: policy.id,
           name: data.name,
           tourType: Number(data.tourType),
@@ -93,7 +93,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
         };
         response = await pricingPolicyService.update(payload);
       } else {
-        const payload: CreatePricingPolicyRequestIcon = {
+        const payload: CreatePricingPolicyRequest = {
           name: data.name,
           tourType: Number(data.tourType),
           tiers,

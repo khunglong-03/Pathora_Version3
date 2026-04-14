@@ -253,13 +253,25 @@ export interface TourManagerStaffDto {
   staff: StaffMemberDto[];
 }
 
+export interface StaffTourAssignment {
+  tourInstanceId: string;
+  tourName: string;
+  tourInstanceCode: string;
+  startDate: string;
+  endDate: string;
+  instanceStatus: string;
+  roleInInstance: string;
+}
+
 export interface StaffMemberDto {
   id: string;
   fullName: string;
   email: string;
-  phone?: string;
+  avatarUrl?: string;
   role: string;
+  roleInTeam: string;
   status: string;
+  activeTours: StaffTourAssignment[];
 }
 
 export interface ManagerSummaryDto {

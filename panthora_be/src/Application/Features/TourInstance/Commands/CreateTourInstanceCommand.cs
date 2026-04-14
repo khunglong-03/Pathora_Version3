@@ -45,7 +45,9 @@ public sealed class CreateTourInstanceCommandValidator : AbstractValidator<Creat
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceTitleRequired);
 
         RuleFor(x => x.StartDate)
-            .NotEmpty().WithMessage(ValidationMessages.TourInstanceStartDateRequired);
+            .NotEmpty().WithMessage(ValidationMessages.TourInstanceStartDateRequired)
+            .Must(date => date.Date >= DateTimeOffset.UtcNow.Date)
+            .WithMessage("Ngày bắt đầu không được nằm trong quá khứ.");
 
         RuleFor(x => x.EndDate)
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceEndDateRequired)

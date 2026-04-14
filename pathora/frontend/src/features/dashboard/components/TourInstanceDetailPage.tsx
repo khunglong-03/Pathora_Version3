@@ -317,6 +317,11 @@ export default function TourInstanceDetailPage() {
     if (!f) return;
 
     try {
+      // Validate startTime < endTime when both are provided
+      if (f.startTime && f.endTime && f.startTime >= f.endTime) {
+        toast.error(t("tourInstance.validation.startTimeBeforeEndTime", "Giờ bắt đầu phải trước giờ kết thúc"));
+        return;
+      }
       const updated = await tourInstanceService.updateInstanceDay(data.id, editingDayId, {
         title: f.title,
         description: f.description || null,
@@ -392,6 +397,15 @@ export default function TourInstanceDetailPage() {
     if (!newDayForm.actualDate) {
       toast.error(t("tourInstance.validation.actualDateRequired", "Actual date is required"));
       return;
+    }
+    // Validate actualDate within instance date range
+    if (data.startDate && data.endDate) {
+      const startDate = data.startDate.split("T")[0];
+      const endDate = data.endDate.split("T")[0];
+      if (newDayForm.actualDate < startDate || newDayForm.actualDate > endDate) {
+        toast.error(t("tourInstance.validation.dateOutOfRange", "Ngày thực tế phải nằm trong khoảng ngày bắt đầu và kết thúc của tour"));
+        return;
+      }
     }
     try {
       await tourInstanceService.addCustomDay(data.id, {
@@ -559,7 +573,7 @@ export default function TourInstanceDetailPage() {
               {t("common.retry", "Retry")}
             </button>
             <Link
-              href="/tour-instances"
+              href="/manager/tour-instances"
               className="inline-flex items-center gap-2 text-sm font-semibold text-orange-500 hover:text-orange-600 active:-translate-y-[1px] transition-all">
               <Icon icon="heroicons:arrow-left" className="size-4" />
               {t(
@@ -604,7 +618,7 @@ export default function TourInstanceDetailPage() {
             <div className="space-y-1">
               <button
                 type="button"
-                onClick={() => router.push("/tour-instances")}
+                onClick={() => router.push("/manager/tour-instances")}
                 className="inline-flex items-center gap-1 text-sm font-semibold text-stone-600 hover:text-stone-900 active:-translate-y-[1px] transition-all">
                 <Icon icon="heroicons:arrow-left" className="size-4" />
                 {t("tourInstance.backToInstances", "Back to Tour Instances")}

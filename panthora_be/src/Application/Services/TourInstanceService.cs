@@ -420,9 +420,18 @@ public class TourInstanceService(
 
     public async Task<ErrorOr<TourInstanceDayDto>> UpdateDay(UpdateTourInstanceDayCommand request)
     {
-        var instanceDay = await _tourInstanceRepository.FindInstanceDayById(request.InstanceId, request.DayId);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        var instanceDay = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
         if (instanceDay is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Tour instance day not found.");
+
+        // Validate actualDate within instance date range
+        var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        if (actualDateOffset.Date < instance.StartDate.Date || actualDateOffset.Date > instance.EndDate.Date)
+            return Error.Validation("TourInstanceDay.DateOutOfRange", "Ngày thực tế phải nằm trong khoảng ngày bắt đầu và kết thúc của tour instance.");
 
         var performedBy = _user.Id ?? string.Empty;
 
@@ -449,6 +458,15 @@ public class TourInstanceService(
         if (instance.Status != TourInstanceStatus.Available)
             return Error.Validation("TourInstance.InvalidStatus", "Custom days can only be added when instance status is Available.");
 
+        // Validate actualDate within instance date range
+        var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        if (actualDateOffset.Date < instance.StartDate.Date || actualDateOffset.Date > instance.EndDate.Date)
+            return Error.Validation("TourInstanceDay.DateOutOfRange", "Ngày thực tế phải nằm trong khoảng ngày bắt đầu và kết thúc của tour instance.");
+
+        // Check duplicate date
+        if (instance.InstanceDays.Any(d => d.ActualDate == request.ActualDate))
+            return Error.Validation("TourInstanceDay.DuplicateDate", "Đã tồn tại một ngày với ngày thực tế này trong lịch trình.");
+
         var maxDayNumber = instance.InstanceDays.Any()
             ? instance.InstanceDays.Max(d => d.InstanceDayNumber)
             : 0;
@@ -465,6 +483,10 @@ public class TourInstanceService(
             request.Description);
 
         await _tourInstanceRepository.AddDay(customDay);
+
+        // Recalculate DurationDays
+        instance.DurationDays = instance.InstanceDays.Count + 1; // +1 for the newly added day not yet in the collection
+        await _tourInstanceRepository.Update(instance);
 
         _logger.LogInformation("Custom day added to TourInstance {InstanceId} with InstanceDayNumber {DayNumber}",
             request.InstanceId, customDay.InstanceDayNumber);

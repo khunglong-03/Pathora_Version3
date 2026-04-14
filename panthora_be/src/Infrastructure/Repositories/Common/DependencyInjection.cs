@@ -80,6 +80,8 @@ internal static class DependencyInjection
 
         services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
 
+        services.AddScoped<IInsuranceRepository, InsuranceRepository>();
+
         return services;
     }
 }

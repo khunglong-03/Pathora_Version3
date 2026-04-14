@@ -19,5 +19,16 @@ public sealed record StaffMemberDto(
     string? AvatarUrl,
     string Role,
     string RoleInTeam,
-    string Status
+    string Status,
+    List<StaffTourAssignmentDto> ActiveTours
+);
+
+public sealed record StaffTourAssignmentDto(
+    Guid TourInstanceId,
+    string TourName,
+    string TourInstanceCode,
+    DateTimeOffset StartDate,
+    DateTimeOffset EndDate,
+    string InstanceStatus,
+    string RoleInInstance
 );

@@ -107,6 +107,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             userEntity.AvatarUrl,
             displayRoleName,
             "Member",
-            userEntity.IsDeleted ? "Khóa" : "Hoạt động");
+            userEntity.IsDeleted ? "Khóa" : "Hoạt động",
+            []);
     }
 }

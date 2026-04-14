@@ -157,14 +157,6 @@ function StaffCard({ staff, roleColor }: { staff: StaffMemberDto; roleColor: str
           <p className="text-xs truncate" style={{ color: "#6B7280" }}>
             {staff.email}
           </p>
-          {staff.phone && (
-            <>
-              <span style={{ color: "#D1D5DB" }}>•</span>
-              <p className="text-xs" style={{ color: "#6B7280" }}>
-                {staff.phone}
-              </p>
-            </>
-          )}
         </div>
       </div>
 

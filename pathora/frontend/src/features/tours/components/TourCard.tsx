@@ -22,7 +22,7 @@ export const TourCard = ({ tour }: TourCardProps) => {
   const hasLocation = Boolean(tour.location);
   const imageSrc =
     imgError || !tour.thumbnail
-      ? getFallbackImage(tour.id, "tour")
+      ? getFallbackImage(tour.id)
       : tour.thumbnail;
 
   return (

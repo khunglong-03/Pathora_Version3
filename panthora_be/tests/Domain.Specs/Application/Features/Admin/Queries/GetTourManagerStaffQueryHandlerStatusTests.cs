@@ -14,6 +14,7 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly ITourManagerAssignmentRepository _assignmentRepository;
+    private readonly ITourInstanceRepository _tourInstanceRepository;
     private readonly GetTourManagerStaffQueryHandler _handler;
 
     public GetTourManagerStaffQueryHandlerStatusTests()
@@ -21,7 +22,10 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         _userRepository = Substitute.For<IUserRepository>();
         _roleRepository = Substitute.For<IRoleRepository>();
         _assignmentRepository = Substitute.For<ITourManagerAssignmentRepository>();
-        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _roleRepository, _assignmentRepository);
+        _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        _tourInstanceRepository.FindByManagerUserIds(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceEntity>());
+        _handler = new GetTourManagerStaffQueryHandler(_userRepository, _roleRepository, _assignmentRepository, _tourInstanceRepository);
     }
 
     private static UserEntity CreateManager(Guid id, string fullName, string email) => new()

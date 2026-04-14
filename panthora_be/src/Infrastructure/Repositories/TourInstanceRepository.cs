@@ -339,4 +339,23 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Where(t => !t.IsDeleted && (t.HotelProviderId == providerId || t.TransportProviderId == providerId))
             .CountAsync(cancellationToken);
     }
+
+    public async Task<List<TourInstanceEntity>> FindByManagerUserIds(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var userIdList = userIds.ToList();
+        if (userIdList.Count == 0) return [];
+
+        var userIdSet = new HashSet<Guid>(userIdList);
+
+        return await _context.TourInstances
+            .AsNoTracking()
+            .Include(t => t.Managers)
+            .Where(t => !t.IsDeleted
+                && t.Managers.Any(m => userIdSet.Contains(m.UserId))
+                && t.Status != TourInstanceStatus.Completed
+                && t.Status != TourInstanceStatus.Cancelled)
+            .OrderByDescending(t => t.StartDate)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
 }

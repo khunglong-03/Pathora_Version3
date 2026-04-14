@@ -4,11 +4,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminHotelService, type RoomBlockItem } from "@/api/services/adminHotelService";
 import {
-  AdminPageHeaderIcon,
-  AdminKpiStripIcon,
-  AdminFilterTabsIcon,
-  AdminEmptyStateIcon,
-  AdminErrorCardIcon,
+  AdminPageHeader,
+  AdminKpiStrip,
+  AdminFilterTabs,
+  AdminEmptyState,
+  AdminErrorCard,
 } from "@/features/dashboard/components";
 import TextInput from "@/components/ui/TextInput";
 import Pagination from "@/components/ui/Pagination";
@@ -125,7 +125,7 @@ export default function HotelBlocksPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeaderIcon
+      <AdminPageHeader
         title="Chặn Phòng Khách sạn"
         subtitle="Quản lý chặn phòng theo ngày"
         onRefresh={handleRefresh}
@@ -142,11 +142,11 @@ export default function HotelBlocksPage() {
       />
 
       {/* KPI Strip */}
-      <AdminKpiStripIcon kpis={kpis} />
+      <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabsIcon
+        <AdminFilterTabs
           tabs={STATUS_TABS}
           activeValue={statusFilter}
           onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
@@ -164,10 +164,10 @@ export default function HotelBlocksPage() {
       </div>
 
       {/* Content */}
-      {error && <AdminErrorCardIcon message={error} onRetry={handleRefresh} />}
+      {error && <AdminErrorCard message={error} onRetry={handleRefresh} />}
 
       {!error && !isLoading && blocks.length === 0 && (
-        <AdminEmptyStateIcon
+        <AdminEmptyState
           icon="Bed"
           heading="Không có chặn phòng"
           description="Không tìm thấy bản ghi chặn phòng nào."

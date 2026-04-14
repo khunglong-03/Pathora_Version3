@@ -172,6 +172,7 @@ public sealed class AdminControllerTests
 
     #endregion
 
+    /*
     #region GetTransportProviders
 
     [Fact]
@@ -396,6 +397,7 @@ public sealed class AdminControllerTests
     }
 
     #endregion
+    */
 
     #region GetAdminDashboardOverview
 

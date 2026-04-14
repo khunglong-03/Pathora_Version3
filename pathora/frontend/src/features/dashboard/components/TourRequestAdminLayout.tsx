@@ -29,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Tour Instances",
     icon: "heroicons:calendar-days",
-    href: "/tour-instances",
+    href: "/manager/tour-instances",
   },
   {
     label: "Tour Requests",

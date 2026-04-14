@@ -24,7 +24,7 @@ export const TourInstanceCard = ({ tour }: TourInstanceCardProps) => {
 
   const imageSrc =
     imgError || !tour.thumbnail?.publicURL
-      ? getFallbackImage(tour.tourId, "tour")
+      ? getFallbackImage(tour.tourId)
       : tour.thumbnail.publicURL;
 
   // Guard: only show location row if truthy

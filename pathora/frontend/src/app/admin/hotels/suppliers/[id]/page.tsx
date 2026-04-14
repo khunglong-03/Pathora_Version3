@@ -5,11 +5,11 @@ import { useParams } from "next/navigation";
 import { adminService } from "@/api/services/adminService";
 import type { HotelProviderDetail, HotelAccommodationSummary } from "@/types/admin";
 import {
-  AdminPageHeaderIcon,
-  AdminEmptyStateIcon,
-  AdminErrorCardIcon,
-  AdminFilterTabsIcon,
-  AdminKpiStripIcon,
+  AdminPageHeader,
+  AdminEmptyState,
+  AdminErrorCard,
+  AdminFilterTabs,
+  AdminKpiStrip,
 } from "@/features/dashboard/components";
 import { Bed, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon, FileTextIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
@@ -60,7 +60,7 @@ export default function HotelProviderDetailPage() {
   if (isLoading) {
     return (
       <div className="p-6">
-        <AdminPageHeaderIcon title="Đang tải..." subtitle="" />
+        <AdminPageHeader title="Đang tải..." subtitle="" />
         <div className="mt-6 space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-32 rounded-xl animate-pulse bg-muted" />
@@ -73,8 +73,8 @@ export default function HotelProviderDetailPage() {
   if (error || !entity) {
     return (
       <div className="p-6">
-        <AdminPageHeaderIcon title="Chi tiết nhà cung cấp khách sạn" backHref="/admin/hotels/suppliers" />
-        <AdminErrorCardIcon
+        <AdminPageHeader title="Chi tiết nhà cung cấp khách sạn" backHref="/admin/hotels/suppliers" />
+        <AdminErrorCard
           message={error ?? "Không tìm thấy nhà cung cấp"}
           onRetry={handleRefresh}
         />
@@ -145,7 +145,7 @@ export default function HotelProviderDetailPage() {
 
   return (
     <div className="p-6">
-      <AdminPageHeaderIcon
+      <AdminPageHeader
         title={entity.supplierName}
         subtitle="Chi tiết nhà cung cấp khách sạn"
         backHref="/admin/hotels/suppliers"
@@ -163,12 +163,12 @@ export default function HotelProviderDetailPage() {
 
       {/* KPI Strip */}
       <div className="mt-4">
-        <AdminKpiStripIcon kpis={kpis} />
+        <AdminKpiStrip kpis={kpis} />
       </div>
 
       {/* Tabs */}
       <div className="mt-6">
-        <AdminFilterTabsIcon
+        <AdminFilterTabs
           tabs={tabsWithCounts}
           activeValue={activeTab}
           onChange={(v) => setActiveTab(v as TabValue)}

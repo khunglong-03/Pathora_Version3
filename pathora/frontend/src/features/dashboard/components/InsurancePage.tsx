@@ -8,7 +8,6 @@ import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { adminService } from "@/api/services/adminService";
 import type { AdminInsurance, AdminOverview } from "@/types/admin";
-import { AdminSidebar, TopBar } from "./AdminSidebar";
 
 interface StatCardProps {
   label: string;
@@ -171,7 +170,6 @@ const itemVariants = {
 
 export function InsurancePage() {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<InsuranceDataState>("loading");
@@ -262,8 +260,6 @@ export function InsurancePage() {
   };
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
       <main id="main-content" className="p-6 space-y-6">
         <motion.div
           className="flex items-center justify-between"
@@ -500,7 +496,6 @@ export function InsurancePage() {
           </>
         ) : null}
       </main>
-    </AdminSidebar>
   );
 }
 

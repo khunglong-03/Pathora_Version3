@@ -1,4 +1,5 @@
 using Api.Controllers.Admin;
+using Api.Controllers.Manager;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.DTOs;
 using Contracts.ModelResponse;
@@ -19,7 +20,7 @@ public sealed class AdminControllerReassignStaffTests
         var targetManagerId = Guid.NewGuid();
         var request = new ReassignStaffRequest(targetManagerId);
         var (controller, probe) = ApiControllerTestHelper
-            .BuildController<AdminController, ReassignStaffCommand, ErrorOr.Success>(
+            .BuildController<ManagerController, ReassignStaffCommand, ErrorOr.Success>(
                 Result.Success, $"/api/admin/tour-managers/{managerId}/staff/{staffId}/reassign");
 
         var actionResult = await controller.ReassignStaff(managerId, staffId, request);
@@ -42,7 +43,7 @@ public sealed class AdminControllerReassignStaffTests
         var staffId = Guid.NewGuid();
         var request = new ReassignStaffRequest(managerId);
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<AdminController, ReassignStaffCommand, ErrorOr.Success>(
+            .BuildController<ManagerController, ReassignStaffCommand, ErrorOr.Success>(
                 Result.Success, $"/api/admin/tour-managers/{managerId}/staff/{staffId}/reassign");
 
         var actionResult = await controller.ReassignStaff(managerId, staffId, request);

@@ -45,16 +45,16 @@ public sealed class AdminApiCompleteTests
         );
 
         var (controller, _) = ApiControllerTestHelper
-            .BuildController<AdminController, GetAdminOverviewQuery, AdminOverviewReport>(
+            .BuildController<ManagerController, GetAdminOverviewQuery, AdminOverviewReport>(
                 overview,
-                "/" + AdminEndpoint.Overview);
+                "/" + ManagerEndpoint.Overview);
 
         var actionResult = await controller.GetOverview();
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "/" + AdminEndpoint.Overview,
+            expectedInstance: "/" + ManagerEndpoint.Overview,
             expectedData: overview);
     }
 
@@ -382,7 +382,7 @@ public sealed class AdminApiCompleteTests
         );
 
         var resultDto = new AdminDTOs.StaffMemberDto(
-            Guid.NewGuid(), "Staff Member", "staff@example.com", null, "TourGuide", "Guide", "Active");
+            Guid.NewGuid(), "Staff Member", "staff@example.com", null, "TourGuide", "Guide", "Active", []);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<ManagerController, CreateStaffUnderManagerCommand, AdminDTOs.StaffMemberDto>(

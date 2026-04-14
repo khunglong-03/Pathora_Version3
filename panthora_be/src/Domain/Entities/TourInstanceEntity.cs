@@ -159,7 +159,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = TourInstanceStatus.PendingApproval,
+            Status = (hotelProviderId.HasValue || transportProviderId.HasValue) ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),

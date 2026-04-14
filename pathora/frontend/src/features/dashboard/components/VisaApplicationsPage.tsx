@@ -8,7 +8,6 @@ import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { adminService } from "@/api/services/adminService";
 import type { AdminOverview, AdminVisaApplication } from "@/types/admin";
-import { AdminSidebar } from "./AdminSidebar";
 import { buildVisaRowKeys } from "./visaPageLogic";
 
 const FILTER_ICONS: Record<string, string> = {
@@ -47,7 +46,6 @@ const rowVariants = {
 
 export function VisaApplicationsPage() {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<VisaDataState>("loading");
@@ -140,18 +138,6 @@ export function VisaApplicationsPage() {
   ];
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-stone-200/60 h-16 flex items-center px-6 gap-4">
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            aria-label={t("notifications.aria", "Notifications")}
-            className="relative p-2 text-stone-500 hover:text-stone-700 rounded-xl hover:bg-stone-100 transition-all duration-200 active:scale-[0.97]"
-          >
-            <Icon icon="heroicons:bell" className="size-5" />
-          </button>
-        </div>
-      </header>
-
       <main id="main-content" className="px-6 pb-10">
         {/* Page Header */}
         <motion.div
@@ -432,7 +418,6 @@ export function VisaApplicationsPage() {
           </>
         ) : null}
       </main>
-    </AdminSidebar>
   );
 }
 
