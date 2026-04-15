@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { handleApiError } from "@/utils/apiResponse";
+import { fileService } from "@/api/services/fileService";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -42,31 +43,9 @@ const validateFile = (file: File): string => {
 };
 
 async function uploadAvatar(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch("/api/upload/avatar", {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    let message = "Tải lên thất bại.";
-    try {
-      const json = await response.json();
-      message = json.message || message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
-  }
-
-  const json = await response.json();
-  // Backend returns { data: { avatarUrl: "..." } }
-  const url = json.data?.avatarUrl ?? json.avatarUrl;
-  if (!url) throw new Error("Phản hồi không hợp lệ từ server.");
-  return url;
+  const meta = await fileService.uploadFile(file);
+  if (!meta.url) throw new Error("Phản hồi không hợp lệ từ server.");
+  return meta.url;
 }
 
 export function AvatarUpload({ value, fullName, disabled = false, onChange, onValidationChange }: AvatarUploadProps) {

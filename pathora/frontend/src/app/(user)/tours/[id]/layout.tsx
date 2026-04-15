@@ -13,7 +13,7 @@ interface Props {
 async function fetchTour(id: string) {
   try {
     const baseUrl = API_GATEWAY_BASE_URL.replace(/\/+$/, "");
-    const res = await fetch(`${baseUrl}/api/tours/${id}`, {
+    const res = await fetch(`${baseUrl}/api/public/tours/${id}`, {
       credentials: "include",
       next: { revalidate: 60 },
     });

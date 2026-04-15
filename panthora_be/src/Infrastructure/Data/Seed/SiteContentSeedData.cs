@@ -25,11 +25,11 @@ public static class SiteContentSeedData
     {
         var teamMembers = JsonSerializer.Serialize(new[]
         {
-            new { name = "Le Anh Thu", role = "Master Tigress", description = "Disciplined and fierce leader with unmatched strength and precision.", toursLed = 320, image = "https://www.figma.com/api/mcp/asset/0ea21104-3b97-48ed-b725-d3fcf0ee6486" },
-            new { name = "Phong Thai", role = "Master Viper", description = "Graceful and agile, specializing in fluid movements and elegant techniques.", toursLed = 210, image = "https://www.figma.com/api/mcp/asset/a3caa128-9842-4560-81e6-0a73263c6152" },
-            new { name = "Nguyen The Hieu", role = "Master Crane", description = "Patient and wise, mastering aerial combat with extraordinary balance.", toursLed = 185, image = "https://www.figma.com/api/mcp/asset/db143d75-3a2b-4cba-9cb2-834ab9468540" },
-            new { name = "Ngo Quoc Huy", role = "Master Mantis", description = "Small but mighty, bringing quick reflexes and surprising power to every challenge.", toursLed = 143, image = "https://www.figma.com/api/mcp/asset/8c5b96f4-4b7a-40f9-8c8e-c9bc23b4fdaa" },
-            new { name = "Gorner Robin", role = "Master Monkey", description = "Playful and energetic, combining humor with incredible acrobatic skills.", toursLed = 98, image = "https://www.figma.com/api/mcp/asset/691b9bfd-c838-429e-a825-46288f09bdfd" }
+            new { name = "Le Anh Thu", role = "Master Tigress", description = "Disciplined and fierce leader with unmatched strength and precision.", toursLed = 320, image = "/images/about/team_tigress.png" },
+            new { name = "Phong Thai", role = "Master Viper", description = "Graceful and agile, specializing in fluid movements and elegant techniques.", toursLed = 210, image = "/images/about/team_viper.png" },
+            new { name = "Nguyen The Hieu", role = "Master Crane", description = "Patient and wise, mastering aerial combat with extraordinary balance.", toursLed = 185, image = "/images/about/team_crane.png" },
+            new { name = "Ngo Quoc Huy", role = "Master Mantis", description = "Small but mighty, bringing quick reflexes and surprising power to every challenge.", toursLed = 143, image = "/images/about/team_mantis.png" },
+            new { name = "Gorner Robin", role = "Master Monkey", description = "Playful and energetic, combining humor with incredible acrobatic skills.", toursLed = 98, image = "/images/about/team_monkey.png" }
         });
 
         var milestones = JsonSerializer.Serialize(new[]

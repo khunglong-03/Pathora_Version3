@@ -623,6 +623,7 @@ export const LandingHeader = ({
                     fill
                     sizes="(max-width: 768px) 96px, 112px"
                     className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    priority
                   />
                 </div>
               )}

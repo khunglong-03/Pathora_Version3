@@ -12,8 +12,7 @@ import type { PolicySection } from "@/types/siteContent";
 import { normalizePolicySections } from "../utils/normalizePolicySections";
 
 // ── Image Assets ────────────────────────────────────────────
-const HERO_BG =
-  "https://www.figma.com/api/mcp/asset/31a73fdb-dc1a-4937-9980-024dcb89ba42";
+const HERO_BG = "/images/about/policy_hero.png";
 /* ═══════════════════════════════════════════════════════════ */
 /*  Hero Banner                                                */
 /* ═══════════════════════════════════════════════════════════ */

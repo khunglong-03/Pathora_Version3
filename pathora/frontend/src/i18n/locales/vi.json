@@ -3085,6 +3085,58 @@
       "tourPackages": "Gói Tour",
       "ourPolicies": "Chính Sách"
     },
+    "aboutUs": {
+      "ourStory": "Câu Chuyện Của Chúng Tôi",
+      "weAre": "Chúng tôi là",
+      "heroSubtitle": "Kiến tạo những trải nghiệm du lịch khó quên trên khắp Việt Nam và xa hơn nữa.",
+      "whyChooseUs": "Tại Sao Chọn Chúng Tôi",
+      "valuesTitle": "Giá Trị Cốt Lõi",
+      "values": {
+        "globalExpertise": "Chuyên Môn Toàn Cầu",
+        "globalExpertiseDesc": "Hàng thập kỷ kinh nghiệm kết hợp trong ngành du lịch toàn thế giới.",
+        "safeTrusted": "An Toàn & Đáng Tin Cậy",
+        "safeTrustedDesc": "Sự an toàn và bảo mật của bạn là ưu tiên hàng đầu của chúng tôi.",
+        "tailoredForYou": "Thiết Kế Riêng Cho Bạn",
+        "tailoredForYouDesc": "Hành trình cá nhân hóa phù hợp với phong cách du lịch của bạn.",
+        "seamlessExperience": "Trải Nghiệm Liền Mạch",
+        "seamlessExperienceDesc": "Từ lúc đặt chỗ đến khi trở về, chúng tôi lo mọi chi tiết."
+      },
+      "ourJourney": "Hành Trình Của Chúng Tôi",
+      "journeyTitle": "Những Cột Mốc Của Pathora",
+      "timeline": {
+        "founded": "Thành lập",
+        "foundedDesc": "Bắt đầu với một tầm nhìn.",
+        "first10k": "10K Khách Đầu Tiên",
+        "first10kDesc": "Đạt 10,000 khách du lịch đầu tiên.",
+        "expanded60": "Mở Rộng",
+        "expanded60Desc": "Hoạt động tại hơn 60 quốc gia.",
+        "digitalFirst": "Chuyển Đổi Số",
+        "digitalFirstDesc": "Ra mắt nền tảng trực tuyến mới.",
+        "happy92k": "Hơn 92K Khách Hàng",
+        "happy92kDesc": "Và hành trình vẫn tiếp tục."
+      },
+      "whoWeAre": "Chúng Tôi Là Ai",
+      "yearsExperience": "Năm Kinh Nghiệm",
+      "passionateTravelers": "Những người đam mê du lịch.",
+      "expertGuides": "Hướng dẫn viên chuyên nghiệp.",
+      "whoWeAreDesc1": "Chúng tôi tận tâm mang đến những trải nghiệm du lịch tốt nhất.",
+      "whoWeAreDesc2": "Đội ngũ chuyên gia của chúng tôi tỉ mỉ thiết kế từng tour để đảm bảo chất lượng.",
+      "exploreOurTours": "Khám Phá Tour",
+      "teamSubtitle": "Đội Ngũ Của Chúng Tôi",
+      "teamTitle": "Những Chuyên Gia Phía Sau Nghệ Thuật",
+      "toursLed": "Tour Đã Dẫn",
+      "stats": {
+        "destinations": "Điểm Đến",
+        "happyTravelers": "Khách Hàng Hài Lòng",
+        "toursOffered": "Tour Cung Cấp",
+        "satisfactionRate": "Tỷ Lệ Hài Lòng"
+      },
+      "readyToExplore": "Sẵn Sàng Khám Phá?",
+      "ctaTitle": "Cuộc phiêu lưu của bạn",
+      "ctaTitleWith": "bắt đầu cùng",
+      "ctaDescription": "Hãy tham gia cùng hàng ngàn khách du lịch đã hài lòng.",
+      "browsePackageTours": "Xem Danh Sách Tour"
+    },
     "hero": {
       "eyebrow": "Nền Tảng Du Lịch Hàng Đầu Việt Nam",
       "title": "Khám Phá Điều Phi Thường",

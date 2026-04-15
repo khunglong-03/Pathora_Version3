@@ -3052,6 +3052,58 @@
       "tourPackages": "Tour Packages",
       "ourPolicies": "Our Policies"
     },
+    "aboutUs": {
+      "ourStory": "Our Story",
+      "weAre": "We are",
+      "heroSubtitle": "Crafting unforgettable travel experiences across Vietnam and beyond.",
+      "whyChooseUs": "Why Choose Us",
+      "valuesTitle": "Our Core Values",
+      "values": {
+        "globalExpertise": "Global Expertise",
+        "globalExpertiseDesc": "Decades of combined experience in worldwide travel.",
+        "safeTrusted": "Safe & Trusted",
+        "safeTrustedDesc": "Your safety and security are our top priorities.",
+        "tailoredForYou": "Tailored For You",
+        "tailoredForYouDesc": "Personalized itineraries to match your travel style.",
+        "seamlessExperience": "Seamless Experience",
+        "seamlessExperienceDesc": "From booking to return, we handle every detail."
+      },
+      "ourJourney": "Our Journey",
+      "journeyTitle": "Milestones of Pathora",
+      "timeline": {
+        "founded": "Founded",
+        "foundedDesc": "Started with a vision.",
+        "first10k": "First 10K",
+        "first10kDesc": "Reached our first 10,000 travelers.",
+        "expanded60": "Expanded presence",
+        "expanded60Desc": "Operations across 60+ countries.",
+        "digitalFirst": "Digital First",
+        "digitalFirstDesc": "Launched the new online portal.",
+        "happy92k": "92K+ Travelers",
+        "happy92kDesc": "And the journey continues."
+      },
+      "whoWeAre": "Who We Are",
+      "yearsExperience": "Years Experience",
+      "passionateTravelers": "Passionate travelers.",
+      "expertGuides": "Expert guides.",
+      "whoWeAreDesc1": "We are dedicated to providing the best travel experiences.",
+      "whoWeAreDesc2": "Our team of experts carefully curates every tour to ensure quality.",
+      "exploreOurTours": "Explore Our Tours",
+      "teamSubtitle": "Meet Our Team",
+      "teamTitle": "The Experts Behind The Scenes",
+      "toursLed": "Tours Led",
+      "stats": {
+        "destinations": "Destinations",
+        "happyTravelers": "Happy Travelers",
+        "toursOffered": "Tours Offered",
+        "satisfactionRate": "Satisfaction Rate"
+      },
+      "readyToExplore": "Ready to Explore?",
+      "ctaTitle": "Your adventure",
+      "ctaTitleWith": "starts with us",
+      "ctaDescription": "Join thousands of satisfied travelers.",
+      "browsePackageTours": "Browse Package Tours"
+    },
     "hero": {
       "eyebrow": "Vietnam's Premier Travel Platform",
       "title": "Discover The Extraordinary",

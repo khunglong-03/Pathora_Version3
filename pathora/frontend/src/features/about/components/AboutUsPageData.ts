@@ -1,8 +1,6 @@
 /* ── Image Assets ──────────────────────────────────────────── */
-export const HERO_BG =
-  "https://www.figma.com/api/mcp/asset/41ced469-52d1-417a-aae6-f3ba4905b182";
-export const WHO_WE_ARE_IMG =
-  "https://www.figma.com/api/mcp/asset/dc585a8e-217d-4dde-9bf8-8bce83b11c29";
+export const HERO_BG = "/images/about/hero_bg.png";
+export const WHO_WE_ARE_IMG = "/images/about/who_we_are.png";
 
 /* ── Team Data ─────────────────────────────────────────────── */
 export interface TeamMember {
@@ -20,8 +18,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     description:
       "Disciplined and fierce leader with unmatched strength and precision.",
     toursLed: 320,
-    image:
-      "https://www.figma.com/api/mcp/asset/0ea21104-3b97-48ed-b725-d3fcf0ee6486",
+    image: "/images/about/team_tigress.png",
   },
   {
     name: "Phong Thai",
@@ -29,8 +26,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     description:
       "Graceful and agile, specializing in fluid movements and elegant techniques.",
     toursLed: 210,
-    image:
-      "https://www.figma.com/api/mcp/asset/a3caa128-9842-4560-81e6-0a73263c6152",
+    image: "/images/about/team_viper.png",
   },
   {
     name: "Nguyen The Hieu",
@@ -38,8 +34,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     description:
       "Patient and wise, mastering aerial combat with extraordinary balance.",
     toursLed: 185,
-    image:
-      "https://www.figma.com/api/mcp/asset/db143d75-3a2b-4cba-9cb2-834ab9468540",
+    image: "/images/about/team_crane.png",
   },
   {
     name: "Ngo Quoc Huy",
@@ -47,8 +42,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     description:
       "Small but mighty, bringing quick reflexes and surprising power to every challenge.",
     toursLed: 143,
-    image:
-      "https://www.figma.com/api/mcp/asset/8c5b96f4-4b7a-40f9-8c8e-c9bc23b4fdaa",
+    image: "/images/about/team_mantis.png",
   },
   {
     name: "Gorner Robin",
@@ -56,8 +50,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     description:
       "Playful and energetic, combining humor with incredible acrobatic skills.",
     toursLed: 98,
-    image:
-      "https://www.figma.com/api/mcp/asset/691b9bfd-c838-429e-a825-46288f09bdfd",
+    image: "/images/about/team_monkey.png",
   },
 ];
 
