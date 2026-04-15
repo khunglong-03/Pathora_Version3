@@ -417,6 +417,8 @@ export interface TourInstanceVm {
   basePrice: number;
   status: string;
   instanceType: string;
+  hotelApprovalStatus: number;
+  transportApprovalStatus: number;
 }
 
 export interface TourInstanceDayDto {
@@ -428,7 +430,43 @@ export interface TourInstanceDayDto {
   startTime: string | null;
   endTime: string | null;
   note: string | null;
-  tourDay: TourDayDto;
+  activities: TourInstanceDayActivityDto[];
+}
+
+export interface TourInstanceDayActivityDto {
+  id: string;
+  order: number;
+  activityType: string;
+  title: string;
+  description: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  isOptional: boolean;
+  note: string | null;
+  accommodation: TourInstancePlanAccommodationDto | null;
+  routes: TourInstancePlanRouteDto[];
+}
+
+export interface TourInstancePlanAccommodationDto {
+  id: string;
+  roomType: string;
+  quantity: number;
+}
+
+export interface TourInstancePlanRouteDto {
+  id: string;
+  vehicleId: string | null;
+  departureTime: string | null;
+  arrivalTime: string | null;
+  vehiclePlate: string | null;
+  vehicleType: string | null;
+  vehicleBrand: string | null;
+  vehicleModel: string | null;
+  seatCapacity: number | null;
+  driverName: string | null;
+  driverPhone: string | null;
+  pickupLocation: string | null;
+  dropoffLocation: string | null;
 }
 
 export interface TourInstanceDto {
@@ -458,6 +496,14 @@ export interface TourInstanceDto {
   confirmationDeadline: string | null;
   managers: TourInstanceManagerDto[];
   includedServices: string[];
+  hotelApprovalStatus: number;
+  transportApprovalStatus: number;
+  hotelApprovalNote?: string | null;
+  transportApprovalNote?: string | null;
+  hotelProviderId?: string | null;
+  hotelProviderName?: string | null;
+  transportProviderId?: string | null;
+  transportProviderName?: string | null;
   days?: TourInstanceDayDto[];
 }
 
@@ -499,4 +545,5 @@ export const TourInstanceStatusMap: Record<string, { label: string; bg: string; 
   inprogress: { label: "In Progress", bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
   cancelled: { label: "Cancelled", bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
   completed: { label: "Completed", bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
+  pendingapproval: { label: "Pending Approval", bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500" },
 };

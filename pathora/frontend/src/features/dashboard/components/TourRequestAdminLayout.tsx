@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -107,6 +107,13 @@ export function TourRequestAdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const safeT = (key: string, fallback: string) =>
+    mounted ? t(key, fallback) : fallback;
 
   const loadPendingCount = useCallback(async () => {
     try {
@@ -198,12 +205,12 @@ export function TourRequestAdminLayout({
                         <Icon icon={item.icon} className="size-5" />
                         <span>
                           {item.showPendingBadge
-                            ? t("tourRequest.page.adminRequests.title")
+                            ? safeT("tourRequest.page.adminRequests.title", "Tour Requests")
                             : item.label}
                         </span>
                       </span>
 
-                      {item.showPendingBadge && pendingCount > 0 && (
+                      {mounted && item.showPendingBadge && pendingCount > 0 && (
                         <motion.span
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}

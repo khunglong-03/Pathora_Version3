@@ -152,7 +152,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .AsNoTracking()
             .AsSplitQuery()
             .Include(t => t.Managers).ThenInclude(m => m.User)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes)
+            .Include(t => t.HotelProvider)
+            .Include(t => t.TransportProvider)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
@@ -254,7 +257,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Thumbnail)
             .Include(t => t.Images)
             .Include(t => t.Managers).ThenInclude(m => m.User)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .FirstOrDefaultAsync(t => t.Id == id
                 && !t.IsDeleted
@@ -351,5 +355,30 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .OrderByDescending(t => t.StartDate)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<TourInstanceEntity>> FindConflictingInstancesForManagers(IEnumerable<Guid> userIds, DateTimeOffset startDate, DateTimeOffset endDate, Guid? excludeInstanceId = null, CancellationToken cancellationToken = default)
+    {
+        var userIdList = userIds.ToList();
+        if (userIdList.Count == 0) return [];
+
+        var userIdSet = new HashSet<Guid>(userIdList);
+
+        var query = _context.TourInstances
+            .AsNoTracking()
+            .Include(t => t.Managers).ThenInclude(m => m.User)
+            .Where(t => !t.IsDeleted
+                && t.Status != TourInstanceStatus.Completed
+                && t.Status != TourInstanceStatus.Cancelled
+                && t.Managers.Any(m => userIdSet.Contains(m.UserId))
+                && t.StartDate.Date <= endDate.Date
+                && t.EndDate.Date >= startDate.Date);
+
+        if (excludeInstanceId.HasValue)
+        {
+            query = query.Where(t => t.Id != excludeInstanceId.Value);
+        }
+
+        return await query.ToListAsync(cancellationToken);
     }
 }

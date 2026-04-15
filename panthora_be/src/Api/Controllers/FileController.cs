@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminOnly")]
+[Authorize]
 [Route(FileEndpoint.Base)]
 public class FileController : BaseApiController
 {

@@ -10,6 +10,7 @@ import {
   CheckDuplicateResult,
   tourInstanceService,
 } from "@/api/services/tourInstanceService";
+import type { GuideConflict } from "@/api/services/tourInstanceService";
 import { tourService } from "@/api/services/tourService";
 import { userService } from "@/api/services/userService";
 import { tourRequestService } from "@/api/services/tourRequestService";
@@ -328,6 +329,7 @@ interface InstanceDetailsStepProps {
   t: Translate;
   updateField: <K extends keyof FormState>(field: K, value: FormState[K]) => void;
   guides: UserInfo[];
+  guideConflicts: GuideConflict[];
   hotelProviders: SupplierItem[];
   transportProviders: SupplierItem[];
   submitting: boolean;
@@ -361,6 +363,7 @@ function InstanceDetailsStep({
   t,
   updateField,
   guides,
+  guideConflicts,
   hotelProviders,
   transportProviders,
   submitting,
@@ -602,6 +605,30 @@ function InstanceDetailsStep({
               />
             </div>
           )}
+
+          {/* Conflict warning for selected guide */}
+          {selectedGuide && guideConflicts.some((c) => c.guideId === selectedGuide.id) && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
+              <div className="flex items-start gap-2">
+                <Icon icon="heroicons:exclamation-triangle" className="size-4 mt-0.5 shrink-0 text-amber-600" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-amber-900">
+                    {t("tourInstance.guideConflict.title", "Guide has scheduling conflicts!")}
+                  </p>
+                  {guideConflicts
+                    .find((c) => c.guideId === selectedGuide.id)
+                    ?.conflictingInstances.map((inst) => (
+                      <p key={inst.instanceId} className="mt-1 text-xs text-amber-700">
+                        • <strong>{inst.title}</strong>{" "}
+                        ({new Date(inst.startDate).toLocaleDateString("vi-VN")} → {new Date(inst.endDate).toLocaleDateString("vi-VN")})
+                        <span className="ml-1 text-amber-600">({inst.status})</span>
+                      </p>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <select
             className={inputClassName}
             value={selectedGuide?.id ?? ""}
@@ -613,11 +640,15 @@ function InstanceDetailsStep({
             <option value="">
               {t("tourInstance.form.selectGuideOptional", "Select guide (optional)")}
             </option>
-            {guides.map((guide) => (
-              <option key={guide.id} value={guide.id}>
-                {guide.fullName || guide.username || guide.email}
-              </option>
-            ))}
+            {guides.map((guide) => {
+              const conflict = guideConflicts.find((c) => c.guideId === guide.id);
+              return (
+                <option key={guide.id} value={guide.id}>
+                  {guide.fullName || guide.username || guide.email}
+                  {conflict ? " ⚠️ (Đang có tour)" : ""}
+                </option>
+              );
+            })}
           </select>
         </div>
       </CollapsibleSection>
@@ -1098,6 +1129,7 @@ export function CreateTourInstancePage({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [reloadToken, setReloadToken] = useState(0);
   const [guides, setGuides] = useState<UserInfo[]>([]);
+  const [guideConflicts, setGuideConflicts] = useState<GuideConflict[]>([]);
   const [availableServices, setAvailableServices] = useState<string[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<CheckDuplicateResult | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
@@ -1410,6 +1442,40 @@ export function CreateTourInstancePage({
 
     void check();
   }, [debouncedStartDate, form.tourId, form.classificationId, currentStep]);
+
+  // Check guide availability when dates change
+  useEffect(() => {
+    if (
+      currentStep !== INSTANCE_DETAILS_STEP ||
+      !form.startDate ||
+      !form.endDate ||
+      guides.length === 0
+    ) {
+      setGuideConflicts([]);
+      return;
+    }
+
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const guideIds = guides.map((g) => g.id);
+        const result = await tourInstanceService.checkGuideAvailability(
+          guideIds,
+          form.startDate,
+          form.endDate,
+        );
+        if (!cancelled && result) {
+          setGuideConflicts(result.conflicts ?? []);
+        }
+      } catch {
+        // Non-critical — silently ignore
+        if (!cancelled) setGuideConflicts([]);
+      }
+    };
+
+    void check();
+    return () => { cancelled = true; };
+  }, [form.startDate, form.endDate, currentStep, guides]);
 
   // Navigation guard — beforeunload
   useEffect(() => {
@@ -1829,6 +1895,7 @@ export function CreateTourInstancePage({
             form={form}
             errors={errors}
             guides={guides}
+            guideConflicts={guideConflicts}
             hotelProviders={hotelProviders}
             transportProviders={transportProviders}
             submitting={submitting}

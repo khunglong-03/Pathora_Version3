@@ -91,10 +91,12 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
               const isPending = instance.status === "pendingapproval";
-              const isApproved =
+              const myApprovalStatus =
                 providerType === "hotel"
-                  ? (instance as any).hotelApprovalStatus === 2
-                  : (instance as any).transportApprovalStatus === 2;
+                  ? instance.hotelApprovalStatus
+                  : instance.transportApprovalStatus;
+              const isApproved = myApprovalStatus === 2;
+              const isRejected = myApprovalStatus === 3;
 
               return (
                 <div key={instance.id} className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all hover:shadow-md">
@@ -103,9 +105,12 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                        <span className="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
                           {instance.tourName}
                        </span>
-                       {/* This could be styled based on real status check, fallback below */}
-                       <span className="text-xs font-medium text-stone-500">
-                         {isPending ? "Đang chờ" : "Đã duyệt"}
+                       <span className={`text-xs font-medium ${
+                         isApproved ? "text-emerald-600" :
+                         isRejected ? "text-red-600" :
+                         "text-orange-600"
+                       }`}>
+                         {isApproved ? "Đã duyệt" : isRejected ? "Đã từ chối" : "Đang chờ duyệt"}
                        </span>
                     </div>
                     <h3 className="mb-1 text-base font-bold text-stone-900 line-clamp-2">
@@ -161,6 +166,13 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                     <div className="border-t border-emerald-100 bg-emerald-50 p-3 text-center text-sm font-bold text-emerald-700">
                       <Icon icon="heroicons:check-badge" className="mr-1.5 inline size-5 align-text-bottom" />
                       Đã ghi nhận dịch vụ (Booked)
+                    </div>
+                  )}
+
+                  {!isPending && isRejected && (
+                    <div className="border-t border-red-100 bg-red-50 p-3 text-center text-sm font-bold text-red-700">
+                      <Icon icon="heroicons:x-circle" className="mr-1.5 inline size-5 align-text-bottom" />
+                      Đã từ chối
                     </div>
                   )}
                 </div>

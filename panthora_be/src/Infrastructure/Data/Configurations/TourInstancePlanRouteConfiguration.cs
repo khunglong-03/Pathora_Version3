@@ -25,5 +25,10 @@ public class TourInstancePlanRouteConfiguration : IEntityTypeConfiguration<TourI
             .WithMany()
             .HasForeignKey(e => e.VehicleId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.Driver)
+            .WithMany()
+            .HasForeignKey(e => e.DriverId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

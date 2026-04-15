@@ -847,6 +847,83 @@ export default function TourInstanceDetailPage() {
               </article>
             </section>
 
+            {/* Transport & Hotel Provider Section */}
+            <section className="grid gap-4 md:grid-cols-2">
+              {/* Transport Provider */}
+              <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                  <Icon icon="heroicons:truck" className="size-5 text-cyan-600" />
+                  {t("tourInstance.transportProvider", "Transport Provider")}
+                </h2>
+                {data.transportProviderName ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-stone-900">{data.transportProviderName}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        data.transportApprovalStatus === 2
+                          ? "bg-emerald-100 text-emerald-700"
+                          : data.transportApprovalStatus === 3
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}>
+                        {data.transportApprovalStatus === 2
+                          ? t("tourInstance.approved", "Đã duyệt")
+                          : data.transportApprovalStatus === 3
+                          ? t("tourInstance.rejected", "Từ chối")
+                          : t("tourInstance.pending", "Chờ duyệt")}
+                      </span>
+                    </div>
+                    {data.transportApprovalNote && (
+                      <p className="text-xs text-stone-500 bg-stone-50 rounded-lg p-2">
+                        <span className="font-medium">Ghi chú: </span>{data.transportApprovalNote}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-stone-400 italic">
+                    {t("tourInstance.noTransportProvider", "Chưa có đơn vị vận chuyển được phân công")}
+                  </p>
+                )}
+              </div>
+
+              {/* Hotel Provider */}
+              <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px-40px_-15px_rgba(0,0,0,0.05)]">
+                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                  <Icon icon="heroicons:building-office" className="size-5 text-indigo-600" />
+                  {t("tourInstance.hotelProvider", "Hotel Provider")}
+                </h2>
+                {data.hotelProviderName ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-stone-900">{data.hotelProviderName}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        data.hotelApprovalStatus === 2
+                          ? "bg-emerald-100 text-emerald-700"
+                          : data.hotelApprovalStatus === 3
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}>
+                        {data.hotelApprovalStatus === 2
+                          ? t("tourInstance.approved", "Đã duyệt")
+                          : data.hotelApprovalStatus === 3
+                          ? t("tourInstance.rejected", "Từ chối")
+                          : t("tourInstance.pending", "Chờ duyệt")}
+                      </span>
+                    </div>
+                    {data.hotelApprovalNote && (
+                      <p className="text-xs text-stone-500 bg-stone-50 rounded-lg p-2">
+                        <span className="font-medium">Ghi chú: </span>{data.hotelApprovalNote}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-stone-400 italic">
+                    {t("tourInstance.noHotelProvider", "Chưa có khách sạn được phân công")}
+                  </p>
+                )}
+              </div>
+            </section>
+
             <section className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
               <h2 className="text-base font-bold text-stone-900">
                 {t("tourInstance.form.media", "Media")}
@@ -989,11 +1066,6 @@ export default function TourInstanceDetailPage() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
-                                {day.tourDay == null && (
-                                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-                                    {t("tourInstance.customDay", "Custom")}
-                                  </span>
-                                )}
                               </div>
                               {day.actualDate && (
                                 <p className="text-xs text-stone-500">
@@ -1101,12 +1173,12 @@ export default function TourInstanceDetailPage() {
                       )}
 
                       {/* Activities */}
-                      {day.tourDay?.activities && day.tourDay.activities.length > 0 && (
+                      {day.activities && day.activities.length > 0 && (
                         <div className="p-4 space-y-2">
                           <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
                             {t("tourInstance.activities", "Activities")}
                           </p>
-                          {day.tourDay.activities.map((activity) => (
+                          {day.activities.map((activity) => (
                             <div key={activity.id} className="rounded-xl border border-stone-100 p-3 hover:border-stone-300 transition-colors">
                               {editingActivityId === activity.id && activityEditForm[activity.id] ? (
                                 <div className="space-y-2">
@@ -1193,6 +1265,84 @@ export default function TourInstanceDetailPage() {
                                       {activity.startTime && <span>{activity.startTime}</span>}
                                       {activity.endTime && <span> - {activity.endTime}</span>}
                                     </div>
+
+                                    {/* Transport Info — Transportation activity */}
+                                    {activity.activityType?.toLowerCase() === "transportation" && activity.routes && activity.routes.length > 0 && (
+                                      <div className="mt-2 space-y-1.5 rounded-lg border border-cyan-100 bg-cyan-50/60 p-2.5">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-600 mb-1.5 flex items-center gap-1.5">
+                                          <Icon icon="heroicons:truck" className="size-3" />
+                                          {t("tourInstance.transport.vehicleInfo", "Thông tin xe")}
+                                        </p>
+                                        {activity.routes.map((route) => (
+                                          <div key={route.id} className="space-y-1">
+                                            {route.vehiclePlate ? (
+                                              <div className="flex items-center gap-2">
+                                                <Icon icon="heroicons:identification" className="size-3 text-cyan-600 shrink-0" />
+                                                <span className="text-xs font-semibold text-stone-800 font-mono">{route.vehiclePlate}</span>
+                                                {route.vehicleType && (
+                                                  <span className="text-[10px] text-stone-500 bg-stone-200 px-1.5 py-0.5 rounded">
+                                                    {route.vehicleType}
+                                                  </span>
+                                                )}
+                                                {route.seatCapacity && (
+                                                  <span className="text-[10px] text-stone-500 flex items-center gap-0.5">
+                                                    <Icon icon="heroicons:user-group" className="size-3" />
+                                                    {route.seatCapacity}
+                                                  </span>
+                                                )}
+                                                {route.vehicleBrand && (
+                                                  <span className="text-[10px] text-stone-400">{route.vehicleBrand}{route.vehicleModel ? ` ${route.vehicleModel}` : ""}</span>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <p className="text-[10px] text-amber-600 italic">{t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}</p>
+                                            )}
+                                            {route.driverName && (
+                                              <div className="flex items-center gap-2">
+                                                <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
+                                                <span className="text-xs text-stone-700">{route.driverName}</span>
+                                                {route.driverPhone && (
+                                                  <span className="text-[10px] text-stone-400">{route.driverPhone}</span>
+                                                )}
+                                              </div>
+                                            )}
+                                            {(route.pickupLocation || route.dropoffLocation) && (
+                                              <div className="space-y-0.5">
+                                                {route.pickupLocation && (
+                                                  <div className="flex items-start gap-1.5">
+                                                    <Icon icon="heroicons:map-pin" className="size-3 text-emerald-600 mt-0.5 shrink-0" />
+                                                    <div>
+                                                      <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm đón: </span>
+                                                      <span className="text-xs text-stone-700">{route.pickupLocation}</span>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                                {route.dropoffLocation && (
+                                                  <div className="flex items-start gap-1.5">
+                                                    <Icon icon="heroicons:map-pin" className="size-3 text-red-500 mt-0.5 shrink-0" />
+                                                    <div>
+                                                      <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm trả: </span>
+                                                      <span className="text-xs text-stone-700">{route.dropoffLocation}</span>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                            {(route.departureTime || route.arrivalTime) && (
+                                              <div className="flex items-center gap-3 text-[10px] text-stone-500">
+                                                {route.departureTime && (
+                                                  <span>Khởi hành: {new Date(route.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                )}
+                                                {route.arrivalTime && (
+                                                  <span>Đến: {new Date(route.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
                                     {activity.note && (
                                       <p className="text-xs text-stone-500 mt-1">
                                         <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span> {activity.note}

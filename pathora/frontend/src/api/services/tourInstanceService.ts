@@ -74,6 +74,23 @@ export interface CheckDuplicateResult {
   }[];
 }
 
+export interface GuideConflictInstance {
+  instanceId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
+export interface GuideConflict {
+  guideId: string;
+  conflictingInstances: GuideConflictInstance[];
+}
+
+export interface GuideAvailabilityResult {
+  conflicts: GuideConflict[];
+}
+
 export interface UpdateTourInstancePayload {
   id: string;
   title: string;
@@ -224,6 +241,9 @@ export const tourInstanceService = {
       tourRequestId: data.tourRequestId || null,
       hotelProviderId: data.hotelProviderId || null,
       transportProviderId: data.transportProviderId || null,
+      activityAssignments: data.activityAssignments?.length
+        ? data.activityAssignments
+        : undefined,
     };
 
     const response = await api.post<ApiResponse<TourInstanceDto>>(
@@ -243,6 +263,18 @@ export const tourInstanceService = {
       `${API_ENDPOINTS.TOUR_INSTANCE.CHECK_DUPLICATE}?${params.toString()}`,
     );
     return extractResult<CheckDuplicateResult>(response.data);
+  },
+
+  checkGuideAvailability: async (guideUserIds: string[], startDate: string, endDate: string) => {
+    const params = new URLSearchParams();
+    guideUserIds.forEach((id) => params.append("guideUserIds", id));
+    params.append("startDate", startDate);
+    params.append("endDate", endDate);
+
+    const response = await api.get<ApiResponse<GuideAvailabilityResult>>(
+      `${API_ENDPOINTS.TOUR_INSTANCE.CHECK_GUIDE_AVAILABILITY}?${params.toString()}`,
+    );
+    return extractResult<GuideAvailabilityResult>(response.data);
   },
 
   updateInstance: async (data: UpdateTourInstancePayload) => {

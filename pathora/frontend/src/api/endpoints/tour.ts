@@ -30,6 +30,7 @@ export interface TourInstanceEndpoints {
   CLEAR_PRICING_TIERS: EndpointWithId;
   RESOLVE_PRICING: (id: string, participants: number) => string;
   CHECK_DUPLICATE: string;
+  CHECK_GUIDE_AVAILABILITY: string;
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string) => string;
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
   GET_PROVIDER_ASSIGNED: string;
@@ -73,6 +74,7 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   RESOLVE_PRICING: (id: string, participants: number): string =>
     `/api/tour-instance/${id}/pricing/resolve?participants=${participants}`,
   CHECK_DUPLICATE: "/api/tour-instance/check-duplicate",
+  CHECK_GUIDE_AVAILABILITY: "/api/tour-instance/check-guide-availability",
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}`,
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>

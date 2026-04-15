@@ -11,6 +11,10 @@ public class TourInstancePlanRouteEntity : Entity<Guid>
     // Specific vehicle assigned
     public Guid? VehicleId { get; set; }
     public virtual VehicleEntity? Vehicle { get; set; }
+    /// <summary>ID of Driver assigned to this route.</summary>
+    public Guid? DriverId { get; set; }
+    /// <summary>Driver assigned to this route.</summary>
+    public virtual DriverEntity? Driver { get; set; }
 
     public string? PickupLocation { get; set; }
     public string? DropoffLocation { get; set; }
@@ -20,7 +24,8 @@ public class TourInstancePlanRouteEntity : Entity<Guid>
 
     public static TourInstancePlanRouteEntity Create(
         Guid tourInstanceDayActivityId,
-        Guid? vehicleId,
+        Guid? vehicleId = null,
+        Guid? driverId = null,
         string? pickupLocation = null,
         string? dropoffLocation = null,
         DateTimeOffset? departureTime = null,
@@ -31,16 +36,18 @@ public class TourInstancePlanRouteEntity : Entity<Guid>
             Id = Guid.CreateVersion7(),
             TourInstanceDayActivityId = tourInstanceDayActivityId,
             VehicleId = vehicleId,
+            DriverId = driverId,
             PickupLocation = pickupLocation,
             DropoffLocation = dropoffLocation,
             DepartureTime = departureTime,
             ArrivalTime = arrivalTime
         };
     }
-    
-    public void Update(Guid? vehicleId, string? pickupLocation = null, string? dropoffLocation = null, DateTimeOffset? departureTime = null, DateTimeOffset? arrivalTime = null)
+
+    public void Update(Guid? vehicleId = null, Guid? driverId = null, string? pickupLocation = null, string? dropoffLocation = null, DateTimeOffset? departureTime = null, DateTimeOffset? arrivalTime = null)
     {
         VehicleId = vehicleId;
+        DriverId = driverId;
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         DepartureTime = departureTime;

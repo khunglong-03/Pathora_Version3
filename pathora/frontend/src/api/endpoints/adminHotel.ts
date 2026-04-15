@@ -18,8 +18,8 @@ export interface AdminHotelEndpoints {
 }
 
 export const ADMIN_HOTEL: AdminHotelEndpoints = {
-  GET_SUPPLIERS: "/api/admin/hotel-providers",
-  GET_SUPPLIER_DETAIL: (id: string): string => `/api/admin/hotel-providers/${id}`,
+  GET_SUPPLIERS: "/api/manager/hotel-providers",
+  GET_SUPPLIER_DETAIL: (id: string): string => `/api/manager/hotel-providers/${id}`,
   GET_ROOM_INVENTORY: "/api/admin/hotel-room-inventory",
   GET_ROOM_INVENTORY_DETAIL: (id: string): string => `/api/admin/hotel-room-inventory/${id}`,
   CREATE_ROOM_INVENTORY: "/api/admin/hotel-room-inventory",

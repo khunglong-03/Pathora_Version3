@@ -33,4 +33,16 @@ public sealed record TourInstancePlanRouteDto(
     Guid Id,
     Guid? VehicleId,
     DateTimeOffset? DepartureTime,
-    DateTimeOffset? ArrivalTime);
+    DateTimeOffset? ArrivalTime,
+    // Vehicle info
+    string? VehiclePlate,
+    string? VehicleType,
+    string? VehicleBrand,
+    string? VehicleModel,
+    int? SeatCapacity,
+    // Driver info
+    string? DriverName,
+    string? DriverPhone,
+    // Location info
+    string? PickupLocation,
+    string? DropoffLocation);

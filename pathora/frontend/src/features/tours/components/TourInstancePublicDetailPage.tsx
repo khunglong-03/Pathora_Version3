@@ -661,7 +661,7 @@ export function TourInstancePublicDetailPage() {
                   <div className="flex flex-col gap-4">
                     {data.days && data.days.length > 0 ? (
                       data.days.map((day) => {
-                        const activities = day.tourDay?.activities ?? [];
+                        const activities = day.activities ?? [];
                         const sortedActivities = [...activities].sort((a, b) => a.order - b.order);
 
                         return (
@@ -757,32 +757,38 @@ export function TourInstancePublicDetailPage() {
                                         {/* Routes */}
                                         {activity.routes && activity.routes.length > 0 && (
                                           <div className="flex flex-col gap-2">
-                                            {[...activity.routes].sort((a, b) => a.order - b.order).map((route) => {
-                                              const transLabel = route.transportationType != null
-                                                ? TransportationTypeMap[route.transportationType] ?? t("landing.tourDetail.transport", "Transport")
-                                                : t("landing.tourDetail.transport", "Transport");
+                                            {activity.routes.map((route) => {
                                               return (
                                                 <div
                                                   key={route.id}
                                                   className="rounded-lg px-3 py-2.5 text-[11px]"
                                                   style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
-                                                  <div className="flex flex-wrap items-center gap-1.5">
-                                                    <Icon icon="heroicons:arrow-right" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
-                                                    <span className="font-semibold">{transLabel}</span>
-                                                    {route.fromLocation?.locationName && route.toLocation?.locationName && (
-                                                      <span>
-                                                        {route.fromLocation.locationName} → {route.toLocation.locationName}
-                                                      </span>
-                                                    )}
-                                                    {route.durationMinutes != null && (
-                                                      <span style={{ color: "var(--tour-caption)" }}>
-                                                        ({route.durationMinutes} {t("tourInstance.minutes", "min")})
-                                                      </span>
-                                                    )}
-                                                  </div>
-                                                  {route.estimatedDepartureTime && route.estimatedArrivalTime && (
+                                                  {route.vehiclePlate ? (
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                      <Icon icon="heroicons:truck" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
+                                                      <span className="font-semibold font-mono">{route.vehiclePlate}</span>
+                                                      {route.vehicleType && (
+                                                        <span style={{ color: "var(--tour-caption)" }}>{route.vehicleType}</span>
+                                                      )}
+                                                      {route.seatCapacity && (
+                                                        <span style={{ color: "var(--tour-caption)" }}>({route.seatCapacity} chỗ)</span>
+                                                      )}
+                                                      {route.driverName && (
+                                                        <span style={{ color: "var(--tour-caption)" }}>- Tài xế: {route.driverName}</span>
+                                                      )}
+                                                    </div>
+                                                  ) : (
+                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                      <Icon icon="heroicons:arrow-right" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
+                                                      <span className="font-semibold">{t("landing.tourDetail.transport", "Transport")}</span>
+                                                      {route.pickupLocation && route.dropoffLocation && (
+                                                        <span>{route.pickupLocation} → {route.dropoffLocation}</span>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                  {(route.departureTime || route.arrivalTime) && (
                                                     <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
-                                                      {t("tourInstance.routeTime", "Time")}: {route.estimatedDepartureTime} → {route.estimatedArrivalTime}
+                                                      Giờ: {route.departureTime ? new Date(route.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"} → {route.arrivalTime ? new Date(route.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"}
                                                     </div>
                                                   )}
                                                 </div>
@@ -798,24 +804,14 @@ export function TourInstancePublicDetailPage() {
                                             style={{ background: "#E1F3FE", borderColor: "#B8D8F0", color: "var(--tour-body)" }}>
                                             <div className="flex flex-wrap items-center gap-1.5">
                                               <Icon icon="heroicons:building-office" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
-                                              <span className="font-semibold">{activity.accommodation.accommodationName}</span>
-                                              <span>({activity.accommodation.roomType != null ? RoomTypeMap[activity.accommodation.roomType] ?? t("landing.tourDetail.room", "Room") : t("landing.tourDetail.room", "Room")})</span>
-                                              {activity.accommodation.mealsIncluded > 0 && (
-                                                <span style={{ color: "var(--landing-accent)" }}>
-                                                  • {MealTypeMap[activity.accommodation.mealsIncluded] ?? t("landing.tourDetail.meal", "Meal")}
+                                              <span className="font-semibold">{activity.title}</span>
+                                              <span>({activity.accommodation.roomType ?? "N/A"})</span>
+                                              {activity.accommodation.quantity > 1 && (
+                                                <span style={{ color: "var(--tour-caption)" }}>
+                                                  × {activity.accommodation.quantity}
                                                 </span>
                                               )}
                                             </div>
-                                            {(activity.accommodation.checkInTime || activity.accommodation.checkOutTime) && (
-                                              <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
-                                                {t("tourInstance.checkInOut", "Check-in/out")}: {activity.accommodation.checkInTime}{activity.accommodation.checkOutTime ? ` – ${activity.accommodation.checkOutTime}` : ""}
-                                              </div>
-                                            )}
-                                            {activity.accommodation.address && (
-                                              <div className="mt-1 line-clamp-2" style={{ color: "var(--tour-caption)" }}>
-                                                {activity.accommodation.address}
-                                              </div>
-                                            )}
                                           </div>
                                         )}
 

@@ -11,7 +11,9 @@ public sealed class TourInstanceProfile : Profile
     {
         CreateMap<TourInstanceEntity, TourInstanceVm>()
             .ForCtorParam(nameof(TourInstanceVm.Status), opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()));
+            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()))
+            .ForCtorParam(nameof(TourInstanceVm.HotelApprovalStatus), opt => opt.MapFrom(src => (int)src.HotelApprovalStatus))
+            .ForCtorParam(nameof(TourInstanceVm.TransportApprovalStatus), opt => opt.MapFrom(src => (int)src.TransportApprovalStatus));
 
         CreateMap<TourInstanceEntity, DuplicateInstanceSummaryDto>()
             .ForCtorParam(nameof(DuplicateInstanceSummaryDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -25,7 +27,11 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.Rating), opt => opt.MapFrom(_ => 0m))
             .ForCtorParam(nameof(TourInstanceDto.TotalBookings), opt => opt.MapFrom(_ => 0))
             .ForCtorParam(nameof(TourInstanceDto.Revenue), opt => opt.MapFrom(_ => 0m))
-            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()));
+            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()))
+            .ForCtorParam(nameof(TourInstanceDto.HotelProviderId), opt => opt.MapFrom(src => src.HotelProviderId))
+            .ForCtorParam(nameof(TourInstanceDto.HotelProviderName), opt => opt.MapFrom(src => src.HotelProvider != null ? src.HotelProvider.Name : null))
+            .ForCtorParam(nameof(TourInstanceDto.TransportProviderId), opt => opt.MapFrom(src => src.TransportProviderId))
+            .ForCtorParam(nameof(TourInstanceDto.TransportProviderName), opt => opt.MapFrom(src => src.TransportProvider != null ? src.TransportProvider.Name : null));
 
         CreateMap<TourInstanceManagerEntity, TourInstanceManagerDto>()
             .ForCtorParam(nameof(TourInstanceManagerDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -44,7 +50,16 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstancePlanRouteDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleId), opt => opt.MapFrom(src => src.VehicleId))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.DepartureTime), opt => opt.MapFrom(src => src.DepartureTime))
-            .ForCtorParam(nameof(TourInstancePlanRouteDto.ArrivalTime), opt => opt.MapFrom(src => src.ArrivalTime));
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.ArrivalTime), opt => opt.MapFrom(src => src.ArrivalTime))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.VehiclePlate), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehiclePlate : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleType), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehicleType.ToString() : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleBrand), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Brand : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleModel), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Model : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.SeatCapacity), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.SeatCapacity : (int?)null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.DriverName), opt => opt.MapFrom(src => src.Driver != null ? src.Driver.FullName : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.DriverPhone), opt => opt.MapFrom(src => src.Driver != null ? src.Driver.PhoneNumber : null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.PickupLocation), opt => opt.MapFrom(src => src.PickupLocation))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.DropoffLocation), opt => opt.MapFrom(src => src.DropoffLocation));
 
         CreateMap<TourInstanceDayActivityEntity, TourInstanceDayActivityDto>()
             .ForCtorParam(nameof(TourInstanceDayActivityDto.Id), opt => opt.MapFrom(src => src.Id))

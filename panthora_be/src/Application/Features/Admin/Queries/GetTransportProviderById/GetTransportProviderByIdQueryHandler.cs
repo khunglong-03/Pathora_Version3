@@ -3,6 +3,7 @@ namespace Application.Features.Admin.Queries.GetTransportProviderById;
 using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using Domain.Common.Repositories;
+using Domain.Enums;
 using ErrorOr;
 using MediatR;
 
@@ -18,15 +19,32 @@ public sealed class GetTransportProviderByIdQueryHandler(
         CancellationToken cancellationToken)
     {
         var user = await userRepository.FindTransportProviderByIdAsync(request.Id, cancellationToken);
-        if (user is null)
-            return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+        Domain.Entities.SupplierEntity? supplier = null;
 
-        // Fetch supplier, vehicles, drivers, and booking counts sequentially
-        // (DbContext is not thread-safe — parallel queries on the same context throw InvalidOperationException)
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(user.Id);
-        var vehicles = await vehicleRepository.FindAllByOwnerIdAsync(user.Id, cancellationToken);
-        var drivers = await driverRepository.FindAllByUserIdAsync(user.Id, cancellationToken);
-        var (bookingCount, activeBookingCount, completedBookingCount) = await supplierRepository.GetTransportBookingCountsByOwnerAsync(user.Id, cancellationToken);
+        if (user is null)
+        {
+            supplier = await supplierRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (supplier is not null && supplier.OwnerUserId.HasValue)
+            {
+                user = await userRepository.FindTransportProviderByIdAsync(supplier.OwnerUserId.Value, cancellationToken);
+            }
+        }
+        else
+        {
+            supplier = await supplierRepository.FindByOwnerUserIdAsync(user.Id, cancellationToken);
+        }
+
+        if (user is null && supplier is null)
+            return Error.NotFound(ErrorConstants.User.NotFoundCode, "Transport provider not found.");
+
+        var targetUserId = user?.Id ?? supplier?.OwnerUserId ?? Guid.Empty;
+
+        var vehicles = targetUserId != Guid.Empty ? await vehicleRepository.FindAllByOwnerIdAsync(targetUserId, cancellationToken) : [];
+        var drivers = targetUserId != Guid.Empty ? await driverRepository.FindAllByUserIdAsync(targetUserId, cancellationToken) : [];
+        
+        var (bookingCount, activeBookingCount, completedBookingCount) = targetUserId != Guid.Empty
+            ? await supplierRepository.GetTransportBookingCountsByOwnerAsync(targetUserId, cancellationToken)
+            : (0, 0, 0);
 
         var vehicleSummaries = vehicles.Select(v => new VehicleSummaryDto(
             v.Id,
@@ -50,15 +68,15 @@ public sealed class GetTransportProviderByIdQueryHandler(
         )).ToList();
 
         return new TransportProviderDetailDto(
-            user.Id,
-            supplier?.Name ?? user.FullName ?? string.Empty,
+            user?.Id ?? supplier!.Id,
+            supplier?.Name ?? user?.FullName ?? string.Empty,
             supplier?.SupplierCode ?? string.Empty,
             supplier?.Address,
             supplier?.Phone,
-            supplier?.Email ?? user.Email,
-            user.AvatarUrl,
-            user.Status,
-            user.CreatedOnUtc,
+            supplier?.Email ?? user?.Email,
+            user?.AvatarUrl,
+            user?.Status ?? UserStatus.Active,
+            user?.CreatedOnUtc ?? supplier?.CreatedOnUtc,
             vehicleSummaries,
             driverSummaries,
             bookingCount,

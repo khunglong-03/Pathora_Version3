@@ -292,6 +292,7 @@ export function TourInstanceListPage() {
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
                 <option value="all">All Status</option>
                 <option value="available">Available</option>
+                <option value="pendingapproval">Pending Approval</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="soldout">Sold Out</option>
                 <option value="inprogress">In Progress</option>
@@ -421,7 +422,7 @@ export function TourInstanceListPage() {
                           </h3>
                         </div>
                         
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-stone-600">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-stone-600">
                            <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
                              <Icon icon="heroicons:map-pin" className="size-4 text-stone-400" />
                              <span className="font-medium tracking-tight truncate max-w-[200px]">{inst.location || "N/A"}</span>
@@ -430,7 +431,37 @@ export function TourInstanceListPage() {
                              <Icon icon="heroicons:swatch" className="size-4 text-stone-400" />
                              <span className="truncate max-w-[150px]">{inst.tourName}</span>
                            </div>
+                           <div className="flex items-center gap-1.5">
+                             <Icon icon="heroicons:tag" className="size-4 text-stone-400" />
+                             <span className="truncate max-w-[120px]">{inst.classificationName}</span>
+                           </div>
                         </div>
+
+                        {/* Provider Approval Badges */}
+                        {inst.status === "pendingapproval" && (
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                              inst.hotelApprovalStatus === 2
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : inst.hotelApprovalStatus === 3
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-orange-50 text-orange-700 border border-orange-200"
+                            }`}>
+                              <Icon icon="heroicons:building-office" className="size-3" />
+                              KS: {inst.hotelApprovalStatus === 2 ? "Đã duyệt" : inst.hotelApprovalStatus === 3 ? "Từ chối" : "Chờ duyệt"}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                              inst.transportApprovalStatus === 2
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : inst.transportApprovalStatus === 3
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-orange-50 text-orange-700 border border-orange-200"
+                            }`}>
+                              <Icon icon="heroicons:truck" className="size-3" />
+                              VT: {inst.transportApprovalStatus === 2 ? "Đã duyệt" : inst.transportApprovalStatus === 3 ? "Từ chối" : "Chờ duyệt"}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* 3. Timeline / Meta Stack */}
@@ -445,10 +476,17 @@ export function TourInstanceListPage() {
                            </div>
                            <div className="flex justify-between items-center text-xs text-stone-500">
                              <span className="flex items-center gap-1.5">
+                                <Icon icon="heroicons:calendar-days" className="size-3.5" />
+                                {safeT("tourInstance.endDate", "End Date")}
+                             </span>
+                             <span className="font-semibold text-stone-800 tracking-tight">{formatDate(inst.endDate)}</span>
+                           </div>
+                           <div className="flex justify-between items-center text-xs text-stone-500">
+                             <span className="flex items-center gap-1.5">
                                 <Icon icon="heroicons:clock" className="size-3.5" />
                                 {safeT("tourInstance.duration", "Duration")}
                              </span>
-                             <span className="font-medium text-stone-700">{inst.durationDays} days</span>
+                             <span className="font-medium text-stone-700">{inst.durationDays} {safeT("tourInstance.daysUnit", "ngày")}</span>
                            </div>
                         </div>
                         

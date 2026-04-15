@@ -121,6 +121,14 @@ public class TourInstanceService(
 
         if (request.GuideUserIds?.Count > 0)
         {
+            var conflictingInstances = await _tourInstanceRepository.FindConflictingInstancesForManagers(
+                request.GuideUserIds, request.StartDate, request.EndDate);
+
+            if (conflictingInstances.Count != 0)
+            {
+                return Error.Validation("TourInstance.GuideConflict", "Một trong những hướng dẫn viên đã có lịch vào ngày này.");
+            }
+
             foreach (var userId in request.GuideUserIds.Distinct())
             {
                 entity.Managers.Add(TourInstanceManagerEntity.Create(
@@ -283,6 +291,14 @@ public class TourInstanceService(
         entity.Managers.Clear();
         if (request.GuideUserIds?.Count > 0)
         {
+            var conflictingInstances = await _tourInstanceRepository.FindConflictingInstancesForManagers(
+                request.GuideUserIds, request.StartDate, request.EndDate, request.Id);
+
+            if (conflictingInstances.Count != 0)
+            {
+                return Error.Validation("TourInstance.GuideConflict", "Một trong những hướng dẫn viên đã có lịch vào ngày này.");
+            }
+
             foreach (var userId in request.GuideUserIds)
             {
                 entity.Managers.Add(TourInstanceManagerEntity.Create(

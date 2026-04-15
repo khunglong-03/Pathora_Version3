@@ -26,4 +26,5 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<int> CountProviderAssigned(Guid providerId, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindByManagerUserIds(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindConflictingInstancesForManagers(IEnumerable<Guid> userIds, DateTimeOffset startDate, DateTimeOffset endDate, Guid? excludeInstanceId = null, CancellationToken cancellationToken = default);
 }

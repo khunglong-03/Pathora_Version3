@@ -84,6 +84,17 @@ public class TourInstanceController : BaseApiController
     }
 
     [Authorize(Policy = "TourManagerOnly")]
+    [HttpGet(TourInstanceEndpoint.CheckGuideAvailability)]
+    public async Task<IActionResult> CheckGuideAvailability(
+        [FromQuery] List<Guid> guideUserIds,
+        [FromQuery] DateTimeOffset startDate,
+        [FromQuery] DateTimeOffset endDate)
+    {
+        var result = await Sender.Send(new CheckGuideAvailabilityQuery(guideUserIds, startDate, endDate));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "TourManagerOnly")]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
