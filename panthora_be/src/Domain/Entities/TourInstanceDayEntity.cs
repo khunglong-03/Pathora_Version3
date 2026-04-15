@@ -1,6 +1,7 @@
 namespace Domain.Entities;
 
 using Domain.Entities.Translations;
+using Domain.Enums;
 
 /// <summary>
 /// Ngày cụ thể trong một TourInstance — kết nối ngày của kế hoạch tour gốc (TourDay)
@@ -33,6 +34,13 @@ public class TourInstanceDayEntity : Aggregate<Guid>
     public TimeOnly? EndTime { get; set; }
     /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
+    
+    // Local Activities
+    /// <summary>Danh sách các hoạt động thực tế trong ngày, thuộc riêng về đợt tour này.</summary>
+    public virtual List<TourInstanceDayActivityEntity> Activities { get; set; } = [];
+
+    // Tracking
+    public bool IsDeleted { get; set; } = false;
 
     /// <summary>Bản dịch đa ngôn ngữ cho title và description.</summary>
     public Dictionary<string, TourInstanceDayTranslationData> Translations { get; set; } = [];

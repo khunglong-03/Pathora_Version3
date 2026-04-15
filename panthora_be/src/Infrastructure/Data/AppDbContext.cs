@@ -93,6 +93,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourResourceEntity> TourResources => Set<TourResourceEntity>();
     public DbSet<TourInstanceManagerEntity> TourInstanceManagers => Set<TourInstanceManagerEntity>();
     public DbSet<TourInstanceDayEntity> TourInstanceDays => Set<TourInstanceDayEntity>();
+    public DbSet<TourInstanceDayActivityEntity> TourInstanceDayActivities => Set<TourInstanceDayActivityEntity>();
+    public DbSet<TourInstancePlanAccommodationEntity> TourInstancePlanAccommodations => Set<TourInstancePlanAccommodationEntity>();
+    public DbSet<TourInstancePlanRouteEntity> TourInstancePlanRoutes => Set<TourInstancePlanRouteEntity>();
     public DbSet<UserSettingEntity> UserSettings => Set<UserSettingEntity>();
     public DbSet<TourManagerAssignmentEntity> TourManagerAssignments => Set<TourManagerAssignmentEntity>();
     public DbSet<VehicleEntity> Vehicles => Set<VehicleEntity>();

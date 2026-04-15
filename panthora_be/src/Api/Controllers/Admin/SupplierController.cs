@@ -13,9 +13,9 @@ public class SupplierController : BaseApiController
 {
     [HttpGet]
     [Authorize(Policy = "TourManagerOnly")]
-    public async Task<IActionResult> GetSuppliers([FromQuery] SupplierType? supplierType)
+    public async Task<IActionResult> GetSuppliers([FromQuery] SupplierType? supplierType, [FromQuery] Continent? continent)
     {
-        var result = await Sender.Send(new GetSuppliersQuery(supplierType));
+        var result = await Sender.Send(new GetSuppliersQuery(supplierType, continent));
         return HandleResult(result);
     }
 

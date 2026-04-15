@@ -14,10 +14,14 @@ import { tourService } from "@/api/services/tourService";
 import { userService } from "@/api/services/userService";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { supplierService } from "@/api/services/supplierService";
+import type { SupplierItem } from "@/api/services/supplierService";
+import { adminService } from "@/api/services/adminService";
+import { fileService } from "@/api/services/fileService";
 import type { TourRequestDetailDto } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
-import { SearchTourVm, TourClassificationDto, TourDto, UserInfo } from "@/types/tour";
+import { SearchTourVm, TourClassificationDto, TourDto, UserInfo, RoomTypeMap } from "@/types/tour";
+import type { HotelProviderDetail, TransportProviderDetail } from "@/types/admin";
 import dayjs from "dayjs";
 
 type FormState = {
@@ -35,6 +39,29 @@ type FormState = {
   imageUrls: string[];
   hotelProviderId: string;
   transportProviderId: string;
+  activityAssignments: Record<string, { roomType?: number; vehicleId?: string }>;
+};
+
+/** A mutable copy of a classification day for local edits before submission. */
+type EditableDay = {
+  id: string;
+  dayNumber: number;
+  title: string;
+  description: string | null;
+  activities: EditableActivity[];
+};
+
+type EditableActivity = {
+  id: string;
+  order: number;
+  activityType: string;
+  title: string;
+  description: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  isOptional: boolean;
+  /** When true, show inline edit form instead of read-only */
+  _editing?: boolean;
 };
 
 type Translate = (key: string, fallback?: string) => string;
@@ -54,6 +81,7 @@ const INITIAL_FORM: FormState = {
   imageUrls: [],
   hotelProviderId: "",
   transportProviderId: "",
+  activityAssignments: {},
 };
 
 // ─── Wizard Step Constants ────────────────────────────────────────────────────
@@ -290,7 +318,7 @@ function ManagerChip({ user, onRemove }: ManagerChipProps) {
   );
 }
 
-import { SupplierItem } from "@/api/services/supplierService";
+
 
 // ─── InstanceDetailsStep ───────────────────────────────────────────────────────
 interface InstanceDetailsStepProps {
@@ -312,6 +340,18 @@ interface InstanceDetailsStepProps {
   updateImageUrl: (index: number, value: string) => void;
   appendImageUrl: () => void;
   removeImageUrl: (index: number) => void;
+  onUploadThumbnail: (file: File) => Promise<void>;
+  onUploadImages: (files: FileList) => Promise<void>;
+  uploadingThumbnail: boolean;
+  uploadingImages: boolean;
+  hotelDetail: HotelProviderDetail | null;
+  transportDetail: TransportProviderDetail | null;
+  updateActivityAssignment: (activityId: string, updates: { roomType?: number; vehicleId?: string; }) => void;
+  editableItinerary: EditableDay[];
+  onUpdateActivity: (dayId: string, activityId: string, updates: Partial<EditableActivity>) => void;
+  onDeleteActivity: (dayId: string, activityId: string) => void;
+  onAddActivity: (dayId: string) => void;
+  onToggleEditActivity: (dayId: string, activityId: string) => void;
 }
 
 function InstanceDetailsStep({
@@ -333,6 +373,18 @@ function InstanceDetailsStep({
   updateImageUrl,
   appendImageUrl,
   removeImageUrl,
+  onUploadThumbnail,
+  onUploadImages,
+  uploadingThumbnail,
+  uploadingImages,
+  hotelDetail,
+  transportDetail,
+  updateActivityAssignment,
+  editableItinerary,
+  onUpdateActivity,
+  onDeleteActivity,
+  onAddActivity,
+  onToggleEditActivity,
 }: InstanceDetailsStepProps) {
   const selectedGuide = useMemo(
     () => guides.find((u) => form.guideUserIds.includes(u.id)) ?? null,
@@ -648,96 +700,148 @@ function InstanceDetailsStep({
       {/* Media */}
       <CollapsibleSection
         title={t("tourInstance.wizard.section.media", "Media")}
-        defaultOpen={false}
+        defaultOpen={form.thumbnailUrl.length > 0 || form.imageUrls.length > 0}
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Thumbnail */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-stone-700">
-              {t("tourInstance.form.thumbnailUrl", "Thumbnail URL")}
+              {t("tourInstance.form.thumbnail", "Thumbnail")}
             </label>
-            <input
-              className={inputClassName}
-              value={form.thumbnailUrl}
-              onChange={(event) => updateField("thumbnailUrl", event.target.value)}
-              placeholder={t(
-                "tourInstance.form.thumbnailUrlPlaceholder",
-                "https://example.com/image.jpg",
-              )}
-            />
-            {form.thumbnailUrl && (
-              <div className="mt-2 rounded-xl overflow-hidden border border-stone-200 w-32 h-32">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={form.thumbnailUrl}
-                  alt="Thumbnail preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-stone-700">
-              {t("tourInstance.form.imageUrls", "Image URLs")}
-            </label>
-            <p className="text-xs text-stone-500">
-              {t("tourInstance.form.imageUrlsHint", "Add image URLs that will be associated with this tour instance.")}
-            </p>
-            <div className="space-y-2">
-              {form.imageUrls.map((url, index) => (
-                <div key={`img-${index}`} className="flex items-center gap-2">
-                  <input
-                    className={inputClassName}
-                    value={url}
-                    onChange={(event) => updateImageUrl(index, event.target.value)}
-                    placeholder={t("tourInstance.form.imageUrlPlaceholder", "https://example.com/image.jpg")}
+            <div className="flex items-start gap-4">
+              {form.thumbnailUrl ? (
+                <div className="relative group rounded-xl overflow-hidden border border-stone-200 w-32 h-32 shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={form.thumbnailUrl}
+                    alt="Thumbnail preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/images/placeholder.svg'; }}
                   />
-                  {url && (
-                    <div className="shrink-0 rounded-xl overflow-hidden border border-stone-200 w-14 h-14">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
                   <button
                     type="button"
-                    onClick={() => removeImageUrl(index)}
-                    className="shrink-0 rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-700 hover:bg-stone-100 whitespace-nowrap">
-                    {t("common.remove", "Remove")}
+                    onClick={() => updateField("thumbnailUrl", "")}
+                    className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                    title={t("common.remove", "Remove")}
+                  >
+                    <Icon icon="heroicons:x-mark" className="size-3.5" />
                   </button>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={appendImageUrl}
-                className="rounded-xl border border-orange-200 px-3 py-2 text-sm font-semibold text-orange-500 hover:bg-orange-50">
-                + {t("tourInstance.form.addImage", "Add image")}
-              </button>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-32 h-32 rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 cursor-pointer hover:bg-stone-100 hover:border-orange-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onUploadThumbnail(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  {uploadingThumbnail ? (
+                    <Icon icon="heroicons:arrow-path" className="size-6 text-orange-500 animate-spin" />
+                  ) : (
+                    <>
+                      <Icon icon="heroicons:photo" className="size-6 text-stone-400" />
+                      <span className="mt-1 text-[10px] font-medium text-stone-500">
+                        {t("tourInstance.form.uploadThumbnail", "Upload")}
+                      </span>
+                    </>
+                  )}
+                </label>
+              )}
+              {form.thumbnailUrl && (
+                <label className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-2 text-xs font-medium text-stone-600 cursor-pointer hover:bg-stone-50 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onUploadThumbnail(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <Icon icon="heroicons:arrow-path" className={`size-3.5 ${uploadingThumbnail ? 'animate-spin' : ''}`} />
+                  {t("tourInstance.form.changeThumbnail", "Change")}
+                </label>
+              )}
             </div>
+          </div>
+
+          {/* Gallery images */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-stone-700">
+              {t("tourInstance.form.images", "Gallery Images")}
+            </label>
+            <p className="text-xs text-stone-500">
+              {t("tourInstance.form.imagesHint", "Upload images from your computer for this tour instance.")}
+            </p>
+
+            {/* Existing image previews */}
+            {form.imageUrls.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {form.imageUrls.map((url, index) => (
+                  <div key={`img-${index}`} className="relative group rounded-xl overflow-hidden border border-stone-200 w-24 h-24 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={`Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/images/placeholder.svg'; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImageUrl(index)}
+                      className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                      title={t("common.remove", "Remove")}
+                    >
+                      <Icon icon="heroicons:x-mark" className="size-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload button */}
+            <label className="inline-flex items-center gap-2 rounded-xl border border-dashed border-orange-300 px-4 py-3 text-sm font-medium text-orange-600 cursor-pointer hover:bg-orange-50 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    onUploadImages(e.target.files);
+                  }
+                  e.target.value = "";
+                }}
+              />
+              {uploadingImages ? (
+                <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
+              ) : (
+                <Icon icon="heroicons:cloud-arrow-up" className="size-4" />
+              )}
+              {uploadingImages
+                ? t("tourInstance.form.uploading", "Uploading...")
+                : t("tourInstance.form.uploadImages", "Upload images")}
+            </label>
           </div>
         </div>
       </CollapsibleSection>
 
-      {/* Itinerary Preview */}
-      {selectedClassification && selectedClassification.plans && selectedClassification.plans.length > 0 && (
+      {/* Itinerary Preview — Editable */}
+      {editableItinerary.length > 0 && (
         <CollapsibleSection
           title={t("tourInstance.wizard.section.itineraryPreview", "Itinerary Preview")}
           defaultOpen={false}
         >
           <div className="space-y-4">
             <p className="text-xs text-stone-500">
-              {t("tourInstance.wizard.section.itineraryPreviewHint", "This itinerary will be cloned from the selected classification.")}
+              {t("tourInstance.wizard.section.itineraryEditHint", "You can add, edit, or remove activities for each day.")}
             </p>
-            {selectedClassification.plans.map((day) => (
+            {editableItinerary.map((day) => (
               <div key={day.id} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="inline-flex items-center justify-center size-6 rounded-full bg-orange-100 text-xs font-bold text-orange-700">
@@ -748,24 +852,189 @@ function InstanceDetailsStep({
                 {day.description && (
                   <p className="text-xs text-stone-600 ml-8 mb-3">{day.description}</p>
                 )}
-                {day.activities && day.activities.length > 0 && (
+                {day.activities.length > 0 && (
                   <div className="ml-8 space-y-2">
                     {day.activities.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-2 text-xs text-stone-700">
-                        <span className="w-4 text-center text-stone-400">{activity.order}.</span>
-                        <span className="font-medium">{activity.title}</span>
-                        {activity.startTime && (
-                          <span className="text-stone-400">({activity.startTime}{activity.endTime ? ` - ${activity.endTime}` : ""})</span>
+                      <div key={activity.id} className="flex flex-col gap-2">
+                        {activity._editing ? (
+                          /* ── Inline Edit Form ── */
+                          <div className="rounded-lg border border-orange-200 bg-orange-50/50 p-3 space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[10px] font-medium text-stone-500 uppercase">Title</label>
+                                <input
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  value={activity.title}
+                                  onChange={(e) => onUpdateActivity(day.id, activity.id, { title: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-medium text-stone-500 uppercase">Type</label>
+                                <select
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  value={activity.activityType}
+                                  onChange={(e) => onUpdateActivity(day.id, activity.id, { activityType: e.target.value })}
+                                >
+                                  <option value="Sightseeing">Sightseeing</option>
+                                  <option value="Dining">Dining</option>
+                                  <option value="Shopping">Shopping</option>
+                                  <option value="Entertainment">Entertainment</option>
+                                  <option value="Cultural">Cultural</option>
+                                  <option value="Adventure">Adventure</option>
+                                  <option value="Transportation">Transportation</option>
+                                  <option value="Accommodation">Accommodation</option>
+                                  <option value="FreeTime">Free Time</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[10px] font-medium text-stone-500 uppercase">Start</label>
+                                <input
+                                  type="time"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  value={activity.startTime?.slice(0, 5) ?? ""}
+                                  onChange={(e) => onUpdateActivity(day.id, activity.id, { startTime: e.target.value ? e.target.value + ":00" : null })}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-medium text-stone-500 uppercase">End</label>
+                                <input
+                                  type="time"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  value={activity.endTime?.slice(0, 5) ?? ""}
+                                  onChange={(e) => onUpdateActivity(day.id, activity.id, { endTime: e.target.value ? e.target.value + ":00" : null })}
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-medium text-stone-500 uppercase">Description</label>
+                              <input
+                                className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                value={activity.description ?? ""}
+                                onChange={(e) => onUpdateActivity(day.id, activity.id, { description: e.target.value || null })}
+                              />
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <label className="flex items-center gap-1.5 text-xs text-stone-600">
+                                <input
+                                  type="checkbox"
+                                  checked={activity.isOptional}
+                                  onChange={(e) => onUpdateActivity(day.id, activity.id, { isOptional: e.target.checked })}
+                                  className="rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                                />
+                                {t("tourInstance.optional", "Optional")}
+                              </label>
+                              <div className="flex-1" />
+                              <button
+                                type="button"
+                                onClick={() => onToggleEditActivity(day.id, activity.id)}
+                                className="rounded-lg bg-orange-500 px-3 py-1 text-xs font-medium text-white hover:bg-orange-600"
+                              >
+                                {t("common.done", "Done")}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          /* ── Read-only Row ── */
+                          <div className="flex items-center gap-2 text-xs text-stone-700 group">
+                            <span className="w-4 text-center text-stone-400">{activity.order}.</span>
+                            <span className="font-medium">{activity.title}</span>
+                            {activity.startTime && (
+                              <span className="text-stone-400">({activity.startTime}{activity.endTime ? ` - ${activity.endTime}` : ""})</span>
+                            )}
+                            {activity.isOptional && (
+                              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-[10px] font-medium">
+                                {t("tourInstance.optional", "Optional")}
+                              </span>
+                            )}
+                            {/* Edit / Delete buttons — visible on hover */}
+                            <span className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={() => onToggleEditActivity(day.id, activity.id)}
+                                className="rounded p-1 text-stone-400 hover:text-orange-600 hover:bg-orange-50"
+                                title={t("common.edit", "Edit")}
+                              >
+                                <Icon icon="heroicons:pencil" className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onDeleteActivity(day.id, activity.id)}
+                                className="rounded p-1 text-stone-400 hover:text-red-600 hover:bg-red-50"
+                                title={t("common.delete", "Delete")}
+                              >
+                                <Icon icon="heroicons:trash" className="size-3.5" />
+                              </button>
+                            </span>
+                          </div>
                         )}
-                        {activity.isOptional && (
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-[10px] font-medium">
-                            {t("tourInstance.optional", "Optional")}
-                          </span>
+
+                        {/* Dynamic Activity Resource Assignment */}
+                        {activity.activityType === "Accommodation" && hotelDetail && hotelDetail.accommodations && hotelDetail.accommodations.length > 0 && (
+                          <div className="ml-6 flex items-center gap-2 bg-stone-100 p-2 rounded-lg border border-stone-200 w-fit">
+                            <label className="text-[11px] font-medium text-stone-600 uppercase tracking-wide">
+                              {t("tourInstance.wizard.roomType", "Room Type")}:
+                            </label>
+                            <select
+                               className="text-xs rounded border border-stone-300 px-2 py-1 max-w-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                               value={form.activityAssignments[activity.id]?.roomType ?? ""}
+                               onChange={(e) => {
+                                  const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                                  updateActivityAssignment(activity.id, { roomType: val });
+                               }}
+                            >
+                               <option value="">{t("tourInstance.wizard.selectRoomType", "-- Select room type --")}</option>
+                               {Array.from(new Set(hotelDetail.accommodations.map(acc => acc.roomType))).map(roomTypeString => {
+                                  const enumNumStr = Object.entries(RoomTypeMap).find(([, v]) => v === roomTypeString)?.[0];
+                                  if (!enumNumStr) return null;
+                                  const totalRoomsOfType = hotelDetail.accommodations.filter(a => a.roomType === roomTypeString).reduce((acc, curr) => acc + curr.totalRooms, 0);
+                                  return (
+                                    <option key={roomTypeString} value={enumNumStr}>
+                                      {roomTypeString} ({totalRoomsOfType} {t("tourInstance.wizard.rooms", "rooms")})
+                                    </option>
+                                  );
+                               })}
+                            </select>
+                          </div>
+                        )}
+
+                        {activity.activityType === "Transportation" && transportDetail && transportDetail.vehicles && transportDetail.vehicles.length > 0 && (
+                          <div className="ml-6 flex items-center gap-2 bg-stone-100 p-2 rounded-lg border border-stone-200 w-fit">
+                            <label className="text-[11px] font-medium text-stone-600 uppercase tracking-wide">
+                              {t("tourInstance.wizard.vehicle", "Vehicle")}:
+                            </label>
+                            <select
+                               className="text-xs rounded border border-stone-300 px-2 py-1 max-w-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                               value={form.activityAssignments[activity.id]?.vehicleId ?? ""}
+                               onChange={(e) => {
+                                  updateActivityAssignment(activity.id, { vehicleId: e.target.value || undefined });
+                               }}
+                            >
+                               <option value="">{t("tourInstance.wizard.selectVehicle", "-- Select vehicle --")}</option>
+                               {transportDetail.vehicles.map(v => (
+                                  <option key={v.id} value={v.id}>
+                                    {v.vehiclePlate} ({v.seatCapacity} {t("tourInstance.wizard.seats", "seats")})
+                                  </option>
+                               ))}
+                            </select>
+                          </div>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
+
+                {/* Add Activity Button */}
+                <button
+                  type="button"
+                  onClick={() => onAddActivity(day.id)}
+                  className="mt-3 ml-8 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 transition-colors"
+                >
+                  <Icon icon="heroicons:plus" className="size-3.5" />
+                  {t("tourInstance.wizard.addActivity", "Add activity")}
+                </button>
               </div>
             ))}
           </div>
@@ -839,6 +1108,16 @@ export function CreateTourInstancePage({
   const [isDirty, setIsDirty] = useState(false);
   const [prefillTourRequest, setPrefillTourRequest] = useState<TourRequestDetailDto | null>(null);
 
+  const [hotelDetail, setHotelDetail] = useState<HotelProviderDetail | null>(null);
+  const [transportDetail, setTransportDetail] = useState<TransportProviderDetail | null>(null);
+
+  // Editable itinerary — mutable copy of classification plans
+  const [editableItinerary, setEditableItinerary] = useState<EditableDay[]>([]);
+
+  // Image upload state
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+
   const effectiveTourRequestId = prefillTourRequestId ?? urlTourRequestId ?? null;
 
   const fetchTourRequestDetail = useCallback(async (id: string) => {
@@ -892,6 +1171,49 @@ export function CreateTourInstancePage({
     }
   }, []);
 
+  const fetchProviders = useCallback(async () => {
+    try {
+      const [hotels, transports] = await Promise.all([
+        supplierService.getSuppliers("Accommodation"),
+        supplierService.getSuppliers("Transport"),
+      ]);
+
+      setHotelProviders(Array.isArray(hotels) ? hotels : []);
+      setTransportProviders(Array.isArray(transports) ? transports : []);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tourDetail) {
+      fetchProviders();
+    } else {
+      setHotelProviders([]);
+      setTransportProviders([]);
+    }
+  }, [fetchProviders, tourDetail]);
+
+  useEffect(() => {
+    if (form.hotelProviderId) {
+      adminService.getHotelProviderDetail(form.hotelProviderId).then((res) => {
+        if (res) setHotelDetail(res);
+      }).catch(() => setHotelDetail(null));
+    } else {
+      setHotelDetail(null);
+    }
+  }, [form.hotelProviderId]);
+
+  useEffect(() => {
+    if (form.transportProviderId) {
+      adminService.getTransportProviderDetail(form.transportProviderId).then((res) => {
+        if (res) setTransportDetail(res);
+      }).catch(() => setTransportDetail(null));
+    } else {
+      setTransportDetail(null);
+    }
+  }, [form.transportProviderId]);
+
   // Fetch guides for optional guide selection
   const fetchGuides = useCallback(async () => {
     try {
@@ -903,25 +1225,10 @@ export function CreateTourInstancePage({
     }
   }, []);
 
-  // Fetch Providers
-  const fetchProviders = useCallback(async () => {
-    try {
-      const [hotels, transports] = await Promise.all([
-        supplierService.getSuppliers(1), // Hotel = 1
-        supplierService.getSuppliers(0), // Transport = 0
-      ]);
-      setHotelProviders(hotels ?? []);
-      setTransportProviders(transports ?? []);
-    } catch (error) {
-      console.error("Failed to fetch providers:", error);
-    }
-  }, []);
-
   useEffect(() => {
     fetchTours();
     fetchGuides();
-    fetchProviders();
-  }, [fetchTours, fetchGuides, fetchProviders]);
+  }, [fetchTours, fetchGuides]);
 
   useEffect(() => {
     if (effectiveTourRequestId) {
@@ -1134,6 +1441,20 @@ export function CreateTourInstancePage({
     }
   };
 
+  const updateActivityAssignment = (activityId: string, updates: { roomType?: number; vehicleId?: string }) => {
+    setForm(prev => {
+      const current = prev.activityAssignments[activityId] || {};
+      return {
+        ...prev,
+        activityAssignments: {
+          ...prev.activityAssignments,
+          [activityId]: { ...current, ...updates }
+        }
+      };
+    });
+    setIsDirty(true);
+  };
+
   const toggleService = (service: string) => {
     setForm((current) => {
       const exists = current.includedServices.includes(service);
@@ -1164,6 +1485,115 @@ export function CreateTourInstancePage({
       imageUrls: current.imageUrls.filter((_, i) => i !== index),
     }));
   };
+
+  // ── Editable Itinerary handlers ────────────────────────────────────────
+
+  /** Initialise or reset editable itinerary when classification changes */
+  useEffect(() => {
+    if (!selectedClassification?.plans?.length) {
+      setEditableItinerary([]);
+      return;
+    }
+    setEditableItinerary(
+      selectedClassification.plans.map((day) => ({
+        id: day.id,
+        dayNumber: day.dayNumber,
+        title: day.title,
+        description: day.description,
+        activities: (day.activities ?? []).map((a) => ({
+          id: a.id,
+          order: a.order,
+          activityType: a.activityType,
+          title: a.title,
+          description: a.description,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          isOptional: a.isOptional,
+        })),
+      })),
+    );
+  }, [selectedClassification]);
+
+  const handleUpdateActivity = useCallback(
+    (dayId: string, activityId: string, updates: Partial<EditableActivity>) => {
+      setEditableItinerary((prev) =>
+        prev.map((day) =>
+          day.id !== dayId
+            ? day
+            : {
+                ...day,
+                activities: day.activities.map((a) =>
+                  a.id !== activityId ? a : { ...a, ...updates },
+                ),
+              },
+        ),
+      );
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const handleDeleteActivity = useCallback(
+    (dayId: string, activityId: string) => {
+      setEditableItinerary((prev) =>
+        prev.map((day) =>
+          day.id !== dayId
+            ? day
+            : {
+                ...day,
+                activities: day.activities
+                  .filter((a) => a.id !== activityId)
+                  .map((a, i) => ({ ...a, order: i + 1 })),
+              },
+        ),
+      );
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const handleAddActivity = useCallback(
+    (dayId: string) => {
+      setEditableItinerary((prev) =>
+        prev.map((day) => {
+          if (day.id !== dayId) return day;
+          const newOrder = day.activities.length + 1;
+          const newActivity: EditableActivity = {
+            id: `new-${Date.now()}-${newOrder}`,
+            order: newOrder,
+            activityType: "Sightseeing",
+            title: "",
+            description: null,
+            startTime: null,
+            endTime: null,
+            isOptional: false,
+            _editing: true,
+          };
+          return { ...day, activities: [...day.activities, newActivity] };
+        }),
+      );
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const handleToggleEditActivity = useCallback(
+    (dayId: string, activityId: string) => {
+      setEditableItinerary((prev) =>
+        prev.map((day) =>
+          day.id !== dayId
+            ? day
+            : {
+                ...day,
+                activities: day.activities.map((a) =>
+                  a.id !== activityId ? a : { ...a, _editing: !a._editing },
+                ),
+              },
+        ),
+      );
+    },
+    [],
+  );
 
   const handleSubmit = async () => {
     // Validate required fields
@@ -1225,6 +1655,12 @@ export function CreateTourInstancePage({
     try {
       setSubmitting(true);
 
+      const mappedActivityAssignments = Object.entries(form.activityAssignments).map(([originalActivityId, assignment]) => ({
+        originalActivityId,
+        roomType: assignment.roomType,
+        vehicleId: assignment.vehicleId
+      }));
+
       const payload: CreateTourInstancePayload = {
         tourId: form.tourId,
         classificationId: form.classificationId,
@@ -1243,6 +1679,7 @@ export function CreateTourInstancePage({
         tourRequestId: effectiveTourRequestId ?? undefined,
         hotelProviderId: form.hotelProviderId || undefined,
         transportProviderId: form.transportProviderId || undefined,
+        activityAssignments: mappedActivityAssignments.length > 0 ? mappedActivityAssignments : undefined,
       };
 
       const instance = await tourInstanceService.createInstance(payload);
@@ -1275,6 +1712,38 @@ export function CreateTourInstancePage({
 
   const inputClassName =
     "w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20";
+
+  // ── Upload handlers ─────────────────────────────────────────────────
+  const handleUploadThumbnail = useCallback(async (file: File) => {
+    try {
+      setUploadingThumbnail(true);
+      const meta = await fileService.uploadFile(file);
+      setForm((prev) => ({ ...prev, thumbnailUrl: meta.url }));
+      setIsDirty(true);
+    } catch (error) {
+      const msg = handleApiError(error);
+      toast.error(msg.message || t("tourInstance.form.uploadFailed", "Upload failed"));
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  }, [t]);
+
+  const handleUploadImages = useCallback(async (files: FileList) => {
+    try {
+      setUploadingImages(true);
+      const uploads = await Promise.all(
+        Array.from(files).map((f) => fileService.uploadFile(f)),
+      );
+      const urls = uploads.map((m) => m.url);
+      setForm((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, ...urls] }));
+      setIsDirty(true);
+    } catch (error) {
+      const msg = handleApiError(error);
+      toast.error(msg.message || t("tourInstance.form.uploadFailed", "Upload failed"));
+    } finally {
+      setUploadingImages(false);
+    }
+  }, [t]);
 
   return (
     <main className="min-h-screen bg-stone-50 p-6 md:p-8">
@@ -1373,6 +1842,18 @@ export function CreateTourInstancePage({
             updateImageUrl={updateImageUrl}
             appendImageUrl={appendImageUrl}
             removeImageUrl={removeImageUrl}
+            onUploadThumbnail={handleUploadThumbnail}
+            onUploadImages={handleUploadImages}
+            uploadingThumbnail={uploadingThumbnail}
+            uploadingImages={uploadingImages}
+            hotelDetail={hotelDetail}
+            transportDetail={transportDetail}
+            updateActivityAssignment={updateActivityAssignment}
+            editableItinerary={editableItinerary}
+            onUpdateActivity={handleUpdateActivity}
+            onDeleteActivity={handleDeleteActivity}
+            onAddActivity={handleAddActivity}
+            onToggleEditActivity={handleToggleEditActivity}
             inputClassName={inputClassName}
             t={safeT}
           />

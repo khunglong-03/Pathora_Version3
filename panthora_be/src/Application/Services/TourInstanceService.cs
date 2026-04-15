@@ -145,7 +145,7 @@ public class TourInstanceService(
                 var translations = ConvertTourDayTranslation(tourDay.Translations);
                 var actualDate = DateOnly.FromDateTime(entity.StartDate.DateTime);
 
-                entity.InstanceDays.Add(TourInstanceDayEntity.Create(
+                var instanceDay = TourInstanceDayEntity.Create(
                     tourInstanceId: entity.Id,
                     tourDayId: tourDay.Id,
                     instanceDayNumber: tourDay.DayNumber,
@@ -153,7 +153,45 @@ public class TourInstanceService(
                     title: tourDay.Title,
                     description: tourDay.Description,
                     translations: translations,
-                    performedBy: performedBy));
+                    performedBy: performedBy);
+
+                foreach (var templateActivity in tourDay.Activities.Where(a => !a.IsDeleted).OrderBy(a => a.Order))
+                {
+                    var assignedData = request.ActivityAssignments?.FirstOrDefault(a => a.OriginalActivityId == templateActivity.Id);
+
+                    var instanceActivity = TourInstanceDayActivityEntity.Create(
+                        tourInstanceDayId: instanceDay.Id,
+                        order: templateActivity.Order,
+                        activityType: templateActivity.ActivityType,
+                        title: templateActivity.Title,
+                        performedBy: performedBy,
+                        description: templateActivity.Description,
+                        note: templateActivity.Note ?? "",
+                        startTime: templateActivity.StartTime,
+                        endTime: templateActivity.EndTime,
+                        isOptional: templateActivity.IsOptional
+                    );
+
+                    if (templateActivity.ActivityType == TourDayActivityType.Accommodation && assignedData?.RoomType.HasValue == true)
+                    {
+                        instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
+                            instanceActivity.Id,
+                            assignedData.RoomType,
+                            assignedData.AccommodationQuantity ?? 1
+                        );
+                    }
+                    else if (templateActivity.ActivityType == TourDayActivityType.Transportation && assignedData?.VehicleId.HasValue == true)
+                    {
+                        instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
+                            instanceActivity.Id,
+                            assignedData.VehicleId
+                        ));
+                    }
+
+                    instanceDay.Activities.Add(instanceActivity);
+                }
+
+                entity.InstanceDays.Add(instanceDay);
             }
 
             await _tourInstanceRepository.Update(entity);

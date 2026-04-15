@@ -1333,7 +1333,7 @@ export function TourDetailPage() {
                     {(tour.status !== 3 || !isManagerOrAdmin) && (
                       <div className="shadow-sm rounded-xl">
                         <StatusDropdown
-                          currentStatus={tour.status}
+                          currentStatus={Number(tour.status)}
                           isLoading={statusUpdating}
                           onChange={handleStatusChange}
                         />

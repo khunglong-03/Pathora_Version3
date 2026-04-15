@@ -53,5 +53,10 @@ public class TourInstanceDayConfiguration : IEntityTypeConfiguration<TourInstanc
             .HasForeignKey(t => t.TourDayId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
+
+        builder.HasMany(t => t.Activities)
+            .WithOne(a => a.TourInstanceDay)
+            .HasForeignKey(a => a.TourInstanceDayId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

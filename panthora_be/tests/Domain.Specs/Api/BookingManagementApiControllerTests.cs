@@ -34,7 +34,7 @@ public sealed class BookingManagementApiControllerTests
                 new List<SupplierDto> { supplier },
                 "/api/suppliers");
 
-        var actionResult = await controller.GetSuppliers(SupplierType.Transport);
+        var actionResult = await controller.GetSuppliers(SupplierType.Transport, null);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
@@ -42,7 +42,7 @@ public sealed class BookingManagementApiControllerTests
             expectedInstance: "/api/suppliers",
             expectedData: new List<SupplierDto> { supplier });
 
-        Assert.Equal(new GetSuppliersQuery(SupplierType.Transport), probe.CapturedRequest);
+        Assert.Equal(new GetSuppliersQuery(SupplierType.Transport, null), probe.CapturedRequest);
     }
 
     [Fact]

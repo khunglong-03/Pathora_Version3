@@ -50,9 +50,9 @@ public sealed class GetSupplierByIdQueryHandler(
     }
 }
 
-public sealed record GetSuppliersQuery(SupplierType? SupplierType = null) : IQuery<ErrorOr<List<SupplierDto>>>, ICacheable
+public sealed record GetSuppliersQuery(SupplierType? SupplierType = null, Continent? Continent = null) : IQuery<ErrorOr<List<SupplierDto>>>, ICacheable
 {
-    public string CacheKey => $"{Application.Common.CacheKey.Supplier}:list:{SupplierType}";
+    public string CacheKey => $"{Application.Common.CacheKey.Supplier}:list:{SupplierType}:{Continent}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
 }
 
@@ -62,7 +62,8 @@ public sealed class GetSuppliersQueryHandler(ISupplierRepository supplierReposit
     public async Task<ErrorOr<List<SupplierDto>>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
     {
         var suppliers = await supplierRepository.GetListAsync(
-            request.SupplierType.HasValue ? s => s.SupplierType == request.SupplierType.Value : null);
+            s => (!request.SupplierType.HasValue || s.SupplierType == request.SupplierType.Value) &&
+                 (!request.Continent.HasValue || s.Continent == request.Continent.Value));
 
         return suppliers
             .Select(s => new SupplierDto(

@@ -26,7 +26,8 @@ public sealed record CreateTourInstanceCommand(
     Guid? TourRequestId = null,
     List<string>? ImageUrls = null,
     Guid? HotelProviderId = null,
-    Guid? TransportProviderId = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    Guid? TransportProviderId = null,
+    List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }

@@ -107,7 +107,7 @@ export interface TourDayActivityDto {
   id: string;
   tourDayId: string;
   order: number;
-  activityType: number;
+  activityType: string;
   title: string;
   description: string | null;
   note: string | null;
@@ -197,9 +197,9 @@ export interface TourDto {
   tourName: string;
   shortDescription: string;
   longDescription: string;
-  status: number;
-  tourScope?: number;
-  continent?: number;
+  status: number | string;
+  tourScope?: number | string;
+  continent?: string;
   customerSegment?: number;
   seoTitle: string | null;
   seoDescription: string | null;

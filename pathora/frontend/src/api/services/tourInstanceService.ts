@@ -21,6 +21,13 @@ interface AddCustomDayResponse {
   actualDate: string;
 }
 
+export interface CreateTourInstanceActivityAssignment {
+  originalActivityId: string;
+  roomType?: number | null;
+  accommodationQuantity?: number | null;
+  vehicleId?: string | null;
+}
+
 export interface CreateTourInstancePayload {
   tourId: string;
   classificationId: string;
@@ -37,6 +44,7 @@ export interface CreateTourInstancePayload {
   tourRequestId?: string | null;
   hotelProviderId?: string | null;
   transportProviderId?: string | null;
+  activityAssignments?: CreateTourInstanceActivityAssignment[];
 }
 
 export interface UpdateInstanceDayPayload {
