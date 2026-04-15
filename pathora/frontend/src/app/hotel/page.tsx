@@ -16,11 +16,15 @@ import {
   CheckCircleIcon,
 } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
+import { tourInstanceService } from "@/api/services/tourInstanceService";
 import type {
   AccommodationItem,
   GuestArrivalItem,
   GuestStayStatus,
 } from "@/api/services/hotelProviderService";
+import type { NormalizedTourInstanceVm } from "@/types/tour";
+import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
+import dayjs from "dayjs";
 
 // --- Design Tokens (Taste Frontend) ---
 const T = {
@@ -219,6 +223,7 @@ export default function HotelDashboardPage() {
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
   const [recentArrivals, setRecentArrivals] = useState<GuestArrivalItem[]>([]);
   const [availableRooms, setAvailableRooms] = useState<number>(-1);
+  const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -241,6 +246,22 @@ export default function HotelDashboardPage() {
           .sort((a, b) => new Date(b.submittedAt ?? 0).getTime() - new Date(a.submittedAt ?? 0).getTime())
           .slice(0, 8)
       );
+
+      // Fetch upcoming tours separately to avoid cascading failures
+      try {
+        const tourResult = await tourInstanceService.getProviderAssigned(1, 50);
+        const todayDate = dayjs().startOf("day");
+        const upcoming = (tourResult?.data ?? [])
+          .filter(i => {
+            const tourStart = dayjs(i.startDate).startOf("day");
+            return tourStart.isAfter(todayDate) || tourStart.isSame(todayDate, "day");
+          })
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        setUpcomingTours(upcoming);
+      } catch {
+        // Silently fail — upcoming tours is supplementary, not critical
+        setUpcomingTours([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
@@ -443,6 +464,14 @@ export default function HotelDashboardPage() {
                 </div>
               )}
             </motion.div>
+
+            <UpcomingToursSection
+              tours={upcomingTours}
+              providerType="hotel"
+              viewAllHref="/hotel/tour-approvals"
+              itemVariants={itemVariants}
+              tokens={T}
+            />
 
           </motion.div>
         )}

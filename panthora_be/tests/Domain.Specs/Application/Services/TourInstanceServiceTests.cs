@@ -1,8 +1,10 @@
 using Application.Common.Constant;
 using Application.Features.TourInstance.Commands;
+using Application.Dtos;
 using Application.Services;
 using AutoMapper;
 using Contracts.Interfaces;
+using Contracts.ModelResponse;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -10,6 +12,7 @@ using Domain.Mails;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 
 namespace Domain.Specs.Application.Services;
 
@@ -23,9 +26,13 @@ public sealed class TourInstanceServiceTests
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IMapper _mapper = Substitute.For<IMapper>();
     private readonly ILogger<TourInstanceService> _logger = Substitute.For<ILogger<TourInstanceService>>();
+    private readonly ITourInstanceNotificationBroadcaster _broadcaster = Substitute.For<ITourInstanceNotificationBroadcaster>();
 
     private TourInstanceService CreateService() =>
         new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _user, _mapper, _logger);
+
+    private TourInstanceService CreateServiceWithBroadcaster() =>
+        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _user, _mapper, _logger, _broadcaster);
 
     private static TourEntity CreateTourWithClassification(Guid classificationId)
     {
@@ -102,6 +109,8 @@ public sealed class TourInstanceServiceTests
 
         _user.Id.Returns(creatorUserId.ToString());
         _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _tourInstanceRepository.FindConflictingInstancesForManagers(Arg.Any<List<Guid>>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+            .Returns(new List<TourInstanceEntity>());
         _tourInstanceRepository.Create(Arg.Do<TourInstanceEntity>(e => captured = e)).Returns(Task.CompletedTask);
 
         var command = new CreateTourInstanceCommand(
@@ -510,6 +519,9 @@ public sealed class TourInstanceServiceTests
         var guideId = Guid.NewGuid();
         var managerId = Guid.NewGuid();
         _tourInstanceRepository.FindById(instanceId).Returns(entity);
+        _tourInstanceRepository.FindConflictingInstancesForManagers(
+            Arg.Any<IEnumerable<Guid>>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<Guid?>()
+        ).Returns(new List<TourInstanceEntity>());
         _tourInstanceRepository.Update(Arg.Do<TourInstanceEntity>(e => captured = e))
             .Returns(Task.CompletedTask);
 
@@ -581,5 +593,453 @@ public sealed class TourInstanceServiceTests
         var ctorParams = ctors[0].GetParameters();
         var hasRowVersion = ctorParams.Any(p => p.Name == "RowVersion");
         Assert.False(hasRowVersion);
+    }
+
+    // ─── Provider Notification Verification Tests (5.1–5.11) ─────────────────────
+
+    private static SupplierEntity CreateSupplier(SupplierType type, Guid? ownerUserId = null)
+    {
+        return SupplierEntity.Create(
+            supplierCode: $"SUP-{Guid.NewGuid():N}"[..16],
+            supplierType: type,
+            name: $"{type} Supplier",
+            performedBy: "system",
+            ownerUserId: ownerUserId);
+    }
+
+    [Fact]
+    public async Task Create_WithHotelProvider_SendsAssignmentNotificationToOwner()
+    {
+        // Task 5.1: Verify ReceiveProviderAssignment sent to correct OwnerUserId
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var hotelOwnerUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        var hotelSupplier = CreateSupplier(SupplierType.Accommodation, hotelOwnerUserId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _tourInstanceRepository.Create(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _supplierRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(hotelSupplier);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Hotel Notification Test",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(5),
+            EndDate: DateTimeOffset.UtcNow.AddDays(7),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            HotelProviderId: hotelSupplier.Id);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.Create(command);
+
+        Assert.False(result.IsError);
+
+        await _broadcaster.Received(1).NotifyProviderAssignmentAsync(
+            Arg.Any<Guid>(),
+            Arg.Is("Hotel Notification Test"),
+            Arg.Is(tour.TourName),
+            Arg.Any<DateTimeOffset>(),
+            Arg.Any<DateTimeOffset>(),
+            Arg.Is("Hotel"),
+            Arg.Is(hotelOwnerUserId),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Create_WithBothProviders_SendsTwoSeparateNotifications()
+    {
+        // Task 5.2: Both hotel and transport owner users receive separate notifications
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var hotelOwnerUserId = Guid.NewGuid();
+        var transportOwnerUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        var hotelSupplier = CreateSupplier(SupplierType.Accommodation, hotelOwnerUserId);
+        var transportSupplier = CreateSupplier(SupplierType.Transport, transportOwnerUserId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _tourInstanceRepository.Create(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _supplierRepository.GetByIdAsync(hotelSupplier.Id, Arg.Any<CancellationToken>()).Returns(hotelSupplier);
+        _supplierRepository.GetByIdAsync(transportSupplier.Id, Arg.Any<CancellationToken>()).Returns(transportSupplier);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Dual Provider Test",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(5),
+            EndDate: DateTimeOffset.UtcNow.AddDays(7),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            HotelProviderId: hotelSupplier.Id,
+            TransportProviderId: transportSupplier.Id);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.Create(command);
+
+        Assert.False(result.IsError);
+
+        // Hotel notification
+        await _broadcaster.Received(1).NotifyProviderAssignmentAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(),
+            Arg.Is("Hotel"), Arg.Is(hotelOwnerUserId), Arg.Any<CancellationToken>());
+
+        // Transport notification
+        await _broadcaster.Received(1).NotifyProviderAssignmentAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(),
+            Arg.Is("Transport"), Arg.Is(transportOwnerUserId), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ProviderApprove_Approved_NotifiesManagerWithResult()
+    {
+        // Task 5.3: Provider approve => Manager receives ReceiveProviderApprovalResult
+        var managerUserId = Guid.NewGuid();
+        var supplierOwnerUserId = Guid.NewGuid();
+        var hotelSupplierId = Guid.NewGuid();
+
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+        // Override the auto-generated Id to match what we set on the entity
+        typeof(SupplierEntity).GetProperty("Id")!.SetValue(supplier, hotelSupplierId);
+
+        var instance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+            title: "Approval Test", tourName: "Tour", tourCode: "T001",
+            classificationName: "Standard", instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+            maxParticipation: 20, basePrice: 1000,
+            performedBy: managerUserId.ToString(),
+            hotelProviderId: hotelSupplierId);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindById(instance.Id).Returns(instance);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.ProviderApprove(instance.Id, isApproved: true, note: null, providerType: "Hotel");
+
+        Assert.False(result.IsError);
+
+        await _broadcaster.Received(1).NotifyProviderApprovalResultAsync(
+            Arg.Is(instance.Id),
+            Arg.Is(supplier.Name),
+            Arg.Is(true),
+            Arg.Is((string?)null),
+            Arg.Is(managerUserId.ToString()),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ProviderApprove_Rejected_NotifiesManagerWithReason()
+    {
+        // Task 5.4: Provider reject => Manager receives result with reason
+        var managerUserId = Guid.NewGuid();
+        var supplierOwnerUserId = Guid.NewGuid();
+        var hotelSupplierId = Guid.NewGuid();
+
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+        typeof(SupplierEntity).GetProperty("Id")!.SetValue(supplier, hotelSupplierId);
+
+        var instance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+            title: "Reject Test", tourName: "Tour", tourCode: "T001",
+            classificationName: "Standard", instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+            maxParticipation: 20, basePrice: 1000,
+            performedBy: managerUserId.ToString(),
+            hotelProviderId: hotelSupplierId);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindById(instance.Id).Returns(instance);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.ProviderApprove(instance.Id, isApproved: false, note: "Rooms fully booked", providerType: "Hotel");
+
+        Assert.False(result.IsError);
+
+        await _broadcaster.Received(1).NotifyProviderApprovalResultAsync(
+            Arg.Is(instance.Id),
+            Arg.Is(supplier.Name),
+            Arg.Is(false),
+            Arg.Is("Rooms fully booked"),
+            Arg.Is(managerUserId.ToString()),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetProviderAssigned_WithPendingFilter_OnlyReturnsPending()
+    {
+        // Task 5.5: GET provider-assigned?approvalStatus=Pending returns only pending instances
+        var supplierOwnerUserId = Guid.NewGuid();
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+
+        var pendingInstance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+            title: "Pending Instance", tourName: "Tour", tourCode: "T001",
+            classificationName: "Standard", instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+            maxParticipation: 20, basePrice: 1000, performedBy: "system",
+            hotelProviderId: supplier.Id);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindProviderAssigned(supplier.Id, 1, 10, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceEntity> { pendingInstance });
+        _tourInstanceRepository.CountProviderAssigned(supplier.Id, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>())
+            .Returns(1);
+        _mapper.Map<TourInstanceVm>(Arg.Any<TourInstanceEntity>()).Returns((TourInstanceVm)null!);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.GetProviderAssigned(1, 10, ProviderApprovalStatus.Pending);
+
+        Assert.False(result.IsError);
+        Assert.Single(result.Value.Items);
+
+        // Verify the repository was called with the correct filter
+        await _tourInstanceRepository.Received(1).FindProviderAssigned(
+            supplier.Id, 1, 10, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetProviderAssigned_WithoutFilter_ReturnsAll()
+    {
+        // Task 5.6: GET provider-assigned without filter returns all (backward compatible)
+        var supplierOwnerUserId = Guid.NewGuid();
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindProviderAssigned(supplier.Id, 1, 10, null, Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceEntity>());
+        _tourInstanceRepository.CountProviderAssigned(supplier.Id, null, Arg.Any<CancellationToken>())
+            .Returns(0);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.GetProviderAssigned(1, 10, approvalStatus: null);
+
+        Assert.False(result.IsError);
+
+        // Verify null was passed as filter (backward compatible)
+        await _tourInstanceRepository.Received(1).FindProviderAssigned(
+            supplier.Id, 1, 10, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Create_WithNullOwnerUserId_LogsWarningAndSkipsNotification()
+    {
+        // Task 5.7: Provider supplier with OwnerUserId = null — no notification, no exception
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        var hotelSupplier = CreateSupplier(SupplierType.Accommodation, ownerUserId: null);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _tourInstanceRepository.Create(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _supplierRepository.GetByIdAsync(hotelSupplier.Id, Arg.Any<CancellationToken>()).Returns(hotelSupplier);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Null Owner Test",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(5),
+            EndDate: DateTimeOffset.UtcNow.AddDays(7),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            HotelProviderId: hotelSupplier.Id);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.Create(command);
+
+        // Should succeed without error
+        Assert.False(result.IsError);
+
+        // Notification should NOT have been sent
+        await _broadcaster.DidNotReceive().NotifyProviderAssignmentAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(),
+            Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Create_SameSupplierAsHotelAndTransport_SendsTwoNotifications()
+    {
+        // Task 5.8: Same supplier is both HotelProvider and TransportProvider
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        var supplier = CreateSupplier(SupplierType.Accommodation, ownerUserId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _tourInstanceRepository.Create(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+        _supplierRepository.GetByIdAsync(supplier.Id, Arg.Any<CancellationToken>()).Returns(supplier);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Same Supplier Test",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(5),
+            EndDate: DateTimeOffset.UtcNow.AddDays(7),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            HotelProviderId: supplier.Id,
+            TransportProviderId: supplier.Id);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.Create(command);
+
+        Assert.False(result.IsError);
+
+        // Both Hotel and Transport notifications should be sent (even to same user)
+        await _broadcaster.Received(2).NotifyProviderAssignmentAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(),
+            Arg.Any<string>(), Arg.Is(ownerUserId), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ProviderApprove_WithNonGuidCreatedBy_SkipsManagerNotification()
+    {
+        // Task 5.9: CreatedBy is non-Guid => gracefully skip manager notification
+        var supplierOwnerUserId = Guid.NewGuid();
+        var hotelSupplierId = Guid.NewGuid();
+
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+        typeof(SupplierEntity).GetProperty("Id")!.SetValue(supplier, hotelSupplierId);
+
+        var instance = TourInstanceEntity.Create(
+            tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+            title: "Non-Guid CreatedBy", tourName: "Tour", tourCode: "T001",
+            classificationName: "Standard", instanceType: TourType.Public,
+            startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+            maxParticipation: 20, basePrice: 1000,
+            performedBy: "system-seed", // non-Guid
+            hotelProviderId: hotelSupplierId);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindById(instance.Id).Returns(instance);
+        _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>()).Returns(Task.CompletedTask);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.ProviderApprove(instance.Id, isApproved: true, note: null, providerType: "Hotel");
+
+        Assert.False(result.IsError);
+
+        // Approval result notification should NOT be sent because CreatedBy is not a valid Guid
+        await _broadcaster.DidNotReceive().NotifyProviderApprovalResultAsync(
+            Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<bool>(),
+            Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetProviderAssigned_DualProviderFilter_ReturnsCorrectResults()
+    {
+        // Task 5.10: hotel approved, transport pending — verify per-role filtering works
+        var supplierOwnerUserId = Guid.NewGuid();
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+
+        // When filtering by Pending, repo returns the instance (because transport is pending)
+        _tourInstanceRepository.FindProviderAssigned(supplier.Id, 1, 10, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>())
+            .Returns(new List<TourInstanceEntity> { TourInstanceEntity.Create(
+                tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+                title: "Dual Instance", tourName: "Tour", tourCode: "T001",
+                classificationName: "Standard", instanceType: TourType.Public,
+                startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+                maxParticipation: 20, basePrice: 1000, performedBy: "system",
+                hotelProviderId: supplier.Id, transportProviderId: supplier.Id) });
+        _tourInstanceRepository.CountProviderAssigned(supplier.Id, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>())
+            .Returns(1);
+        _mapper.Map<TourInstanceVm>(Arg.Any<TourInstanceEntity>()).Returns((TourInstanceVm)null!);
+
+        var service = CreateServiceWithBroadcaster();
+        var pendingResult = await service.GetProviderAssigned(1, 10, ProviderApprovalStatus.Pending);
+
+        Assert.False(pendingResult.IsError);
+        Assert.Single(pendingResult.Value.Items);
+
+        // Verify correct filter was passed
+        await _tourInstanceRepository.Received(1).FindProviderAssigned(
+            supplier.Id, 1, 10, ProviderApprovalStatus.Pending, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetProviderAssigned_CountMatchesFind()
+    {
+        // Task 5.11: CountProviderAssigned matches FindProviderAssigned count when filter applied
+        var supplierOwnerUserId = Guid.NewGuid();
+        var supplier = CreateSupplier(SupplierType.Accommodation, supplierOwnerUserId);
+
+        var instances = new List<TourInstanceEntity>
+        {
+            TourInstanceEntity.Create(
+                tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+                title: "Instance 1", tourName: "Tour", tourCode: "T001",
+                classificationName: "Standard", instanceType: TourType.Public,
+                startDate: DateTimeOffset.UtcNow.AddDays(5), endDate: DateTimeOffset.UtcNow.AddDays(7),
+                maxParticipation: 20, basePrice: 1000, performedBy: "system",
+                hotelProviderId: supplier.Id),
+            TourInstanceEntity.Create(
+                tourId: Guid.NewGuid(), classificationId: Guid.NewGuid(),
+                title: "Instance 2", tourName: "Tour", tourCode: "T002",
+                classificationName: "Standard", instanceType: TourType.Public,
+                startDate: DateTimeOffset.UtcNow.AddDays(10), endDate: DateTimeOffset.UtcNow.AddDays(12),
+                maxParticipation: 20, basePrice: 1000, performedBy: "system",
+                hotelProviderId: supplier.Id)
+        };
+
+        _user.Id.Returns(supplierOwnerUserId.ToString());
+        _supplierRepository.FindByOwnerUserIdAsync(supplierOwnerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _tourInstanceRepository.FindProviderAssigned(supplier.Id, 1, 10, ProviderApprovalStatus.Approved, Arg.Any<CancellationToken>())
+            .Returns(instances);
+        _tourInstanceRepository.CountProviderAssigned(supplier.Id, ProviderApprovalStatus.Approved, Arg.Any<CancellationToken>())
+            .Returns(instances.Count);
+        _mapper.Map<TourInstanceVm>(Arg.Any<TourInstanceEntity>()).Returns((TourInstanceVm)null!);
+
+        var service = CreateServiceWithBroadcaster();
+        var result = await service.GetProviderAssigned(1, 10, ProviderApprovalStatus.Approved);
+
+        Assert.False(result.IsError);
+
+        Assert.Equal(instances.Count, result.Value.Items.Count);
+
+        // Both Find and Count were called with the same filter
+        await _tourInstanceRepository.Received(1).FindProviderAssigned(
+            supplier.Id, 1, 10, ProviderApprovalStatus.Approved, Arg.Any<CancellationToken>());
+        await _tourInstanceRepository.Received(1).CountProviderAssigned(
+            supplier.Id, ProviderApprovalStatus.Approved, Arg.Any<CancellationToken>());
     }
 }

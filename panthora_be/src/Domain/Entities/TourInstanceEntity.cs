@@ -312,6 +312,7 @@ public class TourInstanceEntity : Aggregate<Guid>
     {
         var valid = current switch
         {
+            TourInstanceStatus.PendingApproval => next is TourInstanceStatus.Available or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Available => next is TourInstanceStatus.Confirmed or TourInstanceStatus.SoldOut or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,

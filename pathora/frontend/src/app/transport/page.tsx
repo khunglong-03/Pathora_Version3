@@ -18,6 +18,10 @@ import {
   SteeringWheelIcon,
 } from "@phosphor-icons/react";
 import { transportProviderService } from "@/api/services/transportProviderService";
+import { tourInstanceService } from "@/api/services/tourInstanceService";
+import type { NormalizedTourInstanceVm } from "@/types/tour";
+import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
+import dayjs from "dayjs";
 import type {
   Vehicle,
   TripAssignment,
@@ -224,7 +228,8 @@ export default function TransportDashboardPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trips, setTrips] = useState<TripAssignment[]>([]);
   const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
-  
+  const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -240,6 +245,22 @@ export default function TransportDashboardPage() {
       setVehicles(vehiclesData || []);
       setTrips((tripsData || []).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime()));
       setRevenue(revenueData);
+
+      // Fetch upcoming tours separately to avoid cascading failures
+      try {
+        const tourResult = await tourInstanceService.getProviderAssigned(1, 50);
+        const todayDate = dayjs().startOf("day");
+        const upcoming = (tourResult?.data ?? [])
+          .filter(i => {
+            const tourStart = dayjs(i.startDate).startOf("day");
+            return tourStart.isAfter(todayDate) || tourStart.isSame(todayDate, "day");
+          })
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        setUpcomingTours(upcoming);
+      } catch {
+        // Silently fail — upcoming tours is supplementary, not critical
+        setUpcomingTours([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
@@ -449,6 +470,14 @@ export default function TransportDashboardPage() {
                 </div>
               )}
             </motion.div>
+
+            <UpcomingToursSection
+              tours={upcomingTours}
+              providerType="transport"
+              viewAllHref="/transport/tour-approvals"
+              itemVariants={variants.item}
+              tokens={T}
+            />
 
           </motion.div>
         )}

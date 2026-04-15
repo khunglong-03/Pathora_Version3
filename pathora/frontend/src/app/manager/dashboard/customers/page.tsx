@@ -1,9 +1,5 @@
-import dynamic from "next/dynamic";
+import { redirect } from "next/navigation";
 
-const StaffTrackingPage = dynamic(
-  () => import("@/features/dashboard/components/StaffTrackingPage"),
-);
-
-export default function DashboardStaffPage() {
-  return <StaffTrackingPage />;
+export default function DashboardCustomersPage() {
+  redirect("/manager/staff-schedule");
 }

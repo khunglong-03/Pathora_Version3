@@ -69,7 +69,12 @@ function BankSelector({
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const selectedBank = banks.find((b) => b.code === value);
+  const selectedBank = banks.find(
+    (b) =>
+      b.code.toUpperCase() === value.toUpperCase() ||
+      b.shortName.toUpperCase() === value.toUpperCase() ||
+      b.bin === value
+  );
 
   const filtered = useMemo(() => {
     if (!search) return banks;
@@ -157,7 +162,7 @@ function BankSelector({
                       setSearch("");
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-colors hover:bg-amber-50 ${
-                      bank.code === value ? "bg-amber-50 text-amber-900" : "text-stone-700"
+                      bank.code.toUpperCase() === value.toUpperCase() ? "bg-amber-50 text-amber-900" : "text-stone-700"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -166,7 +171,7 @@ function BankSelector({
                       <span className="font-medium">{bank.shortName}</span>
                       <span className="text-stone-400 ml-1.5 text-xs truncate">{bank.name}</span>
                     </div>
-                    {bank.code === value && (
+                    {bank.code.toUpperCase() === value.toUpperCase() && (
                       <svg className="size-4 text-amber-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
@@ -288,7 +293,7 @@ function BankAccountModal({
       title={isEditing ? "Sửa tài khoản ngân hàng" : "Thêm tài khoản ngân hàng"}
       size="md"
     >
-      <form onSubmit={void handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Bank Selector (VietQR) */}
         <Controller
           name="bankCode"

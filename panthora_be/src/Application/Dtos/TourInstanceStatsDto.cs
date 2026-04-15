@@ -4,4 +4,5 @@ public sealed record TourInstanceStatsDto(
     int TotalInstances,
     int Available,
     int Confirmed,
-    int SoldOut);
+    int SoldOut,
+    int Completed);

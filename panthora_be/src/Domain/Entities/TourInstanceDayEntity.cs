@@ -34,7 +34,7 @@ public class TourInstanceDayEntity : Aggregate<Guid>
     public TimeOnly? EndTime { get; set; }
     /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
-    
+
     // Local Activities
     /// <summary>Danh sách các hoạt động thực tế trong ngày, thuộc riêng về đợt tour này.</summary>
     public virtual List<TourInstanceDayActivityEntity> Activities { get; set; } = [];

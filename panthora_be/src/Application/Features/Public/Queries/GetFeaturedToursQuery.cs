@@ -34,7 +34,11 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
 
         var result = tours.Select(t =>
         {
-            var classification = t.Classifications.FirstOrDefault();
+            var classification = t.Classifications
+                .Where(c => !c.IsDeleted)
+                .OrderBy(c => c.BasePrice)
+                .FirstOrDefault();
+
             return new FeaturedTourVm(
                 t.Id,
                 t.TourName,
@@ -52,7 +56,7 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
 
     private static string? GetMainLocation(TourEntity tour, string language)
     {
-        var location = tour.PlanLocations.FirstOrDefault();
+        var location = tour.PlanLocations.OrderBy(l => l.Id).FirstOrDefault();
         if (location == null)
             return null;
 

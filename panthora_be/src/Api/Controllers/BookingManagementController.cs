@@ -125,6 +125,7 @@ public class BookingManagementController : BaseApiController
         return HandleCreated(result);
     }
 
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
     [HttpGet(BookingManagementEndpoint.ActivityStatuses)]
     public async Task<IActionResult> GetActivityStatuses(Guid id)
     {
@@ -132,6 +133,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
     [HttpGet(BookingManagementEndpoint.ActivityStatusDetail)]
     public async Task<IActionResult> GetActivityStatusDetail(Guid id, Guid tourDayId)
     {
@@ -139,6 +141,7 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
     [HttpPost(BookingManagementEndpoint.ActivityStatusStart)]
     public async Task<IActionResult> StartActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
     {
@@ -146,6 +149,7 @@ public class BookingManagementController : BaseApiController
         return HandleUpdated(result);
     }
 
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
     [HttpPost(BookingManagementEndpoint.ActivityStatusComplete)]
     public async Task<IActionResult> CompleteActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
     {
@@ -153,6 +157,7 @@ public class BookingManagementController : BaseApiController
         return HandleUpdated(result);
     }
 
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
     [HttpPost(BookingManagementEndpoint.ActivityStatusCancel)]
     public async Task<IActionResult> CancelActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
     {
@@ -245,6 +250,14 @@ public class BookingManagementController : BaseApiController
     public async Task<IActionResult> GetCheckoutPrice(Guid id)
     {
         var result = await Sender.Send(new GetCheckoutPriceQuery(id));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "ManagerOrTourGuideOnly")]
+    [HttpGet("by-tour-instance/{tourInstanceId:guid}")]
+    public async Task<IActionResult> GetByTourInstance(Guid tourInstanceId)
+    {
+        var result = await Sender.Send(new GetBookingsByTourInstanceQuery(tourInstanceId));
         return HandleResult(result);
     }
 }

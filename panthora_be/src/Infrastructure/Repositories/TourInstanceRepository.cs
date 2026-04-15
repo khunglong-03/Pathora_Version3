@@ -35,7 +35,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -58,6 +58,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (excludePast)
+        {
+            var now = DateTimeOffset.UtcNow;
+            query = query.Where(t => t.EndDate >= now);
         }
 
         if (principalId.HasValue)
@@ -97,7 +103,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -113,6 +119,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (status.HasValue)
         {
             query = query.Where(t => t.Status == status.Value);
+        }
+
+        if (excludePast)
+        {
+            var now = DateTimeOffset.UtcNow;
+            query = query.Where(t => t.EndDate >= now);
         }
 
         if (principalId.HasValue)
@@ -182,7 +194,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         }
     }
 
-    public async Task<(int Total, int Available, int Confirmed, int SoldOut)> GetStats(CancellationToken cancellationToken = default)
+    public async Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(CancellationToken cancellationToken = default)
     {
         var statusCounts = await _context.TourInstances
             .Where(t => !t.IsDeleted)
@@ -195,7 +207,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         var available = countMap.GetValueOrDefault(TourInstanceStatus.Available);
         var confirmed = countMap.GetValueOrDefault(TourInstanceStatus.Confirmed);
         var soldOut = countMap.GetValueOrDefault(TourInstanceStatus.SoldOut);
-        return (total, available, confirmed, soldOut);
+        var completed = countMap.GetValueOrDefault(TourInstanceStatus.Completed);
+        return (total, available, confirmed, soldOut, completed);
     }
 
     public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, CancellationToken cancellationToken = default)
@@ -316,14 +329,28 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        return await _context.TourInstances
+        var query = _context.TourInstances
             .AsNoTracking()
             .Include(t => t.Tour)
             .Include(t => t.Classification)
             .Include(t => t.Thumbnail)
-            .Where(t => !t.IsDeleted && (t.HotelProviderId == providerId || t.TransportProviderId == providerId))
+            .Where(t => !t.IsDeleted);
+
+        if (approvalStatus.HasValue)
+        {
+            var status = approvalStatus.Value;
+            query = query.Where(t =>
+                (t.HotelProviderId == providerId && t.HotelApprovalStatus == status) ||
+                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status));
+        }
+        else
+        {
+            query = query.Where(t => t.HotelProviderId == providerId || t.TransportProviderId == providerId);
+        }
+
+        return await query
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -331,11 +358,24 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountProviderAssigned(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<int> CountProviderAssigned(Guid providerId, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        return await _context.TourInstances
-            .Where(t => !t.IsDeleted && (t.HotelProviderId == providerId || t.TransportProviderId == providerId))
-            .CountAsync(cancellationToken);
+        var query = _context.TourInstances
+            .Where(t => !t.IsDeleted);
+
+        if (approvalStatus.HasValue)
+        {
+            var status = approvalStatus.Value;
+            query = query.Where(t =>
+                (t.HotelProviderId == providerId && t.HotelApprovalStatus == status) ||
+                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status));
+        }
+        else
+        {
+            query = query.Where(t => t.HotelProviderId == providerId || t.TransportProviderId == providerId);
+        }
+
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task<List<TourInstanceEntity>> FindByManagerUserIds(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
@@ -380,5 +420,43 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         }
 
         return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountByGuideUserId(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Where(t => !t.IsDeleted
+                && t.Managers.Any(m => m.UserId == userId && m.Role == TourInstanceManagerRole.Guide)
+                && t.Status != TourInstanceStatus.Completed
+                && t.Status != TourInstanceStatus.Cancelled)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<List<TourInstanceEntity>> FindByGuideUserId(Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .AsNoTracking()
+            .Include(t => t.Managers)
+            .Include(t => t.Tour)
+            .Include(t => t.Classification)
+            .Include(t => t.Thumbnail)
+            .Where(t => !t.IsDeleted
+                && t.Managers.Any(m => m.UserId == userId && m.Role == TourInstanceManagerRole.Guide)
+                && t.Status != TourInstanceStatus.Completed
+                && t.Status != TourInstanceStatus.Cancelled)
+            .OrderByDescending(t => t.StartDate)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HasGuideAssignmentAsync(Guid tourInstanceId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstanceManagers
+            .AsNoTracking()
+            .AnyAsync(m => m.TourInstanceId == tourInstanceId
+                && m.UserId == userId
+                && m.Role == TourInstanceManagerRole.Guide, cancellationToken);
     }
 }

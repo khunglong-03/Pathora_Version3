@@ -41,6 +41,7 @@ public sealed record TourInstancePlanRouteDto(
     string? VehicleModel,
     int? SeatCapacity,
     // Driver info
+    Guid? DriverId,
     string? DriverName,
     string? DriverPhone,
     // Location info

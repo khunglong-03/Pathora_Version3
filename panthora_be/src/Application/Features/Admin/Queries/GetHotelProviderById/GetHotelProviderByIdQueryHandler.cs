@@ -37,7 +37,7 @@ public sealed class GetHotelProviderByIdQueryHandler(
         if (user is null && supplier is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, "Hotel provider not found.");
 
-        var (bookingCount, activeBookingCount, completedBookingCount) = user is not null 
+        var (bookingCount, activeBookingCount, completedBookingCount) = user is not null
             ? await supplierRepository.GetHotelBookingCountsByOwnerAsync(user.Id, cancellationToken)
             : (0, 0, 0);
 

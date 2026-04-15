@@ -18,9 +18,10 @@ public class TourInstanceController : BaseApiController
         [FromQuery] string? searchText,
         [FromQuery] TourInstanceStatus? status,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool excludePast = false)
     {
-        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize));
+        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast));
         return HandleResult(result);
     }
 
@@ -125,17 +126,42 @@ public class TourInstanceController : BaseApiController
     [HttpGet(TourInstanceEndpoint.ProviderAssigned)]
     public async Task<IActionResult> GetProviderAssigned(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] Domain.Enums.ProviderApprovalStatus? approvalStatus = null)
     {
-        var result = await Sender.Send(new GetProviderAssignedTourInstancesQuery(pageNumber, pageSize));
+        var result = await Sender.Send(new GetProviderAssignedTourInstancesQuery(pageNumber, pageSize, approvalStatus));
         return HandleResult(result);
     }
 
-    [Authorize]
-    [HttpPost(TourInstanceEndpoint.ProviderApprove)]
-    public async Task<IActionResult> ProviderApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    [Authorize(Policy = "HotelServiceProviderOnly")]
+    [HttpPost(TourInstanceEndpoint.HotelApprove)]
+    public async Task<IActionResult> HotelApprove(Guid id, [FromBody] ProviderApproveRequest request)
     {
-        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note));
+        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Hotel"));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "TransportProviderOnly")]
+    [HttpPost(TourInstanceEndpoint.TransportApprove)]
+    public async Task<IActionResult> TransportApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    {
+        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Transport"));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "TourGuideOnly")]
+    [HttpGet("my-assignments")]
+    public async Task<IActionResult> GetMyAssignments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+        var result = await Sender.Send(new Application.Features.TourInstance.Queries.GetMyAssignedTourInstancesQuery(pageNumber, pageSize));
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "TourGuideOnly")]
+    [HttpGet("my-assignments/{id:guid}")]
+    public async Task<IActionResult> GetMyAssignmentDetail(Guid id)
+    {
+        var result = await Sender.Send(new Application.Features.TourInstance.Queries.GetMyAssignedTourInstanceDetailQuery(id));
         return HandleResult(result);
     }
 }

@@ -520,6 +520,7 @@ export interface TourInstanceStats {
   available: number;
   confirmed: number;
   soldOut: number;
+  completed: number;
 }
 
 export interface UserInfo {

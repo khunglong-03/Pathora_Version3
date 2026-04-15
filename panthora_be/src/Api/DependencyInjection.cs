@@ -223,6 +223,11 @@ public static class DependencyInjection
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("TourGuide")));
 
+            // ManagerOrTourGuideOnly: Admin OR Manager OR TourGuide (activity status operations)
+            options.AddPolicy("ManagerOrTourGuideOnly", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourGuide")));
+
             // CanManageTour: Resource-based authorization for strict ownership validation
             options.AddPolicy("CanManageTour", policy =>
                 policy.Requirements.Add(new global::Infrastructure.Identity.Authorization.ManageTourRequirement()));
@@ -233,6 +238,7 @@ public static class DependencyInjection
         services.AddSingleton<IToken, CurrentToken>();
         services.AddScoped<IPaymentNotificationService, PaymentNotificationService>();
         services.AddScoped<IPaymentNotificationBroadcaster, PaymentNotificationService>();
+        services.AddScoped<ITourInstanceNotificationBroadcaster, TourInstanceNotificationService>();
 
         return services;
     }

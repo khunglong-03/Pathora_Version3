@@ -39,7 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   { label: "Bookings", icon: "heroicons:ticket", href: "/dashboard/bookings" },
   { label: "Payments", icon: "heroicons:credit-card", href: "/dashboard/payments" },
-  { label: "Customers", icon: "heroicons:user-group", href: "/dashboard/customers" },
+  { label: "Staff Schedule", icon: "heroicons:calendar", href: "/manager/staff-schedule" },
   {
     label: "Insurance",
     icon: "heroicons:shield-check",

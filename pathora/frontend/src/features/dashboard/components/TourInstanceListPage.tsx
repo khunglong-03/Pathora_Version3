@@ -10,10 +10,7 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/utils/format";
-import {
-  NormalizedTourInstanceVm,
-  TourInstanceStats,
-} from "@/types/tour";
+import { NormalizedTourInstanceVm, TourInstanceStats } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
 
 /* ── Animation Variants ───────────────────────────────────── */
@@ -24,7 +21,11 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100, damping: 20 } },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring" as const, stiffness: 100, damping: 20 },
+  },
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -33,30 +34,54 @@ const itemVariants = {
 interface StatCardProps {
   label: string;
   value: number;
-  accent: "stone" | "green" | "amber" | "red";
+  accent: "stone" | "green" | "amber" | "red" | "purple";
   icon: string;
 }
 
 function StatCard({ label, value, accent, icon }: StatCardProps) {
   const configs = {
-    stone: { bg: "bg-stone-100", text: "text-stone-600", border: "border-stone-300" },
-    green: { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-400" },
-    amber: { bg: "bg-amber-50", text: "text-amber-500", border: "border-amber-400" },
+    stone: {
+      bg: "bg-stone-100",
+      text: "text-stone-600",
+      border: "border-stone-300",
+    },
+    green: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-600",
+      border: "border-emerald-400",
+    },
+    amber: {
+      bg: "bg-amber-50",
+      text: "text-amber-500",
+      border: "border-amber-400",
+    },
     red: { bg: "bg-red-50", text: "text-red-500", border: "border-red-400" },
+    purple: {
+      bg: "bg-purple-50",
+      text: "text-purple-600",
+      border: "border-purple-400",
+    },
   };
-  const c = configs[accent];
+  const c = configs[accent] || configs.stone;
 
   return (
     <motion.div
       variants={itemVariants}
       className={`relative overflow-hidden bg-white rounded-[2.5rem] border border-stone-200/50 p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] hover:-translate-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,1)] group`}>
-      <div className={`absolute -inset-1 blur-2xl opacity-10 transition-opacity duration-500 group-hover:opacity-30 ${c.bg} mix-blend-multiply`} />
+      <div
+        className={`absolute -inset-1 blur-2xl opacity-10 transition-opacity duration-500 group-hover:opacity-30 ${c.bg} mix-blend-multiply`}
+      />
       <div className="relative flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">{label}</p>
-          <p className="text-4xl font-bold tracking-tight text-stone-900 mt-2 data-value">{value}</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">
+            {label}
+          </p>
+          <p className="text-4xl font-bold tracking-tight text-stone-900 mt-2 data-value">
+            {value}
+          </p>
         </div>
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${c.bg} border border-white/50 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+        <div
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center ${c.bg} border border-white/50 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
           <Icon icon={icon} className={`size-6 ${c.text}`} />
         </div>
       </div>
@@ -100,7 +125,13 @@ function ParticipantsCell({
    ══════════════════════════════════════════════════════════════ */
 type InstanceListDataState = "loading" | "ready" | "empty" | "error";
 
-export function TourInstanceListPage() {
+export interface TourInstanceListPageProps {
+  role?: "manager" | "tour-designer";
+}
+
+export function TourInstanceListPage({
+  role = "manager",
+}: TourInstanceListPageProps = {}) {
   const { t } = useTranslation();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -119,6 +150,7 @@ export function TourInstanceListPage() {
   const debouncedSearchText = useDebounce(searchText, 300);
   const [statusFilter, setStatusFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
+  const [excludePast, setExcludePast] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [stats, setStats] = useState<TourInstanceStats>({
@@ -126,6 +158,7 @@ export function TourInstanceListPage() {
     available: 0,
     confirmed: 0,
     soldOut: 0,
+    completed: 0,
   });
   const pageSize = 10;
   const [reloadToken, setReloadToken] = useState(0);
@@ -143,13 +176,18 @@ export function TourInstanceListPage() {
           statusFilter,
           1,
           pageSize,
+          excludePast
         );
         if (!active) return;
         if (result) {
           const allInstances = result.data ?? [];
-          const filteredInstances = visibilityFilter === "all"
-            ? allInstances
-            : allInstances.filter((inst) => inst.instanceType?.toLowerCase() === visibilityFilter);
+          const filteredInstances =
+            visibilityFilter === "all"
+              ? allInstances
+              : allInstances.filter(
+                  (inst) =>
+                    inst.instanceType?.toLowerCase() === visibilityFilter,
+                );
 
           setInstances(filteredInstances);
           setTotalItems(filteredInstances.length);
@@ -169,8 +207,17 @@ export function TourInstanceListPage() {
       }
     };
     void doFetchInstances();
-    return () => { active = false; };
-  }, [debouncedSearchText, statusFilter, visibilityFilter, pageSize, reloadToken]);
+    return () => {
+      active = false;
+    };
+  }, [
+    debouncedSearchText,
+    statusFilter,
+    visibilityFilter,
+    excludePast,
+    pageSize,
+    reloadToken,
+  ]);
 
   /* ── Fetch stats ──────────────────────────────────────────── */
   useEffect(() => {
@@ -180,10 +227,14 @@ export function TourInstanceListPage() {
         const result = await tourInstanceService.getStats();
         if (!statsActive) return;
         if (result) setStats(result);
-      } catch { /* Fallback */ }
+      } catch {
+        /* Fallback */
+      }
     };
     void doFetchStats();
-    return () => { statsActive = false; };
+    return () => {
+      statsActive = false;
+    };
   }, [reloadToken]);
 
   /* ── Pagination ───────────────────────────────────────────── */
@@ -208,7 +259,10 @@ export function TourInstanceListPage() {
               {safeT("tourInstance.title", "Tour Instances")}
             </h1>
             <p className="text-sm text-stone-500">
-              {safeT("tourInstance.description", "Manage scheduled tour instances and track departures")}
+              {safeT(
+                "tourInstance.description",
+                "Manage scheduled tour instances and track departures",
+              )}
             </p>
           </div>
           <button
@@ -224,7 +278,7 @@ export function TourInstanceListPage() {
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             label={safeT("tourInstance.totalInstances", "Total Instances")}
             value={stats.totalInstances}
@@ -244,10 +298,16 @@ export function TourInstanceListPage() {
             icon="heroicons:clipboard-document-check"
           />
           <StatCard
-            label={safeT("tourInstance.soldOut", "Sold Out")}
+            label={safeT("tourInstance.stats.soldOut", "Đã hết chỗ")}
             value={stats.soldOut}
-            accent="red"
             icon="heroicons:x-circle"
+            accent="red"
+          />
+          <StatCard
+            label={safeT("tourInstance.stats.completed", "Đã hoàn thành")}
+            value={stats.completed}
+            icon="heroicons:check-badge"
+            accent="purple"
           />
         </motion.div>
 
@@ -267,7 +327,10 @@ export function TourInstanceListPage() {
               type="text"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder={safeT("placeholder.searchByTitleLocationCountry", "Search scheduled instances...")}
+              placeholder={safeT(
+                "placeholder.searchByTitleLocationCountry",
+                "Search scheduled instances...",
+              )}
               className="w-full pl-12 pr-10 py-3 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300"
             />
             <AnimatePresence>
@@ -283,7 +346,7 @@ export function TourInstanceListPage() {
               )}
             </AnimatePresence>
           </div>
-          
+
           <div className="flex items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-4">
             <div className="relative flex-1 md:flex-none min-w-[140px]">
               <select
@@ -299,10 +362,16 @@ export function TourInstanceListPage() {
                 <option value="cancelled">Cancelled</option>
                 <option value="completed">Completed</option>
               </select>
-              <Icon icon="heroicons:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none" />
-              <Icon icon="heroicons:funnel" className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none" />
+              <Icon
+                icon="heroicons:chevron-down"
+                className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+              />
+              <Icon
+                icon="heroicons:funnel"
+                className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+              />
             </div>
-            
+
             <div className="relative flex-1 md:flex-none min-w-[140px]">
               <select
                 value={visibilityFilter}
@@ -312,9 +381,25 @@ export function TourInstanceListPage() {
                 <option value="public">Public</option>
                 <option value="private">Private</option>
               </select>
-              <Icon icon="heroicons:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none" />
-              <Icon icon="heroicons:eye" className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none" />
+              <Icon
+                icon="heroicons:chevron-down"
+                className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+              />
+              <Icon
+                icon="heroicons:eye"
+                className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+              />
             </div>
+            
+            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
+              <input 
+                type="checkbox" 
+                checked={excludePast} 
+                onChange={(e) => setExcludePast(e.target.checked)} 
+                className="size-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500/20 transition-colors"
+               />
+              {safeT("tourInstance.filter.excludePast", "Ẩn tour đã qua")}
+            </label>
           </div>
         </motion.div>
 
@@ -322,14 +407,25 @@ export function TourInstanceListPage() {
         <div className="mt-8 space-y-4 relative z-0">
           {/* Error State */}
           {dataState === "error" && (
-            <motion.div variants={itemVariants} initial="hidden" animate="show" className="p-8 bg-red-50/50 border border-red-200 border-dashed rounded-[2.5rem]">
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              animate="show"
+              className="p-8 bg-red-50/50 border border-red-200 border-dashed rounded-[2.5rem]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-red-800">
-                    {safeT("tourInstance.form.error.title", "Could not load tour instances")}
+                    {safeT(
+                      "tourInstance.form.error.title",
+                      "Could not load tour instances",
+                    )}
                   </h2>
                   <p className="text-sm text-red-600 mt-1 max-w-[65ch]">
-                    {errorMessage ?? safeT("tourInstance.form.error.fallback", "Unable to load tour instance data. Please try again.")}
+                    {errorMessage ??
+                      safeT(
+                        "tourInstance.form.error.fallback",
+                        "Unable to load tour instance data. Please try again.",
+                      )}
                   </p>
                 </div>
                 <button
@@ -343,9 +439,16 @@ export function TourInstanceListPage() {
 
           {/* Loading State */}
           {dataState === "loading" && (
-            <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-4">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <motion.div key={i} variants={itemVariants} className="bg-white/60 border border-stone-200/50 rounded-[2.5rem] p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                <motion.div
+                  key={i}
+                  variants={itemVariants}
+                  className="bg-white/60 border border-stone-200/50 rounded-[2.5rem] p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
                   <div className="w-24 h-24 rounded-[1.5rem] bg-stone-200/50 animate-pulse shrink-0" />
                   <div className="flex-1 space-y-4 w-full">
                     <div className="w-1/3 h-6 bg-stone-200/50 animate-pulse rounded-lg" />
@@ -363,25 +466,45 @@ export function TourInstanceListPage() {
 
           {/* Empty state */}
           {dataState === "empty" && instances.length === 0 && (
-            <motion.div variants={itemVariants} initial="hidden" animate="show" layout className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2.5rem] bg-stone-50/50 flex flex-col items-center justify-center">
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              animate="show"
+              layout
+              className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2.5rem] bg-stone-50/50 flex flex-col items-center justify-center">
               <div className="w-20 h-20 rounded-[2rem] bg-white border border-stone-200/50 shadow-sm flex items-center justify-center mb-6">
-                <Icon icon="heroicons:calendar-days" className="size-8 text-stone-300" />
+                <Icon
+                  icon="heroicons:calendar-days"
+                  className="size-8 text-stone-300"
+                />
               </div>
               <h2 className="text-xl font-bold text-stone-800 tracking-tight">
-                {safeT("tourInstance.form.empty.title", "No scheduled instances")}
+                {safeT(
+                  "tourInstance.form.empty.title",
+                  "No scheduled instances",
+                )}
               </h2>
               <p className="text-sm text-stone-500 mt-2 max-w-[50ch] mx-auto leading-relaxed">
-                {safeT("tourInstance.form.empty.description", "You haven't scheduled any tour departures matching this filter. Clear filters or create a new instance to get started.")}
+                {safeT(
+                  "tourInstance.form.empty.description",
+                  "You haven't scheduled any tour departures matching this filter. Clear filters or create a new instance to get started.",
+                )}
               </p>
             </motion.div>
           )}
 
           {/* Intelligent List Mode */}
           {dataState === "ready" && instances.length > 0 && (
-            <motion.div variants={containerVariants} initial="hidden" animate="show" layout className="space-y-4">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              layout
+              className="space-y-4">
               <AnimatePresence>
                 {instances.map((inst) => {
-                  const isPublic = inst.instanceType?.toLowerCase() === "public";
+                  const isPublic =
+                    inst.instanceType?.toLowerCase() === "public";
                   return (
                     <motion.div
                       variants={itemVariants}
@@ -389,7 +512,6 @@ export function TourInstanceListPage() {
                       layoutId={`instance-${inst.id}`}
                       key={inst.id}
                       className="bg-white border border-stone-200/50 rounded-[2.5rem] p-4 sm:p-5 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col lg:flex-row gap-6 lg:items-center relative group filter-none">
-                      
                       {/* 1. Media Zone */}
                       <div className="relative w-full lg:w-32 h-44 lg:h-32 rounded-[1.5rem] overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0">
                         {inst.thumbnail?.publicURL ? (
@@ -400,15 +522,21 @@ export function TourInstanceListPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Icon icon="heroicons:photo" className="size-8 text-stone-300" />
+                            <Icon
+                              icon="heroicons:photo"
+                              className="size-8 text-stone-300"
+                            />
                           </div>
                         )}
                         <div className="absolute top-2 left-2">
                           <TourStatusBadge status={inst.status} />
                         </div>
                         <div className="absolute top-2 right-2 flex gap-1">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md ${isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"}`}>
-                            {isPublic ? safeT("tourInstance.public", "Public") : safeT("tourInstance.private", "Private")}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md ${isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"}`}>
+                            {isPublic
+                              ? safeT("tourInstance.public", "Public")
+                              : safeT("tourInstance.private", "Private")}
                           </span>
                         </div>
                       </div>
@@ -416,49 +544,81 @@ export function TourInstanceListPage() {
                       {/* 2. Primary Info Node */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center space-y-3">
                         <div>
-                          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">{inst.tourInstanceCode}</p>
+                          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">
+                            {inst.tourInstanceCode}
+                          </p>
                           <h3 className="text-lg md:text-xl font-bold text-stone-900 tracking-tight leading-tight line-clamp-2">
                             {inst.title || inst.tourName}
                           </h3>
                         </div>
-                        
+
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-stone-600">
-                           <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
-                             <Icon icon="heroicons:map-pin" className="size-4 text-stone-400" />
-                             <span className="font-medium tracking-tight truncate max-w-[200px]">{inst.location || "N/A"}</span>
-                           </div>
-                           <div className="flex items-center gap-1.5">
-                             <Icon icon="heroicons:swatch" className="size-4 text-stone-400" />
-                             <span className="truncate max-w-[150px]">{inst.tourName}</span>
-                           </div>
-                           <div className="flex items-center gap-1.5">
-                             <Icon icon="heroicons:tag" className="size-4 text-stone-400" />
-                             <span className="truncate max-w-[120px]">{inst.classificationName}</span>
-                           </div>
+                          <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
+                            <Icon
+                              icon="heroicons:map-pin"
+                              className="size-4 text-stone-400"
+                            />
+                            <span className="font-medium tracking-tight truncate max-w-[200px]">
+                              {inst.location || "N/A"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Icon
+                              icon="heroicons:swatch"
+                              className="size-4 text-stone-400"
+                            />
+                            <span className="truncate max-w-[150px]">
+                              {inst.tourName}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Icon
+                              icon="heroicons:tag"
+                              className="size-4 text-stone-400"
+                            />
+                            <span className="truncate max-w-[120px]">
+                              {inst.classificationName}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Provider Approval Badges */}
                         {inst.status === "pendingapproval" && (
                           <div className="flex flex-wrap gap-2 mt-1">
-                            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                              inst.hotelApprovalStatus === 2
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                                inst.hotelApprovalStatus === 2
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : inst.hotelApprovalStatus === 3
+                                    ? "bg-red-50 text-red-700 border border-red-200"
+                                    : "bg-orange-50 text-orange-700 border border-orange-200"
+                              }`}>
+                              <Icon
+                                icon="heroicons:building-office"
+                                className="size-3"
+                              />
+                              KS:{" "}
+                              {inst.hotelApprovalStatus === 2
+                                ? "Đã duyệt"
                                 : inst.hotelApprovalStatus === 3
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-orange-50 text-orange-700 border border-orange-200"
-                            }`}>
-                              <Icon icon="heroicons:building-office" className="size-3" />
-                              KS: {inst.hotelApprovalStatus === 2 ? "Đã duyệt" : inst.hotelApprovalStatus === 3 ? "Từ chối" : "Chờ duyệt"}
+                                  ? "Từ chối"
+                                  : "Chờ duyệt"}
                             </span>
-                            <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                              inst.transportApprovalStatus === 2
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : inst.transportApprovalStatus === 3
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-orange-50 text-orange-700 border border-orange-200"
-                            }`}>
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                                inst.transportApprovalStatus === 2
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : inst.transportApprovalStatus === 3
+                                    ? "bg-red-50 text-red-700 border border-red-200"
+                                    : "bg-orange-50 text-orange-700 border border-orange-200"
+                              }`}>
                               <Icon icon="heroicons:truck" className="size-3" />
-                              VT: {inst.transportApprovalStatus === 2 ? "Đã duyệt" : inst.transportApprovalStatus === 3 ? "Từ chối" : "Chờ duyệt"}
+                              VT:{" "}
+                              {inst.transportApprovalStatus === 2
+                                ? "Đã duyệt"
+                                : inst.transportApprovalStatus === 3
+                                  ? "Từ chối"
+                                  : "Chờ duyệt"}
                             </span>
                           </div>
                         )}
@@ -467,52 +627,75 @@ export function TourInstanceListPage() {
                       {/* 3. Timeline / Meta Stack */}
                       <div className="flex flex-row lg:flex-col gap-4 lg:gap-2 shrink-0 lg:w-48 xl:w-56 justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-stone-100 pt-4 lg:pt-0 lg:pl-6">
                         <div className="flex flex-col gap-1.5">
-                           <div className="flex justify-between items-center text-xs text-stone-500">
-                             <span className="flex items-center gap-1.5">
-                                <Icon icon="heroicons:calendar" className="size-3.5" />
-                                {safeT("tourInstance.departure", "Departure")}
-                             </span>
-                             <span className="font-semibold text-stone-800 tracking-tight">{formatDate(inst.startDate)}</span>
-                           </div>
-                           <div className="flex justify-between items-center text-xs text-stone-500">
-                             <span className="flex items-center gap-1.5">
-                                <Icon icon="heroicons:calendar-days" className="size-3.5" />
-                                {safeT("tourInstance.endDate", "End Date")}
-                             </span>
-                             <span className="font-semibold text-stone-800 tracking-tight">{formatDate(inst.endDate)}</span>
-                           </div>
-                           <div className="flex justify-between items-center text-xs text-stone-500">
-                             <span className="flex items-center gap-1.5">
-                                <Icon icon="heroicons:clock" className="size-3.5" />
-                                {safeT("tourInstance.duration", "Duration")}
-                             </span>
-                             <span className="font-medium text-stone-700">{inst.durationDays} {safeT("tourInstance.daysUnit", "ngày")}</span>
-                           </div>
+                          <div className="flex justify-between items-center text-xs text-stone-500">
+                            <span className="flex items-center gap-1.5">
+                              <Icon
+                                icon="heroicons:calendar"
+                                className="size-3.5"
+                              />
+                              {safeT("tourInstance.departure", "Departure")}
+                            </span>
+                            <span className="font-semibold text-stone-800 tracking-tight">
+                              {formatDate(inst.startDate)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-stone-500">
+                            <span className="flex items-center gap-1.5">
+                              <Icon
+                                icon="heroicons:calendar-days"
+                                className="size-3.5"
+                              />
+                              {safeT("tourInstance.endDate", "End Date")}
+                            </span>
+                            <span className="font-semibold text-stone-800 tracking-tight">
+                              {formatDate(inst.endDate)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-stone-500">
+                            <span className="flex items-center gap-1.5">
+                              <Icon
+                                icon="heroicons:clock"
+                                className="size-3.5"
+                              />
+                              {safeT("tourInstance.duration", "Duration")}
+                            </span>
+                            <span className="font-medium text-stone-700">
+                              {inst.durationDays}{" "}
+                              {safeT("tourInstance.daysUnit", "ngày")}
+                            </span>
+                          </div>
                         </div>
-                        
+
                         <div className="mt-2 w-full">
-                           <ParticipantsCell registered={inst.currentParticipation} max={inst.maxParticipation} />
+                          <ParticipantsCell
+                            registered={inst.currentParticipation}
+                            max={inst.maxParticipation}
+                          />
                         </div>
                       </div>
 
                       {/* 4. Financial & CTA */}
                       <div className="flex items-center justify-between lg:flex-col lg:items-end gap-4 shrink-0 lg:w-36 justify-center border-t lg:border-t-0 pt-4 lg:pt-0">
-                         <div className="text-left lg:text-right">
-                           <p className="text-xl md:text-2xl font-black text-amber-500 tracking-tighter leading-none mb-1">
-                             {formatCurrency(inst.basePrice)}
-                           </p>
-                           <p className="text-[10px] font-semibold tracking-wider text-stone-400 uppercase">
-                             {safeT("tourInstance.perPerson", "per person")}
-                           </p>
-                         </div>
-                         <button
-                           onClick={() => router.push(`/manager/tour-instances/${inst.id}`)}
-                           className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                           {safeT("common.viewDetails", "Details")}
-                           <Icon icon="heroicons:arrow-right" className="size-4 text-stone-400 group-hover/btn:text-amber-500 transition-colors" />
-                         </button>
+                        <div className="text-left lg:text-right">
+                          <p className="text-xl md:text-2xl font-black text-amber-500 tracking-tighter leading-none mb-1">
+                            {formatCurrency(inst.basePrice)}
+                          </p>
+                          <p className="text-[10px] font-semibold tracking-wider text-stone-400 uppercase">
+                            {safeT("tourInstance.perPerson", "per person")}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() =>
+                            router.push(`/manager/tour-instances/${inst.id}`)
+                          }
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                          {safeT("common.viewDetails", "Details")}
+                          <Icon
+                            icon="heroicons:arrow-right"
+                            className="size-4 text-stone-400 group-hover/btn:text-amber-500 transition-colors"
+                          />
+                        </button>
                       </div>
-                      
                     </motion.div>
                   );
                 })}
@@ -536,7 +719,9 @@ export function TourInstanceListPage() {
               </button>
               <button
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
                 className="px-4 py-1.5 rounded-xl text-sm text-stone-600 disabled:opacity-50 hover:bg-stone-100 active:scale-[0.98] transition-all">
                 Next
               </button>

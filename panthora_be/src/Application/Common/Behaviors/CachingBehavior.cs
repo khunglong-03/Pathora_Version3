@@ -39,7 +39,7 @@ public sealed class CachingBehavior<TRequest, TResponse>(
 
         var tag = ExtractTag(cacheKey);
         if (tag is not null)
-            cacheKeyTracker.Track(tag, cacheKey);
+            await cacheKeyTracker.TrackAsync(tag, cacheKey, cancellationToken);
 
         return response;
     }

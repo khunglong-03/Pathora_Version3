@@ -12,7 +12,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public Guid TourInstanceDayId { get; set; }
     /// <summary>TourInstanceDay cha.</summary>
     public virtual TourInstanceDayEntity TourInstanceDay { get; set; } = null!;
-    
+
     /// <summary>Thứ tự sắp xếp hoạt động trong ngày.</summary>
     public int Order { get; set; }
     /// <summary>Loại hoạt động: Sightseeing, Meal, Transport, Accommodation, FreeTime, v.v.</summary>
@@ -34,20 +34,20 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
 
     // Tách nhánh thông tin lịch trình cho Accommodation
     public virtual TourInstancePlanAccommodationEntity? Accommodation { get; set; }
-    
+
     // Tách nhánh thông tin lịch trình cho Route (Transport)
     public virtual List<TourInstancePlanRouteEntity> Routes { get; set; } = [];
 
     public static TourInstanceDayActivityEntity Create(
-        Guid tourInstanceDayId, 
-        int order, 
-        TourDayActivityType activityType, 
-        string title, 
-        string performedBy, 
-        string? description = null, 
-        string? note = null, 
-        TimeOnly? startTime = null, 
-        TimeOnly? endTime = null, 
+        Guid tourInstanceDayId,
+        int order,
+        TourDayActivityType activityType,
+        string title,
+        string performedBy,
+        string? description = null,
+        string? note = null,
+        TimeOnly? startTime = null,
+        TimeOnly? endTime = null,
         bool isOptional = false)
     {
         var entity = new TourInstanceDayActivityEntity

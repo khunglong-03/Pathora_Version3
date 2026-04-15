@@ -99,6 +99,10 @@ public static class DependencyInjection
             services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
             fusionCacheBuilder.WithRegisteredDistributedCache();
         }
+        else
+        {
+            services.AddDistributedMemoryCache();
+        }
 
         return services;
     }

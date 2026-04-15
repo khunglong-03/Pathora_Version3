@@ -20,6 +20,8 @@ export interface TourEndpoints {
 export interface TourInstanceEndpoints {
   GET_ALL: string;
   GET_DETAIL: EndpointWithId;
+  GET_MY_ASSIGNMENTS: string;
+  GET_MY_ASSIGNMENT_DETAIL: EndpointWithId;
   GET_STATS: string;
   GET_PRICING_TIERS: EndpointWithId;
   CREATE: string;
@@ -34,7 +36,8 @@ export interface TourInstanceEndpoints {
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string) => string;
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
   GET_PROVIDER_ASSIGNED: string;
-  PROVIDER_APPROVE: (id: string) => string;
+  HOTEL_APPROVE: (id: string) => string;
+  TRANSPORT_APPROVE: (id: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -63,6 +66,8 @@ export const TOUR: TourEndpoints = {
 export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_ALL: "/api/tour-instance",
   GET_DETAIL: (id: string): string => `/api/tour-instance/${id}`,
+  GET_MY_ASSIGNMENTS: "/api/tour-instance/my-assignments",
+  GET_MY_ASSIGNMENT_DETAIL: (id: string): string => `/api/tour-instance/my-assignments/${id}`,
   GET_STATS: "/api/tour-instance/stats",
   GET_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
   CREATE: "/api/tour-instance",
@@ -80,7 +85,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
   GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
-  PROVIDER_APPROVE: (id: string): string => `/api/tour-instance/${id}/provider-approve`,
+  HOTEL_APPROVE: (id: string): string => `/api/tour-instance/${id}/hotel-approve`,
+  TRANSPORT_APPROVE: (id: string): string => `/api/tour-instance/${id}/transport-approve`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {

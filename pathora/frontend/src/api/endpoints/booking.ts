@@ -7,6 +7,7 @@ export interface PublicBookingEndpoints {
 export interface BookingEndpoints {
   GET_LIST: string;
   GET_DETAIL: (id: string) => string;
+  GET_BY_TOUR_INSTANCE: (tourInstanceId: string) => string;
   GET_CHECKOUT_PRICE: (id: string) => string;
   GET_ACTIVITIES: (id: string) => string;
   GET_ACTIVITY_DETAIL: (id: string, activityId: string) => string;
@@ -54,6 +55,7 @@ export const PUBLIC_BOOKING: PublicBookingEndpoints = {
 
 export const BOOKING: BookingEndpoints = {
   GET_LIST: "/api/bookings",
+  GET_BY_TOUR_INSTANCE: (tourInstanceId: string): string => `/api/bookings/by-tour-instance/${tourInstanceId}`,
   GET_MY_RECENT: "/api/public/bookings/my-recent-bookings",
   GET_DETAIL: (id: string): string => `/api/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/bookings/${id}/checkout-price`,

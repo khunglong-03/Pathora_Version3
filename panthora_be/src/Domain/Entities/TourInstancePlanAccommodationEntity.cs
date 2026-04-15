@@ -12,7 +12,7 @@ public class TourInstancePlanAccommodationEntity : Entity<Guid>
 
     public RoomType? RoomType { get; set; }
     public int Quantity { get; set; }
-    
+
     public DateTimeOffset? CheckInTime { get; set; }
     public DateTimeOffset? CheckOutTime { get; set; }
 
@@ -33,7 +33,7 @@ public class TourInstancePlanAccommodationEntity : Entity<Guid>
             CheckOutTime = checkOutTime
         };
     }
-    
+
     public void Update(RoomType? roomType, int quantity, DateTimeOffset? checkInTime = null, DateTimeOffset? checkOutTime = null)
     {
         RoomType = roomType;

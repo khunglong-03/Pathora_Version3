@@ -46,7 +46,7 @@ public sealed class CreateManagerBankAccountCommandHandler(
             BankShortName = req.BankShortName,
             BankAccountName = req.BankAccountName,
             IsDefault = req.IsDefault || !hasAny,
-            IsVerified = false,
+            IsVerified = true,
         };
 
         await bankAccountRepository.AddAsync(entity, cancellationToken);

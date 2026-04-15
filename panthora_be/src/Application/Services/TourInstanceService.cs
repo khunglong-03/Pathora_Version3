@@ -23,8 +23,8 @@ public interface ITourInstanceService
     Task<ErrorOr<Success>> Update(UpdateTourInstanceCommand request);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus);
-    Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, CancellationToken cancellationToken = default);
-    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, string providerType, CancellationToken cancellationToken = default);
+    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
     Task<ErrorOr<TourInstanceDto>> GetDetail(Guid id);
     Task<ErrorOr<TourInstanceStatsDto>> GetStats();
@@ -34,6 +34,8 @@ public interface ITourInstanceService
     Task<ErrorOr<TourInstanceDayDto>> UpdateDay(UpdateTourInstanceDayCommand request);
     Task<ErrorOr<Guid>> AddCustomDay(CreateTourInstanceDayCommand request);
     Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request);
+    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetMyAssignedInstances(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<ErrorOr<TourInstanceDto>> GetMyAssignedInstanceDetail(Guid id, CancellationToken cancellationToken = default);
 }
 
 public class TourInstanceService(
@@ -44,7 +46,8 @@ public class TourInstanceService(
     IMailRepository mailRepository,
     IUser user,
     IMapper mapper,
-    ILogger<TourInstanceService> logger) : ITourInstanceService
+    ILogger<TourInstanceService> logger,
+    ITourInstanceNotificationBroadcaster? notificationBroadcaster = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
@@ -54,6 +57,7 @@ public class TourInstanceService(
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
+    private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -139,72 +143,72 @@ public class TourInstanceService(
         entity.Managers.Add(TourInstanceManagerEntity.Create(
             entity.Id, creatorUserId, TourInstanceManagerRole.Manager, performedBy));
 
+        // Clone InstanceDays from Classification.Plans BEFORE persisting
+        // so all child entities are INSERTed in a single SaveChanges call.
+        var tourDays = classification.Plans
+            .Where(d => !d.IsDeleted)
+            .OrderBy(d => d.DayNumber);
+
+        foreach (var tourDay in tourDays)
+        {
+            var translations = ConvertTourDayTranslation(tourDay.Translations);
+            var actualDate = DateOnly.FromDateTime(entity.StartDate.DateTime);
+
+            var instanceDay = TourInstanceDayEntity.Create(
+                tourInstanceId: entity.Id,
+                tourDayId: tourDay.Id,
+                instanceDayNumber: tourDay.DayNumber,
+                actualDate: actualDate.AddDays(tourDay.DayNumber - 1),
+                title: tourDay.Title,
+                description: tourDay.Description,
+                translations: translations,
+                performedBy: performedBy);
+
+            foreach (var templateActivity in tourDay.Activities.Where(a => !a.IsDeleted).OrderBy(a => a.Order))
+            {
+                var assignedData = request.ActivityAssignments?.FirstOrDefault(a => a.OriginalActivityId == templateActivity.Id);
+
+                var instanceActivity = TourInstanceDayActivityEntity.Create(
+                    tourInstanceDayId: instanceDay.Id,
+                    order: templateActivity.Order,
+                    activityType: templateActivity.ActivityType,
+                    title: templateActivity.Title,
+                    performedBy: performedBy,
+                    description: templateActivity.Description,
+                    note: templateActivity.Note ?? "",
+                    startTime: templateActivity.StartTime,
+                    endTime: templateActivity.EndTime,
+                    isOptional: templateActivity.IsOptional
+                );
+
+                if (templateActivity.ActivityType == TourDayActivityType.Accommodation && assignedData?.RoomType.HasValue == true)
+                {
+                    instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
+                        instanceActivity.Id,
+                        assignedData.RoomType,
+                        assignedData.AccommodationQuantity ?? 1
+                    );
+                }
+                else if (templateActivity.ActivityType == TourDayActivityType.Transportation && assignedData?.VehicleId.HasValue == true)
+                {
+                    instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
+                        instanceActivity.Id,
+                        assignedData.VehicleId
+                    ));
+                }
+
+                instanceDay.Activities.Add(instanceActivity);
+            }
+
+            entity.InstanceDays.Add(instanceDay);
+        }
+
         try
         {
             await _tourInstanceRepository.Create(entity);
 
-            // Clone InstanceDays from Classification.Plans
-            var tourDays = classification.Plans
-                .Where(d => !d.IsDeleted)
-                .OrderBy(d => d.DayNumber);
-
-            foreach (var tourDay in tourDays)
-            {
-                var translations = ConvertTourDayTranslation(tourDay.Translations);
-                var actualDate = DateOnly.FromDateTime(entity.StartDate.DateTime);
-
-                var instanceDay = TourInstanceDayEntity.Create(
-                    tourInstanceId: entity.Id,
-                    tourDayId: tourDay.Id,
-                    instanceDayNumber: tourDay.DayNumber,
-                    actualDate: actualDate.AddDays(tourDay.DayNumber - 1),
-                    title: tourDay.Title,
-                    description: tourDay.Description,
-                    translations: translations,
-                    performedBy: performedBy);
-
-                foreach (var templateActivity in tourDay.Activities.Where(a => !a.IsDeleted).OrderBy(a => a.Order))
-                {
-                    var assignedData = request.ActivityAssignments?.FirstOrDefault(a => a.OriginalActivityId == templateActivity.Id);
-
-                    var instanceActivity = TourInstanceDayActivityEntity.Create(
-                        tourInstanceDayId: instanceDay.Id,
-                        order: templateActivity.Order,
-                        activityType: templateActivity.ActivityType,
-                        title: templateActivity.Title,
-                        performedBy: performedBy,
-                        description: templateActivity.Description,
-                        note: templateActivity.Note ?? "",
-                        startTime: templateActivity.StartTime,
-                        endTime: templateActivity.EndTime,
-                        isOptional: templateActivity.IsOptional
-                    );
-
-                    if (templateActivity.ActivityType == TourDayActivityType.Accommodation && assignedData?.RoomType.HasValue == true)
-                    {
-                        instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
-                            instanceActivity.Id,
-                            assignedData.RoomType,
-                            assignedData.AccommodationQuantity ?? 1
-                        );
-                    }
-                    else if (templateActivity.ActivityType == TourDayActivityType.Transportation && assignedData?.VehicleId.HasValue == true)
-                    {
-                        instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
-                            instanceActivity.Id,
-                            assignedData.VehicleId
-                        ));
-                    }
-
-                    instanceDay.Activities.Add(instanceActivity);
-                }
-
-                entity.InstanceDays.Add(instanceDay);
-            }
-
-            await _tourInstanceRepository.Update(entity);
-
-            // Link TourRequest to this instance if TourRequestId was provided
+            // Notify providers about their assignment (fire-and-forget, separate try-catch per provider)
+            await NotifyProviderAssignmentAsync(entity);
             if (tourRequest is not null)
             {
                 tourRequest.TourInstanceId = entity.Id;
@@ -276,6 +280,92 @@ public class TourInstanceService(
                 ex,
                 "Failed to queue tour ready email for request {RequestId}",
                 requestEntity.Id);
+        }
+    }
+
+    private async Task NotifyProviderAssignmentAsync(TourInstanceEntity entity)
+    {
+        if (_notificationBroadcaster is null) return;
+
+        // Notify HotelProvider
+        if (entity.HotelProviderId.HasValue)
+        {
+            try
+            {
+                var hotelSupplier = await _supplierRepository.GetByIdAsync(entity.HotelProviderId.Value);
+                if (hotelSupplier?.OwnerUserId is null)
+                {
+                    _logger.LogWarning(
+                        "Cannot notify HotelProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
+                        entity.Id, entity.HotelProviderId.Value);
+                }
+                else
+                {
+                    await _notificationBroadcaster.NotifyProviderAssignmentAsync(
+                        entity.Id, entity.Title, entity.TourName,
+                        entity.StartDate, entity.EndDate, "Hotel",
+                        hotelSupplier.OwnerUserId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to send assignment notification to HotelProvider for TourInstance {TourInstanceId}",
+                    entity.Id);
+            }
+        }
+
+        // Notify TransportProvider
+        if (entity.TransportProviderId.HasValue)
+        {
+            try
+            {
+                var transportSupplier = await _supplierRepository.GetByIdAsync(entity.TransportProviderId.Value);
+                if (transportSupplier?.OwnerUserId is null)
+                {
+                    _logger.LogWarning(
+                        "Cannot notify TransportProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
+                        entity.Id, entity.TransportProviderId.Value);
+                }
+                else
+                {
+                    await _notificationBroadcaster.NotifyProviderAssignmentAsync(
+                        entity.Id, entity.Title, entity.TourName,
+                        entity.StartDate, entity.EndDate, "Transport",
+                        transportSupplier.OwnerUserId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to send assignment notification to TransportProvider for TourInstance {TourInstanceId}",
+                    entity.Id);
+            }
+        }
+    }
+
+    private async Task NotifyProviderApprovalResultAsync(TourInstanceEntity instance, string providerName, bool isApproved, string? reason)
+    {
+        if (_notificationBroadcaster is null) return;
+
+        try
+        {
+            if (!Guid.TryParse(instance.CreatedBy, out _))
+            {
+                _logger.LogWarning(
+                    "Cannot notify manager for TourInstance {TourInstanceId}: CreatedBy '{CreatedBy}' is not a valid Guid",
+                    instance.Id, instance.CreatedBy);
+                return;
+            }
+
+            await _notificationBroadcaster.NotifyProviderApprovalResultAsync(
+                instance.Id, providerName, isApproved, reason, instance.CreatedBy);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to send approval result notification for TourInstance {TourInstanceId}",
+                instance.Id);
         }
     }
 
@@ -354,7 +444,7 @@ public class TourInstanceService(
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, string providerType, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
@@ -367,15 +457,43 @@ public class TourInstanceService(
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        if (supplier.Id != instance.HotelProviderId && supplier.Id != instance.TransportProviderId)
-            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as a provider for this tour instance.");
+        bool hasAccess = providerType switch
+        {
+            "Hotel" => supplier.Id == instance.HotelProviderId,
+            "Transport" => supplier.Id == instance.TransportProviderId,
+            _ => false
+        };
 
+        if (!hasAccess)
+            return Error.Validation("TourInstance.ProviderNotAssigned", $"You are not assigned as the {providerType} provider for this tour instance.");
+
+        var statusBeforeApprove = instance.Status;
         instance.ApproveByProvider(supplier.Id, isApproved, note);
         await _tourInstanceRepository.Update(instance);
+
+        // Notify manager and admins about the approval result (fire-and-forget)
+        await NotifyProviderApprovalResultAsync(instance, supplier.Name, isApproved, note);
+
+        // If both providers approved and instance became Available, notify admins
+        if (statusBeforeApprove == TourInstanceStatus.PendingApproval && instance.Status == TourInstanceStatus.Available)
+        {
+            try
+            {
+                if (_notificationBroadcaster is not null)
+                    await _notificationBroadcaster.NotifyTourInstanceStatusChangeAsync(instance.Id, instance.Status);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to send status change notification for TourInstance {TourInstanceId}",
+                    instance.Id);
+            }
+        }
+
         return Result.Success;
     }
 
-    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
@@ -384,17 +502,46 @@ public class TourInstanceService(
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var entities = await _tourInstanceRepository.FindProviderAssigned(supplier.Id, pageNumber, pageSize, cancellationToken);
-        var total = await _tourInstanceRepository.CountProviderAssigned(supplier.Id, cancellationToken);
+        var entities = await _tourInstanceRepository.FindProviderAssigned(supplier.Id, pageNumber, pageSize, approvalStatus, cancellationToken);
+        var total = await _tourInstanceRepository.CountProviderAssigned(supplier.Id, approvalStatus, cancellationToken);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 
+    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetMyAssignedInstances(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(_user.Id, out var currentUserId))
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+
+        var total = await _tourInstanceRepository.CountByGuideUserId(currentUserId);
+        var entities = await _tourInstanceRepository.FindByGuideUserId(currentUserId, pageNumber, pageSize, cancellationToken);
+
+        var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
+        return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
+    }
+
+    public async Task<ErrorOr<TourInstanceDto>> GetMyAssignedInstanceDetail(Guid id, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(_user.Id, out var currentUserId))
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+
+        var entity = await _tourInstanceRepository.FindByIdWithInstanceDays(id);
+        if (entity is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        // Check if the current user is assigned as a guide to this instance
+        var isAssigned = await _tourInstanceRepository.HasGuideAssignmentAsync(id, currentUserId, cancellationToken);
+        if (!isAssigned)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        return _mapper.Map<TourInstanceDto>(entity);
+    }
+
     public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request)
     {
-        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize);
-        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status);
+        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast);
+        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, request.PageNumber, request.PageSize);
@@ -411,8 +558,8 @@ public class TourInstanceService(
 
     public async Task<ErrorOr<TourInstanceStatsDto>> GetStats()
     {
-        var (total, available, confirmed, soldOut) = await _tourInstanceRepository.GetStats();
-        return new TourInstanceStatsDto(total, available, confirmed, soldOut);
+        var (total, available, confirmed, soldOut, completed) = await _tourInstanceRepository.GetStats();
+        return new TourInstanceStatsDto(total, available, confirmed, soldOut, completed);
     }
 
     public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(string? destination, string? sortBy, int page, int pageSize, string? language = null)

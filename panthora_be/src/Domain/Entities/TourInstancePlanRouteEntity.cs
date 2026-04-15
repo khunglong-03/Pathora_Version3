@@ -18,7 +18,7 @@ public class TourInstancePlanRouteEntity : Entity<Guid>
 
     public string? PickupLocation { get; set; }
     public string? DropoffLocation { get; set; }
-    
+
     public DateTimeOffset? DepartureTime { get; set; }
     public DateTimeOffset? ArrivalTime { get; set; }
 

@@ -22,13 +22,13 @@ public sealed class CacheInvalidationBehavior<TRequest, TResponse>(
 
         foreach (var tag in invalidator.CacheKeysToInvalidate)
         {
-            var keys = cacheKeyTracker.GetKeys(tag);
+            var keys = await cacheKeyTracker.GetKeysAsync(tag, cancellationToken);
             foreach (var key in keys)
             {
                 logger.LogDebug("[CACHE INVALIDATE] Key={Key} Tag={Tag}", key, tag);
                 await cache.RemoveAsync(key, token: cancellationToken);
             }
-            cacheKeyTracker.RemoveKeys(tag);
+            await cacheKeyTracker.RemoveKeysAsync(tag, cancellationToken);
         }
 
         return response;

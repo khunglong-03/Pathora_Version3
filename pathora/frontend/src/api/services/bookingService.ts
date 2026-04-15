@@ -1,7 +1,36 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { extractItems, extractResult } from "@/utils/apiResponse";
+import type { ApiResponse } from "@/types/api";
 import type { CheckoutPriceResponse } from "./paymentService";
+
+// Tour Day Activity Status (for guide portal)
+export interface TourDayActivityStatus {
+  id: string;
+  bookingId: string;
+  tourDayId: string;
+  activityStatus: string;
+  actualStartTime: string | null;
+  actualEndTime: string | null;
+  completedAt: string | null;
+  cancellationReason: string | null;
+  cancelledAt: string | null;
+  note: string | null;
+  guides: Array<{
+    id: string;
+    tourDayActivityStatusId: string;
+    userId: string;
+    role: string;
+    checkInTime: string | null;
+    checkOutTime: string | null;
+    note: string | null;
+  }>;
+}
+
+export interface UpdateActivityStatusDto {
+  actualTime?: string;
+  reason?: string;
+}
 
 export interface RecentBooking {
   bookingId: string;
@@ -25,12 +54,60 @@ export interface CreateBookingPayload {
   isFullPay: boolean;
 }
 
+// Admin booking list response (matching backend AdminBookingListResponse)
+export interface AdminBookingListResponse {
+  id: string;
+  customerName: string;
+  tourName: string;
+  departureDate: string;
+  totalPrice: number;
+  status: string;
+}
+
 export const bookingService = {
   getRecentBookings: async (count = 3): Promise<RecentBooking[]> => {
     const response = await api.get(API_ENDPOINTS.BOOKING.GET_MY_RECENT, {
       params: { count },
     });
     return extractItems<RecentBooking>(response.data);
+  },
+
+  getBookingsByTourInstance: async (tourInstanceId: string) => {
+    const response = await api.get<ApiResponse<AdminBookingListResponse[]>>(
+      API_ENDPOINTS.BOOKING.GET_BY_TOUR_INSTANCE(tourInstanceId),
+    );
+    return extractItems<AdminBookingListResponse>(response.data);
+  },
+
+  getActivityStatuses: async (bookingId: string) => {
+    const response = await api.get<ApiResponse<TourDayActivityStatus[]>>(
+      API_ENDPOINTS.BOOKING.GET_ACTIVITY_STATUSES(bookingId),
+    );
+    return extractItems<TourDayActivityStatus>(response.data);
+  },
+
+  startActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.BOOKING.START_ACTIVITY(bookingId, tourDayId),
+      { actualTime },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  completeActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.BOOKING.COMPLETE_ACTIVITY(bookingId, tourDayId),
+      { actualTime },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  cancelActivity: async (bookingId: string, tourDayId: string, reason?: string) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.BOOKING.CANCEL_ACTIVITY(bookingId, tourDayId),
+      { reason },
+    );
+    return extractResult<unknown>(response.data);
   },
 
   createBooking: async (

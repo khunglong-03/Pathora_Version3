@@ -40,7 +40,11 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   const handleApprove = async (id: string, isApproved: boolean) => {
     try {
       setProcessing(id);
-      await tourInstanceService.providerApprove(id, isApproved);
+      if (providerType === "hotel") {
+        await tourInstanceService.hotelApprove(id, isApproved);
+      } else {
+        await tourInstanceService.transportApprove(id, isApproved);
+      }
       toast.success(
         isApproved
           ? t("provider.approvedSuccess", "Đã phê duyệt tour.")

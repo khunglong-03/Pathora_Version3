@@ -43,7 +43,7 @@ export const MANAGER_NAV_ITEMS = [
   { label: "Tour Requests", icon: ClipboardTextIcon, href: "/manager/dashboard/tour-requests" },
   { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
   { label: "Payments", icon: CreditCardIcon, href: "/manager/dashboard/payments" },
-  { label: "Customers", icon: UsersThreeIcon, href: "/manager/dashboard/customers" },
+  { label: "Staff Schedule", icon: CalendarDotsIcon, href: "/manager/staff-schedule" },
   { label: "Insurance", icon: ShieldCheckIcon, href: "/manager/dashboard/insurance" },
   { label: "Visa Applications", icon: CertificateIcon, href: "/manager/dashboard/visa" },
   { label: "Bank Accounts", icon: BuildingsIcon, href: "/manager/bank-accounts" },
@@ -94,7 +94,6 @@ export const TOURDESIGNER_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-designer" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-designer/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-designer/tours/create" },
-  { label: "Quản lý Đợt Tour", icon: CalendarDotsIcon, href: "/tour-designer/tour-instances" },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
@@ -256,7 +255,8 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
       "/tour-designer",
       "/tour-guide",
       "/hotel",
-      "/transport"
+      "/transport",
+      "/manager/staff-schedule"
     ];
     if (exactMatchHrefs.includes(href)) {
       return pathname === href || pathname === href + "/";

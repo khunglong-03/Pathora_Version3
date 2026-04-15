@@ -146,7 +146,7 @@ function EditBankAccountModal({
       title={t("common.bankAccount.editTitle") || "Edit Bank Account"}
       size="md"
     >
-      <form onSubmit={void handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Bank Account Number */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: "#374151" }}>

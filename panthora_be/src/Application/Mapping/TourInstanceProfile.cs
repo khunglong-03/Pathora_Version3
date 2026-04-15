@@ -56,6 +56,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleBrand), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Brand : null))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.VehicleModel), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Model : null))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.SeatCapacity), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.SeatCapacity : (int?)null))
+            .ForCtorParam(nameof(TourInstancePlanRouteDto.DriverId), opt => opt.MapFrom(src => src.DriverId))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.DriverName), opt => opt.MapFrom(src => src.Driver != null ? src.Driver.FullName : null))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.DriverPhone), opt => opt.MapFrom(src => src.Driver != null ? src.Driver.PhoneNumber : null))
             .ForCtorParam(nameof(TourInstancePlanRouteDto.PickupLocation), opt => opt.MapFrom(src => src.PickupLocation))

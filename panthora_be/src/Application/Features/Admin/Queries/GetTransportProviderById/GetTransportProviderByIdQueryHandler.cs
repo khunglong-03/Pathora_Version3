@@ -41,7 +41,7 @@ public sealed class GetTransportProviderByIdQueryHandler(
 
         var vehicles = targetUserId != Guid.Empty ? await vehicleRepository.FindAllByOwnerIdAsync(targetUserId, cancellationToken) : [];
         var drivers = targetUserId != Guid.Empty ? await driverRepository.FindAllByUserIdAsync(targetUserId, cancellationToken) : [];
-        
+
         var (bookingCount, activeBookingCount, completedBookingCount) = targetUserId != Guid.Empty
             ? await supplierRepository.GetTransportBookingCountsByOwnerAsync(targetUserId, cancellationToken)
             : (0, 0, 0);

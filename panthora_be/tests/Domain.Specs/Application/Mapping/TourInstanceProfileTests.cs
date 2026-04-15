@@ -1,5 +1,5 @@
-using Application.Dtos;
-using Application.Mapping;
+using global::Application.Dtos;
+using global::Application.Mapping;
 using Domain.Entities;
 using Domain.Enums;
 using AutoMapper;
@@ -337,7 +337,7 @@ public sealed class TourInstanceProfileTests
             Id = Guid.NewGuid(),
             TourInstanceDayActivityId = Guid.NewGuid(),
             VehicleId = vehicleId,
-            Vehicle = null, // Navigation not loaded
+            Vehicle = null,
             DriverId = null,
         };
 
@@ -363,7 +363,7 @@ public sealed class TourInstanceProfileTests
             TourInstanceDayActivityId = Guid.NewGuid(),
             VehicleId = null,
             DriverId = driverId,
-            Driver = null, // Navigation not loaded
+            Driver = null,
         };
 
         var dto = mapper.Map<TourInstancePlanRouteDto>(route);
@@ -419,11 +419,7 @@ public sealed class TourInstanceProfileTests
             TourInstanceId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
             Role = TourInstanceManagerRole.Manager,
-            User = new UserEntity
-            {
-                Id = Guid.NewGuid(),
-                FullName = "Le Van C",
-            }
+            User = new UserEntity { Id = Guid.NewGuid(), FullName = "Le Van C" }
         };
 
         var dto = mapper.Map<TourInstanceManagerDto>(entity);

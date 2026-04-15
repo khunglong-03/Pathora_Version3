@@ -144,12 +144,14 @@ export const tourInstanceService = {
     status?: string,
     pageNumber = 1,
     pageSize = 10,
+    excludePast = false
   ) => {
     const params = new URLSearchParams();
     if (searchText) params.append("searchText", searchText);
     if (status && status !== "all") params.append("status", status);
     params.append("pageNumber", pageNumber.toString());
     params.append("pageSize", pageSize.toString());
+    if (excludePast) params.append("excludePast", "true");
 
     // Backend returns PaginatedList<T> mapped as { items: [], totalCount: 0 }
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
@@ -377,13 +379,60 @@ export const tourInstanceService = {
     } as PaginatedResponse<NormalizedTourInstanceVm>;
   },
 
-  providerApprove: async (
+  getMyAssignedInstances: async (
+    pageNumber = 1,
+    pageSize = 10,
+  ) => {
+    const params = new URLSearchParams();
+    params.append("pageNumber", pageNumber.toString());
+    params.append("pageSize", pageSize.toString());
+
+    type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
+
+    const response = await api.get<ApiResponse<TourInstancePage>>(
+      `${API_ENDPOINTS.TOUR_INSTANCE.GET_MY_ASSIGNMENTS}?${params.toString()}`,
+    );
+
+    const result = extractResult<TourInstancePage>(response.data);
+    if (!result) return null;
+
+    const items = result.items ?? result.data ?? [];
+    const total = result.totalCount ?? result.total ?? 0;
+
+    return {
+      total,
+      data: items.map(normalizeInstanceVm),
+    } as PaginatedResponse<NormalizedTourInstanceVm>;
+  },
+
+  getMyAssignedInstanceDetail: async (id: string) => {
+    const response = await api.get<ApiResponse<TourInstanceDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.GET_MY_ASSIGNMENT_DETAIL(id),
+    );
+
+    const result = extractResult<TourInstanceDto>(response.data);
+    return result ? normalizeInstanceDetail(result) : null;
+  },
+
+  hotelApprove: async (
     id: string,
     isApproved: boolean,
     note?: string,
   ) => {
     const response = await api.post<ApiResponse<string>>(
-      API_ENDPOINTS.TOUR_INSTANCE.PROVIDER_APPROVE(id),
+      API_ENDPOINTS.TOUR_INSTANCE.HOTEL_APPROVE(id),
+      { isApproved, note },
+    );
+    return extractResult<string>(response.data);
+  },
+
+  transportApprove: async (
+    id: string,
+    isApproved: boolean,
+    note?: string,
+  ) => {
+    const response = await api.post<ApiResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.TRANSPORT_APPROVE(id),
       { isApproved, note },
     );
     return extractResult<string>(response.data);

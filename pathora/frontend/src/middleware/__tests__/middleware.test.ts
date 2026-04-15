@@ -93,6 +93,7 @@ describe("isManagerRoutePath (middleware)", () => {
     expect(isManagerRoutePath("/tour-management/edit")).toBe(true);
     expect(isManagerRoutePath("/tour-instances")).toBe(true);
     expect(isManagerRoutePath("/tour-instances/new")).toBe(true);
+    expect(isManagerRoutePath("/manager/staff-schedule")).toBe(true);
   });
 
   it("returns false for admin routes", () => {
@@ -140,9 +141,9 @@ describe("middleware routing rules", () => {
       expect(hasManagerRole([{ name: "Manager" }])).toBe(true);
     });
 
-    it("Manager accessing /dashboard/customers should redirect to /dashboard (blocked)", () => {
+    it("Manager accessing /manager/staff-schedule is allowed (Manager route)", () => {
       expect(hasManagerRole([{ name: "Manager" }])).toBe(true);
-      expect("/dashboard/customers".startsWith("/dashboard/customers")).toBe(true);
+      expect(isManagerRoutePath("/manager/staff-schedule")).toBe(true);
     });
   });
 

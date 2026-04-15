@@ -13,9 +13,10 @@ public sealed record GetAllTourInstancesQuery(
     string? SearchText,
     TourInstanceStatus? Status = null,
     int PageNumber = 1,
-    int PageSize = 10) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
+    int PageSize = 10,
+    bool ExcludePast = false) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
 {
-    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PageNumber}:{PageSize}:{Status}:{SearchText}";
+    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{SearchText}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
 }
 

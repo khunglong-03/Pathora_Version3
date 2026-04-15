@@ -50,9 +50,9 @@ describe("dashboard nested routes", () => {
     expect(React.isValidElement(element)).toBe(true);
   });
 
-  it("renders customers dashboard page component", () => {
-    const element = DashboardCustomersPage();
-    expect(React.isValidElement(element)).toBe(true);
+  it("redirects legacy dashboard customers route to staff schedule", () => {
+    DashboardCustomersPage();
+    expect(redirectMock).toHaveBeenCalledWith("/manager/staff-schedule");
   });
 
   it("renders insurance dashboard page component", () => {
@@ -61,9 +61,9 @@ describe("dashboard nested routes", () => {
   });
 
 
-  it("renders policies dashboard page component", () => {
-    const element = DashboardPoliciesPage();
-    expect(React.isValidElement(element)).toBe(true);
+  it("redirects legacy dashboard policies route", () => {
+    DashboardPoliciesPage();
+    expect(redirectMock).toHaveBeenCalledWith("/dashboard/settings?tab=policies");
   });
 
   it("renders site content dashboard page component", () => {

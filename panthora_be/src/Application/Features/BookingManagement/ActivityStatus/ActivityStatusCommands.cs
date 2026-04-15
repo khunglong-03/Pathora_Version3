@@ -94,17 +94,45 @@ public sealed class StartActivityCommandValidator : AbstractValidator<StartActiv
 }
 
 public sealed class StartActivityCommandHandler(
+    IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    IOwnershipValidator ownershipValidator,
+    IUser user,
     IUnitOfWork unitOfWork,
     ILanguageContext? languageContext = null)
     : ICommandHandler<StartActivityCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(StartActivityCommand request, CancellationToken cancellationToken)
     {
-        var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+        if (booking is null)
+        {
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+        }
+
+        // Check access: either owner/admin OR guide assigned to the tour instance
+        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
+        if (!hasAccess)
+        {
+            if (Guid.TryParse(user.Id, out var currentUserId))
+            {
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+                }
+            }
+            else
+            {
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            }
+        }
+
         var status = await tourDayActivityStatusRepository.GetByBookingIdAndTourDayIdAsync(request.BookingId, request.TourDayId);
         if (status is null)
         {
+            var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
             return Error.NotFound(
                 ErrorConstants.ActivityStatus.NotFoundCode,
                 ErrorConstants.ActivityStatus.NotFoundDescription.Resolve(lang));
@@ -142,13 +170,41 @@ public sealed class CompleteActivityCommandValidator : AbstractValidator<Complet
 }
 
 public sealed class CompleteActivityCommandHandler(
+    IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    IOwnershipValidator ownershipValidator,
+    IUser user,
     IUnitOfWork unitOfWork,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CompleteActivityCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(CompleteActivityCommand request, CancellationToken cancellationToken)
     {
+        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+        if (booking is null)
+        {
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+        }
+
+        // Check access: either owner/admin OR guide assigned to the tour instance
+        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
+        if (!hasAccess)
+        {
+            if (Guid.TryParse(user.Id, out var currentUserId))
+            {
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+                }
+            }
+            else
+            {
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            }
+        }
+
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var status = await tourDayActivityStatusRepository.GetByBookingIdAndTourDayIdAsync(request.BookingId, request.TourDayId);
         if (status is null)
@@ -191,14 +247,46 @@ public sealed class CancelActivityCommandValidator : AbstractValidator<CancelAct
 }
 
 public sealed class CancelActivityCommandHandler(
+    IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
+    ITourInstanceRepository tourInstanceRepository,
+    IOwnershipValidator ownershipValidator,
+    IUser user,
     IUnitOfWork unitOfWork,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CancelActivityCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(CancelActivityCommand request, CancellationToken cancellationToken)
     {
+        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+        if (booking is null)
+        {
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+        }
+
+        // Check access: either owner/admin OR guide assigned to the tour instance
+        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
+        if (!hasAccess)
+        {
+            if (Guid.TryParse(user.Id, out var currentUserId))
+            {
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+                }
+            }
+            else
+            {
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            }
+        }
+
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var reason = string.IsNullOrWhiteSpace(request.Reason)
+            ? ErrorConstants.ActivityStatus.DefaultCancelReason.Resolve(lang)
+            : request.Reason;
+
         var status = await tourDayActivityStatusRepository.GetByBookingIdAndTourDayIdAsync(request.BookingId, request.TourDayId);
         if (status is null)
         {
@@ -209,7 +297,7 @@ public sealed class CancelActivityCommandHandler(
 
         try
         {
-            status.Cancel(request.Reason, "system");
+            status.Cancel(reason, "system");
         }
         catch (InvalidOperationException ex)
         {
@@ -233,7 +321,9 @@ public sealed class GetActivityStatusesQueryHandler(
     IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     ITourDayActivityGuideRepository tourDayActivityGuideRepository,
-    IOwnershipValidator ownershipValidator)
+    IOwnershipValidator ownershipValidator,
+    ITourInstanceRepository tourInstanceRepository,
+    IUser user)
     : IQueryHandler<GetActivityStatusesQuery, ErrorOr<List<TourDayActivityStatusDto>>>
 {
     public async Task<ErrorOr<List<TourDayActivityStatusDto>>> Handle(GetActivityStatusesQuery request, CancellationToken cancellationToken)
@@ -244,9 +334,22 @@ public sealed class GetActivityStatusesQueryHandler(
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
         }
 
-        if (!await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken))
+        // Check access: either owner/admin OR guide assigned to the tour instance
+        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
+        if (!hasAccess)
         {
-            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            if (Guid.TryParse(user.Id, out var currentUserId))
+            {
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+                }
+            }
+            else
+            {
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            }
         }
 
         var statuses = await tourDayActivityStatusRepository.GetByBookingIdAsync(request.BookingId);
@@ -291,6 +394,8 @@ public sealed class GetActivityStatusByTourDayQueryHandler(
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     ITourDayActivityGuideRepository tourDayActivityGuideRepository,
     IOwnershipValidator ownershipValidator,
+    ITourInstanceRepository tourInstanceRepository,
+    IUser user,
     ILanguageContext? languageContext = null)
     : IQueryHandler<GetActivityStatusByTourDayQuery, ErrorOr<TourDayActivityStatusDto>>
 {
@@ -302,9 +407,22 @@ public sealed class GetActivityStatusByTourDayQueryHandler(
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
         }
 
-        if (!await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken))
+        // Check access: either owner/admin OR guide assigned to the tour instance
+        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
+        if (!hasAccess)
         {
-            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            if (Guid.TryParse(user.Id, out var currentUserId))
+            {
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+                }
+            }
+            else
+            {
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            }
         }
 
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
