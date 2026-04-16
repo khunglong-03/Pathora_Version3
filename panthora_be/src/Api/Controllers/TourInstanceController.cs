@@ -3,7 +3,9 @@ using Application.Common.Constant;
 using Application.Dtos;
 using Application.Features.TourInstance.Commands;
 using Application.Features.TourInstance.Queries;
+using Contracts;
 using Domain.Enums;
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -127,7 +129,7 @@ public class TourInstanceController : BaseApiController
     public async Task<IActionResult> GetProviderAssigned(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] Domain.Enums.ProviderApprovalStatus? approvalStatus = null)
+        [FromQuery] ProviderApprovalStatus? approvalStatus = null)
     {
         var result = await Sender.Send(new GetProviderAssignedTourInstancesQuery(pageNumber, pageSize, approvalStatus));
         return HandleResult(result);

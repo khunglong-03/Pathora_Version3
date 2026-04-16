@@ -7,6 +7,7 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
+using BuildingBlocks.CORS;
 
 namespace Application.Features.TourInstance.Commands;
 
@@ -29,7 +30,6 @@ public sealed class AssignVehicleToRouteCommandValidator : AbstractValidator<Ass
 
 public sealed class AssignVehicleToRouteCommandHandler(
     ITourInstancePlanRouteRepository routeRepository,
-    ITourInstanceRepository tourInstanceRepository,
     IVehicleRepository vehicleRepository,
     IDriverRepository driverRepository,
     ISupplierRepository supplierRepository,
@@ -45,7 +45,7 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var route = await routeRepository.GetByIdAsync(request.RouteId, cancellationToken);
+        var route = await routeRepository.GetDetailsByIdAsync(request.RouteId, cancellationToken);
         if (route is null || route.TourInstanceDayActivity.TourInstanceDay.TourInstanceId != request.InstanceId)
             return Error.NotFound("TourInstancePlanRoute.NotFound", "Route not found for the specified tour instance.");
 
@@ -54,14 +54,20 @@ public sealed class AssignVehicleToRouteCommandHandler(
             return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this tour instance.");
 
         var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
-        if (vehicle is null || vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
+        if (vehicle is null)
+            return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
+        
+        if (vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
             return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
 
         if (!vehicle.IsActive)
             return Error.Validation("Vehicle.Inactive", "Vehicle is inactive.");
 
         var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
-        if (driver is null || driver.IsDeleted || driver.UserId != currentUserId)
+        if (driver is null)
+            return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
+
+        if (driver.UserId != currentUserId)
             return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
 
         if (!driver.IsActive)
@@ -75,7 +81,7 @@ public sealed class AssignVehicleToRouteCommandHandler(
             departureTime: route.DepartureTime,
             arrivalTime: route.ArrivalTime);
 
-        await routeRepository.Update(route);
+        routeRepository.Update(route);
 
         return new AssignVehicleToRouteResponseDto(
             Success: true,

@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories;
 public class TourInstancePlanRouteRepository(AppDbContext context)
     : Repository<TourInstancePlanRouteEntity>(context), ITourInstancePlanRouteRepository
 {
-    public async Task<TourInstancePlanRouteEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<TourInstancePlanRouteEntity?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Set<TourInstancePlanRouteEntity>()
             .AsNoTracking()
