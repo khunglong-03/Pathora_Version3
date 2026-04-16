@@ -1,7 +1,6 @@
 using Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
 

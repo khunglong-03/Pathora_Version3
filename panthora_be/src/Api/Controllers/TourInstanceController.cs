@@ -150,6 +150,14 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
+    [HttpPut("{instanceId:guid}/routes/{routeId:guid}/assign")]
+    public async Task<IActionResult> AssignVehicleToRoute(Guid instanceId, Guid routeId, [FromBody] AssignVehicleToRouteRequest request)
+    {
+        var result = await Sender.Send(new AssignVehicleToRouteCommand(instanceId, routeId, request.VehicleId, request.DriverId));
+        return HandleResult(result);
+    }
+
+    [AllowAnonymous]
     [HttpGet("my-assignments")]
     public async Task<IActionResult> GetMyAssignments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -167,5 +175,7 @@ public class TourInstanceController : BaseApiController
 }
 
 public sealed record ProviderApproveRequest(bool IsApproved, string? Note);
+
+public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
 
 public sealed record ChangeTourInstanceStatusRequest(TourInstanceStatus Status);

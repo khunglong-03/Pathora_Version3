@@ -32,21 +32,54 @@ import {
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import { AdminLogoutButton } from "./AdminLogoutButton";
+import { useTranslation } from "react-i18next";
 
 /* ══════════════════════════════════════════════════════════════
    Navigation Items - Single Source of Truth
    ══════════════════════════════════════════════════════════════ */
 export const MANAGER_NAV_ITEMS = [
   { label: "Dashboard", icon: SquaresFourIcon, href: "/manager/dashboard" },
-  { label: "Tours", icon: GlobeHemisphereWestIcon, href: "/manager/tour-management" },
-  { label: "Tour Instances", icon: CalendarDotsIcon, href: "/manager/tour-instances" },
-  { label: "Tour Requests", icon: ClipboardTextIcon, href: "/manager/dashboard/tour-requests" },
+  {
+    label: "Tours",
+    icon: GlobeHemisphereWestIcon,
+    href: "/manager/tour-management",
+  },
+  {
+    label: "Tour Instances",
+    icon: CalendarDotsIcon,
+    href: "/manager/tour-instances",
+  },
+  {
+    label: "Tour Requests",
+    icon: ClipboardTextIcon,
+    href: "/manager/dashboard/tour-requests",
+  },
   { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
-  { label: "Payments", icon: CreditCardIcon, href: "/manager/dashboard/payments" },
-  { label: "Staff Schedule", icon: CalendarDotsIcon, href: "/manager/staff-schedule" },
-  { label: "Insurance", icon: ShieldCheckIcon, href: "/manager/dashboard/insurance" },
-  { label: "Visa Applications", icon: CertificateIcon, href: "/manager/dashboard/visa" },
-  { label: "Bank Accounts", icon: BuildingsIcon, href: "/manager/bank-accounts" },
+  {
+    label: "Payments",
+    icon: CreditCardIcon,
+    href: "/manager/dashboard/payments",
+  },
+  {
+    label: "Staff Schedule",
+    icon: CalendarDotsIcon,
+    href: "/manager/staff-schedule",
+  },
+  {
+    label: "Insurance",
+    icon: ShieldCheckIcon,
+    href: "/manager/dashboard/insurance",
+  },
+  {
+    label: "Visa Applications",
+    icon: CertificateIcon,
+    href: "/manager/dashboard/visa",
+  },
+  {
+    label: "Bank Accounts",
+    icon: BuildingsIcon,
+    href: "/manager/bank-accounts",
+  },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
@@ -60,12 +93,24 @@ export const ADMIN_USER_ITEMS = [
 ] as const;
 
 export const ADMIN_PROVIDER_ITEMS = [
-  { label: "Nhà cung cấp Vận tải", icon: VanIcon, href: "/admin/transport-providers" },
-  { label: "Nhà cung cấp Khách sạn", icon: BedIcon, href: "/admin/hotels/suppliers" },
+  {
+    label: "Nhà cung cấp Vận tải",
+    icon: VanIcon,
+    href: "/admin/transport-providers",
+  },
+  {
+    label: "Nhà cung cấp Khách sạn",
+    icon: BedIcon,
+    href: "/admin/hotels/suppliers",
+  },
 ] as const;
 
 export const ADMIN_TOUR_ITEMS = [
-  { label: "Quản lý Tour Manager", icon: UsersThreeIcon, href: "/admin/tour-managers" },
+  {
+    label: "Quản lý Tour Manager",
+    icon: UsersThreeIcon,
+    href: "/admin/tour-managers",
+  },
 ] as const;
 
 export const ADMIN_SETTINGS_ITEMS = [
@@ -84,7 +129,11 @@ export const NAV_ITEMS = MANAGER_NAV_ITEMS;
 
 export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "KS của tôi", icon: BedIcon, href: "/hotel" },
-  { label: "Phê duyệt Tour", icon: ListChecksIcon, href: "/hotel/tour-approvals" },
+  {
+    label: "Phê duyệt Tour",
+    icon: ListChecksIcon,
+    href: "/hotel/tour-approvals",
+  },
   { label: "Quản lý phòng", icon: BedIcon, href: "/hotel/rooms" },
   { label: "Nhận khách", icon: BuildingsIcon, href: "/hotel/arrivals" },
   { label: "Công ty", icon: BuildingOfficeIcon, href: "/hotel/profile" },
@@ -102,7 +151,11 @@ export const TOURGUIDE_NAV_ITEMS = [
 
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
   { label: "VT của tôi", icon: TruckIcon, href: "/transport" },
-  { label: "Phê duyệt Tour", icon: ListChecksIcon, href: "/transport/tour-approvals" },
+  {
+    label: "Phê duyệt Tour",
+    icon: ListChecksIcon,
+    href: "/transport/tour-approvals",
+  },
   { label: "Quản lý xe", icon: CarIcon, href: "/transport/vehicles" },
   { label: "Quản lý tài xế", icon: UsersThreeIcon, href: "/transport/drivers" },
   { label: "Phân công chuyến", icon: ListChecksIcon, href: "/transport/trips" },
@@ -131,16 +184,32 @@ interface AdminSidebarProps {
   providerPortal?: "hotel" | "transport" | "tour-designer" | "tour-guide";
 }
 
-
 /* ══════════════════════════════════════════════════════════════
    AdminSidebar Component
    ══════════════════════════════════════════════════════════════ */
-export function AdminSidebar({ isOpen, onClose, children, variant = "manager", providerPortal }: AdminSidebarProps) {
+export function AdminSidebar({
+  isOpen,
+  onClose,
+  children,
+  variant = "manager",
+  providerPortal,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
 
-  const navItems = variant === "admin" ? ADMIN_NAV_ITEMS : variant === "provider" ? (providerPortal === "transport" ? TRANSPORT_PROVIDER_NAV_ITEMS : HOTEL_PROVIDER_NAV_ITEMS) : variant === "tour-designer" ? TOURDESIGNER_NAV_ITEMS : variant === "tour-guide" ? TOURGUIDE_NAV_ITEMS : MANAGER_NAV_ITEMS;
+  const navItems =
+    variant === "admin"
+      ? ADMIN_NAV_ITEMS
+      : variant === "provider"
+        ? providerPortal === "transport"
+          ? TRANSPORT_PROVIDER_NAV_ITEMS
+          : HOTEL_PROVIDER_NAV_ITEMS
+        : variant === "tour-designer"
+          ? TOURDESIGNER_NAV_ITEMS
+          : variant === "tour-guide"
+            ? TOURGUIDE_NAV_ITEMS
+            : MANAGER_NAV_ITEMS;
 
   const loadCompanyName = useCallback(async () => {
     if (providerPortal !== "transport") return;
@@ -156,8 +225,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
 
   // For admin, build enriched nav with section labels
   const renderAdminNav = () => {
-    type AdminNavItem = { label: string; icon: typeof ADMIN_USER_ITEMS[number]["icon"]; href: string };
-    const sections: Array<{ sectionLabel?: string; items: readonly AdminNavItem[] }> = [
+    type AdminNavItem = {
+      label: string;
+      icon: (typeof ADMIN_USER_ITEMS)[number]["icon"];
+      href: string;
+    };
+    const sections: Array<{
+      sectionLabel?: string;
+      items: readonly AdminNavItem[];
+    }> = [
       { sectionLabel: "QUẢN LÝ TÀI KHOẢN", items: ADMIN_USER_ITEMS },
       { sectionLabel: "ĐỐI TÁC", items: ADMIN_PROVIDER_ITEMS },
       { sectionLabel: "ĐIỀU HÀNH TOUR", items: ADMIN_TOUR_ITEMS },
@@ -170,8 +246,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
           <React.Fragment key={section.sectionLabel}>
             <div
               className="px-3 py-1.5 mt-2 text-[10px] font-semibold tracking-widest uppercase"
-              style={{ color: "#9CA3AF" }}
-            >
+              style={{ color: "#9CA3AF" }}>
               {section.sectionLabel}
             </div>
             {section.items.map((item) => {
@@ -192,8 +267,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                       : {
                           color: "var(--sidebar-text-muted)",
                         }
-                  }
-                >
+                  }>
                   <span
                     className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
                     style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
@@ -201,7 +275,9 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                   <span className="relative z-10 transition-colors duration-200">
                     <IconComp size={20} weight={active ? "fill" : "regular"} />
                   </span>
-                  <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                  <span className="relative z-10 transition-colors duration-200">
+                    {item.label}
+                  </span>
                   <AnimatePresence>
                     {active && (
                       <motion.span
@@ -209,9 +285,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                         initial={{ opacity: 0, scaleY: 0 }}
                         animate={{ opacity: 1, scaleY: 1 }}
                         exit={{ opacity: 0, scaleY: 0 }}
-                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 20,
+                        }}
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                        style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                        style={{
+                          backgroundColor: "var(--sidebar-active-border)",
+                        }}
                       />
                     )}
                   </AnimatePresence>
@@ -256,14 +338,17 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
       "/tour-guide",
       "/hotel",
       "/transport",
-      "/manager/staff-schedule"
+      "/manager/staff-schedule",
     ];
     if (exactMatchHrefs.includes(href)) {
       return pathname === href || pathname === href + "/";
     }
 
     // Prevent highlighting parent "Tours" when exactly on "Create Tour"
-    if (href === "/tour-designer/tours" && pathname.startsWith("/tour-designer/tours/create")) {
+    if (
+      href === "/tour-designer/tours" &&
+      pathname.startsWith("/tour-designer/tours/create")
+    ) {
       return false;
     }
 
@@ -281,53 +366,64 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
         style={{
           backgroundColor: "var(--sidebar-bg)",
           borderRight: "1px solid var(--sidebar-border)",
-        }}
-      >
+        }}>
         {/* Logo */}
         <div
           className="flex items-center justify-between px-5 h-16 shrink-0"
-          style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-        >
+          style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
           <Link
-            href={variant === "admin" ? "/admin/users" : variant === "provider" ? (providerPortal === "transport" ? "/transport" : "/hotel") : variant === "tour-designer" ? "/tour-designer" : variant === "tour-guide" ? "/tour-guide" : "/manager/dashboard"}
-            className="flex items-center gap-3 group"
-          >
+            href={
+              variant === "admin"
+                ? "/admin/users"
+                : variant === "provider"
+                  ? providerPortal === "transport"
+                    ? "/transport"
+                    : "/hotel"
+                  : variant === "tour-designer"
+                    ? "/tour-designer"
+                    : variant === "tour-guide"
+                      ? "/tour-guide"
+                      : "/manager/dashboard"
+            }
+            className="flex items-center gap-3 group">
             {/* Logo mark */}
             <div
               className="relative w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm text-white transition-transform duration-200 group-hover:scale-105"
               style={{
                 backgroundColor: "var(--accent)",
-              }}
-            >
-              <BuildingsIcon weight="fill" size={18} className="text-stone-900" />
+              }}>
+              <BuildingsIcon
+                weight="fill"
+                size={18}
+                className="text-stone-900"
+              />
               {/* Subtle shine */}
               <div
                 className="absolute inset-0 rounded-xl pointer-events-none"
                 style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
                 }}
               />
             </div>
             <div className="flex flex-col">
               <span
                 className="text-sm font-semibold leading-none tracking-tight"
-                style={{ color: "var(--sidebar-text)" }}
-              >
+                style={{ color: "var(--sidebar-text)" }}>
                 Pathora
               </span>
               <span
                 className="text-[10px] font-medium tracking-widest uppercase mt-0.5"
-                style={{ color: "var(--sidebar-text-muted)" }}
-              >
+                style={{ color: "var(--sidebar-text-muted)" }}>
                 {providerPortal === "transport"
                   ? "Transport Provider"
                   : providerPortal === "hotel"
-                  ? "Hotel Provider"
-                  : providerPortal === "tour-designer"
-                  ? "Tour Designer"
-                  : providerPortal === "tour-guide"
-                  ? "Tour Guide"
-                  : "Admin"}
+                    ? "Hotel Provider"
+                    : providerPortal === "tour-designer"
+                      ? "Tour Designer"
+                      : providerPortal === "tour-guide"
+                        ? "Tour Guide"
+                        : "Admin"}
               </span>
             </div>
           </Link>
@@ -335,8 +431,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
             onClick={onClose}
             aria-label="Close sidebar"
             className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
-            style={{ color: "var(--sidebar-text-muted)" }}
-          >
+            style={{ color: "var(--sidebar-text-muted)" }}>
             <XIcon size={18} weight="bold" />
           </button>
         </div>
@@ -365,16 +460,20 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                         : {
                             color: "var(--sidebar-text-muted)",
                           }
-                    }
-                  >
+                    }>
                     <span
                       className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
                       style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
                     />
                     <span className="relative z-10 transition-colors duration-200">
-                      <IconComp size={20} weight={active ? "fill" : "regular"} />
+                      <IconComp
+                        size={20}
+                        weight={active ? "fill" : "regular"}
+                      />
                     </span>
-                    <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                    <span className="relative z-10 transition-colors duration-200">
+                      {item.label}
+                    </span>
                     <AnimatePresence>
                       {active && (
                         <motion.span
@@ -382,9 +481,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                           initial={{ opacity: 0, scaleY: 0 }}
                           animate={{ opacity: 1, scaleY: 1 }}
                           exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 20,
+                          }}
                           className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                          style={{
+                            backgroundColor: "var(--sidebar-active-border)",
+                          }}
                         />
                       )}
                     </AnimatePresence>
@@ -412,16 +517,20 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                         : {
                             color: "var(--sidebar-text-muted)",
                           }
-                    }
-                  >
+                    }>
                     <span
                       className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
                       style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
                     />
                     <span className="relative z-10 transition-colors duration-200">
-                      <IconComp size={20} weight={active ? "fill" : "regular"} />
+                      <IconComp
+                        size={20}
+                        weight={active ? "fill" : "regular"}
+                      />
                     </span>
-                    <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                    <span className="relative z-10 transition-colors duration-200">
+                      {item.label}
+                    </span>
                     <AnimatePresence>
                       {active && (
                         <motion.span
@@ -429,9 +538,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                           initial={{ opacity: 0, scaleY: 0 }}
                           animate={{ opacity: 1, scaleY: 1 }}
                           exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 20,
+                          }}
                           className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                          style={{
+                            backgroundColor: "var(--sidebar-active-border)",
+                          }}
                         />
                       )}
                     </AnimatePresence>
@@ -460,8 +575,7 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                         : {
                             color: "var(--sidebar-text-muted)",
                           }
-                    }
-                  >
+                    }>
                     {/* Hover fill */}
                     <span
                       className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
@@ -477,16 +591,21 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                     </span>
 
                     {/* Label */}
-                    <span className="relative z-10 transition-colors duration-200">{item.label}</span>
+                    <span className="relative z-10 transition-colors duration-200">
+                      {item.label}
+                    </span>
 
                     {/* Pending count badge for Tour Requests */}
                     {item.label === "Tour Requests" && pendingCount > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                        className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white ml-auto"
-                      >
+                        transition={{
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 15,
+                        }}
+                        className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white ml-auto">
                         {pendingCount > 99 ? "99+" : pendingCount}
                       </motion.span>
                     )}
@@ -499,9 +618,15 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
                           initial={{ opacity: 0, scaleY: 0 }}
                           animate={{ opacity: 1, scaleY: 1 }}
                           exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 20,
+                          }}
                           className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                          style={{
+                            backgroundColor: "var(--sidebar-active-border)",
+                          }}
                         />
                       )}
                     </AnimatePresence>
@@ -515,26 +640,28 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
         {/* User */}
         <div
           className="shrink-0 p-3"
-          style={{ borderTop: "1px solid var(--sidebar-border)" }}
-        >
+          style={{ borderTop: "1px solid var(--sidebar-border)" }}>
           {/* Admin card */}
           <div
             className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
-            style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
-          >
+            style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
             <div
               className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
               style={{
                 backgroundColor: "var(--accent)",
-              }}
-            >
+              }}>
               {providerPortal === "transport" && companyName
-                ? companyName.split(" ").slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase()
+                ? companyName
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((w) => w[0] ?? "")
+                    .join("")
+                    .toUpperCase()
                 : providerPortal === "tour-designer"
-                ? "TD"
-                : providerPortal === "tour-guide"
-                ? "TG"
-                : "AD"}
+                  ? "TD"
+                  : providerPortal === "tour-guide"
+                    ? "TG"
+                    : "AD"}
               {/* Online dot */}
               <span
                 className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
@@ -545,25 +672,29 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate leading-none" style={{ color: "var(--sidebar-text)" }}>
+              <p
+                className="text-sm font-medium truncate leading-none"
+                style={{ color: "var(--sidebar-text)" }}>
                 {providerPortal === "transport" && companyName
                   ? companyName
                   : providerPortal === "tour-designer"
-                  ? "TourDesigner"
-                  : providerPortal === "tour-guide"
-                  ? "TourGuide"
-                  : "Admin"}
+                    ? "TourDesigner"
+                    : providerPortal === "tour-guide"
+                      ? "TourGuide"
+                      : "Admin"}
               </p>
-              <p className="text-xs truncate mt-0.5" style={{ color: "var(--sidebar-text-muted)" }}>
+              <p
+                className="text-xs truncate mt-0.5"
+                style={{ color: "var(--sidebar-text-muted)" }}>
                 {providerPortal === "transport" && companyName
                   ? "TransportProvider"
                   : providerPortal === "hotel"
-                  ? "HotelServiceProvider"
-                  : providerPortal === "tour-designer"
-                  ? "TourDesigner"
-                  : providerPortal === "tour-guide"
-                  ? "TourGuide"
-                  : "Administrator"}
+                    ? "HotelServiceProvider"
+                    : providerPortal === "tour-designer"
+                      ? "TourDesigner"
+                      : providerPortal === "tour-guide"
+                        ? "TourGuide"
+                        : "Administrator"}
               </p>
             </div>
           </div>
@@ -577,7 +708,10 @@ export function AdminSidebar({ isOpen, onClose, children, variant = "manager", p
           <motion.button
             aria-label="Close sidebar"
             className="fixed inset-0 z-40 cursor-default lg:hidden"
-            style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}
+            style={{
+              backgroundColor: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(6px)",
+            }}
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -603,29 +737,40 @@ interface TopBarProps {
 }
 
 export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
+  const { i18n } = useTranslation();
+  const currentLang = (i18n.resolvedLanguage || i18n.language || "en")
+    .toLowerCase()
+    .split("-")[0];
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(currentLang === "en" ? "vi" : "en");
+  };
+
   return (
     <header
-      className="sticky top-0 z-40 h-16 flex items-center px-6 gap-4 transition-shadow duration-200 border-b"
+      className="sticky top-0 z-40 h-16 flex items-center px-6 gap-4 border-b transition-shadow duration-200"
       style={{
         backgroundColor: "rgba(255,255,255,0.8)",
         backdropFilter: "blur(12px)",
         borderColor: "var(--border)",
-      }}
-    >
+      }}>
       <button
         onClick={onMenuClick}
         aria-label="Open menu"
-        className="lg:hidden text-stone-400 hover:text-stone-600 rounded-lg p-2 -ml-2 transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-      >
+        className="lg:hidden text-stone-400 hover:text-stone-600 rounded-lg p-2 -ml-2 transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
         <ListIcon size={22} weight="bold" />
       </button>
       {title && (
         <div className="flex-1">
-          <h1 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text-primary)" }}>
+          <h1
+            className="text-lg font-semibold tracking-tight"
+            style={{ color: "var(--text-primary)" }}>
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--text-muted)" }}>
               {subtitle}
             </p>
           )}
@@ -633,12 +778,22 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
       )}
       <div className="ml-auto flex items-center gap-1">
         <button
+          onClick={toggleLanguage}
+          aria-label="Toggle Language"
+          title="Change language"
+          className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
+          <GlobeHemisphereWestIcon size={20} weight="regular" />
+          {currentLang}
+        </button>
+        <button
           aria-label="Notifications"
-          className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-        >
+          className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
           <BellIcon size={20} weight="regular" />
           {/* Notification dot */}
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+          <span
+            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+            style={{ backgroundColor: "var(--accent)" }}
+          />
         </button>
       </div>
     </header>

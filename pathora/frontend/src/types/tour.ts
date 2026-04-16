@@ -456,6 +456,7 @@ export interface TourInstancePlanAccommodationDto {
 export interface TourInstancePlanRouteDto {
   id: string;
   vehicleId: string | null;
+  driverId: string | null;
   departureTime: string | null;
   arrivalTime: string | null;
   vehiclePlate: string | null;

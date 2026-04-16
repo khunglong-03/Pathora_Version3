@@ -114,7 +114,7 @@ export function SettingsPage() {
         <TabUrlSync onTabChange={setActiveTab} />
       </Suspense>
 
-      <main id="main-content" className="px-4 pb-16 pt-6 lg:px-8 max-w-[87.5rem] mx-auto w-full">
+      <main id="main-content" className="px-4 pb-16 pt-6 lg:px-8 w-full">
         {/* Page Header */}
         <div className="mb-6 lg:mb-10">
           <motion.div

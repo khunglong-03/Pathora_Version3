@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using Application.Common;
 using Application.Common.Interfaces;
 using Common.Authentication;
@@ -48,6 +47,7 @@ internal static class DependencyInjection
 
         authBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
+                ArgumentNullException.ThrowIfNull(options);
                 var jwtSecret = configuration["Jwt:Secret"];
                 if (string.IsNullOrWhiteSpace(jwtSecret))
                 {
@@ -100,19 +100,12 @@ internal static class DependencyInjection
                     },
                     OnAuthenticationFailed = context =>
                     {
-                        if (context.Exception is SecurityTokenExpiredException)
-                        {
-                            // Only write response if the pipeline hasn't started yet.
-                            // This prevents "StatusCode cannot be set because the response has already started".
-                            if (!context.Response.HasStarted)
-                            {
-                                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                                context.Response.ContentType = "application/json";
-                                context.Response.WriteAsync(
-                                    """{"code":"TOKEN_EXPIRED","message":"Token has expired. Please login again.","statusCode":401}""");
-                                context.NoResult();
-                            }
-                        }
+                        if (context.Exception is not SecurityTokenExpiredException || context.Response.HasStarted) return Task.CompletedTask;
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        context.Response.WriteAsync(
+                            """{"code":"TOKEN_EXPIRED","message":"Token has expired. Please login again.","statusCode":401}""");
+                        context.NoResult();
 
                         return Task.CompletedTask;
                     },
@@ -147,7 +140,7 @@ internal static class DependencyInjection
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             context.Response.ContentType = "application/json";
 
-                            string challengeJson = context.AuthenticateFailure switch
+                            var challengeJson = context.AuthenticateFailure switch
                             {
                                 SecurityTokenExpiredException => """{"code":"TOKEN_EXPIRED","message":"Token has expired. Please login again.","statusCode":401}""",
                                 _ => string.IsNullOrEmpty(context.Request.Headers.Authorization.ToString())

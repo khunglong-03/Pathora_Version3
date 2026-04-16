@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { TopBar } from "@/features/dashboard/components/AdminSidebar";
@@ -30,6 +31,7 @@ const getRoomTypeName = (type: string | number) => {
 };
 
 export default function ProviderTourApprovals({ providerType }: ProviderTourApprovalsProps) {
+  const router = useRouter();
   const { t } = useTranslation();
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
 
   // Assignment states
   const [roomAssignments, setRoomAssignments] = useState<Record<string, string>>({});
+  const isHotel = providerType === "hotel";
 
   const fetchAssignments = useCallback(async () => {
     try {
@@ -70,7 +73,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
     try {
       const [details, inv] = await Promise.all([
         tourInstanceService.getInstanceDetail(instance.id),
-        providerType === "hotel" ? hotelProviderService.getInventory() : Promise.resolve([])
+        isHotel ? hotelProviderService.getInventory() : Promise.resolve([])
       ]);
       setTourDetails(details);
       setInventory(inv);
@@ -104,7 +107,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
         }
       }
 
-      if (providerType === "hotel") {
+      if (isHotel) {
         await tourInstanceService.hotelApprove(id, isApproved, noteStr || undefined);
       } else {
         await tourInstanceService.transportApprove(id, isApproved);
@@ -142,13 +145,13 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
     <>
       <TopBar
         title={t("provider.tourApprovals", "Phê duyệt Tour")}
-        subtitle={providerType === "hotel" ? "Yêu cầu đặt phòng tour" : "Yêu cầu vận tải tour"}
+        subtitle={isHotel ? "Yêu cầu đặt phòng tour" : "Yêu cầu vận tải tour"}
         onMenuClick={() => {
           const sidebarBtn = document.querySelector('[aria-label="Open menu"]') as HTMLButtonElement | null;
           if (sidebarBtn) sidebarBtn.click();
         }}
       />
-      <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+      <div className="p-4 md:p-6 lg:p-8 xl:p-10 w-full">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900">Danh sách Tour được chỉ định</h2>
@@ -188,7 +191,13 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
               return (
                 <div 
                   key={instance.id} 
-                  onClick={() => loadTourDetails(instance)}
+                  onClick={() => {
+                    if (providerType === "transport") {
+                      void router.push(`/transport/tour-approvals/${instance.id}`);
+                      return;
+                    }
+                    void loadTourDetails(instance);
+                  }}
                   className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:ring-slate-300"
                 >
                   <div className="flex-1 p-6">
@@ -287,7 +296,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                       </section>
 
                       {/* Section: Hotel Requirements */}
-                      {providerType === "hotel" && (
+                      {isHotel && (
                          <section>
                             <h4 className="mb-4 text-base font-bold uppercase tracking-wider text-slate-900/60">Yêu cầu phòng (Hotel)</h4>
                             
@@ -342,7 +351,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                       )}
 
                       {/* Section: Transport Details if needed */}
-                      {providerType === "transport" && (
+                      {!isHotel && (
                          <section>
                             <h4 className="mb-4 text-base font-bold uppercase tracking-wider text-slate-900/60">Yêu cầu di chuyển (Transport)</h4>
                             <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-slate-500">

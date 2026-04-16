@@ -437,4 +437,21 @@ export const tourInstanceService = {
     );
     return extractResult<string>(response.data);
   },
+
+  assignVehicleToRoute: async (
+    instanceId: string,
+    routeId: string,
+    data: { vehicleId: string; driverId: string },
+  ) => {
+    const response = await api.put<ApiResponse<{
+      success: boolean;
+      seatCapacityWarning: boolean;
+      vehicleSeatCapacity?: number | null;
+      tourMaxParticipation?: number | null;
+    }>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ROUTE_VEHICLE(instanceId, routeId),
+      { vehicleId: data.vehicleId, driverId: data.driverId },
+    );
+    return extractResult(response.data);
+  },
 };
