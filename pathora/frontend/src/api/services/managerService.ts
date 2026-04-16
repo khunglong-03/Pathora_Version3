@@ -2,6 +2,7 @@ import { api } from "@/api/axiosInstance";
 import { extractResult } from "@/utils/apiResponse";
 import type { ApiResponse } from "@/types/home";
 import type { ManagerDashboardReport } from "@/types/manager";
+import type { AdminOverview } from "@/types/admin";
 import { API_ENDPOINTS } from "@/api/endpoints";
 
 export interface ManagerBankAccountDto {
@@ -60,6 +61,14 @@ export interface VietQRBank {
 }
 
 export const managerService = {
+  // ── Overview (same data as admin/overview but via manager endpoint) ──
+  getOverview: async (): Promise<AdminOverview | null> => {
+    const response = await api.get<ApiResponse<AdminOverview>>(
+      API_ENDPOINTS.MANAGER.GET_OVERVIEW,
+    );
+    return extractResult<AdminOverview>(response.data);
+  },
+
   // ── Dashboard ──
   getDashboard: async (): Promise<ManagerDashboardReport | null> => {
     const response = await api.get<ApiResponse<ManagerDashboardReport>>(

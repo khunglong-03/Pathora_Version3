@@ -3,12 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 import { Icon, PaymentStatusBadge } from "@/components/ui";
 import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { adminService } from "@/api/services/adminService";
+import { managerService } from "@/api/services/managerService";
 import type { AdminOverview } from "@/types/admin";
-import { AdminSidebar, TopBar } from "./AdminSidebar";
 import { buildPaymentRowKeys } from "./paymentsPageLogic";
 
 type PaymentsDataState = "loading" | "ready" | "empty" | "error";
@@ -63,7 +64,9 @@ const itemVariants = {
 
 export function PaymentsPage() {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const isManager = pathname?.startsWith("/manager");
+
   const [statusFilter, setStatusFilter] = useState("all");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<PaymentsDataState>("loading");
@@ -78,7 +81,9 @@ export function PaymentsPage() {
       setErrorMessage(null);
 
       try {
-        const result = await adminService.getOverview();
+        const result = isManager
+          ? await managerService.getOverview()
+          : await adminService.getOverview();
         if (!active) return;
         if (!result || !result.payments || result.payments.length === 0) {
           setOverview(result ?? null);
@@ -133,8 +138,7 @@ export function PaymentsPage() {
   };
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
+    <>
       <main id="main-content" className="p-6 lg:p-8 max-w-[87.5rem] mx-auto space-y-6">
         <motion.div
           className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
@@ -349,7 +353,7 @@ export function PaymentsPage() {
           )
         ) : null}
       </main>
-    </AdminSidebar>
+    </>
   );
 }
 

@@ -18,17 +18,19 @@ namespace Domain.Specs.Application.Services;
 public sealed class TourInstanceServiceGetDetailTests
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+    private readonly ITourInstancePlanRouteRepository _routeRepository = Substitute.For<ITourInstancePlanRouteRepository>();
     private readonly ITourRepository _tourRepository = Substitute.For<ITourRepository>();
     private readonly ITourRequestRepository _tourRequestRepository = Substitute.For<ITourRequestRepository>();
     private readonly ISupplierRepository _supplierRepository = Substitute.For<ISupplierRepository>();
     private readonly IMailRepository _mailRepository = Substitute.For<IMailRepository>();
+    private readonly IRoomBlockRepository _roomBlockRepository = Substitute.For<IRoomBlockRepository>();
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly AutoMapper.IMapper _mapper = Substitute.For<AutoMapper.IMapper>();
     private readonly ILogger<TourInstanceService> _logger = Substitute.For<ILogger<TourInstanceService>>();
 
     private TourInstanceService CreateService() =>
-        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository,
-            _supplierRepository, _mailRepository, _user, _mapper, _logger);
+        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository,
+            _supplierRepository, _mailRepository, _roomBlockRepository, _user, _mapper, _logger);
 
     private static TourInstanceEntity CreateBaseEntity(Guid instanceId) =>
         new TourInstanceEntity

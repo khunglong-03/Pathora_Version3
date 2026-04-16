@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AdminSidebar } from "@/features/dashboard/components/AdminSidebar";
+import { AdminSidebar, TopBar } from "@/features/dashboard/components/AdminSidebar";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -47,8 +47,11 @@ export default function AdminShell({
       isAdmin={isAdmin}
       providerPortal={providerPortal}
     >
-      <div className="min-h-screen w-full bg-slate-100">
-        {children}
+      <div className="flex flex-col min-h-screen bg-slate-100 relative">
+        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+        <div className="flex-1 w-full mx-auto">
+          {children}
+        </div>
       </div>
     </AdminSidebar>
   );

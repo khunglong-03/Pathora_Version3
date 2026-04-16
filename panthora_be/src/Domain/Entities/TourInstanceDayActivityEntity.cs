@@ -38,6 +38,9 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     // Tách nhánh thông tin lịch trình cho Route (Transport)
     public virtual List<TourInstancePlanRouteEntity> Routes { get; set; } = [];
 
+    // Tách nhánh thông tin lịch trình cho Accommodation Room Blocks
+    public virtual List<RoomBlockEntity> RoomBlocks { get; set; } = [];
+
     public static TourInstanceDayActivityEntity Create(
         Guid tourInstanceDayId,
         int order,

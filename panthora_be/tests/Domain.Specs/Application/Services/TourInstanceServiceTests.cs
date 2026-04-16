@@ -27,12 +27,14 @@ public sealed class TourInstanceServiceTests
     private readonly IMapper _mapper = Substitute.For<IMapper>();
     private readonly ILogger<TourInstanceService> _logger = Substitute.For<ILogger<TourInstanceService>>();
     private readonly ITourInstanceNotificationBroadcaster _broadcaster = Substitute.For<ITourInstanceNotificationBroadcaster>();
+    private readonly ITourInstancePlanRouteRepository _routeRepository = Substitute.For<ITourInstancePlanRouteRepository>();
+    private readonly IRoomBlockRepository _roomBlockRepository = Substitute.For<IRoomBlockRepository>();
 
     private TourInstanceService CreateService() =>
-        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _user, _mapper, _logger);
+        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _user, _mapper, _logger);
 
     private TourInstanceService CreateServiceWithBroadcaster() =>
-        new(_tourInstanceRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _user, _mapper, _logger, _broadcaster);
+        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _user, _mapper, _logger, _broadcaster);
 
     private static TourEntity CreateTourWithClassification(Guid classificationId)
     {

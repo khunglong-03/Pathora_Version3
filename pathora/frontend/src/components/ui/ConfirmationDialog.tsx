@@ -13,6 +13,7 @@ interface ConfirmationDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isDestructive?: boolean;
+  children?: React.ReactNode;
 }
 
 export default function ConfirmationDialog({
@@ -24,6 +25,7 @@ export default function ConfirmationDialog({
   confirmLabel,
   cancelLabel,
   isDestructive = true,
+  children,
 }: ConfirmationDialogProps) {
   const { t } = useTranslation();
 
@@ -50,6 +52,7 @@ export default function ConfirmationDialog({
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {resolvedMessage}
         </p>
+        {children && <div className="mt-4 text-left">{children}</div>}
       </div>
       <div className="mt-6 flex justify-end gap-3">
         <button

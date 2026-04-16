@@ -21,6 +21,17 @@ public class TourInstancePlanRouteRepository(AppDbContext context)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<TourInstancePlanRouteEntity?> GetDetailsByIdTrackingAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<TourInstancePlanRouteEntity>()
+            .Include(x => x.Vehicle)
+            .Include(x => x.Driver)
+            .Include(x => x.TourInstanceDayActivity)
+                .ThenInclude(x => x.TourInstanceDay)
+                    .ThenInclude(x => x.TourInstance)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
     public async Task<List<TourInstancePlanRouteEntity>> GetByTourInstanceIdAsync(Guid instanceId, CancellationToken cancellationToken = default)
     {
         return await _context.Set<TourInstancePlanRouteEntity>()

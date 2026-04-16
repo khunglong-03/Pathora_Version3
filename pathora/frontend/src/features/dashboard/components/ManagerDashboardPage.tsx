@@ -514,15 +514,13 @@ export function ManagerDashboardPage() {
   const { data: dashboard, isLoading, error, refetch } = useManagerDashboardData();
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
+    <>
       <main
         id="manager-dashboard-main"
+        className="p-6 lg:py-8 lg:pr-8 lg:pl-6"
         style={{
           backgroundColor: T.bg,
           minHeight: "100vh",
-          padding: "32px 32px 32px 0",
         }}
       >
         {/* Header */}
@@ -649,7 +647,7 @@ export function ManagerDashboardPage() {
           </motion.div>
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }
 

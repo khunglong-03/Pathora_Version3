@@ -27,7 +27,8 @@ public sealed record TourInstanceDayActivityDto(
 public sealed record TourInstancePlanAccommodationDto(
     Guid Id,
     string RoomType,
-    int Quantity);
+    int Quantity,
+    int RoomBlocksTotal = 0);
 
 public sealed record TourInstancePlanRouteDto(
     Guid Id,

@@ -9,8 +9,11 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { useDebounce } from "@/hooks/useDebounce";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { adminService } from "@/api/services/adminService";
+import { api } from "@/api/axiosInstance";
+import { API_ENDPOINTS } from "@/api/endpoints";
+import { extractResult } from "@/utils/apiResponse";
 import type { TourManagerStaffDto, StaffMemberDto, StaffTourAssignment } from "@/types/admin";
+import type { ApiResponse } from "@/types/home";
 
 type DataState = "loading" | "ready" | "empty" | "error";
 type StatusFilter = "all" | "active" | "inactive";
@@ -172,6 +175,10 @@ function TourBadgeCard({ tour }: { tour: StaffTourAssignment }) {
 export default function StaffScheduleCalendar() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const safeT = (key: string, fallback: string) =>
+    mounted ? t(key, fallback) : fallback;
   
   const [dataState, setDataState] = useState<DataState>("loading");
   const [staffData, setStaffData] = useState<TourManagerStaffDto | null>(null);
@@ -200,7 +207,10 @@ export default function StaffScheduleCalendar() {
       setErrorMessage(null);
 
       try {
-        const result = await adminService.getTourManagerStaff(user.id);
+        const response = await api.get<ApiResponse<TourManagerStaffDto>>(
+          API_ENDPOINTS.MANAGER.GET_TOUR_MANAGER_STAFF(user.id),
+        );
+        const result = extractResult<TourManagerStaffDto>(response.data);
         if (!active) return;
 
         if (!result || result.staff.length === 0) {
@@ -215,7 +225,7 @@ export default function StaffScheduleCalendar() {
         setStaffData(null);
         setDataState("error");
         setErrorMessage(
-          err instanceof Error ? err.message : t("staffSchedule.error.fallback", "Failed to load staff schedule data")
+          err instanceof Error ? err.message : safeT("staffSchedule.error.fallback", "Failed to load staff schedule data")
         );
       }
     };
@@ -374,10 +384,10 @@ export default function StaffScheduleCalendar() {
       >
         <div className="pl-px">
           <h1 className="text-4xl font-bold tracking-tight text-stone-900">
-            {t("staffSchedule.pageTitle", "Staff Schedule")}
+            {safeT("staffSchedule.pageTitle", "Staff Schedule")}
           </h1>
           <p className="text-sm text-stone-500 mt-1.5">
-            {t("staffSchedule.pageSubtitle", "Monitor team assignments via calendar grid")}
+            {safeT("staffSchedule.pageSubtitle", "Monitor team assignments via calendar grid")}
           </p>
         </div>
         <button
@@ -385,7 +395,7 @@ export default function StaffScheduleCalendar() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-300 active:scale-[0.98] transition-all duration-200"
         >
           <Icon icon="heroicons:arrow-path" className="size-4" />
-          {t("common.refresh", "Refresh")}
+          {safeT("common.refresh", "Refresh")}
         </button>
       </motion.div>
 
@@ -405,7 +415,7 @@ export default function StaffScheduleCalendar() {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-red-800">
-                  {t("staffSchedule.error.title", "Failed to Load Schedule")}
+                  {safeT("staffSchedule.error.title", "Failed to Load Schedule")}
                 </h2>
                 <p className="text-sm text-red-700/80 mt-0.5">{errorMessage}</p>
               </div>
@@ -414,7 +424,7 @@ export default function StaffScheduleCalendar() {
               onClick={() => setReloadToken((v) => v + 1)}
               className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] transition-all duration-200 shrink-0"
             >
-              {t("common.retry", "Retry")}
+              {safeT("common.retry", "Retry")}
             </button>
           </div>
         </motion.div>
@@ -432,7 +442,7 @@ export default function StaffScheduleCalendar() {
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-amber-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{t("staffTracking.stat.total", "Total Staff")}</p>
+                  <p className="text-sm text-stone-500">{safeT("staffTracking.stat.total", "Total Staff")}</p>
                 </div>
                 <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.total}</p>
               </Card>
@@ -440,7 +450,7 @@ export default function StaffScheduleCalendar() {
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-red-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{t("staffTracking.stat.busy", "Currently Busy")}</p>
+                  <p className="text-sm text-stone-500">{safeT("staffTracking.stat.busy", "Currently Busy")}</p>
                 </div>
                 <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.busyCount}</p>
               </Card>
@@ -448,7 +458,7 @@ export default function StaffScheduleCalendar() {
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-emerald-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{t("staffTracking.stat.available", "Available")}</p>
+                  <p className="text-sm text-stone-500">{safeT("staffTracking.stat.available", "Available")}</p>
                 </div>
                 <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.availableCount}</p>
               </Card>
@@ -456,7 +466,7 @@ export default function StaffScheduleCalendar() {
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-sky-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{t("staffTracking.stat.assignments", "Tour Assignments")}</p>
+                  <p className="text-sm text-stone-500">{safeT("staffTracking.stat.assignments", "Tour Assignments")}</p>
                 </div>
                 <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.totalTourAssignments}</p>
               </Card>
@@ -464,7 +474,7 @@ export default function StaffScheduleCalendar() {
             <motion.div variants={itemVariants}>
               <Card className="rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-stone-200/50 border-l-4 border-l-violet-300 !p-0" bodyClass="p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-stone-500">{t("staffSchedule.stat.toursThisMonth", "Tours This Month")}</p>
+                  <p className="text-sm text-stone-500">{safeT("staffSchedule.stat.toursThisMonth", "Tours This Month")}</p>
                 </div>
                 <p className="text-2xl font-bold text-stone-900 tracking-tight">{metrics.toursThisMonth}</p>
               </Card>
@@ -488,7 +498,7 @@ export default function StaffScheduleCalendar() {
                     </button>
                  </div>
                  <button onClick={handleToday} className="px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors">
-                   {t("staffSchedule.calendar.today", "Hôm nay")}
+                   {safeT("staffSchedule.calendar.today", "Hôm nay")}
                  </button>
                </div>
                
@@ -550,7 +560,7 @@ export default function StaffScheduleCalendar() {
                          })}
                          {hasMore && (
                            <div className="px-1.5 py-0.5 text-[10px] sm:text-xs font-medium rounded text-stone-500 bg-stone-100 cursor-pointer hover:bg-stone-200 truncate">
-                             +{assignments.length - displayLimit} {t("staffSchedule.calendar.more", "khác")}
+                             +{assignments.length - displayLimit} {safeT("staffSchedule.calendar.more", "khác")}
                            </div>
                          )}
                        </div>
@@ -602,7 +612,7 @@ export default function StaffScheduleCalendar() {
           {!isEmpty && (
           <motion.div className="flex flex-col flex-wrap sm:flex-row sm:items-center gap-3 mt-8" variants={itemVariants} initial="hidden" animate="show">
             <h3 className="text-lg font-bold text-stone-800 sm:mr-auto">
-              {t("staffSchedule.list.title", "Danh sách nhân viên")} ({filteredStaff.length})
+              {safeT("staffSchedule.list.title", "Danh sách nhân viên")} ({filteredStaff.length})
             </h3>
             <div className="relative w-full sm:max-w-sm">
               <Icon
@@ -610,14 +620,14 @@ export default function StaffScheduleCalendar() {
                 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400"
               />
               <label htmlFor="staff-search" className="sr-only">
-                {t("common.search", "Search")}
+                {safeT("common.search", "Search")}
               </label>
               <input
                 id="staff-search"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("staffTracking.searchPlaceholder", "Search staff or tours...")}
+                placeholder={safeT("staffTracking.searchPlaceholder", "Search staff or tours...")}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 transition-all duration-200"
               />
             </div>
@@ -633,7 +643,7 @@ export default function StaffScheduleCalendar() {
                   }`}
                 >
                   {status === "all"
-                    ? t("staffTracking.filterAll", "All")
+                    ? safeT("staffTracking.filterAll", "All")
                     : status.charAt(0).toUpperCase() + status.slice(1)}
                 </button>
               ))}
@@ -651,10 +661,10 @@ export default function StaffScheduleCalendar() {
                 <Icon icon="heroicons:user-group" className="size-7 text-stone-300" />
               </div>
               <h2 className="text-lg font-semibold text-stone-700">
-                {t("staffTracking.empty.title", "No Staff Members")}
+                {safeT("staffTracking.empty.title", "No Staff Members")}
               </h2>
               <p className="text-sm text-stone-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                {t("staffTracking.empty.description", "Your team doesn't have any staff members yet.")}
+                {safeT("staffTracking.empty.description", "Your team doesn't have any staff members yet.")}
               </p>
             </motion.div>
           ) : (
@@ -666,16 +676,16 @@ export default function StaffScheduleCalendar() {
                       <tr className="border-b border-stone-100">
                         <th className="w-4"></th>
                         <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest min-w-[200px]">
-                          {t("staffTracking.column.name", "Staff Member")}
+                          {safeT("staffTracking.column.name", "Staff Member")}
                         </th>
                         <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest whitespace-nowrap">
-                          {t("staffTracking.column.role", "Role")}
+                          {safeT("staffTracking.column.role", "Role")}
                         </th>
                         <th className="text-center px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest whitespace-nowrap">
-                          {t("staffTracking.column.status", "Status")}
+                          {safeT("staffTracking.column.status", "Status")}
                         </th>
                         <th className="text-center px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest whitespace-nowrap">
-                          {t("staffTracking.column.availability", "Availability")}
+                          {safeT("staffTracking.column.availability", "Availability")}
                         </th>
                         <th className="text-right px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest w-24">
                           Actions
@@ -686,7 +696,7 @@ export default function StaffScheduleCalendar() {
                       {filteredStaff.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-6 py-10 text-center text-sm text-stone-500">
-                            {t("staffTracking.noMatch", "No staff members match your search or filter.")}
+                            {safeT("staffTracking.noMatch", "No staff members match your search or filter.")}
                           </td>
                         </tr>
                       ) : (
@@ -736,7 +746,7 @@ export default function StaffScheduleCalendar() {
                                 <button
                                   onClick={() => openDetail(member)}
                                   className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-stone-100 text-stone-500 hover:bg-amber-100 hover:text-amber-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                  title={t("staffSchedule.list.viewDetail", "Xem chi tiết")}
+                                  title={safeT("staffSchedule.list.viewDetail", "Xem chi tiết")}
                                 >
                                   <Icon icon="heroicons:eye" className="size-4" />
                                 </button>
@@ -818,7 +828,7 @@ export default function StaffScheduleCalendar() {
                  <div className="space-y-3">
                    {selectedStaff.activeTours.length === 0 ? (
                       <div className="text-center py-8 text-sm text-stone-500">
-                        {t("staffSchedule.detail.noTours", "Nhân viên này hiện chưa được gán tour nào.")}
+                        {safeT("staffSchedule.detail.noTours", "Nhân viên này hiện chưa được gán tour nào.")}
                       </div>
                    ) : (
                       // Sort ongoing first, then upcoming, then past

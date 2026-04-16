@@ -3,10 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 import { Icon, VisaStatusBadge } from "@/components/ui";
 import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { adminService } from "@/api/services/adminService";
+import { managerService } from "@/api/services/managerService";
 import type { AdminOverview, AdminVisaApplication } from "@/types/admin";
 import { buildVisaRowKeys } from "./visaPageLogic";
 
@@ -46,6 +48,8 @@ const rowVariants = {
 
 export function VisaApplicationsPage() {
   const { t } = useTranslation();
+  const pathname = usePathname();
+  const isManager = pathname?.startsWith("/manager");
   const [statusFilter, setStatusFilter] = useState("all");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<VisaDataState>("loading");
@@ -60,7 +64,9 @@ export function VisaApplicationsPage() {
       setErrorMessage(null);
 
       try {
-        const result = await adminService.getOverview();
+        const result = isManager
+          ? await managerService.getOverview()
+          : await adminService.getOverview();
         if (!active) return;
         if (!result) {
           setOverview(null);

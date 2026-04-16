@@ -139,7 +139,7 @@ public class IdentityService(
         UserEntity? userEntity;
         try
         {
-            userEntity = await _userRepository.FindByEmail(request.Email);
+            userEntity = await _userRepository.FindByEmail(request.Email, cancellationToken);
         }
         catch
         {
@@ -162,7 +162,7 @@ public class IdentityService(
             return Error.Unauthorized(ErrorConstants.Auth.InvalidCredentialsCode, ErrorConstants.Auth.InvalidCredentialsDescription);
         }
 
-        var tokenResult = await _tokenManager.GenerateToken(userEntity);
+        var tokenResult = await _tokenManager.GenerateToken(userEntity, cancellationToken);
         if (tokenResult.IsError)
         {
             return Error.Custom(503, ErrorConstants.Auth.ServiceUnavailableCode, ErrorConstants.Auth.ServiceUnavailableDescription);
@@ -183,7 +183,7 @@ public class IdentityService(
         UserEntity? userEntity;
         try
         {
-            userEntity = await _userRepository.FindByEmail(request.Email);
+            userEntity = await _userRepository.FindByEmail(request.Email, cancellationToken);
         }
         catch
         {

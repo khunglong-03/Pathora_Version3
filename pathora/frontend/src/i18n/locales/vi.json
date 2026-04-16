@@ -241,6 +241,10 @@
         "submitted": "Ngày Nộp",
         "decision": "Quyết Định"
       }
+    },
+    "bankAccounts": {
+      "pageTitle": "Tài Khoản Ngân Hàng",
+      "pageSubtitle": "Quản lý các tài khoản ngân hàng để nhận thanh toán"
     }
   },
   "placeholder": {
@@ -2728,6 +2732,34 @@
     },
     "filter": {
       "all": "Tất cả"
+    }
+  },
+  "bookings": {
+    "pageTitle": "Đặt Chỗ",
+    "pageSubtitle": "Theo dõi và quản lý tất cả đơn đặt chỗ",
+    "openCustomerPage": "Trang khách hàng",
+    "tableLabel": "Đặt chỗ",
+    "stat": {
+      "totalBookings": "Tổng Đặt Chỗ",
+      "confirmed": "Đã Xác Nhận",
+      "totalRevenue": "Tổng Doanh Thu"
+    },
+    "column": {
+      "booking": "Mã Đặt Chỗ",
+      "customer": "Khách Hàng",
+      "tour": "Tour",
+      "departure": "Ngày Khởi Hành",
+      "amount": "Số Tiền",
+      "status": "Trạng Thái"
+    },
+    "empty": {
+      "title": "Chưa có đơn đặt chỗ",
+      "description": "Không có đơn đặt chỗ nào để hiển thị."
+    },
+    "error": {
+      "title": "Không thể tải đặt chỗ",
+      "fallback": "Không thể tải dữ liệu đặt chỗ. Vui lòng thử lại.",
+      "loadFailed": "Không thể tải danh sách đặt chỗ"
     }
   },
   "taxConfig": {

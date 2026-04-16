@@ -746,6 +746,40 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
     i18n.changeLanguage(currentLang === "en" ? "vi" : "en");
   };
 
+  const hasTitle = Boolean(title);
+
+  if (!hasTitle) {
+    return (
+      <header className="absolute top-0 right-0 z-40 w-full flex items-center justify-between px-6 py-3 pointer-events-none">
+        <button
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          className="lg:hidden pointer-events-auto text-stone-500 hover:text-stone-700 bg-white/80 backdrop-blur rounded-lg p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <ListIcon size={22} weight="bold" />
+        </button>
+        <div className="pointer-events-auto ml-auto flex items-center gap-1">
+          <button
+            onClick={toggleLanguage}
+            aria-label="Toggle Language"
+            title="Change language"
+            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
+            <GlobeHemisphereWestIcon size={20} weight="regular" />
+            {currentLang}
+          </button>
+          <button
+            aria-label="Notifications"
+            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+            <BellIcon size={20} weight="regular" />
+            <span
+              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+              style={{ backgroundColor: "var(--accent)" }}
+            />
+          </button>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header
       className="sticky top-0 z-40 h-16 flex items-center px-6 gap-4 border-b transition-shadow duration-200"
@@ -757,7 +791,7 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
       <button
         onClick={onMenuClick}
         aria-label="Open menu"
-        className="lg:hidden text-stone-400 hover:text-stone-600 rounded-lg p-2 -ml-2 transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+        className="lg:hidden text-stone-400 hover:text-stone-600 rounded-lg p-2 -ml-2 transition-all duration-200 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
         <ListIcon size={22} weight="bold" />
       </button>
       {title && (

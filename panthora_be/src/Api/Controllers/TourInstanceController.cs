@@ -152,6 +152,14 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
+    [HttpPut("{instanceId:guid}/accommodations/{activityId:guid}/assign-rooms")]
+    public async Task<IActionResult> AssignRoomToAccommodation(Guid instanceId, Guid activityId, [FromBody] AssignRoomRequest request)
+    {
+        var result = await Sender.Send(new AssignRoomToAccommodationCommand(instanceId, activityId, request.RoomType, request.RoomCount));
+        return HandleResult(result);
+    }
+
+    [AllowAnonymous]
     [HttpPut("{instanceId:guid}/routes/{routeId:guid}/assign")]
     public async Task<IActionResult> AssignVehicleToRoute(Guid instanceId, Guid routeId, [FromBody] AssignVehicleToRouteRequest request)
     {
@@ -174,10 +182,13 @@ public class TourInstanceController : BaseApiController
         var result = await Sender.Send(new Application.Features.TourInstance.Queries.GetMyAssignedTourInstanceDetailQuery(id));
         return HandleResult(result);
     }
+
 }
 
 public sealed record ProviderApproveRequest(bool IsApproved, string? Note);
 
 public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
+
+public sealed record AssignRoomRequest(string RoomType, int RoomCount);
 
 public sealed record ChangeTourInstanceStatusRequest(TourInstanceStatus Status);

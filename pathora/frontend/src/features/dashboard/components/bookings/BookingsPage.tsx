@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
-import { AdminSidebar, TopBar } from "../AdminSidebar";
 import { useBookingsData } from "./BookingsPageHooks";
 import { buildStatCards } from "./ui/BookingsStatCards";
 import { BookingsTable } from "./ui/BookingsTable";
@@ -14,7 +13,6 @@ import { CSS } from "./BookingsPageData";
 
 export default function BookingsPage() {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
     isLoading,
@@ -35,12 +33,11 @@ export default function BookingsPage() {
     bookings,
     confirmedCount,
     confirmedPercent,
-    totalRevenue,
+    totalRevenue
   );
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
+    <>
 
       <main id="main-content" className="px-6 pb-16 max-w-[87.5rem] mx-auto w-full">
 
@@ -154,6 +151,6 @@ export default function BookingsPage() {
           </>
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }

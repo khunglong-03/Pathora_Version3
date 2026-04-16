@@ -40,10 +40,12 @@ public interface ITourInstanceService
 
 public class TourInstanceService(
     ITourInstanceRepository tourInstanceRepository,
+    ITourInstancePlanRouteRepository routeRepository,
     ITourRepository tourRepository,
     ITourRequestRepository tourRequestRepository,
     ISupplierRepository supplierRepository,
     IMailRepository mailRepository,
+    IRoomBlockRepository roomBlockRepository,
     IUser user,
     IMapper mapper,
     ILogger<TourInstanceService> logger,
@@ -54,6 +56,7 @@ public class TourInstanceService(
     private readonly ITourRequestRepository _tourRequestRepository = tourRequestRepository;
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
     private readonly IMailRepository _mailRepository = mailRepository;
+    private readonly IRoomBlockRepository _roomBlockRepository = roomBlockRepository;
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
@@ -181,20 +184,21 @@ public class TourInstanceService(
                     isOptional: templateActivity.IsOptional
                 );
 
-                if (templateActivity.ActivityType == TourDayActivityType.Accommodation && assignedData?.RoomType.HasValue == true)
+                switch (templateActivity.ActivityType)
                 {
-                    instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
-                        instanceActivity.Id,
-                        assignedData.RoomType,
-                        assignedData.AccommodationQuantity ?? 1
-                    );
-                }
-                else if (templateActivity.ActivityType == TourDayActivityType.Transportation && assignedData?.VehicleId.HasValue == true)
-                {
-                    instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
-                        instanceActivity.Id,
-                        assignedData.VehicleId
-                    ));
+                    case TourDayActivityType.Accommodation when (assignedData?.RoomType.HasValue == true):
+                        instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
+                            instanceActivity.Id,
+                            assignedData.RoomType,
+                            assignedData.AccommodationQuantity ?? 1
+                        );
+                        break;
+                    case TourDayActivityType.Transportation when (assignedData?.VehicleId.HasValue == true):
+                        instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
+                            instanceActivity.Id,
+                            assignedData.VehicleId
+                        ));
+                        break;
                 }
 
                 instanceDay.Activities.Add(instanceActivity);
@@ -453,7 +457,7 @@ public class TourInstanceService(
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var instance = await _tourInstanceRepository.FindById(instanceId);
+        var instance = await _tourInstanceRepository.FindById(instanceId, cancellationToken: cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -467,9 +471,51 @@ public class TourInstanceService(
         if (!hasAccess)
             return Error.Validation("TourInstance.ProviderNotAssigned", $"You are not assigned as the {providerType} provider for this tour instance.");
 
+        if (providerType == "Transport" && isApproved)
+        {
+            var routes = await routeRepository.GetByTourInstanceIdAsync(instanceId, cancellationToken);
+            var unassigned = routes.Where(r => r.VehicleId == null || r.DriverId == null).ToList();
+            if (unassigned.Count > 0)
+                return Error.Validation("TourInstance.RoutesNotAssigned", $"Còn {unassigned.Count} tuyến chưa được gán xe/tài xế.");
+        }
+
+        if (providerType == "Hotel" && isApproved)
+        {
+            var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+            if (fullInstance != null)
+            {
+                var accommodationActivities = fullInstance.InstanceDays
+                    .Where(d => !d.IsDeleted)
+                    .SelectMany(d => d.Activities)
+                    .Where(a => a.ActivityType == TourDayActivityType.Accommodation)
+                    .ToList();
+                
+                var activityIds = accommodationActivities.Select(a => a.Id).ToList();
+                var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
+                var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
+                    .ToDictionary(g => g.Key!.Value, g => g.ToList());
+                
+                var underAllocated = new List<string>();
+                foreach (var activity in accommodationActivities)
+                {
+                    var planAccom = activity.Accommodation;
+                    if (planAccom == null || planAccom.Quantity <= 0) continue;
+                    
+                    blocksByActivity.TryGetValue(activity.Id, out var blocks);
+                    var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
+                    
+                    if (totalBlocked < planAccom.Quantity)
+                        underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
+                }
+                
+                if (underAllocated.Count > 0)
+                    return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
+            }
+        }
+
         var statusBeforeApprove = instance.Status;
         instance.ApproveByProvider(supplier.Id, isApproved, note);
-        await _tourInstanceRepository.Update(instance);
+        await _tourInstanceRepository.Update(instance, cancellationToken);
 
         // Notify manager and admins about the approval result (fire-and-forget)
         await NotifyProviderApprovalResultAsync(instance, supplier.Name, isApproved, note);
@@ -480,7 +526,7 @@ public class TourInstanceService(
             try
             {
                 if (_notificationBroadcaster is not null)
-                    await _notificationBroadcaster.NotifyTourInstanceStatusChangeAsync(instance.Id, instance.Status);
+                    await _notificationBroadcaster.NotifyTourInstanceStatusChangeAsync(instance.Id, instance.Status, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -514,7 +560,7 @@ public class TourInstanceService(
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var total = await _tourInstanceRepository.CountByGuideUserId(currentUserId);
+        var total = await _tourInstanceRepository.CountByGuideUserId(currentUserId, cancellationToken);
         var entities = await _tourInstanceRepository.FindByGuideUserId(currentUserId, pageNumber, pageSize, cancellationToken);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
@@ -526,7 +572,7 @@ public class TourInstanceService(
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var entity = await _tourInstanceRepository.FindByIdWithInstanceDays(id);
+        var entity = await _tourInstanceRepository.FindByIdWithInstanceDays(id, cancellationToken);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 

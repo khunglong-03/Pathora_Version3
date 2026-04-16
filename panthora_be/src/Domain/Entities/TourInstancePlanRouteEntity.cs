@@ -44,6 +44,12 @@ public class TourInstancePlanRouteEntity : Entity<Guid>
         };
     }
 
+    public void AssignTransport(Guid vehicleId, Guid driverId)
+    {
+        VehicleId = vehicleId;
+        DriverId = driverId;
+    }
+
     public void Update(Guid? vehicleId = null, Guid? driverId = null, string? pickupLocation = null, string? dropoffLocation = null, DateTimeOffset? departureTime = null, DateTimeOffset? arrivalTime = null)
     {
         VehicleId = vehicleId;

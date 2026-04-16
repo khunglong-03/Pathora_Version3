@@ -452,6 +452,33 @@ export const tourInstanceService = {
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ROUTE_VEHICLE(instanceId, routeId),
       { vehicleId: data.vehicleId, driverId: data.driverId },
     );
-    return extractResult(response.data);
+    return extractResult<{
+      success: boolean;
+      seatCapacityWarning: boolean;
+      vehicleSeatCapacity?: number | null;
+      tourMaxParticipation?: number | null;
+    }>(response.data);
+  },
+
+  assignRoomToAccommodation: async (
+    instanceId: string,
+    activityId: string,
+    data: { roomType: string; roomCount: number },
+  ) => {
+    const response = await api.put<ApiResponse<{
+      success: boolean;
+      availabilityWarning: boolean;
+      availableAfter: number;
+      totalRooms: number;
+    }>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ROOM_TO_ACCOMMODATION(instanceId, activityId),
+      data,
+    );
+    return extractResult<{
+      success: boolean;
+      availabilityWarning: boolean;
+      availableAfter: number;
+      totalRooms: number;
+    }>(response.data);
   },
 };

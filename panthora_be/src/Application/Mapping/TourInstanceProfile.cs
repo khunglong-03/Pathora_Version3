@@ -44,7 +44,8 @@ public sealed class TourInstanceProfile : Profile
         CreateMap<TourInstancePlanAccommodationEntity, TourInstancePlanAccommodationDto>()
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomType), opt => opt.MapFrom(src => src.RoomType.ToString()))
-            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Quantity), opt => opt.MapFrom(src => src.Quantity));
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Quantity), opt => opt.MapFrom(src => src.Quantity))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomBlocksTotal), opt => opt.MapFrom(src => src.TourInstanceDayActivity != null && src.TourInstanceDayActivity.RoomBlocks != null ? src.TourInstanceDayActivity.RoomBlocks.Sum(b => b.RoomCountBlocked) : 0));
 
         CreateMap<TourInstancePlanRouteEntity, TourInstancePlanRouteDto>()
             .ForCtorParam(nameof(TourInstancePlanRouteDto.Id), opt => opt.MapFrom(src => src.Id))

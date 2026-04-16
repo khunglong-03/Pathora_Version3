@@ -23,6 +23,11 @@ public class RoomBlockEntity : Aggregate<Guid>
     /// <summary>ID Booking liên quan.</summary>
     public Guid? BookingId { get; set; }
 
+    /// <summary>ID TourInstanceDayActivity liên quan (gán phòng cho tour).</summary>
+    public Guid? TourInstanceDayActivityId { get; set; }
+    /// <summary>TourInstanceDayActivity liên quan.</summary>
+    public virtual TourInstanceDayActivityEntity? TourInstanceDayActivity { get; set; }
+
     /// <summary>Ngày phòng bị block.</summary>
     public DateOnly BlockedDate { get; set; }
     /// <summary>Số phòng bị block trong ngày này.</summary>
@@ -35,7 +40,8 @@ public class RoomBlockEntity : Aggregate<Guid>
         int roomCountBlocked,
         string performedBy,
         Guid? bookingAccommodationDetailId = null,
-        Guid? bookingId = null)
+        Guid? bookingId = null,
+        Guid? tourInstanceDayActivityId = null)
     {
         if (roomCountBlocked <= 0)
             throw new ArgumentOutOfRangeException(nameof(roomCountBlocked), "RoomCountBlocked must be greater than 0.");
@@ -47,6 +53,7 @@ public class RoomBlockEntity : Aggregate<Guid>
             RoomType = roomType,
             BookingAccommodationDetailId = bookingAccommodationDetailId,
             BookingId = bookingId,
+            TourInstanceDayActivityId = tourInstanceDayActivityId,
             BlockedDate = blockedDate,
             RoomCountBlocked = roomCountBlocked,
             CreatedBy = performedBy,

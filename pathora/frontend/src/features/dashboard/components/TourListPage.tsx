@@ -141,9 +141,7 @@ export function TourListPage() {
   const showingTo = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
+    <>
       <main id="main-content" className="p-6 space-y-8 max-w-[87.5rem] mx-auto">
         {/* ── Page Header ────────────────────────────────── */}
         <motion.div
@@ -575,6 +573,6 @@ export function TourListPage() {
           </div>
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }

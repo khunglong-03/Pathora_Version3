@@ -244,9 +244,7 @@ export function TourInstanceListPage({
     new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
+    <>
       <main id="main-content" className="p-6 space-y-8 max-w-[87.5rem] mx-auto">
         {/* ── Page Header ────────────────────────────────── */}
         <motion.div
@@ -729,6 +727,6 @@ export function TourInstanceListPage({
           </div>
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }

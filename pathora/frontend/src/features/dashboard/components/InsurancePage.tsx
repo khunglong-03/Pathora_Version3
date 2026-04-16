@@ -3,10 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 import { Icon, InsuranceStatusBadge } from "@/components/ui";
 import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { adminService } from "@/api/services/adminService";
+import { managerService } from "@/api/services/managerService";
 import type { AdminInsurance, AdminOverview } from "@/types/admin";
 
 interface StatCardProps {
@@ -170,6 +172,8 @@ const itemVariants = {
 
 export function InsurancePage() {
   const { t } = useTranslation();
+  const pathname = usePathname();
+  const isManager = pathname?.startsWith("/manager");
   const [statusFilter, setStatusFilter] = useState("all");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [dataState, setDataState] = useState<InsuranceDataState>("loading");
@@ -184,7 +188,9 @@ export function InsurancePage() {
       setErrorMessage(null);
 
       try {
-        const result = await adminService.getOverview();
+        const result = isManager
+          ? await managerService.getOverview()
+          : await adminService.getOverview();
         if (!active) return;
         if (!result) {
           setOverview(null);

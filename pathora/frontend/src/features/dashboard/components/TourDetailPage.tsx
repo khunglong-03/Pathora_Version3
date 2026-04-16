@@ -1250,11 +1250,8 @@ export function TourDetailPage() {
   }, [tour?.status, applyStatusChange]);
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
-      <div className="lg:ml-64">
+    <>
+      <div className="">
         {/* Loading */}
         {dataState === "loading" && (
           <div className="p-6 space-y-4">
@@ -1545,6 +1542,6 @@ export function TourDetailPage() {
         cancelLabel={t("tourAdmin.confirmStatusChange.cancel", "Cancel")}
         isDestructive={false}
       />
-    </div>
+    </>
   );
 }

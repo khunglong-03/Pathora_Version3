@@ -8,7 +8,7 @@ import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { AdminCustomer } from "@/types/admin";
-import { AdminSidebar } from "./AdminSidebar";
+
 
 import {
   calculateCustomerMetrics,
@@ -19,60 +19,7 @@ import {
 } from "./customersPageLogic";
 
 
-function TopBar({
-  onMenuClick,
-  searchQuery,
-  onSearchQueryChange,
-  disableSearch,
-}: {
-  onMenuClick: () => void;
-  searchQuery: string;
-  onSearchQueryChange: (value: string) => void;
-  disableSearch: boolean;
-}) {
-  const { t } = useTranslation();
 
-  return (
-    <header className="sticky top-0 z-40 bg-white border-b border-stone-200 h-16 flex items-center px-6 gap-4">
-      <button
-        onClick={onMenuClick}
-        aria-label={t("common.a11y.openMenu")}
-        className="lg:hidden text-stone-500"
-      >
-        <Icon icon="heroicons:bars-3" className="size-6" />
-      </button>
-      <div className="relative flex-1 max-w-xl">
-        <Icon
-          icon="heroicons:magnifying-glass"
-          className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400"
-        />
-        <label htmlFor="customers-search" className="sr-only">
-          {t("common.search", "Search")}
-        </label>
-        <input
-          id="customers-search"
-          type="text"
-          value={searchQuery}
-          onChange={(event) => onSearchQueryChange(event.target.value)}
-          disabled={disableSearch}
-          placeholder={t("common.customers.searchPlaceholder")}
-          className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
-        />
-      </div>
-      <div className="ml-auto relative">
-        <button
-          aria-label={t("common.a11y.notificationsAria", { count: 3 })}
-          className="relative p-2 text-stone-500 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition-colors"
-        >
-          <Icon icon="heroicons:bell" className="size-5" />
-          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
-            3
-          </span>
-        </button>
-      </div>
-    </header>
-  );
-}
 
 interface StatCardProps {
   label: string;
@@ -172,7 +119,7 @@ const itemVariants = {
 
 export function CustomersPage() {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [statusFilter, setStatusFilter] = useState<CustomerStatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
@@ -228,13 +175,7 @@ export function CustomersPage() {
   };
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar
-        onMenuClick={() => setSidebarOpen(true)}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        disableSearch={!canShowData}
-      />
+    <>
       <main id="main-content" className="p-6 lg:p-8 max-w-[87.5rem] mx-auto space-y-6">
         {/* Page header with left-offset asymmetric placement */}
         <motion.div
@@ -250,6 +191,26 @@ export function CustomersPage() {
             <p className="text-sm text-stone-500 mt-1.5">
               {t("common.customers.pageSubtitle")}
             </p>
+          </div>
+          
+          {/* Action Area: Search Input */}
+          <div className="relative w-full sm:w-80">
+            <Icon
+              icon="heroicons:magnifying-glass"
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400"
+            />
+            <label htmlFor="customers-search" className="sr-only">
+              {t("common.search", "Search")}
+            </label>
+            <input
+              id="customers-search"
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              disabled={!canShowData}
+              placeholder={t("common.customers.searchPlaceholder")}
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+            />
           </div>
         </motion.div>
 
@@ -491,7 +452,7 @@ export function CustomersPage() {
           </motion.div>
         ) : null}
       </main>
-    </AdminSidebar>
+    </>
   );
 }
 

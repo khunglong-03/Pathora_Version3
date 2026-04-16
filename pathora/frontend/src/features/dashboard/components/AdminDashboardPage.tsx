@@ -18,9 +18,7 @@ export function AdminDashboardPage() {
   const { data: dashboard, isLoading, error, refetch } = useDashboardData();
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
+    <>
       <main id="main-content" className="p-6 lg:py-8 lg:pr-8 lg:pl-6" style={{ backgroundColor: "#F1F5F9", minHeight: "100vh" }}>
 
         <DashboardHeader
@@ -59,7 +57,7 @@ export function AdminDashboardPage() {
           </>
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }
 

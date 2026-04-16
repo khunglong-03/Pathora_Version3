@@ -45,7 +45,7 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var route = await routeRepository.GetDetailsByIdAsync(request.RouteId, cancellationToken);
+        var route = await routeRepository.GetDetailsByIdTrackingAsync(request.RouteId, cancellationToken);
         if (route is null || route.TourInstanceDayActivity.TourInstanceDay.TourInstanceId != request.InstanceId)
             return Error.NotFound("TourInstancePlanRoute.NotFound", "Route not found for the specified tour instance.");
 
@@ -73,13 +73,9 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (!driver.IsActive)
             return Error.Validation("Driver.Inactive", "Driver is inactive.");
 
-        route.Update(
+        route.AssignTransport(
             vehicleId: request.VehicleId,
-            driverId: request.DriverId,
-            pickupLocation: route.PickupLocation,
-            dropoffLocation: route.DropoffLocation,
-            departureTime: route.DepartureTime,
-            arrivalTime: route.ArrivalTime);
+            driverId: request.DriverId);
 
         routeRepository.Update(route);
 

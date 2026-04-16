@@ -73,4 +73,31 @@ public class RoomBlockRepository(AppDbContext context)
     {
         _dbSet.Add(entity);
     }
+
+    public async Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdAsync(
+        Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(x => x.TourInstanceDayActivityId == tourInstanceDayActivityId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task DeleteByTourInstanceDayActivityIdAsync(
+        Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default)
+    {
+        var blocks = await _dbSet
+            .Where(x => x.TourInstanceDayActivityId == tourInstanceDayActivityId)
+            .ToListAsync(cancellationToken);
+
+        _dbSet.RemoveRange(blocks);
+    }
+
+    public async Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdsAsync(
+        IEnumerable<Guid> tourInstanceDayActivityIds, CancellationToken cancellationToken = default)
+    {
+        var ids = tourInstanceDayActivityIds.ToList();
+        return await _dbSet
+            .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId.Value))
+            .ToListAsync(cancellationToken);
+    }
 }

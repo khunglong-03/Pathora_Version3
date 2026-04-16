@@ -241,6 +241,10 @@
         "submitted": "Submitted",
         "decision": "Decision"
       }
+    },
+    "bankAccounts": {
+      "pageTitle": "Bank Accounts",
+      "pageSubtitle": "Manage bank accounts for receiving payments"
     }
   },
   "placeholder": {
@@ -2747,6 +2751,34 @@
     },
     "filter": {
       "all": "All"
+    }
+  },
+  "bookings": {
+    "pageTitle": "Bookings",
+    "pageSubtitle": "Track and manage all booking orders",
+    "openCustomerPage": "Customer view",
+    "tableLabel": "Bookings",
+    "stat": {
+      "totalBookings": "Total Bookings",
+      "confirmed": "Confirmed",
+      "totalRevenue": "Total Revenue"
+    },
+    "column": {
+      "booking": "Booking ID",
+      "customer": "Customer",
+      "tour": "Tour",
+      "departure": "Departure",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No bookings yet",
+      "description": "There are no booking records to display."
+    },
+    "error": {
+      "title": "Could not load bookings",
+      "fallback": "Unable to load booking data. Please try again.",
+      "loadFailed": "Failed to load bookings list"
     }
   },
   "tourDesigner": {

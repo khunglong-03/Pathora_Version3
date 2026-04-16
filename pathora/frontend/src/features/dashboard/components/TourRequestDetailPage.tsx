@@ -14,7 +14,6 @@ import {
   type TourRequestDetailDto,
 } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
-import { AdminSidebar, TopBar } from "./AdminSidebar";
 
 type ReviewAction = "approve" | "reject";
 
@@ -248,7 +247,6 @@ export function TourRequestDetailPage() {
   const [adminNote, setAdminNote] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isLoading = dataState === "loading";
   const isError = dataState === "error";
@@ -341,17 +339,10 @@ export function TourRequestDetailPage() {
   };
 
   return (
-    <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      <TopBar
-        onMenuClick={() => setSidebarOpen(true)}
-        title={t("tourRequest.page.adminDetail.title")}
-        subtitle={t("tourRequest.page.adminRequests.subtitle")}
-      />
-
+    <>
       <main
         id="main-content"
         className="p-6 lg:py-8 lg:pr-8 lg:pl-6"
-        style={{ backgroundColor: "#F1F5F9", minHeight: "100vh" }}
       >
         <div className="max-w-7xl mx-auto space-y-5">
           <motion.div
@@ -642,6 +633,6 @@ export function TourRequestDetailPage() {
           />
         )}
       </main>
-    </AdminSidebar>
+    </>
   );
 }

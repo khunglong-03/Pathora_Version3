@@ -527,7 +527,7 @@ export default function TourInstanceDetailPage() {
 
   if (dataState === "loading") {
     return (
-      <main className="min-h-screen bg-stone-50 p-6 md:p-8">
+      <main className="p-6 md:p-8">
         <div className="mx-auto max-w-6xl space-y-4">
           <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
             <SkeletonCard />
@@ -549,7 +549,7 @@ export default function TourInstanceDetailPage() {
 
   if (dataState === "error" || !data || !form) {
     return (
-      <main className="min-h-screen bg-stone-50 p-6 md:p-8">
+      <main className="p-6 md:p-8">
         <div className="mx-auto max-w-2xl rounded-[2.5rem] border border-stone-200 bg-white p-8 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
           <Icon
             icon="heroicons:exclamation-circle"
@@ -591,7 +591,7 @@ export default function TourInstanceDetailPage() {
   const managersDisplay = (data.managers ?? []).filter((m) => m.role === "Manager");
 
   return (
-    <main className="min-h-screen bg-stone-50 p-6 md:p-8">
+    <main className="p-6 md:p-8">
       {showCreatedBanner && (
         <div className="mx-auto max-w-6xl mb-4">
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">

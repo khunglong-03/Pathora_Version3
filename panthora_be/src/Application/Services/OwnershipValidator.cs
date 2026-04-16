@@ -29,7 +29,7 @@ public sealed class OwnershipValidator(
             return false;
         }
 
-        var rolesResult = await _roleRepository.FindByUserId(currentUserId.ToString());
+        var rolesResult = await _roleRepository.FindByUserId(currentUserId.ToString(), cancellationToken);
         if (rolesResult.IsError)
         {
             return false;
