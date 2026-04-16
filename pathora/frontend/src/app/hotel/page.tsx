@@ -287,7 +287,7 @@ export default function HotelDashboardPage() {
 
   return (
     <div style={{ backgroundColor: T.bg, minHeight: "100dvh", padding: "40px", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-      <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+      <div style={{ width: "100%" }}>
         
         {/* Header Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>

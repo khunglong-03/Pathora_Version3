@@ -522,7 +522,7 @@ export function ManagerDashboardPage() {
         style={{
           backgroundColor: T.bg,
           minHeight: "100vh",
-          padding: "32px",
+          padding: "32px 32px 32px 0",
         }}
       >
         {/* Header */}

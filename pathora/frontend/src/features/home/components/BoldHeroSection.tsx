@@ -79,14 +79,15 @@ export const BoldHeroSection = () => {
     <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f8fafc_42%,_#eef2ff_100%)]">
       {/* Video background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <iframe
-          title="Travel background video"
-          aria-hidden="true"
-          src="https://www.youtube.com/embed/NSnkb1IAjbE?autoplay=1&mute=1&controls=0&loop=1&playlist=NSnkb1IAjbE&playsinline=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3"
-          className="absolute inset-0 h-[100%] w-[100%] scale-125 opacity-25"
-          style={{ border: 0, pointerEvents: "none" }}
-          allow="autoplay; encrypted-media"
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-25"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,250,245,0.35),rgba(248,250,252,0.72)_45%,rgba(248,250,252,0.95))]" />
       </div>
 

@@ -55,10 +55,15 @@ import type { AdminHotelEndpoints } from "./adminHotel";
 import { ADMIN_HOTEL } from "./adminHotel";
 import { ROLE } from "./role";
 
+import type { HotelProviderEndpoints } from "./hotelProvider";
+
 // Re-export types for external consumers
 export type {
   EndpointWithId,
 } from "./tour";
+export type {
+  HotelProviderEndpoints,
+} from "./hotelProvider";
 export type {
   EndpointWithOrderNo,
 } from "./admin";
@@ -178,6 +183,9 @@ export { ROLE } from "./role";
 export { ADMIN_HOTEL } from "./adminHotel";
 export { MANAGER } from "./manager";
 
+import { HOTEL_PROVIDER } from "./hotelProvider";
+export { HOTEL_PROVIDER };
+
 // Composite interface
 export interface ApiEndpoints {
   CATALOG: CatalogEndpoints;
@@ -208,6 +216,7 @@ export interface ApiEndpoints {
   HOTEL: AdminHotelEndpoints;
   TOUR_MANAGER_ASSIGNMENT: TourManagerAssignmentEndpoints;
   MANAGER: ManagerEndpoints;
+  HOTEL_PROVIDER: HotelProviderEndpoints;
 }
 
 // Main endpoint object
@@ -238,6 +247,7 @@ export const API_ENDPOINTS: ApiEndpoints = {
   USER,
   ROLE,
   HOTEL: ADMIN_HOTEL,
+  HOTEL_PROVIDER,
   TOUR_MANAGER_ASSIGNMENT,
   MANAGER,
 };

@@ -47,7 +47,7 @@ export default function AdminShell({
       isAdmin={isAdmin}
       providerPortal={providerPortal}
     >
-      <div style={{ backgroundColor: "#F1F5F9", minHeight: "100vh" }}>
+      <div className="min-h-screen w-full bg-slate-100">
         {children}
       </div>
     </AdminSidebar>

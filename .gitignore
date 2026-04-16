@@ -133,3 +133,7 @@ ndepend.xml
 /bin/
 /.voice-tools/
 /manager_dashboard_redesign_plan.md
+
+# Cursor Workspace
+.cursor/
+.cursor

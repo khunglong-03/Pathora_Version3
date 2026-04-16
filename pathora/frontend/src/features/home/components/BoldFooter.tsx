@@ -58,7 +58,7 @@ export const BoldFooter = () => {
                 <a
                   key={social}
                   href="#"
-                  className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#fb8b02] hover:border-[#fb8b02]/30 transition-all"
+                  className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#fb8b02] hover:border-[#fb8b02]/30 hover:-translate-y-1 hover:shadow-md hover:shadow-[#fb8b02]/10 active:scale-95 transition-all duration-300"
                 >
                   <span className="text-xs capitalize">{social[0]}</span>
                 </a>
@@ -69,13 +69,13 @@ export const BoldFooter = () => {
           {/* Link Columns */}
           {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
+              <h4 className="text-slate-900 font-semibold tracking-tight text-sm mb-4">{col.title}</h4>
               <ul className="flex flex-col gap-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-white/40 hover:text-white text-sm transition-colors"
+                      className="inline-block text-slate-500 hover:text-[#fb8b02] text-sm hover:translate-x-1 transition-all duration-300"
                     >
                       {link.label}
                     </Link>
@@ -87,10 +87,10 @@ export const BoldFooter = () => {
 
           {/* Newsletter */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4">
+            <h4 className="text-slate-900 font-semibold tracking-tight text-sm mb-4">
               {t("landing.footer.newsletter") || "Stay Updated"}
             </h4>
-            <p className="text-white/40 text-sm mb-4">
+            <p className="text-slate-500 text-sm mb-4">
               {t("landing.footer.newsletterDesc") || "Get the latest travel deals and updates."}
             </p>
             <form
@@ -99,12 +99,12 @@ export const BoldFooter = () => {
             >
               <input
                 type="email"
-                placeholder="your@email.com"
-                className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder:text-white/30 outline-none focus:border-[#fb8b02]/50 transition-colors"
+                placeholder="hello@travel.com"
+                className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#fb8b02]/50 focus:ring-4 focus:ring-[#fb8b02]/10 transition-all duration-300"
               />
               <button
                 type="submit"
-                className="px-4 py-2.5 bg-[#fb8b02] text-white text-sm font-semibold rounded-lg hover:bg-[#e67d00] transition-colors"
+                className="px-4 py-2.5 bg-[#fb8b02] text-white text-sm font-semibold rounded-lg shadow-sm shadow-[#fb8b02]/20 hover:bg-[#e67d00] hover:shadow-md hover:shadow-[#fb8b02]/30 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 cursor-pointer"
               >
                 →
               </button>
@@ -113,15 +113,15 @@ export const BoldFooter = () => {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-sm">
+        <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-slate-400 text-sm">
             © {new Date().getFullYear()} Pathora. {t("landing.footer.copyrightShort") || "All rights reserved."}
           </p>
-          <div className="flex gap-6 text-white/30 text-sm">
-            <a href="#" className="hover:text-white transition-colors">
+          <div className="flex gap-6 text-slate-400 text-sm">
+            <a href="#" className="hover:text-[#fb8b02] transition-colors">
               {t("landing.footer.privacy") || "Privacy"}
             </a>
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="#" className="hover:text-[#fb8b02] transition-colors">
               {t("landing.footer.terms") || "Terms"}
             </a>
           </div>
