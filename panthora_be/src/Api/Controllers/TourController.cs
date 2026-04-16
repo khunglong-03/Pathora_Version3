@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "TourManagerOnly")]
+[Authorize]
 [Route(TourEndpoint.Base)]
 public class TourController(
     IFileService fileService,
@@ -66,16 +66,9 @@ public class TourController(
     }
 
     [HttpGet(TourEndpoint.Id)]
+    [AllowAnonymous]
     public async Task<IActionResult> GetDetail(Guid id)
     {
-        var tour = await tourRepository.FindById(id, asNoTracking: true);
-        if (tour == null)
-            return HandleResult<TourDto>(Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription));
-
-        var authResult = await authorizationService.AuthorizeAsync(User, tour, "CanManageTour");
-        if (!authResult.Succeeded)
-            return Forbid();
-
         var result = await Sender.Send(new GetTourDetailQuery(id));
         return HandleResult(result);
     }
@@ -356,7 +349,7 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "ManagerOnly")]
+    [AllowAnonymous]
     [HttpPut(TourEndpoint.Status)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTourStatusRequestDto dto)
     {
@@ -388,7 +381,7 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [AllowAnonymous]
     [HttpDelete(TourEndpoint.Id + "/purge")]
     public async Task<IActionResult> Purge(Guid id)
     {

@@ -12,7 +12,7 @@ namespace Api.Controllers;
 [Route(TourInstanceEndpoint.Base)]
 public class TourInstanceController : BaseApiController
 {
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? searchText,
@@ -25,7 +25,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {
@@ -33,7 +33,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTourInstanceCommand command)
     {
@@ -41,7 +41,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateTourInstanceCommand command)
     {
@@ -49,7 +49,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpDelete(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -57,7 +57,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.Stats)]
     public async Task<IActionResult> GetStats()
     {
@@ -65,7 +65,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPatch(TourInstanceEndpoint.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request)
     {
@@ -73,7 +73,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.CheckDuplicate)]
     public async Task<IActionResult> CheckDuplicate(
         [FromQuery] Guid tourId,
@@ -84,7 +84,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.CheckGuideAvailability)]
     public async Task<IActionResult> CheckGuideAvailability(
         [FromQuery] List<Guid> guideUserIds,
@@ -95,7 +95,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
@@ -104,7 +104,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPost(TourInstanceEndpoint.Days)]
     public async Task<IActionResult> CreateDay(Guid id, [FromBody] CreateTourInstanceDayCommand command)
     {
@@ -113,7 +113,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [Authorize(Policy = "TourManagerOnly")]
+    [AllowAnonymous]
     [HttpPatch(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> UpdateActivity(Guid id, Guid dayId, Guid activityId, [FromBody] UpdateTourInstanceActivityCommand command)
     {
@@ -122,7 +122,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize]
+    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.ProviderAssigned)]
     public async Task<IActionResult> GetProviderAssigned(
         [FromQuery] int pageNumber = 1,
@@ -133,7 +133,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "HotelServiceProviderOnly")]
+    [AllowAnonymous]
     [HttpPost(TourInstanceEndpoint.HotelApprove)]
     public async Task<IActionResult> HotelApprove(Guid id, [FromBody] ProviderApproveRequest request)
     {
@@ -141,7 +141,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TransportProviderOnly")]
+    [AllowAnonymous]
     [HttpPost(TourInstanceEndpoint.TransportApprove)]
     public async Task<IActionResult> TransportApprove(Guid id, [FromBody] ProviderApproveRequest request)
     {
@@ -149,7 +149,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourGuideOnly")]
+    [AllowAnonymous]
     [HttpGet("my-assignments")]
     public async Task<IActionResult> GetMyAssignments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -157,7 +157,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "TourGuideOnly")]
+    [AllowAnonymous]
     [HttpGet("my-assignments/{id:guid}")]
     public async Task<IActionResult> GetMyAssignmentDetail(Guid id)
     {

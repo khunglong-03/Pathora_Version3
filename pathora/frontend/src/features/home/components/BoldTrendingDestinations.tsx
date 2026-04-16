@@ -55,7 +55,7 @@ export const BoldTrendingDestinations = () => {
   }, [fetchDestinations]);
 
   return (
-    <section className="py-20 md:py-28 bg-[#0a0a1a]">
+    <section className="py-20 md:py-28 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div
           ref={titleRef}
@@ -68,7 +68,7 @@ export const BoldTrendingDestinations = () => {
               {t("landing.destinations.eyebrow") || "Explore"}
             </span>
             <h2
-              className="text-4xl md:text-5xl font-bold text-white"
+              className="text-4xl md:text-5xl font-bold text-slate-900"
               style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             >
               {t("landing.destinations.title") || "Trending Destinations"}
@@ -76,7 +76,7 @@ export const BoldTrendingDestinations = () => {
           </div>
           <Link
             href="/tours"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-medium group"
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium group"
           >
             {t("landing.destinations.viewAll") || "View all destinations"}
             <span className="group-hover:translate-x-1 transition-transform">→</span>

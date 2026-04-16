@@ -1449,225 +1449,6 @@
       "reviewError": "Không thể cập nhật yêu cầu này. Vui lòng thử lại."
     }
   },
-  "landing": {
-    "nav": {
-      "home": "Trang chủ",
-      "aboutUs": "Về chúng tôi",
-      "tourPackages": "Gói Tour",
-      "ourPolicies": "Chính sách"
-    },
-    "sidebar": {
-      "tourDiscovery": "Khám phá Tour"
-    },
-    "tourDiscovery": {
-      "viewSwitchLabel": "Chọn chế độ xem",
-      "viewType": {
-        "tour": "Theo Tour",
-        "tourInstance": "Theo Lịch trình"
-      },
-      "toursFound": "tour được tìm thấy",
-      "departuresFound": "lịch trình được tìm thấy",
-      "sortBy": "Sắp xếp theo",
-      "sortAria": "Sắp xếp kết quả tour",
-      "sort": {
-        "recommended": "Đề xuất",
-        "price-low": "Giá: Thấp đến Cao",
-        "price-high": "Giá: Cao đến Thấp",
-        "duration-short": "Thời gian: Ngắn nhất",
-        "duration-long": "Thời gian: Dài nhất"
-      },
-      "loadingAria": "Đang tải kết quả",
-      "errorLoading": "Không thể tải danh sách tour",
-      "errorLoadingInstances": "Không thể tải danh sách lịch trình",
-      "retry": "Thử lại",
-      "resultsRegion": "Kết quả tìm kiếm",
-      "noToursFound": "Không tìm thấy tour nào",
-      "tryAdjustingFilters": "Vui lòng thử điều chỉnh bộ lọc của bạn",
-      "emptyStats": "Hơn 2,000+ tour đang chờ bạn",
-      "browseAllTours": "Xem tất cả Tour",
-      "exploreDestinations": "Khám phá Điểm đến",
-      "noDeparturesFound": "Không tìm thấy lịch trình",
-      "noInstancesDescription": "Không có lịch trình khởi hành nào phù hợp với bộ lọc.",
-      "paginationAria": "Phân trang",
-      "prevPageAria": "Trang trước",
-      "pageOf": "Trang {{current}} / {{total}}",
-      "nextPageAria": "Trang tiếp",
-      "bookNow": "Đặt ngay",
-      "searchPlaceholder": "Tìm kiếm điểm đến...",
-      "filter": "Bộ lọc",
-      "clearAll": "Xóa bộ lọc",
-      "apply": "Áp dụng",
-      "classifications": "Hạng Tour",
-      "days": "Ngày"
-    },
-    "footer": {
-      "speakToExpert": "Liên hệ chuyên gia",
-      "followUs": "Theo dõi",
-      "contactNested": {
-        "title": "Liên hệ",
-        "address": "Tòa nhà Pathora, 123 Đường Ethereal, Wonderland"
-      },
-      "company": {
-        "title": "Công ty"
-      },
-      "support": {
-        "title": "Hỗ trợ"
-      },
-      "newsletterNested": {
-        "title": "Bản tin",
-        "description": "Đăng ký để nhận tin tức và ưu đãi độc quyền.",
-        "placeholder": "Nhập địa chỉ email",
-        "send": "Gửi"
-      },
-      "mobileApps": {
-        "title": "Tải Ứng Dụng",
-        "ios": "App Store",
-        "android": "Google Play"
-      },
-      "copyright": "© {{year}} Pathora. Đã đăng ký bản quyền.",
-      "links": {
-        "company": {
-          "aboutUs": "Về chúng tôi",
-          "reviews": "Đánh giá",
-          "contactUs": "Liên hệ",
-          "travelGuides": "Cẩm nang du lịch",
-          "dataPolicy": "Chính sách dữ liệu",
-          "cookiePolicy": "Chính sách cookie",
-          "legal": "Pháp lý",
-          "sitemap": "Sơ đồ trang"
-        },
-        "support": {
-          "getInTouch": "Liên hệ",
-          "helpCenter": "Trung tâm hỗ trợ",
-          "liveChat": "Trò chuyện trực tuyến",
-          "howItWorks": "Cách hoạt động"
-        }
-      }
-    },
-    "a11y": {
-      "closeMenu": "Đóng menu",
-      "changeLanguage": "Đổi ngôn ngữ"
-    },
-    "language": {
-      "title": "Ngôn ngữ"
-    },
-    "hero": {
-      "title": "Khám phá sự phi thường",
-      "subtitle": "Những trải nghiệm được tuyển chọn. Những hành trình khó quên. Đồng hành du lịch tuyệt đỉnh của bạn.",
-      "searchPlaceholder": "Tìm kiếm điểm đến...",
-      "searchButton": "Tìm",
-      "exploreBtn": "Khám phá Tour"
-    },
-    "stats": {
-      "destinations": "Điểm đến",
-      "tours": "Tour",
-      "happyTravelers": "Khách du lịch hài lòng"
-    },
-    "destinations": {
-      "title": "Điểm đến thịnh hành",
-      "subtitle": "Khám phá những địa điểm được ưa chuộng nhất hiện nay."
-    },
-    "featured": {
-      "title": "Chuyến đi nổi bật",
-      "subtitle": "Những hành trình được chọn lọc cho chuyến phiêu lưu tiếp theo."
-    },
-    "latestTours": {
-      "title": "Tour Mới Nhất",
-      "seeAll": "Xem Tất Cả"
-    },
-    "whyChoose": {
-      "title": "Tại Sao Chọn Chúng Tôi",
-      "subtitle": "Chúng tôi mang đến trải nghiệm du lịch tốt nhất với các đối tác uy tín trên toàn thế giới",
-      "features": [
-        {
-          "title": "An Toàn & Tin Cậy",
-          "desc": "Mỗi tour đều được xác minh và bảo hiểm cho sự an tâm của bạn"
-        },
-        {
-          "title": "Đảm Bảo Giá Tốt Nhất",
-          "desc": "Giá cả cạnh tranh, không phí ẩn hay phụ thu bất ngờ"
-        },
-        {
-          "title": "Phạm Vi Toàn Cầu",
-          "desc": "Tour tại hơn 50 quốc gia với hướng dẫn viên địa phương"
-        },
-        {
-          "title": "Trải Nghiệm Tuyển Chọn",
-          "desc": "Lịch trình được thiết kế bởi các chuyên gia du lịch"
-        }
-      ]
-    },
-    "cta": {
-      "title": "Sẵn sàng khởi hành?",
-      "subtitle": "Đặt tour du lịch mơ ước ngay hôm nay.",
-      "button": "Đặt ngay"
-    },
-    "reviews": {
-      "title": "Nhận xét từ du khách",
-      "subtitle": "Câu chuyện thực tế từ cộng đồng tuyệt vời của chúng tôi."
-    },
-    "trustedBrands": {
-      "title": "Đối Tác Tin Cậy",
-      "brandAlt": "Đối tác"
-    },
-    "common": {
-      "starsAria": "{{count}} trên 5 sao"
-    },
-    "footer": {
-      "about": "Về chúng tôi",
-      "contact": "Liên hệ",
-      "privacy": "Bảo mật",
-      "terms": "Điều khoản"
-    },
-    "auth": {
-      "createAccount": "Tạo tài khoản",
-      "username": "Tên đăng nhập",
-      "enterUsername": "Nhập tên đăng nhập của bạn",
-      "nameAndSurname": "Họ và tên",
-      "enterNameAndSurname": "Nhập họ và tên đầy đủ",
-      "emailAddress": "Địa chỉ Email",
-      "enterEmailAddress": "Nhập địa chỉ email của bạn",
-      "password": "Mật khẩu",
-      "enterPassword": "Nhập mật khẩu của bạn",
-      "showPassword": "Hiện mật khẩu",
-      "hidePassword": "Ẩn mật khẩu",
-      "agreeWith": "Tôi đồng ý với",
-      "terms": "Điều khoản Dịch vụ",
-      "and": "và",
-      "privacy": "Chính sách Bảo mật",
-      "mustAgreeToTerms": "Bạn phải đồng ý với Điều khoản Dịch vụ và Chính sách Bảo mật.",
-      "registrationSuccess": "Đăng ký thành công!",
-      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
-      "emailTemporarilyLocked": "Email của bạn bị khóa tạm thời trong {{minutes}} phút.",
-      "close": "Đóng",
-      "closeModal": "Đóng cửa sổ",
-      "or": "HOẶC",
-      "signUpWithGoogle": "Đăng ký bằng Google",
-      "alreadyHaveAccount": "Đã có tài khoản?",
-      "logIn": "Đăng nhập",
-      "login": "Đăng nhập",
-      "loginSuccess": "Đăng nhập thành công!",
-      "forgotYourPassword": "Quên mật khẩu?",
-      "signInWithGoogle": "Đăng nhập bằng Google",
-      "dontHaveAccount": "Chưa có tài khoản?",
-      "checkYourEmail": "Kiểm tra email của bạn",
-      "resetLinkSentTo": "Một liên kết đặt lại mật khẩu đã được gửi đến",
-      "backToLogin": "Trở lại đăng nhập",
-      "forgotPassword": "Quên mật khẩu",
-      "forgotPasswordHelp": "Nhập địa chỉ email của bạn để nhận liên kết đặt lại mật khẩu.",
-      "resetPassword": "Đặt lại mật khẩu",
-      "signIn": "Đăng nhập",
-      "signUp": "Đăng ký"
-    },
-    "latest": {
-      "title": "Tour mới nhất",
-      "subtitle": "Những trải nghiệm mới được thêm vào dành cho bạn."
-    },
-    "whyChooseUs": {
-      "title": "Tại sao chọn chúng tôi",
-      "subtitle": "Chúng tôi cung cấp những trải nghiệm du lịch tốt nhất."
-    }
-  },
   "booking": {
     "recentBookings": "Tour của tôi",
     "viewAll": "Xem tất cả",
@@ -2233,6 +2014,17 @@
     "status": "Trạng Thái",
     "actions": "Thao Tác",
     "perPerson": "/người",
+    "perPersonShort": "/người",
+    "people": "người",
+    "spotsAvailable": "chỗ trống",
+    "statusLabels": {
+      "available": "Còn chỗ",
+      "confirmed": "Đã xác nhận",
+      "soldout": "Hết chỗ",
+      "inprogress": "Đang diễn ra",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
     "days": "ngày",
     "return": "Ngày Về",
     "min": "Tối thiểu",
@@ -2317,12 +2109,9 @@
     "scheduledDepartures": "Lịch Khởi Hành",
     "noScheduledDepartures": "Chưa có lịch khởi hành cho tour này.",
     "bookNow": "Đặt Ngay",
-    "spotsAvailable": "chỗ trống",
-    "perPersonShort": "/người",
     "guide": "Hướng Dẫn Viên",
     "services": "Dịch Vụ",
     "pricingTiers": "Bảng Giá Theo Số Người",
-    "people": "người",
     "fromPrice": "Từ",
     "createAction": "Tạo lịch khởi hành",
     "edit": "Chỉnh sửa",
@@ -2337,14 +2126,6 @@
     "userPricingBreakdown": "Chi tiết giá",
     "depositRequiredNote": "* Cần đặt cọc để giữ chỗ. Phần thanh toán còn lại sẽ được thanh toán trước ngày khởi hành.",
     "userNotAssigned": "Chưa phân công",
-    "statusLabels": {
-      "available": "Còn chỗ",
-      "confirmed": "Đã xác nhận",
-      "soldout": "Hết chỗ",
-      "inprogress": "Đang diễn ra",
-      "completed": "Hoàn thành",
-      "cancelled": "Đã hủy"
-    },
     "summaryCode": "Mã lịch khởi hành",
     "summarySchedule": "Lịch khởi hành",
     "summaryCapacity": "Sức chứa",
@@ -3085,6 +2866,236 @@
       "tourPackages": "Gói Tour",
       "ourPolicies": "Chính Sách"
     },
+    "sidebar": {
+      "tourDiscovery": "Khám phá Tour"
+    },
+    "tourDiscovery": {
+      "viewSwitchLabel": "Chọn chế độ xem",
+      "viewType": {
+        "tour": "Theo Tour",
+        "tourInstance": "Theo Lịch trình"
+      },
+      "toursFound": "tour được tìm thấy",
+      "departuresFound": "lịch trình được tìm thấy",
+      "sortBy": "Sắp xếp theo",
+      "sortAria": "Sắp xếp kết quả tour",
+      "sort": {
+        "recommended": "Đề xuất",
+        "price-low": "Giá: Thấp đến Cao",
+        "price-high": "Giá: Cao đến Thấp",
+        "duration-short": "Thời gian: Ngắn nhất",
+        "duration-long": "Thời gian: Dài nhất"
+      },
+      "loadingAria": "Đang tải kết quả",
+      "errorLoading": "Không thể tải danh sách tour",
+      "errorLoadingInstances": "Không thể tải danh sách lịch trình",
+      "retry": "Thử lại",
+      "resultsRegion": "Kết quả tìm kiếm",
+      "noToursFound": "Không tìm thấy tour nào",
+      "tryAdjustingFilters": "Vui lòng thử điều chỉnh bộ lọc của bạn",
+      "emptyStats": "Hơn 2,000+ tour đang chờ bạn",
+      "browseAllTours": "Xem tất cả Tour",
+      "exploreDestinations": "Khám phá Điểm đến",
+      "noDeparturesFound": "Không tìm thấy lịch trình",
+      "noInstancesDescription": "Không có lịch trình khởi hành nào phù hợp với bộ lọc.",
+      "paginationAria": "Phân trang",
+      "prevPageAria": "Trang trước",
+      "pageOf": "Trang {{current}} / {{total}}",
+      "nextPageAria": "Trang tiếp",
+      "bookNow": "Đặt ngay",
+      "reserveNow": "Đặt Ngay",
+      "searchPlaceholder": "Tìm kiếm điểm đến...",
+      "filter": "Bộ lọc",
+      "clearAll": "Xóa bộ lọc",
+      "apply": "Áp dụng",
+      "classifications": "Hạng Tour",
+      "days": "Ngày"
+    },
+    "footer": {
+      "about": "Giới Thiệu",
+      "tours": "Tour Du Lịch",
+      "blog": "Blog",
+      "careers": "Tuyển Dụng",
+      "help": "Trung Tâm Hỗ Trợ",
+      "contact": "Liên Hệ",
+      "faq": "Câu Hỏi Thường Gặp",
+      "policies": "Chính Sách",
+      "destinations": "Điểm Đến",
+      "tagline": "Nền tảng du lịch hàng đầu Việt Nam. Khám phá những điểm đến ẩn giấu, tour được tuyển chọn và những cuộc phiêu lưu đáng nhớ.",
+      "newsletter": "Cập Nhật Tin Mới",
+      "newsletterDesc": "Nhận ưu đãi du lịch và tin tức mới nhất.",
+      "privacy": "Bảo Mật",
+      "terms": "Điều Khoản",
+      "copyrightShort": "Bảo lưu mọi quyền."
+    },
+    "a11y": {
+      "closeMenu": "Đóng menu",
+      "changeLanguage": "Đổi ngôn ngữ"
+    },
+    "language": {
+      "title": "Ngôn ngữ"
+    },
+    "hero": {
+      "eyebrow": "Nền Tảng Du Lịch Hàng Đầu Việt Nam",
+      "title": "Khám Phá Điều Phi Thường",
+      "subtitle": "Trải nghiệm được tuyển chọn. Hành trình khó quên. Người bạn đồng hành lý tưởng của bạn.",
+      "searchPlaceholder": "Bạn muốn đi đâu?",
+      "exploreTours": "Khám Phá Tour",
+      "searchButton": "Tìm",
+      "exploreBtn": "Khám phá Tour"
+    },
+    "stats": {
+      "items": {
+        "totalTours": "Tour",
+        "totalTravellers": "Du Khách",
+        "totalDistanceKm": "Quãng Đường",
+        "support": "Hỗ Trợ"
+      },
+      "unavailable": "Thống kê tạm thời không khả dụng",
+      "destinations": "Điểm đến",
+      "tours": "Tour",
+      "happyTravelers": "Khách du lịch hài lòng"
+    },
+    "destinations": {
+      "eyebrow": "Khám Phá",
+      "title": "Điểm Đến Thịnh Hành",
+      "viewAll": "Xem tất cả điểm đến",
+      "tours": "tour",
+      "loadError": "Không thể tải danh sách điểm đến",
+      "retry": "Thử lại",
+      "empty": "Hiện chưa có điểm đến nào.",
+      "subtitle": "Khám phá những địa điểm được ưa chuộng nhất hiện nay."
+    },
+    "featured": {
+      "eyebrow": "Được Chọn Lọc",
+      "title": "Hành Trình Nổi Bật",
+      "loadError": "Không thể tải tour nổi bật",
+      "retry": "Thử lại",
+      "empty": "Hiện chưa có tour nổi bật nào.",
+      "subtitle": "Những hành trình được chọn lọc cho chuyến phiêu lưu tiếp theo."
+    },
+    "latestTours": {
+      "title": "Tour Mới Nhất",
+      "seeAll": "Xem Tất Cả"
+    },
+    "whyChoose": {
+      "eyebrow": "Tại Sao Chọn Pathora",
+      "title": "Tại Sao Chọn Chúng Tôi",
+      "items": {
+        "price": {
+          "title": "Cam Kết Giá Tốt Nhất",
+          "desc": "Chúng tôi đảm bảo mức giá cạnh tranh cho mọi gói tour mà không ảnh hưởng đến chất lượng."
+        },
+        "guides": {
+          "title": "Hướng Dẫn Viên Chuyên Nghiệp",
+          "desc": "Đội ngũ hướng dẫn viên được chứng nhận với kiến thức địa phương sâu rộng và niềm đam mê."
+        },
+        "support": {
+          "title": "Hỗ Trợ 24/7",
+          "desc": "Hỗ trợ xuyên suốt từ đội ngũ tận tâm dù bạn đi bất cứ đâu."
+        },
+        "flexible": {
+          "title": "Đặt Tour Linh Hoạt",
+          "desc": "Miễn phí hủy tour và dễ dàng đổi lịch cho trải nghiệm du lịch không lo lắng."
+        }
+      },
+      "subtitle": "Chúng tôi mang đến trải nghiệm du lịch tốt nhất với các đối tác uy tín trên toàn thế giới",
+      "features": [
+        {
+          "title": "An Toàn & Tin Cậy",
+          "desc": "Mỗi tour đều được xác minh và bảo hiểm cho sự an tâm của bạn"
+        },
+        {
+          "title": "Đảm Bảo Giá Tốt Nhất",
+          "desc": "Giá cả cạnh tranh, không phí ẩn hay phụ thu bất ngờ"
+        },
+        {
+          "title": "Phạm Vi Toàn Cầu",
+          "desc": "Tour tại hơn 50 quốc gia với hướng dẫn viên địa phương"
+        },
+        {
+          "title": "Trải Nghiệm Tuyển Chọn",
+          "desc": "Lịch trình được thiết kế bởi các chuyên gia du lịch"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Sẵn Sàng Cho Cuộc Phiêu Lưu Tiếp Theo?",
+      "subtitle": "Tham gia cùng hàng nghìn du khách khám phá những viên ngọc ẩn giấu của Việt Nam cùng Pathora.",
+      "ctaButton": "Khám Phá Tour",
+      "secondaryButton": "Tìm Hiểu Thêm",
+      "button": "Đặt ngay"
+    },
+    "reviews": {
+      "eyebrow": "Nhận Xét",
+      "title": "Du Khách Nói Gì",
+      "rating": "Đánh Giá",
+      "loadError": "Không thể tải nhận xét",
+      "retry": "Thử lại",
+      "empty": "Chưa có nhận xét nào.",
+      "subtitle": "Câu chuyện thực tế từ cộng đồng tuyệt vời của chúng tôi."
+    },
+    "trustedBrands": {
+      "title": "Đối Tác Tin Cậy",
+      "brandAlt": "Đối tác"
+    },
+    "common": {
+      "starsAria": "{{count}} trên 5 sao"
+    },
+    "auth": {
+      "login": "Đăng Nhập",
+      "logIn": "Đăng nhập",
+      "createAccount": "Tạo Tài Khoản",
+      "close": "Đóng",
+      "username": "Tên đăng nhập",
+      "enterUsername": "Nhập tên đăng nhập của bạn",
+      "nameAndSurname": "Họ và Tên",
+      "enterNameAndSurname": "Nhập họ và tên của bạn",
+      "emailAddress": "Địa Chỉ Email",
+      "enterEmailAddress": "Nhập địa chỉ email của bạn",
+      "password": "Mật Khẩu",
+      "enterPassword": "Nhập mật khẩu của bạn",
+      "hidePassword": "Ẩn mật khẩu",
+      "showPassword": "Hiện mật khẩu",
+      "agreeWith": "Tôi đồng ý với",
+      "terms": "Điều Khoản Dịch Vụ",
+      "and": "và",
+      "privacy": "Chính Sách Bảo Mật",
+      "mustAgreeToTerms": "Bạn phải đồng ý với các điều khoản và chính sách bảo mật.",
+      "registrationSuccess": "Đăng ký thành công! Vui lòng đăng nhập.",
+      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
+      "emailTemporarilyLocked": "Email tạm thời bị khóa. Vui lòng thử lại sau {{minutes}} phút.",
+      "or": "HOẶC",
+      "signUpWithGoogle": "Đăng ký với Google",
+      "signInWithGoogle": "Đăng nhập bằng Google",
+      "alreadyHaveAccount": "Đã có tài khoản?",
+      "loginSuccess": "Đăng nhập thành công!",
+      "forgotYourPassword": "Quên mật khẩu?",
+      "dontHaveAccount": "Chưa có tài khoản?",
+      "forgotPassword": "Quên Mật Khẩu",
+      "forgotPasswordHelp": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.",
+      "resetPassword": "Đặt Lại Mật Khẩu",
+      "backToLogin": "Quay lại đăng nhập",
+      "checkYourEmail": "Kiểm Tra Email",
+      "resetLinkSentTo": "Một liên kết đặt lại đã được gửi đến",
+      "closeModal": "Đóng cửa sổ",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký"
+    },
+    "latest": {
+      "eyebrow": "Mới Nhất",
+      "title": "Tour Mới Nhất",
+      "viewAll": "Xem tất cả",
+      "viewDetails": "Xem chi tiết",
+      "loadError": "Không thể tải tour mới nhất",
+      "retry": "Thử lại",
+      "empty": "Chưa có tour mới nào.",
+      "subtitle": "Những trải nghiệm mới được thêm vào dành cho bạn."
+    },
+    "whyChooseUs": {
+      "title": "Tại sao chọn chúng tôi",
+      "subtitle": "Chúng tôi cung cấp những trải nghiệm du lịch tốt nhất."
+    },
     "aboutUs": {
       "ourStory": "Câu Chuyện Của Chúng Tôi",
       "weAre": "Chúng tôi là",
@@ -3136,138 +3147,6 @@
       "ctaTitleWith": "bắt đầu cùng",
       "ctaDescription": "Hãy tham gia cùng hàng ngàn khách du lịch đã hài lòng.",
       "browsePackageTours": "Xem Danh Sách Tour"
-    },
-    "hero": {
-      "eyebrow": "Nền Tảng Du Lịch Hàng Đầu Việt Nam",
-      "title": "Khám Phá Điều Phi Thường",
-      "subtitle": "Trải nghiệm được tuyển chọn. Hành trình khó quên. Người bạn đồng hành lý tưởng của bạn.",
-      "searchPlaceholder": "Bạn muốn đi đâu?",
-      "exploreTours": "Khám Phá Tour"
-    },
-    "stats": {
-      "items": {
-        "totalTours": "Tour",
-        "totalTravellers": "Du Khách",
-        "totalDistanceKm": "Quãng Đường",
-        "support": "Hỗ Trợ"
-      },
-      "unavailable": "Thống kê tạm thời không khả dụng"
-    },
-    "destinations": {
-      "eyebrow": "Khám Phá",
-      "title": "Điểm Đến Thịnh Hành",
-      "viewAll": "Xem tất cả điểm đến",
-      "tours": "tour",
-      "loadError": "Không thể tải danh sách điểm đến",
-      "retry": "Thử lại",
-      "empty": "Hiện chưa có điểm đến nào."
-    },
-    "featured": {
-      "eyebrow": "Được Chọn Lọc",
-      "title": "Hành Trình Nổi Bật",
-      "loadError": "Không thể tải tour nổi bật",
-      "retry": "Thử lại",
-      "empty": "Hiện chưa có tour nổi bật nào."
-    },
-    "latest": {
-      "eyebrow": "Mới Nhất",
-      "title": "Tour Mới Nhất",
-      "viewAll": "Xem tất cả",
-      "viewDetails": "Xem chi tiết",
-      "loadError": "Không thể tải tour mới nhất",
-      "retry": "Thử lại",
-      "empty": "Chưa có tour mới nào."
-    },
-    "whyChoose": {
-      "eyebrow": "Tại Sao Chọn Pathora",
-      "title": "Tại Sao Chọn Chúng Tôi",
-      "items": {
-        "price": {
-          "title": "Cam Kết Giá Tốt Nhất",
-          "desc": "Chúng tôi đảm bảo mức giá cạnh tranh cho mọi gói tour mà không ảnh hưởng đến chất lượng."
-        },
-        "guides": {
-          "title": "Hướng Dẫn Viên Chuyên Nghiệp",
-          "desc": "Đội ngũ hướng dẫn viên được chứng nhận với kiến thức địa phương sâu rộng và niềm đam mê."
-        },
-        "support": {
-          "title": "Hỗ Trợ 24/7",
-          "desc": "Hỗ trợ xuyên suốt từ đội ngũ tận tâm dù bạn đi bất cứ đâu."
-        },
-        "flexible": {
-          "title": "Đặt Tour Linh Hoạt",
-          "desc": "Miễn phí hủy tour và dễ dàng đổi lịch cho trải nghiệm du lịch không lo lắng."
-        }
-      }
-    },
-    "cta": {
-      "title": "Sẵn Sàng Cho Cuộc Phiêu Lưu Tiếp Theo?",
-      "subtitle": "Tham gia cùng hàng nghìn du khách khám phá những viên ngọc ẩn giấu của Việt Nam cùng Pathora.",
-      "ctaButton": "Khám Phá Tour",
-      "secondaryButton": "Tìm Hiểu Thêm"
-    },
-    "reviews": {
-      "eyebrow": "Nhận Xét",
-      "title": "Du Khách Nói Gì",
-      "rating": "Đánh Giá",
-      "loadError": "Không thể tải nhận xét",
-      "retry": "Thử lại",
-      "empty": "Chưa có nhận xét nào."
-    },
-    "footer": {
-      "about": "Giới Thiệu",
-      "tours": "Tour Du Lịch",
-      "blog": "Blog",
-      "careers": "Tuyển Dụng",
-      "help": "Trung Tâm Hỗ Trợ",
-      "contact": "Liên Hệ",
-      "faq": "Câu Hỏi Thường Gặp",
-      "policies": "Chính Sách",
-      "destinations": "Điểm Đến",
-      "tagline": "Nền tảng du lịch hàng đầu Việt Nam. Khám phá những điểm đến ẩn giấu, tour được tuyển chọn và những cuộc phiêu lưu đáng nhớ.",
-      "newsletter": "Cập Nhật Tin Mới",
-      "newsletterDesc": "Nhận ưu đãi du lịch và tin tức mới nhất.",
-      "copyright": "Bảo lưu mọi quyền.",
-      "privacy": "Bảo Mật",
-      "terms": "Điều Khoản"
-    },
-    "auth": {
-      "login": "Đăng Nhập",
-      "logIn": "Đăng nhập",
-      "createAccount": "Tạo Tài Khoản",
-      "close": "Đóng",
-      "username": "Tên đăng nhập",
-      "enterUsername": "Nhập tên đăng nhập của bạn",
-      "nameAndSurname": "Họ và Tên",
-      "enterNameAndSurname": "Nhập họ và tên của bạn",
-      "emailAddress": "Địa Chỉ Email",
-      "enterEmailAddress": "Nhập địa chỉ email của bạn",
-      "password": "Mật Khẩu",
-      "enterPassword": "Nhập mật khẩu của bạn",
-      "hidePassword": "Ẩn mật khẩu",
-      "showPassword": "Hiện mật khẩu",
-      "agreeWith": "Tôi đồng ý với",
-      "terms": "Điều Khoản Dịch Vụ",
-      "and": "và",
-      "privacy": "Chính Sách Bảo Mật",
-      "mustAgreeToTerms": "Bạn phải đồng ý với các điều khoản và chính sách bảo mật.",
-      "registrationSuccess": "Đăng ký thành công! Vui lòng đăng nhập.",
-      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
-      "emailTemporarilyLocked": "Email tạm thời bị khóa. Vui lòng thử lại sau {{minutes}} phút.",
-      "or": "HOẶC",
-      "signUpWithGoogle": "Đăng ký với Google",
-      "signInWithGoogle": "Đăng nhập bằng Google",
-      "alreadyHaveAccount": "Đã có tài khoản?",
-      "loginSuccess": "Đăng nhập thành công!",
-      "forgotYourPassword": "Quên mật khẩu?",
-      "dontHaveAccount": "Chưa có tài khoản?",
-      "forgotPassword": "Quên Mật Khẩu",
-      "forgotPasswordHelp": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.",
-      "resetPassword": "Đặt Lại Mật Khẩu",
-      "backToLogin": "Quay lại đăng nhập",
-      "checkYourEmail": "Kiểm Tra Email",
-      "resetLinkSentTo": "Một liên kết đặt lại đã được gửi đến",
-      "closeModal": "Đóng cửa sổ"
     }
   }
 }

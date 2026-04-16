@@ -153,7 +153,7 @@ export const homeService = {
     >(
       `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_AVAILABLE}?${params.toString()}&lang=${lang}`,
     );
-    const result = extractResult<PaginatedResponse<TourInstanceVm>>(
+    const result = extractResult<PaginatedResponse<TourInstanceVm> & { items?: TourInstanceVm[] }>(
       response.data,
     );
     if (!result) {
@@ -162,7 +162,7 @@ export const homeService = {
 
     return {
       ...result,
-      data: (result.data ?? []).map(normalizePublicInstance),
+      data: (result.items ?? result.data ?? []).map(normalizePublicInstance),
     } as PaginatedResponse<NormalizedTourInstanceVm>;
   },
 

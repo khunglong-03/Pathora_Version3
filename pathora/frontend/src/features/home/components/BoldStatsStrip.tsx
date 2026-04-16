@@ -39,12 +39,11 @@ function StatItem({
   return (
     <div className="flex flex-col items-center justify-center py-4 md:px-8">
       <span
-        className="text-3xl md:text-4xl font-bold text-white mb-1"
-        style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+        className="text-3xl md:text-4xl font-bold text-slate-900 mb-1 font-[Space_Grotesk]"
       >
         {stat.isDecimal ? stat.value + stat.suffix : countValue}
       </span>
-      <span className="text-sm text-white/40 uppercase tracking-wider">
+      <span className="text-sm text-slate-500 uppercase tracking-wider">
         {t(stat.labelKey)}
       </span>
     </div>
@@ -97,11 +96,11 @@ export const BoldStatsStrip = () => {
   }, []);
 
   return (
-    <section className="relative py-6 bg-[#0a0a1a] border-y border-white/5">
+    <section className="relative py-6 bg-white border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div
           ref={ref}
-          className={`grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-white/10 transition-all duration-700 ${
+          className={`grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-slate-200 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >

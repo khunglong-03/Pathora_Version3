@@ -33,12 +33,12 @@ export default function HomeClient() {
     <main
       id="main-content"
       tabIndex={-1}
-      className="bg-black text-white min-h-screen overflow-x-hidden selection:bg-landing-accent/30 selection:text-white"
+      className="bg-[#f8fafc] text-slate-900 min-h-screen overflow-x-hidden selection:bg-landing-accent/30 selection:text-white"
     >
       <Suspense fallback={<div className="h-20 bg-black" />}>
         <BoldNavbar />
       </Suspense>
-      <Suspense fallback={<SectionSkeleton className="min-h-[100dvh]" />}>
+      <Suspense fallback={<SectionSkeleton className="min-h-dvh" />}>
         <BoldHeroSection />
       </Suspense>
       <BoldStatsStrip />
