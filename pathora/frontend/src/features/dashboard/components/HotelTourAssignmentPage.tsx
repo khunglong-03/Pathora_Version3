@@ -16,6 +16,8 @@ import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
 import Textarea from "@/components/ui/Textarea";
 
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { hotelProviderService } from "@/api/services/hotelProviderService";
+import type { AccommodationItem, RoomAvailability } from "@/api/services/hotelProviderService";
 import { TourInstanceDto, RoomTypeMap } from "@/types/tour";
 
 interface RoomAssignmentForm {
@@ -35,6 +37,8 @@ export default function HotelTourAssignmentPage() {
   const [instance, setInstance] = useState<TourInstanceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [assignments, setAssignments] = useState<RoomAssignmentForm>({});
+  const [inventory, setInventory] = useState<AccommodationItem[]>([]);
+  const [availability, setAvailability] = useState<RoomAvailability[]>([]);
 
   // Approval Modals
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -54,6 +58,18 @@ export default function HotelTourAssignmentPage() {
       if (data) {
         setInstance(data);
         
+        try {
+          const invData = await hotelProviderService.getAccommodations();
+          const availData = await hotelProviderService.getRoomAvailability(
+            format(new Date(data.startDate), "yyyy-MM-dd"),
+            format(new Date(data.endDate), "yyyy-MM-dd")
+          );
+          setInventory(invData || []);
+          setAvailability(availData || []);
+        } catch (e) {
+          console.error("Failed to load inventory:", e);
+        }
+
         // Initialize form state out of currently assigned accommodations
         const tempAssigns: RoomAssignmentForm = {};
         data.days?.forEach((day) => {
@@ -113,6 +129,43 @@ export default function HotelTourAssignmentPage() {
 
     return acts;
   }, [instance]);
+
+  const inventorySummary = useMemo(() => {
+    return inventory.map((item) => {
+      const itemAvailabilities = availability.filter(a => a.roomType === item.roomType);
+      const minAvailable = itemAvailabilities.length > 0 
+        ? Math.min(...itemAvailabilities.map(a => a.availableRooms))
+        : item.totalRooms;
+        
+      const percentage = (minAvailable / item.totalRooms) * 100;
+      let statusColor = "bg-success-100 text-success-800";
+      if (percentage < 10) statusColor = "bg-danger-100 text-danger-800";
+      else if (percentage <= 50) statusColor = "bg-warning-100 text-warning-800";
+      
+      return {
+        ...item,
+        minAvailable,
+        statusColor
+      };
+    });
+  }, [inventory, availability]);
+
+  const { totalAccoms, assignedAccoms } = useMemo(() => {
+    let total = 0;
+    let assigned = 0;
+    accommodationActivities.forEach(act => {
+      total++;
+      if (act.accommodation) {
+        const blocks = act.accommodation.roomBlocksTotal ?? 0;
+        if (blocks >= act.accommodation.quantity) {
+          assigned++;
+        }
+      }
+    });
+    return { totalAccoms: total, assignedAccoms: assigned };
+  }, [accommodationActivities]);
+
+  const progressPercent = totalAccoms > 0 ? (assignedAccoms / totalAccoms) * 100 : 0;
 
   const handleAssignmentChange = (activityId: string, field: "roomType" | "roomCount", value: string | number) => {
     setAssignments((prev) => ({
@@ -208,7 +261,7 @@ export default function HotelTourAssignmentPage() {
     );
   }
 
-  const isApproved = instance.hotelApprovalStatus === 1; // Assuming 1 = Approved, 2 = Rejected, 0 = Pending
+  const isApproved = instance.hotelApprovalStatus === 2; // Assuming 1 = Pending, 2 = Approved, 3 = Rejected
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
@@ -225,13 +278,13 @@ export default function HotelTourAssignmentPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {instance.hotelApprovalStatus === 0 && (
+          {instance.hotelApprovalStatus === 1 && (
             <Badge className="bg-warning-500 text-white px-2.5 py-0.5 text-xs">{t("pending_approval") || "Pending Approval"}</Badge>
           )}
-          {instance.hotelApprovalStatus === 1 && (
+          {instance.hotelApprovalStatus === 2 && (
             <Badge className="bg-success-500 text-white px-2.5 py-0.5 text-xs">{t("approved") || "Approved"}</Badge>
           )}
-          {instance.hotelApprovalStatus === 2 && (
+          {instance.hotelApprovalStatus === 3 && (
             <Badge className="bg-danger-500 text-white px-2.5 py-0.5 text-xs">{t("rejected") || "Rejected"}</Badge>
           )}
         </div>
@@ -255,7 +308,7 @@ export default function HotelTourAssignmentPage() {
           </Card>
 
           {/* Action Card */}
-          {instance.hotelApprovalStatus === 0 && (
+          {instance.hotelApprovalStatus === 1 && (
             <Card className="p-5">
               <h3 className="mb-4 font-semibold text-slate-800">{t("action_required") || "Action Required"}</h3>
               <p className="mb-4 text-sm text-slate-600">
@@ -274,7 +327,57 @@ export default function HotelTourAssignmentPage() {
         </div>
 
         {/* Accommodation Activities Column */}
-        <div className="space-y-4 md:col-span-2">
+        <div className="space-y-6 md:col-span-2">
+          {/* Inventory Summary Table */}
+          {inventory.length > 0 && (
+            <Card className="p-5">
+              <h3 className="mb-4 font-semibold text-slate-800">{t("inventory_summary") || "Room Inventory Summary"}</h3>
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="px-4 py-3">Room Type</th>
+                      <th className="px-4 py-3 text-center">Total</th>
+                      <th className="px-4 py-3 text-center">Available</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {inventorySummary.map((item) => (
+                      <tr key={item.id}>
+                        <td className="px-4 py-3 font-medium text-slate-700">{item.roomType}</td>
+                        <td className="px-4 py-3 text-center">{item.totalRooms}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.statusColor}`}>
+                            {item.minAvailable} / {item.totalRooms}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {/* Progress Bar */}
+          <Card className="p-5">
+             <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
+                <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned") || "Assigned"}</span>
+             </div>
+             <div className="w-full bg-slate-200 rounded-full h-2.5">
+                <div 
+                  className={`h-2.5 rounded-full transition-all duration-500 ${progressPercent === 100 ? 'bg-success-500' : 'bg-primary'}`} 
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+             </div>
+             {progressPercent === 100 && instance.hotelApprovalStatus === 1 && (
+                <p className="mt-3 text-sm text-success-600 flex items-center gap-1.5 font-medium">
+                  <Check size={16} weight="bold" /> {t("ready_to_approve") || "All rooms are assigned. You can now approve the tour."}
+                </p>
+             )}
+          </Card>
+
           <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <Bed size={24} className="text-primary-600" />
             {t("accommodation_requirements") || "Accommodation Requirements"}
@@ -302,7 +405,7 @@ export default function HotelTourAssignmentPage() {
                     )}
                     
                     {isAssigned && (
-                      <div className="mt-3 flex gap-4 text-sm">
+                      <div className="mt-3 flex gap-4 text-sm flex-wrap">
                         <div className="rounded-md bg-slate-50 px-3 py-1.5">
                           <span className="text-slate-500 mr-2">Assigned Room:</span>
                           <span className="font-medium text-slate-800">{RoomTypeMap[Number(act.accommodation.roomType)] || act.accommodation.roomType}</span>
@@ -311,36 +414,69 @@ export default function HotelTourAssignmentPage() {
                           <span className="text-slate-500 mr-2">Qty:</span>
                           <span className="font-medium text-slate-800">{act.accommodation.quantity}</span>
                         </div>
+                        <div className="rounded-md bg-slate-50 px-3 py-1.5">
+                          <span className="text-slate-500 mr-2">Blocks:</span>
+                          <span className={`font-medium ${act.accommodation.roomBlocksTotal && act.accommodation.roomBlocksTotal >= act.accommodation.quantity ? 'text-success-600' : 'text-danger-600'}`}>
+                              {act.accommodation.roomBlocksTotal ?? 0}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {instance.hotelApprovalStatus === 0 && state && (
-                    <div className="flex items-end gap-3 sm:w-[320px] sm:flex-none">
-                      <div className="flex-1">
-                        <Select
-                          label="Room Type"
-                          options={roomTypeOptions}
-                          value={state.roomType}
-                          onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
-                        />
+                  {instance.hotelApprovalStatus === 1 && state && (
+                    <div className="flex flex-col gap-3 sm:w-[320px] sm:flex-none">
+                      {/* Availability Badge */}
+                      {(() => {
+                        const actDateStr = format(new Date(act.date), "yyyy-MM-dd");
+                        const formTypeLabel = RoomTypeMap[Number(state.roomType)] || state.roomType;
+                        const availItem = availability.find(
+                          (a) => a.date.startsWith(actDateStr) && (a.roomType === state.roomType || a.roomType === formTypeLabel)
+                        );
+                        if (availItem) {
+                          const isError = availItem.availableRooms === 0;
+                          const isWarn = availItem.availableRooms > 0 && availItem.availableRooms < state.roomCount;
+                          return (
+                            <div className="flex justify-end">
+                              <Badge className={`px-2 py-0.5 text-xs ${isError ? 'bg-danger-100 text-danger-700' : isWarn ? 'bg-warning-100 text-warning-700' : 'bg-success-100 text-success-700'}`}>
+                                {isError 
+                                  ? "Hết phòng" 
+                                  : isWarn 
+                                  ? `⚠️ Chỉ còn ${availItem.availableRooms}/${availItem.totalRooms}` 
+                                  : `Còn ${availItem.availableRooms}/${availItem.totalRooms} phòng`}
+                              </Badge>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                      
+                      <div className="flex items-end gap-3 flex-1">
+                        <div className="flex-1">
+                          <Select
+                            label="Room Type"
+                            options={roomTypeOptions}
+                            value={state.roomType}
+                            onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                          />
+                        </div>
+                        <div className="w-20">
+                          <TextInput
+                            label="Qty"
+                            type="number"
+                            min={1}
+                            value={state.roomCount.toString()}
+                            onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
+                          />
+                        </div>
+                        <Button 
+                          variant={isAssigned ? "outline" : "primary"}
+                          onClick={() => handleAssignRoom(act.activityId)}
+                          disabled={state.isSubmitting}
+                        >
+                          {isAssigned ? "Update" : "Assign"}
+                        </Button>
                       </div>
-                      <div className="w-20">
-                        <TextInput
-                          label="Qty"
-                          type="number"
-                          min={1}
-                          value={state.roomCount.toString()}
-                          onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
-                        />
-                      </div>
-                      <Button 
-                        variant={isAssigned ? "outline" : "primary"}
-                        onClick={() => handleAssignRoom(act.activityId)}
-                        disabled={state.isSubmitting}
-                      >
-                        {isAssigned ? "Update" : "Assign"}
-                      </Button>
                     </div>
                   )}
                 </Card>

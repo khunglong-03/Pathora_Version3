@@ -576,9 +576,13 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        // Check if the current user is assigned as a guide to this instance
-        var isAssigned = await _tourInstanceRepository.HasGuideAssignmentAsync(id, currentUserId, cancellationToken);
-        if (!isAssigned)
+        // Check if the current user owns a supplier that is the Hotel or Transport provider for this instance
+        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (supplier is null)
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
+
+        var hasAccess = entity.HotelProviderId == supplier.Id || entity.TransportProviderId == supplier.Id;
+        if (!hasAccess)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         return _mapper.Map<TourInstanceDto>(entity);

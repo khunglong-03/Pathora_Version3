@@ -451,6 +451,7 @@ export interface TourInstancePlanAccommodationDto {
   id: string;
   roomType: string;
   quantity: number;
+  roomBlocksTotal?: number;
 }
 
 export interface TourInstancePlanRouteDto {

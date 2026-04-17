@@ -76,8 +76,8 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                 providerType === "hotel"
                   ? instance.hotelApprovalStatus
                   : instance.transportApprovalStatus;
-              const isApproved = myApprovalStatus === 1;
-              const isRejected = myApprovalStatus === 2;
+              const isApproved = myApprovalStatus === 2;
+              const isRejected = myApprovalStatus === 3;
 
               return (
                 <div 

@@ -34,7 +34,7 @@ export default function TransportTourAssignmentPage() {
       setLoading(true);
       try {
         const [tourDetail, vehiclesList, driversList] = await Promise.all([
-          tourInstanceService.getInstanceDetail(id as string),
+          tourInstanceService.getMyAssignedInstanceDetail(id as string),
           transportProviderService.getVehicles(),
           transportProviderService.getDrivers(),
         ]);
@@ -120,7 +120,7 @@ export default function TransportTourAssignmentPage() {
         }
         
         // Refresh tour data
-        const updated = await tourInstanceService.getInstanceDetail(id as string);
+        const updated = await tourInstanceService.getMyAssignedInstanceDetail(id as string);
         setTour(updated);
       }
     } catch (error: any) {
