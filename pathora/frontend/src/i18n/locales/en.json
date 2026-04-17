@@ -2254,7 +2254,32 @@
     "dayUpdated": "Day updated successfully",
     "dayUpdateError": "Failed to update day",
     "activityUpdated": "Activity updated successfully",
-    "activityUpdateError": "Failed to update activity"
+    "activityUpdateError": "Failed to update activity",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "transportProvider": "Transport provider",
+    "hotelProvider": "Hotel provider",
+    "noTransportProvider": "No transport provider assigned",
+    "noHotelProvider": "No hotel provider assigned",
+    "addDay": "Add day",
+    "addCustomDay": "Add custom day",
+    "confirmAddDay": "Add",
+    "durationLabel": "Duration",
+    "revenueLabel": "Revenue",
+    "createdAt": "Created",
+    "lastModified": "Last modified",
+    "provider": {
+      "note": "Note:"
+    },
+    "transport": {
+      "vehicleInfo": "Vehicle information",
+      "notAssigned": "No vehicle assigned",
+      "pickup": "Pickup:",
+      "dropoff": "Dropoff:",
+      "departure": "Dep:",
+      "arrival": "Arr:"
+    }
   },
   "pricingPolicy": {
     "title": "Pricing Policies",
@@ -2859,292 +2884,174 @@
     }
   },
   "landing": {
+    "hero": {
+      "eyebrow": "DISCOVER AMAZING TOURS",
+      "title": "Explore the World With Us",
+      "subtitle": "Find your next adventure with our exclusive tour packages tailored for unforgettable experiences.",
+      "searchPlaceholder": "Where to next?",
+      "exploreTours": "Explore Tours"
+    },
+    "stats": {
+      "items": {
+        "totalTours": "Tours",
+        "totalTravellers": "Travellers",
+        "totalDistanceKM": "KM Travelled",
+        "support": "Support"
+      }
+    },
+    "destinations": {
+      "eyebrow": "POPULAR DESTINATIONS",
+      "title": "Where do you want to go?",
+      "viewAll": "View all destinations"
+    },
+    "featured": {
+      "eyebrow": "FEATURED",
+      "title": "Top Rated Tours"
+    },
+    "whyChoose": {
+      "eyebrow": "WHY CHOOSE US",
+      "title": "Unforgettable scale of services",
+      "items": {
+        "price": {
+          "title": "Best Price Guarantee",
+          "desc": "We offer the best prices for all our tours."
+        },
+        "guides": {
+          "title": "Expert Guides",
+          "desc": "Our guides are highly experienced and knowledgeable."
+        },
+        "support": {
+          "title": "24/7 Support",
+          "desc": "We are here to help you anytime, anywhere."
+        },
+        "flexible": {
+          "title": "Flexible Booking",
+          "desc": "Easy cancellation and rebooking options."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to start your adventure?",
+      "subtitle": "Join thousands of satisfied travellers and book your next trip with us today.",
+      "ctaButton": "Book Now",
+      "secondaryButton": "Learn More"
+    },
+    "payment": {
+      "breakdown": {
+        "subtotal": "Subtotal",
+        "tax": "Tax",
+        "total": "Total"
+      },
+      "retryAfterMessage": "Retry after {{seconds}}s",
+      "refreshButton": "Refresh"
+    },
     "nav": {
       "home": "Home",
       "aboutUs": "About Us",
       "tourPackages": "Tour Packages",
       "ourPolicies": "Our Policies"
     },
-    "sidebar": {
-      "tourDiscovery": "Tour Discovery"
-    },
-    "tourDiscovery": {
-      "viewSwitchLabel": "Choose viewing mode",
-      "viewType": {
-        "tour": "By Tour",
-        "tourInstance": "By Departure"
-      },
-      "toursFound": "tours found",
-      "departuresFound": "departures found",
-      "sortBy": "Sort by",
-      "sortAria": "Sort tour results",
-      "sort": {
-        "recommended": "Recommended",
-        "price-low": "Price: Low to High",
-        "price-high": "Price: High to Low",
-        "duration-short": "Duration: Shortest",
-        "duration-long": "Duration: Longest"
-      },
-      "loadingAria": "Loading tour results",
-      "errorLoading": "Failed to load tours",
-      "errorLoadingInstances": "Failed to load departures",
-      "retry": "Retry",
-      "resultsRegion": "Search Results",
-      "noToursFound": "No tours found",
-      "tryAdjustingFilters": "Try adjusting your filters",
-      "emptyStats": "Over 2,000+ tours are waiting",
-      "browseAllTours": "Browse All Tours",
-      "exploreDestinations": "Explore Destinations",
-      "noDeparturesFound": "No departures found",
-      "noInstancesDescription": "There are no upcoming departures matching your criteria.",
-      "paginationAria": "Pagination",
-      "prevPageAria": "Previous Page",
-      "pageOf": "Page {{current}} of {{total}}",
-      "nextPageAria": "Next Page",
-      "bookNow": "Book Now",
-      "reserveNow": "Reserve Now",
-      "searchPlaceholder": "Search destinations...",
-      "filter": "Filter",
-      "clearAll": "Clear All",
-      "apply": "Apply",
-      "classifications": "Classifications",
-      "days": "Days"
-    },
-    "footer": {
-      "about": "About",
-      "tours": "Tours",
-      "blog": "Blog",
-      "careers": "Careers",
-      "help": "Help Center",
-      "contact": "Contact",
-      "faq": "FAQ",
-      "policies": "Policies",
-      "destinations": "Destinations",
-      "tagline": "Vietnam's premier travel platform. Discover hidden gems, curated tours, and unforgettable adventures.",
-      "newsletter": "Stay Updated",
-      "newsletterDesc": "Get the latest travel deals and updates.",
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "copyrightShort": "All rights reserved."
-    },
-    "a11y": {
-      "closeMenu": "Close menu",
-      "changeLanguage": "Change language"
-    },
-    "language": {
-      "title": "Language"
-    },
-    "hero": {
-      "eyebrow": "Vietnam's Premier Travel Platform",
-      "title": "Discover The Extraordinary",
-      "subtitle": "Curated experiences. Unforgettable journeys. Your ultimate travel companion.",
-      "searchPlaceholder": "Where do you want to go?",
-      "exploreTours": "Explore Tours",
-      "searchButton": "Search",
-      "exploreBtn": "Explore Tours"
-    },
-    "stats": {
-      "items": {
-        "totalTours": "Tours",
-        "totalTravellers": "Travelers",
-        "totalDistanceKm": "Distance Covered",
-        "support": "Support"
-      },
-      "unavailable": "Statistics temporarily unavailable",
-      "destinations": "Destinations",
-      "tours": "Tours",
-      "happyTravelers": "Happy Travelers"
-    },
-    "destinations": {
-      "eyebrow": "Explore",
-      "title": "Trending Destinations",
-      "viewAll": "View all destinations",
-      "tours": "tours",
-      "loadError": "Unable to load destinations",
-      "retry": "Retry",
-      "empty": "No destinations available at the moment.",
-      "subtitle": "Explore the most popular places to go right now."
-    },
-    "featured": {
-      "eyebrow": "Handpicked",
-      "title": "Featured Adventures",
-      "loadError": "Unable to load featured tours",
-      "retry": "Retry",
-      "empty": "No featured tours available at the moment.",
-      "subtitle": "Handpicked journeys for your next adventure."
-    },
-    "latestTours": {
-      "title": "Latest Tours",
-      "seeAll": "View All"
-    },
-    "whyChoose": {
-      "eyebrow": "Why Pathora",
-      "title": "Why Choose Us",
-      "items": {
-        "price": {
-          "title": "Best Price Guarantee",
-          "desc": "We ensure competitive pricing on all tour packages without compromising quality."
-        },
-        "guides": {
-          "title": "Expert Local Guides",
-          "desc": "Our certified guides bring deep local knowledge and passion for every destination."
-        },
-        "support": {
-          "title": "24/7 Support",
-          "desc": "Round-the-clock assistance from our dedicated team wherever you travel."
-        },
-        "flexible": {
-          "title": "Flexible Booking",
-          "desc": "Free cancellations and easy rescheduling for a stress-free travel experience."
-        }
-      },
-      "subtitle": "We offer the best travel experiences with trusted partners worldwide",
-      "features": [
-        {
-          "title": "Trusted & Safe",
-          "desc": "Every tour is verified and insured for your peace of mind"
-        },
-        {
-          "title": "Best Price Guarantee",
-          "desc": "Competitive pricing with no hidden fees or surprise charges"
-        },
-        {
-          "title": "Global Coverage",
-          "desc": "Tours across 50+ countries with local expert guides"
-        },
-        {
-          "title": "Curated Experiences",
-          "desc": "Hand-picked itineraries designed by travel professionals"
-        }
-      ]
-    },
-    "cta": {
-      "title": "Ready for Your Next Adventure?",
-      "subtitle": "Join thousands of travelers discovering Vietnam's hidden gems with Pathora.",
-      "ctaButton": "Explore Tours",
-      "secondaryButton": "Learn More",
-      "button": "Book Now"
+    "latest": {
+      "eyebrow": "LATEST TOURS",
+      "title": "Freshly Added Tours",
+      "viewAll": "View All",
+      "viewDetails": "View Details"
     },
     "reviews": {
-      "eyebrow": "Testimonials",
-      "title": "What Travelers Say",
-      "rating": "Rating",
-      "loadError": "Unable to load reviews",
-      "retry": "Retry",
-      "empty": "No reviews available yet.",
-      "subtitle": "Real stories from our amazing community."
+      "eyebrow": "TESTIMONIALS",
+      "title": "What Our Clients Say"
     },
-    "trustedBrands": {
-      "title": "Trusted Partners",
-      "brandAlt": "Partner"
-    },
-    "common": {
-      "starsAria": "{{count}} out of 5 stars"
-    },
-    "auth": {
-      "login": "Sign In",
-      "logIn": "Sign In",
-      "createAccount": "Create Account",
-      "close": "Close",
-      "username": "Username",
-      "enterUsername": "Enter your username",
-      "nameAndSurname": "Full Name",
-      "enterNameAndSurname": "Enter your full name",
-      "emailAddress": "Email Address",
-      "enterEmailAddress": "Enter your email address",
-      "password": "Password",
-      "enterPassword": "Enter your password",
-      "hidePassword": "Hide password",
-      "showPassword": "Show password",
-      "agreeWith": "I agree with the",
-      "terms": "Terms of Service",
-      "and": "and",
-      "privacy": "Privacy Policy",
-      "mustAgreeToTerms": "You must agree to the terms and privacy policy.",
-      "registrationSuccess": "Registration successful! Please log in.",
-      "registrationFailed": "Registration failed. Please try again.",
-      "emailTemporarilyLocked": "Email is temporarily locked. Please try again in {{minutes}} minutes.",
-      "or": "OR",
-      "signUpWithGoogle": "Sign up with Google",
-      "signInWithGoogle": "Sign in with Google",
-      "alreadyHaveAccount": "Already have an account?",
-      "loginSuccess": "Login successful!",
-      "forgotYourPassword": "Forgot your password?",
-      "dontHaveAccount": "Don't have an account?",
-      "forgotPassword": "Forgot Password",
-      "forgotPasswordHelp": "Enter your email address and we'll send you a link to reset your password.",
-      "resetPassword": "Reset Password",
-      "backToLogin": "Back to login",
-      "checkYourEmail": "Check Your Email",
-      "resetLinkSentTo": "A reset link has been sent to",
-      "closeModal": "Close modal",
-      "signIn": "Sign In",
-      "signUp": "Sign Up"
-    },
-    "latest": {
-      "eyebrow": "Just Added",
-      "title": "Latest Tours",
-      "viewAll": "View all",
-      "viewDetails": "View details",
-      "loadError": "Unable to load latest tours",
-      "retry": "Retry",
-      "empty": "No latest tours available yet.",
-      "subtitle": "Freshly added experiences for you."
-    },
-    "whyChooseUs": {
-      "title": "Why Choose Us",
-      "subtitle": "We provide the best travel experiences."
+    "footer": {
+      "speakToExpert": "Speak to our expert",
+      "followUs": "Follow Us",
+      "contactNested": {
+        "title": "Contact",
+        "address": "123 Travel Street, Wonder City, World"
+      },
+      "company": {
+        "title": "Company"
+      },
+      "links": {
+        "company": {
+          "aboutUs": "About Us",
+          "reviews": "Reviews",
+          "contactUs": "Contact Us",
+          "travelGuides": "Travel Guides",
+          "dataPolicy": "Data Policy",
+          "cookiePolicy": "Cookie Policy",
+          "legal": "Legal",
+          "sitemap": "Sitemap"
+        },
+        "support": {
+          "getInTouch": "Get in Touch",
+          "helpCenter": "Help Center",
+          "liveChat": "Live Chat",
+          "howItWorks": "How it Works"
+        }
+      },
+      "support": {
+        "title": "Support"
+      },
+      "newsletterNested": {
+        "title": "Newsletter",
+        "description": "Subscribe to our newsletter and get exciting offers and news.",
+        "placeholder": "Enter your email",
+        "send": "Send"
+      },
+      "mobileApps": {
+        "title": "Mobile Apps",
+        "ios": "iOS App",
+        "android": "Android App"
+      },
+      "copyright": "© {{year}} Pathora. All rights reserved."
     },
     "aboutUs": {
       "ourStory": "Our Story",
-      "weAre": "We are",
-      "heroSubtitle": "Crafting unforgettable travel experiences across Vietnam and beyond.",
-      "whyChooseUs": "Why Choose Us",
-      "valuesTitle": "Our Core Values",
-      "values": {
-        "globalExpertise": "Global Expertise",
-        "globalExpertiseDesc": "Decades of combined experience in worldwide travel.",
-        "safeTrusted": "Safe & Trusted",
-        "safeTrustedDesc": "Your safety and security are our top priorities.",
-        "tailoredForYou": "Tailored For You",
-        "tailoredForYouDesc": "Personalized itineraries to match your travel style.",
-        "seamlessExperience": "Seamless Experience",
-        "seamlessExperienceDesc": "From booking to return, we handle every detail."
-      },
-      "ourJourney": "Our Journey",
-      "journeyTitle": "Milestones of Pathora",
-      "timeline": {
-        "founded": "Founded",
-        "foundedDesc": "Started with a vision.",
-        "first10k": "First 10K",
-        "first10kDesc": "Reached our first 10,000 travelers.",
-        "expanded60": "Expanded presence",
-        "expanded60Desc": "Operations across 60+ countries.",
-        "digitalFirst": "Digital First",
-        "digitalFirstDesc": "Launched the new online portal.",
-        "happy92k": "92K+ Travelers",
-        "happy92kDesc": "And the journey continues."
-      },
-      "whoWeAre": "Who We Are",
-      "yearsExperience": "Years Experience",
-      "passionateTravelers": "Passionate travelers.",
-      "expertGuides": "Expert guides.",
-      "whoWeAreDesc1": "We are dedicated to providing the best travel experiences.",
-      "whoWeAreDesc2": "Our team of experts carefully curates every tour to ensure quality.",
-      "exploreOurTours": "Explore Our Tours",
-      "teamSubtitle": "Meet Our Team",
-      "teamTitle": "The Experts Behind The Scenes",
-      "toursLed": "Tours Led",
+      "weAre": "We Are",
+      "heroSubtitle": "Connecting travelers with breathtaking destinations and unforgettable experiences since the very beginning.",
       "stats": {
         "destinations": "Destinations",
         "happyTravelers": "Happy Travelers",
         "toursOffered": "Tours Offered",
         "satisfactionRate": "Satisfaction Rate"
       },
+      "whoWeAre": "Who We Are",
+      "passionateTravelers": "Passionate Travelers,",
+      "expertGuides": "Expert Guides",
+      "whoWeAreDesc1": "At Pathora, we believe that travel is more than just visiting a new place. It is about immersing yourself in new cultures, creating lasting memories, and discovering the world from a fresh perspective.",
+      "whoWeAreDesc2": "Our team of experienced travel experts meticulously crafts every itinerary to ensure you get the absolute best out of your precious vacation time. We handle the logistics so you can focus on the adventure.",
+      "exploreOurTours": "Explore Our Tours",
+      "yearsExperience": "Years Experience",
+      "valuesTitle": "Our Core Values",
+      "values": {
+        "globalExpertise": "Global Expertise",
+        "globalExpertiseDesc": "We have carefully vetted local guides and partners all across the globe.",
+        "safeTrusted": "Safe & Trusted",
+        "safeTrustedDesc": "Your safety and security are our highest priorities on every single trip.",
+        "tailoredForYou": "Tailored For You",
+        "tailoredForYouDesc": "We offer flexible packages that can be customized to suit your unique needs.",
+        "seamlessExperience": "Seamless Experience",
+        "seamlessExperienceDesc": "From booking to getting back home, we ensure a smooth journey."
+      },
+      "journeyTitle": "Our Journey",
+      "timeline": {
+        "founded": "Pathora Founded",
+        "foundedDesc": "Started with a small team and a big dream to revolutionize travel.",
+        "first10k": "10K Happy Travelers",
+        "first10kDesc": "Reached our first major milestone of satisfied globe-trotters.",
+        "expanded60": "Expanded to 60+ Countries",
+        "expanded60Desc": "Grew our network to offer tours on nearly every continent.",
+        "digitalFirst": "Digital-First Booking",
+        "digitalFirstDesc": "Launched our seamlessly integrated online platform.",
+        "happy92k": "Over 92K Travelers",
+        "happy92kDesc": "Continuing our mission to make world-class travel accessible."
+      },
+      "teamSubtitle": "Meet The Team",
+      "teamTitle": "Our Expert Leaders",
       "readyToExplore": "Ready to Explore?",
-      "ctaTitle": "Your adventure",
-      "ctaTitleWith": "starts with us",
-      "ctaDescription": "Join thousands of satisfied travelers.",
+      "ctaTitle": "Start your journey",
+      "ctaTitleWith": "with Pathora",
+      "ctaDescription": "Join thousands of satisfied travelers. Book your dream vacation today and let us handle all the details.",
       "browsePackageTours": "Browse Package Tours"
     }
   }

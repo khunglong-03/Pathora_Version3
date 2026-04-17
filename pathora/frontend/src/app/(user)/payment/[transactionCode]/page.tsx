@@ -4,8 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
 import { useTranslation } from "react-i18next";
 import { paymentService, type PaymentTransaction, type CheckoutPriceResponse } from "@/api/services/paymentService";
 import { handleApiError } from "@/utils/apiResponse";
@@ -284,7 +283,7 @@ export default function PaymentStatusPage() {
   if (loading) {
     return (
       <>
-        <LandingHeader />
+
         <main className="bg-gray-50 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Icon icon="heroicons:arrow-path" className="size-12 text-orange-500 animate-spin mx-auto mb-4" />
@@ -298,7 +297,7 @@ export default function PaymentStatusPage() {
   if (error || !transaction) {
     return (
       <>
-        <LandingHeader />
+
         <main className="bg-gray-50 min-h-screen flex items-center justify-center">
           <div className="max-w-md mx-auto p-6 text-center">
             <div className="size-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -322,7 +321,7 @@ export default function PaymentStatusPage() {
   if (status === "completed") {
     return (
       <>
-        <LandingHeader />
+
         <main className="bg-gray-50 min-h-screen flex items-center justify-center">
           <div className="max-w-md mx-auto p-6 text-center">
             <div className="size-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -373,7 +372,7 @@ export default function PaymentStatusPage() {
             </div>
           </div>
         </main>
-        <LandingFooter />
+
       </>
     );
   }
@@ -382,7 +381,7 @@ export default function PaymentStatusPage() {
   if (status === "expired") {
     return (
       <>
-        <LandingHeader />
+
         <main className="bg-gray-50 min-h-screen flex items-center justify-center">
           <div className="max-w-md mx-auto p-6 text-center">
             <div className="size-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -409,7 +408,7 @@ export default function PaymentStatusPage() {
             </div>
           </div>
         </main>
-        <LandingFooter />
+
       </>
     );
   }
@@ -418,7 +417,7 @@ export default function PaymentStatusPage() {
   if (status === "failed") {
     return (
       <>
-        <LandingHeader />
+
         <main className="bg-gray-50 min-h-screen flex items-center justify-center">
           <div className="max-w-md mx-auto p-6 text-center">
             <div className="size-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -445,7 +444,7 @@ export default function PaymentStatusPage() {
             </div>
           </div>
         </main>
-        <LandingFooter />
+
       </>
     );
   }
@@ -453,7 +452,7 @@ export default function PaymentStatusPage() {
   // Pending/Processing state
   return (
     <>
-      <LandingHeader />
+
       <main className="bg-gray-50 min-h-screen">
         <div className="max-w-lg mx-auto px-4 py-8">
           {/* Header */}
@@ -566,7 +565,7 @@ export default function PaymentStatusPage() {
           </div>
         </div>
       </main>
-      <LandingFooter />
+
     </>
   );
 }

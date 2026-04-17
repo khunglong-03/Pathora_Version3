@@ -92,7 +92,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <LandingHeader variant="solid" />
+      
       <div style={{ backgroundColor: CSS.background }} className="min-h-screen pt-20">
         <div className="max-w-4xl mx-auto px-4 pb-8">
           <motion.div

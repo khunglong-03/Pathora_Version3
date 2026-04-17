@@ -76,7 +76,7 @@ export const BoldHeroSection = () => {
   } as Variants;
 
   return (
-    <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f8fafc_42%,_#eef2ff_100%)]">
+    <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-black">
       {/* Video background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <video
@@ -84,24 +84,14 @@ export const BoldHeroSection = () => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
         >
           <source src="/hero-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,250,245,0.35),rgba(248,250,252,0.72)_45%,rgba(248,250,252,0.95))]" />
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* Soft ambient gradients */}
-      <div className="absolute inset-0 pointer-events-none" suppressHydrationWarning>
-        <div
-          className="absolute w-[700px] h-[700px] rounded-full blur-[120px] opacity-32 bg-gradient-to-tr from-[#fb8b02]/28 via-amber-200/18 to-transparent"
-          style={{ top: "-18%", right: "-8%" }}
-        />
-        <div
-          className="absolute w-[900px] h-[900px] rounded-full blur-[140px] opacity-28 bg-gradient-to-bl from-sky-300/24 via-cyan-200/10 to-transparent"
-          style={{ bottom: "-28%", left: "-12%" }}
-        />
-      </div>
+      {/* Soft ambient gradients removed for crisper video display */}
 
       {/* Subtle texture */}
       <div
@@ -121,20 +111,20 @@ export const BoldHeroSection = () => {
           {/* Eyebrow */}
           <div className="mb-8 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-md w-max">
             <span className="w-1.5 h-1.5 rounded-full bg-[#fb8b02] animate-pulse" />
-            <span suppressHydrationWarning className="text-[10px] uppercase tracking-[0.2em] font-semibold text-slate-600">
+            <span suppressHydrationWarning className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/90">
               {t("landing.hero.eyebrow") || "Curated Travel"}
             </span>
           </div>
 
           <h1
             suppressHydrationWarning
-            className="text-5xl md:text-7xl lg:text-7xl font-bold text-slate-900 leading-[1.02] tracking-tight mb-6"
+            className="text-5xl md:text-7xl lg:text-7xl font-bold text-white leading-[1.02] tracking-tight mb-6"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
           >
             {t("landing.hero.title") || "Discover Amazing Tours"}
           </h1>
 
-          <p suppressHydrationWarning className="text-lg text-slate-600 mb-10 leading-relaxed font-medium max-w-lg">
+          <p suppressHydrationWarning className="text-lg text-white/90 mb-10 leading-relaxed font-medium max-w-lg">
             {t("landing.hero.subtitle") || "Explore hand-crafted itineraries and breathtaking locations. Your next agency-level experience is one search away."}
           </p>
 

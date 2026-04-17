@@ -96,7 +96,7 @@ export const FilterDrawer = ({
                   {t("landing.tourDiscovery.filtersLabel", "Filters")}
                 </span>
                 {selectedClassifications.length > 0 && (
-                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-teal-100 text-teal-700 rounded-full">
+                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-[#fa8b02]/10 text-[#fa8b02] rounded-full">
                     {selectedClassifications.length}
                   </span>
                 )}
@@ -129,10 +129,10 @@ export const FilterDrawer = ({
                         tabIndex={0}
                         onClick={() => onClassificationToggle(option.value)}
                         onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onClassificationToggle(option.value); } }}
-                        className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors duration-200 flex-shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d9488] ${
+                        className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-colors duration-200 flex-shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
                           selectedClassifications.includes(option.value)
-                            ? "border-teal-600 bg-teal-600"
-                            : "border-slate-300 bg-white hover:border-teal-400"
+                            ? "border-[#fa8b02] bg-[#fa8b02]"
+                            : "border-slate-300 bg-white hover:border-[#fa8b02]/50"
                         }`}
                       >
                         {selectedClassifications.includes(option.value) && (

@@ -10,8 +10,8 @@ import Icon from "@/components/ui/Icon";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { type CreateTourRequestPayload, type TourRequestTravelInterest } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
+
+
 import { FormValues, DEFAULT_VALUES } from "./CustomTourData";
 import { CustomTourHero } from "./CustomTourHero";
 import { CustomTourForm } from "./CustomTourForm";
@@ -134,7 +134,7 @@ export function CustomTourPage() {
 
   return (
     <div className="bg-white dark:bg-slate-900 min-h-screen">
-      <LandingHeader />
+      
 
       <CustomTourHero
         title={t("tourRequest.page.customTour.title")}
@@ -157,7 +157,7 @@ export function CustomTourPage() {
         />
       </section>
 
-      <LandingFooter />
+      
     </div>
   );
 }

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import {
@@ -413,7 +413,7 @@ export function CheckoutPage() {
 
   return (
     <>
-      <LandingHeader />
+      
 
       <main className="bg-gray-50 h-screen overflow-y-auto">
         <div className="max-w-330 mx-auto px-4 md:px-3.75 py-6 md:py-10">
@@ -499,7 +499,7 @@ export function CheckoutPage() {
         </div>
       </main>
 
-      <LandingFooter />
+      
     </>
   );
 }

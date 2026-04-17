@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "@/features/shared/components/LandingImage";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { useTranslation } from "react-i18next";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import type { PolicySection } from "@/types/siteContent";
@@ -275,7 +275,7 @@ export const PolicyPage = () => {
       className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen overflow-x-hidden">
       {/* Header + Hero */}
       <div className="relative">
-        <LandingHeader />
+        
         <HeroBanner />
       </div>
 
@@ -312,7 +312,7 @@ export const PolicyPage = () => {
       <FloatingButtons />
 
       {/* Footer */}
-      <LandingFooter />
+      
     </main>
   );
 };

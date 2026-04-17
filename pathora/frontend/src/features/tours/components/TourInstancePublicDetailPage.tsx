@@ -7,8 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Icon, TourStatusBadge } from "@/components/ui";
 import Button from "@/components/ui/Button";
 import Image from "@/features/shared/components/LandingImage";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
+
 import {
   CapacityBar,
   ImageLightbox,
@@ -70,7 +69,6 @@ export function TourInstancePublicDetailPage() {
     return i18n.resolvedLanguage || i18n.language || "en";
   }, [i18n.resolvedLanguage, i18n.language]);
 
-  const [activeTab, setActiveTab] = useState<"overview" | "pricing" | "itinerary">("overview");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<NormalizedTourInstanceDto | null>(null);
   const [apiLanguage, setApiLanguage] = useState(() => resolveApiLanguage());
@@ -146,7 +144,7 @@ export function TourInstancePublicDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: "var(--tour-surface-muted)" }}>
-        <LandingHeader variant="solid" />
+
         <div className="max-w-6xl mx-auto px-6 md:px-8 mt-8">
           <div className="py-4 px-6">
             <div className="h-4 w-48 rounded animate-pulse" style={{ background: "var(--tour-divider)" }} />
@@ -167,7 +165,7 @@ export function TourInstancePublicDetailPage() {
             </div>
           </div>
         </div>
-        <LandingFooter />
+
       </div>
     );
   }
@@ -176,7 +174,7 @@ export function TourInstancePublicDetailPage() {
   if (!data) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: "var(--tour-surface-muted)" }}>
-        <LandingHeader variant="solid" />
+
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
             <Icon
@@ -199,7 +197,7 @@ export function TourInstancePublicDetailPage() {
             </Link>
           </div>
         </div>
-        <LandingFooter />
+
       </div>
     );
   }
@@ -226,10 +224,7 @@ export function TourInstancePublicDetailPage() {
         <div className="absolute inset-0 bg-linear-to-b from-[var(--tour-dark)]/50 via-[var(--tour-dark)]/30 to-[var(--tour-dark)]/90" />
         <div className="absolute inset-0 bg-linear-to-r from-[var(--tour-dark)]/30 via-transparent to-transparent" />
 
-        {/* Header */}
-        <div className="absolute inset-x-0 top-0 z-20">
-          <LandingHeader />
-        </div>
+
 
         {/* Back button */}
         <div className="absolute inset-x-0 top-[81px] z-10 max-w-6xl mx-auto px-6 md:px-8">
@@ -447,55 +442,21 @@ export function TourInstancePublicDetailPage() {
               </div>
             </div>
 
-            {/* Tabs: Overview / Pricing */}
-            <div
-              className="rounded-2xl overflow-hidden reveal-on-scroll"
-              style={{ boxShadow: "var(--shadow-warm-md)", background: "var(--tour-surface)", border: "1px solid rgba(255,255,255,0.8)" }}>
-              {/* Tab bar */}
-              <div className="p-4">
-                <div className="flex gap-1.5 p-1.5 rounded-2xl w-full" style={{ background: "var(--tour-surface-muted)" }}>
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("overview")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all rounded-xl duration-300 ${
-                      activeTab === "overview"
-                        ? "bg-white shadow-[var(--shadow-warm-sm)] text-[var(--landing-accent)] ring-2 ring-[var(--landing-accent)]/20"
-                        : "text-[var(--tour-body)] hover:text-[var(--tour-heading)] hover:bg-white/50"
-                    }`}>
-                    <Icon icon="heroicons:information-circle" className="size-4" />
-                    {t("tourInstance.overview", "Overview")}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("pricing")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all rounded-xl duration-300 ${
-                      activeTab === "pricing"
-                        ? "bg-white shadow-[var(--shadow-warm-sm)] text-[var(--landing-accent)] ring-2 ring-[var(--landing-accent)]/20"
-                        : "text-[var(--tour-body)] hover:text-[var(--tour-heading)] hover:bg-white/50"
-                    }`}>
-                    <Icon icon="heroicons:currency-dollar" className="size-4" />
-                    {t("tourInstance.pricingDetails", "Pricing Details")}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("itinerary")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all rounded-xl duration-300 ${
-                      activeTab === "itinerary"
-                        ? "bg-white shadow-[var(--shadow-warm-sm)] text-[var(--landing-accent)] ring-2 ring-[var(--landing-accent)]/20"
-                        : "text-[var(--tour-body)] hover:text-[var(--tour-heading)] hover:bg-white/50"
-                    }`}>
-                    <Icon icon="heroicons:calendar-days" className="size-4" />
-                    {t("tourInstance.itinerary", "Itinerary")}
-                  </Button>
-                </div>
-              </div>
+            {/* ── Continuous Scroll Sections ───────────────────── */}
+            <div className="flex flex-col gap-8">
+              
+              {/* --- Overview Section --- */}
+              <div
+                className="rounded-2xl p-6 reveal-on-scroll"
+                id="tour-overview"
+                style={{ boxShadow: "var(--shadow-warm-md)", background: "var(--tour-surface)", border: "1px solid rgba(255,255,255,0.8)" }}>
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: "var(--tour-heading)" }}>
+                  <Icon icon="heroicons:information-circle" className="size-6" style={{ color: "var(--landing-accent)" }} />
+                  {t("tourInstance.overview", "Overview")}
+                </h2>
+                <div className="flex flex-col gap-6">
 
-              {/* Tab content */}
-              <div className="p-6">
-                {activeTab === "overview" && (
-                  <div className="flex flex-col gap-6">
-
-                    {/* Guides & Managers */}
+                  {/* Guides & Managers */}
                     <div>
                       <h3 className="text-sm font-semibold tracking-tight mb-3 flex items-center gap-2" style={{ color: "var(--tour-heading)" }}>
                         <Icon icon="heroicons:user-group" className="size-4" style={{ color: "var(--landing-accent)" }} />
@@ -613,10 +574,18 @@ export function TourInstancePublicDetailPage() {
                       </div>
                     )}
                   </div>
-                )}
+              </div>
 
-                {activeTab === "pricing" && (
-                  <div className="flex flex-col gap-5">
+              {/* --- Pricing Section --- */}
+              <div
+                className="rounded-2xl p-6 reveal-on-scroll"
+                id="tour-pricing"
+                style={{ boxShadow: "var(--shadow-warm-md)", background: "var(--tour-surface)", border: "1px solid rgba(255,255,255,0.8)" }}>
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: "var(--tour-heading)" }}>
+                  <Icon icon="heroicons:currency-dollar" className="size-6" style={{ color: "var(--landing-accent)" }} />
+                  {t("tourInstance.pricingDetails", "Pricing Details")}
+                </h2>
+                <div className="flex flex-col gap-5">
                     {/* Base Price Hero */}
                     <div className="rounded-xl p-5 text-center" style={{ background: "rgba(var(--landing-accent-rgb, 250,139,2), 0.06)", border: "1px solid rgba(var(--landing-accent-rgb, 250,139,2), 0.15)" }}>
                       <span className="text-[10px] uppercase tracking-wider font-bold block mb-1" style={{ color: "var(--landing-accent)" }}>
@@ -655,10 +624,18 @@ export function TourInstancePublicDetailPage() {
                       </div>
                     </div>
                   </div>
-                )}
+              </div>
 
-                {activeTab === "itinerary" && (
-                  <div className="flex flex-col gap-4">
+              {/* --- Itinerary Section --- */}
+              <div
+                className="rounded-2xl p-6 reveal-on-scroll"
+                id="tour-itinerary"
+                style={{ boxShadow: "var(--shadow-warm-md)", background: "var(--tour-surface)", border: "1px solid rgba(255,255,255,0.8)" }}>
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2" style={{ color: "var(--tour-heading)" }}>
+                  <Icon icon="heroicons:calendar-days" className="size-6" style={{ color: "var(--landing-accent)" }} />
+                  {t("tourInstance.itinerary", "Itinerary")}
+                </h2>
+                <div className="flex flex-col gap-4">
                     {data.days && data.days.length > 0 ? (
                       data.days.map((day) => {
                         const activities = day.activities ?? [];
@@ -857,8 +834,8 @@ export function TourInstancePublicDetailPage() {
                       </div>
                     )}
                   </div>
-                )}
               </div>
+
             </div>
           </div>
 
@@ -1114,7 +1091,32 @@ export function TourInstancePublicDetailPage() {
         </Button>
       </div>
 
-      <LandingFooter />
+      {/* ── Mobile Sticky Bottom Bar ──────────────────────── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 p-4 border-t transition-all" style={{ background: "var(--tour-surface)", borderColor: "var(--tour-divider)", boxShadow: "0 -4px 12px rgba(0,0,0,0.05)" }}>
+        <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto">
+          <div className="flex flex-col">
+            <span className="text-xl font-black tabular-nums leading-none" style={{ color: "var(--landing-accent)" }}>
+              {formatCurrency(data.basePrice, formatterLocale)}
+            </span>
+            <span className="text-[10px] mt-1 font-medium underline decoration-dashed underline-offset-2" style={{ color: "var(--tour-caption)", textDecorationColor: "var(--tour-caption)" }}>
+              {toDateText(data.startDate, formatterLocale)}
+            </span>
+          </div>
+          <Button
+            type="button"
+            disabled={spotsLeft === 0}
+            onClick={() => {
+              document.querySelector(".lg\\:top-24")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="px-6 py-3 rounded-xl text-sm font-bold shadow-[var(--shadow-warm-md)] transition-transform hover:-translate-y-0.5 active:scale-95"
+            style={{
+               color: "white",
+               background: spotsLeft > 0 ? (isPublicInstance ? "var(--landing-accent)" : "#1D4ED8") : "var(--tour-caption)",
+            }}>
+            {spotsLeft === 0 ? t("tourInstance.soldOut", "Sold Out") : t("tourInstance.checkAvailability", "Check Availability")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 import { useParams } from "next/navigation";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { SAMPLE_BOOKINGS } from "./BookingDetailData";
 import {
   getStatusLabel,
@@ -44,7 +44,7 @@ export function BookingDetailPage() {
 
   return (
     <>
-      <LandingHeader />
+      
 
       <main className="bg-gray-50 min-h-screen">
         <BookingHeroSection booking={booking} getStatusLabel={labelFns.getStatusLabel} />
@@ -83,7 +83,7 @@ export function BookingDetailPage() {
         </div>
       </main>
 
-      <LandingFooter />
+      
       <BookingFloatingSocial />
     </>
   );

@@ -36,7 +36,7 @@ export const BoldWhyChooseUs = () => {
   const [ref, isVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 });
 
   return (
-    <section className="py-20 md:py-28 bg-[#0a0a1a]">
+    <section className="py-20 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div
@@ -44,11 +44,11 @@ export const BoldWhyChooseUs = () => {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <span suppressHydrationWarning className="text-sm font-medium text-white/40 uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-slate-500 uppercase tracking-widest">
             {t("landing.whyChoose.eyebrow")}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-white tracking-tight"
+            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900 tracking-tight"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
           >
             {t("landing.whyChoose.title")}
@@ -65,7 +65,7 @@ export const BoldWhyChooseUs = () => {
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="p-6 rounded-2xl bg-[#111827]/50 border border-white/5 hover:border-white/10 hover:bg-[#111827]/80 transition-all duration-300 group text-center"
+              className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md hover:bg-slate-50 transition-all duration-300 group text-center"
               style={{
                 transitionDelay: isVisible ? `${idx * 100}ms` : "0ms",
               }}
@@ -76,10 +76,10 @@ export const BoldWhyChooseUs = () => {
               >
                 <feature.Icon size={26} weight="duotone" color={feature.color} />
               </div>
-              <h3 className="text-white font-semibold text-sm mb-2">
+              <h3 className="text-slate-900 font-semibold text-sm mb-2">
                 {t(feature.titleKey)}
               </h3>
-              <p className="text-white/40 text-xs leading-relaxed">
+              <p className="text-slate-500 text-xs leading-relaxed">
                 {t(feature.descKey)}
               </p>
             </div>

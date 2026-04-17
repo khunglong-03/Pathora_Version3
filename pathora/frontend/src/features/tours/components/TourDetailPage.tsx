@@ -5,8 +5,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "@/features/shared/components/LandingImage";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { useTranslation } from "react-i18next";
 import { useParams, useRouter } from "next/navigation";
 import { tourService } from "@/api/services/tourService";
@@ -62,7 +62,7 @@ function TourDetailSkeleton() {
     <div className="min-h-screen" style={{ background: "var(--tour-surface-muted)" }}>
       <div className="relative h-[460px] animate-pulse" style={{ background: "var(--tour-surface)" }}>
         <div className="absolute inset-x-0 top-0 z-20">
-          <LandingHeader />
+          
         </div>
       </div>
       <div className="max-w-330 mx-auto px-4 md:px-3.75">
@@ -80,7 +80,7 @@ function TourDetailSkeleton() {
           </div>
         </div>
       </div>
-      <LandingFooter />
+      
     </div>
   );
 }
@@ -203,7 +203,7 @@ export function TourDetailPage() {
   if (error === "not_found" || !tour) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: "var(--tour-surface-muted)" }}>
-        <LandingHeader />
+        
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
             <Icon
@@ -226,7 +226,7 @@ export function TourDetailPage() {
             </Link>
           </div>
         </div>
-        <LandingFooter />
+        
       </div>
     );
   }
@@ -235,7 +235,7 @@ export function TourDetailPage() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: "var(--tour-surface-muted)" }}>
-        <LandingHeader />
+        
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
             <Icon
@@ -263,7 +263,7 @@ export function TourDetailPage() {
             </Button>
           </div>
         </div>
-        <LandingFooter />
+        
       </div>
     );
   }
@@ -289,7 +289,7 @@ export function TourDetailPage() {
 
         {/* Header */}
         <div className="absolute inset-x-0 top-0 z-20">
-          <LandingHeader />
+          
         </div>
 
         {/* Back button */}
@@ -984,7 +984,7 @@ export function TourDetailPage() {
       </div>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <LandingFooter />
+      
     </div>
   );
 }

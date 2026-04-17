@@ -59,7 +59,7 @@ export const BoldFeaturedTrips = () => {
   }, [fetchFeaturedTours]);
 
   return (
-    <section className="py-20 md:py-28 bg-[#0a0a1a]">
+    <section className="py-20 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div
           ref={titleRef}
@@ -67,11 +67,11 @@ export const BoldFeaturedTrips = () => {
             titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <span suppressHydrationWarning className="text-sm font-medium text-[#ec4899] uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest">
             {t("landing.featured.eyebrow") || "Handpicked"}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-white"
+            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
           >
             {t("landing.featured.title") || "Featured Adventures"}
@@ -105,13 +105,13 @@ export const BoldFeaturedTrips = () => {
                     : "";
               return (
                 <div key={idx} className={`${sizeClass} animate-pulse`}>
-                  <div className="h-full min-h-[300px] rounded-2xl bg-white/10" />
+                  <div className="h-full min-h-[300px] rounded-2xl bg-slate-100" />
                 </div>
               );
             })}
           </div>
         ) : featuredTours.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-white/60">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
             {t("landing.featured.empty") || "No featured tours available at the moment."}
           </div>
         ) : (

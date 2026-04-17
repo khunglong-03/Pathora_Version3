@@ -2,8 +2,8 @@
 import React, { useState, useMemo } from "react";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTranslation } from "react-i18next";
 import { SOCIAL_MEDIA } from "@/configs/urls";
@@ -79,7 +79,7 @@ export function BookingHistoryPage() {
 
   return (
     <>
-      <LandingHeader />
+      
 
       <main className="bg-gray-50 min-h-screen">
         <BookingHistoryHero
@@ -137,7 +137,7 @@ export function BookingHistoryPage() {
         </div>
       </main>
 
-      <LandingFooter />
+      
 
       {/* Floating Social Buttons */}
       <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col gap-3">

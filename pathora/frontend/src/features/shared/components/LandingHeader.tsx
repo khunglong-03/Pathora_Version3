@@ -386,15 +386,10 @@ const MobileSidebar = ({
 };
 
 /* ── Header ────────────────────────────────────────────────── */
-export const LandingHeader = ({
-  variant = "overlay",
-  logoVariant = "svg",
-}: {
-  variant?: "overlay" | "solid";
-  /** "svg" = Pathora logo image, "text" = "Pathora" in Space Grotesk font */
-  logoVariant?: "svg" | "text";
-}) => {
-  const isSolid = variant === "solid";
+export const LandingHeader = () => {
+  const pathname = usePathname();
+  const isOverlayPage = pathname === "/" || pathname === "/about";
+  const isSolid = !isOverlayPage;
   const { t, i18n } = useTranslation();
   const { isAuth, user } = useSelector((state: RootState) => state.auth);
   const customizerOpen = useSelector(
@@ -450,7 +445,7 @@ export const LandingHeader = ({
         : undefined;
     router.push(portal === "admin" ? "/admin/dashboard" : "/");
   };
-  const pathname = usePathname();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useMobileMenu();
   const { width, breakpoints } = useWidth();
   const mdBreakpoint = breakpoints.md;
@@ -610,23 +605,17 @@ export const LandingHeader = ({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0 group">
-              {logoVariant === "text" ? (
-                <span className="text-2xl font-bold text-white font-['Space_Grotesk'] tracking-tight">
-                  Pathora
-                </span>
-              ) : (
-                <div
-                  className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}>
-                  <Image
-                    src={LOGO}
-                    alt="Pathora logo"
-                    fill
-                    sizes="(max-width: 768px) 96px, 112px"
-                    className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    priority
-                  />
-                </div>
-              )}
+              <div
+                className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}>
+                <Image
+                  src={LOGO}
+                  alt="Pathora logo"
+                  fill
+                  sizes="(max-width: 768px) 96px, 112px"
+                  className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  priority
+                />
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -973,14 +962,18 @@ export const LandingHeader = ({
         onClose={() => setMobileMenuOpen(false)}
         onOpenAuth={openAuth}
         dialogId="landing-mobile-menu"
-        logoVariant={logoVariant}
+        logoVariant="svg"
       />
       <AuthModal
         key={effectiveAuthView}
         open={effectiveAuthOpen}
-        onClose={() => setAuthOpen(false)}
+        onClose={() => {
+          setAuthOpen(false);
+          setMobileMenuOpen(false);
+        }}
         initialView={effectiveAuthView}
       />
+      {isSolid && <div className="h-[88px] md:h-[96px] w-full shrink-0" aria-hidden="true" />}
     </>
   );
 };

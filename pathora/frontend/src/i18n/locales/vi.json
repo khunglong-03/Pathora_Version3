@@ -2264,7 +2264,32 @@
       "dayUpdated": "Ngày đã được cập nhật thành công",
       "dayUpdateError": "Không thể cập nhật ngày",
       "activityUpdated": "Hoạt động đã được cập nhật thành công",
-      "activityUpdateError": "Không thể cập nhật hoạt động"
+      "activityUpdateError": "Không thể cập nhật hoạt động",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối",
+      "pending": "Chờ duyệt",
+      "transportProvider": "Đơn vị vận chuyển",
+      "hotelProvider": "Khách sạn",
+      "noTransportProvider": "Chưa có đơn vị vận chuyển được phân công",
+      "noHotelProvider": "Chưa có khách sạn được phân công",
+      "addDay": "Thêm ngày",
+      "addCustomDay": "Thêm ngày mới",
+      "confirmAddDay": "Thêm",
+      "durationLabel": "Thời gian",
+      "revenueLabel": "Doanh thu",
+      "createdAt": "Ngày tạo",
+      "lastModified": "Cập nhật lần cuối",
+      "provider": {
+        "note": "Ghi chú:"
+      },
+      "transport": {
+        "vehicleInfo": "Thông tin xe",
+        "notAssigned": "Chưa có xe được phân công",
+        "pickup": "Điểm đón:",
+        "dropoff": "Điểm trả:",
+        "departure": "Khởi hành:",
+        "arrival": "Đến:"
+      }
     },
     "wizard": {
       "step": "Bước",
@@ -2892,293 +2917,175 @@
     }
   },
   "landing": {
-    "nav": {
-      "home": "Trang Chủ",
-      "aboutUs": "Về Chúng Tôi",
-      "tourPackages": "Gói Tour",
-      "ourPolicies": "Chính Sách"
-    },
-    "sidebar": {
-      "tourDiscovery": "Khám phá Tour"
-    },
-    "tourDiscovery": {
-      "viewSwitchLabel": "Chọn chế độ xem",
-      "viewType": {
-        "tour": "Theo Tour",
-        "tourInstance": "Theo Lịch trình"
-      },
-      "toursFound": "tour được tìm thấy",
-      "departuresFound": "lịch trình được tìm thấy",
-      "sortBy": "Sắp xếp theo",
-      "sortAria": "Sắp xếp kết quả tour",
-      "sort": {
-        "recommended": "Đề xuất",
-        "price-low": "Giá: Thấp đến Cao",
-        "price-high": "Giá: Cao đến Thấp",
-        "duration-short": "Thời gian: Ngắn nhất",
-        "duration-long": "Thời gian: Dài nhất"
-      },
-      "loadingAria": "Đang tải kết quả",
-      "errorLoading": "Không thể tải danh sách tour",
-      "errorLoadingInstances": "Không thể tải danh sách lịch trình",
-      "retry": "Thử lại",
-      "resultsRegion": "Kết quả tìm kiếm",
-      "noToursFound": "Không tìm thấy tour nào",
-      "tryAdjustingFilters": "Vui lòng thử điều chỉnh bộ lọc của bạn",
-      "emptyStats": "Hơn 2,000+ tour đang chờ bạn",
-      "browseAllTours": "Xem tất cả Tour",
-      "exploreDestinations": "Khám phá Điểm đến",
-      "noDeparturesFound": "Không tìm thấy lịch trình",
-      "noInstancesDescription": "Không có lịch trình khởi hành nào phù hợp với bộ lọc.",
-      "paginationAria": "Phân trang",
-      "prevPageAria": "Trang trước",
-      "pageOf": "Trang {{current}} / {{total}}",
-      "nextPageAria": "Trang tiếp",
-      "bookNow": "Đặt ngay",
-      "reserveNow": "Đặt Ngay",
-      "searchPlaceholder": "Tìm kiếm điểm đến...",
-      "filter": "Bộ lọc",
-      "clearAll": "Xóa bộ lọc",
-      "apply": "Áp dụng",
-      "classifications": "Hạng Tour",
-      "days": "Ngày"
-    },
-    "footer": {
-      "about": "Giới Thiệu",
-      "tours": "Tour Du Lịch",
-      "blog": "Blog",
-      "careers": "Tuyển Dụng",
-      "help": "Trung Tâm Hỗ Trợ",
-      "contact": "Liên Hệ",
-      "faq": "Câu Hỏi Thường Gặp",
-      "policies": "Chính Sách",
-      "destinations": "Điểm Đến",
-      "tagline": "Nền tảng du lịch hàng đầu Việt Nam. Khám phá những điểm đến ẩn giấu, tour được tuyển chọn và những cuộc phiêu lưu đáng nhớ.",
-      "newsletter": "Cập Nhật Tin Mới",
-      "newsletterDesc": "Nhận ưu đãi du lịch và tin tức mới nhất.",
-      "privacy": "Bảo Mật",
-      "terms": "Điều Khoản",
-      "copyrightShort": "Bảo lưu mọi quyền."
-    },
-    "a11y": {
-      "closeMenu": "Đóng menu",
-      "changeLanguage": "Đổi ngôn ngữ"
-    },
-    "language": {
-      "title": "Ngôn ngữ"
-    },
     "hero": {
-      "eyebrow": "Nền Tảng Du Lịch Hàng Đầu Việt Nam",
-      "title": "Khám Phá Điều Phi Thường",
-      "subtitle": "Trải nghiệm được tuyển chọn. Hành trình khó quên. Người bạn đồng hành lý tưởng của bạn.",
+      "eyebrow": "KHÁM PHÁ CÁC CHUYẾN ĐI",
+      "title": "Khám Phá Thế Giới Cùng Chúng Tôi",
+      "subtitle": "Tìm kiếm chuyến đi tiếp theo của bạn với các gói tour độc quyền được thiết kế cho những trải nghiệm khó quên.",
       "searchPlaceholder": "Bạn muốn đi đâu?",
-      "exploreTours": "Khám Phá Tour",
-      "searchButton": "Tìm",
-      "exploreBtn": "Khám phá Tour"
+      "exploreTours": "Khám Phá Cùng Pathora"
     },
     "stats": {
       "items": {
-        "totalTours": "Tour",
-        "totalTravellers": "Du Khách",
-        "totalDistanceKm": "Quãng Đường",
+        "totalTours": "Chuyến Đi",
+        "totalTravellers": "Hành Khách",
+        "totalDistanceKM": "KM Di Chuyển",
         "support": "Hỗ Trợ"
-      },
-      "unavailable": "Thống kê tạm thời không khả dụng",
-      "destinations": "Điểm đến",
-      "tours": "Tour",
-      "happyTravelers": "Khách du lịch hài lòng"
+      }
     },
     "destinations": {
-      "eyebrow": "Khám Phá",
-      "title": "Điểm Đến Thịnh Hành",
-      "viewAll": "Xem tất cả điểm đến",
-      "tours": "tour",
-      "loadError": "Không thể tải danh sách điểm đến",
-      "retry": "Thử lại",
-      "empty": "Hiện chưa có điểm đến nào.",
-      "subtitle": "Khám phá những địa điểm được ưa chuộng nhất hiện nay."
+      "eyebrow": "ĐIỂM ĐẾN PHỔ BIẾN",
+      "title": "Bạn muốn đi đâu?",
+      "viewAll": "Xem tất cả"
     },
     "featured": {
-      "eyebrow": "Được Chọn Lọc",
-      "title": "Hành Trình Nổi Bật",
-      "loadError": "Không thể tải tour nổi bật",
-      "retry": "Thử lại",
-      "empty": "Hiện chưa có tour nổi bật nào.",
-      "subtitle": "Những hành trình được chọn lọc cho chuyến phiêu lưu tiếp theo."
-    },
-    "latestTours": {
-      "title": "Tour Mới Nhất",
-      "seeAll": "Xem Tất Cả"
+      "eyebrow": "NỔI BẬT",
+      "title": "Các Tour Đánh Giá Cao"
     },
     "whyChoose": {
-      "eyebrow": "Tại Sao Chọn Pathora",
-      "title": "Tại Sao Chọn Chúng Tôi",
+      "eyebrow": "TẠI SAO CHỌN CHÚNG TÔI",
+      "title": "Dịch vụ chất lượng tuyệt vời",
       "items": {
         "price": {
-          "title": "Cam Kết Giá Tốt Nhất",
-          "desc": "Chúng tôi đảm bảo mức giá cạnh tranh cho mọi gói tour mà không ảnh hưởng đến chất lượng."
+          "title": "Đảm bảo giá tốt nhất",
+          "desc": "Chúng tôi cung cấp giá tốt nhất cho tất cả các tour."
         },
         "guides": {
-          "title": "Hướng Dẫn Viên Chuyên Nghiệp",
-          "desc": "Đội ngũ hướng dẫn viên được chứng nhận với kiến thức địa phương sâu rộng và niềm đam mê."
+          "title": "Hướng dẫn viên uy tín",
+          "desc": "Hướng dẫn viên của chúng tôi có nhiều kinh nghiệm."
         },
         "support": {
-          "title": "Hỗ Trợ 24/7",
-          "desc": "Hỗ trợ xuyên suốt từ đội ngũ tận tâm dù bạn đi bất cứ đâu."
+          "title": "Hỗ trợ 24/7",
+          "desc": "Chúng tôi luôn sẵn sàng hỗ trợ bạn."
         },
         "flexible": {
-          "title": "Đặt Tour Linh Hoạt",
-          "desc": "Miễn phí hủy tour và dễ dàng đổi lịch cho trải nghiệm du lịch không lo lắng."
+          "title": "Đặt tour linh hoạt",
+          "desc": "Dễ dàng thay đổi và hủy tour."
         }
-      },
-      "subtitle": "Chúng tôi mang đến trải nghiệm du lịch tốt nhất với các đối tác uy tín trên toàn thế giới",
-      "features": [
-        {
-          "title": "An Toàn & Tin Cậy",
-          "desc": "Mỗi tour đều được xác minh và bảo hiểm cho sự an tâm của bạn"
-        },
-        {
-          "title": "Đảm Bảo Giá Tốt Nhất",
-          "desc": "Giá cả cạnh tranh, không phí ẩn hay phụ thu bất ngờ"
-        },
-        {
-          "title": "Phạm Vi Toàn Cầu",
-          "desc": "Tour tại hơn 50 quốc gia với hướng dẫn viên địa phương"
-        },
-        {
-          "title": "Trải Nghiệm Tuyển Chọn",
-          "desc": "Lịch trình được thiết kế bởi các chuyên gia du lịch"
-        }
-      ]
+      }
     },
     "cta": {
-      "title": "Sẵn Sàng Cho Cuộc Phiêu Lưu Tiếp Theo?",
-      "subtitle": "Tham gia cùng hàng nghìn du khách khám phá những viên ngọc ẩn giấu của Việt Nam cùng Pathora.",
-      "ctaButton": "Khám Phá Tour",
-      "secondaryButton": "Tìm Hiểu Thêm",
-      "button": "Đặt ngay"
+      "title": "Sẵn sàng bắt đầu chuyến đi của bạn?",
+      "subtitle": "Tham gia cùng hàng ngàn khách du lịch hài lòng và đặt tour ngay hôm nay.",
+      "ctaButton": "Đặt Ngay",
+      "secondaryButton": "Tìm Hiểu Thêm"
     },
-    "reviews": {
-      "eyebrow": "Nhận Xét",
-      "title": "Du Khách Nói Gì",
-      "rating": "Đánh Giá",
-      "loadError": "Không thể tải nhận xét",
-      "retry": "Thử lại",
-      "empty": "Chưa có nhận xét nào.",
-      "subtitle": "Câu chuyện thực tế từ cộng đồng tuyệt vời của chúng tôi."
+    "payment": {
+      "breakdown": {
+        "subtotal": "Tạm tính",
+        "tax": "Thuế",
+        "total": "Tổng cộng"
+      },
+      "retryAfterMessage": "Thử lại sau {{seconds}}s",
+      "refreshButton": "Làm mới"
     },
-    "trustedBrands": {
-      "title": "Đối Tác Tin Cậy",
-      "brandAlt": "Đối tác"
-    },
-    "common": {
-      "starsAria": "{{count}} trên 5 sao"
-    },
-    "auth": {
-      "login": "Đăng Nhập",
-      "logIn": "Đăng nhập",
-      "createAccount": "Tạo Tài Khoản",
-      "close": "Đóng",
-      "username": "Tên đăng nhập",
-      "enterUsername": "Nhập tên đăng nhập của bạn",
-      "nameAndSurname": "Họ và Tên",
-      "enterNameAndSurname": "Nhập họ và tên của bạn",
-      "emailAddress": "Địa Chỉ Email",
-      "enterEmailAddress": "Nhập địa chỉ email của bạn",
-      "password": "Mật Khẩu",
-      "enterPassword": "Nhập mật khẩu của bạn",
-      "hidePassword": "Ẩn mật khẩu",
-      "showPassword": "Hiện mật khẩu",
-      "agreeWith": "Tôi đồng ý với",
-      "terms": "Điều Khoản Dịch Vụ",
-      "and": "và",
-      "privacy": "Chính Sách Bảo Mật",
-      "mustAgreeToTerms": "Bạn phải đồng ý với các điều khoản và chính sách bảo mật.",
-      "registrationSuccess": "Đăng ký thành công! Vui lòng đăng nhập.",
-      "registrationFailed": "Đăng ký thất bại. Vui lòng thử lại.",
-      "emailTemporarilyLocked": "Email tạm thời bị khóa. Vui lòng thử lại sau {{minutes}} phút.",
-      "or": "HOẶC",
-      "signUpWithGoogle": "Đăng ký với Google",
-      "signInWithGoogle": "Đăng nhập bằng Google",
-      "alreadyHaveAccount": "Đã có tài khoản?",
-      "loginSuccess": "Đăng nhập thành công!",
-      "forgotYourPassword": "Quên mật khẩu?",
-      "dontHaveAccount": "Chưa có tài khoản?",
-      "forgotPassword": "Quên Mật Khẩu",
-      "forgotPasswordHelp": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu.",
-      "resetPassword": "Đặt Lại Mật Khẩu",
-      "backToLogin": "Quay lại đăng nhập",
-      "checkYourEmail": "Kiểm Tra Email",
-      "resetLinkSentTo": "Một liên kết đặt lại đã được gửi đến",
-      "closeModal": "Đóng cửa sổ",
-      "signIn": "Đăng nhập",
-      "signUp": "Đăng ký"
+    "nav": {
+      "home": "Trang chủ",
+      "aboutUs": "Về chúng tôi",
+      "tourPackages": "Tour du lịch",
+      "ourPolicies": "Chính sách"
     },
     "latest": {
-      "eyebrow": "Mới Nhất",
-      "title": "Tour Mới Nhất",
+      "eyebrow": "MỚI NHẤT",
+      "title": "Tour Mới Thêm",
       "viewAll": "Xem tất cả",
-      "viewDetails": "Xem chi tiết",
-      "loadError": "Không thể tải tour mới nhất",
-      "retry": "Thử lại",
-      "empty": "Chưa có tour mới nào.",
-      "subtitle": "Những trải nghiệm mới được thêm vào dành cho bạn."
+      "viewDetails": "Xem chi tiết"
     },
-    "whyChooseUs": {
-      "title": "Tại sao chọn chúng tôi",
-      "subtitle": "Chúng tôi cung cấp những trải nghiệm du lịch tốt nhất."
+    "reviews": {
+      "eyebrow": "ĐÁNH GIÁ",
+      "title": "Khách hàng nói gì về chúng tôi"
+    },
+    "footer": {
+      "speakToExpert": "Liên hệ chuyên gia",
+      "followUs": "Theo dõi chúng tôi",
+      "contactNested": {
+        "title": "Liên hệ",
+        "address": "123 Đường Du Lịch, Thành phố Tuyệt Vời, Thế giới"
+      },
+      "company": {
+        "title": "Công ty"
+      },
+      "links": {
+        "company": {
+          "aboutUs": "Về chúng tôi",
+          "reviews": "Đánh giá",
+          "contactUs": "Liên hệ",
+          "travelGuides": "Cẩm nang du lịch",
+          "dataPolicy": "Chính sách dữ liệu",
+          "cookiePolicy": "Chính sách Cookie",
+          "legal": "Pháp lý",
+          "sitemap": "Sơ đồ trang"
+        },
+        "support": {
+          "getInTouch": "Kết nối",
+          "helpCenter": "Trung tâm trợ giúp",
+          "liveChat": "Chat trực tuyến",
+          "howItWorks": "Cách hoạt động"
+        }
+      },
+      "support": {
+        "title": "Hỗ trợ"
+      },
+      "newsletterNested": {
+        "title": "Bản tin",
+        "description": "Đăng ký nhận bản tin để nhận các ưu đãi và tin tức thú vị.",
+        "placeholder": "Nhập email của bạn",
+        "send": "Gửi"
+      },
+      "mobileApps": {
+        "title": "Ứng dụng di động",
+        "ios": "Ứng dụng iOS",
+        "android": "Ứng dụng Android"
+      },
+      "copyright": "© {{year}} Pathora. Mọi quyền được bảo lưu."
     },
     "aboutUs": {
-      "ourStory": "Câu Chuyện Của Chúng Tôi",
+      "ourStory": "Câu chuyện của chúng tôi",
       "weAre": "Chúng tôi là",
-      "heroSubtitle": "Kiến tạo những trải nghiệm du lịch khó quên trên khắp Việt Nam và xa hơn nữa.",
-      "whyChooseUs": "Tại Sao Chọn Chúng Tôi",
-      "valuesTitle": "Giá Trị Cốt Lõi",
-      "values": {
-        "globalExpertise": "Chuyên Môn Toàn Cầu",
-        "globalExpertiseDesc": "Hàng thập kỷ kinh nghiệm kết hợp trong ngành du lịch toàn thế giới.",
-        "safeTrusted": "An Toàn & Đáng Tin Cậy",
-        "safeTrustedDesc": "Sự an toàn và bảo mật của bạn là ưu tiên hàng đầu của chúng tôi.",
-        "tailoredForYou": "Thiết Kế Riêng Cho Bạn",
-        "tailoredForYouDesc": "Hành trình cá nhân hóa phù hợp với phong cách du lịch của bạn.",
-        "seamlessExperience": "Trải Nghiệm Liền Mạch",
-        "seamlessExperienceDesc": "Từ lúc đặt chỗ đến khi trở về, chúng tôi lo mọi chi tiết."
-      },
-      "ourJourney": "Hành Trình Của Chúng Tôi",
-      "journeyTitle": "Những Cột Mốc Của Pathora",
-      "timeline": {
-        "founded": "Thành lập",
-        "foundedDesc": "Bắt đầu với một tầm nhìn.",
-        "first10k": "10K Khách Đầu Tiên",
-        "first10kDesc": "Đạt 10,000 khách du lịch đầu tiên.",
-        "expanded60": "Mở Rộng",
-        "expanded60Desc": "Hoạt động tại hơn 60 quốc gia.",
-        "digitalFirst": "Chuyển Đổi Số",
-        "digitalFirstDesc": "Ra mắt nền tảng trực tuyến mới.",
-        "happy92k": "Hơn 92K Khách Hàng",
-        "happy92kDesc": "Và hành trình vẫn tiếp tục."
-      },
-      "whoWeAre": "Chúng Tôi Là Ai",
-      "yearsExperience": "Năm Kinh Nghiệm",
-      "passionateTravelers": "Những người đam mê du lịch.",
-      "expertGuides": "Hướng dẫn viên chuyên nghiệp.",
-      "whoWeAreDesc1": "Chúng tôi tận tâm mang đến những trải nghiệm du lịch tốt nhất.",
-      "whoWeAreDesc2": "Đội ngũ chuyên gia của chúng tôi tỉ mỉ thiết kế từng tour để đảm bảo chất lượng.",
-      "exploreOurTours": "Khám Phá Tour",
-      "teamSubtitle": "Đội Ngũ Của Chúng Tôi",
-      "teamTitle": "Những Chuyên Gia Phía Sau Nghệ Thuật",
-      "toursLed": "Tour Đã Dẫn",
+      "heroSubtitle": "Kết nối du khách với những điểm đến ngoạn mục và những trải nghiệm khó quên ngay từ những ngày đầu.",
       "stats": {
-        "destinations": "Điểm Đến",
-        "happyTravelers": "Khách Hàng Hài Lòng",
-        "toursOffered": "Tour Cung Cấp",
-        "satisfactionRate": "Tỷ Lệ Hài Lòng"
+        "destinations": "Điểm đến",
+        "happyTravelers": "Du khách hài lòng",
+        "toursOffered": "Chuyến đi cung cấp",
+        "satisfactionRate": "Tỷ lệ hài lòng"
       },
-      "readyToExplore": "Sẵn Sàng Khám Phá?",
-      "ctaTitle": "Cuộc phiêu lưu của bạn",
-      "ctaTitleWith": "bắt đầu cùng",
-      "ctaDescription": "Hãy tham gia cùng hàng ngàn khách du lịch đã hài lòng.",
-      "browsePackageTours": "Xem Danh Sách Tour"
+      "whoWeAre": "Chúng tôi là ai",
+      "passionateTravelers": "Những du khách đam mê,",
+      "expertGuides": "Trải nghiệm đỉnh cao",
+      "whoWeAreDesc1": "Tại Pathora, chúng tôi tin rằng du lịch không chỉ là việc đến thăm một vùng đất mới. Nó là việc hòa mình vào những nền văn hóa mới, tạo ra những kỷ niệm khó phai và khám phá thế giới dưới một góc nhìn hoàn toàn tươi mới.",
+      "whoWeAreDesc2": "Đội ngũ chuyên gia du lịch của chúng tôi đã tỉ mỉ xây dựng từng lịch trình để đảm bảo bạn có được những khoảnh khắc tuyệt vời nhất trong kỳ nghỉ của mình. Chúng tôi lo liệu mọi thủ tục để bạn chỉ việc tận hưởng.",
+      "exploreOurTours": "Khám phá các chuyến đi",
+      "yearsExperience": "Năm Kinh nghiệm",
+      "valuesTitle": "Giá trị Cốt lõi",
+      "values": {
+        "globalExpertise": "Chuyên môn Toàn cầu",
+        "globalExpertiseDesc": "Chúng tôi có mạng lưới đối tác và hướng dẫn viên địa phương đáng tin cậy trên toàn cầu.",
+        "safeTrusted": "An toàn & Tin cậy",
+        "safeTrustedDesc": "Sự an toàn của bạn luôn là ưu tiên cao nhất trong mỗi và mọi chuyến đi.",
+        "tailoredForYou": "Thiết kế riêng cho bạn",
+        "tailoredForYouDesc": "Cung cấp các gói linh hoạt có thể được cá nhân hóa theo nhu cầu riêng của bạn.",
+        "seamlessExperience": "Trải nghiệm mượt mà",
+        "seamlessExperienceDesc": "Từ khi đặt chỗ cho đến lúc về nhà, chúng tôi đảm bảo chuyến đi của bạn luôn hoàn hảo."
+      },
+      "journeyTitle": "Hành trình của chúng tôi",
+      "timeline": {
+        "founded": "Thành lập Pathora",
+        "foundedDesc": "Bắt đầu với một đội ngũ nhỏ cùng ước mơ lớn thay đổi ngành du lịch.",
+        "first10k": "10K Khách hàng",
+        "first10kDesc": "Đạt cột mốc quan trọng đầu tiên với 10 ngàn du khách hài lòng.",
+        "expanded60": "Mở rộng tới 60+ Quốc gia",
+        "expanded60Desc": "Mở rộng mạng lưới cung cấp các chuyến tham quan đến hầu hết các châu lục.",
+        "digitalFirst": "Chuyển đổi số",
+        "digitalFirstDesc": "Ra mắt nền tảng đặt phòng trực tuyến mượt mà và trực quan.",
+        "happy92k": "Đạt 92K Khách hàng",
+        "happy92kDesc": "Tiếp tục sứ mệnh mang du lịch đẳng cấp thế giới đến với mọi người."
+      },
+      "teamSubtitle": "Đội ngũ Pathora",
+      "teamTitle": "Những nhà lãnh đạo chuyên gia",
+      "readyToExplore": "Sẵn sàng Khám phá?",
+      "ctaTitle": "Bắt đầu hành trình",
+      "ctaTitleWith": "cùng Pathora",
+      "ctaDescription": "Gia nhập hàng ngàn khách du lịch hài lòng. Đặt ngay kỳ nghỉ trong mơ của bạn và để chúng tôi lo phần còn lại.",
+      "browsePackageTours": "Xem các gói Tour"
     }
   }
 }

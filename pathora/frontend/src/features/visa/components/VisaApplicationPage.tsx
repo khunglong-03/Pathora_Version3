@@ -4,8 +4,8 @@ import Button from "@/components/ui/Button";
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
+
+
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTranslation } from "react-i18next";
 
@@ -220,7 +220,7 @@ export function VisaApplicationPage() {
 
   return (
     <>
-      <LandingHeader />
+      
 
       <main className="bg-gray-50 min-h-screen">
         {/* ── Hero Banner ───────────────────────────────── */}
@@ -432,7 +432,7 @@ export function VisaApplicationPage() {
         </div>
       </main>
 
-      <LandingFooter />
+      
     </>
   );
 }

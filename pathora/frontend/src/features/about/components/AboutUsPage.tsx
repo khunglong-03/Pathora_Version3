@@ -8,8 +8,6 @@ import { TimelineSection } from "./AboutTimelineSection";
 import { TeamSection } from "./AboutTeamSection";
 import { CTABanner } from "./AboutCTABanner";
 import { FloatingButtons } from "./AboutFloatingButtons";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import {
   TEAM_MEMBERS,
@@ -45,7 +43,7 @@ export const AboutUsPage = () => {
       className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen overflow-x-hidden">
       {/* Header + Hero */}
       <div className="relative">
-        <LandingHeader />
+
         <HeroBanner />
       </div>
 
@@ -71,7 +69,7 @@ export const AboutUsPage = () => {
       <FloatingButtons />
 
       {/* Footer */}
-      <LandingFooter />
+
     </main>
   );
 };

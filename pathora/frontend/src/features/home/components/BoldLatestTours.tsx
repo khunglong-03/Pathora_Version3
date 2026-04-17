@@ -48,7 +48,7 @@ export const BoldLatestTours = () => {
   }, [fetchLatestTours]);
 
   return (
-    <section className="py-20 md:py-28 bg-[#050510]">
+    <section className="py-20 md:py-28 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div
@@ -57,11 +57,11 @@ export const BoldLatestTours = () => {
           }`}
         >
           <div>
-            <span suppressHydrationWarning className="text-sm font-medium text-[#3b82f6] uppercase tracking-widest">
+            <span suppressHydrationWarning className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest">
               {t("landing.latest.eyebrow") || "Just Added"}
             </span>
             <h2
-              className="mt-3 text-4xl md:text-5xl font-bold text-white"
+              className="mt-3 text-4xl md:text-5xl font-bold text-slate-900"
               style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             >
               {t("landing.latest.title") || "Latest Tours"}
@@ -72,7 +72,7 @@ export const BoldLatestTours = () => {
             text={t("landing.latest.viewAll") || "View all"}
             icon="heroicons-outline:arrow-right"
             iconPosition="right"
-            className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 text-white rounded-full hover:bg-white/10 transition-all text-sm"
+            className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 text-white rounded-full hover:bg-slate-200 transition-all text-sm"
           />
         </div>
 
@@ -95,14 +95,14 @@ export const BoldLatestTours = () => {
           >
             {Array.from({ length: 5 }).map((_, idx) => (
               <div key={idx} className="snap-center shrink-0 w-64 animate-pulse">
-                <div className="h-40 rounded-xl mb-3 bg-white/10" />
-                <div className="h-4 w-40 bg-white/10 rounded mb-2" />
-                <div className="h-3 w-24 bg-white/10 rounded" />
+                <div className="h-40 rounded-xl mb-3 bg-slate-200" />
+                <div className="h-4 w-40 bg-slate-200 rounded mb-2" />
+                <div className="h-3 w-24 bg-slate-200 rounded" />
               </div>
             ))}
           </div>
         ) : (latestTours?.length ?? 0) === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-white/60">
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">
             {t("landing.latest.empty") || "No latest tours available yet."}
           </div>
         ) : (
@@ -117,7 +117,7 @@ export const BoldLatestTours = () => {
                 href="/tours"
                 className="snap-center shrink-0 w-64 group"
               >
-                <div className="relative h-40 rounded-xl overflow-hidden mb-3 bg-[#111827]">
+                <div className="relative h-40 rounded-xl overflow-hidden mb-3 bg-slate-200">
                   <Image
                     src={tour.thumbnail || getFallbackImage(tour.id)}
                     alt={tour.tourName}
@@ -130,10 +130,10 @@ export const BoldLatestTours = () => {
                     {formatBadgeDate(tour.createdAt)}
                   </div>
                 </div>
-                <h3 className="text-white font-semibold text-sm mb-1 group-hover:text-[#fb8b02] transition-colors line-clamp-2">
+                <h3 className="text-slate-900 font-semibold text-sm mb-1 group-hover:text-[#fb8b02] transition-colors line-clamp-2">
                   {tour.tourName}
                 </h3>
-                <p className="text-white/40 text-xs flex items-center gap-1">
+                <p className="text-slate-500 text-xs flex items-center gap-1">
                   {t("landing.latest.viewDetails") || "View details"}{" "}
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </p>

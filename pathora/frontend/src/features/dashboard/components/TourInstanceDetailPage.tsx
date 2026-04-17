@@ -17,6 +17,15 @@ import {
   UserInfo,
 } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import {
+  ProviderStatusCard,
+  StatCard,
+  TeamSection,
+  InfoRow,
+  formatCurrency,
+  formatDate,
+  toDateInput,
+} from "./tour-instance/ViewComponents";
 
 type EditForm = {
   title: string;
@@ -36,13 +45,6 @@ type EditForm = {
 
 const inputClassName =
   "w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20";
-
-const toDateInput = (value?: string | null): string => {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
-};
 
 const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
   title: data.title ?? "",
@@ -68,31 +70,7 @@ const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
 
 /* (TourStatusBadge imported from @/components/ui) */
 
-const formatCurrency = (value: number): string =>
-  `${new Intl.NumberFormat("vi-VN").format(value)} VND`;
-
 type InstanceDetailDataState = "loading" | "ready" | "error";
-
-function ManagerChip({ name, avatar, role }: { name: string; avatar?: string | null; role: string }) {
-  const isGuide = role === "Guide";
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${isGuide ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
-      {avatar ? (
-        <img
-          src={avatar}
-          alt={name}
-          className="size-5 rounded-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-      ) : (
-        <Icon icon="heroicons:user" className="size-3" />
-      )}
-      <span className="max-w-32 truncate">{name}</span>
-    </span>
-  );
-}
 
 export default function TourInstanceDetailPage() {
   const { t } = useTranslation();
@@ -528,8 +506,8 @@ export default function TourInstanceDetailPage() {
   if (dataState === "loading") {
     return (
       <main className="p-6 md:p-8">
-        <div className="mx-auto max-w-6xl space-y-4">
-          <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+        <div className="mx-auto max-w-[1440px] space-y-4">
+          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SkeletonCard />
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -587,13 +565,10 @@ export default function TourInstanceDetailPage() {
     );
   }
 
-  const guidesDisplay = (data.managers ?? []).filter((m) => m.role === "Guide");
-  const managersDisplay = (data.managers ?? []).filter((m) => m.role === "Manager");
-
   return (
-    <main className="p-6 md:p-8">
+    <main className="p-6 md:p-8 pb-32 flex-1 outline-none">
       {showCreatedBanner && (
-        <div className="mx-auto max-w-6xl mb-4">
+        <div className="mx-auto max-w-[1440px] mb-4">
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">
             <div className="flex items-center gap-2">
               <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600" />
@@ -612,349 +587,183 @@ export default function TourInstanceDetailPage() {
           </div>
         </div>
       )}
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <header className="rounded-[2.5rem] border border-stone-200 bg-white p-4 md:p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-1">
-              <button
-                type="button"
-                onClick={() => router.push("/manager/tour-instances")}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-stone-600 hover:text-stone-900 active:-translate-y-[1px] transition-all">
-                <Icon icon="heroicons:arrow-left" className="size-4" />
-                {t("tourInstance.backToInstances", "Back to Tour Instances")}
-              </button>
-              <h1 className="text-xl font-bold tracking-tight text-stone-900">
-                {data.title}
-              </h1>
-              <p className="text-sm text-stone-500">
-                {data.tourName} &bull; {data.tourInstanceCode}
-              </p>
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
+        <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row relative">
+          <button
+             type="button"
+             onClick={() => router.push("/manager/tour-instances")}
+             className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 hover:bg-white hover:text-stone-900 shadow-sm border border-stone-200/50 transition-all">
+             <Icon icon="heroicons:arrow-left" className="size-4" />
+          </button>
+          
+          {data.thumbnail?.publicURL ? (
+            <div className="relative w-full md:w-80 lg:w-96 shrink-0 bg-stone-100">
+              <img src={data.thumbnail.publicURL} alt={data.title} className="h-full w-full object-cover min-h-[200px]" />
             </div>
-
-            <div className="flex items-center gap-2">
-              <TourStatusBadge status={data.status} />
-              {!isEditing ? (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98] transition-all">
-                  <Icon icon="heroicons:pencil-square" className="size-4" />
-                  {t("tourInstance.edit", "Edit")}
-                </button>
-              ) : (
-                <>
+          ) : (
+            <div className="relative w-full md:w-80 lg:w-96 shrink-0 bg-stone-100 flex items-center justify-center min-h-[200px] border-r border-stone-200">
+              <Icon icon="heroicons:photo" className="size-10 text-stone-300" />
+            </div>
+          )}
+          
+          <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1.5 md:ml-6 mt-6 md:mt-0">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">{data.title}</h1>
+                <p className="text-sm font-medium text-stone-500 flex flex-wrap items-center gap-2">
+                  <span className="text-stone-700 font-semibold">{data.tourInstanceCode}</span>
+                  <span className="text-stone-300">&bull;</span>
+                  <span>{data.tourName}</span>
+                  <span className="text-stone-300">&bull;</span>
+                  <span>{data.classificationName}</span>
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
+                <TourStatusBadge status={data.status} />
+                {!isEditing ? (
                   <button
                     type="button"
-                    onClick={handleCancelEdit}
-                    className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-[0.98] transition-all">
-                    {t("tourInstance.cancel", "Cancel")}
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800 active:scale-[0.98] transition-all focus:ring-2 focus:ring-stone-900/20">
+                    <Icon icon="heroicons:pencil-square" className="size-4" />
+                    {t("tourInstance.edit", "Edit")}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveEdit}
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition-all">
-                    <Icon icon="heroicons:check" className="size-4" />
-                    {saving
-                      ? t("common.saving", "Saving...")
-                      : t("common.save", "Save")}
-                  </button>
-                </>
-              )}
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-[0.98] transition-all">
+                      {t("tourInstance.cancel", "Cancel")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveEdit}
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition-all">
+                      <Icon icon="heroicons:check" className="size-4" />
+                      {saving
+                        ? t("common.saving", "Saving...")
+                        : t("common.save", "Save")}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-6 border-t border-stone-100 flex flex-wrap gap-3">
+               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                 <Icon icon="heroicons:clock" className="size-4 text-stone-400" />
+                 {data.durationDays || 0} {t("tourInstance.days", "days")}
+               </span>
+               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                 <Icon icon="heroicons:globe-americas" className="size-4 text-stone-400" />
+                 {data.instanceType}
+               </span>
+               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                 <Icon icon="heroicons:map-pin" className="size-4 text-stone-400" />
+                 {data.location || "—"}
+               </span>
             </div>
           </div>
         </header>
 
         {!isEditing ? (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <article className="rounded-[2.5rem] border border-stone-200 bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <p className="text-xs uppercase tracking-wide text-stone-500">
-                  {t("tourInstance.participants", "Participants")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-stone-900">
-                  {data.currentParticipation}/{data.maxParticipation}
-                </p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-200">
-                  <div
-                    className="h-full rounded-full bg-orange-500"
-                    style={{ width: `${participantRatio}%` }}
-                  />
+            {/* STATS SECTION */}
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label={t("tourInstance.participants", "Participants")} value={`${data.currentParticipation} / ${data.maxParticipation}`}>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-stone-100">
+                  <div className="h-full bg-orange-500" style={{ width: `${Math.min(100, Math.round((data.currentParticipation / Math.max(data.maxParticipation, 1)) * 100))}%` }} />
                 </div>
-              </article>
-              <article className="rounded-[2.5rem] border border-stone-200 bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <p className="text-xs uppercase tracking-wide text-stone-500">
-                  {t("tourInstance.basePrice", "Base Price")}
-                </p>
-                <p className="mt-2 text-xl font-bold text-orange-500">
-                  {formatCurrency(data.basePrice)}
-                </p>
-              </article>
-              <article className="rounded-[2.5rem] border border-stone-200 bg-white p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <p className="text-xs uppercase tracking-wide text-stone-500">
-                  {t("tourInstance.totalBookings", "Total Bookings")}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-stone-900">
-                  {data.totalBookings}
-                </p>
-              </article>
+              </StatCard>
+              <StatCard label={t("tourInstance.basePrice", "Base Price")} value={formatCurrency(data.basePrice)} accent="text-orange-600" />
+              <StatCard label={t("tourInstance.totalBookings", "Total Bookings")} value={data.totalBookings} />
+              <StatCard label={t("tourInstance.revenueLabel", "Revenue")} value={formatCurrency(data.revenue || 0)} accent="text-emerald-600" />
             </section>
 
-            <section className="grid gap-6 lg:grid-cols-2">
-              <article className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <h2 className="text-base font-bold text-stone-900">
-                  {t("tourInstance.tourInformation", "Tour Information")}
-                </h2>
-                <dl className="mt-4 space-y-2 text-sm">
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.form.title", "Title")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">{data.title}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t(
-                        "tourInstance.tourInstanceCode",
-                        "Tour Instance Code",
-                      )}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.tourInstanceCode}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.instanceType", "Tour Instance Type")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.instanceType}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.classification", "Classification")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.classificationName}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.location", "Location")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.location || "—"}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.startDate", "Start Date")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {toDateInput(data.startDate)}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.endDate", "End Date")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {toDateInput(data.endDate)}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t("tourInstance.maxParticipants", "Maximum Participants")}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.maxParticipation}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t(
-                        "tourInstance.form.currentParticipation",
-                        "Current participants",
-                      )}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {data.currentParticipation}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3 border-b border-stone-100 pb-2">
-                    <dt className="text-stone-500">
-                      {t(
-                        "tourInstance.confirmationDeadline",
-                        "Confirmation Deadline",
-                      )}
-                    </dt>
-                    <dd className="font-semibold text-stone-900">
-                      {toDateInput(data.confirmationDeadline) || "—"}
-                    </dd>
-                  </div>
-                  {data.cancellationReason && (
-                    <div className="flex justify-between gap-3">
-                      <dt className="text-stone-500">
-                        {t(
-                          "tourInstance.form.cancellationReason",
-                          "Cancellation reason",
-                        )}
-                      </dt>
-                      <dd className="text-right font-semibold text-stone-700">
-                        {data.cancellationReason}
-                      </dd>
+            {/* MAIN CONTENT GRID */}
+            <section className="grid gap-6 lg:grid-cols-[7fr_5fr]">
+              {/* LEFT COLUMN: Info & Media */}
+              <div className="space-y-6">
+                <article className="rounded-2xl border border-stone-200 bg-white p-5 md:p-6 shadow-sm">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-5 pb-3 border-b border-stone-100">
+                    {t("tourInstance.tourInformation", "Tour Information")}
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                    <div className="space-y-1">
+                      <InfoRow label={t("tourInstance.startDate", "Start Date")} value={formatDate(data.startDate)} />
+                      <InfoRow label={t("tourInstance.endDate", "End Date")} value={formatDate(data.endDate)} />
+                      <InfoRow label={t("tourInstance.confirmationDeadline", "Confirmation Deadline")} value={formatDate(data.confirmationDeadline)} />
                     </div>
-                  )}
-                </dl>
-              </article>
-
-              <article className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <h2 className="text-base font-bold text-stone-900">
-                  {t("tourInstance.guidesAndManagers", "Guides & Managers")}
-                </h2>
-                {guidesDisplay.length > 0 || managersDisplay.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {guidesDisplay.map((m) => (
-                      <ManagerChip key={m.id} name={m.userName} avatar={m.userAvatar} role={m.role} />
-                    ))}
-                    {managersDisplay.map((m) => (
-                      <ManagerChip key={m.id} name={m.userName} avatar={m.userAvatar} role={m.role} />
-                    ))}
                   </div>
-                ) : (
-                  <p className="mt-3 text-sm text-stone-500">
-                    {t("tourInstance.noGuidesOrManagers", "No guides or managers assigned")}
-                  </p>
-                )}
 
-                <h3 className="mt-6 text-sm font-bold text-stone-900">
-                  {t("tourInstance.includedServices", "Included Services")}
-                </h3>
-                {data.includedServices.length > 0 ? (
-                  <ul className="mt-3 space-y-2">
-                    {data.includedServices.map((service) => (
-                      <li
-                        key={service}
-                        className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-                        {service}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-2 text-sm text-stone-500">—</p>
-                )}
-              </article>
-            </section>
-
-            {/* Transport & Hotel Provider Section */}
-            <section className="grid gap-4 md:grid-cols-2">
-              {/* Transport Provider */}
-              <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Icon icon="heroicons:truck" className="size-5 text-cyan-600" />
-                  {t("tourInstance.transportProvider", "Transport Provider")}
-                </h2>
-                {data.transportProviderName ? (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-stone-900">{data.transportProviderName}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        data.transportApprovalStatus === 2
-                          ? "bg-emerald-100 text-emerald-700"
-                          : data.transportApprovalStatus === 3
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}>
-                        {data.transportApprovalStatus === 2
-                          ? t("tourInstance.approved", "Đã duyệt")
-                          : data.transportApprovalStatus === 3
-                          ? t("tourInstance.rejected", "Từ chối")
-                          : t("tourInstance.pending", "Chờ duyệt")}
-                      </span>
-                    </div>
-                    {data.transportApprovalNote && (
-                      <p className="text-xs text-stone-500 bg-stone-50 rounded-lg p-2">
-                        <span className="font-medium">Ghi chú: </span>{data.transportApprovalNote}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-sm text-stone-400 italic">
-                    {t("tourInstance.noTransportProvider", "Chưa có đơn vị vận chuyển được phân công")}
-                  </p>
-                )}
-              </div>
-
-              {/* Hotel Provider */}
-              <div className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px-40px_-15px_rgba(0,0,0,0.05)]">
-                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Icon icon="heroicons:building-office" className="size-5 text-indigo-600" />
-                  {t("tourInstance.hotelProvider", "Hotel Provider")}
-                </h2>
-                {data.hotelProviderName ? (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-stone-900">{data.hotelProviderName}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        data.hotelApprovalStatus === 2
-                          ? "bg-emerald-100 text-emerald-700"
-                          : data.hotelApprovalStatus === 3
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}>
-                        {data.hotelApprovalStatus === 2
-                          ? t("tourInstance.approved", "Đã duyệt")
-                          : data.hotelApprovalStatus === 3
-                          ? t("tourInstance.rejected", "Từ chối")
-                          : t("tourInstance.pending", "Chờ duyệt")}
-                      </span>
-                    </div>
-                    {data.hotelApprovalNote && (
-                      <p className="text-xs text-stone-500 bg-stone-50 rounded-lg p-2">
-                        <span className="font-medium">Ghi chú: </span>{data.hotelApprovalNote}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-sm text-stone-400 italic">
-                    {t("tourInstance.noHotelProvider", "Chưa có khách sạn được phân công")}
-                  </p>
-                )}
-              </div>
-            </section>
-
-            <section className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-              <h2 className="text-base font-bold text-stone-900">
-                {t("tourInstance.form.media", "Media")}
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {data.images.length > 0 ? (
-                  data.images.map((image, index) => (
-                    <div
-                      key={`${image.publicURL}-${index}`}
-                      className="overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
-                      {image.publicURL ? (
-                        <img
-                          src={image.publicURL}
-                          alt={`${data.title} image ${index + 1}`}
-                          className="h-36 w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-36 items-center justify-center text-stone-400">
-                          <Icon icon="heroicons:photo" className="size-6" />
+                  {data.includedServices && data.includedServices.length > 0 && (
+                     <div className="mt-6 pt-5 border-t border-stone-100">
+                        <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-400">
+                          {t("tourInstance.includedServices", "Included Services")}
+                        </h3>
+                        <div className="flex flex-wrap gap-2.5">
+                           {data.includedServices.map((service) => (
+                              <span key={service} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/50 border border-emerald-100/60 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+                                <Icon icon="heroicons:check" className="size-3.5 text-emerald-500" />
+                                {service}
+                              </span>
+                           ))}
                         </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-stone-500">—</p>
+                     </div>
+                  )}
+                </article>
+
+                {data.images && data.images.length > 0 && (
+                   <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                      <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
+                        {t("tourInstance.form.media", "Media")}
+                      </h2>
+                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+                        {data.images.map((img, i) => (
+                           <div key={i} className="aspect-[4/3] rounded-xl border border-stone-200/60 overflow-hidden bg-stone-100 group relative">
+                             <img src={img.publicURL || ""} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                           </div>
+                        ))}
+                      </div>
+                   </article>
                 )}
+              </div>
+
+              {/* RIGHT COLUMN: Providers & Team */}
+              <div className="space-y-6">
+                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    <ProviderStatusCard
+                       icon="heroicons:truck" iconColor="text-cyan-600"
+                       label={t("tourInstance.transportProvider", "Transport provider")}
+                       providerName={data.transportProviderName}
+                       approvalStatus={data.transportApprovalStatus}
+                       approvalNote={data.transportApprovalNote}
+                       emptyMessage={t("tourInstance.noTransportProvider", "No transport provider assigned")}
+                    />
+                    <ProviderStatusCard
+                       icon="heroicons:building-office" iconColor="text-indigo-600"
+                       label={t("tourInstance.hotelProvider", "Hotel provider")}
+                       providerName={data.hotelProviderName}
+                       approvalStatus={data.hotelApprovalStatus}
+                       approvalNote={data.hotelApprovalNote}
+                       emptyMessage={t("tourInstance.noHotelProvider", "No hotel provider assigned")}
+                    />
+                 </div>
+
+                 <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
+                       {t("tourInstance.guidesAndManagers", "Team")}
+                    </h2>
+                    <TeamSection managers={data.managers ?? []} />
+                 </article>
               </div>
             </section>
 
             {/* Itinerary */}
-            <section className="rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+            <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-stone-900">
                   {t("tourInstance.itinerary", "Itinerary")}
@@ -1039,15 +848,16 @@ export default function TourInstanceDetailPage() {
                   {t("tourInstance.noItinerary", "No itinerary available for this instance.")}
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="relative border-l-2 border-stone-100 ml-4 pl-6 space-y-6 mt-2">
                   {data.days.map((day) => (
-                    <div key={day.id} className="rounded-xl border border-stone-200 bg-white overflow-hidden">
-                      <div className="flex items-center justify-between gap-3 p-4 bg-stone-50 border-b border-stone-200">
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex items-center justify-center size-8 rounded-full bg-orange-500 text-sm font-bold text-white">
-                            {day.instanceDayNumber}
-                          </span>
-                          {editingDayId === day.id ? (
+                    <div key={day.id} className="relative">
+                      <span className="absolute -left-[41px] mt-3 flex size-8 items-center justify-center rounded-full bg-stone-900 border-[3px] border-white text-xs font-bold text-white shadow-sm z-10">
+                        {day.instanceDayNumber}
+                      </span>
+                      <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm hover:border-stone-300 transition-colors focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500/20">
+                        <div className="flex items-center justify-between gap-3 p-4 bg-stone-50/50 border-b border-stone-100">
+                          <div className="flex flex-1 items-center gap-3">
+                            {editingDayId === day.id ? (
                             <div className="flex-1 grid gap-2 md:grid-cols-2">
                               <input
                                 className={inputClassName}
@@ -1362,13 +1172,14 @@ export default function TourInstanceDetailPage() {
                         </div>
                       )}
                     </div>
+                    </div>
                   ))}
                 </div>
               )}
             </section>
           </>
         ) : (
-          <section className="space-y-6 rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <section className="space-y-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <h2 className="text-base font-bold text-stone-900">
               {t("tourInstance.form.editInformation", "Edit tour instance")}
             </h2>

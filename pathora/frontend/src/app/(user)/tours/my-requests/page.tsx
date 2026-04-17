@@ -13,8 +13,7 @@ import {
   type TourRequestVm,
 } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
+
 
 const PAGE_SIZE = 10;
 
@@ -142,7 +141,7 @@ export default function MyTourRequestsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <LandingHeader />
+
 
       <section className="relative bg-linear-to-br from-[#05073c] via-[#1a1c5e] to-[#05073c] text-white py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -360,7 +359,7 @@ export default function MyTourRequestsPage() {
         )}
       </section>
 
-      <LandingFooter />
+
     </div>
   );
 }

@@ -15,8 +15,7 @@ import {
   parseTourDiscoveryFilters,
   TourDiscoveryView,
 } from "@/utils/tourDiscoveryFilters";
-import { LandingFooter } from "@/features/shared/components/LandingFooter";
-import { LandingHeader } from "@/features/shared/components/LandingHeader";
+
 import { FilterDrawer } from "./FilterDrawer";
 import { FilterSidebar } from "./FilterSidebar";
 import { HeroSection } from "./HeroSection";
@@ -256,7 +255,7 @@ export const TourDiscoveryPage = () => {
 
   return (
     <>
-      <LandingHeader />
+
 
       <main className="min-h-screen bg-[#F8F8F6]">
         <HeroSection />
@@ -293,7 +292,7 @@ export const TourDiscoveryPage = () => {
                       aria-pressed={viewType === "tours"}
                       className={`rounded-full px-5 py-2 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
                         viewType === "tours"
-                          ? "bg-slate-900 text-white shadow-sm"
+                          ? "bg-[#fa8b02] text-white shadow-sm"
                           : "bg-transparent text-slate-500 hover:text-slate-900"
                       }`}
                     >
@@ -305,7 +304,7 @@ export const TourDiscoveryPage = () => {
                       aria-pressed={viewType === "instances"}
                       className={`rounded-full px-5 py-2 text-sm font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] ${
                         viewType === "instances"
-                          ? "bg-slate-900 text-white shadow-sm"
+                          ? "bg-[#fa8b02] text-white shadow-sm"
                           : "bg-transparent text-slate-500 hover:text-slate-900"
                       }`}
                     >
@@ -551,7 +550,7 @@ export const TourDiscoveryPage = () => {
         </div>
       </main>
 
-      <LandingFooter />
+
 
       <FilterDrawer
         isOpen={filterDrawerOpen}

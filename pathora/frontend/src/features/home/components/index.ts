@@ -6,7 +6,7 @@ export { default as TrendingDestinationsSection } from "./DestinationsSection";
 export { default as ReviewsSection } from "./ReviewsSection";
 export { CTASection, WhyChooseSection } from "./BottomSections";
 
-export { BoldNavbar } from "./BoldNavbar";
+
 export { BoldHeroSection } from "./BoldHeroSection";
 export { BoldStatsStrip } from "./BoldStatsStrip";
 export { BoldTrendingDestinations } from "./BoldTrendingDestinations";
@@ -16,5 +16,5 @@ export { BoldLatestTours } from "./BoldLatestTours";
 export { BoldWhyChooseUs } from "./BoldWhyChooseUs";
 export { BoldCtaSection } from "./BoldCtaSection";
 export { BoldReviewsSection } from "./BoldReviewsSection";
-export { BoldFooter } from "./BoldFooter";
+
 export { BoldTiltCard } from "./BoldTiltCard";

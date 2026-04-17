@@ -236,7 +236,7 @@ export default function TransportTourAssignmentPage() {
             routesList.map(({ dayTitle, activityTitle, route }) => {
               const currentAssigns = assignments[route.id] || { vehicleId: "", driverId: "" };
               const selectedVehicle = vehicles.find(v => v.id === currentAssigns.vehicleId);
-              const isCapacityWarning = selectedVehicle && selectedVehicle.seatCapacity < tour.currentParticipation;
+              const isCapacityWarning = selectedVehicle && selectedVehicle.seatCapacity < tour.maxParticipation;
               const hasUnsavedChanges = route.vehicleId !== currentAssigns.vehicleId || route.driverId !== currentAssigns.driverId;
               const isSaved = !!(route.vehicleId && route.driverId && !hasUnsavedChanges);
 
@@ -244,9 +244,22 @@ export default function TransportTourAssignmentPage() {
                 <div key={route.id} className={`rounded-2xl border bg-white p-5 shadow-sm transition-all ${isSaved ? "border-emerald-200 ring-1 ring-emerald-500/10" : "border-slate-200"}`}>
                   <div className="mb-4 flex items-start justify-between border-b border-slate-100 pb-4">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-wider text-slate-400">{dayTitle} — {activityTitle}</div>
-                      <div className="mt-2 flex items-center gap-2 text-lg font-black text-slate-900">
-                        {route.pickupLocation} <Icon icon="heroicons:arrow-right" className="size-4 text-slate-400" /> {route.dropoffLocation}
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold uppercase tracking-wider text-slate-400">{dayTitle} — {activityTitle}</div>
+                        <div className="flex px-2 py-0.5 bg-blue-50 text-blue-700 font-semibold rounded text-xs items-center">
+                          <Icon icon="heroicons:users" className="size-3 mr-1"/> Sức chứa yêu cầu: {tour.maxParticipation} chỗ
+                        </div>
+                      </div>
+                      <div className="mt-2 text-slate-900">
+                        {route.pickupLocation && route.dropoffLocation ? (
+                          <div className="flex items-center gap-2 text-lg font-black text-slate-900">
+                            {route.pickupLocation} <Icon icon="heroicons:arrow-right" className="size-4 text-slate-400" /> {route.dropoffLocation}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-lg font-black text-slate-900">
+                            {activityTitle}
+                          </div>
+                        )}
                       </div>
                     </div>
                     {isSaved && <div className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Đã lưu</div>}
@@ -262,9 +275,9 @@ export default function TransportTourAssignmentPage() {
                         placeholder="-- Chọn xe --"
                       />
                       {isCapacityWarning && (
-                        <p className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-600">
+                        <p className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-600 animate-pulse">
                            <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                           Xe nhỏ hơn SL khách: {selectedVehicle?.seatCapacity} / {tour.currentParticipation}
+                           Cảnh báo: Xe nhỏ hơn lượng khách tối đa ({selectedVehicle?.seatCapacity} / {tour.maxParticipation})
                         </p>
                       )}
                     </div>

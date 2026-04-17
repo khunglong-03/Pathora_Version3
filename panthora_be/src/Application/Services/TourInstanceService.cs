@@ -193,10 +193,10 @@ public class TourInstanceService(
                             assignedData.AccommodationQuantity ?? 1
                         );
                         break;
-                    case TourDayActivityType.Transportation when (assignedData?.VehicleId.HasValue == true):
+                    case TourDayActivityType.Transportation:
                         instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
                             instanceActivity.Id,
-                            assignedData.VehicleId
+                            assignedData?.VehicleId
                         ));
                         break;
                 }

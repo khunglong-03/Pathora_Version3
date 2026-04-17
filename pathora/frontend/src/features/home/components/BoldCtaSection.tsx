@@ -15,7 +15,7 @@ export const BoldCtaSection = () => {
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
       }`}
       style={{
-        background: "linear-gradient(135deg, #fb8b02, #ec4899, #3b82f6)",
+        background: "#fb8b02",
       }}
     >
       {/* Floating particles */}
@@ -53,7 +53,7 @@ export const BoldCtaSection = () => {
           <Button
             link="/about"
             text={t("landing.cta.secondaryButton") || "Learn More"}
-            className="px-10 py-4 bg-white/10 text-white font-semibold rounded-full border border-white/20 hover:bg-white/20 transition-all text-base backdrop-blur-sm"
+            className="px-10 py-4 bg-white/20 text-white font-semibold rounded-full border border-white/30 hover:bg-white/30 transition-all text-base backdrop-blur-sm"
           />
         </div>
       </div>

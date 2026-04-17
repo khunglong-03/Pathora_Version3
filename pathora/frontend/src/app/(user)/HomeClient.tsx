@@ -9,9 +9,7 @@ import {
   BoldLatestTours,
   BoldWhyChooseUs,
   BoldCtaSection,
-  BoldReviewsSection,
-  BoldNavbar,
-  BoldFooter
+  BoldReviewsSection
 } from "@/features/home/components";
 
 const SectionSkeleton = ({ className }: { className: string }) => {
@@ -35,9 +33,7 @@ export default function HomeClient() {
       tabIndex={-1}
       className="bg-[#f8fafc] text-slate-900 min-h-screen overflow-x-hidden selection:bg-landing-accent/30 selection:text-white"
     >
-      <Suspense fallback={<div className="h-20 bg-black" />}>
-        <BoldNavbar />
-      </Suspense>
+
       <Suspense fallback={<SectionSkeleton className="min-h-dvh" />}>
         <BoldHeroSection />
       </Suspense>
@@ -60,9 +56,7 @@ export default function HomeClient() {
       <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
         <BoldReviewsSection />
       </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
-        <BoldFooter />
-      </Suspense>
+
     </main>
   );
 }

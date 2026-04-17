@@ -83,7 +83,7 @@ export const BoldReviewsSection = () => {
   return (
     <section
       ref={ref}
-      className={`py-20 md:py-28 bg-[#050510] transition-all duration-1000 ${
+      className={`py-20 md:py-28 bg-slate-50 border-t border-slate-100 transition-all duration-1000 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
       onMouseEnter={handleMouseEnter}
@@ -92,11 +92,11 @@ export const BoldReviewsSection = () => {
       <div className="max-w-4xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <span suppressHydrationWarning className="text-sm font-medium text-white/40 uppercase tracking-widest">
+          <span suppressHydrationWarning className="text-sm font-medium text-slate-500 uppercase tracking-widest">
             {t("landing.reviews.eyebrow") || "Testimonials"}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-white"
+            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
           >
             {t("landing.reviews.title") || "What Travelers Say"}
@@ -115,20 +115,20 @@ export const BoldReviewsSection = () => {
             </button>
           </div>
         ) : isLoading ? (
-          <div className="animate-pulse p-8 md:p-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="h-5 w-24 bg-white/10 rounded mb-6" />
-            <div className="h-6 w-full bg-white/10 rounded mb-3" />
-            <div className="h-6 w-4/5 bg-white/10 rounded mb-8" />
+          <div className="animate-pulse p-8 md:p-10 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+            <div className="h-5 w-24 bg-slate-100 rounded mb-6" />
+            <div className="h-6 w-full bg-slate-100 rounded mb-3" />
+            <div className="h-6 w-4/5 bg-slate-100 rounded mb-8" />
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-white/10" />
+              <div className="w-12 h-12 rounded-full bg-slate-100" />
               <div>
-                <div className="h-4 w-28 bg-white/10 rounded mb-2" />
-                <div className="h-3 w-20 bg-white/10 rounded" />
+                <div className="h-4 w-28 bg-slate-100 rounded mb-2" />
+                <div className="h-3 w-20 bg-slate-100 rounded" />
               </div>
             </div>
           </div>
         ) : reviews.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-white/60">
+          <div className="rounded-xl border border-slate-100 bg-white/5 p-8 text-center text-slate-500">
             {t("landing.reviews.empty") || "No reviews available yet."}
           </div>
         ) : (
@@ -144,7 +144,7 @@ export const BoldReviewsSection = () => {
                       : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"
                   }`}
                 >
-                  <div className="p-8 md:p-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                  <div className="p-8 md:p-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-slate-100">
                     {/* Stars */}
                     <div className="flex gap-1 mb-6">
                       {Array.from({ length: review.rating }).map((_, i) => (
@@ -155,7 +155,7 @@ export const BoldReviewsSection = () => {
                     </div>
 
                     {/* Quote */}
-                    <blockquote className="text-white/80 text-lg md:text-xl leading-relaxed mb-8 italic">
+                    <blockquote className="text-slate-700 text-lg md:text-xl leading-relaxed mb-8 italic">
                       {`“${review.text}”`}
                     </blockquote>
 
@@ -167,7 +167,7 @@ export const BoldReviewsSection = () => {
                           alt={review.name}
                           width={48}
                           height={48}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-white/10"
+                          className="w-12 h-12 rounded-full object-cover border-2 border-slate-100"
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full border-2 border-white/10 bg-[#fb8b02]/20 flex items-center justify-center text-[#fb8b02] font-bold text-lg leading-none">
@@ -175,8 +175,8 @@ export const BoldReviewsSection = () => {
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-white">{review.name}</p>
-                        <p className="text-white/40 text-sm flex items-center gap-1"><MapPin size={14} weight="fill" className="text-[#fb8b02]/60" /> {review.location}</p>
+                        <p className="font-semibold text-slate-900">{review.name}</p>
+                        <p className="text-slate-500 text-sm flex items-center gap-1"><MapPin size={14} weight="fill" className="text-[#fb8b02]/60" /> {review.location}</p>
                       </div>
                     </div>
                   </div>
@@ -193,7 +193,7 @@ export const BoldReviewsSection = () => {
                   className={`h-2 rounded-full transition-all duration-300 ${
                     idx === activeIndex
                       ? "w-6 bg-[#fb8b02]"
-                      : "w-2 bg-white/20 hover:bg-white/40"
+                      : "w-2 bg-slate-300 hover:bg-slate-400"
                   }`}
                 />
               ))}
