@@ -10,15 +10,16 @@ import { extractData, extractResult } from "@/utils/apiResponse";
 export interface HotelSupplierItem {
   id: string;
   supplierCode: string;
-  name: string;
+  supplierName: string;
   phone: string | null;
   email: string | null;
   address: string | null;
   status: string;
-  continents?: string[];
+  primaryContinent: string | null;
+  continents: string[];
   accommodationCount: number;
   roomCount: number;
-  createdAt: string | null;
+  createdOnUtc: string | null;
 }
 
 export interface HotelSupplierDetail {
@@ -221,9 +222,25 @@ export interface PaginatedHotelList<T> {
 export const adminHotelService = {
   // Hotel Suppliers
   getSuppliers: async (params: HotelSupplierFilterParams = {}) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set("pageNumber", String(params.page ?? 1));
+    queryParams.set("pageSize", String(params.limit ?? 12));
+
+    if (params.search) {
+      queryParams.set("search", params.search);
+    }
+
+    if (params.status) {
+      queryParams.set("status", params.status);
+    }
+
+    params.continents?.forEach((continent) => {
+      queryParams.append("continents", continent);
+    });
+
     const response = await api.get<ApiResponse<PaginatedHotelList<HotelSupplierItem>>>(
       ADMIN_HOTEL.GET_SUPPLIERS,
-      { params: { page: 1, limit: 12, ...params } },
+      { params: queryParams },
     );
     return extractResult<PaginatedHotelList<HotelSupplierItem>>(response.data);
   },

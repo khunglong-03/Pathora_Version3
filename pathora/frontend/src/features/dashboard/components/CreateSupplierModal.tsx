@@ -1,8 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { XIcon, BuildingsIcon } from "@phosphor-icons/react";
+import { useForm, type Resolver } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useTranslation } from "react-i18next";
 import { createSupplierWithOwner, type SupplierType } from "@/api/services/adminSupplierService";
+import {
+  CONTINENT_TRANSLATION_KEYS,
+  SUPPORTED_CONTINENT_CODES,
+  type SupportedContinentCode,
+} from "@/constants/continents";
 
 interface CreateSupplierModalProps {
   isOpen: boolean;
@@ -14,17 +23,28 @@ interface CreateSupplierModalProps {
   iconColor: string;
 }
 
-const EMPTY = {
-  // Owner (user account)
+interface FormValues {
+  ownerEmail: string;
+  ownerFullName: string;
+  supplierCode: string;
+  supplierName: string;
+  phone: string;
+  email: string;
+  address: string;
+  note: string;
+  primaryContinent: string;
+}
+
+const DEFAULT_VALUES: FormValues = {
   ownerEmail: "",
   ownerFullName: "",
-  // Supplier
   supplierCode: "",
   supplierName: "",
   phone: "",
   email: "",
   address: "",
   note: "",
+  primaryContinent: "",
 };
 
 export function CreateSupplierModal({
@@ -36,84 +56,101 @@ export function CreateSupplierModal({
   iconBg,
   iconColor,
 }: CreateSupplierModalProps) {
-  const [form, setForm] = useState({ ...EMPTY });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const isHotelSupplier = supplierType === "Accommodation";
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const set = (field: keyof typeof EMPTY) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-    if (apiError) setApiError(null);
-  };
+  const schema = useMemo(
+    () =>
+      yup.object({
+        ownerEmail: yup
+          .string()
+          .trim()
+          .required(t("adminSupplierModal.validation.ownerEmailRequired"))
+          .email(t("adminSupplierModal.validation.ownerEmailInvalid")),
+        ownerFullName: yup
+          .string()
+          .trim()
+          .required(t("adminSupplierModal.validation.ownerFullNameRequired")),
+        supplierCode: yup
+          .string()
+          .trim()
+          .required(t("adminSupplierModal.validation.supplierCodeRequired"))
+          .max(50, t("adminSupplierModal.validation.supplierCodeTooLong")),
+        supplierName: yup
+          .string()
+          .trim()
+          .required(t("adminSupplierModal.validation.supplierNameRequired"))
+          .max(200, t("adminSupplierModal.validation.supplierNameTooLong")),
+        phone: yup.string().optional(),
+        email: yup
+          .string()
+          .trim()
+          .email(t("adminSupplierModal.validation.supplierEmailInvalid"))
+          .optional(),
+        address: yup.string().optional(),
+        note: yup.string().optional(),
+        primaryContinent: yup
+          .string()
+          .oneOf([...SUPPORTED_CONTINENT_CODES, ""])
+          .when([], {
+            is: () => isHotelSupplier,
+            then: (fieldSchema) =>
+              fieldSchema.required(t("adminSupplierModal.validation.primaryContinentRequired")),
+            otherwise: (fieldSchema) => fieldSchema.optional(),
+          }),
+      }),
+    [isHotelSupplier, t],
+  );
 
-  const validate = () => {
-    const errs: Record<string, string> = {};
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: yupResolver(schema) as Resolver<FormValues>,
+    defaultValues: DEFAULT_VALUES,
+  });
 
-    // Owner fields
-    if (!form.ownerEmail.trim()) {
-      errs.ownerEmail = "Email chủ sở hữu không được để trống.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.ownerEmail.trim())) {
-      errs.ownerEmail = "Email không hợp lệ.";
+  React.useEffect(() => {
+    if (isOpen) {
+      reset(DEFAULT_VALUES);
+      setApiError(null);
     }
-    if (!form.ownerFullName.trim()) {
-      errs.ownerFullName = "Họ tên chủ sở hữu không được để trống.";
-    }
+  }, [isOpen, reset]);
 
-    // Supplier fields
-    if (!form.supplierCode.trim()) {
-      errs.supplierCode = "Mã nhà cung cấp không được để trống.";
-    } else if (form.supplierCode.trim().length > 50) {
-      errs.supplierCode = "Mã nhà cung cấp tối đa 50 ký tự.";
-    }
-    if (!form.supplierName.trim()) {
-      errs.supplierName = "Tên nhà cung cấp không được để trống.";
-    } else if (form.supplierName.trim().length > 200) {
-      errs.supplierName = "Tên nhà cung cấp tối đa 200 ký tự.";
-    }
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      errs.email = "Email nhà cung cấp không hợp lệ.";
-    }
-
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    setIsSubmitting(true);
-    try {
-      await createSupplierWithOwner({
-        ownerEmail: form.ownerEmail.trim(),
-        ownerFullName: form.ownerFullName.trim(),
-        supplierCode: form.supplierCode.trim(),
-        supplierType,
-        supplierName: form.supplierName.trim(),
-        phone: form.phone.trim() || undefined,
-        email: form.email.trim() || undefined,
-        address: form.address.trim() || undefined,
-        note: form.note.trim() || undefined,
-      });
-      // Reset and close on success
-      setForm({ ...EMPTY });
-      onSuccess();
-    } catch {
-      setApiError("Tạo nhà cung cấp thất bại. Vui lòng thử lại.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleClose = () => {
+  const closeModal = () => {
     if (!isSubmitting) {
-      setForm({ ...EMPTY });
-      setErrors({});
+      reset(DEFAULT_VALUES);
       setApiError(null);
       onClose();
+    }
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    setApiError(null);
+
+    try {
+      await createSupplierWithOwner({
+        ownerEmail: values.ownerEmail.trim(),
+        ownerFullName: values.ownerFullName.trim(),
+        supplierCode: values.supplierCode.trim(),
+        supplierType,
+        supplierName: values.supplierName.trim(),
+        phone: values.phone.trim() || undefined,
+        email: values.email.trim() || undefined,
+        address: values.address.trim() || undefined,
+        note: values.note.trim() || undefined,
+        primaryContinent: isHotelSupplier
+          ? (values.primaryContinent as SupportedContinentCode)
+          : undefined,
+      });
+
+      reset(DEFAULT_VALUES);
+      onSuccess();
+    } catch {
+      setApiError(t("adminSupplierModal.error.createFailed"));
     }
   };
 
@@ -121,80 +158,77 @@ export function CreateSupplierModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0"
         style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
-        onClick={handleClose}
+        onClick={closeModal}
       />
 
-      {/* Modal */}
       <div
         className="relative z-10 w-full max-w-2xl rounded-2xl border border-[#E5E7EB] bg-white shadow-xl"
         style={{ boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#E5E7EB]">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 pt-6 pb-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              className="flex h-9 w-9 items-center justify-center rounded-xl"
               style={{ backgroundColor: iconBg }}
             >
               <BuildingsIcon size={18} weight="bold" style={{ color: iconColor }} />
             </div>
             <div>
               <h2 className="text-base font-bold" style={{ color: "#111827" }}>
-                Tạo nhà cung cấp {supplierTypeLabel}
+                {t("adminSupplierModal.title", { supplierType: supplierTypeLabel })}
               </h2>
-              <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                Tạo tài khoản chủ sở hữu + thông tin nhà cung cấp cùng lúc
+              <p className="mt-0.5 text-xs" style={{ color: "#6B7280" }}>
+                {t("adminSupplierModal.subtitle")}
               </p>
             </div>
           </div>
           <button
-            onClick={handleClose}
+            onClick={closeModal}
             disabled={isSubmitting}
-            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[#F3F4F6] disabled:opacity-50"
-            aria-label="Đóng"
+            className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[#F3F4F6] disabled:opacity-50"
+            aria-label={t("common.close")}
           >
             <XIcon size={18} weight="bold" style={{ color: "#6B7280" }} />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
             {apiError && (
               <div
-                className="px-4 py-3 rounded-lg text-sm"
+                className="rounded-lg px-4 py-3 text-sm"
                 style={{ backgroundColor: "#FEF2F2", color: "#DC2626" }}
               >
                 {apiError}
               </div>
             )}
 
-            {/* Section: Owner Account */}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#9CA3AF" }}>
-                Tài khoản chủ sở hữu
+              <p
+                className="mb-3 text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#9CA3AF" }}
+              >
+                {t("adminSupplierModal.sections.owner")}
               </p>
               <div className="space-y-3">
-                {/* Owner Full Name */}
                 <div>
                   <label
                     htmlFor="owner-fullname"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Họ và tên chủ sở hữu <span style={{ color: "#DC2626" }}>*</span>
+                    {t("adminSupplierModal.fields.ownerFullName")}{" "}
+                    <span style={{ color: "#DC2626" }}>*</span>
                   </label>
                   <input
                     id="owner-fullname"
                     type="text"
-                    value={form.ownerFullName}
-                    onChange={set("ownerFullName")}
-                    placeholder="Nguyễn Văn A"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("ownerFullName")}
+                    placeholder={t("adminSupplierModal.placeholders.ownerFullName")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={
                       errors.ownerFullName
                         ? { borderColor: "#DC2626", color: "#111827" }
@@ -203,27 +237,26 @@ export function CreateSupplierModal({
                   />
                   {errors.ownerFullName && (
                     <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.ownerFullName}
+                      {errors.ownerFullName.message}
                     </p>
                   )}
                 </div>
 
-                {/* Owner Email */}
                 <div>
                   <label
                     htmlFor="owner-email"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Email chủ sở hữu <span style={{ color: "#DC2626" }}>*</span>
+                    {t("adminSupplierModal.fields.ownerEmail")}{" "}
+                    <span style={{ color: "#DC2626" }}>*</span>
                   </label>
                   <input
                     id="owner-email"
                     type="email"
-                    value={form.ownerEmail}
-                    onChange={set("ownerEmail")}
-                    placeholder="owner@company.com"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("ownerEmail")}
+                    placeholder={t("adminSupplierModal.placeholders.ownerEmail")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={
                       errors.ownerEmail
                         ? { borderColor: "#DC2626", color: "#111827" }
@@ -232,41 +265,41 @@ export function CreateSupplierModal({
                   />
                   {errors.ownerEmail && (
                     <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.ownerEmail}
+                      {errors.ownerEmail.message}
                     </p>
                   )}
                   <p className="mt-1 text-xs" style={{ color: "#9CA3AF" }}>
-                    Tài khoản sẽ được tạo, mật khẩu tạm thời sẽ được gửi qua email.
+                    {t("adminSupplierModal.fields.ownerEmailHint")}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Divider */}
             <div style={{ borderTop: "1px solid #F3F4F6" }} />
 
-            {/* Section: Supplier Info */}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#9CA3AF" }}>
-                Thông tin nhà cung cấp
+              <p
+                className="mb-3 text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#9CA3AF" }}
+              >
+                {t("adminSupplierModal.sections.supplier")}
               </p>
               <div className="space-y-3">
-                {/* Supplier Code */}
                 <div>
                   <label
                     htmlFor="supplier-code"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Mã nhà cung cấp <span style={{ color: "#DC2626" }}>*</span>
+                    {t("adminSupplierModal.fields.supplierCode")}{" "}
+                    <span style={{ color: "#DC2626" }}>*</span>
                   </label>
                   <input
                     id="supplier-code"
                     type="text"
-                    value={form.supplierCode}
-                    onChange={set("supplierCode")}
-                    placeholder="VD: TRANSPORT-001"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("supplierCode")}
+                    placeholder={t("adminSupplierModal.placeholders.supplierCode")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={
                       errors.supplierCode
                         ? { borderColor: "#DC2626", color: "#111827" }
@@ -275,27 +308,26 @@ export function CreateSupplierModal({
                   />
                   {errors.supplierCode && (
                     <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.supplierCode}
+                      {errors.supplierCode.message}
                     </p>
                   )}
                 </div>
 
-                {/* Supplier Name */}
                 <div>
                   <label
                     htmlFor="supplier-name"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Tên nhà cung cấp <span style={{ color: "#DC2626" }}>*</span>
+                    {t("adminSupplierModal.fields.supplierName")}{" "}
+                    <span style={{ color: "#DC2626" }}>*</span>
                   </label>
                   <input
                     id="supplier-name"
                     type="text"
-                    value={form.supplierName}
-                    onChange={set("supplierName")}
-                    placeholder="VD: Công ty TNHH Vận tải A"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("supplierName")}
+                    placeholder={t("adminSupplierModal.placeholders.supplierName")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={
                       errors.supplierName
                         ? { borderColor: "#DC2626", color: "#111827" }
@@ -304,27 +336,66 @@ export function CreateSupplierModal({
                   />
                   {errors.supplierName && (
                     <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.supplierName}
+                      {errors.supplierName.message}
                     </p>
                   )}
                 </div>
 
-                {/* Supplier Email */}
+                {isHotelSupplier && (
+                  <div>
+                    <label
+                      htmlFor="supplier-primary-continent"
+                      className="mb-1.5 block text-sm font-medium"
+                      style={{ color: "#374151" }}
+                    >
+                      {t("adminSupplierModal.fields.primaryContinent")}{" "}
+                      <span style={{ color: "#DC2626" }}>*</span>
+                    </label>
+                    <select
+                      id="supplier-primary-continent"
+                      {...register("primaryContinent")}
+                      className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                      style={
+                        errors.primaryContinent
+                          ? { borderColor: "#DC2626", color: "#111827" }
+                          : { borderColor: "#E5E7EB", color: "#111827" }
+                      }
+                      defaultValue=""
+                    >
+                      <option value="">
+                        {t("adminSupplierModal.placeholders.primaryContinent")}
+                      </option>
+                      {SUPPORTED_CONTINENT_CODES.map((continent) => (
+                        <option key={continent} value={continent}>
+                          {t(CONTINENT_TRANSLATION_KEYS[continent])}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.primaryContinent && (
+                      <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
+                        {errors.primaryContinent.message}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs" style={{ color: "#9CA3AF" }}>
+                      {t("adminSupplierModal.fields.primaryContinentHint")}
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <label
                     htmlFor="supplier-email"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Email nhà cung cấp
+                    {t("adminSupplierModal.fields.supplierEmail")}
                   </label>
                   <input
                     id="supplier-email"
                     type="email"
-                    value={form.email}
-                    onChange={set("email")}
-                    placeholder="contact@company.com"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("email")}
+                    placeholder={t("adminSupplierModal.placeholders.supplierEmail")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={
                       errors.email
                         ? { borderColor: "#DC2626", color: "#111827" }
@@ -333,67 +404,61 @@ export function CreateSupplierModal({
                   />
                   {errors.email && (
                     <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.email}
+                      {errors.email.message}
                     </p>
                   )}
                 </div>
 
-                {/* Phone */}
                 <div>
                   <label
                     htmlFor="supplier-phone"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Số điện thoại
+                    {t("adminSupplierModal.fields.phone")}
                   </label>
                   <input
                     id="supplier-phone"
                     type="tel"
-                    value={form.phone}
-                    onChange={set("phone")}
-                    placeholder="VD: 0901 234 567"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("phone")}
+                    placeholder={t("adminSupplierModal.placeholders.phone")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={{ borderColor: "#E5E7EB", color: "#111827" }}
                   />
                 </div>
 
-                {/* Address */}
                 <div>
                   <label
                     htmlFor="supplier-address"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Địa chỉ
+                    {t("adminSupplierModal.fields.address")}
                   </label>
                   <input
                     id="supplier-address"
                     type="text"
-                    value={form.address}
-                    onChange={set("address")}
-                    placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM"
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    {...register("address")}
+                    placeholder={t("adminSupplierModal.placeholders.address")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={{ borderColor: "#E5E7EB", color: "#111827" }}
                   />
                 </div>
 
-                {/* Note */}
                 <div>
                   <label
                     htmlFor="supplier-note"
-                    className="block text-sm font-medium mb-1.5"
+                    className="mb-1.5 block text-sm font-medium"
                     style={{ color: "#374151" }}
                   >
-                    Ghi chú
+                    {t("adminSupplierModal.fields.note")}
                   </label>
                   <textarea
                     id="supplier-note"
-                    value={form.note}
-                    onChange={set("note")}
-                    placeholder="Thông tin bổ sung..."
+                    {...register("note")}
+                    placeholder={t("adminSupplierModal.placeholders.note")}
                     rows={2}
-                    className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
+                    className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                     style={{ borderColor: "#E5E7EB", color: "#111827" }}
                   />
                 </div>
@@ -401,24 +466,25 @@ export function CreateSupplierModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 px-6 pb-6">
             <button
               type="button"
-              onClick={handleClose}
+              onClick={closeModal}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-[#E5E7EB] transition-all duration-200 hover:bg-[#FAFAFA] disabled:opacity-50"
+              className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-[#FAFAFA] disabled:opacity-50"
               style={{ color: "#374151" }}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ backgroundColor: iconColor }}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo nhà cung cấp"}
+              {isSubmitting
+                ? t("adminSupplierModal.actions.creating")
+                : t("adminSupplierModal.actions.create")}
             </button>
           </div>
         </form>

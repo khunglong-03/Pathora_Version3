@@ -23,7 +23,8 @@ public sealed record CreateSupplierCommand(
     string? Phone,
     string? Email,
     string? Address,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    string? Note,
+    Continent? PrimaryContinent) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier];
 }
@@ -39,6 +40,16 @@ public sealed class CreateSupplierCommandValidator : AbstractValidator<CreateSup
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(200);
+
+        When(x => x.SupplierType == SupplierType.Accommodation, () =>
+        {
+            RuleFor(x => x.PrimaryContinent)
+                .NotNull();
+
+            RuleFor(x => x.PrimaryContinent!.Value)
+                .IsInEnum()
+                .When(x => x.PrimaryContinent.HasValue);
+        });
     }
 }
 
@@ -68,7 +79,7 @@ public sealed class CreateSupplierCommandHandler(
             request.Email,
             request.Address,
             request.Note,
-            continent: null);
+            continent: request.PrimaryContinent);
 
         await supplierRepository.AddAsync(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -142,7 +153,7 @@ public sealed class UpdateSupplierCommandHandler(
             request.Email,
             request.Address,
             request.Note,
-            continent: null,
+            continent: entity.Continent,
             isActive: request.IsActive);
 
         supplierRepository.Update(entity);
@@ -195,7 +206,8 @@ public sealed record CreateSupplierWithOwnerCommand(
     string? Phone,
     string? Email,
     string? Address,
-    string? Note) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
+    string? Note,
+    Continent? PrimaryContinent) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier, CacheKey.User];
 }
@@ -219,6 +231,16 @@ public sealed class CreateSupplierWithOwnerCommandValidator : AbstractValidator<
         RuleFor(x => x.SupplierName)
             .NotEmpty()
             .MaximumLength(200);
+
+        When(x => x.SupplierType == SupplierType.Accommodation, () =>
+        {
+            RuleFor(x => x.PrimaryContinent)
+                .NotNull();
+
+            RuleFor(x => x.PrimaryContinent!.Value)
+                .IsInEnum()
+                .When(x => x.PrimaryContinent.HasValue);
+        });
     }
 }
 
@@ -314,7 +336,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 request.Email,
                 request.Address,
                 request.Note,
-                continent: null,
+                continent: request.PrimaryContinent,
                 ownerUserId: userEntity.Id);
 
             // AddAsync only adds to context — no SaveChangesAsync

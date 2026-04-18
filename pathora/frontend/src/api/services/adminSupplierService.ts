@@ -1,4 +1,5 @@
 import { api } from "@/api/axiosInstance";
+import type { SupportedContinentCode } from "@/constants/continents";
 
 export type SupplierType = "Transport" | "Accommodation" | "Activity";
 
@@ -17,6 +18,7 @@ export interface CreateSupplierPayload {
   email?: string;
   address?: string;
   note?: string;
+  primaryContinent?: SupportedContinentCode;
 }
 
 export interface CreateSupplierResponse {

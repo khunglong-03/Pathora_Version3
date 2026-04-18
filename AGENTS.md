@@ -66,10 +66,17 @@
 - Frontend: run the smallest relevant test first, then `npm --prefix "pathora/frontend" run lint`, then `npm --prefix "pathora/frontend" run build`.
 - Backend: `dotnet build "panthora_be/LocalService.slnx"`, then the smallest relevant `dotnet test` filter. Add `dotnet format --verify-no-changes` if style-sensitive backend files changed.
 
+## gstack For Codex
+
+- This workspace is set up to use the installed `gstack-*` Codex skills when the request matches one of those workflows.
+- Prefer `gstack-browse` for browser-driven external research and page interaction instead of ad-hoc browser tooling.
+- Prefer `gstack-office-hours` for scoping and planning, `gstack-review` for code review, `gstack-investigate` for debugging, `gstack-qa`/`gstack-qa-only` for QA flows, and `gstack-ship` before release prep.
+- If the task clearly matches an installed `gstack-*` skill, invoke that skill first instead of answering directly.
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Doan2** (14389 symbols, 36265 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 relationships, 71 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -85,7 +92,7 @@ This project is indexed by GitNexus as **Doan2** (14389 symbols, 36265 relations
 
 1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
 2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/Doan2/process/{processName}` — trace the full execution flow step by step
+3. `READ gitnexus://repo/Pathora_Version3/process/{processName}` — trace the full execution flow step by step
 4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
 
 ## When Refactoring
@@ -124,10 +131,10 @@ This project is indexed by GitNexus as **Doan2** (14389 symbols, 36265 relations
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/Doan2/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Doan2/clusters` | All functional areas |
-| `gitnexus://repo/Doan2/processes` | All execution flows |
-| `gitnexus://repo/Doan2/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/Pathora_Version3/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
+| `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
+| `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
 
 ## Self-Check Before Finishing
 

@@ -1,16 +1,8 @@
 'use client';
 
 import React from 'react';
-
-const CONTINENT_OPTIONS = [
-  'Asia',
-  'Europe',
-  'Africa',
-  'NorthAmerica',
-  'SouthAmerica',
-  'Oceania',
-  'Antarctica',
-];
+import { useTranslation } from "react-i18next";
+import { CONTINENT_TRANSLATION_KEYS, SUPPORTED_CONTINENT_CODES } from "@/constants/continents";
 
 interface MultiSelectContinentDropdownProps {
   selected: string[];
@@ -23,6 +15,8 @@ export function MultiSelectContinentDropdown({
   onChange,
   className = '',
 }: MultiSelectContinentDropdownProps) {
+  const { t } = useTranslation();
+
   const toggleContinent = (continent: string) => {
     if (selected.includes(continent)) {
       onChange(selected.filter(c => c !== continent));
@@ -33,7 +27,7 @@ export function MultiSelectContinentDropdown({
 
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
-      {CONTINENT_OPTIONS.map(continent => (
+      {SUPPORTED_CONTINENT_CODES.map(continent => (
         <label key={continent} className="inline-flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -41,7 +35,7 @@ export function MultiSelectContinentDropdown({
             onChange={() => toggleContinent(continent)}
             className="rounded border-gray-300 text-primary focus:ring-primary"
           />
-          <span className="text-sm">{continent}</span>
+          <span className="text-sm">{t(CONTINENT_TRANSLATION_KEYS[continent])}</span>
         </label>
       ))}
     </div>

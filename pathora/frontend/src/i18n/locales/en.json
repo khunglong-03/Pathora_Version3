@@ -3092,5 +3092,65 @@
       "ctaDescription": "Join thousands of satisfied travelers. Book your dream vacation today and let us handle all the details.",
       "browsePackageTours": "Browse Package Tours"
     }
+  },
+  "adminSupplierModal": {
+    "title": "Create {{supplierType}} supplier",
+    "subtitle": "Create the supplier record and its owner account in one step.",
+    "sections": {
+      "owner": "Owner account",
+      "supplier": "Supplier information"
+    },
+    "fields": {
+      "ownerFullName": "Owner full name",
+      "ownerEmail": "Owner email",
+      "ownerEmailHint": "We will create an owner account and send onboarding instructions to this email.",
+      "supplierCode": "Supplier code",
+      "supplierName": "Supplier name",
+      "supplierEmail": "Supplier email",
+      "phone": "Phone number",
+      "address": "Address",
+      "note": "Note",
+      "primaryContinent": "Primary continent",
+      "primaryContinentHint": "Used as the supplier's default geography until accommodation inventory provides operational regions."
+    },
+    "placeholders": {
+      "ownerFullName": "Enter owner full name",
+      "ownerEmail": "Enter owner email",
+      "supplierCode": "Enter supplier code",
+      "supplierName": "Enter supplier name",
+      "supplierEmail": "Enter supplier email",
+      "phone": "Enter phone number",
+      "address": "Enter address",
+      "note": "Add an internal note",
+      "primaryContinent": "Select primary continent"
+    },
+    "validation": {
+      "ownerEmailRequired": "Owner email is required",
+      "ownerEmailInvalid": "Owner email must be a valid email address",
+      "ownerFullNameRequired": "Owner full name is required",
+      "supplierCodeRequired": "Supplier code is required",
+      "supplierCodeTooLong": "Supplier code must be 50 characters or fewer",
+      "supplierNameRequired": "Supplier name is required",
+      "supplierNameTooLong": "Supplier name must be 200 characters or fewer",
+      "supplierEmailInvalid": "Supplier email must be a valid email address",
+      "primaryContinentRequired": "Primary continent is required for hotel suppliers"
+    },
+    "actions": {
+      "create": "Create supplier",
+      "creating": "Creating..."
+    },
+    "error": {
+      "createFailed": "Failed to create supplier"
+    }
+  },
+  "tourForm": {
+    "continent": {
+      "asia": "Asia",
+      "europe": "Europe",
+      "africa": "Africa",
+      "americas": "Americas",
+      "oceania": "Oceania",
+      "antarctica": "Antarctica"
+    }
   }
 }

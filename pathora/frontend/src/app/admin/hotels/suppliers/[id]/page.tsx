@@ -13,6 +13,7 @@ import {
 } from "@/features/dashboard/components";
 import { Bed, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon, FileTextIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
+import { ContinentChip, ContinentChips } from "@/components/shared/ContinentChip";
 
 // Tab type
 type TabValue = "overview" | "accommodations" | "bookings";
@@ -143,6 +144,10 @@ export default function HotelProviderDetailPage() {
     }
   };
 
+  const shouldShowOperationalContinents =
+    entity.continents.length > 0 &&
+    !(entity.continents.length === 1 && entity.primaryContinent && entity.continents[0] === entity.primaryContinent);
+
   return (
     <div className="p-6">
       <AdminPageHeader
@@ -217,6 +222,22 @@ export default function HotelProviderDetailPage() {
                   <p className="font-medium">
                     {new Date(entity.createdOnUtc).toLocaleDateString("vi-VN")}
                   </p>
+                </div>
+              )}
+              {entity.primaryContinent && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Khu vực chính</p>
+                  <div className="mt-2">
+                    <ContinentChip continent={entity.primaryContinent} />
+                  </div>
+                </div>
+              )}
+              {shouldShowOperationalContinents && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Phạm vi hoạt động</p>
+                  <div className="mt-2">
+                    <ContinentChips continents={entity.continents} />
+                  </div>
                 </div>
               )}
               {entity.supplierName && (

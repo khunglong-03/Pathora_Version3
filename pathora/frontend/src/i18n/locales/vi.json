@@ -3125,5 +3125,65 @@
       "ctaDescription": "Gia nhập hàng ngàn khách du lịch hài lòng. Đặt ngay kỳ nghỉ trong mơ của bạn và để chúng tôi lo phần còn lại.",
       "browsePackageTours": "Xem các gói Tour"
     }
+  },
+  "adminSupplierModal": {
+    "title": "Tạo nhà cung cấp {{supplierType}}",
+    "subtitle": "Tạo hồ sơ nhà cung cấp và tài khoản chủ sở hữu trong cùng một bước.",
+    "sections": {
+      "owner": "Tài khoản chủ sở hữu",
+      "supplier": "Thông tin nhà cung cấp"
+    },
+    "fields": {
+      "ownerFullName": "Họ và tên chủ sở hữu",
+      "ownerEmail": "Email chủ sở hữu",
+      "ownerEmailHint": "Hệ thống sẽ tạo tài khoản chủ sở hữu và gửi hướng dẫn kích hoạt đến email này.",
+      "supplierCode": "Mã nhà cung cấp",
+      "supplierName": "Tên nhà cung cấp",
+      "supplierEmail": "Email nhà cung cấp",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ",
+      "note": "Ghi chú",
+      "primaryContinent": "Châu lục chính",
+      "primaryContinentHint": "Được dùng làm khu vực mặc định của nhà cung cấp cho đến khi dữ liệu cơ sở lưu trú xác định phạm vi hoạt động."
+    },
+    "placeholders": {
+      "ownerFullName": "Nhập họ và tên chủ sở hữu",
+      "ownerEmail": "Nhập email chủ sở hữu",
+      "supplierCode": "Nhập mã nhà cung cấp",
+      "supplierName": "Nhập tên nhà cung cấp",
+      "supplierEmail": "Nhập email nhà cung cấp",
+      "phone": "Nhập số điện thoại",
+      "address": "Nhập địa chỉ",
+      "note": "Thêm ghi chú nội bộ",
+      "primaryContinent": "Chọn châu lục chính"
+    },
+    "validation": {
+      "ownerEmailRequired": "Email chủ sở hữu là bắt buộc",
+      "ownerEmailInvalid": "Email chủ sở hữu không hợp lệ",
+      "ownerFullNameRequired": "Họ và tên chủ sở hữu là bắt buộc",
+      "supplierCodeRequired": "Mã nhà cung cấp là bắt buộc",
+      "supplierCodeTooLong": "Mã nhà cung cấp không được vượt quá 50 ký tự",
+      "supplierNameRequired": "Tên nhà cung cấp là bắt buộc",
+      "supplierNameTooLong": "Tên nhà cung cấp không được vượt quá 200 ký tự",
+      "supplierEmailInvalid": "Email nhà cung cấp không hợp lệ",
+      "primaryContinentRequired": "Châu lục chính là bắt buộc đối với nhà cung cấp khách sạn"
+    },
+    "actions": {
+      "create": "Tạo nhà cung cấp",
+      "creating": "Đang tạo..."
+    },
+    "error": {
+      "createFailed": "Không thể tạo nhà cung cấp"
+    }
+  },
+  "tourForm": {
+    "continent": {
+      "asia": "Châu Á",
+      "europe": "Châu Âu",
+      "africa": "Châu Phi",
+      "americas": "Châu Mỹ",
+      "oceania": "Châu Đại Dương",
+      "antarctica": "Châu Nam Cực"
+    }
   }
 }

@@ -3,8 +3,7 @@ namespace Domain.Specs.Application.Features.Admin.Queries;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
-using global::Contracts;
-using HotelProviders = global::Application.Features.Admin.Queries.GetHotelProviders;
+using global::Application.Features.Admin.Queries.GetHotelProviders;
 using NSubstitute;
 using Xunit;
 
@@ -12,168 +11,164 @@ public sealed class GetHotelProvidersQueryHandlerTests
 {
     private readonly IUserRepository _userRepository;
     private readonly ISupplierRepository _supplierRepository;
-    private readonly HotelProviders.GetHotelProvidersQueryHandler _handler;
+    private readonly GetHotelProvidersQueryHandler _handler;
 
     public GetHotelProvidersQueryHandlerTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
         _supplierRepository = Substitute.For<ISupplierRepository>();
-        _handler = new HotelProviders.GetHotelProvidersQueryHandler(_supplierRepository, _userRepository);
+        _handler = new GetHotelProvidersQueryHandler(_supplierRepository, _userRepository);
     }
 
     [Fact]
-    public async Task Handle_ReturnsHotelProvidersFromUserRepository()
+    public async Task Handle_WithoutContinentFilter_MapsPrimaryContinentAndFallbackContinents()
     {
-        var providerId = Guid.NewGuid();
+        var ownerUserId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
         var user = new UserEntity
         {
-            Id = providerId,
+            Id = ownerUserId,
             FullName = "Grand Hotel",
             Email = "hotel@example.com",
             PhoneNumber = "+84 444 555 666",
             AvatarUrl = "https://example.com/hotel.jpg",
-            Status = UserStatus.Active
+            Status = UserStatus.Active,
+            CreatedOnUtc = DateTimeOffset.UtcNow.AddDays(-10)
         };
+
         _userRepository.FindProvidersByRoleAsync(7, null, null, 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity> { user });
+            .Returns([user]);
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(1);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
+        _supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, HotelProviderAdminData>
+            {
+                [ownerUserId] = new(
+                    supplierId,
+                    "SUP-001",
+                    "Grand Hotel Supplier",
+                    "123 Main St",
+                    "+84 444 555 666",
+                    "supplier@example.com",
+                    user.CreatedOnUtc,
+                    Continent.Americas,
+                    0,
+                    0,
+                    [Continent.Americas])
+            });
 
-        var query = new HotelProviders.GetHotelProvidersQuery();
-
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(new GetHotelProvidersQuery(), CancellationToken.None);
 
         Assert.False(result.IsError);
         Assert.Single(result.Value.Items);
+
         var item = result.Value.Items[0];
-        Assert.Equal("Grand Hotel", item.FullName);
-        Assert.Equal("hotel@example.com", item.Email);
+        Assert.Equal(ownerUserId, item.Id);
+        Assert.Equal("Grand Hotel Supplier", item.SupplierName);
+        Assert.Equal("SUP-001", item.SupplierCode);
+        Assert.Equal("supplier@example.com", item.Email);
         Assert.Equal("+84 444 555 666", item.PhoneNumber);
-        Assert.Equal("https://example.com/hotel.jpg", item.AvatarUrl);
+        Assert.Equal("123 Main St", item.Address);
         Assert.Equal(UserStatus.Active, item.Status);
-        Assert.Equal(0, item.AccommodationCount);
+        Assert.Equal("Americas", item.PrimaryContinent);
+        Assert.Equal(["Americas"], item.Continents);
         Assert.Equal(1, result.Value.Total);
     }
 
     [Fact]
-    public async Task Handle_NoHotelProviders_ReturnsEmptyList()
+    public async Task Handle_WithContinentFilter_UsesFilteredUserIdsAndReturnsMappedItems()
     {
-        _userRepository.FindProvidersByRoleAsync(7, null, null, 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity>());
-        _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
-            .Returns(0);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
+        var ownerUserId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var user = new UserEntity
+        {
+            Id = ownerUserId,
+            FullName = "Filtered Hotel",
+            Email = "filtered@example.com",
+            PhoneNumber = "+84 000 111 222",
+            Status = UserStatus.Active,
+            CreatedOnUtc = DateTimeOffset.UtcNow.AddDays(-5)
+        };
 
-        var query = new HotelProviders.GetHotelProvidersQuery();
+        _supplierRepository.FindOwnerUserIdsByHotelProviderContinentsAsync(
+                Arg.Is<List<Continent>>(continents => continents.SequenceEqual([Continent.Americas])),
+                Arg.Any<CancellationToken>())
+            .Returns([ownerUserId]);
+        _userRepository.CountProvidersByRoleWithIdsAsync(
+                7,
+                null,
+                null,
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Any<CancellationToken>())
+            .Returns(1);
+        _userRepository.FindProvidersByRoleWithIdsAsync(
+                7,
+                null,
+                null,
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                1,
+                10,
+                Arg.Any<CancellationToken>())
+            .Returns([user]);
+        _supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<Guid, HotelProviderAdminData>
+            {
+                [ownerUserId] = new(
+                    supplierId,
+                    "SUP-002",
+                    "Filtered Hotel Supplier",
+                    "456 Ocean Dr",
+                    "+84 000 111 222",
+                    "filtered-supplier@example.com",
+                    user.CreatedOnUtc,
+                    Continent.Asia,
+                    2,
+                    18,
+                    [Continent.Europe, Continent.Americas])
+            });
 
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(
+            new GetHotelProvidersQuery(Continents: [Continent.Americas]),
+            CancellationToken.None);
+
+        Assert.False(result.IsError);
+        Assert.Single(result.Value.Items);
+
+        var item = result.Value.Items[0];
+        Assert.Equal("Filtered Hotel Supplier", item.SupplierName);
+        Assert.Equal("Asia", item.PrimaryContinent);
+        Assert.Equal(["Europe", "Americas"], item.Continents);
+        Assert.Equal(2, item.AccommodationCount);
+        Assert.Equal(18, item.RoomCount);
+    }
+
+    [Fact]
+    public async Task Handle_WithContinentFilterAndNoMatches_ReturnsEmptyPage()
+    {
+        _supplierRepository.FindOwnerUserIdsByHotelProviderContinentsAsync(
+                Arg.Any<List<Continent>>(),
+                Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        var result = await _handler.Handle(
+            new GetHotelProvidersQuery(Continents: [Continent.Oceania]),
+            CancellationToken.None);
 
         Assert.False(result.IsError);
         Assert.Empty(result.Value.Items);
         Assert.Equal(0, result.Value.Total);
-    }
 
-    [Fact]
-    public async Task Handle_UserHasInactiveStatus_ReturnsInactiveStatus()
-    {
-        var providerId = Guid.NewGuid();
-        var user = new UserEntity
-        {
-            Id = providerId,
-            FullName = "Inactive Hotel",
-            Email = "inactive@example.com",
-            PhoneNumber = "+84 444 555 666",
-            Status = UserStatus.Inactive
-        };
-        _userRepository.FindProvidersByRoleAsync(7, null, null, 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
-            .Returns(1);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
-
-        var query = new HotelProviders.GetHotelProvidersQuery();
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        Assert.False(result.IsError);
-        Assert.Single(result.Value.Items);
-        Assert.Equal(UserStatus.Inactive, result.Value.Items[0].Status);
-    }
-
-    [Fact]
-    public async Task Handle_MultipleProviders_ReturnsAll()
-    {
-        var p1 = new UserEntity { Id = Guid.NewGuid(), FullName = "Hotel 1", Email = "h1@example.com", PhoneNumber = "+1", Status = UserStatus.Active };
-        var p2 = new UserEntity { Id = Guid.NewGuid(), FullName = "Hotel 2", Email = "h2@example.com", PhoneNumber = "+2", Status = UserStatus.Inactive };
-        _userRepository.FindProvidersByRoleAsync(7, null, null, 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity> { p1, p2 });
-        _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
-            .Returns(2);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
-
-        var query = new HotelProviders.GetHotelProvidersQuery();
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.Items.Count);
-        Assert.Equal(2, result.Value.Total);
-    }
-
-    [Fact]
-    public async Task Handle_WithSearch_FiltersResults()
-    {
-        var user = new UserEntity
-        {
-            Id = Guid.NewGuid(),
-            FullName = "Seaside Resort",
-            Email = "hotel@example.com",
-            Status = UserStatus.Active
-        };
-        _userRepository.FindProvidersByRoleAsync(7, "sea", null, 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(7, "sea", null, Arg.Any<CancellationToken>())
-            .Returns(1);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
-
-        var query = new HotelProviders.GetHotelProvidersQuery(1, 10, "sea", null);
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        Assert.False(result.IsError);
-        Assert.Single(result.Value.Items);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(7, "sea", null, 1, 10, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_CombinesSearchAndStatus()
-    {
-        var user = new UserEntity
-        {
-            Id = Guid.NewGuid(),
-            FullName = "Active Resort",
-            Email = "active@example.com",
-            Status = UserStatus.Active
-        };
-        _userRepository.FindProvidersByRoleAsync(7, "resort", "Active", 1, 10, Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(7, "resort", "Active", Arg.Any<CancellationToken>())
-            .Returns(1);
-        _supplierRepository.GetAccommodationDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
-
-        var query = new HotelProviders.GetHotelProvidersQuery(1, 10, "resort", "Active");
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        Assert.False(result.IsError);
-        Assert.Single(result.Value.Items);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(7, "resort", "Active", 1, 10, Arg.Any<CancellationToken>());
+        await _userRepository.DidNotReceive().FindProvidersByRoleWithIdsAsync(
+            Arg.Any<int>(),
+            Arg.Any<string?>(),
+            Arg.Any<string?>(),
+            Arg.Any<List<Guid>>(),
+            Arg.Any<int>(),
+            Arg.Any<int>(),
+            Arg.Any<CancellationToken>());
     }
 }

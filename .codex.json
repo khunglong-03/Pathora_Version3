@@ -1,0 +1,20 @@
+{
+  "customCommands": {
+    "opsx-apply": {
+      "prompt": ".codex/prompts/opsx-apply.md",
+      "description": "Implement tasks from an OpenSpec change"
+    },
+    "opsx-archive": {
+      "prompt": ".codex/prompts/opsx-archive.md",
+      "description": "Archive a completed change"
+    },
+    "opsx-propose": {
+      "prompt": ".codex/prompts/opsx-propose.md",
+      "description": "Propose a new change"
+    },
+    "opsx-explore": {
+      "prompt": ".codex/prompts/opsx-explore.md",
+      "description": "Enter explore mode"
+    }
+  }
+}

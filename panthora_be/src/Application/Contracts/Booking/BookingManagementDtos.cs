@@ -21,7 +21,8 @@ public sealed record CreateSupplierDto(
     string? Phone,
     string? Email,
     string? Address,
-    string? Note
+    string? Note,
+    Continent? PrimaryContinent
 );
 
 public sealed record UpdateSupplierDto(
@@ -392,7 +393,8 @@ public sealed record CreateSupplierWithOwnerDto(
     string? Phone,
     string? Email,
     string? Address,
-    string? Note
+    string? Note,
+    Continent? PrimaryContinent
 );
 
 public sealed record CreateSupplierWithOwnerResponse(

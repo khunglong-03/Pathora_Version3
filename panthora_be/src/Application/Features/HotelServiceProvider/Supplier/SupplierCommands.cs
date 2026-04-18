@@ -55,7 +55,8 @@ public sealed class UpdateSupplierInfoCommandHandler(
             phone: request.Request.Phone,
             email: request.Request.Email,
             address: request.Request.Address,
-            note: request.Request.Notes);
+            note: request.Request.Notes,
+            continent: supplier.Continent);
 
         supplierRepository.Update(supplier);
         await unitOfWork.SaveChangeAsync(cancellationToken);

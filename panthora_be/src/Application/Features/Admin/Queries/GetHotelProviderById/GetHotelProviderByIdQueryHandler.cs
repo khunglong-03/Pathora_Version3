@@ -43,6 +43,7 @@ public sealed class GetHotelProviderByIdQueryHandler(
 
         var accommodationSummaries = new List<HotelAccommodationSummaryDto>();
         var totalRooms = 0;
+        var continents = new List<string>();
 
         if (supplier is not null)
         {
@@ -56,6 +57,18 @@ public sealed class GetHotelProviderByIdQueryHandler(
                     inv.LocationArea?.ToString()))
                 .ToList();
             totalRooms = inventories.Sum(inv => inv.TotalRooms);
+            continents = accommodationSummaries
+                .Select(summary => summary.LocationArea)
+                .Where(locationArea => !string.IsNullOrWhiteSpace(locationArea))
+                .Distinct()
+                .Cast<string>()
+                .ToList();
+        }
+
+        var primaryContinent = supplier?.Continent?.ToString();
+        if (continents.Count == 0 && primaryContinent is not null)
+        {
+            continents = [primaryContinent];
         }
 
         return new HotelProviderDetailDto(
@@ -68,6 +81,8 @@ public sealed class GetHotelProviderByIdQueryHandler(
             user?.AvatarUrl,
             user?.Status ?? UserStatus.Active,
             user?.CreatedOnUtc ?? supplier?.CreatedOnUtc,
+            primaryContinent,
+            continents,
             accommodationSummaries,
             accommodationSummaries.Count,
             totalRooms,

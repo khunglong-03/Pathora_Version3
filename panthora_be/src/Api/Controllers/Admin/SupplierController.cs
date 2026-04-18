@@ -38,7 +38,8 @@ public class SupplierController : BaseApiController
             request.Phone,
             request.Email,
             request.Address,
-            request.Note);
+            request.Note,
+            request.PrimaryContinent);
 
         var result = await Sender.Send(command);
         return HandleCreated(result);
@@ -57,7 +58,8 @@ public class SupplierController : BaseApiController
             request.Phone,
             request.Email,
             request.Address,
-            request.Note);
+            request.Note,
+            request.PrimaryContinent);
 
         var result = await Sender.Send(command);
         return HandleSupplierWithOwnerCreated(result);

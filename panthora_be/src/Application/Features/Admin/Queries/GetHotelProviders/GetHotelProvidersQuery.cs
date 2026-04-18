@@ -11,5 +11,6 @@ public sealed record GetHotelProvidersQuery(
     int PageSize = 10,
     string? Search = null,
     string? Status = null,
-    Continent? Continent = null)
+    Continent? Continent = null,
+    List<Continent>? Continents = null)
     : IQuery<ErrorOr<PaginatedList<HotelProviderListItemDto>>>;

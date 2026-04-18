@@ -203,14 +203,16 @@ export interface TransportProviderDetail {
 // ─── Hotel Provider ──────────────────────────────────────────────
 export interface HotelProviderListItem {
   id: string;
-  name: string;
+  supplierName: string;
+  supplierCode: string;
   email?: string;
   phone?: string;
   address?: string;
   status: string;
   accommodationCount?: number;
   roomCount?: number;
-  createdAt?: string;
+  createdOnUtc?: string | null;
+  primaryContinent?: string | null;
   continents: string[];
 }
 
@@ -226,20 +228,21 @@ export interface HotelProviderDetail {
   id: string;
   supplierName: string;
   supplierCode: string;
-  taxCode: string | null;
+  taxCode?: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
   avatarUrl: string | null;
   status: string;
   createdOnUtc: string | null;
+  primaryContinent: string | null;
+  continents: string[];
   accommodations: HotelAccommodationSummary[];
   accommodationCount: number;
   totalRooms: number;
   bookingCount: number;
   activeBookingCount: number;
   completedBookingCount: number;
-  continents: string[];
 }
 
 // ─── TourManager Hierarchy ───────────────────────────────────────

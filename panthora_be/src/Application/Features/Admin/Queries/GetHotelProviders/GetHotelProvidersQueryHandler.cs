@@ -21,10 +21,15 @@ public sealed class GetHotelProvidersQueryHandler(
     {
         var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
         var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
+        var requestedContinents = request.Continents?.Count > 0
+            ? request.Continents.Distinct().ToList()
+            : request.Continent.HasValue
+                ? [request.Continent.Value]
+                : [];
 
-        if (request.Continent.HasValue)
+        if (requestedContinents.Count > 0)
         {
-            return await HandleWithContinentFilterAsync(request, pageNumber, pageSize, cancellationToken);
+            return await HandleWithContinentFilterAsync(request, requestedContinents, pageNumber, pageSize, cancellationToken);
         }
 
         var users = await userRepository.FindProvidersByRoleAsync(
@@ -42,20 +47,25 @@ public sealed class GetHotelProvidersQueryHandler(
             cancellationToken);
 
         var userIds = users.Select(u => u.Id).ToList();
-        var accommodationData = await supplierRepository.GetAccommodationDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierData = await supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(userIds, cancellationToken);
 
         var items = users.Select(user =>
         {
-            var hasData = accommodationData.TryGetValue(user.Id, out var data);
+            var hasData = supplierData.TryGetValue(user.Id, out var data);
             return new HotelProviderListItemDto(
                 user.Id,
-                user.FullName ?? string.Empty,
-                user.Email,
-                user.PhoneNumber,
+                hasData ? data!.SupplierName : user.FullName ?? string.Empty,
+                hasData ? data!.SupplierCode : string.Empty,
+                hasData ? data!.Email ?? user.Email : user.Email,
+                hasData ? data!.Phone ?? user.PhoneNumber : user.PhoneNumber,
+                hasData ? data!.Address : null,
                 user.AvatarUrl,
                 user.Status,
-                hasData ? data.Count : 0,
-                hasData ? data.Continents.Select(c => c.ToString()).ToList() : []);
+                hasData ? data!.AccommodationCount : 0,
+                hasData ? data!.RoomCount : 0,
+                hasData ? data!.CreatedOnUtc : user.CreatedOnUtc,
+                hasData ? data!.PrimaryContinent?.ToString() : null,
+                hasData ? data!.Continents.Select(c => c.ToString()).ToList() : []);
         }).ToList();
 
         return new PaginatedList<HotelProviderListItemDto>(total, items, pageNumber, pageSize);
@@ -63,13 +73,13 @@ public sealed class GetHotelProvidersQueryHandler(
 
     private async Task<ErrorOr<PaginatedList<HotelProviderListItemDto>>> HandleWithContinentFilterAsync(
         GetHotelProvidersQuery request,
+        List<Continent> requestedContinents,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var continent = request.Continent!.Value;
         var userIdsWithInventory = await supplierRepository
-            .FindOwnerUserIdsWithAccommodationInContinentAsync(continent, cancellationToken);
+            .FindOwnerUserIdsByHotelProviderContinentsAsync(requestedContinents, cancellationToken);
 
         if (userIdsWithInventory.Count == 0)
         {
@@ -93,20 +103,25 @@ public sealed class GetHotelProvidersQueryHandler(
             cancellationToken);
 
         var userIds = users.Select(u => u.Id).ToList();
-        var accommodationData = await supplierRepository.GetAccommodationDataGroupedByOwnerAsync(userIds, cancellationToken);
+        var supplierData = await supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(userIds, cancellationToken);
 
         var items = users.Select(user =>
         {
-            var hasData = accommodationData.TryGetValue(user.Id, out var data);
+            var hasData = supplierData.TryGetValue(user.Id, out var data);
             return new HotelProviderListItemDto(
                 user.Id,
-                user.FullName ?? string.Empty,
-                user.Email,
-                user.PhoneNumber,
+                hasData ? data!.SupplierName : user.FullName ?? string.Empty,
+                hasData ? data!.SupplierCode : string.Empty,
+                hasData ? data!.Email ?? user.Email : user.Email,
+                hasData ? data!.Phone ?? user.PhoneNumber : user.PhoneNumber,
+                hasData ? data!.Address : null,
                 user.AvatarUrl,
                 user.Status,
-                hasData ? data.Count : 0,
-                hasData ? data.Continents.Select(c => c.ToString()).ToList() : []);
+                hasData ? data!.AccommodationCount : 0,
+                hasData ? data!.RoomCount : 0,
+                hasData ? data!.CreatedOnUtc : user.CreatedOnUtc,
+                hasData ? data!.PrimaryContinent?.ToString() : null,
+                hasData ? data!.Continents.Select(c => c.ToString()).ToList() : []);
         }).ToList();
 
         return new PaginatedList<HotelProviderListItemDto>(total, items, pageNumber, pageSize);

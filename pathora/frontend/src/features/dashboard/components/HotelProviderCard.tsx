@@ -3,6 +3,7 @@
 import React from "react";
 import { BedIcon, PhoneIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
 import type { HotelProviderListItem } from "@/types/admin";
+import { ContinentChip, ContinentChips } from "@/components/shared/ContinentChip";
 
 interface HotelProviderCardProps {
   provider: HotelProviderListItem;
@@ -10,6 +11,9 @@ interface HotelProviderCardProps {
 
 export function HotelProviderCard({ provider }: HotelProviderCardProps) {
   const isActive = provider.status === "Active";
+  const shouldShowOperationalContinents =
+    provider.continents.length > 0 &&
+    !(provider.continents.length === 1 && provider.primaryContinent && provider.continents[0] === provider.primaryContinent);
 
   return (
     <div
@@ -29,7 +33,7 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold truncate" style={{ color: "#111827" }}>
-            {provider.name}
+            {provider.supplierName}
           </h3>
           <div className="flex items-center gap-1.5 mt-1">
             <span
@@ -69,14 +73,24 @@ export function HotelProviderCard({ provider }: HotelProviderCardProps) {
         )}
       </div>
 
-      {/* Continents */}
-      {provider.continents && provider.continents.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {provider.continents.map((continent) => (
-            <span key={continent} className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">{continent}</span>
-          ))}
-        </div>
-      )}
+      <div className="space-y-2 mb-4">
+        {provider.primaryContinent && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "#9CA3AF" }}>
+              Khu vực chính
+            </span>
+            <ContinentChip continent={provider.primaryContinent} size="sm" />
+          </div>
+        )}
+        {shouldShowOperationalContinents && (
+          <div className="space-y-1">
+            <p className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "#9CA3AF" }}>
+              Phạm vi hoạt động
+            </p>
+            <ContinentChips continents={provider.continents} size="sm" />
+          </div>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="flex gap-3 pt-3 mt-auto" style={{ borderTop: "1px solid #F3F4F6" }}>

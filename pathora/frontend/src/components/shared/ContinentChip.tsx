@@ -1,63 +1,74 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { CONTINENT_TRANSLATION_KEYS, type SupportedContinentCode } from "@/constants/continents";
 
 export interface ContinentInfo {
   code: ContinentCode;
   label: string;
+  translationKey?: string;
   color: string;
   bgColor: string;
 }
 
 export type ContinentCode =
-  | "Asia"
-  | "Europe"
-  | "Africa"
+  | SupportedContinentCode
   | "NorthAmerica"
-  | "SouthAmerica"
-  | "Oceania"
-  | "Antarctica";
+  | "SouthAmerica";
 
 export const CONTINENT_MAP: Record<string, ContinentInfo> = {
   Asia: {
     code: "Asia",
-    label: "Châu Á",
+    label: "Asia",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Asia,
     color: "#DC2626",
     bgColor: "#FEE2E2",
   },
   Europe: {
     code: "Europe",
-    label: "Châu Âu",
+    label: "Europe",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Europe,
     color: "#2563EB",
     bgColor: "#DBEAFE",
   },
   Africa: {
     code: "Africa",
-    label: "Châu Phi",
+    label: "Africa",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Africa,
     color: "#D97706",
     bgColor: "#FEF3C7",
   },
+  Americas: {
+    code: "Americas",
+    label: "Americas",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Americas,
+    color: "#059669",
+    bgColor: "#D1FAE5",
+  },
   NorthAmerica: {
     code: "NorthAmerica",
-    label: "Bắc Mỹ",
+    label: "North America",
     color: "#059669",
     bgColor: "#D1FAE5",
   },
   SouthAmerica: {
     code: "SouthAmerica",
-    label: "Nam Mỹ",
+    label: "South America",
     color: "#7C3AED",
     bgColor: "#EDE9FE",
   },
   Oceania: {
     code: "Oceania",
-    label: "Châu Đại Dương",
+    label: "Oceania",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Oceania,
     color: "#0891B2",
     bgColor: "#CFFAFE",
   },
   Antarctica: {
     code: "Antarctica",
-    label: "Châu Nam Cực",
+    label: "Antarctica",
+    translationKey: CONTINENT_TRANSLATION_KEYS.Antarctica,
     color: "#6B7280",
     bgColor: "#F3F4F6",
   },
@@ -74,12 +85,14 @@ export function ContinentChip({
   size = "md",
   className = "",
 }: ContinentChipProps) {
+  const { t } = useTranslation();
   const info = CONTINENT_MAP[continent] ?? {
     code: continent as ContinentCode,
     label: continent,
     color: "#6B7280",
     bgColor: "#F3F4F6",
   };
+  const label = info.translationKey ? t(info.translationKey) : info.label;
 
   const sizeClass = size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-xs";
 
@@ -91,7 +104,7 @@ export function ContinentChip({
         backgroundColor: info.bgColor,
       }}
     >
-      {info.label}
+      {label}
     </span>
   );
 }

@@ -85,7 +85,7 @@ export default function HotelProvidersPage() {
     },
     {
       label: "Đang chờ xử lý",
-      value: total.toString(),
+      value: "0",
       icon: "Hourbar",
       accent: "#C9873A",
     },
