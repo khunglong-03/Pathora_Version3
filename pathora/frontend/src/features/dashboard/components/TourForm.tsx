@@ -90,28 +90,11 @@ interface ActivityForm {
   enToLocation: string;
   transportationType: string;
   enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
   durationMinutes: string;
   price: string;
 
   // Accommodation — type 8 (replaces standalone Accommodations step)
-  accommodationName: string;
-  enAccommodationName: string;
-  accommodationAddress: string;
-  enAccommodationAddress: string;
-  accommodationPhone: string;
-  checkInTime: string;
-  checkOutTime: string;
-  roomType: string;
-  roomCapacity: string;
-  mealsIncluded: string;
-  roomPrice: string;
-  numberOfRooms: string;
-  numberOfNights: string;
-  specialRequest: string;
-  latitude: string;
-  longitude: string;
+  // Phase 2: Supplier details (hotel name, contact, rooms, pricing) now handled at instance/provider selection time
 }
 
 interface ActivityRouteForm {
@@ -124,8 +107,6 @@ interface ActivityRouteForm {
   enToLocationCustom: string;
   transportationType: string;
   enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
   durationMinutes: string;
   price: string;
   note: string;
@@ -317,27 +298,9 @@ const emptyActivity = (): ActivityForm => ({
   enToLocation: "",
   transportationType: "0",
   enTransportationType: "",
-  transportationName: "",
-  enTransportationName: "",
   durationMinutes: "",
   price: "",
-  // Accommodation fields (type 8)
-  accommodationName: "",
-  enAccommodationName: "",
-  accommodationAddress: "",
-  enAccommodationAddress: "",
-  accommodationPhone: "",
-  checkInTime: "",
-  checkOutTime: "",
-  roomType: "",
-  roomCapacity: "",
-  mealsIncluded: "",
-  roomPrice: "",
-  numberOfRooms: "",
-  numberOfNights: "",
-  specialRequest: "",
-  latitude: "",
-  longitude: "",
+  // Accommodation fields (type 8) — Phase 2: Supplier details handled at instance time
 });
 
 const emptyRoute = (): ActivityRouteForm => ({
@@ -350,8 +313,6 @@ const emptyRoute = (): ActivityRouteForm => ({
   enToLocationCustom: "",
   transportationType: "0",
   enTransportationType: "",
-  transportationName: "",
-  enTransportationName: "",
   durationMinutes: "",
   price: "",
   note: "",
@@ -717,8 +678,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               enToLocationCustom: route.translations?.en?.toLocationName ?? "",
               transportationType: String(route.transportationType),
               enTransportationType: route.translations?.en?.transportationType ?? "",
-              transportationName: route.transportationName ?? "",
-              enTransportationName: route.translations?.en?.transportationName ?? "",
               durationMinutes: String(route.durationMinutes ?? ""),
               price: String(route.price ?? ""),
               note: route.note ?? "",
@@ -741,27 +700,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             enToLocation: "",
             transportationType: act.transportationType ?? "0",
             enTransportationType: act.translations?.en?.transportationType ?? "",
-            transportationName: act.transportationName ?? "",
-            enTransportationName: act.translations?.en?.transportationName ?? "",
             durationMinutes: String(act.durationMinutes ?? ""),
             price: String(act.price ?? ""),
-            // Accommodation fields — type 8
-            accommodationName: act.accommodationName ?? "",
-            enAccommodationName: "",
-            accommodationAddress: act.accommodationAddress ?? "",
-            enAccommodationAddress: "",
-            accommodationPhone: act.accommodationPhone ?? "",
-            checkInTime: act.checkInTime ?? "",
-            checkOutTime: act.checkOutTime ?? "",
-            roomType: "",
-            roomCapacity: "",
-            mealsIncluded: "",
-            roomPrice: "",
-            numberOfRooms: "",
-            numberOfNights: "",
-            specialRequest: "",
-            latitude: "",
-            longitude: "",
+            // Accommodation fields — type 8 — Phase 2: Supplier details handled at instance time
           })),
         })),
       );
@@ -994,77 +935,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               newErrors[`act_${planIdx}_${actIdx}_toLocation`] = t("tourAdmin.required", "Required");
           }
 
-          // Validate type-8 (accommodation) required + range fields
-          if (act.activityType === "8") {
-            if (!act.accommodationName.trim())
-              newErrors[`act_${planIdx}_${actIdx}_accommodationName`] = t("tourAdmin.required", "Required");
-
-            // roomCapacity: optional, but if provided must be >= 1
-            if (act.roomCapacity.trim()) {
-              const cap = Number(act.roomCapacity);
-              if (Number.isNaN(cap) || cap < 1) {
-                newErrors[`act_${planIdx}_${actIdx}_roomCapacity`] = t(
-                  "tourAdmin.validation.invalidRoomCapacity",
-                  "Room capacity must be at least 1",
-                );
-              }
-            }
-
-            // numberOfRooms: optional, but if provided must be 1-999
-            if (act.numberOfRooms.trim()) {
-              const rooms = Number(act.numberOfRooms);
-              if (Number.isNaN(rooms) || rooms < 1 || rooms > 999) {
-                newErrors[`act_${planIdx}_${actIdx}_numberOfRooms`] = t(
-                  "tourAdmin.validation.invalidNumberOfRooms",
-                  "Number of rooms must be between 1 and 999",
-                );
-              }
-            }
-
-            // numberOfNights: optional, but if provided must be 1-999
-            if (act.numberOfNights.trim()) {
-              const nights = Number(act.numberOfNights);
-              if (Number.isNaN(nights) || nights < 1 || nights > 999) {
-                newErrors[`act_${planIdx}_${actIdx}_numberOfNights`] = t(
-                  "tourAdmin.validation.invalidNumberOfNights",
-                  "Number of nights must be between 1 and 999",
-                );
-              }
-            }
-
-            // roomPrice: optional, but if provided must be >= 0
-            if (act.roomPrice.trim()) {
-              const price = Number(act.roomPrice);
-              if (Number.isNaN(price) || price < 0) {
-                newErrors[`act_${planIdx}_${actIdx}_roomPrice`] = t(
-                  "tourAdmin.validation.invalidRoomPrice",
-                  "Room price must be 0 or greater",
-                );
-              }
-            }
-
-            // latitude: optional, but if provided must be -90 to 90
-            if (act.latitude.trim()) {
-              const lat = Number(act.latitude);
-              if (Number.isNaN(lat) || lat < -90 || lat > 90) {
-                newErrors[`act_${planIdx}_${actIdx}_latitude`] = t(
-                  "tourAdmin.validation.invalidLatitude",
-                  "Latitude must be between -90 and 90",
-                );
-              }
-            }
-
-            // longitude: optional, but if provided must be -180 to 180
-            if (act.longitude.trim()) {
-              const lng = Number(act.longitude);
-              if (Number.isNaN(lng) || lng < -180 || lng > 180) {
-                newErrors[`act_${planIdx}_${actIdx}_longitude`] = t(
-                  "tourAdmin.validation.invalidLongitude",
-                  "Longitude must be between -180 and 180",
-                );
-              }
-            }
-          }
+          // Validate type-8 (accommodation) — Phase 2: Supplier details handled at instance time
+          // No form validation needed for accommodation activities anymore
         });
       });
     }
@@ -2993,229 +2865,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         onChange={(e) => updateActivity(ci, di, ai, "durationMinutes", e.target.value)}
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Type 8: Accommodation — Hotel name, check-in, check-out */}
-                                {act.activityType === "8" && (
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <div className="md:col-span-2">
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.accommodationName", "Hotel Name")} <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={act.accommodationName}
-                                        onChange={(e) => updateActivity(ci, di, ai, "accommodationName", e.target.value)}
-                                        className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                          errors[`act_${ci}_${di}_${ai}_accommodationName`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                        }`}
-                                      />
-                                      {errors[`act_${ci}_${di}_${ai}_accommodationName`] && (
-                                        <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_accommodationName`]}</p>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.checkInTime", "Check-in")}
-                                      </label>
-                                      <input
-                                        type="time"
-                                        step={300}
-                                        value={act.checkInTime}
-                                        onChange={(e) => updateActivity(ci, di, ai, "checkInTime", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.checkOutTime", "Check-out")}
-                                      </label>
-                                      <input
-                                        type="time"
-                                        step={300}
-                                        value={act.checkOutTime}
-                                        onChange={(e) => updateActivity(ci, di, ai, "checkOutTime", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.contactPhone", "Phone")}
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={act.accommodationPhone}
-                                        onChange={(e) => updateActivity(ci, di, ai, "accommodationPhone", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.accommodationAddress", "Address")}
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={act.accommodationAddress}
-                                        onChange={(e) => updateActivity(ci, di, ai, "accommodationAddress", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Type 8: Accommodation — Room Details */}
-                                {act.activityType === "8" && (
-                                  <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700/30">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-                                        {t("tourAdmin.accommodation.roomDetails", "Room Details")}
-                                      </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                      {act.roomType ? (
-                                        <div>
-                                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                            {t("tourAdmin.accommodation.roomType", "Room Type")} (Legacy)
-                                          </label>
-                                          <div className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed">
-                                            {act.roomType}
-                                          </div>
-                                        </div>
-                                      ) : null}
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.roomCapacity", "Capacity")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={act.roomCapacity}
-                                          onChange={(e) => updateActivity(ci, di, ai, "roomCapacity", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_roomCapacity`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_roomCapacity`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_roomCapacity`]}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.numberOfRooms", "Rooms")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={act.numberOfRooms}
-                                          onChange={(e) => updateActivity(ci, di, ai, "numberOfRooms", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_numberOfRooms`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_numberOfRooms`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_numberOfRooms`]}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.numberOfNights", "Nights")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={act.numberOfNights}
-                                          onChange={(e) => updateActivity(ci, di, ai, "numberOfNights", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_numberOfNights`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_numberOfNights`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_numberOfNights`]}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.mealsIncluded", "Meals")}
-                                        </label>
-                                        <select
-                                          value={act.mealsIncluded}
-                                          onChange={(e) => updateActivity(ci, di, ai, "mealsIncluded", e.target.value)}
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none">
-                                          <option value="">—</option>
-                                          <option value="none">{t("tourAdmin.accommodation.mealsOptions.none", "None")}</option>
-                                          <option value="breakfast">{t("tourAdmin.accommodation.mealsOptions.breakfast", "Breakfast")}</option>
-                                          <option value="lunch">{t("tourAdmin.accommodation.mealsOptions.lunch", "Lunch")}</option>
-                                          <option value="dinner">{t("tourAdmin.accommodation.mealsOptions.dinner", "Dinner")}</option>
-                                          <option value="breakfast_lunch">{t("tourAdmin.accommodation.mealsOptions.breakfast_lunch", "Breakfast & Lunch")}</option>
-                                          <option value="breakfast_dinner">{t("tourAdmin.accommodation.mealsOptions.breakfast_dinner", "Breakfast & Dinner")}</option>
-                                          <option value="lunch_dinner">{t("tourAdmin.accommodation.mealsOptions.lunch_dinner", "Lunch & Dinner")}</option>
-                                          <option value="all">{t("tourAdmin.accommodation.mealsOptions.all", "All")}</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.roomPrice", "Price")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          value={act.roomPrice}
-                                          onChange={(e) => updateActivity(ci, di, ai, "roomPrice", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_roomPrice`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_roomPrice`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_roomPrice`]}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.latitude", "Latitude")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          step="any"
-                                          value={act.latitude}
-                                          onChange={(e) => updateActivity(ci, di, ai, "latitude", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_latitude`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_latitude`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_latitude`]}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.longitude", "Longitude")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          step="any"
-                                          value={act.longitude}
-                                          onChange={(e) => updateActivity(ci, di, ai, "longitude", e.target.value)}
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none ${
-                                            errors[`act_${ci}_${di}_${ai}_longitude`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {errors[`act_${ci}_${di}_${ai}_longitude`] && (
-                                          <p className="text-red-500 text-xs mt-0.5">{errors[`act_${ci}_${di}_${ai}_longitude`]}</p>
-                                        )}
-                                      </div>
-                                      <div className="md:col-span-4">
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.accommodation.specialRequest", "Special Request")}
-                                        </label>
-                                        <textarea
-                                          rows={2}
-                                          value={act.specialRequest}
-                                          onChange={(e) => updateActivity(ci, di, ai, "specialRequest", e.target.value)}
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none resize-none"
-                                        />
-                                      </div>
                                     </div>
                                   </div>
                                 )}
