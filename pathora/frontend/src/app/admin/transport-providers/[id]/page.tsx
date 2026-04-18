@@ -206,6 +206,24 @@ export default function TransportProviderDetailPage() {
                   </p>
                 </div>
               )}
+              {entity.primaryContinent && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Châu lục chính</p>
+                  <p className="font-medium">{entity.primaryContinent}</p>
+                </div>
+              )}
+              {entity.continents && entity.continents.length > 0 && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-muted-foreground">Khu vực hoạt động</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {entity.continents.map((continent) => (
+                      <span key={continent} className="px-2 py-0.5 text-xs bg-gray-100 rounded-full font-medium text-gray-700">
+                        {continent}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

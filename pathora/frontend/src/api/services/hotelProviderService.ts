@@ -228,18 +228,12 @@ export const hotelProviderService = {
 
   // Supplier Info
   getSupplierInfo: async (): Promise<HotelSupplierInfo | null> => {
-    const accommodations = await hotelProviderService.getAccommodations();
-    if (accommodations.length === 0) return null;
-    const first = accommodations[0];
-    return {
-      id: first.supplierId,
-      supplierCode: "",
-      name: first.name ?? "",
-      phone: null,
-      email: null,
-      address: first.address,
-      notes: first.notes,
-    };
+    try {
+      const response = await api.get<ApiResponse<HotelSupplierInfo>>("/api/hotel-supplier");
+      return extractResult<HotelSupplierInfo>(response.data) ?? null;
+    } catch (error) {
+      return null;
+    }
   },
 
   updateSupplierInfo: async (
@@ -247,7 +241,7 @@ export const hotelProviderService = {
     data: UpdateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
     const response = await api.put<ApiResponse<HotelSupplierInfo>>(
-      "/hotel-supplier/info",
+      "/api/hotel-supplier/info",
       data,
     );
     return extractResult<HotelSupplierInfo>(response.data) as HotelSupplierInfo;

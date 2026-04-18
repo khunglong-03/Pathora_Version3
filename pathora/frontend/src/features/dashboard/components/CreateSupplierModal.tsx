@@ -58,6 +58,8 @@ export function CreateSupplierModal({
 }: CreateSupplierModalProps) {
   const { t } = useTranslation();
   const isHotelSupplier = supplierType === "Accommodation";
+  const isTransportSupplier = supplierType === "Transport";
+  const requireContinent = isHotelSupplier || isTransportSupplier;
   const [apiError, setApiError] = useState<string | null>(null);
 
   const schema = useMemo(
@@ -94,13 +96,13 @@ export function CreateSupplierModal({
           .string()
           .oneOf([...SUPPORTED_CONTINENT_CODES, ""])
           .when([], {
-            is: () => isHotelSupplier,
+            is: () => requireContinent,
             then: (fieldSchema) =>
               fieldSchema.required(t("adminSupplierModal.validation.primaryContinentRequired")),
             otherwise: (fieldSchema) => fieldSchema.optional(),
           }),
       }),
-    [isHotelSupplier, t],
+    [requireContinent, t],
   );
 
   const {
@@ -142,7 +144,7 @@ export function CreateSupplierModal({
         email: values.email.trim() || undefined,
         address: values.address.trim() || undefined,
         note: values.note.trim() || undefined,
-        primaryContinent: isHotelSupplier
+        primaryContinent: requireContinent
           ? (values.primaryContinent as SupportedContinentCode)
           : undefined,
       });
@@ -341,7 +343,7 @@ export function CreateSupplierModal({
                   )}
                 </div>
 
-                {isHotelSupplier && (
+                {requireContinent && (
                   <div>
                     <label
                       htmlFor="supplier-primary-continent"

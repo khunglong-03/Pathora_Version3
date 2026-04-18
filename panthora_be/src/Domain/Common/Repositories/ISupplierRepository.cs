@@ -30,11 +30,13 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
         List<Domain.Enums.Continent> continents, CancellationToken cancellationToken = default);
     Task<List<Guid>> FindOwnerUserIdsByHotelProviderContinentsAsync(
         List<Continent> continents, CancellationToken cancellationToken = default);
+    Task<List<Guid>> FindOwnerUserIdsByTransportProviderContinentsAsync(
+        List<Continent> continents, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (int Count, List<Domain.Enums.Continent> Continents)>> GetAccommodationDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, HotelProviderAdminData>> GetHotelProviderAdminDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
-    Task<Dictionary<Guid, string>> GetTransportSupplierAddressByOwnerAsync(
+    Task<Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>> GetTransportSupplierAddressByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
     Task<List<Guid>> GetTransportSupplierIdsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<(int Total, int Active, int Completed)> GetTransportBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);

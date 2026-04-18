@@ -11,6 +11,7 @@ public sealed record TransportProviderListItemDto(
     UserStatus Status,
     int VehicleCount,
     List<string> Continents,
+    string? PrimaryContinent,
     string? Address,
     int BookingCount
 );

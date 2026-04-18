@@ -41,7 +41,7 @@ public sealed class CreateSupplierCommandValidator : AbstractValidator<CreateSup
             .NotEmpty()
             .MaximumLength(200);
 
-        When(x => x.SupplierType == SupplierType.Accommodation, () =>
+        When(x => x.SupplierType == SupplierType.Accommodation || x.SupplierType == SupplierType.Transport, () =>
         {
             RuleFor(x => x.PrimaryContinent)
                 .NotNull();
@@ -232,7 +232,7 @@ public sealed class CreateSupplierWithOwnerCommandValidator : AbstractValidator<
             .NotEmpty()
             .MaximumLength(200);
 
-        When(x => x.SupplierType == SupplierType.Accommodation, () =>
+        When(x => x.SupplierType == SupplierType.Accommodation || x.SupplierType == SupplierType.Transport, () =>
         {
             RuleFor(x => x.PrimaryContinent)
                 .NotNull();

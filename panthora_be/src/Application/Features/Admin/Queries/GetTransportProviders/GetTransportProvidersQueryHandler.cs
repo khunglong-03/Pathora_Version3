@@ -23,9 +23,15 @@ public sealed class GetTransportProvidersQueryHandler(
         var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
         var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
 
-        if (request.Continent.HasValue)
+        var requestedContinents = request.Continents?.Count > 0
+            ? request.Continents.Distinct().ToList()
+            : request.Continent.HasValue
+                ? [request.Continent.Value]
+                : [];
+
+        if (requestedContinents.Count > 0)
         {
-            return await HandleWithContinentFilterAsync(request, pageNumber, pageSize, cancellationToken);
+            return await HandleWithContinentFilterAsync(request, requestedContinents, pageNumber, pageSize, cancellationToken);
         }
 
         var users = await userRepository.FindProvidersByRoleAsync(
@@ -54,7 +60,13 @@ public sealed class GetTransportProvidersQueryHandler(
         var items = users.Select(user =>
         {
             var hasData = vehicleData.TryGetValue(user.Id, out var data);
-            supplierAddressData.TryGetValue(user.Id, out var address);
+            supplierAddressData.TryGetValue(user.Id, out var addressInfo);
+            var primaryContinent = addressInfo.PrimaryContinent;
+
+            var continents = hasData && data.Continents.Count > 0
+                ? data.Continents.Select(c => c.ToString()).ToList()
+                : primaryContinent.HasValue ? [primaryContinent.Value.ToString()] : [];
+
             return new TransportProviderListItemDto(
                 user.Id,
                 user.FullName ?? string.Empty,
@@ -63,8 +75,9 @@ public sealed class GetTransportProvidersQueryHandler(
                 user.AvatarUrl,
                 user.Status,
                 hasData ? data.Count : 0,
-                hasData ? data.Continents.Select(c => c.ToString()).ToList() : [],
-                address,
+                continents,
+                primaryContinent?.ToString(),
+                addressInfo.Address,
                 0);
         }).ToList();
 
@@ -73,14 +86,14 @@ public sealed class GetTransportProvidersQueryHandler(
 
     private async Task<ErrorOr<PaginatedList<TransportProviderListItemDto>>> HandleWithContinentFilterAsync(
         GetTransportProvidersQuery request,
+        List<Continent> requestedContinents,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken)
     {
         // Find users who own vehicles in the specified continent
-        var continent = request.Continent!.Value;
-        var userIdsWithInventory = await vehicleRepository
-            .FindOwnerIdsWithVehicleInContinentAsync(continent, cancellationToken);
+        var userIdsWithInventory = await supplierRepository
+            .FindOwnerUserIdsByTransportProviderContinentsAsync(requestedContinents, cancellationToken);
 
         if (userIdsWithInventory.Count == 0)
         {
@@ -115,7 +128,13 @@ public sealed class GetTransportProvidersQueryHandler(
         var items = users.Select(user =>
         {
             var hasData = vehicleData.TryGetValue(user.Id, out var data);
-            supplierAddressData.TryGetValue(user.Id, out var address);
+            supplierAddressData.TryGetValue(user.Id, out var addressInfo);
+            var primaryContinent = addressInfo.PrimaryContinent;
+
+            var continents = hasData && data.Continents.Count > 0
+                ? data.Continents.Select(c => c.ToString()).ToList()
+                : primaryContinent.HasValue ? [primaryContinent.Value.ToString()] : [];
+
             return new TransportProviderListItemDto(
                 user.Id,
                 user.FullName ?? string.Empty,
@@ -124,8 +143,9 @@ public sealed class GetTransportProvidersQueryHandler(
                 user.AvatarUrl,
                 user.Status,
                 hasData ? data.Count : 0,
-                hasData ? data.Continents.Select(c => c.ToString()).ToList() : [],
-                address,
+                continents,
+                primaryContinent?.ToString(),
+                addressInfo.Address,
                 0);
         }).ToList();
 

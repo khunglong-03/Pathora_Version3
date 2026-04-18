@@ -67,7 +67,7 @@ export default function HotelProfileForm({
       className="rounded-xl p-6"
       style={{ border: "1px solid var(--border)", backgroundColor: "white" }}
     >
-      <form onSubmit={void handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-4">
         {submitError && (
           <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEE2E2", color: "#EF4444" }}>
             {submitError}

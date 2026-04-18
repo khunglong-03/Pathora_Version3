@@ -156,6 +156,7 @@ export interface TransportProviderListItem {
   bookingCount?: number;
   vehicleCount?: number;
   createdAt?: string;
+  primaryContinent?: string | null;
   continents: string[];
 }
 
@@ -192,6 +193,7 @@ export interface TransportProviderDetail {
   avatarUrl?: string;
   status: string;
   userCreatedAt?: string;
+  primaryContinent?: string | null;
   vehicles: VehicleSummary[];
   drivers: DriverSummary[];
   bookingCount: number;

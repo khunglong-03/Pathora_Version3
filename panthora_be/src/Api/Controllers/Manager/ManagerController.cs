@@ -70,9 +70,10 @@ public sealed class ManagerController : BaseApiController
         [FromQuery] int pageSize = 10,
         [FromQuery] string? search = null,
         [FromQuery] string? status = null,
-        [FromQuery] Domain.Enums.Continent? continent = null)
+        [FromQuery] Domain.Enums.Continent? continent = null,
+        [FromQuery] List<Domain.Enums.Continent>? continents = null)
     {
-        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status, continent));
+        var result = await Sender.Send(new GetTransportProvidersQuery(pageNumber, pageSize, search, status, continent, continents));
         return HandleResult(result);
     }
 

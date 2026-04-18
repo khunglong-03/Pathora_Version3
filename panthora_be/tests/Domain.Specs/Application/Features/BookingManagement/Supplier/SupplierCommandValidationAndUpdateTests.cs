@@ -53,7 +53,7 @@ public sealed class CreateSupplierCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_TransportWithoutPrimaryContinent_Passes()
+    public void Validate_TransportWithoutPrimaryContinent_Fails()
     {
         var command = new CreateSupplierCommand(
             "SUP-TR-001",
@@ -64,6 +64,24 @@ public sealed class CreateSupplierCommandValidatorTests
             null,
             null,
             null);
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.PrimaryContinent);
+    }
+
+    [Fact]
+    public void Validate_TransportWithPrimaryContinent_Passes()
+    {
+        var command = new CreateSupplierCommand(
+            "SUP-TR-001",
+            SupplierType.Transport,
+            "Transport Supplier",
+            null,
+            null,
+            null,
+            null,
+            Continent.Americas);
 
         var result = _validator.TestValidate(command);
 
@@ -136,7 +154,7 @@ public sealed class CreateSupplierWithOwnerCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_TransportWithoutPrimaryContinent_Passes()
+    public void Validate_TransportWithoutPrimaryContinent_Fails()
     {
         var command = new CreateSupplierWithOwnerCommand(
             "owner@example.com",
@@ -149,6 +167,26 @@ public sealed class CreateSupplierWithOwnerCommandValidatorTests
             null,
             null,
             null);
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.PrimaryContinent);
+    }
+
+    [Fact]
+    public void Validate_TransportWithPrimaryContinent_Passes()
+    {
+        var command = new CreateSupplierWithOwnerCommand(
+            "owner@example.com",
+            "Owner User",
+            "SUP-TR-002",
+            SupplierType.Transport,
+            "Transport Supplier",
+            null,
+            null,
+            null,
+            null,
+            Continent.Asia);
 
         var result = _validator.TestValidate(command);
 

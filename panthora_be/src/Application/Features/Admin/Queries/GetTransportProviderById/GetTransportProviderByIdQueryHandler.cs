@@ -67,6 +67,12 @@ public sealed class GetTransportProviderByIdQueryHandler(
             d.IsActive
         )).ToList();
 
+        var primaryContinent = supplier?.Continent?.ToString();
+        var vehicleContinents = vehicles.Where(v => v.LocationArea.HasValue).Select(v => v.LocationArea!.Value.ToString()).Distinct().ToList();
+        var continents = vehicleContinents.Count > 0 
+            ? vehicleContinents 
+            : (primaryContinent != null ? [primaryContinent] : []);
+
         return new TransportProviderDetailDto(
             user?.Id ?? supplier!.Id,
             supplier?.Name ?? user?.FullName ?? string.Empty,
@@ -77,6 +83,8 @@ public sealed class GetTransportProviderByIdQueryHandler(
             user?.AvatarUrl,
             user?.Status ?? UserStatus.Active,
             user?.CreatedOnUtc ?? supplier?.CreatedOnUtc,
+            primaryContinent,
+            continents,
             vehicleSummaries,
             driverSummaries,
             bookingCount,

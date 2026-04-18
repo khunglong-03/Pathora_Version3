@@ -12,6 +12,8 @@ public sealed record TransportProviderDetailDto(
     string? AvatarUrl,
     UserStatus Status,
     DateTimeOffset? UserCreatedAt,
+    string? PrimaryContinent,
+    List<string> Continents,
     List<VehicleSummaryDto> Vehicles,
     List<DriverSummaryDto> Drivers,
     int BookingCount,

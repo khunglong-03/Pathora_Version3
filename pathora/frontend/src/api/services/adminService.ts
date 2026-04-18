@@ -112,9 +112,25 @@ export const adminService = {
   },
 
   getTransportProviders: async (params: GetProvidersParams = {}) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set("pageNumber", String(params.page ?? 1));
+    queryParams.set("pageSize", String(params.limit ?? 10));
+
+    if (params.search) {
+      queryParams.set("search", params.search);
+    }
+
+    if (params.status) {
+      queryParams.set("status", params.status);
+    }
+
+    params.continents?.forEach((continent) => {
+      queryParams.append("continents", continent);
+    });
+
     const response = await api.get<ApiResponse<PaginatedList<TransportProviderListItem>>>(
       API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDERS,
-      { params: { page: 1, limit: 10, ...params } },
+      { params: queryParams },
     );
     return extractResult<PaginatedList<TransportProviderListItem>>(response.data);
   },

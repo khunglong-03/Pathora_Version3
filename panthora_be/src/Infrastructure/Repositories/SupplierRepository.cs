@@ -130,6 +130,55 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
             .ToList();
     }
 
+    public async Task<List<Guid>> FindOwnerUserIdsByTransportProviderContinentsAsync(
+        List<Continent> continents, CancellationToken cancellationToken = default)
+    {
+        if (continents.Count == 0)
+            return [];
+
+        var suppliers = await _context.Suppliers
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && s.SupplierType == SupplierType.Transport)
+            .Select(s => new
+            {
+                SupplierId = s.Id,
+                OwnerUserId = s.OwnerUserId!.Value,
+                PrimaryContinent = s.Continent
+            })
+            .ToListAsync(cancellationToken);
+
+        if (suppliers.Count == 0)
+            return [];
+
+        var ownerIds = suppliers.Select(s => s.OwnerUserId).ToList();
+        var inventoryGroups = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => ownerIds.Contains(v.OwnerId) && v.LocationArea.HasValue && !v.IsDeleted)
+            .GroupBy(v => v.OwnerId)
+            .Select(g => new
+            {
+                OwnerId = g.Key,
+                Continents = g.Select(v => v.LocationArea!.Value).Distinct().ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        var inventoryLookup = inventoryGroups.ToDictionary(g => g.OwnerId, g => g.Continents);
+
+        return suppliers
+            .Where(supplier =>
+            {
+                if (inventoryLookup.TryGetValue(supplier.OwnerUserId, out var derivedContinents) && derivedContinents.Count > 0)
+                {
+                    return derivedContinents.Any(continents.Contains);
+                }
+
+                return supplier.PrimaryContinent.HasValue && continents.Contains(supplier.PrimaryContinent.Value);
+            })
+            .Select(supplier => supplier.OwnerUserId)
+            .Distinct()
+            .ToList();
+    }
+
     public async Task<Dictionary<Guid, (int Count, List<Continent> Continents)>> GetAccommodationDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default)
     {
@@ -236,7 +285,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return result;
     }
 
-    public async Task<Dictionary<Guid, string>> GetTransportSupplierAddressByOwnerAsync(
+    public async Task<Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>> GetTransportSupplierAddressByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default)
     {
         if (ownerUserIds.Count == 0)
@@ -245,12 +294,12 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         var suppliers = await _context.Suppliers
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Transport && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId.Value))
-            .Select(s => new { s.OwnerUserId, s.Address })
+            .Select(s => new { s.OwnerUserId, s.Address, s.Continent })
             .ToListAsync(cancellationToken);
 
         return suppliers
-            .Where(s => s.OwnerUserId.HasValue && !string.IsNullOrEmpty(s.Address))
-            .ToDictionary(s => s.OwnerUserId!.Value, s => s.Address!);
+            .Where(s => s.OwnerUserId.HasValue)
+            .ToDictionary(s => s.OwnerUserId!.Value, s => (s.Address, s.Continent));
     }
 
     public async Task<List<Guid>> GetTransportSupplierIdsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
