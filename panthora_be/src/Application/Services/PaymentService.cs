@@ -46,6 +46,7 @@ public class PaymentService : IPaymentService
     private readonly string _vietQrAccountNo;
     private readonly string _vietQrAccountName;
     private readonly string _vietQrTemplateId;
+    private readonly bool _mockPaymentMode;
     private readonly IPaymentTransactionRepository _transactionRepository;
     private readonly IBookingRepository _bookingRepository;
     private readonly IOutboxRepository _outboxRepository;
@@ -80,6 +81,8 @@ public class PaymentService : IPaymentService
         _vietQrAccountNo = NormalizeConfigValue(configuration["VietQR:AccountNo"]);
         _vietQrAccountName = NormalizeConfigValue(configuration["VietQR:AccountName"]);
         _vietQrTemplateId = NormalizeConfigValue(configuration["VietQR:TemplateId"]);
+        _mockPaymentMode = string.Equals(NormalizeConfigValue(configuration["Payment:MockMode"]), "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(NormalizeConfigValue(configuration["AppConfig:MockPaymentMode"]), "true", StringComparison.OrdinalIgnoreCase);
     }
 
     public Task<ErrorOr<string>> GetQR(string note, long amount, string? bankBin = null, string? accountNo = null, string? accountName = null)
@@ -109,6 +112,12 @@ public class PaymentService : IPaymentService
         //     ?accountName={name}&amount={amount}&addInfo={refCode}
         var imageId = $"{effectiveBankBin}-{effectiveAccountNo}-{_vietQrTemplateId}";
         var url = $"{_vietQrApiUrl.TrimEnd('/')}/{imageId}.jpg?accountName={encodedAccountName}&amount={amount}&addInfo={encodedAddInfo}";
+
+        if (_mockPaymentMode)
+        {
+            var mockUrl = $"data:image/svg+xml;charset=UTF-8,{Uri.EscapeDataString($"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><rect width='320' height='320' fill='white'/><rect x='16' y='16' width='288' height='288' rx='24' fill='#fff7ed' stroke='#fb923c' stroke-width='8'/><text x='160' y='128' text-anchor='middle' font-size='24' font-family='Arial' fill='#ea580c'>MOCK QR</text><text x='160' y='164' text-anchor='middle' font-size='16' font-family='Arial' fill='#334155'>{note}</text><text x='160' y='196' text-anchor='middle' font-size='14' font-family='Arial' fill='#64748b'>{amount:N0} VND</text></svg>")}";
+            return Task.FromResult<ErrorOr<string>>(mockUrl);
+        }
 
         return Task.FromResult<ErrorOr<string>>(url);
     }

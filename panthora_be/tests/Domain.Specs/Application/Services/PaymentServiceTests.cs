@@ -161,6 +161,7 @@ public sealed class PaymentServiceTests
         _configuration["VietQR:AccountNo"].Returns("123456789");
         _configuration["VietQR:AccountName"].Returns("Test Account");
         _configuration["VietQR:TemplateId"].Returns("compact2");
+        _configuration["Payment:MockMode"].Returns("true");
 
         var service = CreateService();
 
@@ -180,6 +181,7 @@ public sealed class PaymentServiceTests
         Assert.Equal(12, transaction.ReferenceCode.Length);
         Assert.True(transaction.ReferenceCode.All(c => char.IsDigit(c) || (c >= 'A' && c <= 'Z')),
             $"refCode '{transaction.ReferenceCode}' should be alphanumeric uppercase");
+        Assert.StartsWith("data:image/svg+xml", transaction.CheckoutUrl);
     }
 
     #endregion

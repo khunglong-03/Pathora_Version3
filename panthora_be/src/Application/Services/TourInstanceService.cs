@@ -88,6 +88,14 @@ public class TourInstanceService(
             return validatedRoomAssignmentsResult.Errors;
         var validatedRoomAssignments = validatedRoomAssignmentsResult.Value;
 
+        // TC1.3: Validate vehicle assignments (Phase 1 contract)
+        var validatedVehicleAssignmentsResult = await ValidateVehicleAssignmentsAsync(
+            request.TransportProviderId,
+            request.ActivityAssignments);
+        if (validatedVehicleAssignmentsResult.IsError)
+            return validatedVehicleAssignmentsResult.Errors;
+        var validatedVehicleAssignments = validatedVehicleAssignmentsResult.Value;
+
         // Validate TourRequestId if provided
         TourRequestEntity? tourRequest = null;
         if (request.TourRequestId.HasValue)
@@ -277,6 +285,39 @@ public class TourInstanceService(
         }
 
         return validatedRoomAssignments;
+    }
+
+    private async Task<ErrorOr<Dictionary<Guid, Guid>>> ValidateVehicleAssignmentsAsync(
+        Guid? transportProviderId,
+        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
+    {
+        var vehicleAssignments = (activityAssignments ?? [])
+            .Where(assignment => assignment.VehicleId.HasValue)
+            .ToList();
+
+        if (vehicleAssignments.Count == 0)
+            return new Dictionary<Guid, Guid>();
+
+        if (!transportProviderId.HasValue)
+        {
+            return Error.Validation(
+                "TourInstance.TransportProviderRequiredForVehicleAssignments",
+                "Transport provider is required when assigning vehicles.");
+        }
+
+        var supplier = await _supplierRepository.GetByIdAsync(transportProviderId.Value);
+        if (supplier is null)
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
+
+        var validatedVehicleAssignments = new Dictionary<Guid, Guid>();
+        // TC1.3: For now, we accept vehicle assignments. In Phase 5, we'll validate against provider fleet.
+        // TODO: Implement vehicle fleet validation when IVehicleRepository is available in TourInstanceService
+        foreach (var assignment in vehicleAssignments)
+        {
+            validatedVehicleAssignments[assignment.OriginalActivityId] = assignment.VehicleId!.Value;
+        }
+
+        return validatedVehicleAssignments;
     }
 
     private async Task TryQueueTourReadyEmailAsync(

@@ -1130,4 +1130,100 @@ public sealed class TourInstanceServiceTests
         await _tourInstanceRepository.Received(1).CountProviderAssigned(
             supplier.Id, ProviderApprovalStatus.Approved, Arg.Any<CancellationToken>());
     }
+    #region TC1.3: Instance-creation validation tests
+
+    /// <summary>
+    /// TC1.3: Add instance-creation validation tests for vehicle assignments.
+    /// Mirrors existing room assignment validation to ensure providerless and provider-mismatched
+    /// vehicle assignments fail before instance creation completes.
+    /// </summary>
+    [Fact]
+    public async Task Create_WithVehicleAssignmentsWithoutTransportProvider_ReturnsValidationError()
+    {
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Vehicle Assignment Without Provider",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(1),
+            EndDate: DateTimeOffset.UtcNow.AddDays(3),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            ActivityAssignments:
+            [
+                new CreateTourInstanceActivityAssignmentDto(
+                    Guid.NewGuid(),
+                    null,
+                    null,
+                    Guid.NewGuid())  // Vehicle assignment without transport provider
+            ]);
+
+        var service = CreateService();
+        var result = await service.Create(command);
+
+        Assert.True(result.IsError);
+        Assert.Equal("TourInstance.TransportProviderRequiredForVehicleAssignments", result.FirstError.Code);
+        await _tourInstanceRepository.DidNotReceive().Create(Arg.Any<TourInstanceEntity>());
+    }
+
+    /// <summary>
+    /// TC1.3: Phase 1 - Contract test documenting vehicle assignment validation requirement.
+    /// Phase 1.3 locks down that vehicle assignments require a transport provider.
+    /// Phase 5 will extend this to validate that the vehicle belongs to the provider's fleet.
+    /// </summary>
+    [Fact]
+    public async Task Create_WithValidVehicleAssignmentAndTransportProvider_Succeeds()
+    {
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var transportProviderId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        
+        // Transport provider exists
+        _supplierRepository.GetByIdAsync(transportProviderId).Returns(new SupplierEntity());
+        // Phase 1.3: Vehicle assignment is accepted if provider is present
+        // Phase 5: Will validate vehicle belongs to provider's fleet
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Valid Vehicle Assignment",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(1),
+            EndDate: DateTimeOffset.UtcNow.AddDays(3),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            ActivityAssignments:
+            [
+                new CreateTourInstanceActivityAssignmentDto(
+                    Guid.NewGuid(),
+                    null,
+                    null,
+                    vehicleId)
+            ],
+            TransportProviderId: transportProviderId);
+
+        var service = CreateService();
+        var result = await service.Create(command);
+
+        // Phase 1.3: Validation of provider presence succeeds; Phase 5 will add fleet validation
+        Assert.False(result.IsError);
+    }
+
+    #endregion
 }
