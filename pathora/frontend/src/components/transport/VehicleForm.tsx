@@ -41,7 +41,7 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
     }
     if (!vehicle && formData.vehiclePlate) {
       // Basic plate format: at least 4 characters, alphanumeric with spaces/hyphens
-      const plateRegex = /^[A-Z0-9\s-]{4,20}$/i;
+      const plateRegex = /^[A-Z0-9\s-.]{4,20}$/i;
       if (!plateRegex.test(formData.vehiclePlate.trim())) {
         newErrors.vehiclePlate = "Biển số không hợp lệ (ví dụ: 51A-12345)";
       }
