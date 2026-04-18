@@ -1,138 +1,179 @@
-# Dữ Liệu Mẫu: Tour Khám Phá Vịnh Hạ Long (2 Ngày 1 Đêm)
+# Dữ liệu mẫu để tự nhập khi tạo tour mới
 
-File này chứa toàn bộ dữ liệu song ngữ (Tiếng Việt & Tiếng Anh) để bạn dễ dàng Copy/Paste vào màn hình Tạo Tour (Tour Designer).
-
----
-
-## 📍 Bước 1: Thông tin cơ bản (Basic Info)
-
-**Dropdowns:**
-- Phạm vi Tour (Tour Scope): `Trong nước`
-- Phân khúc khách hàng (Customer Segment): `Nhóm`
-- Status: `Pending (Wait for Review)` (Tự động khoá)
-
-### 🇻🇳 Tiếng Việt
-- **Tên Tour:** Khám Phá Vịnh Hạ Long - Di Sản Thiên Nhiên Thế Giới (2 Ngày 1 Đêm)
-- **Mô tả ngắn:** Trải nghiệm kỳ nghỉ dưỡng tuyệt vời tại Vinpearl Resort & Spa Hạ Long, di chuyển bằng xe Limousine VIP đưa đón tận nơi.
-- **Mô tả chi tiết:** Tour du lịch Hạ Long 2 ngày 1 đêm mang đến trải nghiệm đẳng cấp 5 sao. Quý khách sẽ được nghỉ ngơi tại Vinpearl Resort nằm trọn trên Đảo Rều, thưởng thức hải sản biển tươi ngon và tham quan các hang động tuyệt đẹp của Vịnh Hạ Long.
-- **Tiêu đề SEO:** Tour Hạ Long 2 Ngày 1 Đêm - Vinpearl Resort & Spa | Pathora
-- **Mô tả SEO:** Đặt ngay tour du lịch Vịnh Hạ Long 2 ngày 1 đêm trọn gói. Tận hưởng kỳ nghỉ 5 sao tại Vinpearl Resort & Spa Hạ Long, di chuyển bằng xe Limousine cao cấp.
-
-### 🇬🇧 English
-- **Tên Tour:** Discover Halong Bay - World Natural Heritage (2 Days 1 Night)
-- **Mô tả ngắn:** Experience an amazing luxury getaway at Vinpearl Resort & Spa Halong, including VIP Limousine round-trip transfers.
-- **Mô tả chi tiết:** This 2-day 1-night Halong Bay tour offers a 5-star experience. You will stay at the luxurious Vinpearl Resort entirely located on Reu Island, enjoy fresh local seafood, and visit the spectacular caves of Halong Bay.
-- **Tiêu đề SEO:** Halong Bay 2 Days 1 Night Tour - Vinpearl Resort & Spa | Pathora
-- **Mô tả SEO:** Book your all-inclusive 2 Days 1 Night Halong Bay tour now. Enjoy a 5-star vacation at Vinpearl Resort & Spa Halong with premium Limousine transfers.
+File này được viết lại theo hướng dễ copy/paste từng field vào form tạo tour mới trong frontend.
+Nó khớp với logic `buildTourFormData`, nhưng ưu tiên để bạn tự nhập thủ công thay vì import seed SQL.
 
 ---
 
-## 📦 Bước 2: Gói Tour (Packages / Classifications)
+## 1) Thông tin cơ bản
 
-Mặc định có 1 Gói Tour (Tiêu chuẩn), bạn nhập thông tin sau:
+### Tiếng Việt / nhập vào form chính
+- **tourName:** Khám Phá Vịnh Hạ Long - Di Sản Thiên Nhiên Thế Giới (2 Ngày 1 Đêm)
+- **shortDescription:** Trải nghiệm nghỉ dưỡng 2 ngày 1 đêm tại Hạ Long với lịch trình tham quan và lưu trú cao cấp.
+- **longDescription:** Tour Hạ Long 2 ngày 1 đêm mang đến trải nghiệm nghỉ dưỡng, tham quan và di chuyển thuận tiện. Khách sẽ tham quan vịnh, nghỉ đêm tại khách sạn/resort, và có lịch trình chi tiết theo từng ngày.
+- **seoTitle:** Tour Hạ Long 2 Ngày 1 Đêm | Pathora
+- **seoDescription:** Đặt ngay tour Hạ Long 2 ngày 1 đêm với lịch trình tham quan, lưu trú và dịch vụ phù hợp cho nhóm khách.
+- **status:** `1` hoặc giá trị status mà form của bạn đang dùng
+- **tourScope:** `Trong nước`
+- **continent:** `Asia`
+- **customerSegment:** `Group`
 
-### 🇻🇳 Tiếng Việt
-- **Loại Gói Tour:** Chọn `Standard` (hoặc VIP tùy bạn)
-- **Thời gian (Ngày):** `2`
-- **Giá Cơ Bản (VND):** `2500000`
-- **Mô tả gói:** Gói bao gồm lưu trú 1 đêm tại Vinpearl, xe đưa đón và vé tham quan Vịnh.
+### Bản dịch
 
-### 🇬🇧 English
-- **Mô tả gói:** Package includes 1 night stay at Vinpearl, round-trip transfers, and bay sightseeing tickets.
+#### Vietnamese translation
+- **tourName:** Khám Phá Vịnh Hạ Long - Di Sản Thiên Nhiên Thế Giới (2 Ngày 1 Đêm)
+- **shortDescription:** Tour tham quan và nghỉ dưỡng tại Hạ Long.
+- **longDescription:** Trải nghiệm tour Hạ Long 2 ngày 1 đêm với lịch trình hợp lý, phù hợp cho khách đi nhóm.
+- **seoTitle:** Tour Hạ Long 2 Ngày 1 Đêm | Pathora
+- **seoDescription:** Tour Hạ Long 2 ngày 1 đêm dành cho nhóm khách muốn tham quan và nghỉ dưỡng.
 
----
-
-## 📅 Bước 3: Lịch trình (Itineraries)
-
-Sau khi nhập 2 Ngày ở Bước 2, hệ thống sẽ tự sinh ra Ngày 1 và Ngày 2. Bạn bấm "Thêm hoạt động" (Add Activity) ở mỗi ngày.
-
-### 🗓️ Ngày 1
-- **🇻🇳 Tiêu đề ngày:** Khởi hành & Nhận phòng
-- **🇬🇧 Day title EN:** Departure & Check-in
-- **🇻🇳 Mô tả ngày:** Xe đón quý khách từ Hà Nội di chuyển xuống Hạ Long, nhận phòng và tự do nghỉ ngơi trải nghiệm các tiện ích đẳng cấp tại resort 5 sao.
-- **🇬🇧 Description (EN):** Pick up from Hanoi to Halong, check in, and enjoy free time to relax at the 5-star resort's luxury facilities.
-
-👉 Sau đó bấm **"+ Thêm hoạt động"** cho Ngày 1:
-
-**Hoạt động 1: Di chuyển Hà Nội - Hạ Long**
-> ⚠️ **LƯU Ý QUAN TRỌNG:** Ở ô "Loại hoạt động", bạn bắt buộc phải bấm mũi tên xổ xuống và chọn **"Phương tiện"** thì form mới hiện ra các ô Từ điểm/Đến điểm nhé! (Đừng để mặc định là Tham quan).
-
-- **Loại hoạt động:** Chọn `Phương tiện`
-- **Thời gian bắt đầu:** `08:00` | **Kết thúc:** `10:30`
-- **Chi phí ước tính ($):** `0`
-- **🇻🇳 Tiêu đề:** Xe Limousine Hà Nội - Hạ Long
-- **🇬🇧 Title (EN):** Limousine Hanoi - Halong Transfer
-- **🇻🇳 Mô tả:** Đón khách tại Nhà hát lớn Hà Nội.
-- **🇬🇧 Description (EN):** Pick up at Hanoi Opera House.
-- **🇻🇳 Ghi chú:** Có nước uống và wifi trên xe.
-- **🇬🇧 Note (EN):** Complimentary water and wifi on board.
-- **🇻🇳 Từ:** Hà Nội | **Đến:** Hạ Long
-- **Phương tiện (Dropdown):** Chọn `Car` hoặc `Bus`
-- **Thời gian (phút):** `150`
-
-**Hoạt động 2: Nhận phòng Khách sạn**
-> ⚠️ **LƯU Ý QUAN TRỌNG:** Ở ô "Loại hoạt động", hãy chọn **"Lưu trú" (Accommodation)** thì form mới hiện ra ô Khách sạn và Địa chỉ.
-
-- **Loại hoạt động:** Chọn `Lưu trú` (Accommodation)
-- **Thời gian bắt đầu:** `14:00` | **Kết thúc:** `14:30`
-- **Chi phí ước tính ($):** `0`
-- **🇻🇳 Tiêu đề:** Nhận phòng & Nghỉ ngơi
-- **🇬🇧 Title (EN):** Check-in & Relax
-- **🇻🇳 Mô tả:** Nhận phòng tại Vinpearl Resort 5 sao.
-- **🇬🇧 Description (EN):** Check in at the 5-star Vinpearl Resort.
-- **🇻🇳 Tên Khách sạn:** Vinpearl Resort & Spa Hạ Long
-- **🇬🇧 Hotel Name:** Vinpearl Resort & Spa Halong
-- **🇻🇳 Địa chỉ:** Đảo Rều, Vịnh Hạ Long, Quảng Ninh
-- **🇬🇧 Address:** Reu Island, Halong Bay, Quang Ninh
-
-### 🗓️ Ngày 2
-- **🇻🇳 Tiêu đề ngày:** Tham quan Vịnh & Trở về
-- **🇬🇧 Day title EN:** Bay Sightseeing & Return
-- **🇻🇳 Mô tả ngày:** Quý khách lên du thuyền tham quan các hang động tuyệt đẹp trên Vịnh Hạ Long, sau đó khởi hành về lại Hà Nội.
-- **🇬🇧 Description (EN):** Board the cruise to visit spectacular caves in Halong Bay, then return to Hanoi.
-
-👉 Sau đó bấm **"+ Thêm hoạt động"** cho Ngày 2:
-
-**Hoạt động 1: Khám phá Vịnh Hạ Long**
-- **Loại hoạt động:** Chọn `Tham quan` (Sightseeing)
-- **Thời gian bắt đầu:** `08:00` | **Kết thúc:** `12:00`
-- **Chi phí ước tính ($):** `0`
-- **🇻🇳 Tiêu đề:** Du thuyền tham quan Vịnh Hạ Long
-- **🇬🇧 Title (EN):** Halong Bay Cruise Sightseeing
-- **🇻🇳 Mô tả:** Tham quan Động Thiên Cung, Hòn Trống Mái.
-- **🇬🇧 Description (EN):** Visit Thien Cung Cave, Fighting Cocks Islet.
-- **🇻🇳 Ghi chú:** Mang theo máy ảnh và nón chống nắng.
-- **🇬🇧 Note (EN):** Bring a camera and a sun hat.
----
-
-## 🛠️ Bước 4: Dịch vụ bổ sung (Services)
-
-Nếu khách muốn đặt thêm dịch vụ (tùy chọn):
-
-### 🇻🇳 Tiếng Việt
-- **Tên dịch vụ:** Nâng hạng phòng VIP (Ocean View)
-- **Đơn vị tính (Pricing Type):** `Mỗi phòng (Per Room)`
-- **Giá bán:** `1000000`
-
-### 🇬🇧 English
-- **Service Name:** VIP Room Upgrade (Ocean View)
+#### English translation
+- **tourName:** Discover Halong Bay - 2 Days 1 Night
+- **shortDescription:** A 2-day, 1-night sightseeing and leisure tour in Halong Bay.
+- **longDescription:** Enjoy a carefully planned Halong Bay journey with sightseeing, accommodation, and group-friendly activities.
+- **seoTitle:** Halong Bay 2 Days 1 Night Tour | Pathora
+- **seoDescription:** Book a 2 days 1 night Halong Bay tour with sightseeing and accommodation.
 
 ---
 
-## 🛡️ Bước 5: Bảo hiểm (Insurance)
+## 2) Classifications
 
-### 🇻🇳 Tiếng Việt
-- **Tên gói bảo hiểm:** Bảo hiểm du lịch nội địa cao cấp
-- **Nhà cung cấp (Provider):** Bảo Việt
-- **Mức bồi thường (Coverage Amount):** `50000000`
-- **Phí bảo hiểm (Coverage Fee):** `50000`
-- **Mô tả:** Chi trả y tế và tai nạn trong suốt hành trình.
+Form hiện tại dùng `classifications[]`, mỗi classification là một gói tour.
 
-### 🇬🇧 English
-- **Insurance Name:** Premium Domestic Travel Insurance
-- **Description:** Covers medical and accidents during the trip.
+### Gói tour 1
+- **name:** Standard
+- **enName:** Standard Package
+- **description:** Gói tiêu chuẩn 2 ngày 1 đêm tại Hạ Long.
+- **enDescription:** Standard 2 days 1 night Halong package.
+- **basePrice:** `2500000`
+- **durationDays:** `2`
 
 ---
 
-**LƯU Ý:** 
-Sau khi bạn nhập xong toàn bộ dữ liệu trên (nhớ tải cả hình ảnh lên ở từng màn), bạn bấm **XEM TRƯỚC (Preview)**, kiểm tra lại rồi bấm **LƯU (Save)** để hoàn tất quá trình tạo Tour nhé!
+## 3) Day plans và activities
+
+Mỗi classification có `dayPlans[]`, mỗi day plan có `activities[]`.
+
+### Ngày 1
+- **dayNumber:** `1`
+- **title:** Khởi hành & Nhận phòng
+- **enTitle:** Departure & Check-in
+- **description:** Xe đón khách từ Hà Nội, di chuyển đến Hạ Long và nhận phòng.
+- **enDescription:** Pick up from Hanoi, transfer to Halong, and check in.
+
+#### Activity 1 — Transport
+- **Loại hoạt động:** `Phương tiện`
+- **activityType:** `7`
+- **Ý nghĩa:** dùng cho hoạt động di chuyển, khi chọn loại này form sẽ hiện các ô Từ/Đến/Phương tiện/Thời lượng.
+- **title:** Xe Limousine Hà Nội - Hạ Long
+- **enTitle:** Limousine Hanoi - Halong Transfer
+- **description:** Đón khách tại Hà Nội và di chuyển đến Hạ Long.
+- **enDescription:** Pick up in Hanoi and transfer to Halong.
+- **note:** Có nước uống và wifi trên xe.
+- **enNote:** Complimentary water and wifi on board.
+- **estimatedCost:** `0`
+- **isOptional:** `false`
+- **startTime:** `08:00`
+- **endTime:** `10:30`
+- **fromLocation:** Hà Nội
+- **enFromLocation:** Hanoi
+- **toLocation:** Hạ Long
+- **enToLocation:** Halong
+- **transportationType:** `1`
+- **enTransportationType:** Car
+- **durationMinutes:** `150`
+- **price:** `0`
+
+#### Activity 2 — Accommodation
+- **Loại hoạt động:** `Lưu trú`
+- **activityType:** `8`
+- **Ý nghĩa:** dùng cho hoạt động lưu trú, khi chọn loại này form sẽ hiện các ô Khách sạn/Địa chỉ/Check-in/Check-out.
+- **title:** Nhận phòng & Nghỉ ngơi
+- **enTitle:** Check-in & Relax
+- **description:** Nhận phòng tại Vinpearl Resort & Spa Hạ Long.
+- **enDescription:** Check in at Vinpearl Resort & Spa Halong.
+- **note:** Nghỉ ngơi và sử dụng tiện ích tại resort.
+- **enNote:** Free time to relax and use resort facilities.
+- **estimatedCost:** `0`
+- **isOptional:** `false`
+- **startTime:** `14:00`
+- **endTime:** `14:30`
+- **locationName:** Vinpearl Resort & Spa Hạ Long
+- **enLocationName:** Vinpearl Resort & Spa Halong
+- **locationCity:** Hạ Long
+- **enLocationCity:** Halong
+- **locationCountry:** Việt Nam
+- **enLocationCountry:** Vietnam
+- **locationAddress:** Đảo Rều, Vịnh Hạ Long, Quảng Ninh
+- **enLocationAddress:** Reu Island, Halong Bay, Quang Ninh, Vietnam
+- **locationEntranceFee:** `0`
+
+### Ngày 2
+- **dayNumber:** `2`
+- **title:** Tham quan Vịnh & Trở về
+- **enTitle:** Bay Sightseeing & Return
+- **description:** Tham quan vịnh Hạ Long rồi trở về Hà Nội.
+- **enDescription:** Visit Halong Bay and return to Hanoi.
+
+#### Activity 1 — Sightseeing
+- **activityType:** `0`
+- **title:** Du thuyền tham quan Vịnh Hạ Long
+- **enTitle:** Halong Bay Cruise Sightseeing
+- **description:** Tham quan Động Thiên Cung và các điểm nổi bật trên vịnh.
+- **enDescription:** Visit Thien Cung Cave and other highlights of the bay.
+- **note:** Mang theo máy ảnh và nón chống nắng.
+- **enNote:** Bring a camera and a sun hat.
+- **estimatedCost:** `0`
+- **isOptional:** `false`
+- **startTime:** `08:00`
+- **endTime:** `12:00`
+
+---
+
+## 4) Insurances
+
+### Bảo hiểm 1
+- **insuranceName:** Bảo hiểm du lịch nội địa cao cấp
+- **enInsuranceName:** Premium Domestic Travel Insurance
+- **insuranceType:** `1`
+- **insuranceProvider:** Bảo Việt
+- **coverageDescription:** Chi trả y tế và tai nạn trong suốt hành trình.
+- **enCoverageDescription:** Covers medical and accidents during the trip.
+- **coverageAmount:** `50000000`
+- **coverageFee:** `50000`
+- **isOptional:** `false`
+- **note:** Áp dụng cho toàn bộ hành trình.
+- **enNote:** Applies to the full trip.
+
+---
+
+## 5) Services
+
+### Dịch vụ bổ sung 1
+- **serviceName:** Nâng hạng phòng Ocean View
+- **enServiceName:** Ocean View Room Upgrade
+- **pricingType:** `1`
+- **price:** `1000000`
+- **salePrice:** `900000`
+- **email:** `service@pathora.vn`
+- **contactNumber:** `0909123456`
+
+---
+
+## 6) Policy IDs nếu form có hỗ trợ
+
+Nếu màn hình tạo tour của bạn có các ô này thì có thể điền, còn không thì để trống:
+- **selectedPricingPolicyId:** `pricing-policy-demo`
+- **selectedDepositPolicyId:** `deposit-policy-demo`
+- **selectedCancellationPolicyId:** `cancellation-policy-demo`
+- **selectedVisaPolicyId:** `visa-policy-demo`
+
+---
+
+## 7) Ghi chú quan trọng
+
+- Dữ liệu này đã được chỉnh để khớp với logic `buildTourFormData`.
+- `classifications` là nơi chứa `plans`, `locations`, `accommodations`, `insurances` theo payload hiện tại.
+- `dayPlans[].activities[]` là nơi chứa toàn bộ logic lịch trình.
+- `activityType` đang dùng theo logic form hiện tại, nên nếu dropdown của bạn map khác số thì hãy đổi lại cho đúng enum đang dùng trong app.
+- Nếu form của bạn không có `tourScope`, `continent`, hoặc `customerSegment` thì có thể bỏ qua các trường đó.

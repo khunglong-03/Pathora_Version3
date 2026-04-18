@@ -1,5 +1,35 @@
 import { describe, expect, it } from "vitest";
 
+interface CheckoutPriceResponse {
+  bookingId: string;
+  tourInstanceId: string;
+  tourName: string;
+  tourCode: string;
+  thumbnailUrl?: string;
+  startDate: string;
+  endDate: string;
+  durationDays: number;
+  location?: string;
+  numberAdult: number;
+  numberChild: number;
+  numberInfant: number;
+  adultPrice: number;
+  childPrice: number;
+  infantPrice: number;
+  adultSubtotal: number;
+  childSubtotal: number;
+  infantSubtotal: number;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  totalPrice: number;
+  depositPercentage: number;
+  depositAmount: number;
+  remainingBalance: number;
+}
+
+type NormalizedPaymentStatus = "pending" | "paid" | "cancelled" | "expired" | "failed";
+
 import { paymentService } from "../paymentService";
 
 describe("paymentService", () => {

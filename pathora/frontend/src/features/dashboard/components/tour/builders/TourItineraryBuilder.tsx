@@ -668,18 +668,92 @@ export function TourItineraryBuilder({
                           </div>
                         </div>
 
-                        {/* Activity location field — ALL activity types */}
-                        <div className="mb-3 mt-3">
-                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                            {t("tourAdmin.itineraries.locationName", "Location")} ({t("tourAdmin.itineraries.optional", "Optional")})
-                          </label>
-                          <input
-                            type="text"
-                            value={act.locationName}
-                            onChange={(e) => onUpdateActivity(ci, di, ai, "locationName", e.target.value)}
-                            placeholder={t("tourAdmin.itineraries.placeholderLocation", "Location name...")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                          />
+                        {/* Activity location fields — ALL activity types */}
+                        <div className="mb-3 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                              {t("tourAdmin.itineraries.locationName", "Location")} (VI)
+                            </label>
+                            <input
+                              type="text"
+                              value={act.locationName}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationName", e.target.value)}
+                              placeholder={t("tourAdmin.itineraries.placeholderLocation", "Location name...")}
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                              {t("tourAdmin.itineraries.locationName", "Location")} (EN)
+                            </label>
+                            <input
+                              type="text"
+                              value={act.enLocationName}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationName", e.target.value)}
+                              placeholder="Location name in English..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">City (VI)</label>
+                            <input
+                              type="text"
+                              value={act.locationCity}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationCity", e.target.value)}
+                              placeholder="City..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">City (EN)</label>
+                            <input
+                              type="text"
+                              value={act.enLocationCity}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationCity", e.target.value)}
+                              placeholder="City in English..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Country (VI)</label>
+                            <input
+                              type="text"
+                              value={act.locationCountry}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationCountry", e.target.value)}
+                              placeholder="Country..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Country (EN)</label>
+                            <input
+                              type="text"
+                              value={act.enLocationCountry}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationCountry", e.target.value)}
+                              placeholder="Country in English..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address (VI)</label>
+                            <input
+                              type="text"
+                              value={act.locationAddress}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationAddress", e.target.value)}
+                              placeholder="Address..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address (EN)</label>
+                            <input
+                              type="text"
+                              value={act.enLocationAddress}
+                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationAddress", e.target.value)}
+                              placeholder="Address in English..."
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                            />
+                          </div>
                         </div>
 
                         {/* Type 7: Transportation */}
@@ -687,29 +761,55 @@ export function TourItineraryBuilder({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                             <div>
                               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                {t("tourAdmin.itineraries.fromLocation", "From")} <span className="text-red-500">*</span>
+                                Từ (VI) <span className="text-red-500">*</span>
                               </label>
                               <input
                                 type="text"
                                 value={act.fromLocation}
                                 onChange={(e) => onUpdateActivity(ci, di, ai, "fromLocation", e.target.value)}
+                                placeholder="Hà Nội..."
                                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                               />
                             </div>
                             <div>
                               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                {t("tourAdmin.itineraries.toLocation", "To")} <span className="text-red-500">*</span>
+                                From (EN)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.enFromLocation}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "enFromLocation", e.target.value)}
+                                placeholder="Hanoi..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                Đến (VI) <span className="text-red-500">*</span>
                               </label>
                               <input
                                 type="text"
                                 value={act.toLocation}
                                 onChange={(e) => onUpdateActivity(ci, di, ai, "toLocation", e.target.value)}
+                                placeholder="Hạ Long..."
                                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                               />
                             </div>
                             <div>
                               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                {t("tourAdmin.itineraries.transportationType", "Vehicle Type")}
+                                To (EN)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.enToLocation}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "enToLocation", e.target.value)}
+                                placeholder="Halong..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                Loại phương tiện (VI)
                               </label>
                               <select
                                 value={act.transportationType}
@@ -721,6 +821,18 @@ export function TourItineraryBuilder({
                                   </option>
                                 ))}
                               </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                Transportation Type (EN)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.enTransportationType}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "enTransportationType", e.target.value)}
+                                placeholder="Car / Bus / Train..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
                             </div>
                             <div>
                               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
