@@ -17,4 +17,9 @@ public static class AdminEndpoint
     public const string ManagersBankAccounts = "managers/bank-accounts";
     public const string ManagerBankAccount = "managers/{managerId}/bank-account";
     public const string VerifyBankAccount = "managers/{managerId}/bank-account/verify";
+
+    // Tour Manager Staff
+    public const string GetTourManagerStaff = "tour-managers/{managerId:guid}/staff";
+    public const string CreateStaffUnderManager = "tour-managers/{managerId:guid}/staff/create";
+    public const string ReassignStaff = "tour-managers/{managerId:guid}/staff/{staffId:guid}/reassign";
 }

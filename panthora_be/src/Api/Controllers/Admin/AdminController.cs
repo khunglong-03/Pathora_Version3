@@ -102,4 +102,26 @@ public class AdminController : BaseApiController
         var result = await Sender.Send(new VerifyBankAccountCommand(managerId));
         return HandleResult(result);
     }
+
+    // Group 8: Tour Manager Staff
+    [HttpGet(AdminEndpoint.GetTourManagerStaff)]
+    public async Task<IActionResult> GetTourManagerStaff(Guid managerId)
+    {
+        var result = await Sender.Send(new GetTourManagerStaffQuery(managerId));
+        return HandleResult(result);
+    }
+
+    [HttpPost(AdminEndpoint.CreateStaffUnderManager)]
+    public async Task<IActionResult> CreateStaffUnderManager(Guid managerId, [FromBody] CreateStaffUnderManagerRequest request)
+    {
+        var result = await Sender.Send(new CreateStaffUnderManagerCommand(managerId, request));
+        return HandleResult(result);
+    }
+
+    [HttpPost(AdminEndpoint.ReassignStaff)]
+    public async Task<IActionResult> ReassignStaff(Guid managerId, Guid staffId, [FromBody] ReassignStaffRequest request)
+    {
+        var result = await Sender.Send(new ReassignStaffCommand(managerId, staffId, request.TargetManagerId));
+        return HandleResult(result);
+    }
 }

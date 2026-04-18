@@ -130,7 +130,7 @@ public class UserService(
         if (!isUnique)
             return Error.Conflict(ErrorConstants.User.DuplicateEmailCode, ErrorConstants.User.DuplicateEmailDescription);
 
-        var generatedPassword = PasswordGenerator.Generate();
+        var generatedPassword = string.IsNullOrEmpty(request.Password) ? "thehieu03" : request.Password;
         var userEntity = UserEntity.Create(
             request.Email,
             request.FullName,
@@ -140,9 +140,8 @@ public class UserService(
             request.Avatar,
             forcePasswordChange: true);
 
-        try
+        await _unitOfWork.ExecuteTransactionAsync(async () =>
         {
-            await _unitOfWork.BeginTransactionAsync();
             await _userRepository.Create(userEntity);
             var settingsRepo = _unitOfWork.GenericRepository<UserSettingEntity>();
             var settings = UserSettingEntity.Create(userEntity.Id, _user.Id ?? "system");
@@ -155,13 +154,7 @@ public class UserService(
                     await _hotelServiceProviderMapper.MapAndCreateAsync(userEntity, _user.Id ?? "system");
                 }
             }
-            await _unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync();
-            throw;
-        }
+        });
 
         return userEntity.Id;
     }
@@ -174,20 +167,13 @@ public class UserService(
 
         userEntity.Update(request.FullName, request.Avatar, _user.Id ?? string.Empty);
 
-        try
+        await _unitOfWork.ExecuteTransactionAsync(async () =>
         {
-            await _unitOfWork.BeginTransactionAsync();
             _userRepository.Update(userEntity);
             await _roleRepository.DeleteUser(request.Id);
             if (request.RoleIds.Count > 0)
                 await _roleRepository.AddUser(request.Id, request.RoleIds);
-            await _unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync();
-            throw;
-        }
+        });
 
         return Result.Success;
     }

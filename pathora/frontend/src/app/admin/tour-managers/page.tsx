@@ -18,6 +18,7 @@ import { StaffDetailPanel } from "./components/StaffDetailPanel";
 import { StaffReassignModal } from "@/features/dashboard/components/StaffReassignModal";
 import { AssignExistingModal } from "@/features/dashboard/components/AssignExistingModal";
 import { CreateStaffModal } from "@/features/dashboard/components/CreateStaffModal";
+import { TeamAssignmentModal } from "./components/TeamAssignmentModal";
 
 export default function TourManagersPage() {
   const [managers, setManagers] = useState<TourManagerSummary[]>([]);
@@ -35,6 +36,9 @@ export default function TourManagersPage() {
 
   // Create staff modal
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Team assignment modal
+  const [teamAssignModalOpen, setTeamAssignModalOpen] = useState(false);
 
   const selectedManager = managers.find((m) => m.managerId === selectedManagerId) ?? null;
 
@@ -194,16 +198,10 @@ export default function TourManagersPage() {
             {selectedManagerId && !isLoadingStaff && (
               <div className="flex gap-2 justify-end px-4 py-4 border-t border-input bg-muted shrink-0 mt-auto">
                 <button
-                  onClick={() => setAssignExistingRole("TourDesigner")}
-                  className="px-4 py-2 rounded-lg text-xs font-medium border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors"
+                  onClick={() => setTeamAssignModalOpen(true)}
+                  className="px-4 py-2 rounded-lg text-xs font-medium border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
                 >
-                  + Gán Designer
-                </button>
-                <button
-                  onClick={() => setAssignExistingRole("TourGuide")}
-                  className="px-4 py-2 rounded-lg text-xs font-medium border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
-                >
-                  + Gán Guide
+                  Phân công đội ngũ
                 </button>
                 <button
                   onClick={() => setCreateModalOpen(true)}
@@ -240,6 +238,16 @@ export default function TourManagersPage() {
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateStaff}
       />
+
+      {selectedManager && (
+        <TeamAssignmentModal
+          isOpen={teamAssignModalOpen}
+          onClose={() => setTeamAssignModalOpen(false)}
+          managerId={selectedManager.managerId}
+          managerName={selectedManager.managerName}
+          onSuccess={handleRefresh}
+        />
+      )}
     </div>
   );
 }

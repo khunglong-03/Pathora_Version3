@@ -14,7 +14,8 @@ public sealed record CreateUserCommand(
     List<int> RoleIds,
     string Email,
     string FullName,
-    string Avatar) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    string Avatar,
+    string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
 }
@@ -39,6 +40,6 @@ public sealed class CreateUserCommandHandler(IUserService userService)
     public async Task<ErrorOr<Guid>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         return await userService.Create(new CreateUserRequest(
-            request.Departments, request.RoleIds, request.Email, request.FullName, request.Avatar));
+            request.Departments, request.RoleIds, request.Email, request.FullName, request.Avatar, request.Password));
     }
 }

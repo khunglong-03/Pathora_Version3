@@ -8,7 +8,8 @@ public sealed record CreateUserRequest(
     List<int> RoleIds,
     string Email,
     string FullName,
-    string Avatar
+    string Avatar,
+    string? Password = null
 );
 
 public sealed record UserDepartmentInfo(

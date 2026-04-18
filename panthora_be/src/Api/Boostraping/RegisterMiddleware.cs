@@ -51,6 +51,7 @@ public static class RegisterMiddleware
             options.AddPolicy("DefaultCorsPolicy", policy =>
             {
                 policy.WithOrigins(allowedOrigins ?? [])
+                      .SetIsOriginAllowedToAllowWildcardSubdomains()
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials();
