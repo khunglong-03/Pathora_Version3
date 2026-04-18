@@ -57,22 +57,29 @@ export default function AdminUsersPage() {
       ...(statusFilter && { status: statusFilter }),
     };
 
-    const result = await adminService.getAllUsers(params);
+    try {
+      const result = await adminService.getAllUsers(params);
 
-    if (result && typeof result === "object" && "items" in result) {
-      const data = result as PaginatedList<AdminUserListItem>;
-      setUsers(data.items);
-      setTotalPages(data.totalPages);
-      setTotal(data.total);
+      if (result && typeof result === "object" && "items" in result) {
+        const data = result as PaginatedList<AdminUserListItem>;
+        setUsers(data.items);
+        setTotalPages(data.totalPages);
+        setTotal(data.total);
 
-      // Always update role counts from API response (server-side computed, always accurate)
-      if (data.roleCounts) {
-        setRoleCounts(data.roleCounts);
+        // Always update role counts from API response (server-side computed, always accurate)
+        if (data.roleCounts) {
+          setRoleCounts(data.roleCounts);
+        }
+      } else if (!result) {
+        setUsers([]);
       }
-    } else if (!result) {
+    } catch (err: any) {
+      console.error("Error loading users:", err);
+      setError(err?.message || "Đã xảy ra lỗi khi tải danh sách người dùng.");
       setUsers([]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [currentPage, debouncedSearch, roleFilter, statusFilter]);
 
   useEffect(() => {

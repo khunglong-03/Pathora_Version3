@@ -12,6 +12,7 @@ import {
   tourManagerAssignmentService,
   ASSIGNED_ENTITY_TYPE,
 } from "@/api/services/tourManagerAssignmentService";
+import { userService } from "@/api/services/userService";
 import type { StaffMemberDto } from "@/types/admin";
 import { ManagerListPanel } from "./components/ManagerListPanel";
 import { StaffDetailPanel } from "./components/StaffDetailPanel";
@@ -128,6 +129,18 @@ export default function TourManagersPage() {
     setCreateModalOpen(false);
   };
 
+  const handleToggleStatus = async (staffMember: StaffMemberDto) => {
+    const newStatus = staffMember.status === "Active" ? "Inactive" : "Active";
+    const result = await userService.updateStatus({
+      userId: staffMember.id,
+      newStatus,
+    });
+    if (result && typeof result === "object" && "success" in result && result.success) {
+      setReloadToken((t) => t + 1);
+      void loadStaff();
+    }
+  };
+
   const excludedUserIds = staff.map((s) => s.id);
 
   return (
@@ -191,6 +204,7 @@ export default function TourManagersPage() {
                 onRefresh={handleRefresh}
                 staff={staff}
                 managers={managers}
+                onToggleStatus={handleToggleStatus}
               />
             </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, LockKey, LockKeyOpen } from "@phosphor-icons/react";
 import type { StaffMemberDto } from "@/types/admin";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
@@ -21,9 +21,10 @@ interface StaffListProps {
   managers: TourManagerSummary[];
   managerId: string;
   onReassign: (staff: StaffMemberDto) => void;
+  onToggleStatus?: (staff: StaffMemberDto) => void;
 }
 
-export function StaffList({ staff, managers, managerId, onReassign }: StaffListProps) {
+export function StaffList({ staff, managers, managerId, onReassign, onToggleStatus }: StaffListProps) {
   const otherManagers = managers.filter((m) => m.managerId !== managerId);
 
   // Group staff by role
@@ -112,6 +113,28 @@ export function StaffList({ staff, managers, managerId, onReassign }: StaffListP
                       >
                         <ArrowRightIcon size={12} weight="bold" />
                         Chuyển
+                      </button>
+                    )}
+
+                    {/* Toggle Status */}
+                    {onToggleStatus && (
+                      <button
+                        onClick={() => onToggleStatus(member)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E5E7EB] transition-all duration-200 hover:bg-[#FAFAFA]"
+                        style={{ color: isActive ? "#DC2626" : "#16A34A" }}
+                        aria-label={`Toggle ${member.fullName}`}
+                      >
+                        {isActive ? (
+                          <>
+                            <LockKey size={12} weight="bold" />
+                            Khóa
+                          </>
+                        ) : (
+                          <>
+                            <LockKeyOpen size={12} weight="bold" />
+                            Mở
+                          </>
+                        )}
                       </button>
                     )}
                   </div>

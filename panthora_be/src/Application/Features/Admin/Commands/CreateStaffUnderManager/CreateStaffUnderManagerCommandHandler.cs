@@ -26,7 +26,17 @@ public sealed class CreateStaffUnderManagerCommandHandler(
         CreateStaffUnderManagerCommand request,
         CancellationToken cancellationToken)
     {
-        if (request.ManagerId != _currentUser.Id)
+        bool isAdmin = false;
+        if (_currentUser.Id.HasValue)
+        {
+            var rolesResult = await roleRepository.FindByUserId(_currentUser.Id.Value.ToString(), cancellationToken);
+            if (!rolesResult.IsError && rolesResult.Value.Any(r => r.Name == "Admin"))
+            {
+                isAdmin = true;
+            }
+        }
+
+        if (request.ManagerId != _currentUser.Id && !isAdmin)
             return Error.Forbidden(ErrorConstants.Authorization.UnauthorizedDescription);
 
         var manager = await userRepository.FindById(request.ManagerId);
@@ -51,7 +61,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
                 ErrorConstants.User.DuplicateEmailCode,
                 ErrorConstants.User.DuplicateEmailDescription);
 
-        var tempPassword = global::Common.Generators.PasswordGenerator.Generate();
+        var tempPassword = "password123";
         var userEntity = UserEntity.Create(
             request.Request.Email,
             request.Request.FullName,
@@ -107,7 +117,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             userEntity.AvatarUrl,
             displayRoleName,
             "Member",
-            userEntity.IsDeleted ? "Khóa" : "Hoạt động",
+            userEntity.Status.ToString(),
             []);
     }
 }

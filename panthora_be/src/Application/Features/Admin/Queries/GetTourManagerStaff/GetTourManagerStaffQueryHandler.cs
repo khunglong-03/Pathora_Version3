@@ -53,7 +53,7 @@ public sealed class GetTourManagerStaffQueryHandler(
                     _ => "Staff"
                 };
                 var roleInTeam = assignment.AssignedRoleInTeam?.ToString() ?? "Member";
-                var status = staffUser.IsDeleted ? "Khóa" : "Hoạt động";
+                var status = staffUser.Status.ToString();
 
                 staffTourMap.TryGetValue(staffUser.Id, out var activeTours);
 

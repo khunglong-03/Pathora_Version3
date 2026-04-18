@@ -12,6 +12,7 @@ interface StaffDetailPanelProps {
   onRefresh: () => void;
   staff: StaffMemberDto[];
   managers: TourManagerSummary[];
+  onToggleStatus?: (staff: StaffMemberDto) => void;
 }
 
 function getInitials(name: string): string {
@@ -26,6 +27,7 @@ export function StaffDetailPanel({
   onRefresh,
   staff,
   managers,
+  onToggleStatus,
 }: StaffDetailPanelProps) {
   // Loading state
   if (isLoading) {
@@ -101,6 +103,7 @@ export function StaffDetailPanel({
           managers={managers}
           managerId={manager.managerId}
           onReassign={() => {}}
+          onToggleStatus={onToggleStatus}
         />
       </div>
     </div>
