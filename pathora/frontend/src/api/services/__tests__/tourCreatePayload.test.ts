@@ -511,9 +511,9 @@ describe("buildTourFormData", () => {
       });
 
       const classifications = JSON.parse(String(formData.get("classifications")));
-      expect(classifications[0].accommodations).toHaveLength(1);
-      expect(classifications[0].accommodations[0].accommodationName).toBe("Hotel Paradise");
-      expect(classifications[0].accommodations[0].checkInTime).toBe("14:00");
+      // Phase 2: Accommodations now handled at instance/provider-selection time
+      // Extraction no longer happens for template authoring
+      expect(classifications[0].accommodations).toHaveLength(0);
     });
 
     it("deduplicates locations by name across multiple activities", () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
 
@@ -10,6 +10,7 @@ import { paymentService, type PaymentTransaction, type CheckoutPriceResponse } f
 import { handleApiError } from "@/utils/apiResponse";
 // Task 4.5.2: SignalR real-time payment updates with polling fallback
 import { usePaymentSignalR } from "@/hooks/usePaymentSignalR";
+import { PaymentBeneficiaryCard } from "@/features/checkout/components/PaymentBeneficiaryCard";
 
 function CheckoutUrlDisplay({ url, size = 200 }: { url: string; size?: number }) {
   return (
@@ -112,11 +113,14 @@ function PaymentBreakdown({ bookingId }: { bookingId: string | null }) {
 
 export default function PaymentStatusPage() {
   const { t } = useTranslation();
+  const params = useParams<{ transactionCode?: string }>();
   const searchParams = useSearchParams();
-  const transactionCode = searchParams.get("code");
+  const transactionCode =
+    typeof params?.transactionCode === "string" && params.transactionCode.length > 0
+      ? params.transactionCode
+      : searchParams.get("code");
   const bookingId = searchParams.get("bookingId");
   const confirmParam = searchParams.get("confirm");
-  const statusParam = searchParams.get("status");
 
   const [transaction, setTransaction] = useState<PaymentTransaction | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,6 +151,23 @@ export default function PaymentStatusPage() {
       setStatus(newStatus);
     }
   }, [paymentSignalR.status]);
+
+  useEffect(() => {
+    if (!transaction?.expiredAt || status !== "pending") {
+      setCountdown(0);
+      return;
+    }
+
+    const remainingSeconds = Math.max(
+      0,
+      Math.floor((new Date(transaction.expiredAt).getTime() - Date.now()) / 1000),
+    );
+
+    setCountdown(remainingSeconds);
+    if (remainingSeconds === 0) {
+      setStatus("expired");
+    }
+  }, [transaction?.expiredAt, status]);
 
   // Countdown timer
   useEffect(() => {
@@ -207,14 +228,14 @@ export default function PaymentStatusPage() {
   useEffect(() => {
     const handleVisibility = () => {
       if (!document.hidden && transactionCode) {
-        fetchStatus(true);
+        fetchStatus();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [transactionCode]);
 
-  const fetchStatus = async (immediate = false) => {
+  const fetchStatus = async () => {
     if (!transactionCode) {
       setError("Missing transaction code");
       setLoading(false);
@@ -222,23 +243,37 @@ export default function PaymentStatusPage() {
     }
 
     try {
-      const snapshot = await paymentService.checkPayment(transactionCode);
-      setTransaction((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: snapshot.rawStatus as PaymentTransaction["status"],
-              paidAmount: snapshot.providerTransactionId ? prev.amount : prev.paidAmount,
-              paidAt: snapshot.normalizedStatus === "paid" ? snapshot.checkedAt : prev.paidAt,
-            }
-          : null,
-      );
+      const [currentTransaction, snapshot] = await Promise.all([
+        paymentService.getTransaction(transactionCode),
+        paymentService.checkPayment(transactionCode),
+      ]);
+
+      setTransaction({
+        ...currentTransaction,
+        status: snapshot.rawStatus as PaymentTransaction["status"],
+        paidAmount:
+          snapshot.normalizedStatus === "paid"
+            ? currentTransaction.paidAmount ?? currentTransaction.amount
+            : currentTransaction.paidAmount,
+        paidAt:
+          snapshot.normalizedStatus === "paid"
+            ? currentTransaction.paidAt ?? snapshot.checkedAt
+            : currentTransaction.paidAt,
+      });
       const newStatus = mapStatus(snapshot.rawStatus);
       setStatus(newStatus);
-    } catch (err: unknown) {
-      // No rate-limit on /check
-      const handledError = handleApiError(err);
-      console.error("Failed to fetch transaction:", handledError.message);
+      setError(null);
+    } catch {
+      try {
+        const currentTransaction = await paymentService.getTransaction(transactionCode);
+        setTransaction(currentTransaction);
+        setStatus(mapStatus(currentTransaction.status));
+        setError(null);
+      } catch (transactionErr: unknown) {
+        const handledError = handleApiError(transactionErr);
+        console.error("Failed to fetch transaction:", handledError.message);
+        setError(handledError.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -247,7 +282,7 @@ export default function PaymentStatusPage() {
   // Initial fetch (or immediate on ?confirm=true)
   useEffect(() => {
     if (confirmParam === "true") {
-      fetchStatus(true);
+      fetchStatus();
     } else {
       fetchStatus();
     }
@@ -256,7 +291,7 @@ export default function PaymentStatusPage() {
 
   const handleRefresh = () => {
     if (refreshCooldown > 0 || isTerminal) return;
-    fetchStatus(true);
+    fetchStatus();
   };
 
   function mapStatus(status: string): PaymentStatus {
@@ -510,6 +545,8 @@ export default function PaymentStatusPage() {
               </p>
             </div>
           </div>
+
+          <PaymentBeneficiaryCard transaction={transaction} className="mb-6" />
 
           {/* Countdown Timer */}
           {countdown > 0 && (

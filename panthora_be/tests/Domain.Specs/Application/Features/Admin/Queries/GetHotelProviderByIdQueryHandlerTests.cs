@@ -95,5 +95,58 @@ public sealed class GetHotelProviderByIdQueryHandlerTests
         Assert.Equal(["Europe", "Africa"], result.Value.Continents);
         Assert.Equal(2, result.Value.AccommodationCount);
         Assert.Equal(15, result.Value.TotalRooms);
+        Assert.Equal(
+            [
+                ("Deluxe", "Deluxe", 5),
+                ("Standard", "Standard", 10)
+            ],
+            result.Value.RoomOptions
+                .Select(option => (option.RoomType, option.Label, option.TotalRooms))
+                .ToArray());
+    }
+
+    [Fact]
+    public async Task Handle_AggregatesCanonicalRoomOptionsByRoomType()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var user = new UserEntity
+        {
+            Id = ownerUserId,
+            FullName = "Aggregated Options Hotel",
+            Email = "aggregate@example.com",
+            Status = UserStatus.Active
+        };
+        var supplier = SupplierEntity.Create(
+            "SUP-003",
+            SupplierType.Accommodation,
+            "Aggregated Options Hotel",
+            "system",
+            ownerUserId: ownerUserId,
+            continent: Continent.Asia);
+        var inventories = new[]
+        {
+            HotelRoomInventoryEntity.Create(supplier.Id, RoomType.Villa, 2, "system", name: "Villa A"),
+            HotelRoomInventoryEntity.Create(supplier.Id, RoomType.Standard, 5, "system", name: "Standard A"),
+            HotelRoomInventoryEntity.Create(supplier.Id, RoomType.Standard, 4, "system", name: "Standard B")
+        };
+
+        _userRepository.FindById(ownerUserId, Arg.Any<CancellationToken>()).Returns(user);
+        _supplierRepository.FindByOwnerUserIdAsync(ownerUserId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.GetHotelBookingCountsByOwnerAsync(ownerUserId, Arg.Any<CancellationToken>())
+            .Returns((0, 0, 0));
+        _inventoryRepository.GetByHotelAsync(supplier.Id, Arg.Any<CancellationToken>())
+            .Returns(inventories);
+
+        var result = await _handler.Handle(new GetHotelProviderByIdQuery(ownerUserId), CancellationToken.None);
+
+        Assert.False(result.IsError);
+        Assert.Equal(
+            [
+                ("Standard", "Standard", 9),
+                ("Villa", "Villa", 2)
+            ],
+            result.Value.RoomOptions
+                .Select(option => (option.RoomType, option.Label, option.TotalRooms))
+                .ToArray());
     }
 }

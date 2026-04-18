@@ -27,13 +27,18 @@ import { adminService } from "@/api/services/adminService";
 import { fileService } from "@/api/services/fileService";
 import type { TourRequestDetailDto } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
+import { getProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { useDebounce } from "@/hooks/useDebounce";
+import {
+  clearRoomTypeAssignments,
+  hasRoomAssignments,
+  mapActivityAssignmentsForPayload,
+} from "@/features/dashboard/components/createTourInstanceAssignments";
 import {
   SearchTourVm,
   TourClassificationDto,
   TourDto,
   UserInfo,
-  RoomTypeMap,
 } from "@/types/tour";
 import type {
   HotelProviderDetail,
@@ -58,7 +63,7 @@ type FormState = {
   transportProviderId: string;
   activityAssignments: Record<
     string,
-    { roomType?: number; vehicleId?: string }
+    { roomType?: string; vehicleId?: string }
   >;
 };
 
@@ -383,7 +388,7 @@ interface InstanceDetailsStepProps {
   transportDetail: TransportProviderDetail | null;
   updateActivityAssignment: (
     activityId: string,
-    updates: { roomType?: number; vehicleId?: string },
+    updates: { roomType?: string; vehicleId?: string },
   ) => void;
   editableItinerary: EditableDay[];
   onUpdateActivity: (
@@ -432,6 +437,10 @@ function InstanceDetailsStep({
   const selectedGuide = useMemo(
     () => guides.find((u) => form.guideUserIds.includes(u.id)) ?? null,
     [guides, form.guideUserIds],
+  );
+  const hotelRoomOptions = useMemo(
+    () => getProviderRoomOptions(hotelDetail),
+    [hotelDetail],
   );
 
   return (
@@ -1185,9 +1194,7 @@ function InstanceDetailsStep({
                             {/* Dynamic Activity Resource Assignment */}
                             <div className="ml-6 flex flex-wrap items-center gap-3">
                               {activity.activityType === "Accommodation" &&
-                                hotelDetail &&
-                                hotelDetail.accommodations &&
-                                hotelDetail.accommodations.length > 0 && (
+                                hotelRoomOptions.length > 0 && (
                                   <div className="flex items-center gap-2 bg-stone-100 p-1.5 rounded-lg border border-stone-200 w-fit">
                                     <Icon
                                       icon="heroicons:building-office-2"
@@ -1207,9 +1214,7 @@ function InstanceDetailsStep({
                                           ?.roomType ?? ""
                                       }
                                       onChange={(e) => {
-                                        const val = e.target.value
-                                          ? parseInt(e.target.value, 10)
-                                          : undefined;
+                                        const val = e.target.value || undefined;
                                         updateActivityAssignment(activity.id, {
                                           roomType: val,
                                         });
@@ -1220,36 +1225,13 @@ function InstanceDetailsStep({
                                           "-- Select room --",
                                         )}
                                       </option>
-                                      {Array.from(
-                                        new Set(
-                                          hotelDetail.accommodations.map(
-                                            (acc) => acc.roomType,
-                                          ),
-                                        ),
-                                      ).map((roomTypeString) => {
-                                        const enumNumStr = Object.entries(
-                                          RoomTypeMap,
-                                        ).find(
-                                          ([, v]) => v === roomTypeString,
-                                        )?.[0];
-                                        if (!enumNumStr) return null;
-                                        const totalRoomsOfType =
-                                          hotelDetail.accommodations
-                                            .filter(
-                                              (a) =>
-                                                a.roomType === roomTypeString,
-                                            )
-                                            .reduce(
-                                              (acc, curr) =>
-                                                acc + curr.totalRooms,
-                                              0,
-                                            );
+                                      {hotelRoomOptions.map((roomOption) => {
                                         return (
                                           <option
-                                            key={roomTypeString}
-                                            value={enumNumStr}>
-                                            {roomTypeString} ({totalRoomsOfType}
-                                            )
+                                            key={roomOption.roomType}
+                                            value={roomOption.roomType}>
+                                            {roomOption.label} (
+                                            {roomOption.totalRooms})
                                           </option>
                                         );
                                       })}
@@ -1785,7 +1767,15 @@ export function CreateTourInstancePage({
     field: K,
     value: FormState[K],
   ) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+      if (field === "hotelProviderId") {
+        next.activityAssignments = clearRoomTypeAssignments(
+          next.activityAssignments,
+        );
+      }
+      return next;
+    });
     setErrors((current) => {
       if (!current[field as string]) return current;
       const next = { ...current };
@@ -1802,7 +1792,7 @@ export function CreateTourInstancePage({
 
   const updateActivityAssignment = (
     activityId: string,
-    updates: { roomType?: number; vehicleId?: string },
+    updates: { roomType?: string; vehicleId?: string },
   ) => {
     setForm((prev) => {
       const current = prev.activityAssignments[activityId] || {};
@@ -2015,6 +2005,14 @@ export function CreateTourInstancePage({
         );
     }
 
+    // Reject if room assignments exist without hotelProviderId
+    if (hasRoomAssignments(form.activityAssignments) && !form.hotelProviderId) {
+      newErrors.hotelProviderId = t(
+        "tourInstance.validation.hotelProviderRequiredForRoom",
+        "Hotel provider is required when assigning rooms",
+      );
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error(
@@ -2029,13 +2027,9 @@ export function CreateTourInstancePage({
     try {
       setSubmitting(true);
 
-      const mappedActivityAssignments = Object.entries(
+      const mappedActivityAssignments = mapActivityAssignmentsForPayload(
         form.activityAssignments,
-      ).map(([originalActivityId, assignment]) => ({
-        originalActivityId,
-        roomType: assignment.roomType,
-        vehicleId: assignment.vehicleId,
-      }));
+      );
 
       const payload: CreateTourInstancePayload = {
         tourId: form.tourId,

@@ -330,14 +330,14 @@ export const TransportationTypeMap: Record<number, string> = {
   99: "Other",
 };
 
-export const RoomTypeMap: Record<number, string> = {
-  0: "Single",
-  1: "Double",
-  2: "Twin",
-  3: "Suite",
-  4: "Family",
-  5: "Dormitory",
-  99: "Other",
+export const LegacyRoomTypeMap: Record<number, string> = {
+  0: "Single (Legacy)",
+  1: "Double (Legacy)",
+  2: "Twin (Legacy)",
+  3: "Suite (Legacy)",
+  4: "Family (Legacy)",
+  5: "Dormitory (Legacy)",
+  99: "Other (Legacy)",
 };
 
 export const MealTypeMap: Record<number, string> = {

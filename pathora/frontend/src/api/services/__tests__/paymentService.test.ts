@@ -47,6 +47,9 @@ interface PaymentTransaction {
   senderName?: string;
   senderAccountNumber?: string;
   beneficiaryBank?: string;
+  managerBankCode?: string;
+  managerAccountNumber?: string;
+  managerAccountName?: string;
   errorCode?: string;
   errorMessage?: string;
 }
@@ -199,10 +202,14 @@ describe("PaymentTransaction type", () => {
       senderName: "John Doe",
       senderAccountNumber: "1234567890",
       beneficiaryBank: "Vietcombank",
+      managerBankCode: "VCB",
+      managerAccountNumber: "0123456789",
+      managerAccountName: "PATHORA TRAVEL",
     };
 
     expect(bankTransfer.senderName).toBe("John Doe");
     expect(bankTransfer.senderAccountNumber).toBe("1234567890");
+    expect(bankTransfer.managerAccountNumber).toBe("0123456789");
   });
 
   it("accepts error fields for failed transactions", () => {

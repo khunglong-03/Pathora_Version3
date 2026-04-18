@@ -42,6 +42,7 @@ public sealed class GetHotelProviderByIdQueryHandler(
             : (0, 0, 0);
 
         var accommodationSummaries = new List<HotelAccommodationSummaryDto>();
+        var roomOptions = new List<HotelProviderRoomOptionDto>();
         var totalRooms = 0;
         var continents = new List<string>();
 
@@ -55,6 +56,14 @@ public sealed class GetHotelProviderByIdQueryHandler(
                     inv.TotalRooms,
                     inv.Name,
                     inv.LocationArea?.ToString()))
+                .ToList();
+            roomOptions = inventories
+                .GroupBy(inv => inv.RoomType)
+                .Select(group => new HotelProviderRoomOptionDto(
+                    group.Key.ToString(),
+                    group.Key.ToString(),
+                    group.Sum(inv => inv.TotalRooms)))
+                .OrderBy(option => option.Label)
                 .ToList();
             totalRooms = inventories.Sum(inv => inv.TotalRooms);
             continents = accommodationSummaries
@@ -84,6 +93,7 @@ public sealed class GetHotelProviderByIdQueryHandler(
             primaryContinent,
             continents,
             accommodationSummaries,
+            roomOptions,
             accommodationSummaries.Count,
             totalRooms,
             bookingCount,

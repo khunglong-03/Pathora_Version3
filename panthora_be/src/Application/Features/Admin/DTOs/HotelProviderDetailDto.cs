@@ -15,6 +15,7 @@ public sealed record HotelProviderDetailDto(
     string? PrimaryContinent,
     List<string> Continents,
     List<HotelAccommodationSummaryDto> Accommodations,
+    List<HotelProviderRoomOptionDto> RoomOptions,
     int AccommodationCount,
     int TotalRooms,
     int BookingCount,
@@ -27,3 +28,8 @@ public sealed record HotelAccommodationSummaryDto(
     int TotalRooms,
     string? Name,
     string? LocationArea);
+
+public sealed record HotelProviderRoomOptionDto(
+    string RoomType,
+    string Label,
+    int TotalRooms);

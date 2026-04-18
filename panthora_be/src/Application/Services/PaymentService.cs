@@ -143,6 +143,7 @@ public class PaymentService : IPaymentService
         string? managerAccountNumber = null;
         string? managerBankCode = null;
         string? managerAccountName = null;
+        string? beneficiaryBank = null;
 
         var managerId = await GetPrimaryManagerIdForTourInstanceAsync(booking.TourInstanceId);
         if (managerId.HasValue)
@@ -160,6 +161,7 @@ public class PaymentService : IPaymentService
                 managerAccountNumber = bankAccount.BankAccountNumber;
                 managerBankCode = bankAccount.BankCode;
                 managerAccountName = bankAccount.BankAccountName;
+                beneficiaryBank = bankAccount.BankShortName ?? bankAccount.BankCode;
                 _logger.LogInformation("Using manager {ManagerId} bank account {AccountId} for payment transaction", managerId.Value, bankAccount.Id);
             }
             else
@@ -178,6 +180,7 @@ public class PaymentService : IPaymentService
             managerAccountNumber = _vietQrAccountNo;
             managerBankCode = _vietQrBankBin;
             managerAccountName = _vietQrAccountName;
+            beneficiaryBank = _sepayBankCode;
         }
 
         var transaction = PaymentTransactionEntity.Create(
@@ -195,6 +198,7 @@ public class PaymentService : IPaymentService
         transaction.ManagerAccountNumber = managerAccountNumber;
         transaction.ManagerBankCode = managerBankCode;
         transaction.ManagerAccountName = managerAccountName;
+        transaction.BeneficiaryBank = beneficiaryBank ?? managerBankCode;
 
         // Generate QR using dynamic account parameters
         var qrResult = await GetQR(refCode, (long)amount, bankBin: managerBankCode, accountNo: managerAccountNumber, accountName: managerAccountName);
@@ -301,7 +305,7 @@ public class PaymentService : IPaymentService
             referenceCode: transactionData.ReferenceCode ?? transaction.ReferenceCode);
 
         transaction.SenderAccountNumber = transactionData.AccountNumber;
-        transaction.BeneficiaryBank = transactionData.BankBrandName;
+        transaction.BeneficiaryBank ??= transactionData.BankBrandName;
 
         await _transactionRepository.UpdateAsync(transaction);
 

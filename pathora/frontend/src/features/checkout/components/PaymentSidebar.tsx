@@ -7,9 +7,7 @@ import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
 import { fmtCurrency, copyToClipboard, STATUS_STEPS } from "./checkoutHelpers";
 import { PaymentTransaction, type NormalizedPaymentStatus, paymentService } from "@/api/services/paymentService";
-// Task 5.4.1: Optimistic UI for "I have transferred" + SignalR payment updates
-import { signalRService } from "@/api/services/signalRService";
-import i18n from "@/i18n/config";
+import { PaymentBeneficiaryCard } from "./PaymentBeneficiaryCard";
 
 /* ── Countdown Timer ─────────────────────────────────── */
 function useCountdown(expiredAt: string | undefined) {
@@ -74,7 +72,7 @@ function PaymentStatusPanel({
 }) {
   const timeLeft = useCountdown(transaction.expiredAt);
   const router = useRouter();
-  const { seconds: refreshCooldown, rateLimitMsg, startCooldown, clearCooldown } = useRefreshCooldown();
+  const { seconds: refreshCooldown, rateLimitMsg, clearCooldown } = useRefreshCooldown();
   const [verifyingPayment, setVerifyingPayment] = useState(false); // Task 5.4.1: optimistic UI state
 
   const isTerminal = normalizedStatus === "paid" || normalizedStatus === "failed" || normalizedStatus === "cancelled" || normalizedStatus === "expired";
@@ -198,7 +196,7 @@ function PaymentStatusPanel({
       )}
 
       {/* Bank account info */}
-      <BankAccountInfo t={t} />
+      <PaymentBeneficiaryCard transaction={transaction} />
 
       {/* Status progress */}
       <div className="flex items-center justify-between px-2">
@@ -257,43 +255,6 @@ function PaymentStatusPanel({
         <Icon icon={verifyingPayment ? "heroicons:arrow-path" : "heroicons:check-circle"} className={`size-4 ${verifyingPayment ? "animate-spin" : ""}`} />
         {verifyingPayment ? t("landing.checkout.verifyingPayment") : t("landing.checkout.iHaveTransferred")}
       </Button>
-    </div>
-  );
-}
-
-/* ── Bank Account Info ─────────────────────────────── */
-function BankAccountInfo({ t }: { t: ReturnType<typeof useTranslation>[0] }) {
-  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || "MBBank (MB)";
-  const accountNumber = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "0378175727";
-  const accountHolder = process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER || "PATHORA TRAVEL";
-
-  return (
-    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon icon="heroicons:building-library" className="size-5 text-blue-600" />
-        <h4 className="text-sm font-semibold text-slate-900">{t("landing.checkout.bankAccountInfo")}</h4>
-      </div>
-      <div className="flex flex-col gap-2.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">{t("landing.checkout.bankName")}</span>
-          <span className="text-sm font-semibold text-slate-900">{bankName}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">{t("landing.checkout.accountNumber")}</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-900 font-mono">{accountNumber}</span>
-            <button type="button" aria-label={t("landing.checkout.copyAccountNumber")}
-              onClick={() => copyToClipboard(accountNumber, t("landing.checkout.copied"))}
-              className="size-6 rounded-md bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors cursor-pointer">
-              <Icon icon="heroicons:clipboard-document" className="size-3.5 text-blue-600" />
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">{t("landing.checkout.accountHolder")}</span>
-          <span className="text-sm font-semibold text-slate-900">{accountHolder}</span>
-        </div>
-      </div>
     </div>
   );
 }

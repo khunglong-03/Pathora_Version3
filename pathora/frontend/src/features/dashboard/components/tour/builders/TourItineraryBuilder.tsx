@@ -820,23 +820,16 @@ export function TourItineraryBuilder({
                               </span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              <div>
-                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                  {t("tourAdmin.accommodation.roomType", "Room Type")}
-                                </label>
-                                <select
-                                  value={act.roomType}
-                                  onChange={(e) => onUpdateActivity(ci, di, ai, "roomType", e.target.value)}
-                                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none">
-                                  <option value="">—</option>
-                                  <option value="single">{t("tourAdmin.accommodation.roomTypeOptions.single", "Single")}</option>
-                                  <option value="double">{t("tourAdmin.accommodation.roomTypeOptions.double", "Double")}</option>
-                                  <option value="triple">{t("tourAdmin.accommodation.roomTypeOptions.triple", "Triple")}</option>
-                                  <option value="quad">{t("tourAdmin.accommodation.roomTypeOptions.quad", "Quad")}</option>
-                                  <option value="suite">{t("tourAdmin.accommodation.roomTypeOptions.suite", "Suite")}</option>
-                                  <option value="villa">{t("tourAdmin.accommodation.roomTypeOptions.villa", "Villa")}</option>
-                                </select>
-                              </div>
+                              {act.roomType ? (
+                                <div>
+                                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                    {t("tourAdmin.accommodation.roomType", "Room Type")} (Legacy)
+                                  </label>
+                                  <div className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed">
+                                    {act.roomType}
+                                  </div>
+                                </div>
+                              ) : null}
                               <div>
                                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                                   {t("tourAdmin.accommodation.roomCapacity", "Capacity")}

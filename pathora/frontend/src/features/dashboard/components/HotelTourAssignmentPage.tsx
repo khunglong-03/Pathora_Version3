@@ -18,7 +18,8 @@ import Textarea from "@/components/ui/Textarea";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type { AccommodationItem, RoomAvailability } from "@/api/services/hotelProviderService";
-import { TourInstanceDto, RoomTypeMap } from "@/types/tour";
+import { TourInstanceDto } from "@/types/tour";
+import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
 
 interface RoomAssignmentForm {
   [activityId: string]: {
@@ -46,10 +47,18 @@ export default function HotelTourAssignmentPage() {
   const [approvalNote, setApprovalNote] = useState("");
   const [isApprovalActionLoading, setIsApprovalActionLoading] = useState(false);
 
-  const roomTypeOptions = Object.entries(RoomTypeMap).map(([value, label]) => ({
-    value,
-    label,
-  }));
+  const providerRoomOptions = useMemo(
+    () => buildProviderRoomOptions(inventory),
+    [inventory],
+  );
+  const roomTypeOptions = useMemo(
+    () =>
+      providerRoomOptions.map((option) => ({
+        value: option.roomType,
+        label: option.label,
+      })),
+    [providerRoomOptions],
+  );
 
   const fetchDetail = async () => {
     setIsLoading(true);
@@ -57,6 +66,7 @@ export default function HotelTourAssignmentPage() {
       const data = await tourInstanceService.getMyAssignedInstanceDetail(instanceId);
       if (data) {
         setInstance(data);
+        let canonicalRoomOptions = buildProviderRoomOptions([]);
         
         try {
           const invData = await hotelProviderService.getAccommodations();
@@ -64,6 +74,7 @@ export default function HotelTourAssignmentPage() {
             format(new Date(data.startDate), "yyyy-MM-dd"),
             format(new Date(data.endDate), "yyyy-MM-dd")
           );
+          canonicalRoomOptions = buildProviderRoomOptions(invData || []);
           setInventory(invData || []);
           setAvailability(availData || []);
         } catch (e) {
@@ -76,8 +87,13 @@ export default function HotelTourAssignmentPage() {
           day.activities?.forEach((act) => {
             if (act.activityType === "8") {
               tempAssigns[act.id] = {
-                roomType: act.accommodation?.roomType?.toString() ?? "1",
-                roomCount: act.accommodation?.quantity ?? Math.ceil(data.currentParticipation / 2),
+                roomType:
+                  act.accommodation?.roomType ??
+                  canonicalRoomOptions[0]?.roomType ??
+                  "",
+                roomCount:
+                  act.accommodation?.quantity ??
+                  Math.ceil(data.currentParticipation / 2),
                 isSubmitting: false,
               };
             }
@@ -131,7 +147,7 @@ export default function HotelTourAssignmentPage() {
   }, [instance]);
 
   const inventorySummary = useMemo(() => {
-    return inventory.map((item) => {
+    return providerRoomOptions.map((item) => {
       const itemAvailabilities = availability.filter(a => a.roomType === item.roomType);
       const minAvailable = itemAvailabilities.length > 0 
         ? Math.min(...itemAvailabilities.map(a => a.availableRooms))
@@ -148,7 +164,7 @@ export default function HotelTourAssignmentPage() {
         statusColor
       };
     });
-  }, [inventory, availability]);
+  }, [availability, providerRoomOptions]);
 
   const { totalAccoms, assignedAccoms } = useMemo(() => {
     let total = 0;
@@ -408,7 +424,7 @@ export default function HotelTourAssignmentPage() {
                       <div className="mt-3 flex gap-4 text-sm flex-wrap">
                         <div className="rounded-md bg-slate-50 px-3 py-1.5">
                           <span className="text-slate-500 mr-2">Assigned Room:</span>
-                          <span className="font-medium text-slate-800">{RoomTypeMap[Number(act.accommodation.roomType)] || act.accommodation.roomType}</span>
+                          <span className="font-medium text-slate-800">{act.accommodation.roomType}</span>
                         </div>
                         <div className="rounded-md bg-slate-50 px-3 py-1.5">
                           <span className="text-slate-500 mr-2">Qty:</span>
@@ -429,9 +445,10 @@ export default function HotelTourAssignmentPage() {
                       {/* Availability Badge */}
                       {(() => {
                         const actDateStr = format(new Date(act.date), "yyyy-MM-dd");
-                        const formTypeLabel = RoomTypeMap[Number(state.roomType)] || state.roomType;
                         const availItem = availability.find(
-                          (a) => a.date.startsWith(actDateStr) && (a.roomType === state.roomType || a.roomType === formTypeLabel)
+                          (a) =>
+                            a.date.startsWith(actDateStr) &&
+                            a.roomType === state.roomType
                         );
                         if (availItem) {
                           const isError = availItem.availableRooms === 0;

@@ -10,8 +10,6 @@ const activityRouteSchema = z.object({
   enToLocationCustom: z.string(),
   transportationType: z.string(),
   enTransportationType: z.string(),
-  transportationName: z.string(),
-  enTransportationName: z.string(),
   durationMinutes: z
     .string()
     .transform((v) => (v === "" ? 0 : Number(v)))
@@ -102,7 +100,7 @@ const baseActivitySchema = z.object({
     .default("0"),
 });
 
-// Type 7 (Transport) variant — requires from/to location
+// Type 7 (Transport) variant — itinerary-only (generic transport mode, no supplier identity)
 const transportActivitySchema = baseActivitySchema.extend({
   fromLocation: z.string().optional(),
   enFromLocation: z.string().optional(),
@@ -110,8 +108,6 @@ const transportActivitySchema = baseActivitySchema.extend({
   enToLocation: z.string().optional(),
   transportationType: z.string().min(1, "Loại phương tiện là bắt buộc"),
   enTransportationType: z.string().optional(),
-  transportationName: z.string().max(300, "Tên phương tiện không được vượt quá 300 ký tự").optional(),
-  enTransportationName: z.string().optional(),
   durationMinutes: z
     .string()
     .transform((v) => (v === "" ? 0 : Number(v)))
@@ -126,26 +122,10 @@ const transportActivitySchema = baseActivitySchema.extend({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .catch(() => "" as any)
     .optional(),
-  // Accommodation fields should be empty strings for type 7
-  accommodationName: z.string().optional().default(""),
-  enAccommodationName: z.string().optional().default(""),
-  accommodationAddress: z.string().optional().default(""),
-  enAccommodationAddress: z.string().optional().default(""),
-  accommodationPhone: z.string().optional().default(""),
-  checkInTime: z.string().optional().default(""),
-  checkOutTime: z.string().optional().default(""),
-  roomType: z.string().optional().default(""),
-  roomCapacity: z.string().optional().default(""),
-  mealsIncluded: z.string().optional().default(""),
-  roomPrice: z.string().optional().default(""),
-  numberOfRooms: z.string().optional().default(""),
-  numberOfNights: z.string().optional().default(""),
-  specialRequest: z.string().optional().default(""),
-  latitude: z.string().optional().default(""),
-  longitude: z.string().optional().default(""),
+
 });
 
-// Type 8 (Accommodation) variant — requires accommodationName
+// Type 8 (Accommodation) variant — itinerary-only (no supplier-specific fields)
 const accommodationActivitySchema = baseActivitySchema.extend({
   fromLocation: z.string().optional().default(""),
   enFromLocation: z.string().optional().default(""),
@@ -157,78 +137,6 @@ const accommodationActivitySchema = baseActivitySchema.extend({
   enTransportationName: z.string().optional().default(""),
   durationMinutes: z.string().optional().default(""),
   price: z.string().optional().default(""),
-  // Accommodation fields required for type 8
-  accommodationName: z
-    .string()
-    .min(1, "Tên chỗ nghỉ không được để trống")
-    .max(200, "Tên chỗ nghỉ không được vượt quá 200 ký tự"),
-  enAccommodationName: z.string().optional(),
-  accommodationAddress: z
-    .string()
-    .max(500, "Địa chỉ không được vượt quá 500 ký tự")
-    .optional(),
-  enAccommodationAddress: z.string().optional(),
-  accommodationPhone: z
-    .string()
-    .regex(/^[\d\s\-\+\(\)]*$/, "Số điện thoại không hợp lệ")
-    .optional(),
-  checkInTime: z.string().max(50).optional(),
-  checkOutTime: z.string().max(50).optional(),
-  roomType: z.string().max(50).optional(),
-  roomCapacity: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().int().positive("Sức chứa phòng phải lớn hơn 0"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  mealsIncluded: z.string().max(100).optional(),
-  roomPrice: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().nonnegative("Giá phòng không được âm"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  numberOfRooms: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().int().min(1).max(999, "Số phòng phải từ 1 đến 999"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  numberOfNights: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().int().min(1).max(999, "Số đêm phải từ 1 đến 999"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  specialRequest: z.string().max(1000).optional(),
-  latitude: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(
-      z
-        .number()
-        .min(-90, "Vĩ độ phải nằm trong khoảng -90 đến 90")
-        .max(90, "Vĩ độ phải nằm trong khoảng -90 đến 90"),
-    )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  longitude: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(
-      z
-        .number()
-        .min(-180, "Kinh độ phải nằm trong khoảng -180 đến 180")
-        .max(180, "Kinh độ phải nằm trong khoảng -180 đến 180"),
-    )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
 });
 
 export const activitySchema = z.discriminatedUnion("activityType", [

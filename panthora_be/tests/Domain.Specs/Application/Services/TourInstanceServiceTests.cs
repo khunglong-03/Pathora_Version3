@@ -29,12 +29,13 @@ public sealed class TourInstanceServiceTests
     private readonly ITourInstanceNotificationBroadcaster _broadcaster = Substitute.For<ITourInstanceNotificationBroadcaster>();
     private readonly ITourInstancePlanRouteRepository _routeRepository = Substitute.For<ITourInstancePlanRouteRepository>();
     private readonly IRoomBlockRepository _roomBlockRepository = Substitute.For<IRoomBlockRepository>();
+    private readonly IHotelRoomInventoryRepository _hotelRoomInventoryRepository = Substitute.For<IHotelRoomInventoryRepository>();
 
     private TourInstanceService CreateService() =>
-        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _user, _mapper, _logger);
+        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _hotelRoomInventoryRepository, _user, _mapper, _logger);
 
     private TourInstanceService CreateServiceWithBroadcaster() =>
-        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _user, _mapper, _logger, _broadcaster);
+        new(_tourInstanceRepository, _routeRepository, _tourRepository, _tourRequestRepository, _supplierRepository, _mailRepository, _roomBlockRepository, _hotelRoomInventoryRepository, _user, _mapper, _logger, _broadcaster);
 
     private static TourEntity CreateTourWithClassification(Guid classificationId)
     {
@@ -143,6 +144,91 @@ public sealed class TourInstanceServiceTests
         Assert.NotNull(guide);
         Assert.Equal(guideUserId, guide!.UserId);
         Assert.Equal(captured.Id, guide.TourInstanceId);
+    }
+
+    [Fact]
+    public async Task Create_WithRoomAssignmentsWithoutHotelProvider_ReturnsValidationError()
+    {
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Room Assignment Without Provider",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(1),
+            EndDate: DateTimeOffset.UtcNow.AddDays(3),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            ActivityAssignments:
+            [
+                new CreateTourInstanceActivityAssignmentDto(
+                    Guid.NewGuid(),
+                    "Standard",
+                    2,
+                    null)
+            ]);
+
+        var service = CreateService();
+        var result = await service.Create(command);
+
+        Assert.True(result.IsError);
+        Assert.Equal("TourInstance.HotelProviderRequiredForRoomAssignments", result.FirstError.Code);
+        await _tourInstanceRepository.DidNotReceive().Create(Arg.Any<TourInstanceEntity>());
+    }
+
+    [Fact]
+    public async Task Create_WithRoomTypeNotInSelectedHotelInventory_ReturnsValidationError()
+    {
+        var classificationId = Guid.NewGuid();
+        var creatorUserId = Guid.NewGuid();
+        var tour = CreateTourWithClassification(classificationId);
+        var hotelSupplier = CreateSupplier(SupplierType.Accommodation, Guid.NewGuid());
+
+        _user.Id.Returns(creatorUserId.ToString());
+        _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
+        _supplierRepository.GetByIdAsync(hotelSupplier.Id, Arg.Any<CancellationToken>())
+            .Returns(hotelSupplier);
+        _hotelRoomInventoryRepository.FindByHotelAndRoomTypeAsync(
+                hotelSupplier.Id,
+                RoomType.Standard,
+                Arg.Any<CancellationToken>())
+            .Returns((HotelRoomInventoryEntity?)null);
+
+        var command = new CreateTourInstanceCommand(
+            TourId: tour.Id,
+            ClassificationId: classificationId,
+            Title: "Room Assignment Inventory Validation",
+            InstanceType: TourType.Public,
+            StartDate: DateTimeOffset.UtcNow.AddDays(1),
+            EndDate: DateTimeOffset.UtcNow.AddDays(3),
+            MaxParticipation: 20,
+            BasePrice: 1000,
+            IncludedServices: [],
+            GuideUserIds: [],
+            HotelProviderId: hotelSupplier.Id,
+            ActivityAssignments:
+            [
+                new CreateTourInstanceActivityAssignmentDto(
+                    Guid.NewGuid(),
+                    "Standard",
+                    2,
+                    null)
+            ]);
+
+        var service = CreateService();
+        var result = await service.Create(command);
+
+        Assert.True(result.IsError);
+        Assert.Equal("Inventory.NotFound", result.FirstError.Code);
+        await _tourInstanceRepository.DidNotReceive().Create(Arg.Any<TourInstanceEntity>());
     }
 
     [Fact]

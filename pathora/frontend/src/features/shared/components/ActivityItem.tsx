@@ -7,7 +7,7 @@ import {
   TourDayActivityDto,
   ActivityTypeMap,
   TransportationTypeMap,
-  RoomTypeMap,
+  LegacyRoomTypeMap,
   MealTypeMap,
 } from "@/types/tour";
 
@@ -151,7 +151,7 @@ export function ActivityItem({ activity }: ActivityItemProps) {
                 {activity.accommodation.accommodationName}
               </span>
               <span>
-                ({RoomTypeMap[activity.accommodation.roomType] ??
+                ({LegacyRoomTypeMap[activity.accommodation.roomType] ??
                   t("landing.tourDetail.room")})
               </span>
               {activity.accommodation.mealsIncluded > 0 && (

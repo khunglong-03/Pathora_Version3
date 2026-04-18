@@ -78,6 +78,9 @@ export interface PaymentTransaction {
   senderName?: string;
   senderAccountNumber?: string;
   beneficiaryBank?: string;
+  managerBankCode?: string;
+  managerAccountNumber?: string;
+  managerAccountName?: string;
   errorCode?: string;
   errorMessage?: string;
 }

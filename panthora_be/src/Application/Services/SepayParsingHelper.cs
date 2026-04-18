@@ -128,7 +128,9 @@ public static partial class SepayParsingHelper
             Amount = ParseAmount(t.amount_in, t.amount_out),
             TransactionContent = t.transaction_content ?? string.Empty,
             ReferenceNumber = t.reference_number ?? string.Empty,
-            ReferenceCode = t.reference_number ?? string.Empty
+            // Keep the internal reference code on our transaction untouched.
+            // SePay's `reference_number` is a provider-side SMS reference, not our 12-char ref code.
+            ReferenceCode = null
         };
     }
 

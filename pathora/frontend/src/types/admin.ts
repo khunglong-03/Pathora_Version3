@@ -226,6 +226,12 @@ export interface HotelAccommodationSummary {
   locationArea: string | null;
 }
 
+export interface HotelProviderRoomOption {
+  roomType: string;
+  label: string;
+  totalRooms: number;
+}
+
 export interface HotelProviderDetail {
   id: string;
   supplierName: string;
@@ -240,6 +246,7 @@ export interface HotelProviderDetail {
   primaryContinent: string | null;
   continents: string[];
   accommodations: HotelAccommodationSummary[];
+  roomOptions?: HotelProviderRoomOption[];
   accommodationCount: number;
   totalRooms: number;
   bookingCount: number;

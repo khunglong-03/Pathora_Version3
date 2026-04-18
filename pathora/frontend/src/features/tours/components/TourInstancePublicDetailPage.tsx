@@ -19,7 +19,7 @@ import { homeService } from "@/api/services/homeService";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useAuth } from "@/contexts/AuthContext";
-import { NormalizedTourInstanceDto, DynamicPricingDto, ActivityTypeMap, TransportationTypeMap, RoomTypeMap, MealTypeMap } from "@/types/tour";
+import { NormalizedTourInstanceDto, DynamicPricingDto, ActivityTypeMap, TransportationTypeMap, MealTypeMap } from "@/types/tour";
 
 /* ── Currency / Date formatters ──────────────────────────────── */
 const createCurrencyFormatter = (locale: string) =>

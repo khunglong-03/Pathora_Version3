@@ -41,7 +41,7 @@ public sealed class GetHotelProvidersQueryHandlerTests
         _userRepository.CountProvidersByRoleAsync(7, null, null, Arg.Any<CancellationToken>())
             .Returns(1);
         _supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(
-                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual(new[] { ownerUserId })),
                 Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, HotelProviderAdminData>
             {
@@ -93,27 +93,27 @@ public sealed class GetHotelProvidersQueryHandlerTests
         };
 
         _supplierRepository.FindOwnerUserIdsByHotelProviderContinentsAsync(
-                Arg.Is<List<Continent>>(continents => continents.SequenceEqual([Continent.Americas])),
+                Arg.Is<List<Continent>>(continents => continents.SequenceEqual(new[] { Continent.Americas })),
                 Arg.Any<CancellationToken>())
             .Returns([ownerUserId]);
         _userRepository.CountProvidersByRoleWithIdsAsync(
                 7,
                 null,
                 null,
-                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual(new[] { ownerUserId })),
                 Arg.Any<CancellationToken>())
             .Returns(1);
         _userRepository.FindProvidersByRoleWithIdsAsync(
                 7,
                 null,
                 null,
-                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual(new[] { ownerUserId })),
                 1,
                 10,
                 Arg.Any<CancellationToken>())
             .Returns([user]);
         _supplierRepository.GetHotelProviderAdminDataGroupedByOwnerAsync(
-                Arg.Is<List<Guid>>(ids => ids.SequenceEqual([ownerUserId])),
+                Arg.Is<List<Guid>>(ids => ids.SequenceEqual(new[] { ownerUserId })),
                 Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, HotelProviderAdminData>
             {

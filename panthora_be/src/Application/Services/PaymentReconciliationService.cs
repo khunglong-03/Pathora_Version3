@@ -119,6 +119,21 @@ public sealed class PaymentReconciliationService(
         SepayTransactionData transactionData,
         string source = "webhook")
     {
+        var duplicate = await CheckDuplicateBySepayIdAsync(transactionData.TransactionId);
+        if (duplicate != null)
+        {
+            var duplicateSnapshot = BuildSnapshot(duplicate, source, verifiedWithProvider: true, transactionData.TransactionId);
+            LogTransition(
+                source,
+                duplicate.TransactionCode,
+                duplicate.Status.ToString(),
+                duplicate.Status.ToString(),
+                duplicateSnapshot.NormalizedStatus,
+                verifiedWithProvider: true);
+
+            return duplicateSnapshot;
+        }
+
         var transactionCode = ExtractTransactionCode(transactionData.TransactionContent);
         var previousStatus = "unknown";
 

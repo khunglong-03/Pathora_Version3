@@ -23,7 +23,7 @@ interface AddCustomDayResponse {
 
 export interface CreateTourInstanceActivityAssignment {
   originalActivityId: string;
-  roomType?: number | null;
+  roomType?: string | null;
   accommodationQuantity?: number | null;
   vehicleId?: string | null;
 }

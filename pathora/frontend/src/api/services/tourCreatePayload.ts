@@ -26,7 +26,7 @@ interface ClassificationPayloadInput {
   durationDays: string;
 }
 
-// Extended activity — includes location, type-7 transport, and type-8 accommodation fields
+// Extended activity — includes location and generic transport mode; no supplier-specific identity
 interface ActivityPayloadInput {
   activityType: string;
   title: string;
@@ -52,35 +52,15 @@ interface ActivityPayloadInput {
   enLocationAddress: string;
   locationEntranceFee: string;
 
-  // Transportation fields — type 7 (replaces standalone Transportation step)
+  // Transportation fields — type 7 (itinerary-only: generic mode, no supplier identity)
   fromLocation: string;
   enFromLocation: string;
   toLocation: string;
   enToLocation: string;
   transportationType: string;
   enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
   durationMinutes: string;
   price: string;
-
-  // Accommodation fields — type 8 (replaces standalone Accommodations step)
-  accommodationName: string;
-  enAccommodationName: string;
-  accommodationAddress: string;
-  enAccommodationAddress: string;
-  accommodationPhone: string;
-  checkInTime: string;
-  checkOutTime: string;
-  roomType: string;
-  roomCapacity: string;
-  mealsIncluded: string;
-  roomPrice: string;
-  numberOfRooms: string;
-  numberOfNights: string;
-  specialRequest: string;
-  latitude: string;
-  longitude: string;
 }
 
 interface DayPlanPayloadInput {
@@ -155,8 +135,6 @@ interface ActivityRoutePayloadInput {
   enToLocationCustom: string;
   transportationType: string;
   enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
   durationMinutes: string;
   price: string;
   note: string;
@@ -313,9 +291,9 @@ const buildClassificationsPayload = (
 
     const plans = dayPlans[classificationIndex] ?? [];
 
-    // Extract locations and accommodations from activities (deduplicated)
+    // Extract locations from activities (deduplicated)
+    // NOTE: Accommodations are now itinerary-only and handled at instance time, not template time
     const activityLocations: LocationPayloadInput[] = [];
-    const activityAccommodations: AccommodationPayloadInput[] = [];
 
     for (const dayPlan of plans) {
       for (const activity of dayPlan.activities) {
@@ -337,37 +315,13 @@ const buildClassificationsPayload = (
             enAddress: activity.enLocationAddress ?? "",
           });
         }
-
-        // Accommodation from type 8
-        if (activity.activityType === "8" && activity.accommodationName?.trim()) {
-          activityAccommodations.push({
-            accommodationName: activity.accommodationName,
-            enAccommodationName: activity.enAccommodationName ?? "",
-            address: activity.accommodationAddress ?? "",
-            enAddress: activity.enAccommodationAddress ?? "",
-            contactPhone: activity.accommodationPhone ?? "",
-            checkInTime: activity.checkInTime ?? "",
-            checkOutTime: activity.checkOutTime ?? "",
-            note: "",
-            enNote: "",
-            roomType: activity.roomType ?? "",
-            roomCapacity: activity.roomCapacity ?? "",
-            mealsIncluded: activity.mealsIncluded ?? "",
-            roomPrice: activity.roomPrice ?? "",
-            numberOfRooms: activity.numberOfRooms ?? "",
-            numberOfNights: activity.numberOfNights ?? "",
-            specialRequest: activity.specialRequest ?? "",
-            latitude: activity.latitude ?? "",
-            longitude: activity.longitude ?? "",
-          });
-        }
       }
     }
 
     const uniqueLocations = deduplicateByName(activityLocations);
-    const uniqueAccommodations = deduplicateByName(activityAccommodations);
+    const uniqueAccommodations: AccommodationPayloadInput[] = [];
 
-    // Build the plans with activities (all new fields included)
+    // Build the plans with activities (itinerary-only, no supplier-specific fields)
     const builtPlans = plans.map((dayPlan) => ({
       dayNumber: Math.max(parseIntValue(dayPlan.dayNumber, 1), 1),
       title: dayPlan.title,
@@ -389,8 +343,8 @@ const buildClassificationsPayload = (
         endTime: toOptionalString(activity.endTime),
         routes: buildRoutesPayload(activity.routes, uniqueLocations),
         accommodation: null,
-        // Include activity-level location/transport/accommodation data
-        // for backend to populate TourPlanLocations / TourPlanRoutes / TourPlanAccommodations
+        // Include activity-level location/transport data
+        // Accommodation supplier details and transport supplier names are now instance-time only
         locationName: activity.locationName ?? "",
         enLocationName: activity.enLocationName ?? "",
         locationCity: activity.locationCity ?? "",
@@ -406,26 +360,8 @@ const buildClassificationsPayload = (
         enToLocation: activity.enToLocation ?? "",
         transportationType: activity.transportationType ?? "",
         enTransportationType: activity.enTransportationType ?? "",
-        transportationName: activity.transportationName ?? "",
-        enTransportationName: activity.enTransportationName ?? "",
         durationMinutes: activity.durationMinutes ?? "",
         price: activity.price ?? "",
-        accommodationName: activity.accommodationName ?? "",
-        enAccommodationName: activity.enAccommodationName ?? "",
-        accommodationAddress: activity.accommodationAddress ?? "",
-        enAccommodationAddress: activity.enAccommodationAddress ?? "",
-        accommodationPhone: activity.accommodationPhone ?? "",
-        checkInTime: activity.checkInTime ?? "",
-        checkOutTime: activity.checkOutTime ?? "",
-        roomType: activity.roomType ?? "",
-        roomCapacity: activity.roomCapacity ?? "",
-        mealsIncluded: activity.mealsIncluded ?? "",
-        roomPrice: activity.roomPrice ?? "",
-        numberOfRooms: activity.numberOfRooms ?? "",
-        numberOfNights: activity.numberOfNights ?? "",
-        specialRequest: activity.specialRequest ?? "",
-        latitude: activity.latitude ?? "",
-        longitude: activity.longitude ?? "",
         translations: buildActivityTranslations(
           activity.title,
           activity.description,
@@ -512,7 +448,6 @@ const buildRoutesPayload = (
 
     const hasEnTransportation =
       route.enTransportationType.trim().length > 0 ||
-      route.enTransportationName.trim().length > 0 ||
       (route.enNote ?? "").trim().length > 0;
 
     return {
@@ -529,8 +464,8 @@ const buildRoutesPayload = (
       toLocationId,
       transportationType: route.transportationType,
       enTransportationType: route.enTransportationType || null,
-      transportationName: route.transportationName || null,
-      enTransportationName: route.enTransportationName || null,
+      transportationName: null,
+      enTransportationName: null,
       durationMinutes: parseIntValue(route.durationMinutes, 0),
       price: parseDecimal(route.price, 0),
       pricingType: null,
@@ -540,13 +475,13 @@ const buildRoutesPayload = (
       enNote: route.enNote || null,
       routeTranslations: {
         vi: {
-          transportationName: route.transportationName,
+          transportationName: null,
           note: route.note,
         },
         ...(hasEnTransportation
           ? {
               en: {
-                transportationName: route.enTransportationName,
+                transportationName: null,
                 note: route.enNote,
               },
             }

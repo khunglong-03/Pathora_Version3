@@ -20,7 +20,7 @@ import {
   TourPlanLocationDto,
   TransportationTypeMap,
   ActivityTypeMap,
-  RoomTypeMap,
+  LegacyRoomTypeMap,
   MealTypeMap,
   LocationTypeMap,
   InsuranceTypeMap,
@@ -477,7 +477,7 @@ function AccommodationsTab({
           <div className="grid grid-cols-3 gap-x-8 gap-y-4 mb-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">Room Type</p>
-              <p className="text-sm text-stone-800">{RoomTypeMap[acc.roomType] ?? "—"}</p>
+              <p className="text-sm text-stone-800">{LegacyRoomTypeMap[acc.roomType] ?? "—"}</p>
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-0.5">Capacity</p>

@@ -1,8 +1,8 @@
 namespace Domain.Specs.Application.Features.BookingManagement.Supplier;
 
-using Application.Features.BookingManagement.Supplier;
-using Application.Features.HotelServiceProvider.Supplier;
-using Application.Features.HotelServiceProvider.Supplier.DTOs;
+using global::Application.Features.BookingManagement.Supplier;
+using global::Application.Features.HotelServiceProvider.Supplier;
+using global::Application.Features.HotelServiceProvider.Supplier.DTOs;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;

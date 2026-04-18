@@ -22,7 +22,7 @@ vi.mock("@/api/services/tourInstanceService", () => ({
   tourInstanceService: {
     getMyAssignedInstanceDetail: vi.fn(),
     assignRoomToAccommodation: vi.fn(),
-    providerApproveInstance: vi.fn(),
+    hotelApprove: vi.fn(),
   },
 }));
 
@@ -36,9 +36,14 @@ vi.mock("@/api/services/hotelProviderService", () => ({
 describe("HotelTourAssignmentPage", () => {
   const mockTour = {
     id: "tour-id-123",
+    title: "Test Hotel Tour",
+    tourInstanceCode: "TI-123",
     tourName: "Test Hotel Tour",
     startDate: "2026-05-01",
     endDate: "2026-05-02",
+    currentParticipation: 4,
+    maxParticipation: 10,
+    durationDays: 2,
     hotelApprovalStatus: 1, // Pending
     days: [
       {
@@ -79,9 +84,10 @@ describe("HotelTourAssignmentPage", () => {
   };
 
   const mockInventory = [
-    { id: "room-1", name: "Deluxe Room", roomType: "DELUXE" },
-    { id: "room-2", name: "Standard Room", roomType: "STANDARD" },
-    { id: "room-3", name: "Suite Room", roomType: "SUITE" },
+    { id: "room-1", name: "Deluxe Room", roomType: "DELUXE", totalRooms: 10 },
+    { id: "room-2", name: "Standard Room", roomType: "STANDARD", totalRooms: 10 },
+    { id: "room-3", name: "Suite Room", roomType: "SUITE", totalRooms: 4 },
+    { id: "room-4", name: "Villa Room", roomType: "VILLA", totalRooms: 2 },
   ];
 
   const mockAvailability = [
@@ -159,6 +165,14 @@ describe("HotelTourAssignmentPage", () => {
 
       // Standard day 2, available = 1, required = 3. It should be orange/low (Còn 1 phòng)
       expect(screen.getByText(/⚠️ Chỉ còn 1\/10/)).toBeInTheDocument();
+    });
+  });
+
+  it("renders provider-backed room types outside the old frontend map", async () => {
+    render(<HotelTourAssignmentPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("VILLA").length).toBeGreaterThan(0);
     });
   });
 });

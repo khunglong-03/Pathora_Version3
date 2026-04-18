@@ -385,6 +385,37 @@ public sealed class PaymentReconciliationServiceTests
 
     #region Helper Methods
 
+    [Fact]
+    public async Task ReconcileProviderCallbackAsync_WhenDuplicateSepayIdAlreadyCompleted_ShouldReturnExistingSnapshot()
+    {
+        // Arrange
+        var completedTransaction = CreatePendingTransaction(100000m, referenceCode: "202604011230XY");
+        completedTransaction.MarkAsPaid(100000m, DateTimeOffset.UtcNow, externalTransactionId: "sepay-duplicate-001");
+
+        _transactionRepo.GetBySepayTransactionIdAsync("sepay-duplicate-001", Arg.Any<CancellationToken>())
+            .Returns(completedTransaction);
+
+        var service = new PaymentReconciliationService(
+            _transactionRepo, _paymentService, _unitOfWork, _sePayApiClient, null, _logger);
+
+        var callback = new SepayTransactionData
+        {
+            TransactionId = "sepay-duplicate-001",
+            TransactionDate = DateTimeOffset.UtcNow,
+            Amount = 100000m,
+            TransactionContent = "PAY-TEST-AMOUNT|202604011230XY|Booking"
+        };
+
+        // Act
+        var result = await service.ReconcileProviderCallbackAsync(callback);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal("PAY-TEST-AMOUNT", result.Value.TransactionCode);
+        Assert.Equal("paid", result.Value.NormalizedStatus);
+        await _paymentService.DidNotReceive().ProcessSepayCallbackAsync(Arg.Any<SepayTransactionData>());
+    }
+
     private static PaymentTransactionEntity CreatePendingTransaction(decimal amount, string? referenceCode = null)
     {
         var t = PaymentTransactionEntity.Create(

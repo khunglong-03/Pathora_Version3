@@ -21,6 +21,7 @@ public class TourInstanceServiceProviderApproveTests
     private readonly ISupplierRepository _mockSupplierRepository;
     private readonly IMailRepository _mockMailRepository;
     private readonly IRoomBlockRepository _mockRoomBlockRepository;
+    private readonly IHotelRoomInventoryRepository _mockHotelRoomInventoryRepository;
     private readonly IUser _mockUser;
     private readonly IMapper _mockMapper;
     private readonly ILogger<TourInstanceService> _mockLogger;
@@ -40,6 +41,7 @@ public class TourInstanceServiceProviderApproveTests
         _mockSupplierRepository = Substitute.For<ISupplierRepository>();
         _mockMailRepository = Substitute.For<IMailRepository>();
         _mockRoomBlockRepository = Substitute.For<IRoomBlockRepository>();
+        _mockHotelRoomInventoryRepository = Substitute.For<IHotelRoomInventoryRepository>();
         _mockUser = Substitute.For<IUser>();
         _mockMapper = Substitute.For<IMapper>();
         _mockLogger = Substitute.For<ILogger<TourInstanceService>>();
@@ -57,6 +59,7 @@ public class TourInstanceServiceProviderApproveTests
             _mockSupplierRepository,
             _mockMailRepository,
             _mockRoomBlockRepository,
+            _mockHotelRoomInventoryRepository,
             _mockUser,
             _mockMapper,
             _mockLogger,

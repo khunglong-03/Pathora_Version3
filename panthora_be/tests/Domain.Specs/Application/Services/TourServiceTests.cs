@@ -2133,4 +2133,163 @@ public sealed class TourServiceTests
     }
 
     #endregion
+
+    #region TC1.2: Contract mapping - itinerary-only payloads and legacy field preservation
+
+    [Fact]
+    public async Task Create_WithItineraryOnlyAccommodationPayload_ShouldAcceptAndPersist()
+    {
+        // Arrange
+        _user.Id.Returns("admin@test.com");
+        _tourRepository.Create(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        // Contract test: Backend accepts accommodation with placeholder fields
+        // (Future phases will enforce supplier selection at instance time)
+        var command = CreateBaseValidCommand() with
+        {
+            Classifications =
+            [
+                new ClassificationDto(
+                    Id: null,
+                    Name: "Beach Package",
+                    Description: "Beach itinerary",
+                    BasePrice: 1200,
+                    NumberOfDay: 3,
+                    NumberOfNight: 2,
+                    Plans:
+                    [
+                        new DayPlanDto(
+                            Id: null,
+                            DayNumber: 1,
+                            Title: "Day 1",
+                            Description: "Beach day",
+                            Activities:
+                            [
+                                new ActivityDto(
+                                    Id: null,
+                                    ActivityType: "Accommodation",
+                                    Title: "Stay at beach",
+                                    Description: "Overnight accommodation",
+                                    Note: null,
+                                    EstimatedCost: 150,
+                                    IsOptional: false,
+                                    StartTime: null,
+                                    EndTime: null,
+                                    Routes: [],
+                                    Accommodation: new AccommodationDto(
+                                        AccommodationName: "[PENDING SUPPLIER SELECTION]",
+                                        Address: null,
+                                        ContactPhone: null,
+                                        CheckInTime: null,
+                                        CheckOutTime: null,
+                                        Note: null,
+                                        RoomType: "Standard",
+                                        RoomCapacity: 2,
+                                        MealsIncluded: "None",
+                                        RoomPrice: null,
+                                        NumberOfRooms: null,
+                                        NumberOfNights: null,
+                                        Latitude: null,
+                                        Longitude: null,
+                                        SpecialRequest: null,
+                                        Translations: null),
+                                    Translations: null,
+                                    LinkToResources: null)
+                            ],
+                            Translations: null)
+                    ],
+                    Insurances: [],
+                    Translations: null)
+            ]
+        };
+        var service = CreateService();
+
+        // Act
+        var result = await service.Create(command, isManager: true);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.IsType<Guid>(result.Value);
+    }
+
+    [Fact]
+    public async Task Create_WithItineraryOnlyTransportPayload_ShouldAcceptAndPersist()
+    {
+        // Arrange
+        _user.Id.Returns("admin@test.com");
+        _tourRepository.Create(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        // Contract test: Backend accepts routes with placeholder supplier name
+        // (Future phases will enforce supplier selection at instance time)
+        var command = CreateBaseValidCommand() with
+        {
+            Classifications =
+            [
+                new ClassificationDto(
+                    Id: null,
+                    Name: "Adventure Package",
+                    Description: "Adventure itinerary",
+                    BasePrice: 1500,
+                    NumberOfDay: 2,
+                    NumberOfNight: 1,
+                    Plans:
+                    [
+                        new DayPlanDto(
+                            Id: null,
+                            DayNumber: 1,
+                            Title: "Day 1",
+                            Description: "Travel day",
+                            Activities:
+                            [
+                                new ActivityDto(
+                                    Id: null,
+                                    ActivityType: "Transportation",
+                                    Title: "Scenic drive",
+                                    Description: "Mountain route",
+                                    Note: null,
+                                    EstimatedCost: 80,
+                                    IsOptional: false,
+                                    StartTime: "09:00",
+                                    EndTime: "12:00",
+                                    Routes:
+                                    [
+                                        new RouteDto(
+                                            TransportationType: "Bus",
+                                            FromLocationName: "City Center",
+                                            ToLocationName: "Mountain",
+                                            FromLocationId: null,
+                                            ToLocationId: null,
+                                            TransportationName: "[PENDING SUPPLIER SELECTION]",
+                                            DurationMinutes: 180,
+                                            PricingType: null,
+                                            Price: 80,
+                                            RequiresIndividualTicket: false,
+                                            TicketInfo: null,
+                                            Note: null,
+                                            Translations: null,
+                                            RouteTranslations: null)
+                                    ],
+                                    Accommodation: null,
+                                    Translations: null,
+                                    LinkToResources: null)
+                            ],
+                            Translations: null)
+                    ],
+                    Insurances: [],
+                    Translations: null)
+            ]
+        };
+        var service = CreateService();
+
+        // Act
+        var result = await service.Create(command, isManager: true);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.IsType<Guid>(result.Value);
+    }
+
+    #endregion
 }

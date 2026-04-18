@@ -46,6 +46,7 @@ public class TourInstanceService(
     ISupplierRepository supplierRepository,
     IMailRepository mailRepository,
     IRoomBlockRepository roomBlockRepository,
+    IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     IUser user,
     IMapper mapper,
     ILogger<TourInstanceService> logger,
@@ -57,6 +58,7 @@ public class TourInstanceService(
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
     private readonly IMailRepository _mailRepository = mailRepository;
     private readonly IRoomBlockRepository _roomBlockRepository = roomBlockRepository;
+    private readonly IHotelRoomInventoryRepository _hotelRoomInventoryRepository = hotelRoomInventoryRepository;
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
@@ -79,6 +81,12 @@ public class TourInstanceService(
             return Error.Validation(ErrorConstants.User.InvalidIdCode, ErrorConstants.User.InvalidIdFormatDescription);
 
         var performedBy = _user.Id;
+        var validatedRoomAssignmentsResult = await ValidateRoomAssignmentsAsync(
+            request.HotelProviderId,
+            request.ActivityAssignments);
+        if (validatedRoomAssignmentsResult.IsError)
+            return validatedRoomAssignmentsResult.Errors;
+        var validatedRoomAssignments = validatedRoomAssignmentsResult.Value;
 
         // Validate TourRequestId if provided
         TourRequestEntity? tourRequest = null;
@@ -186,11 +194,12 @@ public class TourInstanceService(
 
                 switch (templateActivity.ActivityType)
                 {
-                    case TourDayActivityType.Accommodation when (assignedData?.RoomType.HasValue == true):
+                    case TourDayActivityType.Accommodation
+                        when validatedRoomAssignments.TryGetValue(templateActivity.Id, out var roomType):
                         instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                             instanceActivity.Id,
-                            assignedData.RoomType,
-                            assignedData.AccommodationQuantity ?? 1
+                            roomType,
+                            assignedData?.AccommodationQuantity ?? 1
                         );
                         break;
                     case TourDayActivityType.Transportation:
@@ -228,6 +237,46 @@ public class TourInstanceService(
             _logger.LogError(ex, "Failed to create TourInstance for TourId {TourId}, ClassificationId {ClassificationId}", request.TourId, request.ClassificationId);
             return Error.Failure("TourInstance.CreateFailed", "Failed to create tour instance");
         }
+    }
+
+    private async Task<ErrorOr<Dictionary<Guid, RoomType>>> ValidateRoomAssignmentsAsync(
+        Guid? hotelProviderId,
+        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
+    {
+        var roomAssignments = (activityAssignments ?? [])
+            .Where(assignment => !string.IsNullOrWhiteSpace(assignment.RoomType))
+            .ToList();
+
+        if (roomAssignments.Count == 0)
+            return new Dictionary<Guid, RoomType>();
+
+        if (!hotelProviderId.HasValue)
+        {
+            return Error.Validation(
+                "TourInstance.HotelProviderRequiredForRoomAssignments",
+                "Hotel provider is required when assigning rooms.");
+        }
+
+        var supplier = await _supplierRepository.GetByIdAsync(hotelProviderId.Value);
+        if (supplier is null)
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
+
+        var validatedRoomAssignments = new Dictionary<Guid, RoomType>();
+        foreach (var assignment in roomAssignments)
+        {
+            if (!Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
+                return Error.Validation("RoomType.Invalid", "Invalid room type.");
+
+            var inventory = await _hotelRoomInventoryRepository.FindByHotelAndRoomTypeAsync(
+                hotelProviderId.Value,
+                roomType);
+            if (inventory is null)
+                return Error.Validation("Inventory.NotFound", "Khách sạn không có loại phòng này.");
+
+            validatedRoomAssignments[assignment.OriginalActivityId] = roomType;
+        }
+
+        return validatedRoomAssignments;
     }
 
     private async Task TryQueueTourReadyEmailAsync(

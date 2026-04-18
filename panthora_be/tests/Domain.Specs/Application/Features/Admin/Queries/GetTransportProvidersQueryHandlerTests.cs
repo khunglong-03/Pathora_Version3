@@ -45,7 +45,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery();
 
@@ -77,7 +77,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery();
 
@@ -107,7 +107,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(1, 10, "taxi", null);
 
@@ -137,7 +137,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(1, 10, null, "Active");
 
@@ -167,7 +167,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(1, 10, null, "Inactive");
 
@@ -197,7 +197,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(1, 10, "taxi", "Active");
 
@@ -220,7 +220,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(2, 20, null, null);
 
@@ -251,7 +251,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
         _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new Dictionary<Guid, string>());
+            .Returns(new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>());
 
         var query = new TpQry.GetTransportProvidersQuery(-5, -1, null, null);
 
@@ -289,7 +289,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
             [userIds[0]] = (2, new List<Continent> { Continent.Asia }),
             [userIds[1]] = (1, new List<Continent> { Continent.Asia })
         };
-        var supplierAddressData = new Dictionary<Guid, string>();
+        var supplierAddressData = new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>();
 
         var query = new TpQry.GetTransportProvidersQuery
         {
@@ -338,7 +338,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         {
             [userIds[0]] = (1, new List<Continent> { Continent.Asia })
         };
-        var supplierAddressData = new Dictionary<Guid, string>();
+        var supplierAddressData = new Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>();
 
         var query = new TpQry.GetTransportProvidersQuery
         {

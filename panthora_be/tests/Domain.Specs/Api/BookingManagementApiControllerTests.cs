@@ -56,7 +56,8 @@ public sealed class BookingManagementApiControllerTests
             "0900000000",
             "hotel@example.com",
             "Ha Noi",
-            "priority");
+            "priority",
+            Continent.Asia);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<SupplierController, CreateSupplierCommand, Guid>(

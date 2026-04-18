@@ -1,6 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
+import {
+  clearRoomTypeAssignments,
+  hasRoomAssignments,
+  mapActivityAssignmentsForPayload,
+} from "../createTourInstanceAssignments";
+import {
+  buildProviderRoomOptions,
+  getProviderRoomOptions,
+} from "@/utils/providerRoomOptions";
 
 // Tests for CreateTourInstancePage guide picker and service checkbox logic
 
@@ -186,6 +195,85 @@ describe("Guide picker render/select/serialize", () => {
     const emptyGuideIds: string[] = [];
     const noGuide = guides.find((u) => emptyGuideIds.includes(u.id)) ?? null;
     expect(noGuide).toBeNull();
+  });
+});
+
+describe("Provider-backed room option helpers", () => {
+  it("keeps supplier inventory values outside the old legacy map visible", () => {
+    const roomOptions = buildProviderRoomOptions([
+      { roomType: "Standard", totalRooms: 6 },
+      { roomType: "Deluxe", totalRooms: 4 },
+      { roomType: "VIP", totalRooms: 2 },
+      { roomType: "Triple", totalRooms: 5 },
+      { roomType: "Quad", totalRooms: 3 },
+      { roomType: "Villa", totalRooms: 1 },
+    ]);
+
+    expect(roomOptions.map((option) => option.roomType)).toEqual([
+      "Deluxe",
+      "Quad",
+      "Standard",
+      "Triple",
+      "Villa",
+      "VIP",
+    ]);
+  });
+
+  it("prefers canonical backend room options over accommodation fallback data", () => {
+    const roomOptions = getProviderRoomOptions({
+      accommodations: [{ roomType: "Fallback", totalRooms: 99 }],
+      roomOptions: [
+        { roomType: "Standard", label: "Standard", totalRooms: 5 },
+        { roomType: "Deluxe", label: "Deluxe", totalRooms: 3 },
+      ],
+    });
+
+    expect(roomOptions).toEqual([
+      { roomType: "Deluxe", label: "Deluxe", totalRooms: 3 },
+      { roomType: "Standard", label: "Standard", totalRooms: 5 },
+    ]);
+  });
+});
+
+describe("Create-instance room assignment helpers", () => {
+  it("clears stale room types when hotel provider changes", () => {
+    expect(
+      clearRoomTypeAssignments({
+        stayA: { roomType: "Standard", vehicleId: "veh-1" },
+        stayB: { roomType: "Villa" },
+      }),
+    ).toEqual({
+      stayA: { roomType: undefined, vehicleId: "veh-1" },
+      stayB: { roomType: undefined },
+    });
+  });
+
+  it("detects whether canonical room assignments exist", () => {
+    expect(
+      hasRoomAssignments({
+        stayA: { roomType: "Standard" },
+      }),
+    ).toBe(true);
+
+    expect(
+      hasRoomAssignments({
+        stayA: { roomType: "   " },
+        stayB: { vehicleId: "veh-1" },
+      }),
+    ).toBe(false);
+  });
+
+  it("maps payload assignments using canonical room type strings and drops empty rows", () => {
+    expect(
+      mapActivityAssignmentsForPayload({
+        stayA: { roomType: "Villa" },
+        moveB: { vehicleId: "veh-22" },
+        stayC: { roomType: "  " },
+      }),
+    ).toEqual([
+      { originalActivityId: "stayA", roomType: "Villa", vehicleId: undefined },
+      { originalActivityId: "moveB", roomType: undefined, vehicleId: "veh-22" },
+    ]);
   });
 });
 
