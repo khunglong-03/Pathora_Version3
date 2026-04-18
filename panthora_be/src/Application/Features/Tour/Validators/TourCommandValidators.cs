@@ -214,8 +214,9 @@ public sealed class AccommodationDtoValidator : AbstractValidator<AccommodationD
     public AccommodationDtoValidator()
     {
         RuleFor(x => x.AccommodationName)
-            .NotEmpty().WithMessage(ValidationMessages.AccommodationNameRequired)
-            .MaximumLength(200).WithMessage(ValidationMessages.AccommodationNameMaxLength200);
+            // Phase 3: AccommodationName is now optional (supplier details handled at instance time)
+            .MaximumLength(200).WithMessage(ValidationMessages.AccommodationNameMaxLength200)
+            .When(x => !string.IsNullOrEmpty(x.AccommodationName));
 
         RuleFor(x => x.Address)
             .MaximumLength(500).WithMessage(ValidationMessages.AccommodationAddressMaxLength500);

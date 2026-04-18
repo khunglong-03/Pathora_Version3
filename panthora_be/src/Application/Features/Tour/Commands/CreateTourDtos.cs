@@ -70,7 +70,7 @@ public sealed record InsuranceDto(
 );
 
 public sealed record AccommodationDto(
-    string AccommodationName,
+    string? AccommodationName,
     string? Address,
     string? ContactPhone,
     string? CheckInTime,

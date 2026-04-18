@@ -216,7 +216,7 @@ public class TourService(
                             }
 
                             // Add Accommodation
-                            if (act.Accommodation != null)
+                            if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))
                             {
                                 var parsedRoomType = !string.IsNullOrWhiteSpace(act.Accommodation.RoomType)
                                     && Enum.TryParse<Domain.Enums.RoomType>(act.Accommodation.RoomType, ignoreCase: true, out var rt)
@@ -224,7 +224,7 @@ public class TourService(
                                     : Domain.Enums.RoomType.Double;
 
                                 var accommodation = TourPlanAccommodationEntity.Create(
-                                    act.Accommodation.AccommodationName,
+                                    act.Accommodation.AccommodationName ?? "Unnamed Accommodation",
                                     parsedRoomType,
                                     act.Accommodation.RoomCapacity ?? 2,
                                     Domain.Enums.MealType.None,
@@ -282,12 +282,12 @@ public class TourService(
             // Standalone Accommodations, Locations, Transportations and Services are persisted as TourResources
             if (request.Accommodations?.Count > 0)
             {
-                foreach (var acc in request.Accommodations)
+                foreach (var acc in request.Accommodations.Where(a => !string.IsNullOrWhiteSpace(a.AccommodationName)))
                 {
                     var resource = TourResourceEntity.Create(
                         tour.Id,
                         TourResourceType.Accommodation,
-                        acc.AccommodationName,
+                        acc.AccommodationName!,
                         _user.Id ?? string.Empty,
                         address: acc.Address,
                         contactPhone: acc.ContactPhone,
@@ -478,12 +478,12 @@ public class TourService(
         // Standalone Accommodations, Locations, Transportations and Services are merged as TourResources
         if (request.Accommodations?.Count > 0)
         {
-            foreach (var acc in request.Accommodations)
+            foreach (var acc in request.Accommodations.Where(a => !string.IsNullOrWhiteSpace(a.AccommodationName)))
             {
                 var resource = TourResourceEntity.Create(
                     tour.Id,
                     TourResourceType.Accommodation,
-                    acc.AccommodationName,
+                    acc.AccommodationName!,
                     _user.Id ?? string.Empty,
                     address: acc.Address,
                     contactPhone: acc.ContactPhone,
