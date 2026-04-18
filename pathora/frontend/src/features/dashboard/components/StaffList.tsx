@@ -22,9 +22,10 @@ interface StaffListProps {
   managerId: string;
   onReassign: (staff: StaffMemberDto) => void;
   onToggleStatus?: (staff: StaffMemberDto) => void;
+  onEdit?: (staff: StaffMemberDto) => void;
 }
 
-export function StaffList({ staff, managers, managerId, onReassign, onToggleStatus }: StaffListProps) {
+export function StaffList({ staff, managers, managerId, onReassign, onToggleStatus, onEdit }: StaffListProps) {
   const otherManagers = managers.filter((m) => m.managerId !== managerId);
 
   // Group staff by role
@@ -103,7 +104,21 @@ export function StaffList({ staff, managers, managerId, onReassign, onToggleStat
                       </span>
                     </div>
 
-                    {/* Reassign */}
+                    {/* Actions Group */}
+                    <div className="flex items-center gap-2">
+                      {/* Edit */}
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(member)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E5E7EB] transition-all duration-200 hover:bg-[#FAFAFA]"
+                          style={{ color: "#374151" }}
+                          aria-label={`Edit ${member.fullName}`}
+                        >
+                          Sửa
+                        </button>
+                      )}
+
+                      {/* Reassign */}
                     {otherManagers.length > 0 && (
                       <button
                         onClick={() => onReassign(member)}
@@ -137,6 +152,7 @@ export function StaffList({ staff, managers, managerId, onReassign, onToggleStat
                         )}
                       </button>
                     )}
+                    </div>
                   </div>
                 );
               })}

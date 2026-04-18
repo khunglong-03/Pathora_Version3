@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   adminService,
   type CreateStaffRequest,
+  type UpdateStaffRequest,
   type TourManagerSummary,
 } from "@/api/services/adminService";
 import {
@@ -19,7 +20,9 @@ import { StaffDetailPanel } from "./components/StaffDetailPanel";
 import { StaffReassignModal } from "@/features/dashboard/components/StaffReassignModal";
 import { AssignExistingModal } from "@/features/dashboard/components/AssignExistingModal";
 import { CreateStaffModal } from "@/features/dashboard/components/CreateStaffModal";
+import { UpdateStaffModal } from "@/features/dashboard/components/UpdateStaffModal";
 import { TeamAssignmentModal } from "./components/TeamAssignmentModal";
+import { logToServer } from "./actions";
 
 export default function TourManagersPage() {
   const [managers, setManagers] = useState<TourManagerSummary[]>([]);
@@ -37,6 +40,9 @@ export default function TourManagersPage() {
 
   // Create staff modal
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Update staff modal
+  const [staffToUpdate, setStaffToUpdate] = useState<StaffMemberDto | null>(null);
 
   // Team assignment modal
   const [teamAssignModalOpen, setTeamAssignModalOpen] = useState(false);
@@ -129,15 +135,36 @@ export default function TourManagersPage() {
     setCreateModalOpen(false);
   };
 
+  const handleUpdateStaff = async (data: UpdateStaffRequest) => {
+    if (!selectedManagerId || !staffToUpdate) return;
+    await adminService.updateStaffUnderManager(selectedManagerId, staffToUpdate.id, data);
+    setReloadToken((t) => t + 1);
+    void loadStaff();
+    setStaffToUpdate(null);
+  };
+
   const handleToggleStatus = async (staffMember: StaffMemberDto) => {
-    const newStatus = staffMember.status === "Active" ? "Inactive" : "Active";
-    const result = await userService.updateStatus({
-      userId: staffMember.id,
-      newStatus,
-    });
-    if (result && typeof result === "object" && "success" in result && result.success) {
+    const isCurrentlyActive = staffMember.status === "Active";
+    const actionText = isCurrentlyActive ? "KHÓA" : "MỞ KHÓA";
+    
+    if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản của nhân viên "${staffMember.fullName}" không?`)) {
+      return;
+    }
+
+    try {
+      const newStatus = isCurrentlyActive ? "Inactive" : "Active";
+      
+      console.log("Toggle user status payload:", { userId: staffMember.id, newStatus });
+      await logToServer("Toggle user status payload:", { userId: staffMember.id, newStatus });
+      
+      await userService.updateStatus({
+        userId: staffMember.id,
+        newStatus,
+      });
       setReloadToken((t) => t + 1);
       void loadStaff();
+    } catch (error) {
+      console.error("Failed to toggle user status:", error);
     }
   };
 
@@ -205,6 +232,7 @@ export default function TourManagersPage() {
                 staff={staff}
                 managers={managers}
                 onToggleStatus={handleToggleStatus}
+                onEdit={(staffMember) => setStaffToUpdate(staffMember)}
               />
             </div>
 
@@ -251,6 +279,13 @@ export default function TourManagersPage() {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateStaff}
+      />
+
+      <UpdateStaffModal
+        isOpen={!!staffToUpdate}
+        onClose={() => setStaffToUpdate(null)}
+        onSubmit={handleUpdateStaff}
+        staffData={staffToUpdate}
       />
 
       {selectedManager && (

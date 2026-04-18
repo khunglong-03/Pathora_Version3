@@ -13,6 +13,7 @@ interface StaffDetailPanelProps {
   staff: StaffMemberDto[];
   managers: TourManagerSummary[];
   onToggleStatus?: (staff: StaffMemberDto) => void;
+  onEdit?: (staff: StaffMemberDto) => void;
 }
 
 function getInitials(name: string): string {
@@ -28,6 +29,7 @@ export function StaffDetailPanel({
   staff,
   managers,
   onToggleStatus,
+  onEdit,
 }: StaffDetailPanelProps) {
   // Loading state
   if (isLoading) {
@@ -104,6 +106,7 @@ export function StaffDetailPanel({
           managerId={manager.managerId}
           onReassign={() => {}}
           onToggleStatus={onToggleStatus}
+          onEdit={onEdit}
         />
       </div>
     </div>

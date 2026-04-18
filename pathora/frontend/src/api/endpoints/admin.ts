@@ -95,6 +95,7 @@ export interface AdminEndpoints {
   REASSIGN_STAFF: (managerId: string, staffId: string) => string;
   GET_DASHBOARD_OVERVIEW: string;
   CREATE_STAFF_UNDER_MANAGER: (managerId: string) => string;
+  UPDATE_STAFF_UNDER_MANAGER: (managerId: string, staffId: string) => string;
   GET_ALL_MANAGERS: string;
   GET_MANAGERS_BANK_ACCOUNTS: string;
   UPDATE_MANAGER_BANK_ACCOUNT: (managerId: string) => string;
@@ -218,6 +219,8 @@ export const ADMIN: AdminEndpoints = {
   GET_DASHBOARD_OVERVIEW: "/api/admin/dashboard/overview",
   CREATE_STAFF_UNDER_MANAGER: (managerId: string): string =>
     `/api/admin/tour-managers/${managerId}/staff/create`,
+  UPDATE_STAFF_UNDER_MANAGER: (managerId: string, staffId: string): string =>
+    `/api/admin/tour-managers/${managerId}/staff/${staffId}/update`,
   GET_ALL_MANAGERS: "/api/admin/managers",
   GET_MANAGERS_BANK_ACCOUNTS: "/api/admin/managers/bank-accounts",
   UPDATE_MANAGER_BANK_ACCOUNT: (managerId: string): string =>

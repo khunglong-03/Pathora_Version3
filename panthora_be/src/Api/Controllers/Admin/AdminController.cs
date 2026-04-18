@@ -4,6 +4,7 @@ using Application.Contracts.Admin;
 using Application.Features.Admin.Commands.UpdateBankAccount;
 using Application.Features.Admin.Commands.VerifyBankAccount;
 using Application.Features.Admin.Commands.CreateStaffUnderManager;
+using Application.Features.Admin.Commands.UpdateStaffUnderManager;
 using Application.Features.Admin.Commands.ReassignStaff;
 using Application.Features.Admin.Queries;
 using Application.Features.Admin.Queries.GetAllManagerUsers;
@@ -115,6 +116,13 @@ public class AdminController : BaseApiController
     public async Task<IActionResult> CreateStaffUnderManager(Guid managerId, [FromBody] CreateStaffUnderManagerRequest request)
     {
         var result = await Sender.Send(new CreateStaffUnderManagerCommand(managerId, request));
+        return HandleResult(result);
+    }
+
+    [HttpPut(AdminEndpoint.UpdateStaffUnderManager)]
+    public async Task<IActionResult> UpdateStaffUnderManager(Guid managerId, Guid staffId, [FromBody] UpdateStaffUnderManagerRequest request)
+    {
+        var result = await Sender.Send(new UpdateStaffUnderManagerCommand(managerId, staffId, request));
         return HandleResult(result);
     }
 

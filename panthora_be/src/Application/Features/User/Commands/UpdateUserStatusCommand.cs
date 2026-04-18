@@ -37,6 +37,8 @@ public sealed class UpdateUserStatusCommandHandler(
         user.LastModifiedBy = "admin";
         user.LastModifiedOnUtc = DateTimeOffset.UtcNow;
 
+        userRepository.Update(user);
+
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         logger.LogInformation(

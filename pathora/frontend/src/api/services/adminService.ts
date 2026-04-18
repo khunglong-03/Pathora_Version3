@@ -66,6 +66,13 @@ export interface CreateStaffRequest {
   fullName: string;
 }
 
+export interface UpdateStaffRequest {
+  staffType: 1 | 2;
+  email: string;
+  fullName: string;
+  password?: string;
+}
+
 export const adminService = {
   getOverview: async () => {
     const response = await api.get<ApiResponse<AdminOverview>>(
@@ -152,6 +159,14 @@ export const adminService = {
   createStaffUnderManager: async (managerId: string, data: CreateStaffRequest) => {
     const response = await api.post<ApiResponse<StaffMemberDto>>(
       API_ENDPOINTS.ADMIN.CREATE_STAFF_UNDER_MANAGER(managerId),
+      data,
+    );
+    return extractResult<StaffMemberDto>(response.data);
+  },
+
+  updateStaffUnderManager: async (managerId: string, staffId: string, data: UpdateStaffRequest) => {
+    const response = await api.put<ApiResponse<StaffMemberDto>>(
+      API_ENDPOINTS.ADMIN.UPDATE_STAFF_UNDER_MANAGER(managerId, staffId),
       data,
     );
     return extractResult<StaffMemberDto>(response.data);
