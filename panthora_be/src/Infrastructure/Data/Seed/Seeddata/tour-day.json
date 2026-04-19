@@ -7,8 +7,14 @@
     "Description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 1: Khởi Hành - Tokyo", "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo." },
-      "en": { "title": "Day 1: Departure - Tokyo", "description": "Passengers gather at Tan Son Nhat airport, check-in and depart for Tokyo." }
+      "vi": {
+        "title": "Ngày 1: Khởi Hành - Tokyo",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo."
+      },
+      "en": {
+        "title": "Day 1: Departure - Tokyo",
+        "description": "Passengers gather at Tan Son Nhat airport, check-in and depart for Tokyo."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -23,8 +29,14 @@
     "Description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 2: Tokyo - Asakusa - Shibuya", "description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower." },
-      "en": { "title": "Day 2: Tokyo - Asakusa - Shibuya", "description": "Visit Asakusa Temple, stroll through Shibuya district and see Tokyo Tower." }
+      "vi": {
+        "title": "Ngày 2: Tokyo - Asakusa - Shibuya",
+        "description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower."
+      },
+      "en": {
+        "title": "Day 2: Tokyo - Asakusa - Shibuya",
+        "description": "Visit Asakusa Temple, stroll through Shibuya district and see Tokyo Tower."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -39,8 +51,14 @@
     "Description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 3: Núi Phú Sĩ - Hakone", "description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone." },
-      "en": { "title": "Day 3: Mt. Fuji - Hakone", "description": "View Mt. Fuji from Gotemba, experience Hakone hot springs." }
+      "vi": {
+        "title": "Ngày 3: Núi Phú Sĩ - Hakone",
+        "description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone."
+      },
+      "en": {
+        "title": "Day 3: Mt. Fuji - Hakone",
+        "description": "View Mt. Fuji from Gotemba, experience Hakone hot springs."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -55,8 +73,14 @@
     "Description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama", "description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama." },
-      "en": { "title": "Day 4: Kyoto - Fushimi Inari - Arashiyama", "description": "Travel to Kyoto, visit Fushimi Inari Shrine with thousands of torii gates, Arashiyama bamboo forest." }
+      "vi": {
+        "title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama",
+        "description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama."
+      },
+      "en": {
+        "title": "Day 4: Kyoto - Fushimi Inari - Arashiyama",
+        "description": "Travel to Kyoto, visit Fushimi Inari Shrine with thousands of torii gates, Arashiyama bamboo forest."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -71,8 +95,14 @@
     "Description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 5: Osaka - Dotonbori - Umeda", "description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building." },
-      "en": { "title": "Day 5: Osaka - Dotonbori - Umeda", "description": "Explore Osaka: Dotonbori district, Osaka Castle, Umeda Sky Building." }
+      "vi": {
+        "title": "Ngày 5: Osaka - Dotonbori - Umeda",
+        "description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building."
+      },
+      "en": {
+        "title": "Day 5: Osaka - Dotonbori - Umeda",
+        "description": "Explore Osaka: Dotonbori district, Osaka Castle, Umeda Sky Building."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -87,8 +117,14 @@
     "Description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 6: Trở Về", "description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM." },
-      "en": { "title": "Day 6: Return", "description": "Transfer to Kansai airport, check-in and return to Ho Chi Minh City." }
+      "vi": {
+        "title": "Ngày 6: Trở Về",
+        "description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM."
+      },
+      "en": {
+        "title": "Day 6: Return",
+        "description": "Transfer to Kansai airport, check-in and return to Ho Chi Minh City."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -103,8 +139,14 @@
     "Description": "Khởi hành từ TP.HCM đến Seoul.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 1: Khởi Hành - Seoul", "description": "Khởi hành từ TP.HCM đến Seoul." },
-      "en": { "title": "Day 1: Departure - Seoul", "description": "Depart from Ho Chi Minh City to Seoul." }
+      "vi": {
+        "title": "Ngày 1: Khởi Hành - Seoul",
+        "description": "Khởi hành từ TP.HCM đến Seoul."
+      },
+      "en": {
+        "title": "Day 1: Departure - Seoul",
+        "description": "Depart from Ho Chi Minh City to Seoul."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -119,8 +161,14 @@
     "Description": "Tham quan cung điện Gyeongbokgung, khu phố mua sắm Myeongdong.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 2: Seoul - Gyeongbokgung - Myeongdong", "description": "Tham quan cung điện Gyeongbokgung, khu phố mua sắm Myeongdong." },
-      "en": { "title": "Day 2: Seoul - Gyeongbokgung - Myeongdong", "description": "Visit Gyeongbokgung Palace, Myeongdong shopping district." }
+      "vi": {
+        "title": "Ngày 2: Seoul - Gyeongbokgung - Myeongdong",
+        "description": "Tham quan cung điện Gyeongbokgung, khu phố mua sắm Myeongdong."
+      },
+      "en": {
+        "title": "Day 2: Seoul - Gyeongbokgung - Myeongdong",
+        "description": "Visit Gyeongbokgung Palace, Myeongdong shopping district."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -135,8 +183,14 @@
     "Description": "Tham quan đảo Nami, trải nghiệm K-star Road và Gangnam.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 3: Nami Island - Seoul", "description": "Tham quan đảo Nami, trải nghiệm K-star Road và Gangnam." },
-      "en": { "title": "Day 3: Nami Island - Seoul", "description": "Visit Nami Island, experience K-star Road and Gangnam." }
+      "vi": {
+        "title": "Ngày 3: Nami Island - Seoul",
+        "description": "Tham quan đảo Nami, trải nghiệm K-star Road và Gangnam."
+      },
+      "en": {
+        "title": "Day 3: Nami Island - Seoul",
+        "description": "Visit Nami Island, experience K-star Road and Gangnam."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -151,8 +205,14 @@
     "Description": "Di chuyển đến Busan, tham quan bãi biển Haeundae, làng văn hóa Gamcheon.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 4: Busan - Haeundae - Gamcheon", "description": "Di chuyển đến Busan, tham quan bãi biển Haeundae, làng văn hóa Gamcheon." },
-      "en": { "title": "Day 4: Busan - Haeundae - Gamcheon", "description": "Travel to Busan, visit Haeundae Beach, Gamcheon Culture Village." }
+      "vi": {
+        "title": "Ngày 4: Busan - Haeundae - Gamcheon",
+        "description": "Di chuyển đến Busan, tham quan bãi biển Haeundae, làng văn hóa Gamcheon."
+      },
+      "en": {
+        "title": "Day 4: Busan - Haeundae - Gamcheon",
+        "description": "Travel to Busan, visit Haeundae Beach, Gamcheon Culture Village."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -167,8 +227,14 @@
     "Description": "Di chuyển ra sân bay Incheon, trở về TP.HCM.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 5: Trở Về", "description": "Di chuyển ra sân bay Incheon, trở về TP.HCM." },
-      "en": { "title": "Day 5: Return", "description": "Transfer to Incheon airport, return to Ho Chi Minh City." }
+      "vi": {
+        "title": "Ngày 5: Trở Về",
+        "description": "Di chuyển ra sân bay Incheon, trở về TP.HCM."
+      },
+      "en": {
+        "title": "Day 5: Return",
+        "description": "Transfer to Incheon airport, return to Ho Chi Minh City."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -183,8 +249,14 @@
     "Description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển", "description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê." },
-      "en": { "title": "Day 1: Da Nang - Marble Mountains - Beach", "description": "Arrive in Da Nang, visit Marble Mountains, relax at My Khe Beach." }
+      "vi": {
+        "title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển",
+        "description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê."
+      },
+      "en": {
+        "title": "Day 1: Da Nang - Marble Mountains - Beach",
+        "description": "Arrive in Da Nang, visit Marble Mountains, relax at My Khe Beach."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -199,8 +271,14 @@
     "Description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 2: Hội An - Cổ Phố", "description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu." },
-      "en": { "title": "Day 2: Hoi An - Ancient Town", "description": "Visit Hoi An Ancient Town, Japanese Covered Bridge, Assembly Hall." }
+      "vi": {
+        "title": "Ngày 2: Hội An - Cổ Phố",
+        "description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu."
+      },
+      "en": {
+        "title": "Day 2: Hoi An - Ancient Town",
+        "description": "Visit Hoi An Ancient Town, Japanese Covered Bridge, Assembly Hall."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -215,8 +293,322 @@
     "Description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về.",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về", "description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về." },
-      "en": { "title": "Day 3: Son Tra Peninsula - Return", "description": "Visit Son Tra Peninsula, see Lady Buddha statue, return." }
+      "vi": {
+        "title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về",
+        "description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về."
+      },
+      "en": {
+        "title": "Day 3: Son Tra Peninsula - Return",
+        "description": "Visit Son Tra Peninsula, see Lady Buddha statue, return."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000050",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 1,
+    "Title": "Ngày 1: Khởi Hành - Tokyo",
+    "Description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 1: Khởi Hành - Tokyo",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in và khởi hành đến Tokyo."
+      },
+      "en": {
+        "title": "Day 1: Departure - Tokyo",
+        "description": "Passengers gather at Tan Son Nhat airport, check-in and depart for Tokyo."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000051",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 2,
+    "Title": "Ngày 2: Tokyo - Asakusa - Shibuya",
+    "Description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 2: Tokyo - Asakusa - Shibuya",
+        "description": "Thăm chùa Asakusa, tản bộ khu Shibuya và tham quan Tokyo Tower."
+      },
+      "en": {
+        "title": "Day 2: Tokyo - Asakusa - Shibuya",
+        "description": "Visit Asakusa Temple, stroll through Shibuya district and see Tokyo Tower."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000052",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 3,
+    "Title": "Ngày 3: Núi Phú Sĩ - Hakone",
+    "Description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 3: Núi Phú Sĩ - Hakone",
+        "description": "Tham quan núi Phú Sĩ từ điểm quan sát Gotemba, trải nghiệm suối nước nóng Hakone."
+      },
+      "en": {
+        "title": "Day 3: Mt. Fuji - Hakone",
+        "description": "View Mt. Fuji from Gotemba, experience Hakone hot springs."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000053",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 4,
+    "Title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama",
+    "Description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 4: Kyoto - Fushimi Inari - Arashiyama",
+        "description": "Di chuyển đến Kyoto, thăm đền Fushimi Inari hàng ngàn cổng torii, rừng tre Arashiyama."
+      },
+      "en": {
+        "title": "Day 4: Kyoto - Fushimi Inari - Arashiyama",
+        "description": "Travel to Kyoto, visit Fushimi Inari Shrine with thousands of torii gates, Arashiyama bamboo forest."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000054",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 5,
+    "Title": "Ngày 5: Osaka - Dotonbori - Umeda",
+    "Description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 5: Osaka - Dotonbori - Umeda",
+        "description": "Khám phá Osaka: khu phố Dotonbori, lâu đài Osaka, trung tâm Umeda Sky Building."
+      },
+      "en": {
+        "title": "Day 5: Osaka - Dotonbori - Umeda",
+        "description": "Explore Osaka: Dotonbori district, Osaka Castle, Umeda Sky Building."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000055",
+    "ClassificationId": "01952801-0000-7000-8000-000000000002",
+    "DayNumber": 6,
+    "Title": "Ngày 6: Trở Về",
+    "Description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 6: Trở Về",
+        "description": "Di chuyển ra sân bay Kansai, làm thủ tục và trở về TP.HCM."
+      },
+      "en": {
+        "title": "Day 6: Return",
+        "description": "Transfer to Kansai airport, check-in and return to Ho Chi Minh City."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000056",
+    "ClassificationId": "01952801-0000-7000-8000-000000000006",
+    "DayNumber": 1,
+    "Title": "Ngày 1: Khởi Hành - Seoul",
+    "Description": "Khởi hành từ TP.HCM đến Seoul.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 1: Khởi Hành - Seoul",
+        "description": "Khởi hành từ TP.HCM đến Seoul."
+      },
+      "en": {
+        "title": "Day 1: Departure - Seoul",
+        "description": "Depart from Ho Chi Minh City to Seoul."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000057",
+    "ClassificationId": "01952801-0000-7000-8000-000000000006",
+    "DayNumber": 2,
+    "Title": "Ngày 2: Seoul - Gyeongbokgung - Myeongdong",
+    "Description": "Tham quan cung điện Gyeongbokgung, khu phố mua sắm Myeongdong.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 2: Seoul - Gyeongbokgung - Myeongdong",
+        "description": "Tham quan cung điện Gyeongbokgung, khu phố mua sắm Myeongdong."
+      },
+      "en": {
+        "title": "Day 2: Seoul - Gyeongbokgung - Myeongdong",
+        "description": "Visit Gyeongbokgung Palace, Myeongdong shopping district."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000058",
+    "ClassificationId": "01952801-0000-7000-8000-000000000006",
+    "DayNumber": 3,
+    "Title": "Ngày 3: Nami Island - Seoul",
+    "Description": "Tham quan đảo Nami, trải nghiệm K-star Road và Gangnam.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 3: Nami Island - Seoul",
+        "description": "Tham quan đảo Nami, trải nghiệm K-star Road và Gangnam."
+      },
+      "en": {
+        "title": "Day 3: Nami Island - Seoul",
+        "description": "Visit Nami Island, experience K-star Road and Gangnam."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000059",
+    "ClassificationId": "01952801-0000-7000-8000-000000000006",
+    "DayNumber": 4,
+    "Title": "Ngày 4: Busan - Haeundae - Gamcheon",
+    "Description": "Di chuyển đến Busan, tham quan bãi biển Haeundae, làng văn hóa Gamcheon.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 4: Busan - Haeundae - Gamcheon",
+        "description": "Di chuyển đến Busan, tham quan bãi biển Haeundae, làng văn hóa Gamcheon."
+      },
+      "en": {
+        "title": "Day 4: Busan - Haeundae - Gamcheon",
+        "description": "Travel to Busan, visit Haeundae Beach, Gamcheon Culture Village."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000060",
+    "ClassificationId": "01952801-0000-7000-8000-000000000006",
+    "DayNumber": 5,
+    "Title": "Ngày 5: Trở Về",
+    "Description": "Di chuyển ra sân bay Incheon, trở về TP.HCM.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 5: Trở Về",
+        "description": "Di chuyển ra sân bay Incheon, trở về TP.HCM."
+      },
+      "en": {
+        "title": "Day 5: Return",
+        "description": "Transfer to Incheon airport, return to Ho Chi Minh City."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000061",
+    "ClassificationId": "01952801-0000-7000-8000-000000000005",
+    "DayNumber": 1,
+    "Title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển",
+    "Description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 1: Đà Nẵng - Ngũ Hành Sơn - Bãi Biển",
+        "description": "Đến Đà Nẵng, tham quan Ngũ Hành Sơn, tắm biển Mỹ Khê."
+      },
+      "en": {
+        "title": "Day 1: Da Nang - Marble Mountains - Beach",
+        "description": "Arrive in Da Nang, visit Marble Mountains, relax at My Khe Beach."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000062",
+    "ClassificationId": "01952801-0000-7000-8000-000000000005",
+    "DayNumber": 2,
+    "Title": "Ngày 2: Hội An - Cổ Phố",
+    "Description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 2: Hội An - Cổ Phố",
+        "description": "Tham quan phố cổ Hội An, cầu Châu Pa, chùa Cầu."
+      },
+      "en": {
+        "title": "Day 2: Hoi An - Ancient Town",
+        "description": "Visit Hoi An Ancient Town, Japanese Covered Bridge, Assembly Hall."
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952802-0000-7000-8000-000000000063",
+    "ClassificationId": "01952801-0000-7000-8000-000000000005",
+    "DayNumber": 3,
+    "Title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về",
+    "Description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về.",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngày 3: Bán Đảo Sơn Trà - Trở Về",
+        "description": "Tham quan bán đảo Sơn Trà, ngắm tượng Quan Thế Âm, trở về."
+      },
+      "en": {
+        "title": "Day 3: Son Tra Peninsula - Return",
+        "description": "Visit Son Tra Peninsula, see Lady Buddha statue, return."
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",

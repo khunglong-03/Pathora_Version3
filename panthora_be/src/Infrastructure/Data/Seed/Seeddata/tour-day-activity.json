@@ -12,8 +12,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Khởi hành từ TP.HCM", "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines" },
-      "en": { "title": "Depart from Ho Chi Minh City", "description": "Passengers gather at Tan Son Nhat airport for check-in.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines" }
+      "vi": {
+        "title": "Khởi hành từ TP.HCM",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines"
+      },
+      "en": {
+        "title": "Depart from Ho Chi Minh City",
+        "description": "Passengers gather at Tan Son Nhat airport for check-in.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -33,8 +45,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Bay đến Tokyo Narita", "description": "Chuyến bay từ TP.HCM đến Tokyo Narita, thời gian bay khoảng 6 giờ.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN300" },
-      "en": { "title": "Fly to Tokyo Narita", "description": "Flight from Ho Chi Minh City to Tokyo Narita, approximately 6 hours.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN300" }
+      "vi": {
+        "title": "Bay đến Tokyo Narita",
+        "description": "Chuyến bay từ TP.HCM đến Tokyo Narita, thời gian bay khoảng 6 giờ.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN300"
+      },
+      "en": {
+        "title": "Fly to Tokyo Narita",
+        "description": "Flight from Ho Chi Minh City to Tokyo Narita, approximately 6 hours.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN300"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -54,8 +78,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Nhận phòng khách sạn Tokyo", "description": "Di chuyển về khách sạn, nhận phòng và nghỉ ngơi.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón khách sạn" },
-      "en": { "title": "Check-in Tokyo Hotel", "description": "Transfer to hotel, check-in and rest.", "note": null, "transportationType": "Bus", "transportationName": "Hotel Shuttle" }
+      "vi": {
+        "title": "Nhận phòng khách sạn Tokyo",
+        "description": "Di chuyển về khách sạn, nhận phòng và nghỉ ngơi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón khách sạn"
+      },
+      "en": {
+        "title": "Check-in Tokyo Hotel",
+        "description": "Transfer to hotel, check-in and rest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Hotel Shuttle"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -75,8 +111,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Thăm chùa Asakusa", "description": "Tham quan ngôi đền cổ nhất Tokyo, khu vực cổng Kaminarimon nổi tiếng.", "note": null, "transportationType": "Tàu điện", "transportationName": "Tokyo Metro" },
-      "en": { "title": "Visit Asakusa Temple", "description": "Visit Tokyo's oldest temple and the famous Kaminarimon gate.", "note": null, "transportationType": "Train", "transportationName": "Tokyo Metro" }
+      "vi": {
+        "title": "Thăm chùa Asakusa",
+        "description": "Tham quan ngôi đền cổ nhất Tokyo, khu vực cổng Kaminarimon nổi tiếng.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro"
+      },
+      "en": {
+        "title": "Visit Asakusa Temple",
+        "description": "Visit Tokyo's oldest temple and the famous Kaminarimon gate.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -96,8 +144,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ăn trưa tại nhà hàng địa phương", "description": "Thưởng thức ẩm thực Nhật Bản địa phương.", "note": null, "transportationType": null, "transportationName": null },
-      "en": { "title": "Lunch at Local Restaurant", "description": "Enjoy local Japanese cuisine.", "note": null, "transportationType": null, "transportationName": null }
+      "vi": {
+        "title": "Ăn trưa tại nhà hàng địa phương",
+        "description": "Thưởng thức ẩm thực Nhật Bản địa phương.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Lunch at Local Restaurant",
+        "description": "Enjoy local Japanese cuisine.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -117,8 +177,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tham quan Tokyo Tower", "description": "Ngắm toàn cảnh Tokyo từ đài quan sát Tokyo Tower.", "note": null, "transportationType": "Tàu điện", "transportationName": "Tokyo Metro" },
-      "en": { "title": "Visit Tokyo Tower", "description": "Panoramic view of Tokyo from Tokyo Tower observation deck.", "note": null, "transportationType": "Train", "transportationName": "Tokyo Metro" }
+      "vi": {
+        "title": "Tham quan Tokyo Tower",
+        "description": "Ngắm toàn cảnh Tokyo từ đài quan sát Tokyo Tower.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro"
+      },
+      "en": {
+        "title": "Visit Tokyo Tower",
+        "description": "Panoramic view of Tokyo from Tokyo Tower observation deck.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -138,8 +210,20 @@
     "IsOptional": true,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tự do mua sắm tại Shibuya", "description": "Thời gian tự do khám phá và mua sắm tại khu Shibuya.", "note": null, "transportationType": "Đi bộ", "transportationName": null },
-      "en": { "title": "Free time shopping at Shibuya", "description": "Free time to explore and shop at Shibuya.", "note": null, "transportationType": "Walking", "transportationName": null }
+      "vi": {
+        "title": "Tự do mua sắm tại Shibuya",
+        "description": "Thời gian tự do khám phá và mua sắm tại khu Shibuya.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Free time shopping at Shibuya",
+        "description": "Free time to explore and shop at Shibuya.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -159,8 +243,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ngắm núi Phú Sĩ từ Gotemba", "description": "Di chuyển đến điểm quan sát Gotemba, ngắm núi Phú Sĩ.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "View Mt. Fuji from Gotemba", "description": "Travel to Gotemba viewpoint for Mt. Fuji views.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Ngắm núi Phú Sĩ từ Gotemba",
+        "description": "Di chuyển đến điểm quan sát Gotemba, ngắm núi Phú Sĩ.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "View Mt. Fuji from Gotemba",
+        "description": "Travel to Gotemba viewpoint for Mt. Fuji views.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -180,8 +276,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tắm suối nước nóng Hakone", "description": "Trải nghiệm suối nước nóng truyền thống Hakone.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "Hakone Hot Springs Experience", "description": "Traditional Hakone hot springs experience.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Tắm suối nước nóng Hakone",
+        "description": "Trải nghiệm suối nước nóng truyền thống Hakone.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Hakone Hot Springs Experience",
+        "description": "Traditional Hakone hot springs experience.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -201,8 +309,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Đền Fushimi Inari", "description": "Thăm đền Fushimi Inari với hàng ngàn cổng torii đỏ rực.", "note": null, "transportationType": "Tàu điện", "transportationName": "JR Kyoto Line" },
-      "en": { "title": "Fushimi Inari Shrine", "description": "Visit Fushimi Inari Shrine with thousands of red torii gates.", "note": null, "transportationType": "Train", "transportationName": "JR Kyoto Line" }
+      "vi": {
+        "title": "Đền Fushimi Inari",
+        "description": "Thăm đền Fushimi Inari với hàng ngàn cổng torii đỏ rực.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "JR Kyoto Line"
+      },
+      "en": {
+        "title": "Fushimi Inari Shrine",
+        "description": "Visit Fushimi Inari Shrine with thousands of red torii gates.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "JR Kyoto Line"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -222,8 +342,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Rừng tre Arashiyama", "description": "Dạo bộ trong rừng tre cổ xưa Arashiyama.", "note": null, "transportationType": "Xe buýt", "transportationName": "Kyoto Bus" },
-      "en": { "title": "Arashiyama Bamboo Grove", "description": "Stroll through the ancient Arashiyama bamboo forest.", "note": null, "transportationType": "Bus", "transportationName": "Kyoto Bus" }
+      "vi": {
+        "title": "Rừng tre Arashiyama",
+        "description": "Dạo bộ trong rừng tre cổ xưa Arashiyama.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Kyoto Bus"
+      },
+      "en": {
+        "title": "Arashiyama Bamboo Grove",
+        "description": "Stroll through the ancient Arashiyama bamboo forest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Kyoto Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -243,8 +375,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Lâu đài Osaka", "description": "Tham quan lâu đài Osaka lịch sử.", "note": null, "transportationType": "Tàu điện", "transportationName": "JR Osaka Loop Line" },
-      "en": { "title": "Osaka Castle", "description": "Visit the historic Osaka Castle.", "note": null, "transportationType": "Train", "transportationName": "JR Osaka Loop Line" }
+      "vi": {
+        "title": "Lâu đài Osaka",
+        "description": "Tham quan lâu đài Osaka lịch sử.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "JR Osaka Loop Line"
+      },
+      "en": {
+        "title": "Osaka Castle",
+        "description": "Visit the historic Osaka Castle.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "JR Osaka Loop Line"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -264,8 +408,20 @@
     "IsOptional": true,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Khám phá Dotonbori", "description": "Tự do khám phá khu phố ẩm thực nổi tiếng Dotonbori.", "note": null, "transportationType": "Đi bộ", "transportationName": null },
-      "en": { "title": "Explore Dotonbori", "description": "Free time to explore the famous Dotonbori food district.", "note": null, "transportationType": "Walking", "transportationName": null }
+      "vi": {
+        "title": "Khám phá Dotonbori",
+        "description": "Tự do khám phá khu phố ẩm thực nổi tiếng Dotonbori.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Explore Dotonbori",
+        "description": "Free time to explore the famous Dotonbori food district.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -285,8 +441,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Di chuyển ra sân bay Kansai", "description": "Làm thủ tục check-out và di chuyển ra sân bay Kansai.", "note": null, "transportationType": "Xe buýt", "transportationName": "Airport Limousine Bus" },
-      "en": { "title": "Transfer to Kansai Airport", "description": "Check-out and transfer to Kansai Airport.", "note": null, "transportationType": "Bus", "transportationName": "Airport Limousine Bus" }
+      "vi": {
+        "title": "Di chuyển ra sân bay Kansai",
+        "description": "Làm thủ tục check-out và di chuyển ra sân bay Kansai.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Airport Limousine Bus"
+      },
+      "en": {
+        "title": "Transfer to Kansai Airport",
+        "description": "Check-out and transfer to Kansai Airport.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Airport Limousine Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -306,8 +474,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Chuyến bay về TP.HCM", "description": "Chuyến bay từ Osaka Kansai về TP.HCM, kết thúc hành trình.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN301" },
-      "en": { "title": "Flight back to Ho Chi Minh City", "description": "Flight from Osaka Kansai to Ho Chi Minh City, end of journey.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN301" }
+      "vi": {
+        "title": "Chuyến bay về TP.HCM",
+        "description": "Chuyến bay từ Osaka Kansai về TP.HCM, kết thúc hành trình.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN301"
+      },
+      "en": {
+        "title": "Flight back to Ho Chi Minh City",
+        "description": "Flight from Osaka Kansai to Ho Chi Minh City, end of journey.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN301"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -327,8 +507,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Khởi hành từ TP.HCM", "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in đến Seoul.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines" },
-      "en": { "title": "Depart from Ho Chi Minh City", "description": "Passengers gather at Tan Son Nhat airport for check-in to Seoul.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines" }
+      "vi": {
+        "title": "Khởi hành từ TP.HCM",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in đến Seoul.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines"
+      },
+      "en": {
+        "title": "Depart from Ho Chi Minh City",
+        "description": "Passengers gather at Tan Son Nhat airport for check-in to Seoul.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -348,8 +540,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Bay đến Seoul Incheon", "description": "Chuyến bay từ TP.HCM đến Seoul Incheon, thời gian bay khoảng 5 giờ.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN400" },
-      "en": { "title": "Fly to Seoul Incheon", "description": "Flight from Ho Chi Minh City to Seoul Incheon, approximately 5 hours.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN400" }
+      "vi": {
+        "title": "Bay đến Seoul Incheon",
+        "description": "Chuyến bay từ TP.HCM đến Seoul Incheon, thời gian bay khoảng 5 giờ.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN400"
+      },
+      "en": {
+        "title": "Fly to Seoul Incheon",
+        "description": "Flight from Ho Chi Minh City to Seoul Incheon, approximately 5 hours.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN400"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -369,8 +573,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Nhận phòng khách sạn Seoul", "description": "Di chuyển về khách sạn tại Seoul, nhận phòng và nghỉ ngơi.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón khách sạn" },
-      "en": { "title": "Check-in Seoul Hotel", "description": "Transfer to Seoul hotel, check-in and rest.", "note": null, "transportationType": "Bus", "transportationName": "Hotel Shuttle" }
+      "vi": {
+        "title": "Nhận phòng khách sạn Seoul",
+        "description": "Di chuyển về khách sạn tại Seoul, nhận phòng và nghỉ ngơi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón khách sạn"
+      },
+      "en": {
+        "title": "Check-in Seoul Hotel",
+        "description": "Transfer to Seoul hotel, check-in and rest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Hotel Shuttle"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -390,8 +606,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tham quan cung điện Gyeongbokgung", "description": "Tham quan cung điện Gyeongbokgung, trải nghiệm mặc Hanbok truyền thống.", "note": null, "transportationType": "Tàu điện", "transportationName": "Seoul Metro Line 3" },
-      "en": { "title": "Visit Gyeongbokgung Palace", "description": "Visit Gyeongbokgung Palace, experience wearing traditional Hanbok.", "note": null, "transportationType": "Train", "transportationName": "Seoul Metro Line 3" }
+      "vi": {
+        "title": "Tham quan cung điện Gyeongbokgung",
+        "description": "Tham quan cung điện Gyeongbokgung, trải nghiệm mặc Hanbok truyền thống.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Seoul Metro Line 3"
+      },
+      "en": {
+        "title": "Visit Gyeongbokgung Palace",
+        "description": "Visit Gyeongbokgung Palace, experience wearing traditional Hanbok.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Seoul Metro Line 3"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -411,8 +639,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ăn trưa ẩm thực Hàn Quốc", "description": "Thưởng thức bibimbap và các món ăn truyền thống Hàn Quốc.", "note": null, "transportationType": null, "transportationName": null },
-      "en": { "title": "Korean Cuisine Lunch", "description": "Enjoy bibimbap and traditional Korean dishes.", "note": null, "transportationType": null, "transportationName": null }
+      "vi": {
+        "title": "Ăn trưa ẩm thực Hàn Quốc",
+        "description": "Thưởng thức bibimbap và các món ăn truyền thống Hàn Quốc.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Korean Cuisine Lunch",
+        "description": "Enjoy bibimbap and traditional Korean dishes.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -432,8 +672,20 @@
     "IsOptional": true,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Mua sắm tại Myeongdong", "description": "Tự do mua sắm mỹ phẩm, thời trang và thưởng thức street food tại Myeongdong.", "note": null, "transportationType": "Đi bộ", "transportationName": null },
-      "en": { "title": "Shopping at Myeongdong", "description": "Free time for cosmetics, fashion shopping and street food at Myeongdong.", "note": null, "transportationType": "Walking", "transportationName": null }
+      "vi": {
+        "title": "Mua sắm tại Myeongdong",
+        "description": "Tự do mua sắm mỹ phẩm, thời trang và thưởng thức street food tại Myeongdong.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Shopping at Myeongdong",
+        "description": "Free time for cosmetics, fashion shopping and street food at Myeongdong.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -453,8 +705,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tham quan đảo Nami", "description": "Tham quan đảo Nami nổi tiếng từ phim Bản Tình Ca Mùa Đông, chụp ảnh con đường cây.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "Visit Nami Island", "description": "Visit Nami Island famous from Winter Sonata drama, photograph the tree-lined paths.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Tham quan đảo Nami",
+        "description": "Tham quan đảo Nami nổi tiếng từ phim Bản Tình Ca Mùa Đông, chụp ảnh con đường cây.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Nami Island",
+        "description": "Visit Nami Island famous from Winter Sonata drama, photograph the tree-lined paths.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -474,8 +738,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "K-star Road và Gangnam", "description": "Khám phá K-star Road với các tượng gấu K-pop, tản bộ khu Gangnam thời thượng.", "note": null, "transportationType": "Tàu điện", "transportationName": "Seoul Metro" },
-      "en": { "title": "K-star Road & Gangnam", "description": "Explore K-star Road with K-pop bear statues, stroll through trendy Gangnam district.", "note": null, "transportationType": "Train", "transportationName": "Seoul Metro" }
+      "vi": {
+        "title": "K-star Road và Gangnam",
+        "description": "Khám phá K-star Road với các tượng gấu K-pop, tản bộ khu Gangnam thời thượng.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Seoul Metro"
+      },
+      "en": {
+        "title": "K-star Road & Gangnam",
+        "description": "Explore K-star Road with K-pop bear statues, stroll through trendy Gangnam district.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Seoul Metro"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -495,8 +771,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Di chuyển đến Busan bằng KTX", "description": "Đi tàu cao tốc KTX từ Seoul đến Busan, thời gian khoảng 2.5 giờ.", "note": null, "transportationType": "Tàu cao tốc", "transportationName": "KTX" },
-      "en": { "title": "Travel to Busan by KTX", "description": "Take KTX high-speed train from Seoul to Busan, approximately 2.5 hours.", "note": null, "transportationType": "High-speed Train", "transportationName": "KTX" }
+      "vi": {
+        "title": "Di chuyển đến Busan bằng KTX",
+        "description": "Đi tàu cao tốc KTX từ Seoul đến Busan, thời gian khoảng 2.5 giờ.",
+        "note": null,
+        "transportationType": "Tàu cao tốc",
+        "transportationName": "KTX"
+      },
+      "en": {
+        "title": "Travel to Busan by KTX",
+        "description": "Take KTX high-speed train from Seoul to Busan, approximately 2.5 hours.",
+        "note": null,
+        "transportationType": "High-speed Train",
+        "transportationName": "KTX"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -516,8 +804,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Bãi biển Haeundae", "description": "Tham quan bãi biển Haeundae nổi tiếng nhất Busan, tản bộ dọc bờ biển.", "note": null, "transportationType": "Tàu điện", "transportationName": "Busan Metro" },
-      "en": { "title": "Haeundae Beach", "description": "Visit Busan's most famous Haeundae Beach, stroll along the coastline.", "note": null, "transportationType": "Train", "transportationName": "Busan Metro" }
+      "vi": {
+        "title": "Bãi biển Haeundae",
+        "description": "Tham quan bãi biển Haeundae nổi tiếng nhất Busan, tản bộ dọc bờ biển.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Busan Metro"
+      },
+      "en": {
+        "title": "Haeundae Beach",
+        "description": "Visit Busan's most famous Haeundae Beach, stroll along the coastline.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Busan Metro"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -537,8 +837,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Làng văn hóa Gamcheon", "description": "Tham quan làng văn hóa Gamcheon với những ngôi nhà sắc màu bậc thang trên đồi.", "note": null, "transportationType": "Xe buýt", "transportationName": "Busan Bus" },
-      "en": { "title": "Gamcheon Culture Village", "description": "Visit Gamcheon Culture Village with colorful terraced houses on the hillside.", "note": null, "transportationType": "Bus", "transportationName": "Busan Bus" }
+      "vi": {
+        "title": "Làng văn hóa Gamcheon",
+        "description": "Tham quan làng văn hóa Gamcheon với những ngôi nhà sắc màu bậc thang trên đồi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Busan Bus"
+      },
+      "en": {
+        "title": "Gamcheon Culture Village",
+        "description": "Visit Gamcheon Culture Village with colorful terraced houses on the hillside.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Busan Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -558,8 +870,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Di chuyển ra sân bay Incheon", "description": "Làm thủ tục check-out và di chuyển từ Busan ra sân bay Incheon.", "note": null, "transportationType": "Máy bay", "transportationName": "Busan Air Shuttle" },
-      "en": { "title": "Transfer to Incheon Airport", "description": "Check-out and transfer from Busan to Incheon Airport.", "note": null, "transportationType": "Airplane", "transportationName": "Busan Air Shuttle" }
+      "vi": {
+        "title": "Di chuyển ra sân bay Incheon",
+        "description": "Làm thủ tục check-out và di chuyển từ Busan ra sân bay Incheon.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Busan Air Shuttle"
+      },
+      "en": {
+        "title": "Transfer to Incheon Airport",
+        "description": "Check-out and transfer from Busan to Incheon Airport.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Busan Air Shuttle"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -579,8 +903,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Chuyến bay về TP.HCM", "description": "Chuyến bay từ Seoul Incheon về TP.HCM, kết thúc hành trình.", "note": null, "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN401" },
-      "en": { "title": "Flight back to Ho Chi Minh City", "description": "Flight from Seoul Incheon to Ho Chi Minh City, end of journey.", "note": null, "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN401" }
+      "vi": {
+        "title": "Chuyến bay về TP.HCM",
+        "description": "Chuyến bay từ Seoul Incheon về TP.HCM, kết thúc hành trình.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN401"
+      },
+      "en": {
+        "title": "Flight back to Ho Chi Minh City",
+        "description": "Flight from Seoul Incheon to Ho Chi Minh City, end of journey.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN401"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -600,8 +936,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tham quan Ngũ Hành Sơn", "description": "Tham quan dãy núi đá vôi Ngũ Hành Sơn, khám phá các hang động và chùa chiền.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "Visit Marble Mountains", "description": "Visit the Marble Mountains limestone range, explore caves and pagodas.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Tham quan Ngũ Hành Sơn",
+        "description": "Tham quan dãy núi đá vôi Ngũ Hành Sơn, khám phá các hang động và chùa chiền.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Marble Mountains",
+        "description": "Visit the Marble Mountains limestone range, explore caves and pagodas.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -621,8 +969,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ăn trưa hải sản Đà Nẵng", "description": "Thưởng thức hải sản tươi sống tại nhà hàng địa phương ven biển.", "note": null, "transportationType": null, "transportationName": null },
-      "en": { "title": "Da Nang Seafood Lunch", "description": "Enjoy fresh seafood at a local beachside restaurant.", "note": null, "transportationType": null, "transportationName": null }
+      "vi": {
+        "title": "Ăn trưa hải sản Đà Nẵng",
+        "description": "Thưởng thức hải sản tươi sống tại nhà hàng địa phương ven biển.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Da Nang Seafood Lunch",
+        "description": "Enjoy fresh seafood at a local beachside restaurant.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -642,8 +1002,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tắm biển Mỹ Khê", "description": "Thư giãn và tắm biển tại bãi biển Mỹ Khê, một trong những bãi biển đẹp nhất thế giới.", "note": null, "transportationType": "Đi bộ", "transportationName": null },
-      "en": { "title": "My Khe Beach", "description": "Relax and swim at My Khe Beach, one of the world's most beautiful beaches.", "note": null, "transportationType": "Walking", "transportationName": null }
+      "vi": {
+        "title": "Tắm biển Mỹ Khê",
+        "description": "Thư giãn và tắm biển tại bãi biển Mỹ Khê, một trong những bãi biển đẹp nhất thế giới.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "My Khe Beach",
+        "description": "Relax and swim at My Khe Beach, one of the world's most beautiful beaches.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -663,8 +1035,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tham quan phố cổ Hội An", "description": "Khám phá phố cổ Hội An, thăm chùa Cầu, hội quán Phúc Kiến và các ngôi nhà cổ.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "Visit Hoi An Ancient Town", "description": "Explore Hoi An Ancient Town, visit Japanese Covered Bridge, Fujian Assembly Hall and ancient houses.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Tham quan phố cổ Hội An",
+        "description": "Khám phá phố cổ Hội An, thăm chùa Cầu, hội quán Phúc Kiến và các ngôi nhà cổ.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Hoi An Ancient Town",
+        "description": "Explore Hoi An Ancient Town, visit Japanese Covered Bridge, Fujian Assembly Hall and ancient houses.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -684,8 +1068,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Ăn trưa đặc sản Hội An", "description": "Thưởng thức cao lầu, mì Quảng và hoành thánh chiên - đặc sản Hội An.", "note": null, "transportationType": null, "transportationName": null },
-      "en": { "title": "Hoi An Specialty Lunch", "description": "Enjoy Cao Lau noodles, Mi Quang and fried wontons - Hoi An specialties.", "note": null, "transportationType": null, "transportationName": null }
+      "vi": {
+        "title": "Ăn trưa đặc sản Hội An",
+        "description": "Thưởng thức cao lầu, mì Quảng và hoành thánh chiên - đặc sản Hội An.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Hoi An Specialty Lunch",
+        "description": "Enjoy Cao Lau noodles, Mi Quang and fried wontons - Hoi An specialties.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -705,8 +1101,20 @@
     "IsOptional": true,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Tự do khám phá Hội An", "description": "Thời gian tự do mua sắm, may đo áo dài và thưởng thức phố cổ về đêm.", "note": null, "transportationType": "Đi bộ", "transportationName": null },
-      "en": { "title": "Free time in Hoi An", "description": "Free time for shopping, tailor-made Ao Dai and enjoying the ancient town at night.", "note": null, "transportationType": "Walking", "transportationName": null }
+      "vi": {
+        "title": "Tự do khám phá Hội An",
+        "description": "Thời gian tự do mua sắm, may đo áo dài và thưởng thức phố cổ về đêm.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Free time in Hoi An",
+        "description": "Free time for shopping, tailor-made Ao Dai and enjoying the ancient town at night.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -726,8 +1134,20 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Bán đảo Sơn Trà và tượng Quan Thế Âm", "description": "Tham quan bán đảo Sơn Trà, chiêm bái tượng Quan Thế Âm cao 67m, ngắm cảnh biển.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón tour" },
-      "en": { "title": "Son Tra Peninsula & Lady Buddha Statue", "description": "Visit Son Tra Peninsula, see the 67m-tall Lady Buddha statue, enjoy ocean views.", "note": null, "transportationType": "Bus", "transportationName": "Tour Bus" }
+      "vi": {
+        "title": "Bán đảo Sơn Trà và tượng Quan Thế Âm",
+        "description": "Tham quan bán đảo Sơn Trà, chiêm bái tượng Quan Thế Âm cao 67m, ngắm cảnh biển.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Son Tra Peninsula & Lady Buddha Statue",
+        "description": "Visit Son Tra Peninsula, see the 67m-tall Lady Buddha statue, enjoy ocean views.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -747,8 +1167,1208 @@
     "IsOptional": false,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "title": "Di chuyển ra sân bay và trở về", "description": "Di chuyển ra sân bay Đà Nẵng, làm thủ tục check-in và trở về.", "note": null, "transportationType": "Xe buýt", "transportationName": "Xe đưa đón sân bay" },
-      "en": { "title": "Transfer to Airport & Return", "description": "Transfer to Da Nang airport, check-in and return.", "note": null, "transportationType": "Bus", "transportationName": "Airport Shuttle" }
+      "vi": {
+        "title": "Di chuyển ra sân bay và trở về",
+        "description": "Di chuyển ra sân bay Đà Nẵng, làm thủ tục check-in và trở về.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón sân bay"
+      },
+      "en": {
+        "title": "Transfer to Airport & Return",
+        "description": "Transfer to Da Nang airport, check-in and return.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Airport Shuttle"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000500",
+    "TourDayId": "01952802-0000-7000-8000-000000000050",
+    "Order": 1,
+    "ActivityType": 7,
+    "Title": "Khởi hành từ TP.HCM",
+    "Description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in.",
+    "StartTime": "07:00:00",
+    "EndTime": "09:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Khởi hành từ TP.HCM",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines"
+      },
+      "en": {
+        "title": "Depart from Ho Chi Minh City",
+        "description": "Passengers gather at Tan Son Nhat airport for check-in.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000501",
+    "TourDayId": "01952802-0000-7000-8000-000000000050",
+    "Order": 2,
+    "ActivityType": 7,
+    "Title": "Bay đến Tokyo Narita",
+    "Description": "Chuyến bay từ TP.HCM đến Tokyo Narita, thời gian bay khoảng 6 giờ.",
+    "StartTime": "10:00:00",
+    "EndTime": "18:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Bay đến Tokyo Narita",
+        "description": "Chuyến bay từ TP.HCM đến Tokyo Narita, thời gian bay khoảng 6 giờ.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN300"
+      },
+      "en": {
+        "title": "Fly to Tokyo Narita",
+        "description": "Flight from Ho Chi Minh City to Tokyo Narita, approximately 6 hours.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN300"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000502",
+    "TourDayId": "01952802-0000-7000-8000-000000000050",
+    "Order": 3,
+    "ActivityType": 8,
+    "Title": "Nhận phòng khách sạn Tokyo",
+    "Description": "Di chuyển về khách sạn, nhận phòng và nghỉ ngơi.",
+    "StartTime": "19:00:00",
+    "EndTime": "21:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Nhận phòng khách sạn Tokyo",
+        "description": "Di chuyển về khách sạn, nhận phòng và nghỉ ngơi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón khách sạn"
+      },
+      "en": {
+        "title": "Check-in Tokyo Hotel",
+        "description": "Transfer to hotel, check-in and rest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Hotel Shuttle"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000503",
+    "TourDayId": "01952802-0000-7000-8000-000000000051",
+    "Order": 1,
+    "ActivityType": 5,
+    "Title": "Thăm chùa Asakusa",
+    "Description": "Tham quan ngôi đền cổ nhất Tokyo, khu vực cổng Kaminarimon nổi tiếng.",
+    "StartTime": "08:00:00",
+    "EndTime": "10:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Thăm chùa Asakusa",
+        "description": "Tham quan ngôi đền cổ nhất Tokyo, khu vực cổng Kaminarimon nổi tiếng.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro"
+      },
+      "en": {
+        "title": "Visit Asakusa Temple",
+        "description": "Visit Tokyo's oldest temple and the famous Kaminarimon gate.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000504",
+    "TourDayId": "01952802-0000-7000-8000-000000000051",
+    "Order": 2,
+    "ActivityType": 1,
+    "Title": "Ăn trưa tại nhà hàng địa phương",
+    "Description": "Thưởng thức ẩm thực Nhật Bản địa phương.",
+    "StartTime": "12:00:00",
+    "EndTime": "13:30:00",
+    "EstimatedCost": 500000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ăn trưa tại nhà hàng địa phương",
+        "description": "Thưởng thức ẩm thực Nhật Bản địa phương.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Lunch at Local Restaurant",
+        "description": "Enjoy local Japanese cuisine.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000505",
+    "TourDayId": "01952802-0000-7000-8000-000000000051",
+    "Order": 3,
+    "ActivityType": 0,
+    "Title": "Tham quan Tokyo Tower",
+    "Description": "Ngắm toàn cảnh Tokyo từ đài quan sát Tokyo Tower.",
+    "StartTime": "14:00:00",
+    "EndTime": "16:00:00",
+    "EstimatedCost": 300000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tham quan Tokyo Tower",
+        "description": "Ngắm toàn cảnh Tokyo từ đài quan sát Tokyo Tower.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro"
+      },
+      "en": {
+        "title": "Visit Tokyo Tower",
+        "description": "Panoramic view of Tokyo from Tokyo Tower observation deck.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000506",
+    "TourDayId": "01952802-0000-7000-8000-000000000051",
+    "Order": 4,
+    "ActivityType": 2,
+    "Title": "Tự do mua sắm tại Shibuya",
+    "Description": "Thời gian tự do khám phá và mua sắm tại khu Shibuya.",
+    "StartTime": "16:30:00",
+    "EndTime": "19:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tự do mua sắm tại Shibuya",
+        "description": "Thời gian tự do khám phá và mua sắm tại khu Shibuya.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Free time shopping at Shibuya",
+        "description": "Free time to explore and shop at Shibuya.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000507",
+    "TourDayId": "01952802-0000-7000-8000-000000000052",
+    "Order": 1,
+    "ActivityType": 4,
+    "Title": "Ngắm núi Phú Sĩ từ Gotemba",
+    "Description": "Di chuyển đến điểm quan sát Gotemba, ngắm núi Phú Sĩ.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ngắm núi Phú Sĩ từ Gotemba",
+        "description": "Di chuyển đến điểm quan sát Gotemba, ngắm núi Phú Sĩ.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "View Mt. Fuji from Gotemba",
+        "description": "Travel to Gotemba viewpoint for Mt. Fuji views.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000508",
+    "TourDayId": "01952802-0000-7000-8000-000000000052",
+    "Order": 2,
+    "ActivityType": 4,
+    "Title": "Tắm suối nước nóng Hakone",
+    "Description": "Trải nghiệm suối nước nóng truyền thống Hakone.",
+    "StartTime": "13:00:00",
+    "EndTime": "16:00:00",
+    "EstimatedCost": 200000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tắm suối nước nóng Hakone",
+        "description": "Trải nghiệm suối nước nóng truyền thống Hakone.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Hakone Hot Springs Experience",
+        "description": "Traditional Hakone hot springs experience.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000509",
+    "TourDayId": "01952802-0000-7000-8000-000000000053",
+    "Order": 1,
+    "ActivityType": 5,
+    "Title": "Đền Fushimi Inari",
+    "Description": "Thăm đền Fushimi Inari với hàng ngàn cổng torii đỏ rực.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Đền Fushimi Inari",
+        "description": "Thăm đền Fushimi Inari với hàng ngàn cổng torii đỏ rực.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "JR Kyoto Line"
+      },
+      "en": {
+        "title": "Fushimi Inari Shrine",
+        "description": "Visit Fushimi Inari Shrine with thousands of red torii gates.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "JR Kyoto Line"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000510",
+    "TourDayId": "01952802-0000-7000-8000-000000000053",
+    "Order": 2,
+    "ActivityType": 4,
+    "Title": "Rừng tre Arashiyama",
+    "Description": "Dạo bộ trong rừng tre cổ xưa Arashiyama.",
+    "StartTime": "13:00:00",
+    "EndTime": "16:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Rừng tre Arashiyama",
+        "description": "Dạo bộ trong rừng tre cổ xưa Arashiyama.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Kyoto Bus"
+      },
+      "en": {
+        "title": "Arashiyama Bamboo Grove",
+        "description": "Stroll through the ancient Arashiyama bamboo forest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Kyoto Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000511",
+    "TourDayId": "01952802-0000-7000-8000-000000000054",
+    "Order": 1,
+    "ActivityType": 5,
+    "Title": "Lâu đài Osaka",
+    "Description": "Tham quan lâu đài Osaka lịch sử.",
+    "StartTime": "09:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Lâu đài Osaka",
+        "description": "Tham quan lâu đài Osaka lịch sử.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "JR Osaka Loop Line"
+      },
+      "en": {
+        "title": "Osaka Castle",
+        "description": "Visit the historic Osaka Castle.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "JR Osaka Loop Line"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000512",
+    "TourDayId": "01952802-0000-7000-8000-000000000054",
+    "Order": 2,
+    "ActivityType": 2,
+    "Title": "Khám phá Dotonbori",
+    "Description": "Tự do khám phá khu phố ẩm thực nổi tiếng Dotonbori.",
+    "StartTime": "12:00:00",
+    "EndTime": "15:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Khám phá Dotonbori",
+        "description": "Tự do khám phá khu phố ẩm thực nổi tiếng Dotonbori.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Explore Dotonbori",
+        "description": "Free time to explore the famous Dotonbori food district.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000513",
+    "TourDayId": "01952802-0000-7000-8000-000000000055",
+    "Order": 1,
+    "ActivityType": 7,
+    "Title": "Di chuyển ra sân bay Kansai",
+    "Description": "Làm thủ tục check-out và di chuyển ra sân bay Kansai.",
+    "StartTime": "09:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Di chuyển ra sân bay Kansai",
+        "description": "Làm thủ tục check-out và di chuyển ra sân bay Kansai.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Airport Limousine Bus"
+      },
+      "en": {
+        "title": "Transfer to Kansai Airport",
+        "description": "Check-out and transfer to Kansai Airport.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Airport Limousine Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000514",
+    "TourDayId": "01952802-0000-7000-8000-000000000055",
+    "Order": 2,
+    "ActivityType": 7,
+    "Title": "Chuyến bay về TP.HCM",
+    "Description": "Chuyến bay từ Osaka Kansai về TP.HCM, kết thúc hành trình.",
+    "StartTime": "14:00:00",
+    "EndTime": "20:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Chuyến bay về TP.HCM",
+        "description": "Chuyến bay từ Osaka Kansai về TP.HCM, kết thúc hành trình.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN301"
+      },
+      "en": {
+        "title": "Flight back to Ho Chi Minh City",
+        "description": "Flight from Osaka Kansai to Ho Chi Minh City, end of journey.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN301"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000515",
+    "TourDayId": "01952802-0000-7000-8000-000000000056",
+    "Order": 1,
+    "ActivityType": 7,
+    "Title": "Khởi hành từ TP.HCM",
+    "Description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in đến Seoul.",
+    "StartTime": "07:00:00",
+    "EndTime": "09:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Khởi hành từ TP.HCM",
+        "description": "Hành khách tập trung tại sân bay Tân Sơn Nhất, làm thủ tục check-in đến Seoul.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines"
+      },
+      "en": {
+        "title": "Depart from Ho Chi Minh City",
+        "description": "Passengers gather at Tan Son Nhat airport for check-in to Seoul.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000516",
+    "TourDayId": "01952802-0000-7000-8000-000000000056",
+    "Order": 2,
+    "ActivityType": 7,
+    "Title": "Bay đến Seoul Incheon",
+    "Description": "Chuyến bay từ TP.HCM đến Seoul Incheon, thời gian bay khoảng 5 giờ.",
+    "StartTime": "10:00:00",
+    "EndTime": "16:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Bay đến Seoul Incheon",
+        "description": "Chuyến bay từ TP.HCM đến Seoul Incheon, thời gian bay khoảng 5 giờ.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN400"
+      },
+      "en": {
+        "title": "Fly to Seoul Incheon",
+        "description": "Flight from Ho Chi Minh City to Seoul Incheon, approximately 5 hours.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN400"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000517",
+    "TourDayId": "01952802-0000-7000-8000-000000000056",
+    "Order": 3,
+    "ActivityType": 8,
+    "Title": "Nhận phòng khách sạn Seoul",
+    "Description": "Di chuyển về khách sạn tại Seoul, nhận phòng và nghỉ ngơi.",
+    "StartTime": "17:00:00",
+    "EndTime": "19:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Nhận phòng khách sạn Seoul",
+        "description": "Di chuyển về khách sạn tại Seoul, nhận phòng và nghỉ ngơi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón khách sạn"
+      },
+      "en": {
+        "title": "Check-in Seoul Hotel",
+        "description": "Transfer to Seoul hotel, check-in and rest.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Hotel Shuttle"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000518",
+    "TourDayId": "01952802-0000-7000-8000-000000000057",
+    "Order": 1,
+    "ActivityType": 5,
+    "Title": "Tham quan cung điện Gyeongbokgung",
+    "Description": "Tham quan cung điện Gyeongbokgung, trải nghiệm mặc Hanbok truyền thống.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tham quan cung điện Gyeongbokgung",
+        "description": "Tham quan cung điện Gyeongbokgung, trải nghiệm mặc Hanbok truyền thống.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Seoul Metro Line 3"
+      },
+      "en": {
+        "title": "Visit Gyeongbokgung Palace",
+        "description": "Visit Gyeongbokgung Palace, experience wearing traditional Hanbok.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Seoul Metro Line 3"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000519",
+    "TourDayId": "01952802-0000-7000-8000-000000000057",
+    "Order": 2,
+    "ActivityType": 1,
+    "Title": "Ăn trưa ẩm thực Hàn Quốc",
+    "Description": "Thưởng thức bibimbap và các món ăn truyền thống Hàn Quốc.",
+    "StartTime": "12:00:00",
+    "EndTime": "13:30:00",
+    "EstimatedCost": 400000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ăn trưa ẩm thực Hàn Quốc",
+        "description": "Thưởng thức bibimbap và các món ăn truyền thống Hàn Quốc.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Korean Cuisine Lunch",
+        "description": "Enjoy bibimbap and traditional Korean dishes.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000520",
+    "TourDayId": "01952802-0000-7000-8000-000000000057",
+    "Order": 3,
+    "ActivityType": 2,
+    "Title": "Mua sắm tại Myeongdong",
+    "Description": "Tự do mua sắm mỹ phẩm, thời trang và thưởng thức street food tại Myeongdong.",
+    "StartTime": "14:00:00",
+    "EndTime": "18:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Mua sắm tại Myeongdong",
+        "description": "Tự do mua sắm mỹ phẩm, thời trang và thưởng thức street food tại Myeongdong.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Shopping at Myeongdong",
+        "description": "Free time for cosmetics, fashion shopping and street food at Myeongdong.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000521",
+    "TourDayId": "01952802-0000-7000-8000-000000000058",
+    "Order": 1,
+    "ActivityType": 4,
+    "Title": "Tham quan đảo Nami",
+    "Description": "Tham quan đảo Nami nổi tiếng từ phim Bản Tình Ca Mùa Đông, chụp ảnh con đường cây.",
+    "StartTime": "08:00:00",
+    "EndTime": "12:00:00",
+    "EstimatedCost": 200000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tham quan đảo Nami",
+        "description": "Tham quan đảo Nami nổi tiếng từ phim Bản Tình Ca Mùa Đông, chụp ảnh con đường cây.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Nami Island",
+        "description": "Visit Nami Island famous from Winter Sonata drama, photograph the tree-lined paths.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000522",
+    "TourDayId": "01952802-0000-7000-8000-000000000058",
+    "Order": 2,
+    "ActivityType": 0,
+    "Title": "K-star Road và Gangnam",
+    "Description": "Khám phá K-star Road với các tượng gấu K-pop, tản bộ khu Gangnam thời thượng.",
+    "StartTime": "14:00:00",
+    "EndTime": "17:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "K-star Road và Gangnam",
+        "description": "Khám phá K-star Road với các tượng gấu K-pop, tản bộ khu Gangnam thời thượng.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Seoul Metro"
+      },
+      "en": {
+        "title": "K-star Road & Gangnam",
+        "description": "Explore K-star Road with K-pop bear statues, stroll through trendy Gangnam district.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Seoul Metro"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000523",
+    "TourDayId": "01952802-0000-7000-8000-000000000059",
+    "Order": 1,
+    "ActivityType": 7,
+    "Title": "Di chuyển đến Busan bằng KTX",
+    "Description": "Đi tàu cao tốc KTX từ Seoul đến Busan, thời gian khoảng 2.5 giờ.",
+    "StartTime": "07:00:00",
+    "EndTime": "10:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Di chuyển đến Busan bằng KTX",
+        "description": "Đi tàu cao tốc KTX từ Seoul đến Busan, thời gian khoảng 2.5 giờ.",
+        "note": null,
+        "transportationType": "Tàu cao tốc",
+        "transportationName": "KTX"
+      },
+      "en": {
+        "title": "Travel to Busan by KTX",
+        "description": "Take KTX high-speed train from Seoul to Busan, approximately 2.5 hours.",
+        "note": null,
+        "transportationType": "High-speed Train",
+        "transportationName": "KTX"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000524",
+    "TourDayId": "01952802-0000-7000-8000-000000000059",
+    "Order": 2,
+    "ActivityType": 4,
+    "Title": "Bãi biển Haeundae",
+    "Description": "Tham quan bãi biển Haeundae nổi tiếng nhất Busan, tản bộ dọc bờ biển.",
+    "StartTime": "11:00:00",
+    "EndTime": "13:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Bãi biển Haeundae",
+        "description": "Tham quan bãi biển Haeundae nổi tiếng nhất Busan, tản bộ dọc bờ biển.",
+        "note": null,
+        "transportationType": "Tàu điện",
+        "transportationName": "Busan Metro"
+      },
+      "en": {
+        "title": "Haeundae Beach",
+        "description": "Visit Busan's most famous Haeundae Beach, stroll along the coastline.",
+        "note": null,
+        "transportationType": "Train",
+        "transportationName": "Busan Metro"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000525",
+    "TourDayId": "01952802-0000-7000-8000-000000000059",
+    "Order": 3,
+    "ActivityType": 0,
+    "Title": "Làng văn hóa Gamcheon",
+    "Description": "Tham quan làng văn hóa Gamcheon với những ngôi nhà sắc màu bậc thang trên đồi.",
+    "StartTime": "14:00:00",
+    "EndTime": "17:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Làng văn hóa Gamcheon",
+        "description": "Tham quan làng văn hóa Gamcheon với những ngôi nhà sắc màu bậc thang trên đồi.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Busan Bus"
+      },
+      "en": {
+        "title": "Gamcheon Culture Village",
+        "description": "Visit Gamcheon Culture Village with colorful terraced houses on the hillside.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Busan Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000526",
+    "TourDayId": "01952802-0000-7000-8000-000000000060",
+    "Order": 1,
+    "ActivityType": 7,
+    "Title": "Di chuyển ra sân bay Incheon",
+    "Description": "Làm thủ tục check-out và di chuyển từ Busan ra sân bay Incheon.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Di chuyển ra sân bay Incheon",
+        "description": "Làm thủ tục check-out và di chuyển từ Busan ra sân bay Incheon.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Busan Air Shuttle"
+      },
+      "en": {
+        "title": "Transfer to Incheon Airport",
+        "description": "Check-out and transfer from Busan to Incheon Airport.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Busan Air Shuttle"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000527",
+    "TourDayId": "01952802-0000-7000-8000-000000000060",
+    "Order": 2,
+    "ActivityType": 7,
+    "Title": "Chuyến bay về TP.HCM",
+    "Description": "Chuyến bay từ Seoul Incheon về TP.HCM, kết thúc hành trình.",
+    "StartTime": "13:00:00",
+    "EndTime": "19:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Chuyến bay về TP.HCM",
+        "description": "Chuyến bay từ Seoul Incheon về TP.HCM, kết thúc hành trình.",
+        "note": null,
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN401"
+      },
+      "en": {
+        "title": "Flight back to Ho Chi Minh City",
+        "description": "Flight from Seoul Incheon to Ho Chi Minh City, end of journey.",
+        "note": null,
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN401"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000528",
+    "TourDayId": "01952802-0000-7000-8000-000000000061",
+    "Order": 1,
+    "ActivityType": 4,
+    "Title": "Tham quan Ngũ Hành Sơn",
+    "Description": "Tham quan dãy núi đá vôi Ngũ Hành Sơn, khám phá các hang động và chùa chiền.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tham quan Ngũ Hành Sơn",
+        "description": "Tham quan dãy núi đá vôi Ngũ Hành Sơn, khám phá các hang động và chùa chiền.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Marble Mountains",
+        "description": "Visit the Marble Mountains limestone range, explore caves and pagodas.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000529",
+    "TourDayId": "01952802-0000-7000-8000-000000000061",
+    "Order": 2,
+    "ActivityType": 1,
+    "Title": "Ăn trưa hải sản Đà Nẵng",
+    "Description": "Thưởng thức hải sản tươi sống tại nhà hàng địa phương ven biển.",
+    "StartTime": "12:00:00",
+    "EndTime": "13:30:00",
+    "EstimatedCost": 300000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ăn trưa hải sản Đà Nẵng",
+        "description": "Thưởng thức hải sản tươi sống tại nhà hàng địa phương ven biển.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Da Nang Seafood Lunch",
+        "description": "Enjoy fresh seafood at a local beachside restaurant.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000530",
+    "TourDayId": "01952802-0000-7000-8000-000000000061",
+    "Order": 3,
+    "ActivityType": 4,
+    "Title": "Tắm biển Mỹ Khê",
+    "Description": "Thư giãn và tắm biển tại bãi biển Mỹ Khê, một trong những bãi biển đẹp nhất thế giới.",
+    "StartTime": "14:30:00",
+    "EndTime": "17:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tắm biển Mỹ Khê",
+        "description": "Thư giãn và tắm biển tại bãi biển Mỹ Khê, một trong những bãi biển đẹp nhất thế giới.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "My Khe Beach",
+        "description": "Relax and swim at My Khe Beach, one of the world's most beautiful beaches.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000531",
+    "TourDayId": "01952802-0000-7000-8000-000000000062",
+    "Order": 1,
+    "ActivityType": 5,
+    "Title": "Tham quan phố cổ Hội An",
+    "Description": "Khám phá phố cổ Hội An, thăm chùa Cầu, hội quán Phúc Kiến và các ngôi nhà cổ.",
+    "StartTime": "08:00:00",
+    "EndTime": "12:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tham quan phố cổ Hội An",
+        "description": "Khám phá phố cổ Hội An, thăm chùa Cầu, hội quán Phúc Kiến và các ngôi nhà cổ.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Visit Hoi An Ancient Town",
+        "description": "Explore Hoi An Ancient Town, visit Japanese Covered Bridge, Fujian Assembly Hall and ancient houses.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000532",
+    "TourDayId": "01952802-0000-7000-8000-000000000062",
+    "Order": 2,
+    "ActivityType": 1,
+    "Title": "Ăn trưa đặc sản Hội An",
+    "Description": "Thưởng thức cao lầu, mì Quảng và hoành thánh chiên - đặc sản Hội An.",
+    "StartTime": "12:30:00",
+    "EndTime": "14:00:00",
+    "EstimatedCost": 200000,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Ăn trưa đặc sản Hội An",
+        "description": "Thưởng thức cao lầu, mì Quảng và hoành thánh chiên - đặc sản Hội An.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      },
+      "en": {
+        "title": "Hoi An Specialty Lunch",
+        "description": "Enjoy Cao Lau noodles, Mi Quang and fried wontons - Hoi An specialties.",
+        "note": null,
+        "transportationType": null,
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000533",
+    "TourDayId": "01952802-0000-7000-8000-000000000062",
+    "Order": 3,
+    "ActivityType": 2,
+    "Title": "Tự do khám phá Hội An",
+    "Description": "Thời gian tự do mua sắm, may đo áo dài và thưởng thức phố cổ về đêm.",
+    "StartTime": "14:30:00",
+    "EndTime": "18:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": true,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Tự do khám phá Hội An",
+        "description": "Thời gian tự do mua sắm, may đo áo dài và thưởng thức phố cổ về đêm.",
+        "note": null,
+        "transportationType": "Đi bộ",
+        "transportationName": null
+      },
+      "en": {
+        "title": "Free time in Hoi An",
+        "description": "Free time for shopping, tailor-made Ao Dai and enjoying the ancient town at night.",
+        "note": null,
+        "transportationType": "Walking",
+        "transportationName": null
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000534",
+    "TourDayId": "01952802-0000-7000-8000-000000000063",
+    "Order": 1,
+    "ActivityType": 4,
+    "Title": "Bán đảo Sơn Trà và tượng Quan Thế Âm",
+    "Description": "Tham quan bán đảo Sơn Trà, chiêm bái tượng Quan Thế Âm cao 67m, ngắm cảnh biển.",
+    "StartTime": "08:00:00",
+    "EndTime": "11:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Bán đảo Sơn Trà và tượng Quan Thế Âm",
+        "description": "Tham quan bán đảo Sơn Trà, chiêm bái tượng Quan Thế Âm cao 67m, ngắm cảnh biển.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón tour"
+      },
+      "en": {
+        "title": "Son Tra Peninsula & Lady Buddha Statue",
+        "description": "Visit Son Tra Peninsula, see the 67m-tall Lady Buddha statue, enjoy ocean views.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Tour Bus"
+      }
+    },
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "01952803-0000-7000-8000-000000000535",
+    "TourDayId": "01952802-0000-7000-8000-000000000063",
+    "Order": 2,
+    "ActivityType": 7,
+    "Title": "Di chuyển ra sân bay và trở về",
+    "Description": "Di chuyển ra sân bay Đà Nẵng, làm thủ tục check-in và trở về.",
+    "StartTime": "12:00:00",
+    "EndTime": "15:00:00",
+    "EstimatedCost": 0,
+    "IsOptional": false,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "title": "Di chuyển ra sân bay và trở về",
+        "description": "Di chuyển ra sân bay Đà Nẵng, làm thủ tục check-in và trở về.",
+        "note": null,
+        "transportationType": "Xe buýt",
+        "transportationName": "Xe đưa đón sân bay"
+      },
+      "en": {
+        "title": "Transfer to Airport & Return",
+        "description": "Transfer to Da Nang airport, check-in and return.",
+        "note": null,
+        "transportationType": "Bus",
+        "transportationName": "Airport Shuttle"
+      }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
@@ -756,4 +2376,3 @@
     "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
   }
 ]
-

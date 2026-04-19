@@ -22,8 +22,18 @@
     "Note": "Khách sạn 4 sao gần ga Shinjuku",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "accommodationName": "Shinjuku Prince Hotel", "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo", "specialRequest": "Phòng không hút thuốc, tầng cao", "note": "Khách sạn 4 sao gần ga Shinjuku" },
-      "en": { "accommodationName": "Shinjuku Prince Hotel", "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo", "specialRequest": "Non-smoking room, high floor", "note": "4-star hotel near Shinjuku station" }
+      "vi": {
+        "accommodationName": "Shinjuku Prince Hotel",
+        "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo",
+        "specialRequest": "Phòng không hút thuốc, tầng cao",
+        "note": "Khách sạn 4 sao gần ga Shinjuku"
+      },
+      "en": {
+        "accommodationName": "Shinjuku Prince Hotel",
+        "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo",
+        "specialRequest": "Non-smoking room, high floor",
+        "note": "4-star hotel near Shinjuku station"
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000003",
     "CreatedBy": "system",
@@ -55,8 +65,18 @@
     "Note": "Ryokan truyền thống với suối nước nóng ngoài trời",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "accommodationName": "Hakone Onsen Ryokan", "address": "Motohakone, Hakone-machi, Ashigarashimo-gun, Kanagawa", "specialRequest": "Phòng có view núi Phú Sĩ", "note": "Ryokan truyền thống với suối nước nóng ngoài trời" },
-      "en": { "accommodationName": "Hakone Onsen Ryokan", "address": "Motohakone, Hakone-machi, Ashigarashimo-gun, Kanagawa", "specialRequest": "Room with Mt. Fuji view", "note": "Traditional ryokan with outdoor hot springs" }
+      "vi": {
+        "accommodationName": "Hakone Onsen Ryokan",
+        "address": "Motohakone, Hakone-machi, Ashigarashimo-gun, Kanagawa",
+        "specialRequest": "Phòng có view núi Phú Sĩ",
+        "note": "Ryokan truyền thống với suối nước nóng ngoài trời"
+      },
+      "en": {
+        "accommodationName": "Hakone Onsen Ryokan",
+        "address": "Motohakone, Hakone-machi, Ashigarashimo-gun, Kanagawa",
+        "specialRequest": "Room with Mt. Fuji view",
+        "note": "Traditional ryokan with outdoor hot springs"
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -87,8 +107,18 @@
     "Note": "Khách sạn 4 sao ngay trên ga Kyoto",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "accommodationName": "Hotel Granvia Kyoto", "address": "Karasuma-dori Shiokoji-sagaru, Shimogyo-ku, Kyoto", "specialRequest": null, "note": "Khách sạn 4 sao ngay trên ga Kyoto" },
-      "en": { "accommodationName": "Hotel Granvia Kyoto", "address": "Karasuma-dori Shiokoji-sagaru, Shimogyo-ku, Kyoto", "specialRequest": null, "note": "4-star hotel right above Kyoto station" }
+      "vi": {
+        "accommodationName": "Hotel Granvia Kyoto",
+        "address": "Karasuma-dori Shiokoji-sagaru, Shimogyo-ku, Kyoto",
+        "specialRequest": null,
+        "note": "Khách sạn 4 sao ngay trên ga Kyoto"
+      },
+      "en": {
+        "accommodationName": "Hotel Granvia Kyoto",
+        "address": "Karasuma-dori Shiokoji-sagaru, Shimogyo-ku, Kyoto",
+        "specialRequest": null,
+        "note": "4-star hotel right above Kyoto station"
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -119,8 +149,18 @@
     "Note": "Khách sạn 5 sao trên ga Namba",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "accommodationName": "Swissôtel Nankai Osaka", "address": "1-60 Namba Chuo-ku, Osaka", "specialRequest": "Gần khu Dotonbori", "note": "Khách sạn 5 sao trên ga Namba" },
-      "en": { "accommodationName": "Swissôtel Nankai Osaka", "address": "1-60 Namba Chuo-ku, Osaka", "specialRequest": "Near Dotonbori", "note": "5-star hotel above Namba station" }
+      "vi": {
+        "accommodationName": "Swissôtel Nankai Osaka",
+        "address": "1-60 Namba Chuo-ku, Osaka",
+        "specialRequest": "Gần khu Dotonbori",
+        "note": "Khách sạn 5 sao trên ga Namba"
+      },
+      "en": {
+        "accommodationName": "Swissôtel Nankai Osaka",
+        "address": "1-60 Namba Chuo-ku, Osaka",
+        "specialRequest": "Near Dotonbori",
+        "note": "5-star hotel above Namba station"
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -151,10 +191,62 @@
     "Note": "Resort 5 sao bên bán đảo Sơn Trà",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "accommodationName": "InterContinental Danang Sun Peninsula", "address": "Son Tra Peninsula, Da Nang", "specialRequest": "Biệt thự view biển", "note": "Resort 5 sao bên bán đảo Sơn Trà" },
-      "en": { "accommodationName": "InterContinental Danang Sun Peninsula", "address": "Son Tra Peninsula, Da Nang", "specialRequest": "Ocean view villa", "note": "5-star resort on Son Tra Peninsula" }
+      "vi": {
+        "accommodationName": "InterContinental Danang Sun Peninsula",
+        "address": "Son Tra Peninsula, Da Nang",
+        "specialRequest": "Biệt thự view biển",
+        "note": "Resort 5 sao bên bán đảo Sơn Trà"
+      },
+      "en": {
+        "accommodationName": "InterContinental Danang Sun Peninsula",
+        "address": "Son Tra Peninsula, Da Nang",
+        "specialRequest": "Ocean view villa",
+        "note": "5-star resort on Son Tra Peninsula"
+      }
     },
     "TourDayActivityId": null,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "62d04e24-6d08-4ad3-9d08-7abf04ecf189",
+    "AccommodationName": "Shinjuku Prince Hotel",
+    "CheckInTime": "15:00:00",
+    "CheckOutTime": "11:00:00",
+    "RoomType": 9,
+    "RoomCapacity": 2,
+    "RoomPrice": 2500000,
+    "NumberOfRooms": 1,
+    "NumberOfNights": 1,
+    "TotalPrice": 2500000,
+    "MealsIncluded": 1,
+    "SpecialRequest": "Phòng không hút thuốc, tầng cao",
+    "Address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo",
+    "City": "Tokyo",
+    "ContactPhone": "+81-3-3355-1111",
+    "Website": "https://www.princehotels.com",
+    "ImageUrl": "https://tourdatviet.vn/wp-content/uploads/2022/09/tour-du-lich-nhat-ban-6-ngay-5-dem-2-1.jpg",
+    "Latitude": 35.6942,
+    "Longitude": 139.7014,
+    "Note": "Khách sạn 4 sao gần ga Shinjuku",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "accommodationName": "Shinjuku Prince Hotel",
+        "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo",
+        "specialRequest": "Phòng không hút thuốc, tầng cao",
+        "note": "Khách sạn 4 sao gần ga Shinjuku"
+      },
+      "en": {
+        "accommodationName": "Shinjuku Prince Hotel",
+        "address": "1-30-1 Shinjuku, Shinjuku-ku, Tokyo",
+        "specialRequest": "Non-smoking room, high floor",
+        "note": "4-star hotel near Shinjuku station"
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000502",
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",

@@ -298,8 +298,8 @@ public class TourInstanceEntity : Aggregate<Guid>
 
     private static void EnsureValidDateRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
-        if (startDate >= endDate)
-            throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
+        if (startDate > endDate)
+            throw new ArgumentException("Ngày bắt đầu phải trước hoặc cùng ngày với ngày kết thúc.");
     }
 
     private static void EnsureValidMaxParticipation(int maxParticipation)

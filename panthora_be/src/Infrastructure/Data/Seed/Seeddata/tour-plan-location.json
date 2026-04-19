@@ -9,7 +9,7 @@
     "City": "TP.HCM",
     "Country": "Việt Nam",
     "Latitude": 10.8186,
-    "Longitude": 106.6620,
+    "Longitude": 106.662,
     "EntranceFee": 0,
     "OpeningHours": "06:00:00",
     "ClosingHours": "23:00:00",
@@ -17,8 +17,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Sân bay Tân Sơn Nhất", "locationDescription": "Sân bay quốc tế Tân Sơn Nhất - điểm khởi hành.", "city": "TP.HCM", "country": "Việt Nam", "address": "Trần Hưng Đạo, Quận 1, TP.HCM", "note": null },
-      "en": { "locationName": "Tan Son Nhat International Airport", "locationDescription": "Tan Son Nhat International Airport - departure point.", "city": "Ho Chi Minh City", "country": "Vietnam", "address": "Tran Hung Dao, District 1, HCMC", "note": null }
+      "vi": {
+        "locationName": "Sân bay Tân Sơn Nhất",
+        "locationDescription": "Sân bay quốc tế Tân Sơn Nhất - điểm khởi hành.",
+        "city": "TP.HCM",
+        "country": "Việt Nam",
+        "address": "Trần Hưng Đạo, Quận 1, TP.HCM",
+        "note": null
+      },
+      "en": {
+        "locationName": "Tan Son Nhat International Airport",
+        "locationDescription": "Tan Son Nhat International Airport - departure point.",
+        "city": "Ho Chi Minh City",
+        "country": "Vietnam",
+        "address": "Tran Hung Dao, District 1, HCMC",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000001",
     "CreatedBy": "system",
@@ -44,8 +58,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Sân bay Narita", "locationDescription": "Sân bay quốc tế Narita - điểm đến Tokyo.", "city": "Narita", "country": "Nhật Bản", "address": "Narita, Chiba, Nhật Bản", "note": null },
-      "en": { "locationName": "Narita International Airport", "locationDescription": "Narita International Airport - arrival in Tokyo.", "city": "Narita", "country": "Japan", "address": "Narita, Chiba, Japan", "note": null }
+      "vi": {
+        "locationName": "Sân bay Narita",
+        "locationDescription": "Sân bay quốc tế Narita - điểm đến Tokyo.",
+        "city": "Narita",
+        "country": "Nhật Bản",
+        "address": "Narita, Chiba, Nhật Bản",
+        "note": null
+      },
+      "en": {
+        "locationName": "Narita International Airport",
+        "locationDescription": "Narita International Airport - arrival in Tokyo.",
+        "city": "Narita",
+        "country": "Japan",
+        "address": "Narita, Chiba, Japan",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000002",
     "CreatedBy": "system",
@@ -71,8 +99,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Chùa Asakusa", "locationDescription": "Ngôi đền cổ nhất Tokyo với cổng Kaminarimon nổi tiếng.", "city": "Tokyo", "country": "Nhật Bản", "address": "2-3-1 Asakusa, Taito-ku, Tokyo", "note": null },
-      "en": { "locationName": "Asakusa Temple", "locationDescription": "Tokyo's oldest temple with the famous Kaminarimon gate.", "city": "Tokyo", "country": "Japan", "address": "2-3-1 Asakusa, Taito-ku, Tokyo", "note": null }
+      "vi": {
+        "locationName": "Chùa Asakusa",
+        "locationDescription": "Ngôi đền cổ nhất Tokyo với cổng Kaminarimon nổi tiếng.",
+        "city": "Tokyo",
+        "country": "Nhật Bản",
+        "address": "2-3-1 Asakusa, Taito-ku, Tokyo",
+        "note": null
+      },
+      "en": {
+        "locationName": "Asakusa Temple",
+        "locationDescription": "Tokyo's oldest temple with the famous Kaminarimon gate.",
+        "city": "Tokyo",
+        "country": "Japan",
+        "address": "2-3-1 Asakusa, Taito-ku, Tokyo",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000004",
     "CreatedBy": "system",
@@ -98,8 +140,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Tokyo Tower", "locationDescription": "Tháp truyền hình biểu tượng của Tokyo.", "city": "Tokyo", "country": "Nhật Bản", "address": "4-2-8 Shibakoen, Minato-ku, Tokyo", "note": null },
-      "en": { "locationName": "Tokyo Tower", "locationDescription": "Iconic Tokyo broadcasting tower.", "city": "Tokyo", "country": "Japan", "address": "4-2-8 Shibakoen, Minato-ku, Tokyo", "note": null }
+      "vi": {
+        "locationName": "Tokyo Tower",
+        "locationDescription": "Tháp truyền hình biểu tượng của Tokyo.",
+        "city": "Tokyo",
+        "country": "Nhật Bản",
+        "address": "4-2-8 Shibakoen, Minato-ku, Tokyo",
+        "note": null
+      },
+      "en": {
+        "locationName": "Tokyo Tower",
+        "locationDescription": "Iconic Tokyo broadcasting tower.",
+        "city": "Tokyo",
+        "country": "Japan",
+        "address": "4-2-8 Shibakoen, Minato-ku, Tokyo",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000006",
     "CreatedBy": "system",
@@ -125,8 +181,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Điểm quan sát Gotemba", "locationDescription": "Điểm ngắm núi Phú Sĩ đẹp nhất với tầm nhìn toàn cảnh.", "city": "Gotemba", "country": "Nhật Bản", "address": "Gotemba, Shizuoka, Nhật Bản", "note": null },
-      "en": { "locationName": "Gotemba Viewpoint", "locationDescription": "Best Mt. Fuji viewing spot with panoramic views.", "city": "Gotemba", "country": "Japan", "address": "Gotemba, Shizuoka, Japan", "note": null }
+      "vi": {
+        "locationName": "Điểm quan sát Gotemba",
+        "locationDescription": "Điểm ngắm núi Phú Sĩ đẹp nhất với tầm nhìn toàn cảnh.",
+        "city": "Gotemba",
+        "country": "Nhật Bản",
+        "address": "Gotemba, Shizuoka, Nhật Bản",
+        "note": null
+      },
+      "en": {
+        "locationName": "Gotemba Viewpoint",
+        "locationDescription": "Best Mt. Fuji viewing spot with panoramic views.",
+        "city": "Gotemba",
+        "country": "Japan",
+        "address": "Gotemba, Shizuoka, Japan",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000008",
     "CreatedBy": "system",
@@ -152,8 +222,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Đền Fushimi Inari", "locationDescription": "Đền nổi tiếng với hàng ngàn cổng torii đỏ rực.", "city": "Kyoto", "country": "Nhật Bản", "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto", "note": null },
-      "en": { "locationName": "Fushimi Inari Shrine", "locationDescription": "Famous shrine with thousands of red torii gates.", "city": "Kyoto", "country": "Japan", "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto", "note": null }
+      "vi": {
+        "locationName": "Đền Fushimi Inari",
+        "locationDescription": "Đền nổi tiếng với hàng ngàn cổng torii đỏ rực.",
+        "city": "Kyoto",
+        "country": "Nhật Bản",
+        "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto",
+        "note": null
+      },
+      "en": {
+        "locationName": "Fushimi Inari Shrine",
+        "locationDescription": "Famous shrine with thousands of red torii gates.",
+        "city": "Kyoto",
+        "country": "Japan",
+        "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000010",
     "CreatedBy": "system",
@@ -179,8 +263,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Lâu đài Osaka", "locationDescription": "Lâu đài lịch sử biểu tượng của Osaka với vườn hoa anh đào.", "city": "Osaka", "country": "Nhật Bản", "address": "1-1 Osakajo, Chuo-ku, Osaka", "note": null },
-      "en": { "locationName": "Osaka Castle", "locationDescription": "Historic Osaka landmark with cherry blossom gardens.", "city": "Osaka", "country": "Japan", "address": "1-1 Osakajo, Chuo-ku, Osaka", "note": null }
+      "vi": {
+        "locationName": "Lâu đài Osaka",
+        "locationDescription": "Lâu đài lịch sử biểu tượng của Osaka với vườn hoa anh đào.",
+        "city": "Osaka",
+        "country": "Nhật Bản",
+        "address": "1-1 Osakajo, Chuo-ku, Osaka",
+        "note": null
+      },
+      "en": {
+        "locationName": "Osaka Castle",
+        "locationDescription": "Historic Osaka landmark with cherry blossom gardens.",
+        "city": "Osaka",
+        "country": "Japan",
+        "address": "1-1 Osakajo, Chuo-ku, Osaka",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000012",
     "CreatedBy": "system",
@@ -198,7 +296,7 @@
     "City": "Osaka",
     "Country": "Nhật Bản",
     "Latitude": 34.4347,
-    "Longitude": 135.2440,
+    "Longitude": 135.244,
     "EntranceFee": 0,
     "OpeningHours": "00:00:00",
     "ClosingHours": "23:59:00",
@@ -206,8 +304,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Sân bay Kansai", "locationDescription": "Sân bay quốc tế Kansai - điểm khởi hành về VN.", "city": "Osaka", "country": "Nhật Bản", "address": "Kansai International Airport, Osaka", "note": null },
-      "en": { "locationName": "Kansai International Airport", "locationDescription": "Kansai International Airport - departure back to Vietnam.", "city": "Osaka", "country": "Japan", "address": "Kansai International Airport, Osaka", "note": null }
+      "vi": {
+        "locationName": "Sân bay Kansai",
+        "locationDescription": "Sân bay quốc tế Kansai - điểm khởi hành về VN.",
+        "city": "Osaka",
+        "country": "Nhật Bản",
+        "address": "Kansai International Airport, Osaka",
+        "note": null
+      },
+      "en": {
+        "locationName": "Kansai International Airport",
+        "locationDescription": "Kansai International Airport - departure back to Vietnam.",
+        "city": "Osaka",
+        "country": "Japan",
+        "address": "Kansai International Airport, Osaka",
+        "note": null
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000014",
     "CreatedBy": "system",
@@ -225,7 +337,7 @@
     "City": "Seoul",
     "Country": "Hàn Quốc",
     "Latitude": 37.5796,
-    "Longitude": 126.9770,
+    "Longitude": 126.977,
     "EntranceFee": 0,
     "OpeningHours": "09:00:00",
     "ClosingHours": "17:00:00",
@@ -233,8 +345,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Cung điện Gyeongbokgung", "locationDescription": "Cung điện chính của triều đình Joseon ở Seoul.", "city": "Seoul", "country": "Hàn Quốc", "address": "110 Sejong-daero, Jongno-gu, Seoul", "note": null },
-      "en": { "locationName": "Gyeongbokgung Palace", "locationDescription": "Main royal palace of the Joseon dynasty in Seoul.", "city": "Seoul", "country": "South Korea", "address": "110 Sejong-daero, Jongno-gu, Seoul", "note": null }
+      "vi": {
+        "locationName": "Cung điện Gyeongbokgung",
+        "locationDescription": "Cung điện chính của triều đình Joseon ở Seoul.",
+        "city": "Seoul",
+        "country": "Hàn Quốc",
+        "address": "110 Sejong-daero, Jongno-gu, Seoul",
+        "note": null
+      },
+      "en": {
+        "locationName": "Gyeongbokgung Palace",
+        "locationDescription": "Main royal palace of the Joseon dynasty in Seoul.",
+        "city": "Seoul",
+        "country": "South Korea",
+        "address": "110 Sejong-daero, Jongno-gu, Seoul",
+        "note": null
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -260,8 +386,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Bãi biển Haeundae", "locationDescription": "Bãi biển nổi tiếng nhất Busan.", "city": "Busan", "country": "Hàn Quốc", "address": "Haeundae-gu, Busan, Hàn Quốc", "note": null },
-      "en": { "locationName": "Haeundae Beach", "locationDescription": "Most famous beach in Busan.", "city": "Busan", "country": "South Korea", "address": "Haeundae-gu, Busan, South Korea", "note": null }
+      "vi": {
+        "locationName": "Bãi biển Haeundae",
+        "locationDescription": "Bãi biển nổi tiếng nhất Busan.",
+        "city": "Busan",
+        "country": "Hàn Quốc",
+        "address": "Haeundae-gu, Busan, Hàn Quốc",
+        "note": null
+      },
+      "en": {
+        "locationName": "Haeundae Beach",
+        "locationDescription": "Most famous beach in Busan.",
+        "city": "Busan",
+        "country": "South Korea",
+        "address": "Haeundae-gu, Busan, South Korea",
+        "note": null
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -287,8 +427,22 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Ngũ Hành Sơn", "locationDescription": "Dãy núi đá vôi nổi tiếng với các hang động và am Phật.", "city": "Đà Nẵng", "country": "Việt Nam", "address": "Hoa Vang, Đà Nẵng", "note": null },
-      "en": { "locationName": "Marble Mountains", "locationDescription": "Famous limestone mountains with caves and Buddha shrines.", "city": "Da Nang", "country": "Vietnam", "address": "Hoa Vang, Da Nang", "note": null }
+      "vi": {
+        "locationName": "Ngũ Hành Sơn",
+        "locationDescription": "Dãy núi đá vôi nổi tiếng với các hang động và am Phật.",
+        "city": "Đà Nẵng",
+        "country": "Việt Nam",
+        "address": "Hoa Vang, Đà Nẵng",
+        "note": null
+      },
+      "en": {
+        "locationName": "Marble Mountains",
+        "locationDescription": "Famous limestone mountains with caves and Buddha shrines.",
+        "city": "Da Nang",
+        "country": "Vietnam",
+        "address": "Hoa Vang, Da Nang",
+        "note": null
+      }
     },
     "TourDayActivityId": null,
     "CreatedBy": "system",
@@ -306,7 +460,7 @@
     "City": "Hội An",
     "Country": "Việt Nam",
     "Latitude": 15.8801,
-    "Longitude": 108.3380,
+    "Longitude": 108.338,
     "EntranceFee": 0,
     "OpeningHours": "00:00:00",
     "ClosingHours": "23:59:00",
@@ -314,10 +468,352 @@
     "Note": null,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "locationName": "Phố cổ Hội An", "locationDescription": "Phố cổ UNESCO với kiến trúc phương Đông-ấn Độ-trung Quốc.", "city": "Hội An", "country": "Việt Nam", "address": "Trung tâm phố cổ, Hội An, Quảng Nam", "note": null },
-      "en": { "locationName": "Hoi An Ancient Town", "locationDescription": "UNESCO ancient town with East-Indian-Chinese architecture.", "city": "Hoi An", "country": "Vietnam", "address": "Town Center, Hoi An, Quang Nam", "note": null }
+      "vi": {
+        "locationName": "Phố cổ Hội An",
+        "locationDescription": "Phố cổ UNESCO với kiến trúc phương Đông-ấn Độ-trung Quốc.",
+        "city": "Hội An",
+        "country": "Việt Nam",
+        "address": "Trung tâm phố cổ, Hội An, Quảng Nam",
+        "note": null
+      },
+      "en": {
+        "locationName": "Hoi An Ancient Town",
+        "locationDescription": "UNESCO ancient town with East-Indian-Chinese architecture.",
+        "city": "Hoi An",
+        "country": "Vietnam",
+        "address": "Town Center, Hoi An, Quang Nam",
+        "note": null
+      }
     },
     "TourDayActivityId": null,
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "8428897c-f35d-48de-bbba-35af5ac32de4",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Sân bay Tân Sơn Nhất",
+    "LocationDescription": "Sân bay quốc tế Tân Sơn Nhất - điểm khởi hành.",
+    "LocationType": 10,
+    "Address": "Trần Hưng Đạo, Quận 1, TP.HCM",
+    "City": "TP.HCM",
+    "Country": "Việt Nam",
+    "Latitude": 10.8186,
+    "Longitude": 106.662,
+    "EntranceFee": 0,
+    "OpeningHours": "06:00:00",
+    "ClosingHours": "23:00:00",
+    "EstimatedDurationMinutes": 120,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Sân bay Tân Sơn Nhất",
+        "locationDescription": "Sân bay quốc tế Tân Sơn Nhất - điểm khởi hành.",
+        "city": "TP.HCM",
+        "country": "Việt Nam",
+        "address": "Trần Hưng Đạo, Quận 1, TP.HCM",
+        "note": null
+      },
+      "en": {
+        "locationName": "Tan Son Nhat International Airport",
+        "locationDescription": "Tan Son Nhat International Airport - departure point.",
+        "city": "Ho Chi Minh City",
+        "country": "Vietnam",
+        "address": "Tran Hung Dao, District 1, HCMC",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000500",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "a4309243-054a-42d4-a3c4-a1eafbdb7371",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Sân bay Narita",
+    "LocationDescription": "Sân bay quốc tế Narita - điểm đến Tokyo.",
+    "LocationType": 10,
+    "Address": "Narita, Chiba, Nhật Bản",
+    "City": "Narita",
+    "Country": "Nhật Bản",
+    "Latitude": 35.7719,
+    "Longitude": 140.3927,
+    "EntranceFee": 0,
+    "OpeningHours": "00:00:00",
+    "ClosingHours": "23:59:00",
+    "EstimatedDurationMinutes": 60,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Sân bay Narita",
+        "locationDescription": "Sân bay quốc tế Narita - điểm đến Tokyo.",
+        "city": "Narita",
+        "country": "Nhật Bản",
+        "address": "Narita, Chiba, Nhật Bản",
+        "note": null
+      },
+      "en": {
+        "locationName": "Narita International Airport",
+        "locationDescription": "Narita International Airport - arrival in Tokyo.",
+        "city": "Narita",
+        "country": "Japan",
+        "address": "Narita, Chiba, Japan",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000501",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "cf24a696-5fc3-4c11-a546-04406152b52c",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Chùa Asakusa",
+    "LocationDescription": "Ngôi đền cổ nhất Tokyo với cổng Kaminarimon nổi tiếng.",
+    "LocationType": 5,
+    "Address": "2-3-1 Asakusa, Taito-ku, Tokyo",
+    "City": "Tokyo",
+    "Country": "Nhật Bản",
+    "Latitude": 35.7148,
+    "Longitude": 139.7967,
+    "EntranceFee": 0,
+    "OpeningHours": "06:00:00",
+    "ClosingHours": "17:00:00",
+    "EstimatedDurationMinutes": 120,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Chùa Asakusa",
+        "locationDescription": "Ngôi đền cổ nhất Tokyo với cổng Kaminarimon nổi tiếng.",
+        "city": "Tokyo",
+        "country": "Nhật Bản",
+        "address": "2-3-1 Asakusa, Taito-ku, Tokyo",
+        "note": null
+      },
+      "en": {
+        "locationName": "Asakusa Temple",
+        "locationDescription": "Tokyo's oldest temple with the famous Kaminarimon gate.",
+        "city": "Tokyo",
+        "country": "Japan",
+        "address": "2-3-1 Asakusa, Taito-ku, Tokyo",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000503",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "9ab91a0f-e930-4b64-92da-8b82ed7c7a51",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Tokyo Tower",
+    "LocationDescription": "Tháp truyền hình biểu tượng của Tokyo.",
+    "LocationType": 0,
+    "Address": "4-2-8 Shibakoen, Minato-ku, Tokyo",
+    "City": "Tokyo",
+    "Country": "Nhật Bản",
+    "Latitude": 35.6586,
+    "Longitude": 139.7454,
+    "EntranceFee": 300000,
+    "OpeningHours": "09:00:00",
+    "ClosingHours": "23:00:00",
+    "EstimatedDurationMinutes": 120,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Tokyo Tower",
+        "locationDescription": "Tháp truyền hình biểu tượng của Tokyo.",
+        "city": "Tokyo",
+        "country": "Nhật Bản",
+        "address": "4-2-8 Shibakoen, Minato-ku, Tokyo",
+        "note": null
+      },
+      "en": {
+        "locationName": "Tokyo Tower",
+        "locationDescription": "Iconic Tokyo broadcasting tower.",
+        "city": "Tokyo",
+        "country": "Japan",
+        "address": "4-2-8 Shibakoen, Minato-ku, Tokyo",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000505",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "ee1e5848-0ab3-4d5e-b795-17ab24e8729d",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Điểm quan sát Gotemba",
+    "LocationDescription": "Điểm ngắm núi Phú Sĩ đẹp nhất với tầm nhìn toàn cảnh.",
+    "LocationType": 0,
+    "Address": "Gotemba, Shizuoka, Nhật Bản",
+    "City": "Gotemba",
+    "Country": "Nhật Bản",
+    "Latitude": 35.3037,
+    "Longitude": 138.7531,
+    "EntranceFee": 0,
+    "OpeningHours": "00:00:00",
+    "ClosingHours": "23:59:00",
+    "EstimatedDurationMinutes": 180,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Điểm quan sát Gotemba",
+        "locationDescription": "Điểm ngắm núi Phú Sĩ đẹp nhất với tầm nhìn toàn cảnh.",
+        "city": "Gotemba",
+        "country": "Nhật Bản",
+        "address": "Gotemba, Shizuoka, Nhật Bản",
+        "note": null
+      },
+      "en": {
+        "locationName": "Gotemba Viewpoint",
+        "locationDescription": "Best Mt. Fuji viewing spot with panoramic views.",
+        "city": "Gotemba",
+        "country": "Japan",
+        "address": "Gotemba, Shizuoka, Japan",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000507",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "edae1821-7a0e-4429-bdac-14bcedf058e4",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Đền Fushimi Inari",
+    "LocationDescription": "Đền nổi tiếng với hàng ngàn cổng torii đỏ rực.",
+    "LocationType": 5,
+    "Address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto",
+    "City": "Kyoto",
+    "Country": "Nhật Bản",
+    "Latitude": 34.9671,
+    "Longitude": 135.7727,
+    "EntranceFee": 0,
+    "OpeningHours": "24h",
+    "ClosingHours": "24h",
+    "EstimatedDurationMinutes": 180,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Đền Fushimi Inari",
+        "locationDescription": "Đền nổi tiếng với hàng ngàn cổng torii đỏ rực.",
+        "city": "Kyoto",
+        "country": "Nhật Bản",
+        "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto",
+        "note": null
+      },
+      "en": {
+        "locationName": "Fushimi Inari Shrine",
+        "locationDescription": "Famous shrine with thousands of red torii gates.",
+        "city": "Kyoto",
+        "country": "Japan",
+        "address": "68 Fukakusa Sacho, Fushimi Ward, Kyoto",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000509",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "6d8a2ab3-4bd8-442c-aa42-d54e751b76eb",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Lâu đài Osaka",
+    "LocationDescription": "Lâu đài lịch sử biểu tượng của Osaka với vườn hoa anh đào.",
+    "LocationType": 4,
+    "Address": "1-1 Osakajo, Chuo-ku, Osaka",
+    "City": "Osaka",
+    "Country": "Nhật Bản",
+    "Latitude": 34.6873,
+    "Longitude": 135.5262,
+    "EntranceFee": 0,
+    "OpeningHours": "09:00:00",
+    "ClosingHours": "17:00:00",
+    "EstimatedDurationMinutes": 120,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Lâu đài Osaka",
+        "locationDescription": "Lâu đài lịch sử biểu tượng của Osaka với vườn hoa anh đào.",
+        "city": "Osaka",
+        "country": "Nhật Bản",
+        "address": "1-1 Osakajo, Chuo-ku, Osaka",
+        "note": null
+      },
+      "en": {
+        "locationName": "Osaka Castle",
+        "locationDescription": "Historic Osaka landmark with cherry blossom gardens.",
+        "city": "Osaka",
+        "country": "Japan",
+        "address": "1-1 Osakajo, Chuo-ku, Osaka",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000511",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "8ec29d49-22bd-435e-81e5-9d07f29fd515",
+    "TourId": "01952800-0000-7000-8000-000000000001",
+    "LocationName": "Sân bay Kansai",
+    "LocationDescription": "Sân bay quốc tế Kansai - điểm khởi hành về VN.",
+    "LocationType": 10,
+    "Address": "Kansai International Airport, Osaka",
+    "City": "Osaka",
+    "Country": "Nhật Bản",
+    "Latitude": 34.4347,
+    "Longitude": 135.244,
+    "EntranceFee": 0,
+    "OpeningHours": "00:00:00",
+    "ClosingHours": "23:59:00",
+    "EstimatedDurationMinutes": 120,
+    "Note": null,
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "locationName": "Sân bay Kansai",
+        "locationDescription": "Sân bay quốc tế Kansai - điểm khởi hành về VN.",
+        "city": "Osaka",
+        "country": "Nhật Bản",
+        "address": "Kansai International Airport, Osaka",
+        "note": null
+      },
+      "en": {
+        "locationName": "Kansai International Airport",
+        "locationDescription": "Kansai International Airport - departure back to Vietnam.",
+        "city": "Osaka",
+        "country": "Japan",
+        "address": "Kansai International Airport, Osaka",
+        "note": null
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000513",
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",

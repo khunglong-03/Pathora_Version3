@@ -14,8 +14,22 @@
     "Note": "Thời gian bay khoảng 6 giờ",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "fromLocationName": "Sân bay Tân Sơn Nhất", "toLocationName": "Sân bay Narita", "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN300", "ticketInfo": "Chuyến bay thẳng", "note": "Thời gian bay khoảng 6 giờ" },
-      "en": { "fromLocationName": "Tan Son Nhat Airport", "toLocationName": "Narita Airport", "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN300", "ticketInfo": "Direct flight", "note": "Approximately 6 hours flight time" }
+      "vi": {
+        "fromLocationName": "Sân bay Tân Sơn Nhất",
+        "toLocationName": "Sân bay Narita",
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN300",
+        "ticketInfo": "Chuyến bay thẳng",
+        "note": "Thời gian bay khoảng 6 giờ"
+      },
+      "en": {
+        "fromLocationName": "Tan Son Nhat Airport",
+        "toLocationName": "Narita Airport",
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN300",
+        "ticketInfo": "Direct flight",
+        "note": "Approximately 6 hours flight time"
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000002",
     "CreatedBy": "system",
@@ -38,8 +52,22 @@
     "Note": "Sử dụng thẻ Suica",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "fromLocationName": "Chùa Asakusa", "toLocationName": "Tokyo Tower", "transportationType": "Tàu điện", "transportationName": "Tokyo Metro", "ticketInfo": "Thẻ Suica", "note": "Sử dụng thẻ Suica" },
-      "en": { "fromLocationName": "Asakusa Temple", "toLocationName": "Tokyo Tower", "transportationType": "Train", "transportationName": "Tokyo Metro", "ticketInfo": "Suica card", "note": "Use Suica card" }
+      "vi": {
+        "fromLocationName": "Chùa Asakusa",
+        "toLocationName": "Tokyo Tower",
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro",
+        "ticketInfo": "Thẻ Suica",
+        "note": "Sử dụng thẻ Suica"
+      },
+      "en": {
+        "fromLocationName": "Asakusa Temple",
+        "toLocationName": "Tokyo Tower",
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro",
+        "ticketInfo": "Suica card",
+        "note": "Use Suica card"
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000006",
     "CreatedBy": "system",
@@ -62,8 +90,22 @@
     "Note": "Sử dụng Japan Rail Pass",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "fromLocationName": "Tokyo", "toLocationName": "Kyoto", "transportationType": "Tàu cao tốc", "transportationName": "JR Shinkansen", "ticketInfo": "Japan Rail Pass", "note": "Sử dụng Japan Rail Pass" },
-      "en": { "fromLocationName": "Tokyo", "toLocationName": "Kyoto", "transportationType": "Bullet Train", "transportationName": "JR Shinkansen", "ticketInfo": "Japan Rail Pass", "note": "Using Japan Rail Pass" }
+      "vi": {
+        "fromLocationName": "Tokyo",
+        "toLocationName": "Kyoto",
+        "transportationType": "Tàu cao tốc",
+        "transportationName": "JR Shinkansen",
+        "ticketInfo": "Japan Rail Pass",
+        "note": "Sử dụng Japan Rail Pass"
+      },
+      "en": {
+        "fromLocationName": "Tokyo",
+        "toLocationName": "Kyoto",
+        "transportationType": "Bullet Train",
+        "transportationName": "JR Shinkansen",
+        "ticketInfo": "Japan Rail Pass",
+        "note": "Using Japan Rail Pass"
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000008",
     "CreatedBy": "system",
@@ -86,10 +128,176 @@
     "Note": "Kết thúc hành trình tour",
     "IsDeleted": false,
     "Translations": {
-      "vi": { "fromLocationName": "Sân bay Kansai", "toLocationName": "Sân bay Tân Sơn Nhất", "transportationType": "Máy bay", "transportationName": "Vietnam Airlines VN301", "ticketInfo": "Chuyến bay thẳng", "note": "Kết thúc hành trình tour" },
-      "en": { "fromLocationName": "Kansai Airport", "toLocationName": "Tan Son Nhat Airport", "transportationType": "Airplane", "transportationName": "Vietnam Airlines VN301", "ticketInfo": "Direct flight", "note": "End of tour journey" }
+      "vi": {
+        "fromLocationName": "Sân bay Kansai",
+        "toLocationName": "Sân bay Tân Sơn Nhất",
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN301",
+        "ticketInfo": "Chuyến bay thẳng",
+        "note": "Kết thúc hành trình tour"
+      },
+      "en": {
+        "fromLocationName": "Kansai Airport",
+        "toLocationName": "Tan Son Nhat Airport",
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN301",
+        "ticketInfo": "Direct flight",
+        "note": "End of tour journey"
+      }
     },
     "TourDayActivityId": "01952803-0000-7000-8000-000000000015",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "8ed82937-f95d-40aa-98a3-d86086b9ed99",
+    "Order": 1,
+    "TransportationType": 3,
+    "TransportationName": "Vietnam Airlines VN300",
+    "TransportationNote": "Chuyến bay thẳng TP.HCM - Tokyo Narita",
+    "EstimatedDepartureTime": "10:00:00",
+    "EstimatedArrivalTime": "18:00:00",
+    "DurationMinutes": 360,
+    "DistanceKm": 0,
+    "Price": 0,
+    "BookingReference": "VN300-NRT-2026",
+    "Note": "Thời gian bay khoảng 6 giờ",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "fromLocationName": "Sân bay Tân Sơn Nhất",
+        "toLocationName": "Sân bay Narita",
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN300",
+        "ticketInfo": "Chuyến bay thẳng",
+        "note": "Thời gian bay khoảng 6 giờ"
+      },
+      "en": {
+        "fromLocationName": "Tan Son Nhat Airport",
+        "toLocationName": "Narita Airport",
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN300",
+        "ticketInfo": "Direct flight",
+        "note": "Approximately 6 hours flight time"
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000501",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "014704ea-9d19-4dbb-bf19-a5f6f11c6d92",
+    "Order": 1,
+    "TransportationType": 1,
+    "TransportationName": "Tokyo Metro",
+    "TransportationNote": "Di chuyển từ Asakusa đến Tokyo Tower",
+    "EstimatedDepartureTime": "10:00:00",
+    "EstimatedArrivalTime": "14:00:00",
+    "DurationMinutes": 30,
+    "DistanceKm": 8,
+    "Price": 200000,
+    "BookingReference": null,
+    "Note": "Sử dụng thẻ Suica",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "fromLocationName": "Chùa Asakusa",
+        "toLocationName": "Tokyo Tower",
+        "transportationType": "Tàu điện",
+        "transportationName": "Tokyo Metro",
+        "ticketInfo": "Thẻ Suica",
+        "note": "Sử dụng thẻ Suica"
+      },
+      "en": {
+        "fromLocationName": "Asakusa Temple",
+        "toLocationName": "Tokyo Tower",
+        "transportationType": "Train",
+        "transportationName": "Tokyo Metro",
+        "ticketInfo": "Suica card",
+        "note": "Use Suica card"
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000505",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "98807b46-b75f-4794-ab16-9d155d07d615",
+    "Order": 1,
+    "TransportationType": 1,
+    "TransportationName": "JR Shinkansen",
+    "TransportationNote": "Tàu cao tốc Tokyo - Kyoto",
+    "EstimatedDepartureTime": "08:00:00",
+    "EstimatedArrivalTime": "10:00:00",
+    "DurationMinutes": 130,
+    "DistanceKm": 476,
+    "Price": 1500000,
+    "BookingReference": "JRPASS-NRT-KYT",
+    "Note": "Sử dụng Japan Rail Pass",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "fromLocationName": "Tokyo",
+        "toLocationName": "Kyoto",
+        "transportationType": "Tàu cao tốc",
+        "transportationName": "JR Shinkansen",
+        "ticketInfo": "Japan Rail Pass",
+        "note": "Sử dụng Japan Rail Pass"
+      },
+      "en": {
+        "fromLocationName": "Tokyo",
+        "toLocationName": "Kyoto",
+        "transportationType": "Bullet Train",
+        "transportationName": "JR Shinkansen",
+        "ticketInfo": "Japan Rail Pass",
+        "note": "Using Japan Rail Pass"
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000507",
+    "CreatedBy": "system",
+    "CreatedOnUtc": "2026-04-05T00:00:00Z",
+    "LastModifiedBy": "system",
+    "LastModifiedOnUtc": "2026-04-05T00:00:00Z"
+  },
+  {
+    "Id": "12a7a29a-87a4-4084-b3af-8b44384f6f83",
+    "Order": 1,
+    "TransportationType": 3,
+    "TransportationName": "Vietnam Airlines VN301",
+    "TransportationNote": "Chuyến bay Osaka Kansai - TP.HCM",
+    "EstimatedDepartureTime": "14:00:00",
+    "EstimatedArrivalTime": "20:00:00",
+    "DurationMinutes": 360,
+    "DistanceKm": 0,
+    "Price": 0,
+    "BookingReference": "VN301-SGN-2026",
+    "Note": "Kết thúc hành trình tour",
+    "IsDeleted": false,
+    "Translations": {
+      "vi": {
+        "fromLocationName": "Sân bay Kansai",
+        "toLocationName": "Sân bay Tân Sơn Nhất",
+        "transportationType": "Máy bay",
+        "transportationName": "Vietnam Airlines VN301",
+        "ticketInfo": "Chuyến bay thẳng",
+        "note": "Kết thúc hành trình tour"
+      },
+      "en": {
+        "fromLocationName": "Kansai Airport",
+        "toLocationName": "Tan Son Nhat Airport",
+        "transportationType": "Airplane",
+        "transportationName": "Vietnam Airlines VN301",
+        "ticketInfo": "Direct flight",
+        "note": "End of tour journey"
+      }
+    },
+    "TourDayActivityId": "01952803-0000-7000-8000-000000000514",
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",
     "LastModifiedBy": "system",

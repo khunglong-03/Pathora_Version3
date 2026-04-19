@@ -331,7 +331,13 @@ export default function HotelTourAssignmentPage() {
                 {t("review_rooms_desc") || "Please assign room availability for each accommodation requirement before approving this tour."}
               </p>
               <div className="flex flex-col gap-3">
-                <Button variant="primary" className="w-full justify-center" onClick={() => setIsApproveModalOpen(true)}>
+                <Button 
+                  variant="primary" 
+                  className="w-full justify-center" 
+                  onClick={() => setIsApproveModalOpen(true)}
+                  disabled={totalAccoms > 0 && assignedAccoms < totalAccoms}
+                  title={totalAccoms > 0 && assignedAccoms < totalAccoms ? (t("please_assign_rooms_first") || "Please assign all rooms before approving") : ""}
+                >
                   <Check className="mr-2" /> {t("approve_assignment") || "Approve Tour"}
                 </Button>
                 <Button variant="outline" className="w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsDeclineModalOpen(true)}>

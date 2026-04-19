@@ -26,7 +26,7 @@ const Checkbox = ({
 }: CheckboxProps) => {
   return (
     <label
-      className={`flex items-center ${
+      className={`flex items-start ${
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       }`}
       htmlFor={id}
@@ -42,7 +42,7 @@ const Checkbox = ({
         aria-checked={value}
       />
       <span
-        className={`relative inline-flex h-4 w-4 flex-none rounded border border-slate-100 transition-all duration-150 ltr:mr-3 rtl:ml-3 dark:border-slate-800 ${
+        className={`relative inline-flex h-4 w-4 mt-1 flex-none rounded border border-slate-100 transition-all duration-150 ltr:mr-3 rtl:ml-3 dark:border-slate-800 ${
           value
             ? `${activeClass} ring-2 ring-offset-2 dark:ring-offset-slate-800`
             : "bg-slate-100 dark:border-slate-600 dark:bg-slate-600"
@@ -58,7 +58,7 @@ const Checkbox = ({
         )}
       </span>
       <span
-        className={`text-sm leading-6 text-slate-500 capitalize dark:text-slate-400 ${className}`}
+        className={`text-sm leading-6 text-slate-500 dark:text-slate-400 ${className}`}
       >
         {label}
       </span>

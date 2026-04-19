@@ -5,7 +5,7 @@ internal static class SeedFileManifest
     public static IReadOnlyList<SeedFileDefinition> Definitions { get; } =
     [
         // Base layer: Roles → Users → UserRoles
-        new("RoleContextSeed", "role.json", ["Id", "Name", "Type", "Status"], "Id", null),
+        new("RoleContextSeed", "role.json", ["Id", "Name", "Status"], "Id", null),
         new("UserContextSeed", "user.json", ["Id", "Username", "Email", "Status", "VerifyStatus"], "Id", null),
         new("UserRoleContextSeed", "user-role.json", ["UserId", "RoleId"], null, ["UserId", "RoleId"]),
 

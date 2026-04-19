@@ -1722,7 +1722,8 @@ export function CreateTourInstancePage({
       currentStep !== INSTANCE_DETAILS_STEP ||
       !form.startDate ||
       !form.endDate ||
-      guides.length === 0
+      guides.length === 0 ||
+      form.startDate > form.endDate
     ) {
       setGuideConflicts([]);
       return;

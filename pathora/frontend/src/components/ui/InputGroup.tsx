@@ -73,7 +73,7 @@ const InputGroup = ({
       {label && (
         <label
           htmlFor={id}
-          className={`block capitalize ${classLabel} ${
+          className={`block ${classLabel} ${
             horizontal ? "mr-6 w-15 flex-0 break-words md:w-25" : ""
           }`}
         >

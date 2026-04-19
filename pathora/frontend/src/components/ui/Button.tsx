@@ -23,6 +23,7 @@ type ButtonProps = {
   style?: React.CSSProperties;
   variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
   size?: "sm" | "md" | "lg";
+  title?: string;
 };
 
 const LoadingSpinner = ({ loadingClass }: { loadingClass?: string }) => (
@@ -109,6 +110,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
   style,
   variant = "primary",
   size = "md",
+  title,
 
 }, ref) => {
   const variantClasses: Record<string, string> = {
@@ -139,7 +141,8 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
         aria-label={ariaLabel}
         aria-disabled={disabled || isLoading}
         suppressHydrationWarning={suppressHydrationWarning}
-        style={style}>
+        style={style}
+        title={title}>
         <ButtonContent
           text={text}
           isLoading={isLoading}
@@ -165,7 +168,8 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
       aria-label={ariaLabel}
       aria-busy={isLoading}
       suppressHydrationWarning={suppressHydrationWarning}
-      style={style}>
+      style={style}
+      title={title}>
       <ButtonContent
         text={text}
         isLoading={isLoading}
