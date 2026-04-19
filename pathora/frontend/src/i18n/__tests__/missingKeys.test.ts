@@ -38,6 +38,9 @@ describe("i18n missing keys", () => {
     REQUIRED_KEYS.forEach((keyPath) => {
       const enValue = getByPath(en, keyPath);
       const viValue = getByPath(vi, keyPath);
+      if (typeof enValue !== "string" || typeof viValue !== "string") {
+        console.log("FAILED KEY:", keyPath);
+      }
 
       expect(typeof enValue).toBe("string");
       expect(typeof viValue).toBe("string");
