@@ -30,8 +30,23 @@ const normalizeClassification = (
 };
 
 const normalizeTourDetail = (tour: TourDto): TourDto => {
+  let normalizedStatus = tour.status;
+  if (typeof tour.status === "string" && isNaN(Number(tour.status))) {
+    // If it's a string like "Pending", map it to the corresponding number
+    const statusMap: Record<string, number> = {
+      Active: 1,
+      Inactive: 2,
+      Pending: 3,
+      Rejected: 4,
+    };
+    if (statusMap[tour.status]) {
+      normalizedStatus = statusMap[tour.status];
+    }
+  }
+
   return {
     ...tour,
+    status: normalizedStatus,
     classifications: (tour.classifications ?? []).map(normalizeClassification),
   };
 };
@@ -206,13 +221,19 @@ export const tourService = {
     return extractResult<string>(response.data);
   },
 
-  updateTour: async (formData: FormData) => {
+  updateTour: async (formData: FormData, lastModifiedOnUtc?: string) => {
     // NOTE: Do NOT set Content-Type header manually for FormData.
     // Axios must set it automatically with the correct boundary parameter,
     // otherwise ASP.NET Core [FromForm] will fail to parse IFormFile fields (null).
+    const headers: Record<string, string> = {};
+    if (lastModifiedOnUtc) {
+      headers["If-Unmodified-Since"] = lastModifiedOnUtc;
+    }
+
     const response = await api.put<ApiResponse<unknown>>(
       API_ENDPOINTS.TOUR.UPDATE,
       formData,
+      { headers }
     );
     return extractResult<unknown>(response.data);
   },

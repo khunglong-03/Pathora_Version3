@@ -52,7 +52,7 @@ public sealed class CreateTourInstanceCommandValidator : AbstractValidator<Creat
 
         RuleFor(x => x.EndDate)
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceEndDateRequired)
-            .GreaterThan(x => x.StartDate).WithMessage(ValidationMessages.TourInstanceEndDateAfterStart);
+            .GreaterThanOrEqualTo(x => x.StartDate).WithMessage(ValidationMessages.TourInstanceEndDateAfterStart);
 
         RuleFor(x => x.MaxParticipation)
             .GreaterThan(0).WithMessage(ValidationMessages.TourInstanceMaxParticipantsGreaterThanZero);

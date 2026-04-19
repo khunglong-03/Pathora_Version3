@@ -579,25 +579,25 @@ public class TourInstanceService(
                     .SelectMany(d => d.Activities)
                     .Where(a => a.ActivityType == TourDayActivityType.Accommodation)
                     .ToList();
-                
+
                 var activityIds = accommodationActivities.Select(a => a.Id).ToList();
                 var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
                 var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
                     .ToDictionary(g => g.Key!.Value, g => g.ToList());
-                
+
                 var underAllocated = new List<string>();
                 foreach (var activity in accommodationActivities)
                 {
                     var planAccom = activity.Accommodation;
                     if (planAccom == null || planAccom.Quantity <= 0) continue;
-                    
+
                     blocksByActivity.TryGetValue(activity.Id, out var blocks);
                     var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
-                    
+
                     if (totalBlocked < planAccom.Quantity)
                         underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
                 }
-                
+
                 if (underAllocated.Count > 0)
                     return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
             }

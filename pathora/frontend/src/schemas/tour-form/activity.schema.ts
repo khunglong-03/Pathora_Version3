@@ -139,7 +139,7 @@ const accommodationActivitySchema = baseActivitySchema.extend({
   price: z.string().optional().default(""),
 });
 
-export const activitySchema = z.discriminatedUnion("activityType", [
+export const activitySchema = z.union([
   z
     .object({ activityType: z.literal("7") })
     .merge(transportActivitySchema.omit({ activityType: true })),

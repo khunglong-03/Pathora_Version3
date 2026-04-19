@@ -323,7 +323,7 @@ export default function TourImageUpload({
           <div className="grid grid-cols-3 gap-2">
             {existingImages.map((img, index) => (
               <div
-                key={img.fileId ?? `existing-${index}`}
+                key={!img.fileId || img.fileId === "00000000-0000-0000-0000-000000000000" ? `existing-${index}` : img.fileId}
                 className="relative group aspect-square">
                 <div className="relative w-full h-full rounded-xl overflow-hidden border border-[var(--border)] shadow-sm">
                   {img.publicURL ? (

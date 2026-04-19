@@ -58,6 +58,7 @@ public sealed record RouteDto(
 );
 
 public sealed record InsuranceDto(
+    Guid? Id,
     string InsuranceName,
     string InsuranceType,
     string InsuranceProvider,

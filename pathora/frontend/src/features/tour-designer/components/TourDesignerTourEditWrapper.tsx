@@ -8,6 +8,7 @@ import type { TourDto } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { TourFormPage } from "@/features/tour-designer/components/TourFormPage";
+import { canTourDesignerEditTour } from "@/features/tour-designer/components/editableTourStatus";
 
 export function TourDesignerTourEditWrapper() {
   const { t } = useTranslation();
@@ -26,8 +27,7 @@ export function TourDesignerTourEditWrapper() {
       setErrorMessage(null);
       const result = await tourService.getTourDetail(tourId);
       if (result) {
-        // Only allow edit for Pending status (status = 3)
-        if (String(result.status ?? "") !== "3") {
+        if (!canTourDesignerEditTour(result.status)) {
           router.push(`/tour-designer/tours/${tourId}`);
           return;
         }

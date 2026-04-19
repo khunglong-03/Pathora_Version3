@@ -1191,7 +1191,7 @@ public sealed class TourInstanceServiceTests
 
         _user.Id.Returns(creatorUserId.ToString());
         _tourRepository.FindById(Arg.Any<Guid>()).Returns(tour);
-        
+
         // Transport provider exists
         _supplierRepository.GetByIdAsync(transportProviderId).Returns(new SupplierEntity());
         // Phase 1.3: Vehicle assignment is accepted if provider is present

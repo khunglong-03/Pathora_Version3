@@ -115,4 +115,9 @@ public class UnitOfWork : IUnitOfWork
             }
         });
     }
+
+    public void MarkAsAdded(object entity)
+    {
+        ContextDb.Entry(entity).State = EntityState.Added;
+    }
 }

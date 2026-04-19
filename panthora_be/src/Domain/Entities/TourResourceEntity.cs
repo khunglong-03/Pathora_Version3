@@ -132,6 +132,53 @@ public class TourResourceEntity : Aggregate<Guid>
         return entity;
     }
 
+    public void Update(
+        string name,
+        string performedBy,
+        string? description = null,
+        string? address = null,
+        string? city = null,
+        string? country = null,
+        string? contactPhone = null,
+        string? contactEmail = null,
+        decimal? entranceFee = null,
+        decimal? price = null,
+        string? pricingType = null,
+        string? transportationType = null,
+        string? transportationName = null,
+        int? durationMinutes = null,
+        bool requiresIndividualTicket = false,
+        string? ticketInfo = null,
+        string? checkInTime = null,
+        string? checkOutTime = null,
+        string? note = null,
+        Guid? fromLocationId = null,
+        Guid? toLocationId = null)
+    {
+        Name = name;
+        Description = description;
+        Address = address;
+        City = city;
+        Country = country;
+        ContactPhone = contactPhone;
+        ContactEmail = contactEmail;
+        EntranceFee = entranceFee;
+        Price = price;
+        PricingType = pricingType;
+        TransportationType = transportationType;
+        TransportationName = transportationName;
+        DurationMinutes = durationMinutes;
+        RequiresIndividualTicket = requiresIndividualTicket;
+        TicketInfo = ticketInfo;
+        CheckInTime = checkInTime;
+        CheckOutTime = checkOutTime;
+        Note = note;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        SetFromLocationId(fromLocationId);
+        SetToLocationId(toLocationId);
+    }
+
     public void SoftDelete(string performedBy)
     {
         IsDeleted = true;

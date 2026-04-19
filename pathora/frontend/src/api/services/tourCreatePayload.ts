@@ -18,6 +18,7 @@ interface BasicInfoPayload {
 
 // Bilingual input types for nested entities
 interface ClassificationPayloadInput {
+  id?: string;
   name: string;
   enName: string;
   description: string;
@@ -28,6 +29,7 @@ interface ClassificationPayloadInput {
 
 // Extended activity — includes location and generic transport mode; no supplier-specific identity
 interface ActivityPayloadInput {
+  id?: string;
   activityType: string;
   title: string;
   enTitle: string;
@@ -59,11 +61,14 @@ interface ActivityPayloadInput {
   enToLocation: string;
   transportationType: string;
   enTransportationType: string;
+  transportationName: string;
+  enTransportationName: string;
   durationMinutes: string;
   price: string;
 }
 
 interface DayPlanPayloadInput {
+  id?: string;
   dayNumber: string;
   title: string;
   enTitle: string;
@@ -73,6 +78,7 @@ interface DayPlanPayloadInput {
 }
 
 interface InsurancePayloadInput {
+  id?: string;
   insuranceName: string;
   enInsuranceName: string;
   insuranceType: string;
@@ -142,6 +148,7 @@ interface ActivityRoutePayloadInput {
 }
 
 interface ServicePayloadInput {
+  id?: string;
   serviceName: string;
   enServiceName: string;
   pricingType: string;
@@ -152,6 +159,7 @@ interface ServicePayloadInput {
 }
 
 interface CreateTourPayloadOptions {
+  mode?: "create" | "edit";
   basicInfo: BasicInfoPayload;
   thumbnail: File | null;
   images: File[];
@@ -224,11 +232,12 @@ const buildActivityTranslations = (
   enDesc: string,
   enNote: string,
   enTransportationType?: string,
+  enTransportationName?: string,
 ): Record<string, Record<string, string | undefined>> => {
   const result: Record<string, Record<string, string | undefined>> = {
     vi: { title: viTitle, description: viDesc, note: viNote },
   };
-  const hasEnTransportation = (enTransportationType?.trim().length ?? 0) > 0;
+  const hasEnTransportation = (enTransportationType?.trim().length ?? 0) > 0 || (enTransportationName?.trim().length ?? 0) > 0;
   if (
     enTitle.trim().length > 0 ||
     enDesc.trim().length > 0 ||
@@ -241,7 +250,8 @@ const buildActivityTranslations = (
       note: enNote,
     };
     if (hasEnTransportation) {
-      enObj.transportationType = enTransportationType;
+      if (enTransportationType?.trim().length) enObj.transportationType = enTransportationType;
+      if (enTransportationName?.trim().length) enObj.transportationName = enTransportationName;
     }
     result.en = enObj;
   }
@@ -284,6 +294,7 @@ const buildClassificationsPayload = (
   classifications: ClassificationPayloadInput[],
   dayPlans: DayPlanPayloadInput[][],
   insurances: InsurancePayloadInput[][],
+  mode: "create" | "edit" = "create",
 ) => {
   return classifications.map((classification, classificationIndex) => {
     const numberOfDay = Math.max(parseIntValue(classification.durationDays, 1), 1);
@@ -323,6 +334,7 @@ const buildClassificationsPayload = (
 
     // Build the plans with activities (itinerary-only, no supplier-specific fields)
     const builtPlans = plans.map((dayPlan) => ({
+      id: mode === "edit" && dayPlan.id && !dayPlan.id.includes("temp-") ? dayPlan.id : undefined,
       dayNumber: Math.max(parseIntValue(dayPlan.dayNumber, 1), 1),
       title: dayPlan.title,
       description: toOptionalString(dayPlan.description),
@@ -332,49 +344,82 @@ const buildClassificationsPayload = (
         dayPlan.enTitle,
         dayPlan.enDescription,
       ),
-      activities: dayPlan.activities.map((activity) => ({
-        activityType: activity.activityType,
-        title: activity.title,
-        description: toOptionalString(activity.description),
-        note: toOptionalString(activity.note),
-        estimatedCost: parseDecimal(activity.estimatedCost, 0),
-        isOptional: activity.isOptional,
-        startTime: toOptionalString(activity.startTime),
-        endTime: toOptionalString(activity.endTime),
-        routes: buildRoutesPayload(activity.routes, uniqueLocations),
-        accommodation: null,
-        // Include activity-level location/transport data
-        // Accommodation supplier details and transport supplier names are now instance-time only
-        locationName: activity.locationName ?? "",
-        enLocationName: activity.enLocationName ?? "",
-        locationCity: activity.locationCity ?? "",
-        enLocationCity: activity.enLocationCity ?? "",
-        locationCountry: activity.locationCountry ?? "",
-        enLocationCountry: activity.enLocationCountry ?? "",
-        locationAddress: activity.locationAddress ?? "",
-        enLocationAddress: activity.enLocationAddress ?? "",
-        locationEntranceFee: activity.locationEntranceFee ?? "",
-        fromLocation: activity.fromLocation ?? "",
-        enFromLocation: activity.enFromLocation ?? "",
-        toLocation: activity.toLocation ?? "",
-        enToLocation: activity.enToLocation ?? "",
-        transportationType: activity.transportationType ?? "",
-        enTransportationType: activity.enTransportationType ?? "",
-        durationMinutes: activity.durationMinutes ?? "",
-        price: activity.price ?? "",
-        translations: buildActivityTranslations(
-          activity.title,
-          activity.description,
-          activity.note,
-          activity.enTitle,
-          activity.enDescription,
-          activity.enNote,
-          activity.enTransportationType,
-        ),
-      })),
+      activities: dayPlan.activities.map((activity) => {
+        const isAccommodation = activity.activityType === "8";
+        
+        return {
+          id: mode === "edit" && activity.id && !activity.id.includes("temp-") ? activity.id : undefined,
+          activityType: activity.activityType,
+          title: activity.title,
+          description: toOptionalString(activity.description),
+          note: toOptionalString(activity.note),
+          estimatedCost: parseDecimal(activity.estimatedCost, 0),
+          isOptional: activity.isOptional,
+          startTime: toOptionalString(activity.startTime),
+          endTime: toOptionalString(activity.endTime),
+          routes: buildRoutesPayload(activity, uniqueLocations),
+          accommodation: isAccommodation ? {
+            accommodationName: activity.locationName || activity.title,
+            address: activity.locationAddress || "",
+            contactPhone: "",
+            checkInTime: toOptionalString(activity.startTime),
+            checkOutTime: toOptionalString(activity.endTime),
+            roomType: "",
+            roomCapacity: 2,
+            mealsIncluded: "",
+            roomPrice: parseDecimal(activity.estimatedCost, 0),
+            numberOfRooms: 1,
+            numberOfNights: 1,
+            latitude: 0,
+            longitude: 0,
+            specialRequest: "",
+            translations: {
+              en: {
+                accommodationName: activity.enLocationName || activity.enTitle,
+                address: activity.enLocationAddress || "",
+                roomType: "",
+                mealsIncluded: "",
+                specialRequest: ""
+              }
+            }
+          } : null,
+          // Include activity-level location/transport data
+          // Accommodation supplier details and transport supplier names are now instance-time only
+          locationName: activity.locationName ?? "",
+          enLocationName: activity.enLocationName ?? "",
+          locationCity: activity.locationCity ?? "",
+          enLocationCity: activity.enLocationCity ?? "",
+          locationCountry: activity.locationCountry ?? "",
+          enLocationCountry: activity.enLocationCountry ?? "",
+          locationAddress: activity.locationAddress ?? "",
+          enLocationAddress: activity.enLocationAddress ?? "",
+          locationEntranceFee: activity.locationEntranceFee ?? "",
+          fromLocation: activity.fromLocation ?? "",
+          enFromLocation: activity.enFromLocation ?? "",
+          toLocation: activity.toLocation ?? "",
+          enToLocation: activity.enToLocation ?? "",
+          transportationType: activity.transportationType ?? "",
+          enTransportationType: activity.enTransportationType ?? "",
+          transportationName: activity.transportationName ?? "",
+          enTransportationName: activity.enTransportationName ?? "",
+          durationMinutes: activity.durationMinutes ?? "",
+          price: activity.price ?? "",
+          translations: buildActivityTranslations(
+            activity.title,
+            activity.description,
+            activity.note,
+            activity.enTitle,
+            activity.enDescription,
+            activity.enNote,
+            activity.enTransportationType,
+            activity.enTransportationName,
+          ),
+        };
+      }),
     }));
 
     const builtInsurances = (insurances[classificationIndex] ?? []).map((insurance) => ({
+      id: mode === "edit" && insurance.id && !insurance.id.includes("temp-") ? insurance.id : undefined,
       insuranceName: insurance.insuranceName,
       insuranceType: insurance.insuranceType,
       insuranceProvider: insurance.insuranceProvider,
@@ -392,6 +437,7 @@ const buildClassificationsPayload = (
     }));
 
     return {
+      id: mode === "edit" && classification.id && !classification.id.includes("temp-") ? classification.id : undefined,
       name: classification.name,
       description: classification.description,
       basePrice,
@@ -414,10 +460,11 @@ const buildClassificationsPayload = (
 // ── Route payload builder ─────────────────────────────────────────────
 
 const buildRoutesPayload = (
-  routes: ActivityRoutePayloadInput[],
+  activity: any,
   locations: LocationPayloadInput[],
 ) => {
-  return routes.map((route) => {
+  const routes = activity.routes || [];
+  let mappedRoutes = routes.map((route: any) => {
     // Resolve from location
     let fromLocationName: string | null = null;
     let fromLocationId: string | null = null;
@@ -489,12 +536,49 @@ const buildRoutesPayload = (
       },
     };
   });
+
+  // If activityType is 7 (Transportation), extract top-level transportation fields as the first route
+  if (activity.activityType === "7") {
+    const hasTopLevelRoute = activity.fromLocation || activity.toLocation || activity.transportationType;
+    if (hasTopLevelRoute) {
+      const topLevelRoute = {
+        transportationType: activity.transportationType || "1",
+        fromLocationName: activity.fromLocation || null,
+        toLocationName: activity.toLocation || null,
+        fromLocationId: null,
+        toLocationId: null,
+        transportationName: activity.transportationName || null,
+        durationMinutes: parseIntValue(activity.durationMinutes, 0),
+        price: parseDecimal(activity.price, 0),
+        pricingType: null,
+        requiresIndividualTicket: false,
+        ticketInfo: null,
+        note: null,
+        routeTranslations: {
+          vi: {
+            transportationName: null,
+            note: null,
+          },
+          ...(activity.enTransportationName ? {
+            en: {
+              transportationName: null,
+              note: null,
+            }
+          } : {})
+        }
+      };
+      mappedRoutes = [topLevelRoute, ...mappedRoutes];
+    }
+  }
+
+  return mappedRoutes;
 };
 
-export const buildServicesPayload = (services: ServicePayloadInput[]) =>
+export const buildServicesPayload = (services: ServicePayloadInput[], mode: "create" | "edit" = "create") =>
   services
     .filter((svc) => svc.serviceName.trim().length > 0)
     .map((svc) => ({
+      id: mode === "edit" && svc.id && !svc.id.includes("temp-") ? svc.id : undefined,
       serviceName: svc.serviceName,
       pricingType: toOptionalString(svc.pricingType),
       price: parseDecimal(svc.price, 0),
@@ -509,6 +593,7 @@ export const buildServicesPayload = (services: ServicePayloadInput[]) =>
 // ── Main export ─────────────────────────────────────────────────────
 
 export const buildTourFormData = ({
+  mode = "create",
   basicInfo,
   thumbnail,
   images,
@@ -545,7 +630,7 @@ export const buildTourFormData = ({
       seoDescription: "",
     },
     classifications: classifications.map((c) => ({
-      id: undefined,
+      id: mode === "edit" && c.id && !c.id.includes("temp-") ? c.id : undefined,
       name: c.name,
       enName: c.enName ?? "",
       description: c.description ?? "",
@@ -623,6 +708,7 @@ export const buildTourFormData = ({
     classifications,
     dayPlans,
     insurances,
+    mode,
   );
 
   if (classificationsPayload.length > 0) {
@@ -630,7 +716,7 @@ export const buildTourFormData = ({
   }
 
   if (services.length > 0) {
-    const servicesPayload = buildServicesPayload(services);
+    const servicesPayload = buildServicesPayload(services, mode);
     if (servicesPayload.length > 0) {
       formData.append("services", JSON.stringify(servicesPayload));
     }

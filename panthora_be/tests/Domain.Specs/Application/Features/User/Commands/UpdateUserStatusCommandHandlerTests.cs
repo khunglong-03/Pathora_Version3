@@ -52,7 +52,7 @@ public sealed class UpdateUserStatusCommandHandlerTests
         // Arrange
         var userId = Guid.Parse("019d9f1f-12e1-7a2d-a798-d2059f6c8df9");
         var request = new UpdateUserStatusCommand(userId, UserStatus.Inactive);
-        
+
         var user = new UserEntity
         {
             Id = userId,

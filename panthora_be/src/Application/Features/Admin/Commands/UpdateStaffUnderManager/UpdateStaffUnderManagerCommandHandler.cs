@@ -60,7 +60,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
         // 4. Verify Staff belongs to Manager
         var existingAssignments = await assignmentRepository.GetByManagerIdAsync(command.ManagerId, cancellationToken);
         var assignment = existingAssignments.FirstOrDefault(a => a.AssignedUserId == command.StaffId);
-        
+
         if (assignment is null)
         {
             return Error.Validation("Assignment.Invalid", "Staff does not belong to this manager.");
@@ -80,7 +80,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
 
         // 6. Update Basic Info
         staffResult.FullName = command.Request.FullName;
-        
+
         if (!string.IsNullOrEmpty(command.Request.Password))
         {
             staffResult.ChangePassword(passwordHasher.HashPassword(command.Request.Password), _currentUser.Id?.ToString() ?? "system", forcePasswordChange: false);
@@ -108,7 +108,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
             if (assignment.AssignedEntityType != newEntityType)
             {
                 var assignRepo = unitOfWork.GenericRepository<TourManagerAssignmentEntity>();
-                
+
                 // Update assignment entity type
                 assignment.AssignedEntityType = newEntityType;
                 assignRepo.Update(assignment);
@@ -117,7 +117,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
                 await roleRepository.DeleteUser(staffResult.Id);
                 await roleRepository.AddUser(staffResult.Id, [newRoleId]);
             }
-            
+
         });
 
         // 7. Map to DTO
@@ -127,7 +127,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
             2 => "Tour Guide",
             _ => "Staff"
         };
-        
+
         return new StaffMemberDto(
             staffResult.Id,
             staffResult.FullName ?? staffResult.Username,

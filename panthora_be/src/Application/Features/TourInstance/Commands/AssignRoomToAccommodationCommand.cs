@@ -94,7 +94,7 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         await unitOfWork.ExecuteTransactionAsync(async () =>
         {
             await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
-            
+
             var block = RoomBlockEntity.Create(
                 supplierId: supplier.Id,
                 roomType: roomType,
@@ -102,7 +102,7 @@ public sealed class AssignRoomToAccommodationCommandHandler(
                 roomCountBlocked: request.RoomCount,
                 performedBy: currentUserId.ToString(),
                 tourInstanceDayActivityId: request.AccommodationActivityId);
-                
+
             roomBlockRepository.Add(block);
             await unitOfWork.SaveChangeAsync(cancellationToken);
         });

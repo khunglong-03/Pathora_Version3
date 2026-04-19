@@ -10,6 +10,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTourDesignerTourList } from "../hooks/useTourDesignerTourList";
 import { TourStatusMap } from "@/types/tour";
+import { canTourDesignerEditTour } from "./editableTourStatus";
 
 const STATUS_TABS = [
   { key: "all", label: "All" },
@@ -333,7 +334,7 @@ export function TourDesignerTourListPage() {
                         >
                           <CaretRightIcon size={20} weight="bold" />
                         </Link>
-                        {tour.status === "3" && (
+                        {canTourDesignerEditTour(tour.status) && (
                           <Link
                             href={`/tour-designer/tours/${tour.id}/edit`}
                             className="px-4 py-2 text-sm font-semibold text-zinc-950 bg-zinc-50 hover:bg-zinc-100 rounded-xl transition-colors active:scale-95 border border-zinc-200/50"

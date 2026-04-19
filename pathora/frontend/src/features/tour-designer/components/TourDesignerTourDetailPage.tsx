@@ -12,6 +12,7 @@ import { tourService } from "@/api/services/tourService";
 import type { TourDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import { canTourDesignerEditTour } from "./editableTourStatus";
 
 type DetailState = "loading" | "ready" | "error";
 
@@ -82,7 +83,7 @@ export function TourDesignerTourDetailPage() {
   }
   const statusKey = String(tour.status ?? "");
   const badge = STATUS_BADGE[statusKey] ?? { bg: "bg-gray-100", text: "text-gray-700", label: statusKey };
-  const canEdit = statusKey === "3"; // Only Pending status can be edited
+  const canEdit = canTourDesignerEditTour(statusKey);
 
   return (
     <div className="max-w-6xl w-full mx-auto p-6">

@@ -33,7 +33,8 @@ public sealed record UpdateTourCommand(
     List<Guid>? DeletedActivityIds = null,
     TourScope TourScope = TourScope.Domestic,
     Continent? Continent = null,
-    CustomerSegment CustomerSegment = CustomerSegment.Group) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    CustomerSegment CustomerSegment = CustomerSegment.Group,
+    DateTimeOffset? IfUnmodifiedSince = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }

@@ -69,8 +69,8 @@ public sealed class GetTransportProviderByIdQueryHandler(
 
         var primaryContinent = supplier?.Continent?.ToString();
         var vehicleContinents = vehicles.Where(v => v.LocationArea.HasValue).Select(v => v.LocationArea!.Value.ToString()).Distinct().ToList();
-        var continents = vehicleContinents.Count > 0 
-            ? vehicleContinents 
+        var continents = vehicleContinents.Count > 0
+            ? vehicleContinents
             : (primaryContinent != null ? [primaryContinent] : []);
 
         return new TransportProviderDetailDto(

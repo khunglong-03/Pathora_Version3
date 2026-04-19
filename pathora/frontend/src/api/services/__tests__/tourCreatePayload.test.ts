@@ -1200,4 +1200,75 @@ describe("buildTourFormData", () => {
       expect(result[0].contactNumber).toBeNull();
     });
   });
+
+  // =========================================================================
+  // Edit Mode vs Create Mode ID Serialization
+  // =========================================================================
+  describe("mode behavior (create vs edit)", () => {
+    const editPayload = {
+      mode: "edit" as const,
+      basicInfo: { tourName: "Tour", shortDescription: "Short", longDescription: "Long", seoTitle: "", seoDescription: "", status: "1" },
+      thumbnail: null, images: [],
+      vietnameseTranslation: { tourName: "", shortDescription: "", longDescription: "", seoTitle: "", seoDescription: "" },
+      englishTranslation: { tourName: "", shortDescription: "", longDescription: "", seoTitle: "", seoDescription: "" },
+      classifications: [
+        { id: "cls-123", name: "Standard", enName: "", description: "", enDescription: "", basePrice: "1000", durationDays: "3" },
+        { id: "temp-cls-456", name: "Premium", enName: "", description: "", enDescription: "", basePrice: "2000", durationDays: "3" }
+      ],
+      dayPlans: [
+        [
+          { id: "day-123", dayNumber: "1", title: "Day 1", enTitle: "", description: "", enDescription: "", activities: [
+            { id: "act-123", activityType: "0", title: "Act 1", enTitle: "", description: "", enDescription: "", note: "", enNote: "", estimatedCost: "", isOptional: false, startTime: "", endTime: "", routes: [], locationName: "", enLocationName: "", locationCity: "", enLocationCity: "", locationCountry: "", enLocationCountry: "", locationAddress: "", enLocationAddress: "", locationEntranceFee: "", fromLocation: "", enFromLocation: "", toLocation: "", enToLocation: "", transportationType: "", enTransportationType: "", transportationName: "", enTransportationName: "", durationMinutes: "", price: "", accommodationName: "", enAccommodationName: "", accommodationAddress: "", enAccommodationAddress: "", accommodationPhone: "", checkInTime: "", checkOutTime: "" },
+            { id: "temp-act-456", activityType: "0", title: "Act 2", enTitle: "", description: "", enDescription: "", note: "", enNote: "", estimatedCost: "", isOptional: false, startTime: "", endTime: "", routes: [], locationName: "", enLocationName: "", locationCity: "", enLocationCity: "", locationCountry: "", enLocationCountry: "", locationAddress: "", enLocationAddress: "", locationEntranceFee: "", fromLocation: "", enFromLocation: "", toLocation: "", enToLocation: "", transportationType: "", enTransportationType: "", transportationName: "", enTransportationName: "", durationMinutes: "", price: "", accommodationName: "", enAccommodationName: "", accommodationAddress: "", enAccommodationAddress: "", accommodationPhone: "", checkInTime: "", checkOutTime: "" }
+          ] }
+        ],
+        []
+      ],
+      insurances: [
+        [{ id: "ins-123", insuranceName: "Ins", enInsuranceName: "", insuranceType: "1", insuranceProvider: "Provider", coverageDescription: "", enCoverageDescription: "", coverageAmount: "", coverageFee: "", isOptional: false, note: "", enNote: "" }],
+        []
+      ],
+      services: [
+        { id: "srv-123", serviceName: "Service 1", enServiceName: "", pricingType: "", price: "10", salePrice: "", email: "", contactNumber: "" },
+        { id: "temp-srv-456", serviceName: "Service 2", enServiceName: "", pricingType: "", price: "20", salePrice: "", email: "", contactNumber: "" }
+      ]
+    };
+
+    it("preserves real IDs and strips temporary IDs in edit mode", () => {
+      const formData = buildTourFormData(editPayload);
+      const classifications = JSON.parse(String(formData.get("classifications")));
+      
+      expect(classifications[0].id).toBe("cls-123");
+      expect(classifications[1].id).toBeUndefined(); // temporary stripped
+      
+      expect(classifications[0].plans[0].id).toBe("day-123");
+      expect(classifications[0].plans[0].activities[0].id).toBe("act-123");
+      expect(classifications[0].plans[0].activities[1].id).toBeUndefined(); // temporary stripped
+
+      expect(classifications[0].insurances[0].id).toBe("ins-123");
+
+      const services = JSON.parse(String(formData.get("services")));
+      expect(services[0].id).toBe("srv-123");
+      expect(services[1].id).toBeUndefined(); // temporary stripped
+    });
+
+    it("strips all IDs in create mode regardless of format", () => {
+      const createPayload = { ...editPayload, mode: "create" as const };
+      const formData = buildTourFormData(createPayload);
+      const classifications = JSON.parse(String(formData.get("classifications")));
+      
+      expect(classifications[0].id).toBeUndefined();
+      expect(classifications[1].id).toBeUndefined();
+      
+      expect(classifications[0].plans[0].id).toBeUndefined();
+      expect(classifications[0].plans[0].activities[0].id).toBeUndefined();
+      expect(classifications[0].plans[0].activities[1].id).toBeUndefined();
+
+      expect(classifications[0].insurances[0].id).toBeUndefined();
+
+      const services = JSON.parse(String(formData.get("services")));
+      expect(services[0].id).toBeUndefined();
+      expect(services[1].id).toBeUndefined();
+    });
+  });
 });

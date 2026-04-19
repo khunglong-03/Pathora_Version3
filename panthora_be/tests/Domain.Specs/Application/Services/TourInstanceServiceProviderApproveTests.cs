@@ -75,7 +75,7 @@ public class TourInstanceServiceProviderApproveTests
 
         var routes = new List<TourInstancePlanRouteEntity>
         {
-            new TourInstancePlanRouteEntity { Id = Guid.NewGuid(), VehicleId = null, DriverId = null }, 
+            new TourInstancePlanRouteEntity { Id = Guid.NewGuid(), VehicleId = null, DriverId = null },
             new TourInstancePlanRouteEntity { Id = Guid.NewGuid(), VehicleId = Guid.NewGuid(), DriverId = Guid.NewGuid() }
         };
         _mockRouteRepository.GetByTourInstanceIdAsync(_instanceId, Arg.Any<CancellationToken>())
@@ -96,31 +96,31 @@ public class TourInstanceServiceProviderApproveTests
             .Returns(instance);
 
         var activityId = Guid.NewGuid();
-        var fullInstance = new TourInstanceEntity 
-        { 
-            Id = _instanceId, 
+        var fullInstance = new TourInstanceEntity
+        {
+            Id = _instanceId,
             HotelProviderId = _supplierId,
             InstanceDays = new List<TourInstanceDayEntity>
             {
-                new TourInstanceDayEntity 
-                { 
-                    IsDeleted = false, 
+                new TourInstanceDayEntity
+                {
+                    IsDeleted = false,
                     InstanceDayNumber = 1,
-                    Activities = new List<TourInstanceDayActivityEntity> 
+                    Activities = new List<TourInstanceDayActivityEntity>
                     {
-                        new TourInstanceDayActivityEntity 
+                        new TourInstanceDayActivityEntity
                         {
                             Id = activityId,
                             ActivityType = TourDayActivityType.Accommodation,
-                            Accommodation = new TourInstancePlanAccommodationEntity 
-                            { 
+                            Accommodation = new TourInstancePlanAccommodationEntity
+                            {
                                 Quantity = 5 // require 5 rooms
                             },
                             TourInstanceDay = new TourInstanceDayEntity { InstanceDayNumber = 1 }
                         }
-                    } 
+                    }
                 }
-            } 
+            }
         };
 
         _mockTourInstanceRepository.FindByIdWithInstanceDays(_instanceId, Arg.Any<CancellationToken>())
@@ -128,7 +128,7 @@ public class TourInstanceServiceProviderApproveTests
 
         // only 2 rooms are blocked instead of 5
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdsAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<RoomBlockEntity> 
+            .Returns(new List<RoomBlockEntity>
             {
                 new RoomBlockEntity { TourInstanceDayActivityId = activityId, RoomCountBlocked = 2 }
             });
@@ -149,38 +149,38 @@ public class TourInstanceServiceProviderApproveTests
             .Returns(instance);
 
         var activityId = Guid.NewGuid();
-        var fullInstance = new TourInstanceEntity 
-        { 
-            Id = _instanceId, 
+        var fullInstance = new TourInstanceEntity
+        {
+            Id = _instanceId,
             HotelProviderId = _supplierId,
             InstanceDays = new List<TourInstanceDayEntity>
             {
-                new TourInstanceDayEntity 
-                { 
-                    IsDeleted = false, 
+                new TourInstanceDayEntity
+                {
+                    IsDeleted = false,
                     InstanceDayNumber = 1,
-                    Activities = new List<TourInstanceDayActivityEntity> 
+                    Activities = new List<TourInstanceDayActivityEntity>
                     {
-                        new TourInstanceDayActivityEntity 
+                        new TourInstanceDayActivityEntity
                         {
                             Id = activityId,
                             ActivityType = TourDayActivityType.Accommodation,
-                            Accommodation = new TourInstancePlanAccommodationEntity 
-                            { 
+                            Accommodation = new TourInstancePlanAccommodationEntity
+                            {
                                 Quantity = 5 // require 5 rooms
                             },
                             TourInstanceDay = new TourInstanceDayEntity { InstanceDayNumber = 1 }
                         }
-                    } 
+                    }
                 }
-            } 
+            }
         };
 
         _mockTourInstanceRepository.FindByIdWithInstanceDays(_instanceId, Arg.Any<CancellationToken>())
             .Returns(fullInstance);
 
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdsAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<RoomBlockEntity> 
+            .Returns(new List<RoomBlockEntity>
             {
                 new RoomBlockEntity { TourInstanceDayActivityId = activityId, RoomCountBlocked = 5 } // 5 rooms blocked
             });
@@ -235,47 +235,47 @@ public class TourInstanceServiceProviderApproveTests
         var zeroQuantityActivityId = Guid.NewGuid();
         var nullPlanActivityId = Guid.NewGuid();
 
-        var fullInstance = new TourInstanceEntity 
-        { 
-            Id = _instanceId, 
+        var fullInstance = new TourInstanceEntity
+        {
+            Id = _instanceId,
             HotelProviderId = _supplierId,
             InstanceDays = new List<TourInstanceDayEntity>
             {
-                new TourInstanceDayEntity 
-                { 
+                new TourInstanceDayEntity
+                {
                     IsDeleted = true, // Deleted
                     InstanceDayNumber = 1,
-                    Activities = new List<TourInstanceDayActivityEntity> 
+                    Activities = new List<TourInstanceDayActivityEntity>
                     {
-                        new TourInstanceDayActivityEntity 
+                        new TourInstanceDayActivityEntity
                         {
                             Id = deletedDayActivityId,
                             ActivityType = TourDayActivityType.Accommodation,
                             Accommodation = new TourInstancePlanAccommodationEntity { Quantity = 5 }
                         }
-                    } 
+                    }
                 },
-                new TourInstanceDayEntity 
-                { 
+                new TourInstanceDayEntity
+                {
                     IsDeleted = false,
                     InstanceDayNumber = 2,
-                    Activities = new List<TourInstanceDayActivityEntity> 
+                    Activities = new List<TourInstanceDayActivityEntity>
                     {
-                        new TourInstanceDayActivityEntity 
+                        new TourInstanceDayActivityEntity
                         {
                             Id = zeroQuantityActivityId,
                             ActivityType = TourDayActivityType.Accommodation,
                             Accommodation = new TourInstancePlanAccommodationEntity { Quantity = 0 } // 0 quantity
                         },
-                        new TourInstanceDayActivityEntity 
+                        new TourInstanceDayActivityEntity
                         {
                             Id = nullPlanActivityId,
                             ActivityType = TourDayActivityType.Accommodation,
                             Accommodation = null // null plan
                         }
-                    } 
+                    }
                 }
-            } 
+            }
         };
 
         _mockTourInstanceRepository.FindByIdWithInstanceDays(_instanceId, Arg.Any<CancellationToken>())

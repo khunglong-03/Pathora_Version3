@@ -1467,8 +1467,8 @@ export function CreateTourInstancePage({
   const fetchProviders = useCallback(async () => {
     try {
       const [hotels, transports] = await Promise.all([
-        supplierService.getSuppliers("Accommodation"),
-        supplierService.getSuppliers("Transport"),
+        supplierService.getSuppliers("2"), // SupplierType.Accommodation = 2
+        supplierService.getSuppliers("1"), // SupplierType.Transport = 1
       ]);
 
       setHotelProviders(Array.isArray(hotels) ? hotels : []);
@@ -1968,10 +1968,10 @@ export function CreateTourInstancePage({
     else if (form.startDate && form.endDate) {
       const start = new Date(form.startDate);
       const end = new Date(form.endDate);
-      if (end <= start) {
+      if (end < start) {
         newErrors.endDate = t(
           "tourInstance.validation.endDateAfterStart",
-          "End date must be after start date",
+          "End date must be on or after start date",
         );
       }
     }

@@ -817,7 +817,7 @@ public class CreateTourCommandValidatorTests
                 NumberOfDay: 3,
                 NumberOfNight: 2,
                 Plans: [],
-                Insurances: [new InsuranceDto(
+                Insurances: [new InsuranceDto(null,
                     InsuranceName: "Travel Insurance",
                     InsuranceType: "Travel",
                     InsuranceProvider: "ABC Insurance",
@@ -848,7 +848,7 @@ public class CreateTourCommandValidatorTests
                 NumberOfDay: 3,
                 NumberOfNight: 2,
                 Plans: [],
-                Insurances: [new InsuranceDto(
+                Insurances: [new InsuranceDto(null,
                     InsuranceName: "",
                     InsuranceType: "Travel",
                     InsuranceProvider: "ABC Insurance",
@@ -880,7 +880,7 @@ public class CreateTourCommandValidatorTests
                 NumberOfDay: 3,
                 NumberOfNight: 2,
                 Plans: [],
-                Insurances: [new InsuranceDto(
+                Insurances: [new InsuranceDto(null,
                     InsuranceName: "Insurance",
                     InsuranceType: "Travel",
                     InsuranceProvider: "ABC Insurance",

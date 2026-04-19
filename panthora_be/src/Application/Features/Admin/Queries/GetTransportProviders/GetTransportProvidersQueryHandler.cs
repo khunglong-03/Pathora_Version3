@@ -95,7 +95,7 @@ public sealed class GetTransportProvidersQueryHandler(
         var userIdsWithInventory = await supplierRepository
             .FindOwnerUserIdsByTransportProviderContinentsAsync(requestedContinents, cancellationToken);
 
-        if (userIdsWithInventory.Count == 0)
+        if (userIdsWithInventory == null || userIdsWithInventory.Count == 0)
         {
             return new PaginatedList<TransportProviderListItemDto>(0, [], pageNumber, pageSize, null, 0);
         }

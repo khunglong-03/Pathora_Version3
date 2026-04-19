@@ -359,7 +359,7 @@ export default function HotelTourAssignmentPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {inventorySummary.map((item) => (
-                      <tr key={item.id}>
+                      <tr key={item.roomType}>
                         <td className="px-4 py-3 font-medium text-slate-700">{item.roomType}</td>
                         <td className="px-4 py-3 text-center">{item.totalRooms}</td>
                         <td className="px-4 py-3 text-center">

@@ -375,9 +375,24 @@ public class TourService(
             return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
 
         if (await _tourRepository.ExistsByTourCode(tour.TourCode, request.Id))
+        {
+            _logger?.LogWarning("ExistsByTourCode check returned true for TourCode: {TourCode}, excluding Id: {Id}", tour.TourCode, request.Id);
             return Error.Conflict(
                 ErrorConstants.Tour.DuplicateCodeCode,
                 string.Format(ErrorConstants.Tour.DuplicateCodeDescriptionTemplate, tour.TourCode));
+        }
+
+        if (request.IfUnmodifiedSince.HasValue && tour.LastModifiedOnUtc.HasValue && (tour.LastModifiedOnUtc.Value - request.IfUnmodifiedSince.Value).TotalSeconds > 1)
+        {
+            _logger?.LogWarning("IfUnmodifiedSince check failed. DB time: {DbTime}, Request time: {ReqTime}", tour.LastModifiedOnUtc, request.IfUnmodifiedSince);
+            return Error.Conflict(
+                "Tour.ConcurrencyConflict",
+                "Tour was modified by another user. Please refresh and try again.");
+        }
+
+        var isResubmission = !isManager
+            && (tour.Status == TourStatus.Rejected || tour.Status == TourStatus.Active)
+            && request.Status == TourStatus.Pending;
 
         // Access control for TourDesigners
         if (!isManager)
@@ -387,15 +402,12 @@ public class TourService(
             {
                 return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
             }
-
-            if (request.Status != tour.Status)
-            {
-                return Error.Conflict(ErrorConstants.Tour.ConcurrencyConflictCode, "Tour designers cannot change status.");
-            }
         }
 
-        var effectiveStatus = isManager ? request.Status : tour.Status;
-        var effectiveTourDesignerId = tour.TourDesignerId;
+        var effectiveStatus =
+            isManager ? request.Status :
+            isResubmission ? TourStatus.Pending :
+            tour.Status;
 
         // Update thumbnail in-place if provided (avoids shared-type EF Core issue)
         // Update images in-place — EF Core can track owned entities this way
@@ -455,6 +467,12 @@ public class TourService(
             cancellationPolicyId: request.CancellationPolicyId,
             tourDesignerId: tour.TourDesignerId,
             continent: request.Continent);
+
+        if (isResubmission)
+        {
+            tour.RejectionReason = null;
+        }
+
         MergeTranslations(tour, request.Translations);
 
         // Nested classifications update (upsert)
@@ -537,10 +555,38 @@ public class TourService(
                 tour.Resources.Add(resource);
             }
         }
+        // Update Services (replace-on-submit)
+        var providedServiceIds = request.Services?.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet() ?? new HashSet<Guid>();
+
+        foreach (var existingSvc in tour.Resources.Where(r => !r.IsDeleted && r.Type == TourResourceType.Service))
+        {
+            if (!providedServiceIds.Contains(existingSvc.Id))
+            {
+                existingSvc.SoftDelete(_user.Id ?? string.Empty);
+            }
+        }
+
         if (request.Services?.Count > 0)
         {
             foreach (var svc in request.Services)
             {
+                if (svc.Id.HasValue && svc.Id != Guid.Empty)
+                {
+                    var existingSvc = tour.Resources.FirstOrDefault(r => r.Id == svc.Id.Value && r.Type == TourResourceType.Service);
+                    if (existingSvc != null)
+                    {
+                        existingSvc.Update(
+                            svc.ServiceName,
+                            _user.Id ?? string.Empty,
+                            contactEmail: svc.Email,
+                            contactPhone: svc.ContactNumber,
+                            price: svc.Price ?? svc.SalePrice,
+                            pricingType: svc.PricingType);
+                        existingSvc.Translations = NormalizeTranslationsFromPayload(svc.Translations);
+                        continue;
+                    }
+                }
+
                 var resource = TourResourceEntity.Create(
                     tour.Id,
                     TourResourceType.Service,
@@ -561,11 +607,16 @@ public class TourService(
             await _unitOfWork.SaveChangeAsync();
             return Result.Success;
         }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
         {
-            return Error.Conflict(
-                ErrorConstants.Tour.ConcurrencyConflictCode,
-                "Tour was modified by another user. Please refresh and try again.");
+            var entries = ex.Entries.Select(e => e.Entity.GetType().Name + " (State: " + e.State + ")").ToList();
+            var entriesStr = string.Join(", ", entries);
+
+            // Return Failure instead of Conflict because stale requests are caught by IfUnmodifiedSince.
+            // This represents an unexpected database-level concurrency issue (e.g., ID collision or ghost updates).
+            return Error.Failure(
+                "Tour.UpdateFailure.DbUpdate",
+                $"Unexpected database update failure. Entities: {entriesStr}");
         }
     }
 
@@ -936,14 +987,16 @@ public class TourService(
     {
         foreach (var cls in classifications)
         {
-            TourClassificationEntity? classification;
+            TourClassificationEntity? classification = null;
             var classificationId = cls.Id;
 
             if (classificationId.HasValue && classificationId != Guid.Empty)
             {
                 classification = tour.Classifications.FirstOrDefault(c => c.Id == classificationId!.Value);
-                if (classification == null) continue;
+            }
 
+            if (classification != null)
+            {
                 classification.Update(cls.Name, cls.BasePrice, cls.Description, cls.NumberOfDay, cls.NumberOfNight, _user.Id ?? string.Empty);
                 classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
             }
@@ -952,16 +1005,46 @@ public class TourService(
                 classification = TourClassificationEntity.Create(
                     tour.Id, cls.Name, cls.BasePrice, cls.Description,
                     cls.NumberOfDay, cls.NumberOfNight, _user.Id ?? string.Empty);
+                _unitOfWork.MarkAsAdded(classification);
                 classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
                 tour.Classifications.Add(classification);
             }
 
             await UpdatePlansAsync(classification, cls.Plans);
 
-            // Update Insurances
+            // Update Insurances (replace-on-submit)
+            var providedInsuranceIds = cls.Insurances.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
+            foreach (var existingIns in classification.Insurances.Where(i => !i.IsDeleted))
+            {
+                if (!providedInsuranceIds.Contains(existingIns.Id))
+                {
+                    existingIns.SoftDelete(_user.Id ?? string.Empty);
+                }
+            }
+
             foreach (var ins in cls.Insurances)
             {
                 var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
+
+                if (ins.Id.HasValue && ins.Id != Guid.Empty)
+                {
+                    var existingIns = classification.Insurances.FirstOrDefault(i => i.Id == ins.Id.Value);
+                    if (existingIns != null)
+                    {
+                        existingIns.Update(
+                            ins.InsuranceName,
+                            insuranceType,
+                            ins.InsuranceProvider,
+                            ins.CoverageDescription,
+                            ins.CoverageAmount,
+                            ins.CoverageFee,
+                            _user.Id ?? string.Empty,
+                            ins.IsOptional,
+                            ins.Note);
+                        existingIns.Translations = NormalizeTranslationsFromPayload(ins.Translations);
+                        continue;
+                    }
+                }
 
                 var insurance = TourInsuranceEntity.Create(
                     ins.InsuranceName,
@@ -973,6 +1056,7 @@ public class TourService(
                     _user.Id ?? string.Empty,
                     ins.IsOptional,
                     ins.Note);
+                _unitOfWork.MarkAsAdded(insurance);
                 insurance.Translations = NormalizeTranslationsFromPayload(ins.Translations);
 
                 classification.Insurances.Add(insurance);
@@ -984,14 +1068,16 @@ public class TourService(
     {
         foreach (var plan in plans)
         {
-            TourDayEntity? day;
+            TourDayEntity? day = null;
             var planId = plan.Id;
 
             if (planId.HasValue && planId != Guid.Empty)
             {
                 day = classification.Plans.FirstOrDefault(p => p.Id == planId!.Value);
-                if (day == null) continue;
+            }
 
+            if (day != null)
+            {
                 day.Update(plan.DayNumber, plan.Title, _user.Id ?? string.Empty, plan.Description);
                 day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
             }
@@ -1000,6 +1086,7 @@ public class TourService(
                 day = TourDayEntity.Create(
                     classification.Id, plan.DayNumber, plan.Title,
                     _user.Id ?? string.Empty, plan.Description);
+                _unitOfWork.MarkAsAdded(day);
                 day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
                 classification.Plans.Add(day);
             }
@@ -1012,35 +1099,46 @@ public class TourService(
     {
         foreach (var act in activities)
         {
-            TourDayActivityEntity? activity;
+            TourDayActivityEntity? activity = null;
             var activityId = act.Id;
 
             if (activityId.HasValue && activityId != Guid.Empty)
             {
                 activity = day.Activities.FirstOrDefault(a => a.Id == activityId!.Value);
-                if (activity == null) continue;
+            }
 
-                var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
-                TimeOnly? startTime = null;
-                TimeOnly? endTime = null;
-                if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
-                if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
+            var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
+            var activityOrder = activities.IndexOf(act) + 1;
+            TimeOnly? startTime = null;
+            TimeOnly? endTime = null;
+            if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
+            if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
+            var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
 
-                activity.Update(day.Activities.IndexOf(activity) + 1, activityType, act.Title, _user.Id ?? string.Empty,
+            if (activity != null)
+            {
+                activity.Update(activityOrder, activityType, act.Title, _user.Id ?? string.Empty,
                     act.Description, act.Note, startTime, endTime, act.EstimatedCost, act.IsOptional);
                 activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
 
-                // Replace ResourceLinks
-                activity.ResourceLinks.Clear();
-                var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
+                // Replace ResourceLinks (Soft delete old, add new)
+                foreach (var link in activity.ResourceLinks.Where(l => !l.IsDeleted))
+                {
+                    link.SoftDelete(_user.Id ?? string.Empty);
+                }
                 foreach (var link in resourceLinks)
                 {
-                    activity.ResourceLinks.Add(TourDayActivityResourceLinkEntity.Create(
-                        activity.Id, link.Url, link.Order, _user.Id ?? string.Empty));
+                    var rl = TourDayActivityResourceLinkEntity.Create(
+                        activity.Id, link.Url, link.Order, _user.Id ?? string.Empty);
+                    _unitOfWork.MarkAsAdded(rl);
+                    activity.ResourceLinks.Add(rl);
                 }
 
-                // Replace Routes (upsert)
-                activity.Routes.Clear();
+                // Replace Routes (Soft delete old, add new)
+                foreach (var route in activity.Routes.Where(r => !r.IsDeleted))
+                {
+                    route.SoftDelete(_user.Id ?? string.Empty);
+                }
                 foreach (var route in act.Routes)
                 {
                     var routeOrder = act.Routes.IndexOf(route) + 1;
@@ -1052,13 +1150,15 @@ public class TourService(
                         LocationType.Other,
                         _user.Id ?? string.Empty,
                         tourId,
-                        tourDayActivityId: day.Id);
+                        tourDayActivityId: activity.Id);
+                    _unitOfWork.MarkAsAdded(fromLocation);
                     var toLocation = TourPlanLocationEntity.Create(
                         route.ToLocationName ?? string.Empty,
                         LocationType.Other,
                         _user.Id ?? string.Empty,
                         tourId,
-                        tourDayActivityId: day.Id);
+                        tourDayActivityId: activity.Id);
+                    _unitOfWork.MarkAsAdded(toLocation);
                     var routeEntity = TourPlanRouteEntity.Create(
                         routeOrder,
                         transportationType,
@@ -1072,28 +1172,89 @@ public class TourService(
                         route.Price,
                         route.TicketInfo,
                         route.Note);
+                    _unitOfWork.MarkAsAdded(routeEntity);
                     routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
                     routeEntity.FromLocation = fromLocation;
                     routeEntity.ToLocation = toLocation;
+                    routeEntity.TourDayActivityId = activity.Id;
                     // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
                     // shared location entities when multiple routes reference the same location.
                     activity.Routes.Add(routeEntity);
                 }
+
+                // Add or Update Accommodation
+                if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))
+                {
+                    var parsedRoomType = !string.IsNullOrWhiteSpace(act.Accommodation.RoomType)
+                        && Enum.TryParse<Domain.Enums.RoomType>(act.Accommodation.RoomType, ignoreCase: true, out var rt)
+                        ? rt : Domain.Enums.RoomType.Standard;
+
+                    if (activity.Accommodation != null)
+                    {
+                        activity.Accommodation.Update(
+                            act.Accommodation.AccommodationName,
+                            parsedRoomType,
+                            act.Accommodation.RoomCapacity ?? 2,
+                            Domain.Enums.MealType.None,
+                            _user.Id ?? string.Empty,
+                            act.Accommodation.CheckInTime != null && TimeOnly.TryParse(act.Accommodation.CheckInTime, out var cit) ? cit : null,
+                            act.Accommodation.CheckOutTime != null && TimeOnly.TryParse(act.Accommodation.CheckOutTime, out var cot) ? cot : null,
+                            act.Accommodation.RoomPrice,
+                            act.Accommodation.NumberOfRooms,
+                            act.Accommodation.NumberOfNights,
+                            null, // TotalPrice not in DTO
+                            act.Accommodation.SpecialRequest,
+                            act.Accommodation.Address,
+                            null, // City not in DTO
+                            act.Accommodation.ContactPhone,
+                            null, // Website not in DTO
+                            null, // ImageUrl not in DTO
+                            act.Accommodation.Latitude,
+                            act.Accommodation.Longitude,
+                            act.Accommodation.Note);
+                        activity.Accommodation.Translations = NormalizeTranslationsFromPayload(act.Accommodation.Translations);
+                    }
+                    else
+                    {
+                        var accommodation = TourPlanAccommodationEntity.Create(
+                            act.Accommodation.AccommodationName ?? "Unnamed Accommodation",
+                            parsedRoomType,
+                            act.Accommodation.RoomCapacity ?? 2,
+                            Domain.Enums.MealType.None,
+                            _user.Id ?? string.Empty,
+                            act.Accommodation.CheckInTime != null && TimeOnly.TryParse(act.Accommodation.CheckInTime, out var cit) ? cit : null,
+                            act.Accommodation.CheckOutTime != null && TimeOnly.TryParse(act.Accommodation.CheckOutTime, out var cot) ? cot : null,
+                            act.Accommodation.RoomPrice,
+                            act.Accommodation.NumberOfRooms,
+                            act.Accommodation.NumberOfNights,
+                            null, // TotalPrice not in DTO
+                            act.Accommodation.SpecialRequest,
+                            act.Accommodation.Address,
+                            null, // City not in DTO
+                            act.Accommodation.ContactPhone,
+                            null, // Website not in DTO
+                            null, // ImageUrl not in DTO
+                            act.Accommodation.Latitude,
+                            act.Accommodation.Longitude,
+                            act.Accommodation.Note);
+                        _unitOfWork.MarkAsAdded(accommodation);
+                        accommodation.Translations = NormalizeTranslationsFromPayload(act.Accommodation.Translations);
+                        accommodation.TourDayActivityId = activity.Id;
+                        activity.Accommodation = accommodation;
+                    }
+                }
+                else if (activity.Accommodation != null)
+                {
+                    activity.Accommodation.SoftDelete(_user.Id ?? string.Empty);
+                }
             }
             else
             {
-                var activityOrder = day.Activities.Count + 1;
-                var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
-                TimeOnly? startTime = null;
-                TimeOnly? endTime = null;
-                if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
-                if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
-
-                var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
                 activity = TourDayActivityEntity.Create(
                     day.Id, activityOrder, activityType, act.Title,
                     _user.Id ?? string.Empty, act.Description, act.Note,
                     startTime, endTime, act.EstimatedCost, act.IsOptional, resourceLinks);
+                _unitOfWork.MarkAsAdded(activity);
                 activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
 
                 // Add routes for new activity
@@ -1108,13 +1269,15 @@ public class TourService(
                         LocationType.Other,
                         _user.Id ?? string.Empty,
                         tourId,
-                        tourDayActivityId: day.Id);
+                        tourDayActivityId: activity.Id);
+                    _unitOfWork.MarkAsAdded(fromLocation);
                     var toLocation = TourPlanLocationEntity.Create(
                         route.ToLocationName ?? string.Empty,
                         LocationType.Other,
                         _user.Id ?? string.Empty,
                         tourId,
-                        tourDayActivityId: day.Id);
+                        tourDayActivityId: activity.Id);
+                    _unitOfWork.MarkAsAdded(toLocation);
                     var routeEntity = TourPlanRouteEntity.Create(
                         routeOrder,
                         transportationType,
@@ -1128,12 +1291,48 @@ public class TourService(
                         route.Price,
                         route.TicketInfo,
                         route.Note);
+                    _unitOfWork.MarkAsAdded(routeEntity);
                     routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
                     routeEntity.FromLocation = fromLocation;
                     routeEntity.ToLocation = toLocation;
+                    routeEntity.TourDayActivityId = activity.Id;
                     // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
                     // shared location entities when multiple routes reference the same location.
                     activity.Routes.Add(routeEntity);
+                }
+
+                // Add Accommodation
+                if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))
+                {
+                    var parsedRoomType = !string.IsNullOrWhiteSpace(act.Accommodation.RoomType)
+                        && Enum.TryParse<Domain.Enums.RoomType>(act.Accommodation.RoomType, ignoreCase: true, out var rt)
+                        ? rt : Domain.Enums.RoomType.Standard;
+
+                    var accommodation = TourPlanAccommodationEntity.Create(
+                        act.Accommodation.AccommodationName ?? "Unnamed Accommodation",
+                        parsedRoomType,
+                        act.Accommodation.RoomCapacity ?? 2,
+                        Domain.Enums.MealType.None,
+                        _user.Id ?? string.Empty,
+                        act.Accommodation.CheckInTime != null && TimeOnly.TryParse(act.Accommodation.CheckInTime, out var cit) ? cit : null,
+                        act.Accommodation.CheckOutTime != null && TimeOnly.TryParse(act.Accommodation.CheckOutTime, out var cot) ? cot : null,
+                        act.Accommodation.RoomPrice,
+                        act.Accommodation.NumberOfRooms,
+                        act.Accommodation.NumberOfNights,
+                        null, // TotalPrice not in DTO
+                        act.Accommodation.SpecialRequest,
+                        act.Accommodation.Address,
+                        null, // City not in DTO
+                        act.Accommodation.ContactPhone,
+                        null, // Website not in DTO
+                        null, // ImageUrl not in DTO
+                        act.Accommodation.Latitude,
+                        act.Accommodation.Longitude,
+                        act.Accommodation.Note);
+                    _unitOfWork.MarkAsAdded(accommodation);
+                    accommodation.Translations = NormalizeTranslationsFromPayload(act.Accommodation.Translations);
+                    accommodation.TourDayActivityId = activity.Id;
+                    activity.Accommodation = accommodation;
                 }
 
                 await Task.CompletedTask;

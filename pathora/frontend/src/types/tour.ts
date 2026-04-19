@@ -5,6 +5,8 @@ export interface TourDayActivityTranslationData {
   note?: string | null;
   transportationType?: string | null;
   transportationName?: string | null;
+  fromLocation?: string | null;
+  toLocation?: string | null;
 }
 
 export interface TourPlanRouteTranslationData {

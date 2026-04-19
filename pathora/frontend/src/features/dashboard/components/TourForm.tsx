@@ -39,6 +39,7 @@ export interface TourFormProps {
     formData: FormData,
     deletedClassificationIds?: string[],
     deletedActivityIds?: string[],
+    lastModifiedOnUtc?: string,
   ) => Promise<void>;
   onCancel?: () => void;
   /** Show policy/policy selector sections (hide for TourDesigner role) */
@@ -90,6 +91,8 @@ interface ActivityForm {
   enToLocation: string;
   transportationType: string;
   enTransportationType: string;
+  transportationName: string;
+  enTransportationName: string;
   durationMinutes: string;
   price: string;
 
@@ -107,6 +110,8 @@ interface ActivityRouteForm {
   enToLocationCustom: string;
   transportationType: string;
   enTransportationType: string;
+  transportationName: string;
+  enTransportationName: string;
   durationMinutes: string;
   price: string;
   note: string;
@@ -298,6 +303,8 @@ const emptyActivity = (): ActivityForm => ({
   enToLocation: "",
   transportationType: "0",
   enTransportationType: "",
+  transportationName: "",
+  enTransportationName: "",
   durationMinutes: "",
   price: "",
   // Accommodation fields (type 8) — Phase 2: Supplier details handled at instance time
@@ -313,6 +320,8 @@ const emptyRoute = (): ActivityRouteForm => ({
   enToLocationCustom: "",
   transportationType: "0",
   enTransportationType: "",
+  transportationName: "",
+  enTransportationName: "",
   durationMinutes: "",
   price: "",
   note: "",
@@ -678,6 +687,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               enToLocationCustom: route.translations?.en?.toLocationName ?? "",
               transportationType: String(route.transportationType),
               enTransportationType: route.translations?.en?.transportationType ?? "",
+              transportationName: "",
+              enTransportationName: "",
               durationMinutes: String(route.durationMinutes ?? ""),
               price: String(route.price ?? ""),
               note: route.note ?? "",
@@ -695,11 +706,13 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             locationEntranceFee: String(act.locationEntranceFee ?? ""),
             // Transportation fields — type 7
             fromLocation: act.fromLocation ?? "",
-            enFromLocation: "",
+            enFromLocation: act.translations?.en?.fromLocation ?? "",
             toLocation: act.toLocation ?? "",
-            enToLocation: "",
+            enToLocation: act.translations?.en?.toLocation ?? "",
             transportationType: act.transportationType ?? "0",
             enTransportationType: act.translations?.en?.transportationType ?? "",
+            transportationName: act.transportationName ?? "",
+            enTransportationName: act.translations?.en?.transportationName ?? "",
             durationMinutes: String(act.durationMinutes ?? ""),
             price: String(act.price ?? ""),
             // Accommodation fields — type 8 — Phase 2: Supplier details handled at instance time
@@ -1451,6 +1464,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     try {
       setSaving(true);
       const formData = buildTourFormData({
+        mode: isEditMode ? "edit" : "create",
         basicInfo,
         thumbnail,
         images,
@@ -1498,7 +1512,12 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         }
       }
 
-      await onSubmit(formData, deletedClassificationIds, deletedActivityIds);
+      await onSubmit(
+        formData, 
+        deletedClassificationIds, 
+        deletedActivityIds, 
+        isEditMode ? initialData?.lastModifiedOnUtc : undefined
+      );
 
       // Only clear draft in create mode
       if (!isEditMode) {
@@ -2819,23 +2838,45 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.fromLocation", "From")} <span className="text-red-500">*</span>
+                                        🇻🇳 {t("tourAdmin.itineraries.fromLocation", "From (VI)")} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="text"
-                                        value={act.fromLocation}
+                                        value={act.fromLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "fromLocation", e.target.value)}
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.itineraries.toLocation", "To")} <span className="text-red-500">*</span>
+                                        🇬🇧 {t("tourAdmin.itineraries.fromLocationEn", "From (EN)")}
                                       </label>
                                       <input
                                         type="text"
-                                        value={act.toLocation}
+                                        value={act.enFromLocation || ""}
+                                        onChange={(e) => updateActivity(ci, di, ai, "enFromLocation", e.target.value)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        🇻🇳 {t("tourAdmin.itineraries.toLocation", "To (VI)")} <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.toLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "toLocation", e.target.value)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        🇬🇧 {t("tourAdmin.itineraries.toLocationEn", "To (EN)")}
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.enToLocation || ""}
+                                        onChange={(e) => updateActivity(ci, di, ai, "enToLocation", e.target.value)}
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
@@ -2861,8 +2902,42 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                       <input
                                         type="number"
                                         min={0}
-                                        value={act.durationMinutes}
+                                        value={act.durationMinutes || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "durationMinutes", e.target.value)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        🇻🇳 Tên phương tiện (VD: Limousine 9 chỗ)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.transportationName || ""}
+                                        onChange={(e) => updateActivity(ci, di, ai, "transportationName", e.target.value)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        🇬🇧 Vehicle Name (EN)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.enTransportationName || ""}
+                                        onChange={(e) => updateActivity(ci, di, ai, "enTransportationName", e.target.value)}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        Giá phương tiện ($)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={act.price || ""}
+                                        onChange={(e) => updateActivity(ci, di, ai, "price", e.target.value)}
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
@@ -3663,7 +3738,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           className="mt-1 flex flex-wrap gap-1">
                           {existingImages.map((img, i) => (
                             <img
-                              key={`existing-${img.fileId ?? i}`}
+                              key={`existing-${img.fileId ?? i}-${i}`}
                               src={img.publicURL}
                               alt={`Existing image ${i + 1}`}
                               className="h-12 w-auto rounded object-cover"

@@ -36,7 +36,7 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockUser = Substitute.For<IUser>();
 
         _mockUser.Id.Returns(_userId.ToString());
-        
+
         // Default Mock Supplier
         _mockSupplierRepository.FindByOwnerUserIdAsync(_userId, Arg.Any<CancellationToken>())
             .Returns(new SupplierEntity { Id = _supplierId, OwnerUserId = _userId });
@@ -56,12 +56,12 @@ public class AssignRoomToAccommodationCommandHandlerTests
         var day = new TourInstanceDayEntity { Id = Guid.NewGuid(), ActualDate = DateOnly.FromDateTime(DateTime.UtcNow), IsDeleted = false, Activities = new List<TourInstanceDayActivityEntity> { activity } };
         activity.TourInstanceDayId = day.Id;
         activity.TourInstanceDay = day;
-        
-        return new TourInstanceEntity 
-        { 
-            Id = _instanceId, 
-            HotelProviderId = providerId, 
-            InstanceDays = new List<TourInstanceDayEntity> { day } 
+
+        return new TourInstanceEntity
+        {
+            Id = _instanceId,
+            HotelProviderId = providerId,
+            InstanceDays = new List<TourInstanceDayEntity> { day }
         };
     }
 
@@ -83,7 +83,8 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())
             .Returns(new List<RoomBlockEntity>()); // none blocked by this activity before
 
-        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo => {
+        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo =>
+        {
             var action = callInfo.Arg<Func<Task>>();
             await action();
         });
@@ -114,12 +115,13 @@ public class AssignRoomToAccommodationCommandHandlerTests
 
         _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<CancellationToken>())
             .Returns(10); // 10 blocked totally on that day
-            
+
         // Assuming 3 of those 10 were from this exact activity previously
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())
             .Returns(new List<RoomBlockEntity> { new RoomBlockEntity { RoomType = RoomType.Standard, RoomCountBlocked = 3 } });
 
-        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo => {
+        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo =>
+        {
             var action = callInfo.Arg<Func<Task>>();
             await action();
         });
@@ -147,12 +149,13 @@ public class AssignRoomToAccommodationCommandHandlerTests
             .Returns(new HotelRoomInventoryEntity { TotalRooms = 20 });
 
         _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<CancellationToken>())
-            .Returns(10); 
+            .Returns(10);
 
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())
             .Returns(new List<RoomBlockEntity>());
 
-        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo => {
+        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo =>
+        {
             var action = callInfo.Arg<Func<Task>>();
             await action();
         });
@@ -211,7 +214,7 @@ public class AssignRoomToAccommodationCommandHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("Inventory.NotFound");
     }
-    
+
     [Fact]
     public async Task Handle_WhenRoomTypeIsCaseInsensitive_ParsesSuccessfully()
     {
@@ -227,7 +230,8 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())
             .Returns(new List<RoomBlockEntity>());
 
-        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo => {
+        _mockUnitOfWork.ExecuteTransactionAsync(Arg.Any<Func<Task>>()).Returns(async callInfo =>
+        {
             var action = callInfo.Arg<Func<Task>>();
             await action();
         });

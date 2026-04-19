@@ -10,6 +10,7 @@ using Domain.Entities.Translations;
 using Domain.UnitOfWork;
 using ErrorOr;
 using NSubstitute;
+using Domain.Enums;
 
 namespace Domain.Specs.Application.Services;
 
@@ -287,7 +288,7 @@ public sealed class TourServiceTests
                     ],
                     Insurances:
                     [
-                        new InsuranceDto(
+                        new InsuranceDto(null,
                             InsuranceName: "Travel Insurance",
                             InsuranceType: "Basic",
                             InsuranceProvider: "ABC Insurance",
@@ -1610,7 +1611,7 @@ public sealed class TourServiceTests
         LongDescription: "Updated long desc",
         SEOTitle: null,
         SEODescription: null,
-        Status: Domain.Enums.TourStatus.Active,
+        Status: TourStatus.Active,
         Thumbnail: null,
         Images: null,
         Translations: null,
@@ -1972,6 +1973,168 @@ public sealed class TourServiceTests
     }
 
     [Fact]
+    public async Task Update_AsTourDesigner_ShouldRejectStatusChange()
+    {
+        // Arrange
+        var tourId = Guid.CreateVersion7();
+        var designerId = Guid.Parse("019d9f1f-12e1-7a2d-a798-d2059f6c8df9");
+        _user.Id.Returns(designerId.ToString());
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            designerId.ToString(),
+            TourStatus.Pending,
+            tourScope: Domain.Enums.TourScope.Domestic,
+            customerSegment: Domain.Enums.CustomerSegment.Group,
+            tourDesignerId: designerId);
+        existingTour.Id = tourId;
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), Arg.Any<Guid>()).Returns(false);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            Status = TourStatus.Active,
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(TourStatus.Pending, existingTour.Status);
+        await _tourRepository.Received(1).Update(Arg.Any<TourEntity>());
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Update_AsTourDesigner_WhenRejectedTourResubmitsToPending_ShouldSucceedAndClearRejectionReason()
+    {
+        // Arrange
+        var tourId = Guid.CreateVersion7();
+        var designerId = Guid.Parse("019d9f1f-12e1-7a2d-a798-d2059f6c8df9");
+        _user.Id.Returns(designerId.ToString());
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            designerId.ToString(),
+            TourStatus.Rejected,
+            tourScope: Domain.Enums.TourScope.Domestic,
+            customerSegment: Domain.Enums.CustomerSegment.Group,
+            tourDesignerId: designerId);
+        existingTour.Id = tourId;
+        existingTour.RejectionReason = "Missing details";
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), Arg.Any<Guid>()).Returns(false);
+        _tourRepository.Update(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            Status = TourStatus.Pending,
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(TourStatus.Pending, existingTour.Status);
+        Assert.Null(existingTour.RejectionReason);
+        await _tourRepository.Received(1).Update(Arg.Any<TourEntity>());
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Update_AsTourDesigner_WhenActiveTourResubmitsToPending_ShouldSucceed()
+    {
+        // Arrange
+        var tourId = Guid.CreateVersion7();
+        var designerId = Guid.Parse("019d9f1f-12e1-7a2d-a798-d2059f6c8df9");
+        _user.Id.Returns(designerId.ToString());
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            designerId.ToString(),
+            TourStatus.Active,
+            tourScope: Domain.Enums.TourScope.Domestic,
+            customerSegment: Domain.Enums.CustomerSegment.Group,
+            tourDesignerId: designerId);
+        existingTour.Id = tourId;
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), Arg.Any<Guid>()).Returns(false);
+        _tourRepository.Update(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            Status = TourStatus.Pending,
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(TourStatus.Pending, existingTour.Status);
+        await _tourRepository.Received(1).Update(Arg.Any<TourEntity>());
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Update_AsTourDesigner_WhenActiveTourResubmitsToRejected_ShouldFail()
+    {
+        // Arrange
+        var tourId = Guid.CreateVersion7();
+        var designerId = Guid.Parse("019d9f1f-12e1-7a2d-a798-d2059f6c8df9");
+        _user.Id.Returns(designerId.ToString());
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            designerId.ToString(),
+            TourStatus.Active,
+            tourScope: Domain.Enums.TourScope.Domestic,
+            customerSegment: Domain.Enums.CustomerSegment.Group,
+            tourDesignerId: designerId);
+        existingTour.Id = tourId;
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), Arg.Any<Guid>()).Returns(false);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            Status = TourStatus.Rejected,
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(TourStatus.Active, existingTour.Status);
+        await _tourRepository.Received(1).Update(Arg.Any<TourEntity>());
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Update_WithDeletedClassificationIds_OnlyDeletesSpecifiedIds()
     {
         // Arrange
@@ -2308,21 +2471,269 @@ public sealed class TourServiceTests
     {
         // Phase 2 payload contract in frontend: no supplier fields in ActivityPayloadInput
         // (see tourCreatePayload.ts lines 29-62)
-        
+
         // Phase 3 DTO contract in backend: AccommodationName is nullable
         // This allows payloads without accommodation to be accepted without error
         // (see CreateTourDtos.cs line 73)
-        
+
         // Service contract: UpdateActivitiesAsync does not touch accommodation entity
         // Legacy data is implicitly preserved by not being overwritten
         // (see TourService.cs UpdateActivitiesAsync line 1011+)
-        
+
         // This test documents that the three layers are aligned on:
         // 1. Template authoring (frontend) captures only itinerary fields
         // 2. DTOs (backend) accept optional/nullable supplier fields
         // 3. Service (backend) preserves legacy supplier data during updates
-        
+
         Assert.True(true, "Contract reconciliation verified through code review of three layers");
+    }
+
+    #endregion
+
+    #region TC14: Update tour day plan with Transportation and Accommodation activities
+
+    [Fact]
+    public async Task Update_WithTransportationAndAccommodation_ShouldPersistCorrectly()
+    {
+        // Arrange
+        var tourId = Guid.NewGuid();
+        var originalTourDesignerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Original short",
+            "Original long",
+            "performer@test.com",
+            Domain.Enums.TourStatus.Active);
+        existingTour.Id = tourId;
+        existingTour.TourDesignerId = originalTourDesignerId;
+
+        _user.Id.Returns("updater@test.com");
+        _tourRepository.FindById(tourId, Arg.Any<bool>()).Returns(existingTour);
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), tourId).Returns(false);
+        _tourRepository.Update(Arg.Any<TourEntity>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var command = CreateBaseValidUpdateCommand(tourId) with
+        {
+            Classifications =
+            [
+                new ClassificationDto(
+                    Id: null,
+                    Name: "Updated Package",
+                    Description: "Updated package desc",
+                    BasePrice: 1000,
+                    NumberOfDay: 2,
+                    NumberOfNight: 1,
+                    Plans:
+                    [
+                        new DayPlanDto(
+                            Id: null,
+                            DayNumber: 1,
+                            Title: "Day 1 Updated",
+                            Description: "Arrival and check-in",
+                            Activities:
+                            [
+                                // Transportation Activity
+                                new ActivityDto(
+                                    Id: null,
+                                    ActivityType: "Transportation",
+                                    Title: "Airport Transfer",
+                                    Description: "Private transfer from airport to hotel",
+                                    Note: "Driver will hold a sign",
+                                    EstimatedCost: 50,
+                                    IsOptional: false,
+                                    StartTime: "10:00",
+                                    EndTime: "11:00",
+                                    Routes:
+                                    [
+                                        new RouteDto(
+                                            TransportationType: "Car",
+                                            FromLocationName: "International Airport",
+                                            ToLocationName: "Hotel Resort",
+                                            FromLocationId: null,
+                                            ToLocationId: null,
+                                            TransportationName: "Sedan Car",
+                                            DurationMinutes: 60,
+                                            PricingType: null,
+                                            Price: 50,
+                                            RequiresIndividualTicket: false,
+                                            TicketInfo: null,
+                                            Note: "Air-conditioned",
+                                            Translations: null,
+                                            RouteTranslations: null)
+                                    ],
+                                    Accommodation: null,
+                                    Translations: null,
+                                    LinkToResources: null),
+                                
+                                // Accommodation Activity
+                                new ActivityDto(
+                                    Id: null,
+                                    ActivityType: "Accommodation",
+                                    Title: "Hotel Stay",
+                                    Description: "Check-in and rest",
+                                    Note: "Sea view requested",
+                                    EstimatedCost: 200,
+                                    IsOptional: false,
+                                    StartTime: "14:00",
+                                    EndTime: null,
+                                    Routes: [],
+                                    Accommodation: new AccommodationDto(
+                                        AccommodationName: "Hotel Resort",
+                                        Address: "1 Beach Road",
+                                        ContactPhone: "1234567890",
+                                        CheckInTime: "14:00",
+                                        CheckOutTime: "12:00",
+                                        Note: null,
+                                        RoomType: "Deluxe",
+                                        RoomCapacity: 2,
+                                        MealsIncluded: "Breakfast",
+                                        RoomPrice: 200,
+                                        NumberOfRooms: 1,
+                                        NumberOfNights: 1,
+                                        Latitude: null,
+                                        Longitude: null,
+                                        SpecialRequest: "High floor",
+                                        Translations: null),
+                                    Translations: null,
+                                    LinkToResources: null)
+                            ],
+                            Translations: null)
+                    ],
+                    Insurances: [],
+                    Translations: null)
+            ]
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: true);
+
+        // Assert
+        Assert.False(result.IsError);
+        await _tourRepository.Received(1).Update(Arg.Any<TourEntity>());
+
+        // Assert the tour entity has the updated data
+        Assert.Single(existingTour.Classifications);
+        var plan = existingTour.Classifications[0].Plans[0];
+        Assert.Equal(2, plan.Activities.Count);
+
+        // Assert Transportation
+        var transportActivity = plan.Activities[0];
+        Assert.Equal("Transportation", transportActivity.ActivityType.ToString());
+        Assert.Single(transportActivity.Routes);
+        Assert.Equal("International Airport", transportActivity.Routes[0].FromLocation!.LocationName);
+        Assert.Equal("Hotel Resort", transportActivity.Routes[0].ToLocation!.LocationName);
+
+        // Assert Accommodation
+        var accommodationActivity = plan.Activities[1];
+        Assert.Equal("Accommodation", accommodationActivity.ActivityType.ToString());
+        Assert.NotNull(accommodationActivity.Accommodation);
+        Assert.Equal("Hotel Resort", accommodationActivity.Accommodation!.AccommodationName);
+        Assert.Equal("1 Beach Road", accommodationActivity.Accommodation.Address);
+    }
+    #endregion
+
+    #region Concurrency and Conflict Handling
+
+    [Fact]
+    public async Task Update_WithStaleIfUnmodifiedSince_ReturnsConflict()
+    {
+        // Arrange
+        var tourId = Guid.NewGuid();
+        var designerId = Guid.NewGuid();
+        _user.Id.Returns(designerId.ToString());
+        var lastModifiedOnUtc = DateTimeOffset.UtcNow;
+        var staleIfUnmodifiedSince = lastModifiedOnUtc.AddMinutes(-5); // Client has stale timestamp
+
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Short",
+            "Long",
+            designerId.ToString(),
+            TourStatus.Pending,
+            tourScope: TourScope.Domestic,
+            customerSegment: CustomerSegment.Group,
+            tourDesignerId: designerId
+        );
+        existingTour.LastModifiedOnUtc = lastModifiedOnUtc; // simulate updated in DB
+
+        // Use reflection to set Id
+        typeof(TourEntity).GetProperty("Id")!.SetValue(existingTour, tourId);
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), tourId).Returns(false);
+
+        var command = new UpdateTourCommand(
+            Id: tourId,
+            TourName: "Updated Tour",
+            ShortDescription: "Updated Short",
+            LongDescription: "Updated Long",
+            SEOTitle: null,
+            SEODescription: null,
+            Status: TourStatus.Pending,
+            IfUnmodifiedSince: staleIfUnmodifiedSince // Passes stale timestamp
+        );
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("Tour.ConcurrencyConflict", result.FirstError.Code);
+        await _tourRepository.DidNotReceive().Update(Arg.Any<TourEntity>());
+    }
+
+    [Fact]
+    public async Task Update_WithDbUpdateConcurrencyException_ReturnsFailure()
+    {
+        // Arrange
+        var tourId = Guid.NewGuid();
+        var designerId = Guid.NewGuid();
+        _user.Id.Returns(designerId.ToString());
+        var existingTour = TourEntity.Create(
+            "Original Tour",
+            "Short",
+            "Long",
+            designerId.ToString(),
+            TourStatus.Pending,
+            tourScope: TourScope.Domestic,
+            customerSegment: CustomerSegment.Group,
+            tourDesignerId: designerId
+        );
+        typeof(TourEntity).GetProperty("Id")!.SetValue(existingTour, tourId);
+
+        _tourRepository.FindByIdForUpdate(tourId).Returns(existingTour);
+        _tourRepository.ExistsByTourCode(Arg.Any<string>(), tourId).Returns(false);
+
+        var command = new UpdateTourCommand(
+            Id: tourId,
+            TourName: "Updated Tour",
+            ShortDescription: "Updated Short",
+            LongDescription: "Updated Long",
+            SEOTitle: null,
+            SEODescription: null,
+            Status: TourStatus.Pending
+        // No IfUnmodifiedSince provided or valid
+        );
+
+        _unitOfWork.When(x => x.SaveChangeAsync())
+            .Throw(new Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException("Mock concurrency exception"));
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(command, isManager: false);
+
+        // Assert
+        Assert.True(result.IsError);
+        // Because of the changed behavior in 2.1, it should return Failure (Tour.UpdateFailure.DbUpdate)
+        Assert.Equal("Tour.UpdateFailure.DbUpdate", result.FirstError.Code);
     }
 
     #endregion

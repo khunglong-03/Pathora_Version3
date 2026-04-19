@@ -36,7 +36,7 @@ public class AssignVehicleToRouteCommandHandlerTests
         _mockUser = Substitute.For<IUser>();
 
         _mockUser.Id.Returns(_userId.ToString());
-        
+
         // Default Mock Supplier
         _mockSupplierRepository.FindByOwnerUserIdAsync(_userId, Arg.Any<CancellationToken>())
             .Returns(new SupplierEntity { Id = _supplierId, OwnerUserId = _userId });
@@ -61,7 +61,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WithValidRequest_ReturnsSuccessAndNoWarning()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(maxParticipation: 10, transportProviderId: _supplierId, expectedInstanceId: _instanceId);
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>())
             .Returns(route);
@@ -81,7 +81,7 @@ public class AssignVehicleToRouteCommandHandlerTests
         result.Value.SeatCapacityWarning.Should().BeFalse();
         result.Value.VehicleSeatCapacity.Should().Be(15);
         result.Value.TourMaxParticipation.Should().Be(10);
-        
+
         route.VehicleId.Should().Be(_vehicleId);
         route.DriverId.Should().Be(_driverId);
         _mockRouteRepository.Received(1).Update(route);
@@ -91,7 +91,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WithVehicleSeatCapacityLessThanMaxParticipation_ReturnsWarning()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(maxParticipation: 20, transportProviderId: _supplierId, expectedInstanceId: _instanceId);
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 
@@ -111,7 +111,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WhenVehicleOwnerMismatch_ReturnsValidationError()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(10, _supplierId, _instanceId);
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 
@@ -128,7 +128,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WhenDriverUserIdMismatch_ReturnsValidationError()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(10, _supplierId, _instanceId);
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 
@@ -147,8 +147,8 @@ public class AssignVehicleToRouteCommandHandlerTests
     [Fact]
     public async Task Handle_WhenRouteInstanceIdMismatch_ReturnsNotFoundError()
     {
-        var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId); 
-        
+        var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
+
         var route = CreateMockRoute(10, _supplierId, Guid.NewGuid()); // Route belongs to different instance
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 
@@ -162,7 +162,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WhenTourProviderMismatch_ReturnsValidationError()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(10, Guid.NewGuid(), _instanceId); // Different provider Id
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 
@@ -176,7 +176,7 @@ public class AssignVehicleToRouteCommandHandlerTests
     public async Task Handle_WhenVehicleOrDriverInactive_ReturnsValidationError()
     {
         var request = new AssignVehicleToRouteCommand(_instanceId, _routeId, _vehicleId, _driverId);
-        
+
         var route = CreateMockRoute(10, _supplierId, _instanceId);
         _mockRouteRepository.GetDetailsByIdTrackingAsync(_routeId, Arg.Any<CancellationToken>()).Returns(route);
 

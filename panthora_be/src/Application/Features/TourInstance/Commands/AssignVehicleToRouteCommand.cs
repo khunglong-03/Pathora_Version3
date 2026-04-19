@@ -56,7 +56,7 @@ public sealed class AssignVehicleToRouteCommandHandler(
         var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
         if (vehicle is null)
             return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
-        
+
         if (vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
             return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
 

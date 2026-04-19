@@ -1,4 +1,4 @@
-﻿using Domain.Common.Repositories;
+using Domain.Common.Repositories;
 using ErrorOr;
 
 namespace Domain.UnitOfWork;
@@ -12,6 +12,7 @@ public interface IUnitOfWork : IDisposable
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();
     Task ExecuteTransactionAsync(Func<Task> action);
+    void MarkAsAdded(object entity);
 }
 public static class UnitOfWorkExtensions
 {

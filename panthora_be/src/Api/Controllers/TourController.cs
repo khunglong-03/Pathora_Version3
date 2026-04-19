@@ -223,15 +223,11 @@ public class TourController(
         [FromForm] Domain.Enums.Continent? continent = null,
         [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
     {
-        // Optional If-Unmodified-Since check for optimistic concurrency
+        DateTimeOffset? parsedClientTimestamp = null;
         if (Request.Headers.TryGetValue("If-Unmodified-Since", out var unmodifiedSinceHeader)
             && DateTimeOffset.TryParse(unmodifiedSinceHeader, out var clientTimestamp))
         {
-            var tour = await tourRepository.FindById(id, asNoTracking: true);
-            if (tour?.LastModifiedOnUtc > clientTimestamp)
-            {
-                return Conflict(new { message = "Tour was modified by another user. Please refresh and try again." });
-            }
+            parsedClientTimestamp = clientTimestamp;
         }
 
         // Validate JSON fields before processing
@@ -317,7 +313,7 @@ public class TourController(
             classificationData, accommodationData, locationData, transportationData, serviceData,
             visaPolicyId, depositPolicyId, pricingPolicyId, cancellationPolicyId,
             parsedDeletedClassificationIds, parsedDeletedActivityIds,
-            tourScope, continent, customerSegment);
+            tourScope, continent, customerSegment, parsedClientTimestamp);
 
         var isManager = false;
         if (User.IsInRole("Admin") || User.IsInRole("Manager"))

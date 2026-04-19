@@ -24,7 +24,7 @@ public sealed class CheckGuideAvailabilityQueryValidator : AbstractValidator<Che
 
         RuleFor(x => x.EndDate)
             .NotEmpty().WithMessage("End date is required.")
-            .GreaterThan(x => x.StartDate).WithMessage("End date must be after start date.");
+            .GreaterThanOrEqualTo(x => x.StartDate).WithMessage("End date must be on or after start date.");
     }
 }
 
