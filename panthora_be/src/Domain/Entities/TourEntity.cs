@@ -46,23 +46,6 @@ public class TourEntity : Aggregate<Guid>
     public virtual List<TourResourceEntity> Resources { get; set; } = [];
     /// <summary>Danh sách các địa điểm trong lịch trình tour.</summary>
     public virtual List<TourPlanLocationEntity> PlanLocations { get; set; } = [];
-    /// <summary>ID chính sách visa áp dụng cho tour này.</summary>
-    public Guid? VisaPolicyId { get; set; }
-    /// <summary>Chính sách visa của tour.</summary>
-    public virtual VisaPolicyEntity? VisaPolicy { get; set; }
-    /// <summary>ID chính sách đặt cọc.</summary>
-    public Guid? DepositPolicyId { get; set; }
-    /// <summary>Chính sách đặt cọc của tour.</summary>
-    public virtual DepositPolicyEntity? DepositPolicy { get; set; }
-    /// <summary>ID chính sách giá.</summary>
-    public Guid? PricingPolicyId { get; set; }
-    /// <summary>Chính sách giá của tour (các bậc giá theo số người).</summary>
-    public virtual PricingPolicy? PricingPolicy { get; set; }
-    /// <summary>ID chính sách hủy.</summary>
-    public Guid? CancellationPolicyId { get; set; }
-    /// <summary>Chính sách hủy của tour (các mức phí refund).</summary>
-    public virtual CancellationPolicyEntity? CancellationPolicy { get; set; }
-
     /// <summary>ID của nhân viên thiết kế tour.</summary>
     public Guid? TourDesignerId { get; set; }
     /// <summary>Nhân viên thiết kế tour.</summary>
@@ -74,7 +57,7 @@ public class TourEntity : Aggregate<Guid>
         var sequence = Random.Shared.Next(0, Domain.Options.TourOptions.CodeSequenceMaxValue);
         return $"TOUR-{datePart}-{sequence:00000}";
     }
-    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? visaPolicyId = null, Guid? depositPolicyId = null, Guid? pricingPolicyId = null, Guid? cancellationPolicyId = null, Guid? tourDesignerId = null, Continent? continent = null)
+    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null, Continent? continent = null)
     {
         return new TourEntity
         {
@@ -91,10 +74,6 @@ public class TourEntity : Aggregate<Guid>
             CustomerSegment = customerSegment,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
-            VisaPolicyId = visaPolicyId,
-            DepositPolicyId = depositPolicyId,
-            PricingPolicyId = pricingPolicyId,
-            CancellationPolicyId = cancellationPolicyId,
             TourDesignerId = tourDesignerId,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
@@ -102,7 +81,7 @@ public class TourEntity : Aggregate<Guid>
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
     }
-    public void Update(string tourName, string shortDescription, string longDescription, TourStatus status, string performedBy, TourScope tourScope = TourScope.Domestic, Continent? continent = null, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? visaPolicyId = null, Guid? depositPolicyId = null, Guid? pricingPolicyId = null, Guid? cancellationPolicyId = null, Guid? tourDesignerId = null)
+    public void Update(string tourName, string shortDescription, string longDescription, TourStatus status, string performedBy, TourScope tourScope = TourScope.Domestic, Continent? continent = null, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null)
     {
         TourName = tourName;
         ShortDescription = shortDescription;
@@ -137,10 +116,7 @@ public class TourEntity : Aggregate<Guid>
                 });
             }
         }
-        VisaPolicyId = visaPolicyId;
-        DepositPolicyId = depositPolicyId;
-        PricingPolicyId = pricingPolicyId;
-        CancellationPolicyId = cancellationPolicyId;
+
         TourDesignerId = tourDesignerId;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;

@@ -171,10 +171,6 @@ export function DashboardPoliciesPage() {
                 <span className="size-1.5 rounded-full bg-red-400" />
                 {t("dashboard.policies.types.cancellation", "Cancel")} {metrics.typeCounts.cancellation}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-stone-600">
-                <span className="size-1.5 rounded-full bg-blue-400" />
-                {t("dashboard.policies.types.visa", "Visa")} {metrics.typeCounts.visa}
-              </span>
             </div>
           </div>
         </div>

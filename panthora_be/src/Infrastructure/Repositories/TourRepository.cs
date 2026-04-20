@@ -17,10 +17,6 @@ public class TourRepository(AppDbContext context) : ITourRepository
             ? BuildTourDetailQueryNoTracking()
             : _context.Tours
                 .AsSplitQuery()
-                .Include(t => t.PricingPolicy)
-                .Include(t => t.DepositPolicy)
-                .Include(t => t.CancellationPolicy)
-                .Include(t => t.VisaPolicy)
                 .Include(t => t.Classifications)
                     .ThenInclude(c => c.Plans)
                         .ThenInclude(p => p.Activities)
@@ -56,10 +52,6 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .Include(t => t.Resources)
             .Include(t => t.Thumbnail)
             .Include(t => t.Images)
-            .Include(t => t.PricingPolicy)
-            .Include(t => t.DepositPolicy)
-            .Include(t => t.CancellationPolicy)
-            .Include(t => t.VisaPolicy)
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }

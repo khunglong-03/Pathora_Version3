@@ -45,19 +45,8 @@ public class TestDataBuilder
         );
     }
 
-    public static VisaPolicyEntity CreateVisaPolicy(
-        string region = "Southeast Asia",
-        int processingDays = 30,
-        int bufferDays = 7)
-    {
-        return VisaPolicyEntity.Create(
-            region: region,
-            processingDays: processingDays,
-            bufferDays: bufferDays,
-            fullPaymentRequired: false,
-            performedBy: "test"
-        );
-    }
+
+
 
     public static CancellationPolicyEntity CreateCancellationPolicy(
         TourScope tourScope = TourScope.Domestic,

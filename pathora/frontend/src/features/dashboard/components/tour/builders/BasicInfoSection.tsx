@@ -13,7 +13,7 @@ import { TourStatusMap } from "@/types/tour";
 import type { PricingPolicy } from "@/types/pricingPolicy";
 import type { DepositPolicy } from "@/types/depositPolicy";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
-import type { VisaPolicy } from "@/types/visaPolicy";
+
 import type { TourFormValues } from "@/schemas/tour-form";
 
 /* ── Types ──────────────────────────────────────────────────── */
@@ -53,7 +53,7 @@ interface BasicInfoSectionProps {
   selectedPricingPolicyId: string;
   selectedDepositPolicyId: string;
   selectedCancellationPolicyId: string;
-  selectedVisaPolicyId: string;
+
   activeLang: SupportedLanguage;
   isEditMode: boolean;
   setBasicInfo: (field: keyof BasicInfoForm, value: string) => void;
@@ -65,7 +65,7 @@ interface BasicInfoSectionProps {
   setSelectedPricingPolicyId: (v: string) => void;
   setSelectedDepositPolicyId: (v: string) => void;
   setSelectedCancellationPolicyId: (v: string) => void;
-  setSelectedVisaPolicyId: (v: string) => void;
+
   setActiveLang: (v: SupportedLanguage) => void;
   setThumbnailError: (v: string | undefined) => void;
   setImagesError: (v: string | undefined) => void;
@@ -88,7 +88,7 @@ export function BasicInfoSection({
   selectedPricingPolicyId,
   selectedDepositPolicyId,
   selectedCancellationPolicyId,
-  selectedVisaPolicyId,
+
   activeLang,
   isEditMode,
   setBasicInfo,
@@ -100,7 +100,7 @@ export function BasicInfoSection({
   setSelectedPricingPolicyId,
   setSelectedDepositPolicyId,
   setSelectedCancellationPolicyId,
-  setSelectedVisaPolicyId,
+
   setActiveLang,
   setThumbnailError,
   setImagesError,

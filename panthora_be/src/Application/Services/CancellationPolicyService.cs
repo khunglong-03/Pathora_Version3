@@ -115,21 +115,14 @@ public class CancellationPolicyService(
         if (tour == null)
             return Error.NotFound("TOUR_NOT_FOUND", "Tour not found");
 
-        // Step 2: If no policy assigned, return 100% refund
-        if (tour.CancellationPolicyId == null)
-        {
-            return new CalculateRefundResponse(
-                request.DepositAmount,
-                0,
-                null,
-                null,
-                request.DepositAmount,
-                0,
-                CalculationStatus.NoPolicyAssigned);
-        }
+        // Step 2: Load cancellation policy by tour scope (most-recently-created active policy wins)
+        var scopePolicies = await _repository.FindByTourScope(tour.TourScope);
+        var policy = scopePolicies
+            .Where(p => !p.IsDeleted)
+            .OrderByDescending(p => p.CreatedOnUtc)
+            .FirstOrDefault();
 
-        // Step 3: Load policy
-        var policy = await _repository.FindById(tour.CancellationPolicyId.Value);
+        // Step 3: If no active policy found for scope, return 100% refund
         if (policy == null)
         {
             return new CalculateRefundResponse(

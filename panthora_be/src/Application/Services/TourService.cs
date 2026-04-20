@@ -100,10 +100,6 @@ public class TourService(
             seoDescription: request.SEODescription,
             thumbnail: thumbnail,
             images: images,
-            visaPolicyId: request.VisaPolicyId,
-            depositPolicyId: request.DepositPolicyId,
-            pricingPolicyId: request.PricingPolicyId,
-            cancellationPolicyId: request.CancellationPolicyId,
             tourDesignerId: tourDesignerId,
             continent: request.Continent);
 
@@ -461,10 +457,6 @@ public class TourService(
             customerSegment: request.CustomerSegment,
             seoTitle: request.SEOTitle,
             seoDescription: request.SEODescription,
-            visaPolicyId: request.VisaPolicyId,
-            depositPolicyId: request.DepositPolicyId,
-            pricingPolicyId: request.PricingPolicyId,
-            cancellationPolicyId: request.CancellationPolicyId,
             tourDesignerId: tour.TourDesignerId,
             continent: request.Continent);
 

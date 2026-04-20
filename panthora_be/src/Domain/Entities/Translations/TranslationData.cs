@@ -112,13 +112,8 @@ public sealed class TourInstanceDayTranslationData
     public string? Note { get; set; }
 }
 
-public sealed class VisaPolicyTranslationData
-{
-    [JsonPropertyName("region")]
-    public string Region { get; set; } = string.Empty;
-    [JsonPropertyName("note")]
-    public string? Note { get; set; }
-}
+
+
 
 public sealed class DepositPolicyTranslationData
 {

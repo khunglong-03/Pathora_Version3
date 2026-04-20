@@ -23,7 +23,7 @@ public class CreateTourCommandValidatorTests
         FileName: "image.jpg",
         PublicURL: "https://cdn.example.com/image.jpg");
 
-    private static readonly Guid _validPricingPolicyId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
 
     private CreateTourCommand CreateBaseValidCommand() => new(
         TourName: "Da Nang Beach Tour",
@@ -34,8 +34,7 @@ public class CreateTourCommandValidatorTests
         Status: TourStatus.Active,
         Thumbnail: CreateValidImage(),
         Images: [CreateValidImage("img-1")],
-        Classifications: null,
-        PricingPolicyId: _validPricingPolicyId);
+        Classifications: null);
 
     #endregion
 

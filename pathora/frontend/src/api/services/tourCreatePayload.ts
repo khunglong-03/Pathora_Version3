@@ -169,11 +169,6 @@ interface CreateTourPayloadOptions {
   dayPlans: DayPlanPayloadInput[][];
   insurances: InsurancePayloadInput[][];
   services?: ServicePayloadInput[];
-  // NOTE: accommodations, locations, transportations removed — data now lives in activities
-  selectedPricingPolicyId?: string;
-  selectedDepositPolicyId?: string;
-  selectedCancellationPolicyId?: string;
-  selectedVisaPolicyId?: string;
 }
 
 const parseDecimal = (value: string, fallback = 0) => {
@@ -603,11 +598,6 @@ export const buildTourFormData = ({
   dayPlans,
   insurances,
   services = [],
-  // NOTE: accommodations, locations, transportations removed from signature
-  selectedPricingPolicyId,
-  selectedDepositPolicyId,
-  selectedCancellationPolicyId,
-  selectedVisaPolicyId,
 }: CreateTourPayloadOptions): FormData => {
   // Safety-net Zod validation — surfaces errors early before sending to API
   const payload: TourFormValues = {
@@ -681,21 +671,8 @@ export const buildTourFormData = ({
     formData.append("images", image);
   });
 
-  if (selectedPricingPolicyId) {
-    formData.append("pricingPolicyId", selectedPricingPolicyId);
-  }
 
-  if (selectedDepositPolicyId) {
-    formData.append("depositPolicyId", selectedDepositPolicyId);
-  }
 
-  if (selectedCancellationPolicyId) {
-    formData.append("cancellationPolicyId", selectedCancellationPolicyId);
-  }
-
-  if (selectedVisaPolicyId) {
-    formData.append("visaPolicyId", selectedVisaPolicyId);
-  }
 
   const translationsPayload = buildTourTranslationsPayload(
     vietnameseTranslation,

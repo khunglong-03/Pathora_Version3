@@ -32,7 +32,6 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITourService, TourService>();
         services.AddScoped<ITourInstanceService, TourInstanceService>();
-        services.AddScoped<IVisaPolicyService, VisaPolicyService>();
         services.AddScoped<IDepositPolicyService, DepositPolicyService>();
         services.AddScoped<ITaxConfigService, TaxConfigService>();
         services.AddScoped<IPaymentService, PaymentService>();

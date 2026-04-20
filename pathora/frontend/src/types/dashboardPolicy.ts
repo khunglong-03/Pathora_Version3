@@ -1,4 +1,4 @@
-export type DashboardPolicyType = "pricing" | "deposit" | "cancellation" | "visa";
+export type DashboardPolicyType = "pricing" | "deposit" | "cancellation";
 
 export type DashboardPolicyStatus = "active" | "inactive";
 
@@ -10,7 +10,6 @@ export interface PolicyTypeCounts {
   pricing: number;
   deposit: number;
   cancellation: number;
-  visa: number;
 }
 
 export interface DashboardPolicyMetrics {

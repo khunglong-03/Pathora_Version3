@@ -666,10 +666,10 @@ public sealed class TourServiceTests
 
     #endregion
 
-    #region TC11: Policy IDs are set on tour entity
+    #region TC11: Tour scope and customer segment are set correctly
 
     [Fact]
-    public async Task Create_WithPolicyIds_ShouldSetOnTourEntity()
+    public async Task Create_WithTourScopeAndSegment_ShouldSetOnTourEntity()
     {
         // Arrange
         _user.Id.Returns("admin@test.com");
@@ -678,17 +678,11 @@ public sealed class TourServiceTests
             .Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(1);
 
-        var visaPolicyId = Guid.CreateVersion7();
-        var depositPolicyId = Guid.CreateVersion7();
-        var pricingPolicyId = Guid.CreateVersion7();
-        var cancellationPolicyId = Guid.CreateVersion7();
-
         var command = CreateBaseValidCommand() with
         {
-            VisaPolicyId = visaPolicyId,
-            DepositPolicyId = depositPolicyId,
-            PricingPolicyId = pricingPolicyId,
-            CancellationPolicyId = cancellationPolicyId
+            TourScope = Domain.Enums.TourScope.International,
+            Continent = Domain.Enums.Continent.Europe,
+            CustomerSegment = Domain.Enums.CustomerSegment.Group
         };
         var service = CreateService();
 
@@ -697,10 +691,9 @@ public sealed class TourServiceTests
 
         // Assert
         Assert.NotNull(capturedTour);
-        Assert.Equal(visaPolicyId, capturedTour!.VisaPolicyId);
-        Assert.Equal(depositPolicyId, capturedTour.DepositPolicyId);
-        Assert.Equal(pricingPolicyId, capturedTour.PricingPolicyId);
-        Assert.Equal(cancellationPolicyId, capturedTour.CancellationPolicyId);
+        Assert.Equal(Domain.Enums.TourScope.International, capturedTour!.TourScope);
+        Assert.Equal(Domain.Enums.Continent.Europe, capturedTour.Continent);
+        Assert.Equal(Domain.Enums.CustomerSegment.Group, capturedTour.CustomerSegment);
     }
 
     #endregion
@@ -1620,10 +1613,6 @@ public sealed class TourServiceTests
         Locations: null,
         Transportations: null,
         Services: null,
-        VisaPolicyId: null,
-        DepositPolicyId: null,
-        PricingPolicyId: null,
-        CancellationPolicyId: null,
         DeletedClassificationIds: null,
         DeletedActivityIds: null);
 

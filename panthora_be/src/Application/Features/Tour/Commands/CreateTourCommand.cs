@@ -27,10 +27,6 @@ public sealed record CreateTourCommand(
     List<LocationDto>? Locations = null,
     List<TransportationDto>? Transportations = null,
     List<ServiceDto>? Services = null,
-    Guid? VisaPolicyId = null,
-    Guid? DepositPolicyId = null,
-    Guid? PricingPolicyId = null,
-    Guid? CancellationPolicyId = null,
     TourScope TourScope = TourScope.Domestic,
     Continent? Continent = null,
     CustomerSegment CustomerSegment = CustomerSegment.Group) : ICommand<ErrorOr<Guid>>, ICacheInvalidator

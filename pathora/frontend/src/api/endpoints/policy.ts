@@ -1,4 +1,4 @@
-// Policy Endpoints (Pricing, Visa, Deposit, Cancellation, Tax)
+// Policy Endpoints (Pricing, Deposit, Cancellation, Tax)
 
 export type EndpointWithId = (id: string) => string;
 
@@ -11,13 +11,8 @@ export interface PricingPolicyEndpoints {
   SET_DEFAULT: EndpointWithId;
 }
 
-export interface VisaPolicyEndpoints {
-  GET_ALL: string;
-  GET_DETAIL: EndpointWithId;
-  CREATE: string;
-  UPDATE: string;
-  DELETE: EndpointWithId;
-}
+
+
 
 export interface DepositPolicyEndpoints {
   GET_ALL: string;
@@ -52,13 +47,8 @@ export const PRICING_POLICY: PricingPolicyEndpoints = {
   SET_DEFAULT: (id: string): string => `/api/pricing-policies/${id}/set-default`,
 };
 
-export const VISA_POLICY: VisaPolicyEndpoints = {
-  GET_ALL: "/api/visa-policy",
-  GET_DETAIL: (id: string): string => `/api/visa-policy/${id}`,
-  CREATE: "/api/visa-policy",
-  UPDATE: "/api/visa-policy",
-  DELETE: (id: string): string => `/api/visa-policy/${id}`,
-};
+
+
 
 export const DEPOSIT_POLICY: DepositPolicyEndpoints = {
   GET_ALL: "/api/deposit-policies",

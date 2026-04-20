@@ -27,10 +27,7 @@ const DashboardPoliciesPage = dynamic(
   () => import("@/features/dashboard/components/DashboardPoliciesPage").then((mod) => mod.DashboardPoliciesPage),
   { ssr: false, loading: () => <SettingsTabSkeleton /> },
 );
-const VisaPoliciesPage = dynamic(
-  () => import("@/features/dashboard/components/VisaPoliciesPage").then((mod) => mod.VisaPoliciesPage),
-  { ssr: false, loading: () => <SettingsTabSkeleton /> },
-);
+
 const DepositPoliciesSettings = dynamic(
   () => import("@/features/dashboard/components/DepositPoliciesSettings").then((mod) => mod.DepositPoliciesSettings),
   { ssr: false, loading: () => <SettingsTabSkeleton /> },
@@ -47,7 +44,6 @@ const VALID_TAB_IDS = [
   "pricing-policies",
   "cancellation-policies",
   "deposit-policies",
-  "visa-policies",
 ] as const;
 
 type SettingsTabId = (typeof VALID_TAB_IDS)[number];
@@ -79,8 +75,7 @@ function renderTab(tab: SettingsTabId) {
       return <CancellationPoliciesPage />;
     case "deposit-policies":
       return <DepositPoliciesSettings />;
-    case "visa-policies":
-      return <VisaPoliciesPage />;
+
     default:
       return <GeneralTab />;
   }
@@ -98,7 +93,6 @@ export function SettingsPage() {
     { id: "pricing-policies", label: t("settings.tabs.pricingPolicies") },
     { id: "cancellation-policies", label: t("settings.tabs.cancellationPolicies") },
     { id: "deposit-policies", label: t("settings.tabs.depositPolicies") },
-    { id: "visa-policies", label: t("settings.tabs.visaPolicies") },
   ];
 
   const handleTabClick = (tabId: string) => {

@@ -72,7 +72,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PassportEntity> Passports => Set<PassportEntity>();
     public DbSet<VisaApplicationEntity> VisaApplications => Set<VisaApplicationEntity>();
     public DbSet<VisaEntity> Visas => Set<VisaEntity>();
-    public DbSet<VisaPolicyEntity> VisaPolicies => Set<VisaPolicyEntity>();
     public DbSet<DepositPolicyEntity> DepositPolicies => Set<DepositPolicyEntity>();
     public DbSet<SupplierEntity> Suppliers => Set<SupplierEntity>();
     public DbSet<SupplierPayableEntity> SupplierPayables => Set<SupplierPayableEntity>();

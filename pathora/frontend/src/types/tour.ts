@@ -216,10 +216,6 @@ export interface TourDto {
   createdOnUtc: string;
   lastModifiedBy: string | null;
   lastModifiedOnUtc: string | null;
-  pricingPolicyId?: string;
-  depositPolicyId?: string;
-  cancellationPolicyId?: string;
-  visaPolicyId?: string;
   services?: ServiceDto[];
 }
 

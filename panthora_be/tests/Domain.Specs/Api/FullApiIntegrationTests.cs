@@ -932,19 +932,7 @@ public sealed class FullApiIntegrationTests : IDisposable
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.NotFound);
     }
 
-    [Fact]
-    public async Task VisaPolicy_GetAll_AsAdmin_ReturnsOk()
-    {
-        await EnsureHostAsync();
-        var token = await GetAccessTokenAsync(AdminAccount);
-        if (token is null) { Assert.True(true, "Admin account not found, skipping test"); return; }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/visa-policy");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _client!.SendAsync(request);
-
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.NotFound);
-    }
 
     [Fact]
     public async Task Department_GetAll_AsAdmin_ReturnsOk()

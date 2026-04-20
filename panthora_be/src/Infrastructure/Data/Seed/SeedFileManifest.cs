@@ -16,7 +16,6 @@ internal static class SeedFileManifest
         new("PricingPolicySeed", "pricing-policy.json", ["Id", "Name"], "Id", null),
         new("CancellationPolicySeed", "cancellation-policy.json", ["Id"], "Id", null),
         new("DepositPolicySeed", "deposit-policy.json", ["Id"], "Id", null),
-        new("VisaPolicySeed", "visa-policy.json", ["Id", "CountryCode"], "Id", null),
 
         // Layer 2: Suppliers
         new("SupplierSeed", "supplier-transport.json", ["Id", "SupplierName"], "Id", null),

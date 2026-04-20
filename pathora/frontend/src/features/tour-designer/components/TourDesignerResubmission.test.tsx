@@ -104,10 +104,6 @@ const rejectedDetailTour = {
   createdOnUtc: "2026-04-18T00:00:00Z",
   lastModifiedBy: null,
   lastModifiedOnUtc: null,
-  pricingPolicyId: null,
-  depositPolicyId: null,
-  cancellationPolicyId: null,
-  visaPolicyId: null,
   translations: null,
   services: null,
 } as any;

@@ -50,7 +50,6 @@ public static class AppDbContextSeed
         seeded |= SeedTable(context, "pricing-policy.json", context.PricingPolicies);
         seeded |= SeedTable(context, "cancellation-policy.json", context.CancellationPolicies);
         seeded |= SeedTable(context, "deposit-policy.json", context.DepositPolicies);
-        seeded |= SeedTable(context, "visa-policy.json", context.VisaPolicies);
         seeded |= SeedTable(context, "department.json", context.Departments);
         seeded |= SeedTable(context, "position.json", context.Positions);
         return seeded;

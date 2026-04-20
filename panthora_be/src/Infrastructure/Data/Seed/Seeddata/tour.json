@@ -13,10 +13,6 @@
     "SEOTitle": "Tour Nhật Bản 6N5Đ - Khám Phá Tokyo Kyoto Osaka",
     "SEODescription": "Tour du lịch Nhật Bản 6 ngày 5 đêm giá tốt. Khám phá Tokyo, Kyoto, núi Phú Sĩ, Osaka. Đặt tour ngay.",
     "TourDesignerId": "019527a0-0000-7000-8000-000000000122",
-    "PricingPolicyId": "019527c1-0000-7000-8000-000000000002",
-    "DepositPolicyId": "019527c3-0000-7000-8000-000000000002",
-    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000002",
-    "VisaPolicyId": "019527c4-0000-7000-8000-000000000001",
     "Thumbnail": {
       "FileId": "thumb-japan-tour-001",
       "OriginalFileName": "tour-nhat-ban.jpg",
@@ -78,10 +74,6 @@
     "SEOTitle": "Tour Hàn Quốc 5N4Đ - Seoul Busan Giá Tốt",
     "SEODescription": "Tour du lịch Hàn Quốc 5 ngày 4 đêm giá hấp dẫn. Khám phá Seoul, Busan. Đặt ngay.",
     "TourDesignerId": "019527a0-0000-7000-8000-000000000123",
-    "PricingPolicyId": "019527c1-0000-7000-8000-000000000002",
-    "DepositPolicyId": "019527c3-0000-7000-8000-000000000002",
-    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000002",
-    "VisaPolicyId": "019527c4-0000-7000-8000-000000000002",
     "Thumbnail": {
       "FileId": "thumb-korea-tour-001",
       "OriginalFileName": "tour-han-quoc.jpg",
@@ -137,10 +129,6 @@
     "SEOTitle": "Tour Đà Nẵng Hội An 3N2Đ Giá Tốt",
     "SEODescription": "Tour du lịch Đà Nẵng Hội An 3 ngày 2 đêm giá rẻ. Đặt tour ngay.",
     "TourDesignerId": "019527a0-0000-7000-8000-000000000122",
-    "PricingPolicyId": "019527c1-0000-7000-8000-000000000001",
-    "DepositPolicyId": "019527c3-0000-7000-8000-000000000001",
-    "CancellationPolicyId": "019527c2-0000-7000-8000-000000000001",
-    "VisaPolicyId": null,
     "Thumbnail": {
       "FileId": "thumb-danang-tour-001",
       "OriginalFileName": "tour-da-nang.jpg",

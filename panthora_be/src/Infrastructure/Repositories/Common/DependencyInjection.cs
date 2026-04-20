@@ -45,7 +45,6 @@ internal static class DependencyInjection
         services.AddScoped<IPassportRepository, PassportRepository>();
         services.AddScoped<IVisaApplicationRepository, VisaApplicationRepository>();
         services.AddScoped<IVisaRepository, VisaRepository>();
-        services.AddScoped<IVisaPolicyRepository, VisaPolicyRepository>();
         services.AddScoped<IDepositPolicyRepository, DepositPolicyRepository>();
         services.AddScoped<ITaxConfigRepository, TaxConfigRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();

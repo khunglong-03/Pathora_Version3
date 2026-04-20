@@ -25,10 +25,6 @@ public sealed record TourDto
     public DateTimeOffset CreatedOnUtc { get; init; }
     public string? LastModifiedBy { get; init; }
     public DateTimeOffset? LastModifiedOnUtc { get; init; }
-    public Guid? PricingPolicyId { get; init; }
-    public Guid? DepositPolicyId { get; init; }
-    public Guid? CancellationPolicyId { get; init; }
-    public Guid? VisaPolicyId { get; init; }
     public Dictionary<string, TourTranslationData>? Translations { get; init; }
     public List<ServiceDto>? Services { get; init; }
 }

@@ -6,7 +6,7 @@
  * - endpoints/auth.ts      — Auth, PublicHome
  * - endpoints/tour.ts     — Tour, TourInstance, PublicTourInstance
  * - endpoints/booking.ts  — Booking, TourRequests, Payment
- * - endpoints/policy.ts   — Pricing, Visa, Deposit, Cancellation, Tax
+ * - endpoints/policy.ts   — Pricing, Deposit, Cancellation, Tax
  * - endpoints/admin.ts    — Catalog, Inventory, Discount, Order, Report, Notification, Admin, SiteContent, Communication
  */
 
@@ -41,7 +41,6 @@ import type {
 } from "./booking";
 import type {
   PricingPolicyEndpoints,
-  VisaPolicyEndpoints,
   DepositPolicyEndpoints,
   CancellationPolicyEndpoints,
   TaxConfigEndpoints,
@@ -85,7 +84,6 @@ export type {
 } from "./booking";
 export type {
   PricingPolicyEndpoints,
-  VisaPolicyEndpoints,
   DepositPolicyEndpoints,
   CancellationPolicyEndpoints,
   TaxConfigEndpoints,
@@ -125,7 +123,6 @@ import {
 } from "./booking";
 import {
   PRICING_POLICY,
-  VISA_POLICY,
   DEPOSIT_POLICY,
   CANCELLATION_POLICY,
   TAX_CONFIG,
@@ -161,7 +158,6 @@ export {
 } from "./booking";
 export {
   PRICING_POLICY,
-  VISA_POLICY,
   DEPOSIT_POLICY,
   CANCELLATION_POLICY,
   TAX_CONFIG,
@@ -207,7 +203,6 @@ export interface ApiEndpoints {
   BOOKING: BookingEndpoints;
   SITE_CONTENT: SiteContentEndpoints;
   PRICING_POLICY: PricingPolicyEndpoints;
-  VISA_POLICY: VisaPolicyEndpoints;
   DEPOSIT_POLICY: DepositPolicyEndpoints;
   CANCELLATION_POLICY: CancellationPolicyEndpoints;
   TAX_CONFIG: TaxConfigEndpoints;
@@ -231,7 +226,6 @@ export const API_ENDPOINTS: ApiEndpoints = {
   TOUR_REQUESTS,
   PAYMENT,
   PRICING_POLICY,
-  VISA_POLICY,
   DEPOSIT_POLICY,
   CANCELLATION_POLICY,
   TAX_CONFIG,

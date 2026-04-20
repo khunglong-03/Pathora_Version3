@@ -154,12 +154,7 @@ public static class ValidationMessages
     public const string CancellationPolicyStatusInvalid = "Invalid status";
     public const string CancellationPolicyIdRequired = "ID is required";
 
-    // ── VisaPolicy ─────────────────────────────────────────────
-    public const string VisaPolicyRegionRequired = "Region is required.";
-    public const string VisaPolicyRegionMaxLength100 = "Region must not exceed 100 characters.";
-    public const string VisaPolicyProcessingDaysGreaterThanZero = "Processing days must be greater than 0.";
-    public const string VisaPolicyBufferDaysNonNegative = "Buffer days cannot be negative.";
-    public const string VisaPolicyIdRequired = "ID is required.";
+
 
     // ── TaxConfig ──────────────────────────────────────────────
     public const string TaxConfigNameRequired = "Tax name is required.";

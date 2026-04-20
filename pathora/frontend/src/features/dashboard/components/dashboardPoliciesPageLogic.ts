@@ -10,7 +10,7 @@ import type {
 } from "@/types/dashboardPolicy";
 import type { DepositPolicy } from "@/types/depositPolicy";
 import type { PricingPolicy } from "@/types/pricingPolicy";
-import type { VisaPolicy } from "@/types/visaPolicy";
+
 
 export interface DashboardPolicyFilters {
   searchQuery: string;
@@ -21,21 +21,18 @@ export const POLICY_MANAGE_ROUTE: Record<DashboardPolicyType, string> = {
   pricing: "/pricing-policies",
   deposit: "/deposit-policies",
   cancellation: "/cancellation-policies",
-  visa: "/visa-policies",
 };
 
 const POLICY_TYPE_LABEL: Record<DashboardPolicyType, string> = {
   pricing: "Pricing",
   deposit: "Deposit",
   cancellation: "Cancellation",
-  visa: "Visa",
 };
 
 const POLICY_TOGGLE_REASON: Record<DashboardPolicyType, string | null> = {
   pricing: "Status changes are managed inside pricing policy details.",
   deposit: "Status changes are managed inside deposit policy details.",
   cancellation: null,
-  visa: "Status changes are managed inside visa policy details.",
 };
 
 const DEFAULT_ERROR_MESSAGE = "Unable to load policy data. Please try again.";
@@ -157,42 +154,18 @@ const mapCancellationPolicy = (policy: CancellationPolicy): DashboardPolicyListI
   };
 };
 
-const mapVisaPolicy = (policy: VisaPolicy): DashboardPolicyListItem => {
-  const status = policy.isActive ? "active" : "inactive";
-  const normalized = normalizeStatus(status, "");
 
-  return {
-    rowKey: `visa-${policy.id}`,
-    sourceId: policy.id,
-    type: "visa",
-    typeLabel: POLICY_TYPE_LABEL.visa,
-    title: policy.region,
-    subtitle: `${policy.processingDays} days processing`,
-    scope: policy.fullPaymentRequired ? "Full payment required" : "Deposit allowed",
-    status: normalized.status,
-    statusLabel: normalized.statusLabel,
-    updatedAt: toDateOrNull(policy.lastModifiedOnUtc) ?? toDateOrNull(policy.createdOnUtc),
-    manageHref: POLICY_MANAGE_ROUTE.visa,
-    viewHref: buildViewHref("visa", policy.id),
-    editHref: buildEditHref("visa", policy.id),
-    canEdit: true,
-    canToggleStatus: false,
-    toggleBlockedReason: POLICY_TOGGLE_REASON.visa,
-    togglePayload: null,
-  };
-};
+
 
 export const normalizeDashboardPolicies = (payload: {
   pricing: PricingPolicy[];
   deposit: DepositPolicy[];
   cancellation: CancellationPolicy[];
-  visa: VisaPolicy[];
 }): DashboardPolicyListItem[] => {
   const all = [
     ...payload.pricing.map(mapPricingPolicy),
     ...payload.deposit.map(mapDepositPolicy),
     ...payload.cancellation.map(mapCancellationPolicy),
-    ...payload.visa.map(mapVisaPolicy),
   ];
 
   return all.sort((left, right) => {
@@ -241,7 +214,6 @@ export const calculateDashboardPolicyMetrics = (
     pricing: 0,
     deposit: 0,
     cancellation: 0,
-    visa: 0,
   };
 
   let activePolicies = 0;

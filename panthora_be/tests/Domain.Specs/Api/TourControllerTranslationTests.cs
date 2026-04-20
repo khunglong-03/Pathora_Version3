@@ -135,41 +135,8 @@ public sealed class TourControllerTranslationTests
         Assert.Equal("English tour", probe.CapturedRequest.Translations["en"].TourName);
     }
 
-    [Fact]
-    public async Task Create_WhenPolicyIdsProvided_ShouldMapPolicyIdsToCommand()
-    {
-        var response = Guid.CreateVersion7();
-        var visaPolicyId = Guid.CreateVersion7();
-        var depositPolicyId = Guid.CreateVersion7();
-        var pricingPolicyId = Guid.CreateVersion7();
-        var cancellationPolicyId = Guid.CreateVersion7();
 
-        var (controller, probe) = ApiControllerTestHelper
-            .BuildController<TourController, CreateTourCommand, Guid>(
-                response, "/api/tour", StubFileService(), StubFileManager());
 
-        await controller.Create(
-            tourName: "Tour goc",
-            shortDescription: "Mo ta goc",
-            longDescription: "Mo ta dai goc",
-            seoTitle: null,
-            seoDescription: null,
-            status: TourStatus.Active,
-            thumbnail: null,
-            images: null,
-            translations: null,
-            classifications: null,
-            visaPolicyId: visaPolicyId,
-            depositPolicyId: depositPolicyId,
-            pricingPolicyId: pricingPolicyId,
-            cancellationPolicyId: cancellationPolicyId);
-
-        Assert.NotNull(probe.CapturedRequest);
-        Assert.Equal(visaPolicyId, probe.CapturedRequest.VisaPolicyId);
-        Assert.Equal(depositPolicyId, probe.CapturedRequest.DepositPolicyId);
-        Assert.Equal(pricingPolicyId, probe.CapturedRequest.PricingPolicyId);
-        Assert.Equal(cancellationPolicyId, probe.CapturedRequest.CancellationPolicyId);
-    }
 
     [Fact]
     public async Task Update_WhenTranslationsProvided_ShouldMapTranslationsToCommand()

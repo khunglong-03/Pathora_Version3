@@ -181,19 +181,13 @@ describe("buildTourFormData", () => {
           seoTitle: "",
           seoDescription: "",
         },
-        classifications: [],
-        dayPlans: [],
-        insurances: [],
-        selectedPricingPolicyId: "policy-pricing-1",
-        selectedDepositPolicyId: "policy-deposit-1",
-        selectedCancellationPolicyId: "policy-cancel-1",
-        selectedVisaPolicyId: "policy-visa-1",
       });
 
-      expect(formData.get("pricingPolicyId")).toBe("policy-pricing-1");
-      expect(formData.get("depositPolicyId")).toBe("policy-deposit-1");
-      expect(formData.get("cancellationPolicyId")).toBe("policy-cancel-1");
-      expect(formData.get("visaPolicyId")).toBe("policy-visa-1");
+      // Policy IDs are no longer part of the tour payload (decoupled)
+      expect(formData.get("pricingPolicyId")).toBeNull();
+      expect(formData.get("depositPolicyId")).toBeNull();
+      expect(formData.get("cancellationPolicyId")).toBeNull();
+      expect(formData.get("visaPolicyId")).toBeNull();
     });
 
     // TC-FE10: Policy IDs omitted when not provided

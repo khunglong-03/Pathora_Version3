@@ -90,10 +90,6 @@ public class TourController(
         [FromForm] string? locations = null,
         [FromForm] string? transportations = null,
         [FromForm] string? services = null,
-        [FromForm] Guid? visaPolicyId = null,
-        [FromForm] Guid? depositPolicyId = null,
-        [FromForm] Guid? pricingPolicyId = null,
-        [FromForm] Guid? cancellationPolicyId = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
         [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
@@ -164,10 +160,6 @@ public class TourController(
                 locationData,
                 transportationData,
                 serviceData,
-                visaPolicyId,
-                depositPolicyId,
-                pricingPolicyId,
-                cancellationPolicyId,
                 tourScope,
                 continent,
                 customerSegment);
@@ -213,10 +205,6 @@ public class TourController(
         [FromForm] string? locations = null,
         [FromForm] string? transportations = null,
         [FromForm] string? services = null,
-        [FromForm] Guid? visaPolicyId = null,
-        [FromForm] Guid? depositPolicyId = null,
-        [FromForm] Guid? pricingPolicyId = null,
-        [FromForm] Guid? cancellationPolicyId = null,
         [FromForm] string? deletedClassificationIds = null,
         [FromForm] string? deletedActivityIds = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
@@ -311,7 +299,6 @@ public class TourController(
             id, tourName, shortDescription, longDescription,
             seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
             classificationData, accommodationData, locationData, transportationData, serviceData,
-            visaPolicyId, depositPolicyId, pricingPolicyId, cancellationPolicyId,
             parsedDeletedClassificationIds, parsedDeletedActivityIds,
             tourScope, continent, customerSegment, parsedClientTimestamp);
 

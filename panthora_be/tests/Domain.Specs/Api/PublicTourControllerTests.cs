@@ -34,10 +34,6 @@ public sealed class PublicTourControllerTests
             CreatedOnUtc = DateTimeOffset.UtcNow,
             LastModifiedBy = "tester",
             LastModifiedOnUtc = DateTimeOffset.UtcNow,
-            PricingPolicyId = null,
-            DepositPolicyId = null,
-            CancellationPolicyId = null,
-            VisaPolicyId = null,
             Translations = null,
             Services = null
         };

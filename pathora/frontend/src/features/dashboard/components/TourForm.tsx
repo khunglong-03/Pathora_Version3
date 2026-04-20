@@ -13,12 +13,12 @@ import LanguageTabs, {
 import { pricingPolicyService } from "@/api/services/pricingPolicyService";
 import { depositPolicyService } from "@/api/services/depositPolicyService";
 import { cancellationPolicyService } from "@/api/services/cancellationPolicyService";
-import { visaPolicyService } from "@/api/services/visaPolicyService";
+
 import { buildTourFormData } from "@/api/services/tourCreatePayload";
 import type { PricingPolicy } from "@/types/pricingPolicy";
 import type { DepositPolicy } from "@/types/depositPolicy";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
-import type { VisaPolicy } from "@/types/visaPolicy";
+
 import type { TourDto, ImageDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
@@ -533,11 +533,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   const [pricingPolicies, setPricingPolicies] = useState<PricingPolicy[]>([]);
   const [depositPolicies, setDepositPolicies] = useState<DepositPolicy[]>([]);
   const [cancellationPolicies, setCancellationPolicies] = useState<CancellationPolicy[]>([]);
-  const [visaPolicies, setVisaPolicies] = useState<VisaPolicy[]>([]);
   const [selectedPricingPolicyId, setSelectedPricingPolicyId] = useState<string>("");
   const [selectedDepositPolicyId, setSelectedDepositPolicyId] = useState<string>("");
   const [selectedCancellationPolicyId, setSelectedCancellationPolicyId] = useState<string>("");
-  const [selectedVisaPolicyId, setSelectedVisaPolicyId] = useState<string>("");
 
   /* ── Edit mode state ──────────────────────────────────────── */
   // Existing server images — initialized from prop, parent can manage removals
@@ -563,7 +561,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         selectedPricingPolicyId,
         selectedDepositPolicyId,
         selectedCancellationPolicyId,
-        selectedVisaPolicyId,
         currentStep,
         thumbnail: thumbnail ? { name: thumbnail.name, size: thumbnail.size, type: thumbnail.type } : null,
         imagesCount: images.length,
@@ -574,7 +571,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     }
   }, [basicInfo, classifications, dayPlans, insurances, services,
       selectedPricingPolicyId, selectedDepositPolicyId,
-      selectedCancellationPolicyId, selectedVisaPolicyId,
+      selectedCancellationPolicyId,
       currentStep, thumbnail, images.length]);
 
   // Auto-save draft — create mode only
@@ -600,7 +597,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (draft.selectedPricingPolicyId) setSelectedPricingPolicyId(draft.selectedPricingPolicyId);
         if (draft.selectedDepositPolicyId) setSelectedDepositPolicyId(draft.selectedDepositPolicyId);
         if (draft.selectedCancellationPolicyId) setSelectedCancellationPolicyId(draft.selectedCancellationPolicyId);
-        if (draft.selectedVisaPolicyId) setSelectedVisaPolicyId(draft.selectedVisaPolicyId);
         if (draft.currentStep !== undefined) setCurrentStep(draft.currentStep);
         toast.info(t("toast.draftRestored", "Draft restored from previous session"));
       } else {
@@ -740,19 +736,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       setInsurances(insForms);
     }
 
-    // Initialize policy selectors from tour data
-    if (tour.pricingPolicyId) {
-      setSelectedPricingPolicyId(String(tour.pricingPolicyId));
-    }
-    if (tour.depositPolicyId) {
-      setSelectedDepositPolicyId(String(tour.depositPolicyId));
-    }
-    if (tour.cancellationPolicyId) {
-      setSelectedCancellationPolicyId(String(tour.cancellationPolicyId));
-    }
-    if (tour.visaPolicyId) {
-      setSelectedVisaPolicyId(String(tour.visaPolicyId));
-    }
+
 
     // Initialize services from tour data
     if (tour.services && tour.services.length > 0) {
@@ -782,16 +766,14 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
     const fetchPolicies = async () => {
       try {
-        const [ppRes, dpRes, cpRes, vpRes] = await Promise.all([
+        const [ppRes, dpRes, cpRes] = await Promise.all([
           pricingPolicyService.getAll(),
           depositPolicyService.getAll(),
           cancellationPolicyService.getAll(),
-          visaPolicyService.getAll(),
         ]);
         if (ppRes.success && ppRes.data) setPricingPolicies(ppRes.data);
         if (dpRes.success && dpRes.data) setDepositPolicies(dpRes.data);
         if (cpRes.success && cpRes.data) setCancellationPolicies(cpRes.data);
-        if (vpRes.success && vpRes.data) setVisaPolicies(vpRes.data);
       } catch (err) {
         console.error("Failed to fetch policies:", err);
       }
@@ -1480,10 +1462,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         dayPlans,
         insurances,
         services,
-        selectedPricingPolicyId,
-        selectedDepositPolicyId,
-        selectedCancellationPolicyId,
-        selectedVisaPolicyId,
       });
 
       // In edit mode, append id and management fields to FormData
@@ -2106,17 +2084,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     }))}
                   />
 
-                  {/* Visa Policy */}
-                  <SearchableSelect
-                    label={t("tourAdmin.basicInfo.visaPolicy")}
-                    placeholder={t("tourAdmin.basicInfo.searchVisaPolicy")}
-                    value={selectedVisaPolicyId}
-                    onChange={setSelectedVisaPolicyId}
-                    options={visaPolicies.map((p) => ({
-                      value: p.id,
-                      label: `${p.region} (${p.processingDays} days processing)`,
-                    }))}
-                  />
                 </div>
               ) : null}
             </div>
