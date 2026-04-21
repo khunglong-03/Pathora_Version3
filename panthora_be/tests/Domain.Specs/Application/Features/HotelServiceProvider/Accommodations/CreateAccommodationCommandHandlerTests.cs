@@ -41,7 +41,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns((HotelRoomInventoryEntity?)null);
 
@@ -76,7 +76,7 @@ public sealed class CreateAccommodationCommandHandlerTests
     {
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns((SupplierEntity?)null);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([]);
 
         var request = new CreateAccommodationRequestDto(RoomType.Standard, 5, null, null, null, null, null, null);
         var command = new CreateAccommodationCommand(request);
@@ -93,7 +93,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns(new HotelRoomInventoryEntity { Id = Guid.NewGuid(), SupplierId = supplier.Id, RoomType = RoomType.Standard, TotalRooms = 3 });
 
@@ -112,7 +112,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
 
         var roomTypes = new[]
         {
@@ -140,7 +140,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Deluxe, Arg.Any<CancellationToken>())
             .Returns((HotelRoomInventoryEntity?)null);
 
@@ -159,7 +159,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Suite, Arg.Any<CancellationToken>())
             .Returns((HotelRoomInventoryEntity?)null);
 
@@ -179,7 +179,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns((HotelRoomInventoryEntity?)null);
 
@@ -198,7 +198,7 @@ public sealed class CreateAccommodationCommandHandlerTests
         var userId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
         var supplier = CreateAccommodationSupplier(userId);
-        _supplierRepository.FindByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns(supplier);
+        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
         _inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns((HotelRoomInventoryEntity?)null);
 

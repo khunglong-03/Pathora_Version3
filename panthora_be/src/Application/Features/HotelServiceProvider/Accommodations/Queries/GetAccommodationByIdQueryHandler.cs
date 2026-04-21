@@ -23,7 +23,8 @@ public sealed class GetAccommodationByIdQueryHandler(
         if (currentUserId is null)
             return Error.Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(Guid.Parse(currentUserId));
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
 

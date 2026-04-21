@@ -217,7 +217,7 @@ public class TourInstanceService(
                             instanceActivity.Id,
                             roomType,
                             assignedData?.AccommodationQuantity ?? 1,
-                            assignedData?.SupplierId
+                            supplierId: assignedData?.SupplierId
                         );
                         break;
                     case TourDayActivityType.Transportation:
@@ -402,7 +402,7 @@ public class TourInstanceService(
 
         try
         {
-            var suppliers = await _supplierRepository.GetAllAsync(cancellationToken);
+            var suppliers = await _supplierRepository.GetAllAsync(CancellationToken.None);
             var assignedHotelOwners = suppliers
                 .Where(s => hotelOwnerGroups.Contains(s.Id) && s.OwnerUserId.HasValue)
                 .GroupBy(s => s.OwnerUserId!.Value)
@@ -575,11 +575,11 @@ public class TourInstanceService(
         }
         else
         {
-            var singleSupplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
-            if (singleSupplier is null)
+            var suppliers = await _supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+            if (suppliers.Count == 0)
                 return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
-            supplier = singleSupplier;
-            ownerSuppliers = [supplier];
+            supplier = suppliers[0];
+            ownerSuppliers = suppliers;
         }
 
         var instance = await _tourInstanceRepository.FindById(instanceId, cancellationToken: cancellationToken);

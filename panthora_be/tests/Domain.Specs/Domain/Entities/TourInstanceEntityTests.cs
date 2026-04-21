@@ -49,7 +49,7 @@ public sealed class TourInstanceEntityTests
             approvedActivity.Id,
             RoomType.Standard,
             1,
-            Guid.NewGuid());
+            supplierId: Guid.NewGuid());
         approvedActivity.Accommodation.ApproveBySupplier(true, "approved");
 
         var pendingActivity = TourInstanceDayActivityEntity.Create(
@@ -62,7 +62,7 @@ public sealed class TourInstanceEntityTests
             pendingActivity.Id,
             RoomType.Deluxe,
             1,
-            Guid.NewGuid());
+            supplierId: Guid.NewGuid());
 
         firstDay.Activities.Add(approvedActivity);
         secondDay.Activities.Add(pendingActivity);

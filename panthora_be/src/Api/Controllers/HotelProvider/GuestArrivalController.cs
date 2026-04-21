@@ -28,7 +28,8 @@ public class GuestArrivalController(ISupplierRepository supplierRepository) : Ba
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(userId);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(userId);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return HandleResult<List<GuestArrivalListDto>>(new List<GuestArrivalListDto>());
 
@@ -85,7 +86,8 @@ public class GuestArrivalController(ISupplierRepository supplierRepository) : Ba
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = supplierRepository.FindByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        var suppliers = supplierRepository.FindAllByOwnerUserIdAsync(userId).GetAwaiter().GetResult();
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return StatusCode(403, "You do not have an accommodation supplier.");
 

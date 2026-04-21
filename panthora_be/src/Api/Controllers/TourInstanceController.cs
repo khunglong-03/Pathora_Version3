@@ -136,7 +136,6 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
-    [AllowAnonymous]
     [HttpPost(TourInstanceEndpoint.Approve)]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ProviderApproveRequest request)
     {

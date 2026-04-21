@@ -41,7 +41,8 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (!Guid.TryParse(currentUser.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 

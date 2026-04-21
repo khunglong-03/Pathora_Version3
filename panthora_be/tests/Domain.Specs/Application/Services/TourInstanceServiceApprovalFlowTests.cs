@@ -111,7 +111,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             secondAccommodationActivity.Id,
             RoomType.Deluxe,
             1,
-            supplierBetaId);
+            supplierId: supplierBetaId);
         instance.InstanceDays[0].Activities.Add(secondAccommodationActivity);
         instance.InstanceDays[0].Activities[0].Accommodation!.AssignSupplier(supplierAlphaId);
 
@@ -170,7 +170,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             "Hotel properties: Hotel Alpha, Hotel Beta",
             true,
             "approved",
-            instance.CreatedBy,
+            instance.CreatedBy ?? "tester",
             Arg.Any<CancellationToken>());
     }
 

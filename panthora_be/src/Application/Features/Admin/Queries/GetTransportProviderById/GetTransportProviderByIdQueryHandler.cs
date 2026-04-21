@@ -31,7 +31,8 @@ public sealed class GetTransportProviderByIdQueryHandler(
         }
         else
         {
-            supplier = await supplierRepository.FindByOwnerUserIdAsync(user.Id, cancellationToken);
+            var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(user.Id, cancellationToken);
+            supplier = suppliers.FirstOrDefault();
         }
 
         if (user is null && supplier is null)
