@@ -1,8 +1,8 @@
 namespace Domain.Specs.Application.Features.Admin.Queries;
 
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using NSubstitute;
 using global::Contracts;
 using TpQry = global::Application.Features.Admin.Queries.GetTransportProviders;

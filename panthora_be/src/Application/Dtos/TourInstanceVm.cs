@@ -19,5 +19,4 @@ public sealed record TourInstanceVm(
     decimal BasePrice,
     string Status,
     string InstanceType,
-    int HotelApprovalStatus,
     int TransportApprovalStatus);

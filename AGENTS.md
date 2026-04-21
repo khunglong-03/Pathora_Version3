@@ -179,13 +179,13 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-21 10:02pm GMT+7
+# [Pathora_Version3] recent context, 2026-04-22 3:41am GMT+7
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 7 obs (3,232t read) | 901,032t work | 100% savings
+Stats: 12 obs (6,339t read) | 993,200t work | 99% savings
 
 ### Apr 21, 2026
 15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
@@ -195,6 +195,12 @@ Stats: 7 obs (3,232t read) | 901,032t work | 100% savings
 20 " 🔵 Five Test Files Contain Policy FK References Not Covered by tasks.md
 21 " 🔵 Two Duplicate TourForm.tsx Files Exist — Legacy and Refactored Versions Both Have Policy Code
 22 " 🔵 CalculateRefund Should Use FindByTourScopeAndDays Not FindByTourScope — Task 4.1 Picks Wrong Method
+### Apr 22, 2026
+91 2:04a 🔵 Pathora_Version3 multi-hotel-per-instance audit: project structure and pending work identified
+92 " 🔵 multi-hotel-per-instance OpenSpec change: full spec, design, and pending task list located
+93 " 🔵 Pathora_Version3 project layout: active backend is panthora_be, not backend/; no panthora_be/AGENTS.md exists
+94 3:13a ✅ multi-hotel-per-instance OpenSpec Docs Refined
+95 3:14a 🔵 multi-hotel-per-instance Implementation Progress: 37/66 Tasks Done
 
-Access 901k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 993k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

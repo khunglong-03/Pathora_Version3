@@ -23,12 +23,13 @@ public sealed class GetAccommodationsQueryHandler(
         if (currentUserId is null)
             return Error.Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(Guid.Parse(currentUserId));
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId));
 
-        if (supplier is null)
+        if (suppliers.Count == 0)
             return new List<AccommodationDto>();
 
-        var entities = await inventoryRepository.GetByHotelAsync(supplier.Id);
+        var supplierIds = suppliers.Select(s => s.Id).ToList();
+        var entities = await inventoryRepository.GetByHotelIdsAsync(supplierIds);
 
         return entities.Select(MapToDto).ToList();
     }

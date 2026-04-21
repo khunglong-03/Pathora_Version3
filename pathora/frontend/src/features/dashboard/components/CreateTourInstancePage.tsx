@@ -59,11 +59,10 @@ type FormState = {
   guideUserIds: string[];
   thumbnailUrl: string;
   imageUrls: string[];
-  hotelProviderId: string;
   transportProviderId: string;
   activityAssignments: Record<
     string,
-    { roomType?: string; vehicleId?: string }
+    { supplierId?: string; roomType?: string; vehicleId?: string }
   >;
 };
 
@@ -104,7 +103,6 @@ const INITIAL_FORM: FormState = {
   guideUserIds: [],
   thumbnailUrl: "",
   imageUrls: [],
-  hotelProviderId: "",
   transportProviderId: "",
   activityAssignments: {},
 };
@@ -384,11 +382,11 @@ interface InstanceDetailsStepProps {
   onUploadImages: (files: FileList) => Promise<void>;
   uploadingThumbnail: boolean;
   uploadingImages: boolean;
-  hotelDetail: HotelProviderDetail | null;
+  hotelDetailsBySupplierId: Record<string, HotelProviderDetail>;
   transportDetail: TransportProviderDetail | null;
   updateActivityAssignment: (
     activityId: string,
-    updates: { roomType?: string; vehicleId?: string },
+    updates: { supplierId?: string; roomType?: string; vehicleId?: string },
   ) => void;
   editableItinerary: EditableDay[];
   onUpdateActivity: (
@@ -425,7 +423,7 @@ function InstanceDetailsStep({
   onUploadImages,
   uploadingThumbnail,
   uploadingImages,
-  hotelDetail,
+  hotelDetailsBySupplierId,
   transportDetail,
   updateActivityAssignment,
   editableItinerary,
@@ -438,11 +436,6 @@ function InstanceDetailsStep({
     () => guides.find((u) => form.guideUserIds.includes(u.id)) ?? null,
     [guides, form.guideUserIds],
   );
-  const hotelRoomOptions = useMemo(
-    () => getProviderRoomOptions(hotelDetail),
-    [hotelDetail],
-  );
-
   return (
     <div className="space-y-5">
       {/* Classification summary */}
@@ -774,23 +767,11 @@ function InstanceDetailsStep({
         )}
         defaultOpen={true}>
         <div className="grid gap-4 md:grid-cols-2 text-sm text-stone-700">
+          {/* Hotel provider is now assigned per-accommodation activity after instance creation */}
           <div className="space-y-2">
-            <label className="font-semibold text-stone-700">
-              {t("tourInstance.form.hotelProvider", "Hotel Provider")}
-            </label>
-            <select
-              className={inputClassName}
-              value={form.hotelProviderId}
-              onChange={(e) => updateField("hotelProviderId", e.target.value)}>
-              <option value="">
-                {t("tourInstance.form.selectHotel", "Select Hotel Provider...")}
-              </option>
-              {hotelProviders.map((h, idx) => (
-                <option key={h.id ?? `hotel-${idx}`} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
-            </select>
+            <p className="text-xs text-stone-400 italic">
+              {t("tourInstance.form.hotelProviderNote", "Hotel providers are assigned per-accommodation activity after creating the instance.")}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -1193,8 +1174,62 @@ function InstanceDetailsStep({
 
                             {/* Dynamic Activity Resource Assignment */}
                             <div className="ml-6 flex flex-wrap items-center gap-3">
+                              {activity.activityType === "Accommodation" && (
+                                  <div className="flex items-center gap-2 bg-stone-100 p-1.5 rounded-lg border border-stone-200 w-fit">
+                                    <Icon
+                                      icon="heroicons:building-office"
+                                      className="size-4 text-stone-500"
+                                    />
+                                    <label className="text-[11px] font-medium text-stone-600 uppercase tracking-wide">
+                                      {t(
+                                        "tourInstance.wizard.hotelSupplier",
+                                        "Hotel",
+                                      )}
+                                      :
+                                    </label>
+                                    <select
+                                      className="text-xs rounded border border-stone-300 px-2 py-1 max-w-[180px] focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      value={
+                                        form.activityAssignments[activity.id]
+                                          ?.supplierId ?? ""
+                                      }
+                                      onChange={(e) => {
+                                        const nextSupplierId = e.target.value || undefined;
+                                        const currentSupplierId =
+                                          form.activityAssignments[activity.id]
+                                            ?.supplierId;
+
+                                        updateActivityAssignment(activity.id, {
+                                          supplierId: nextSupplierId,
+                                          roomType:
+                                            currentSupplierId !== nextSupplierId
+                                              ? undefined
+                                              : form.activityAssignments[activity.id]
+                                                  ?.roomType,
+                                        });
+                                      }}>
+                                      <option value="">
+                                        {t(
+                                          "tourInstance.wizard.selectHotelSupplier",
+                                          "-- Select hotel --",
+                                        )}
+                                      </option>
+                                      {hotelProviders.map((hotel) => (
+                                        <option key={hotel.id} value={hotel.id}>
+                                          {hotel.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+
                               {activity.activityType === "Accommodation" &&
-                                hotelRoomOptions.length > 0 && (
+                                getProviderRoomOptions(
+                                  hotelDetailsBySupplierId[
+                                    form.activityAssignments[activity.id]
+                                      ?.supplierId ?? ""
+                                  ],
+                                ).length > 0 && (
                                   <div className="flex items-center gap-2 bg-stone-100 p-1.5 rounded-lg border border-stone-200 w-fit">
                                     <Icon
                                       icon="heroicons:building-office-2"
@@ -1207,6 +1242,15 @@ function InstanceDetailsStep({
                                       )}
                                       :
                                     </label>
+                                    {(() => {
+                                      const roomOptions = getProviderRoomOptions(
+                                        hotelDetailsBySupplierId[
+                                          form.activityAssignments[activity.id]
+                                            ?.supplierId ?? ""
+                                        ],
+                                      );
+
+                                      return (
                                     <select
                                       className="text-xs rounded border border-stone-300 px-2 py-1 max-w-[140px] focus:ring-orange-500 focus:border-orange-500 outline-none"
                                       value={
@@ -1225,7 +1269,7 @@ function InstanceDetailsStep({
                                           "-- Select room --",
                                         )}
                                       </option>
-                                      {hotelRoomOptions.map((roomOption) => {
+                                      {roomOptions.map((roomOption) => {
                                         return (
                                           <option
                                             key={roomOption.roomType}
@@ -1236,6 +1280,8 @@ function InstanceDetailsStep({
                                         );
                                       })}
                                     </select>
+                                      );
+                                    })()}
                                   </div>
                                 )}
 
@@ -1378,9 +1424,9 @@ export function CreateTourInstancePage({
   const [prefillTourRequest, setPrefillTourRequest] =
     useState<TourRequestDetailDto | null>(null);
 
-  const [hotelDetail, setHotelDetail] = useState<HotelProviderDetail | null>(
-    null,
-  );
+  const [hotelDetailsBySupplierId, setHotelDetailsBySupplierId] = useState<
+    Record<string, HotelProviderDetail>
+  >({});
   const [transportDetail, setTransportDetail] =
     useState<TransportProviderDetail | null>(null);
 
@@ -1471,8 +1517,24 @@ export function CreateTourInstancePage({
         supplierService.getSuppliers("1"), // SupplierType.Transport = 1
       ]);
 
-      setHotelProviders(Array.isArray(hotels) ? hotels : []);
+      const normalizedHotels = Array.isArray(hotels) ? hotels : [];
+      setHotelProviders(normalizedHotels);
       setTransportProviders(Array.isArray(transports) ? transports : []);
+
+      const hotelDetailResults = await Promise.allSettled(
+        normalizedHotels.map(async (hotel) => ({
+          supplierId: hotel.id,
+          detail: await adminService.getHotelProviderDetail(hotel.id),
+        })),
+      );
+
+      const nextHotelDetails: Record<string, HotelProviderDetail> = {};
+      hotelDetailResults.forEach((result) => {
+        if (result.status === "fulfilled" && result.value.detail) {
+          nextHotelDetails[result.value.supplierId] = result.value.detail;
+        }
+      });
+      setHotelDetailsBySupplierId(nextHotelDetails);
     } catch (error) {
       handleApiError(error);
     }
@@ -1483,22 +1545,10 @@ export function CreateTourInstancePage({
       fetchProviders();
     } else {
       setHotelProviders([]);
+      setHotelDetailsBySupplierId({});
       setTransportProviders([]);
     }
   }, [fetchProviders, tourDetail]);
-
-  useEffect(() => {
-    if (form.hotelProviderId) {
-      adminService
-        .getHotelProviderDetail(form.hotelProviderId)
-        .then((res) => {
-          if (res) setHotelDetail(res);
-        })
-        .catch(() => setHotelDetail(null));
-    } else {
-      setHotelDetail(null);
-    }
-  }, [form.hotelProviderId]);
 
   useEffect(() => {
     if (form.transportProviderId) {
@@ -1769,13 +1819,7 @@ export function CreateTourInstancePage({
     value: FormState[K],
   ) => {
     setForm((current) => {
-      const next = { ...current, [field]: value };
-      if (field === "hotelProviderId") {
-        next.activityAssignments = clearRoomTypeAssignments(
-          next.activityAssignments,
-        );
-      }
-      return next;
+      return { ...current, [field]: value };
     });
     setErrors((current) => {
       if (!current[field as string]) return current;
@@ -1793,7 +1837,7 @@ export function CreateTourInstancePage({
 
   const updateActivityAssignment = (
     activityId: string,
-    updates: { roomType?: string; vehicleId?: string },
+    updates: { supplierId?: string; roomType?: string; vehicleId?: string },
   ) => {
     setForm((prev) => {
       const current = prev.activityAssignments[activityId] || {};
@@ -2006,13 +2050,7 @@ export function CreateTourInstancePage({
         );
     }
 
-    // Reject if room assignments exist without hotelProviderId
-    if (hasRoomAssignments(form.activityAssignments) && !form.hotelProviderId) {
-      newErrors.hotelProviderId = t(
-        "tourInstance.validation.hotelProviderRequiredForRoom",
-        "Hotel provider is required when assigning rooms",
-      );
-    }
+    // Room assignment validation removed — hotel provider is now per-activity
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -2048,7 +2086,6 @@ export function CreateTourInstancePage({
         thumbnailUrl: form.thumbnailUrl.trim() || undefined,
         imageUrls: form.imageUrls.map((url) => url.trim()).filter(Boolean),
         tourRequestId: effectiveTourRequestId ?? undefined,
-        hotelProviderId: form.hotelProviderId || undefined,
         transportProviderId: form.transportProviderId || undefined,
         activityAssignments:
           mappedActivityAssignments.length > 0
@@ -2236,7 +2273,7 @@ export function CreateTourInstancePage({
             onUploadImages={handleUploadImages}
             uploadingThumbnail={uploadingThumbnail}
             uploadingImages={uploadingImages}
-            hotelDetail={hotelDetail}
+            hotelDetailsBySupplierId={hotelDetailsBySupplierId}
             transportDetail={transportDetail}
             updateActivityAssignment={updateActivityAssignment}
             editableItinerary={editableItinerary}

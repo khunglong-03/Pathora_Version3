@@ -38,8 +38,8 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockUser.Id.Returns(_userId.ToString());
 
         // Default Mock Supplier
-        _mockSupplierRepository.FindByOwnerUserIdAsync(_userId, Arg.Any<CancellationToken>())
-            .Returns(new SupplierEntity { Id = _supplierId, OwnerUserId = _userId });
+        _mockSupplierRepository.FindAllByOwnerUserIdAsync(_userId, Arg.Any<CancellationToken>())
+            .Returns([new SupplierEntity { Id = _supplierId, OwnerUserId = _userId }]);
 
         _handler = new AssignRoomToAccommodationCommandHandler(
             _mockRoomBlockRepository,
@@ -53,6 +53,19 @@ public class AssignRoomToAccommodationCommandHandlerTests
     private TourInstanceEntity CreateMockTourInstance(Guid providerId, TourDayActivityType activityType, Guid activityId)
     {
         var activity = new TourInstanceDayActivityEntity { Id = activityId, ActivityType = activityType };
+
+        // For accommodation activities, set supplier on the accommodation entity
+        if (activityType == TourDayActivityType.Accommodation)
+        {
+            activity.Accommodation = new TourInstancePlanAccommodationEntity
+            {
+                Id = Guid.NewGuid(),
+                TourInstanceDayActivityId = activityId,
+                SupplierId = providerId,
+                SupplierApprovalStatus = ProviderApprovalStatus.Pending
+            };
+        }
+
         var day = new TourInstanceDayEntity { Id = Guid.NewGuid(), ActualDate = DateOnly.FromDateTime(DateTime.UtcNow), IsDeleted = false, Activities = new List<TourInstanceDayActivityEntity> { activity } };
         activity.TourInstanceDayId = day.Id;
         activity.TourInstanceDay = day;
@@ -60,7 +73,6 @@ public class AssignRoomToAccommodationCommandHandlerTests
         return new TourInstanceEntity
         {
             Id = _instanceId,
-            HotelProviderId = providerId,
             InstanceDays = new List<TourInstanceDayEntity> { day }
         };
     }

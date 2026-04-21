@@ -396,7 +396,6 @@ export interface TourInstanceVm {
   basePrice: number;
   status: string;
   instanceType: string;
-  hotelApprovalStatus: number;
   transportApprovalStatus: number;
 }
 
@@ -455,6 +454,10 @@ export interface TourInstancePlanAccommodationDto {
   roomType: string;
   quantity: number;
   roomBlocksTotal?: number;
+  supplierId?: string | null;
+  supplierName?: string | null;
+  supplierApprovalStatus?: string | null;
+  supplierApprovalNote?: string | null;
 }
 
 // TourInstancePlanRouteDto removed — vehicle/driver data is now flattened onto TourInstanceDayActivityDto
@@ -486,12 +489,8 @@ export interface TourInstanceDto {
   confirmationDeadline: string | null;
   managers: TourInstanceManagerDto[];
   includedServices: string[];
-  hotelApprovalStatus: number;
   transportApprovalStatus: number;
-  hotelApprovalNote?: string | null;
   transportApprovalNote?: string | null;
-  hotelProviderId?: string | null;
-  hotelProviderName?: string | null;
   transportProviderId?: string | null;
   transportProviderName?: string | null;
   days?: TourInstanceDayDto[];

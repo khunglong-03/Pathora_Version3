@@ -136,18 +136,24 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
-    [HttpPost(TourInstanceEndpoint.HotelApprove)]
-    public async Task<IActionResult> HotelApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    [AllowAnonymous]
+    [HttpPost(TourInstanceEndpoint.Approve)]
+    public async Task<IActionResult> Approve(Guid id, [FromBody] ProviderApproveRequest request)
     {
-        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Hotel"));
+        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(
+            id,
+            request.IsApproved,
+            request.Note,
+            request.ProviderType,
+            request.AccommodationActivityIds));
         return HandleResult(result);
     }
 
     [AllowAnonymous]
-    [HttpPost(TourInstanceEndpoint.TransportApprove)]
-    public async Task<IActionResult> TransportApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    [HttpPost("{instanceId:guid}/accommodations/{activityId:guid}/assign-supplier")]
+    public async Task<IActionResult> AssignAccommodationSupplier(Guid instanceId, Guid activityId, [FromBody] AssignSupplierRequest request)
     {
-        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Transport"));
+        var result = await Sender.Send(new AssignAccommodationSupplierCommand(instanceId, activityId, request.SupplierId));
         return HandleResult(result);
     }
 
@@ -185,7 +191,13 @@ public class TourInstanceController : BaseApiController
 
 }
 
-public sealed record ProviderApproveRequest(bool IsApproved, string? Note);
+public sealed record ProviderApproveRequest(
+    bool IsApproved,
+    string ProviderType,
+    string? Note,
+    List<Guid>? AccommodationActivityIds = null);
+
+public sealed record AssignSupplierRequest(Guid SupplierId);
 
 public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
 

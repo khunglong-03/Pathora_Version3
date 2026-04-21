@@ -18,6 +18,15 @@ export interface HotelSupplierInfo {
 }
 
 export interface UpdateSupplierInfoDto {
+  supplierId?: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+}
+
+export interface CreateSupplierInfoDto {
   name: string;
   phone?: string;
   email?: string;
@@ -227,22 +236,35 @@ export const hotelProviderService = {
   },
 
   // Supplier Info
-  getSupplierInfo: async (): Promise<HotelSupplierInfo | null> => {
+  getSupplierInfo: async (): Promise<HotelSupplierInfo[]> => {
     try {
-      const response = await api.get<ApiResponse<HotelSupplierInfo>>("/api/hotel-supplier");
-      return extractResult<HotelSupplierInfo>(response.data) ?? null;
+      const response = await api.get<ApiResponse<HotelSupplierInfo[]>>("/api/hotel-supplier");
+      return extractResult<HotelSupplierInfo[]>(response.data) ?? [];
     } catch (error) {
-      return null;
+      return [];
     }
   },
 
+  createSupplierInfo: async (
+    data: CreateSupplierInfoDto,
+  ): Promise<HotelSupplierInfo> => {
+    const response = await api.post<ApiResponse<HotelSupplierInfo>>(
+      "/api/hotel-supplier",
+      data,
+    );
+    return extractResult<HotelSupplierInfo>(response.data) as HotelSupplierInfo;
+  },
+
   updateSupplierInfo: async (
-    _id: string,
+    id: string,
     data: UpdateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
     const response = await api.put<ApiResponse<HotelSupplierInfo>>(
       "/api/hotel-supplier/info",
-      data,
+      {
+        ...data,
+        supplierId: id,
+      },
     );
     return extractResult<HotelSupplierInfo>(response.data) as HotelSupplierInfo;
   },

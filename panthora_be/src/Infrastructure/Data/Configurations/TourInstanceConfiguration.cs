@@ -49,16 +49,9 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(t => t.HotelApprovalStatus)
-            .HasConversion<int>()
-            .IsRequired();
-
         builder.Property(t => t.TransportApprovalStatus)
             .HasConversion<int>()
             .IsRequired();
-
-        builder.Property(t => t.HotelApprovalNote)
-            .HasMaxLength(1000);
 
         builder.Property(t => t.TransportApprovalNote)
             .HasMaxLength(1000);
@@ -136,10 +129,7 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasForeignKey(t => t.ClassificationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t => t.HotelProvider)
-            .WithMany()
-            .HasForeignKey(t => t.HotelProviderId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // NOTE: HotelProvider FK removed — hotel assignment is now per-accommodation activity
 
         builder.HasOne(t => t.TransportProvider)
             .WithMany()

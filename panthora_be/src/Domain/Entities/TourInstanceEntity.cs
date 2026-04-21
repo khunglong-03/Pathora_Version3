@@ -21,14 +21,7 @@ public class TourInstanceEntity : Aggregate<Guid>
     public virtual TourClassificationEntity Classification { get; set; } = null!;
 
     // Provider Assignment & Approval
-    /// <summary>ID của Hotel Provider (Accommodation Supplier).</summary>
-    public Guid? HotelProviderId { get; set; }
-    /// <summary>Khách sạn/nhà cung cấp chỗ ở cho đợt tour này.</summary>
-    public virtual SupplierEntity? HotelProvider { get; set; }
-    /// <summary>Trạng thái duyệt của Hotel Provider.</summary>
-    public ProviderApprovalStatus HotelApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
-    /// <summary>Ghi chú/lý do từ chối của Hotel Provider.</summary>
-    public string? HotelApprovalNote { get; set; }
+    // NOTE: Hotel provider assignment has moved to TourInstancePlanAccommodationEntity (per-activity level).
 
     /// <summary>ID của Transport Provider.</summary>
     public Guid? TransportProviderId { get; set; }
@@ -133,7 +126,6 @@ public class TourInstanceEntity : Aggregate<Guid>
         int maxParticipation,
         decimal basePrice,
         string performedBy,
-        Guid? hotelProviderId = null,
         Guid? transportProviderId = null,
         string? location = null,
         ImageEntity? thumbnail = null,
@@ -149,9 +141,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             Id = Guid.CreateVersion7(),
             TourId = tourId,
             ClassificationId = classificationId,
-            HotelProviderId = hotelProviderId,
             TransportProviderId = transportProviderId,
-            HotelApprovalStatus = hotelProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
             TransportApprovalStatus = transportProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
@@ -159,7 +149,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = (hotelProviderId.HasValue || transportProviderId.HasValue) ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
+            Status = transportProviderId.HasValue ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),
@@ -232,30 +222,46 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    public void ApproveByProvider(Guid providerId, bool isApproved, string? reason)
+    /// <summary>
+    /// Transport provider approves or rejects at instance level.
+    /// Hotel approval is now handled per accommodation activity.
+    /// </summary>
+    public void ApproveByTransportProvider(Guid providerId, bool isApproved, string? reason)
     {
-        if (HotelProviderId == providerId)
-        {
-            HotelApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
-            HotelApprovalNote = reason;
-        }
-        else if (TransportProviderId == providerId)
-        {
-            TransportApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
-            TransportApprovalNote = reason;
-        }
+        if (TransportProviderId != providerId)
+            throw new InvalidOperationException("Provider không phải Transport Provider của instance này.");
+
+        TransportApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
+        TransportApprovalNote = reason;
 
         CheckAndActivateTourInstance();
     }
 
-    private void CheckAndActivateTourInstance()
+    /// <summary>
+    /// Check if all accommodations with assigned suppliers are approved.
+    /// </summary>
+    public bool AreAllAccommodationsApproved()
+    {
+        var accommodations = InstanceDays
+            .SelectMany(d => d.Activities)
+            .Where(a => a.Accommodation is not null && a.Accommodation.SupplierId.HasValue)
+            .Select(a => a.Accommodation!)
+            .ToList();
+
+        return accommodations.Count == 0 || accommodations.All(a => a.SupplierApprovalStatus == ProviderApprovalStatus.Approved);
+    }
+
+    /// <summary>
+    /// Check readiness: transport approved + all accommodation suppliers approved → Available.
+    /// </summary>
+    public void CheckAndActivateTourInstance()
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool hotelOk = !HotelProviderId.HasValue || HotelApprovalStatus == ProviderApprovalStatus.Approved;
         bool transportOk = !TransportProviderId.HasValue || TransportApprovalStatus == ProviderApprovalStatus.Approved;
+        bool accommodationsOk = AreAllAccommodationsApproved();
 
-        if (hotelOk && transportOk)
+        if (transportOk && accommodationsOk)
         {
             Status = TourInstanceStatus.Available;
             LastModifiedOnUtc = DateTimeOffset.UtcNow;

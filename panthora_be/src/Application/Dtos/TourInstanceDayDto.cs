@@ -52,4 +52,8 @@ public sealed record TourInstancePlanAccommodationDto(
     Guid Id,
     string RoomType,
     int Quantity,
+    Guid? SupplierId = null,
+    string? SupplierName = null,
+    string? SupplierApprovalStatus = null,
+    string? SupplierApprovalNote = null,
     int RoomBlocksTotal = 0);

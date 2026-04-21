@@ -14,16 +14,32 @@ public sealed record HotelProviderDetailDto(
     DateTimeOffset? CreatedOnUtc,
     string? PrimaryContinent,
     List<string> Continents,
+    List<HotelPropertySummaryDto> Properties,
     List<HotelAccommodationSummaryDto> Accommodations,
     List<HotelProviderRoomOptionDto> RoomOptions,
     int AccommodationCount,
+    int PropertyCount,
     int TotalRooms,
     int BookingCount,
     int ActiveBookingCount,
     int CompletedBookingCount);
 
+public sealed record HotelPropertySummaryDto(
+    Guid Id,
+    string SupplierCode,
+    string SupplierName,
+    string? Address,
+    string? Phone,
+    string? Email,
+    string? PrimaryContinent,
+    List<string> Continents,
+    int AccommodationCount,
+    int TotalRooms);
+
 public sealed record HotelAccommodationSummaryDto(
     Guid Id,
+    Guid SupplierId,
+    string SupplierName,
     string RoomType,
     int TotalRooms,
     string? Name,

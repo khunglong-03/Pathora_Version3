@@ -44,7 +44,6 @@ describe("HotelTourAssignmentPage", () => {
     currentParticipation: 4,
     maxParticipation: 10,
     durationDays: 2,
-    hotelApprovalStatus: 1, // Pending
     days: [
       {
         title: "Day 1",
@@ -56,6 +55,8 @@ describe("HotelTourAssignmentPage", () => {
             title: "Check-in Hotel",
             activityType: "8", // Accommodation
             accommodation: {
+              supplierId: "sup-1",
+              supplierApprovalStatus: "Pending",
               roomType: "DELUXE",
               quantity: 2,
               roomBlocksTotal: 0,
@@ -73,6 +74,8 @@ describe("HotelTourAssignmentPage", () => {
             title: "Check-out Hotel",
             activityType: "8", // Accommodation
             accommodation: {
+              supplierId: "sup-1",
+              supplierApprovalStatus: "Pending",
               roomType: "STANDARD",
               quantity: 3,
               roomBlocksTotal: 3,
@@ -173,6 +176,39 @@ describe("HotelTourAssignmentPage", () => {
 
     await waitFor(() => {
       expect(screen.getAllByText("VILLA").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows the list of pending accommodation activities for the instance", async () => {
+    render(<HotelTourAssignmentPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Activities awaiting decision")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Day 1: Check-in Hotel")).toBeInTheDocument();
+    expect(screen.getByText("Day 2: Check-out Hotel")).toBeInTheDocument();
+  });
+
+  it("bulk approves all accommodation activities within the instance", async () => {
+    (tourInstanceService.hotelApprove as any).mockResolvedValue(undefined);
+
+    render(<HotelTourAssignmentPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Approve All Activities")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Approve All Activities"));
+    fireEvent.click(screen.getByText("Approve"));
+
+    await waitFor(() => {
+      expect(tourInstanceService.hotelApprove).toHaveBeenCalledWith(
+        "tour-id-123",
+        true,
+        "",
+        ["activity-1", "activity-2"],
+      );
     });
   });
 });

@@ -12,7 +12,7 @@ import type {
 } from "../tour";
 
 describe("TourInstanceDto — provider fields", () => {
-  it("supports hotelProvider fields", () => {
+  it("supports transportProvider fields at instance level", () => {
     const dto: TourInstanceDto = {
       id: "inst-001",
       tourId: "tour-001",
@@ -40,20 +40,13 @@ describe("TourInstanceDto — provider fields", () => {
       confirmationDeadline: null,
       managers: [],
       includedServices: ["shuttle"],
-      hotelApprovalStatus: 1, // Pending
       transportApprovalStatus: 2, // Approved
-      hotelApprovalNote: null,
       transportApprovalNote: null,
-      hotelProviderId: "hp-001",
-      hotelProviderName: "Grand Hotel Saigon",
       transportProviderId: "tp-001",
       transportProviderName: "Vietransport Co.",
       days: [],
     };
 
-    expect(dto.hotelProviderId).toBe("hp-001");
-    expect(dto.hotelProviderName).toBe("Grand Hotel Saigon");
-    expect(dto.hotelApprovalStatus).toBe(1);
     expect(dto.transportProviderId).toBe("tp-001");
     expect(dto.transportProviderName).toBe("Vietransport Co.");
     expect(dto.transportApprovalStatus).toBe(2);
@@ -82,22 +75,17 @@ describe("TourInstanceDto — provider fields", () => {
       instanceType: "Private",
       managers: [],
       includedServices: [],
-      hotelApprovalStatus: 2,
       transportApprovalStatus: 2,
-      hotelProviderId: null,
-      hotelProviderName: null,
       transportProviderId: null,
       transportProviderName: null,
       days: [],
     };
 
-    expect(dto.hotelProviderId).toBeNull();
-    expect(dto.hotelProviderName).toBeNull();
     expect(dto.transportProviderId).toBeNull();
     expect(dto.transportProviderName).toBeNull();
   });
 
-  it("supports approval notes", () => {
+  it("supports transport approval notes", () => {
     const dto: TourInstanceDto = {
       id: "inst-003",
       tourId: "tour-001",
@@ -118,12 +106,8 @@ describe("TourInstanceDto — provider fields", () => {
       basePrice: 800000,
       status: "PendingApproval",
       instanceType: "Public",
-      hotelApprovalStatus: 3, // Rejected
       transportApprovalStatus: 1, // Pending
-      hotelApprovalNote: "Không đủ phòng cho ngày này",
       transportApprovalNote: null,
-      hotelProviderId: "hp-002",
-      hotelProviderName: "Budget Hotel",
       transportProviderId: "tp-002",
       transportProviderName: "Local Bus",
       managers: [],
@@ -131,9 +115,8 @@ describe("TourInstanceDto — provider fields", () => {
       days: [],
     };
 
-    expect(dto.hotelApprovalStatus).toBe(3);
-    expect(dto.hotelApprovalNote).toBe("Không đủ phòng cho ngày này");
     expect(dto.transportApprovalStatus).toBe(1);
+    expect(dto.transportProviderId).toBe("tp-002");
   });
 });
 
@@ -309,7 +292,7 @@ describe("TourInstanceDayActivityDto — flattened transport fields", () => {
 });
 
 describe("TourInstanceDayActivityDto — accommodation field", () => {
-  it("maps accommodation with room type and quantity", () => {
+  it("maps accommodation with room type, quantity, and supplier fields", () => {
     const activity: TourInstanceDayActivityDto = {
       id: "act-accommodation-001",
       order: 1,
@@ -324,6 +307,10 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
         id: "acc-001",
         roomType: "Double",
         quantity: 5,
+        supplierId: "sup-hotel-001",
+        supplierName: "Grand Hotel Saigon",
+        supplierApprovalStatus: "Approved",
+        supplierApprovalNote: null,
       },
     };
 
@@ -331,6 +318,9 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
     expect(activity.accommodation).not.toBeNull();
     expect(activity.accommodation!.roomType).toBe("Double");
     expect(activity.accommodation!.quantity).toBe(5);
+    expect(activity.accommodation!.supplierId).toBe("sup-hotel-001");
+    expect(activity.accommodation!.supplierName).toBe("Grand Hotel Saigon");
+    expect(activity.accommodation!.supplierApprovalStatus).toBe("Approved");
   });
 
   it("supports null accommodation for non-accommodation activities", () => {
@@ -383,6 +373,7 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
     };
 
     expect(activity.accommodation).not.toBeNull();
+    expect(activity.accommodation!.supplierId).toBeUndefined();
     expect(activity.vehiclePlate).toBe("60A-11111");
     expect(activity.driverName).toBe("Tran Thi C");
   });

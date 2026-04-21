@@ -585,25 +585,6 @@ export function TourInstanceListPage({
                           <div className="flex flex-wrap gap-2 mt-1">
                             <span
                               className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                                inst.hotelApprovalStatus === 2
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : inst.hotelApprovalStatus === 3
-                                    ? "bg-red-50 text-red-700 border border-red-200"
-                                    : "bg-orange-50 text-orange-700 border border-orange-200"
-                              }`}>
-                              <Icon
-                                icon="heroicons:building-office"
-                                className="size-3"
-                              />
-                              KS:{" "}
-                              {inst.hotelApprovalStatus === 2
-                                ? "Đã duyệt"
-                                : inst.hotelApprovalStatus === 3
-                                  ? "Từ chối"
-                                  : "Chờ duyệt"}
-                            </span>
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
                                 inst.transportApprovalStatus === 2
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : inst.transportApprovalStatus === 3

@@ -146,6 +146,31 @@ export default function HotelTourAssignmentPage() {
     return acts;
   }, [instance]);
 
+  const approvableActivityIds = useMemo(
+    () => accommodationActivities.map((activity) => activity.activityId),
+    [accommodationActivities],
+  );
+
+  const pendingApprovalCount = useMemo(
+    () =>
+      accommodationActivities.filter(
+        (activity) =>
+          activity.accommodation?.supplierId
+          && activity.accommodation?.supplierApprovalStatus !== "Approved",
+      ).length,
+    [accommodationActivities],
+  );
+
+  const pendingApprovalActivities = useMemo(
+    () =>
+      accommodationActivities.filter(
+        (activity) =>
+          activity.accommodation?.supplierId
+          && activity.accommodation?.supplierApprovalStatus !== "Approved",
+      ),
+    [accommodationActivities],
+  );
+
   const inventorySummary = useMemo(() => {
     return providerRoomOptions.map((item) => {
       const itemAvailabilities = availability.filter(a => a.roomType === item.roomType);
@@ -229,7 +254,12 @@ export default function HotelTourAssignmentPage() {
   const handleApprove = async () => {
     setIsApprovalActionLoading(true);
     try {
-      await tourInstanceService.hotelApprove(instanceId, true, approvalNote);
+      await tourInstanceService.hotelApprove(
+        instanceId,
+        true,
+        approvalNote,
+        approvableActivityIds,
+      );
       toast.success(t("tour_approved") || "Tour approved successfully");
       setIsApproveModalOpen(false);
       setApprovalNote("");
@@ -245,7 +275,12 @@ export default function HotelTourAssignmentPage() {
   const handleDecline = async () => {
     setIsApprovalActionLoading(true);
     try {
-      await tourInstanceService.hotelApprove(instanceId, false, approvalNote);
+      await tourInstanceService.hotelApprove(
+        instanceId,
+        false,
+        approvalNote,
+        approvableActivityIds,
+      );
       toast.success(t("tour_declined") || "Tour declined successfully");
       setIsDeclineModalOpen(false);
       setApprovalNote("");
@@ -257,6 +292,21 @@ export default function HotelTourAssignmentPage() {
       setIsApprovalActionLoading(false);
     }
   };
+
+  // Derive aggregate hotel approval from per-accommodation supplier statuses
+  const aggregateHotelApproval = useMemo(() => {
+    if (!instance?.days) return 0; // NotAssigned
+    const statuses = instance.days
+      .flatMap((d) => d.activities ?? [])
+      .filter((a) => a.activityType === "8")
+      .map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
+    if (statuses.length === 0) return 0;
+    if (statuses.some((s) => s === "Rejected")) return 3;
+    if (statuses.every((s) => s === "Approved")) return 2;
+    return 1; // Pending
+  }, [instance]);
+
+  const isApproved = aggregateHotelApproval === 2;
 
   if (isLoading) {
     return (
@@ -277,8 +327,6 @@ export default function HotelTourAssignmentPage() {
     );
   }
 
-  const isApproved = instance.hotelApprovalStatus === 2; // Assuming 1 = Pending, 2 = Approved, 3 = Rejected
-
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
       <div className="flex items-center justify-between">
@@ -294,13 +342,13 @@ export default function HotelTourAssignmentPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {instance.hotelApprovalStatus === 1 && (
+          {aggregateHotelApproval === 1 && (
             <Badge className="bg-warning-500 text-white px-2.5 py-0.5 text-xs">{t("pending_approval") || "Pending Approval"}</Badge>
           )}
-          {instance.hotelApprovalStatus === 2 && (
+          {aggregateHotelApproval === 2 && (
             <Badge className="bg-success-500 text-white px-2.5 py-0.5 text-xs">{t("approved") || "Approved"}</Badge>
           )}
-          {instance.hotelApprovalStatus === 3 && (
+          {aggregateHotelApproval === 3 && (
             <Badge className="bg-danger-500 text-white px-2.5 py-0.5 text-xs">{t("rejected") || "Rejected"}</Badge>
           )}
         </div>
@@ -324,12 +372,34 @@ export default function HotelTourAssignmentPage() {
           </Card>
 
           {/* Action Card */}
-          {instance.hotelApprovalStatus === 1 && (
+          {aggregateHotelApproval === 1 && (
             <Card className="p-5">
               <h3 className="mb-4 font-semibold text-slate-800">{t("action_required") || "Action Required"}</h3>
               <p className="mb-4 text-sm text-slate-600">
                 {t("review_rooms_desc") || "Please assign room availability for each accommodation requirement before approving this tour."}
               </p>
+              <p className="mb-4 text-xs font-medium text-slate-500">
+                {pendingApprovalCount > 0
+                  ? `${pendingApprovalCount} accommodation activities are still awaiting your approval.`
+                  : "All assigned accommodation activities are ready for a bulk approval decision."}
+              </p>
+              {pendingApprovalActivities.length > 0 && (
+                <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Activities awaiting decision
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {pendingApprovalActivities.map((activity) => (
+                      <span
+                        key={activity.activityId}
+                        className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+                      >
+                        Day {activity.dayNumber}: {activity.title}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col gap-3">
                 <Button 
                   variant="primary" 
@@ -338,10 +408,10 @@ export default function HotelTourAssignmentPage() {
                   disabled={totalAccoms > 0 && assignedAccoms < totalAccoms}
                   title={totalAccoms > 0 && assignedAccoms < totalAccoms ? (t("please_assign_rooms_first") || "Please assign all rooms before approving") : ""}
                 >
-                  <Check className="mr-2" /> {t("approve_assignment") || "Approve Tour"}
+                  <Check className="mr-2" /> {t("approve_assignment") || "Approve All Activities"}
                 </Button>
                 <Button variant="outline" className="w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsDeclineModalOpen(true)}>
-                  <X className="mr-2" /> {t("decline_tour") || "Decline Tour"}
+                  <X className="mr-2" /> {t("decline_tour") || "Reject All Activities"}
                 </Button>
               </div>
             </Card>
@@ -393,7 +463,7 @@ export default function HotelTourAssignmentPage() {
                   style={{ width: `${progressPercent}%` }}
                 ></div>
              </div>
-             {progressPercent === 100 && instance.hotelApprovalStatus === 1 && (
+             {progressPercent === 100 && aggregateHotelApproval === 1 && (
                 <p className="mt-3 text-sm text-success-600 flex items-center gap-1.5 font-medium">
                   <Check size={16} weight="bold" /> {t("ready_to_approve") || "All rooms are assigned. You can now approve the tour."}
                 </p>
@@ -429,6 +499,12 @@ export default function HotelTourAssignmentPage() {
                     {isAssigned && (
                       <div className="mt-3 flex gap-4 text-sm flex-wrap">
                         <div className="rounded-md bg-slate-50 px-3 py-1.5">
+                          <span className="text-slate-500 mr-2">Approval:</span>
+                          <span className="font-medium text-slate-800">
+                            {act.accommodation.supplierApprovalStatus ?? "NotAssigned"}
+                          </span>
+                        </div>
+                        <div className="rounded-md bg-slate-50 px-3 py-1.5">
                           <span className="text-slate-500 mr-2">Assigned Room:</span>
                           <span className="font-medium text-slate-800">{act.accommodation.roomType}</span>
                         </div>
@@ -446,7 +522,7 @@ export default function HotelTourAssignmentPage() {
                     )}
                   </div>
 
-                  {instance.hotelApprovalStatus === 1 && state && (
+                  {aggregateHotelApproval === 1 && state && (
                     <div className="flex flex-col gap-3 sm:w-[320px] sm:flex-none">
                       {/* Availability Badge */}
                       {(() => {

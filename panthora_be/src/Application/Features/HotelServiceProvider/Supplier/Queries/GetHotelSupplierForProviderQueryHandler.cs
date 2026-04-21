@@ -11,9 +11,9 @@ using global::Contracts.Interfaces;
 public sealed class GetHotelSupplierForProviderQueryHandler(
     ISupplierRepository supplierRepository,
     IUser user)
-    : IQueryHandler<GetHotelSupplierForProviderQuery, ErrorOr<HotelSupplierInfoDto>>
+    : IQueryHandler<GetHotelSupplierForProviderQuery, ErrorOr<List<HotelSupplierListItemDto>>>
 {
-    public async Task<ErrorOr<HotelSupplierInfoDto>> Handle(
+    public async Task<ErrorOr<List<HotelSupplierListItemDto>>> Handle(
         GetHotelSupplierForProviderQuery request,
         CancellationToken cancellationToken)
     {
@@ -21,22 +21,17 @@ public sealed class GetHotelSupplierForProviderQueryHandler(
         if (currentUserId is null)
             return Error.Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
-        if (supplier is null)
-            return Error.NotFound(
-                ErrorConstants.Supplier.NotFoundCode,
-                "No accommodation supplier found for your account.");
-
-        if (supplier.SupplierType != SupplierType.Accommodation)
-            return Error.Forbidden("You do not have an accommodation supplier.");
-
-        return new HotelSupplierInfoDto(
-            supplier.Id,
-            supplier.SupplierCode,
-            supplier.Name,
-            supplier.Phone,
-            supplier.Email,
-            supplier.Address,
-            supplier.Note);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
+        return suppliers
+            .Where(supplier => supplier.SupplierType == SupplierType.Accommodation)
+            .Select(supplier => new HotelSupplierListItemDto(
+                supplier.Id,
+                supplier.SupplierCode,
+                supplier.Name,
+                supplier.Phone,
+                supplier.Email,
+                supplier.Address,
+                supplier.Note))
+            .ToList();
     }
 }

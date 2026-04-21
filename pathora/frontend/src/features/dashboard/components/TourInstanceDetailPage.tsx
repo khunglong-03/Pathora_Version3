@@ -743,14 +743,7 @@ export default function TourInstanceDetailPage() {
                     approvalNote={data.transportApprovalNote}
                     emptyMessage={t("tourInstance.noTransportProvider", "No transport provider assigned")}
                   />
-                  <ProviderStatusCard
-                    icon="heroicons:building-office" iconColor="text-indigo-600"
-                    label={t("tourInstance.hotelProvider", "Hotel provider")}
-                    providerName={data.hotelProviderName}
-                    approvalStatus={data.hotelApprovalStatus}
-                    approvalNote={data.hotelApprovalNote}
-                    emptyMessage={t("tourInstance.noHotelProvider", "No hotel provider assigned")}
-                  />
+                  {/* Hotel provider info is now per-accommodation activity — see itinerary below */}
                 </div>
 
                 <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">

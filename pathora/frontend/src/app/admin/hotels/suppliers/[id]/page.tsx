@@ -246,6 +246,10 @@ export default function HotelProviderDetailPage() {
                   <p className="font-medium">{entity.supplierName}</p>
                 </div>
               )}
+              <div>
+                <p className="text-sm text-muted-foreground">Số cơ sở</p>
+                <p className="font-medium">{entity.propertyCount}</p>
+              </div>
             </div>
 
             {/* Active vs Completed */}
@@ -268,6 +272,21 @@ export default function HotelProviderDetailPage() {
 
         {activeTab === "accommodations" && (
           <div className="rounded-xl border bg-card overflow-hidden">
+            {entity.properties.length > 0 && (
+              <div className="grid gap-4 border-b p-6 md:grid-cols-2">
+                {entity.properties.map((property) => (
+                  <div key={property.id} className="rounded-xl border p-4">
+                    <div className="font-semibold">{property.supplierName}</div>
+                    <div className="text-sm text-muted-foreground">{property.supplierCode}</div>
+                    <div className="mt-2 text-sm">{property.address ?? "Không có địa chỉ"}</div>
+                    <div className="mt-3 flex gap-4 text-sm text-muted-foreground">
+                      <span>{property.accommodationCount} loại phòng</span>
+                      <span>{property.totalRooms} phòng</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {entity.accommodations.length === 0 ? (
               <div className="p-12 text-center">
                 <Bed size={40} className="mx-auto mb-3 text-muted-foreground" />
@@ -290,6 +309,7 @@ export default function HotelProviderDetailPage() {
                         <div className="flex items-center gap-2">
                           <Bed size={16} className="text-muted-foreground shrink-0" />
                           <div>
+                            <p className="text-xs text-muted-foreground">{acc.supplierName}</p>
                             <p className="text-sm font-medium">{acc.roomType}</p>
                             {acc.name && (
                               <p className="text-xs text-muted-foreground">{acc.name}</p>

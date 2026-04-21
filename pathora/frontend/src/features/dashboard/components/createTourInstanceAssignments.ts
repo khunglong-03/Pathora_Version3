@@ -1,10 +1,12 @@
 export interface DraftActivityAssignment {
+  supplierId?: string;
   roomType?: string;
   vehicleId?: string;
 }
 
 export interface CreateInstanceActivityAssignmentPayload {
   originalActivityId: string;
+  supplierId?: string;
   roomType?: string;
   vehicleId?: string;
 }
@@ -37,7 +39,8 @@ export const mapActivityAssignmentsForPayload = (
   Object.entries(activityAssignments)
     .map(([originalActivityId, assignment]) => ({
       originalActivityId,
+      supplierId: normalizeOptionalValue(assignment.supplierId),
       roomType: normalizeOptionalValue(assignment.roomType),
       vehicleId: normalizeOptionalValue(assignment.vehicleId),
     }))
-    .filter((assignment) => assignment.roomType || assignment.vehicleId);
+    .filter((assignment) => assignment.supplierId || assignment.roomType || assignment.vehicleId);

@@ -72,9 +72,11 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             {instances.map((instance) => {
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
+              // Hotel approval is now per-accommodation activity, not at instance level.
+              // For hotel providers, we show "Pending" generically and let the detail page show per-activity status.
               const myApprovalStatus =
                 providerType === "hotel"
-                  ? instance.hotelApprovalStatus
+                  ? 1 // Default to Pending — actual status is per-activity
                   : instance.transportApprovalStatus;
               const isApproved = myApprovalStatus === 2;
               const isRejected = myApprovalStatus === 3;

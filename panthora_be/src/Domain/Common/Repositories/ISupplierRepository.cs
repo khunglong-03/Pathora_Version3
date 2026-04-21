@@ -12,14 +12,20 @@ public sealed record HotelProviderAdminData(
     string? Email,
     DateTimeOffset? CreatedOnUtc,
     Continent? PrimaryContinent,
-    int AccommodationCount,
+    int PropertyCount,
     int RoomCount,
     List<Continent> Continents);
 
 public interface ISupplierRepository : IRepository<SupplierEntity>
 {
     Task<SupplierEntity?> GetByCodeAsync(string supplierCode, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Returns the first supplier owned by the user.
+    /// Migration bridge only: prefer FindAllByOwnerUserIdAsync for multi-hotel support.
+    /// </summary>
+    [Obsolete("Migration bridge only. Prefer FindAllByOwnerUserIdAsync(Guid ownerUserId, CancellationToken) for multi-hotel owner flows.")]
     Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
+    Task<List<SupplierEntity>> FindAllByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<List<SupplierEntity>> FindAllTransportProvidersAsync(CancellationToken cancellationToken);
     Task<List<SupplierEntity>> FindAllHotelProvidersAsync(CancellationToken cancellationToken);
     Task<int> CountActiveTransportProvidersAsync(CancellationToken cancellationToken);
@@ -34,7 +40,7 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
         List<Continent> continents, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (int Count, List<Domain.Enums.Continent> Continents)>> GetAccommodationDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
-    Task<Dictionary<Guid, HotelProviderAdminData>> GetHotelProviderAdminDataGroupedByOwnerAsync(
+    Task<Dictionary<Guid, List<HotelProviderAdminData>>> GetHotelProviderAdminDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>> GetTransportSupplierAddressByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default);

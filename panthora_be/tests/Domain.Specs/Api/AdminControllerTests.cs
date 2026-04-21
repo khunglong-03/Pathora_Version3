@@ -125,7 +125,7 @@ public sealed class AdminControllerTests
     {
         var providers = new List<HotelProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Hotel Co", "SUP-001", "hotel@example.com", "0123456789", null, null, UserStatus.Active, 3, 20, null, null, [])
+            new(Guid.NewGuid(), "Hotel Co", "SUP-001", "hotel@example.com", "0123456789", null, null, UserStatus.Active, 3, 3, 20, null, null, [])
         };
         var response = new PaginatedList<HotelProviderListItemDto>(
             providers.Count, providers, 1, 10);

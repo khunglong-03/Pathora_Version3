@@ -1,4 +1,7 @@
-namespace Domain.Specs.Domain.Entities;
+namespace Domain.Specs.Entities;
+
+using global::Domain.Entities;
+using global::Domain.Enums;
 
 /// <summary>
 /// Unit tests for RoomBlockEntity.

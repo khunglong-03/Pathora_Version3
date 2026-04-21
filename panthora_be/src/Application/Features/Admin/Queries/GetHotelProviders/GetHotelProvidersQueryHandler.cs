@@ -51,21 +51,32 @@ public sealed class GetHotelProvidersQueryHandler(
 
         var items = users.Select(user =>
         {
-            var hasData = supplierData.TryGetValue(user.Id, out var data);
+            var hasData = supplierData.TryGetValue(user.Id, out var properties) && properties!.Count > 0;
+            var primaryProperty = hasData ? properties![0] : null;
+            var propertyCount = hasData ? properties!.Count : 0;
+            var roomCount = hasData ? properties!.Sum(p => p.RoomCount) : 0;
+            var continents = hasData
+                ? properties!
+                    .SelectMany(p => p.Continents)
+                    .Distinct()
+                    .Select(c => c.ToString())
+                    .ToList()
+                : [];
             return new HotelProviderListItemDto(
                 user.Id,
-                hasData ? data!.SupplierName : user.FullName ?? string.Empty,
-                hasData ? data!.SupplierCode : string.Empty,
-                hasData ? data!.Email ?? user.Email : user.Email,
-                hasData ? data!.Phone ?? user.PhoneNumber : user.PhoneNumber,
-                hasData ? data!.Address : null,
+                hasData ? primaryProperty!.SupplierName : user.FullName ?? string.Empty,
+                hasData ? primaryProperty!.SupplierCode : string.Empty,
+                hasData ? primaryProperty!.Email ?? user.Email : user.Email,
+                hasData ? primaryProperty!.Phone ?? user.PhoneNumber : user.PhoneNumber,
+                hasData ? primaryProperty!.Address : null,
                 user.AvatarUrl,
                 user.Status,
-                hasData ? data!.AccommodationCount : 0,
-                hasData ? data!.RoomCount : 0,
-                hasData ? data!.CreatedOnUtc : user.CreatedOnUtc,
-                hasData ? data!.PrimaryContinent?.ToString() : null,
-                hasData ? data!.Continents.Select(c => c.ToString()).ToList() : []);
+                hasData ? propertyCount : 0,
+                hasData ? propertyCount : 0,
+                roomCount,
+                hasData ? primaryProperty!.CreatedOnUtc : user.CreatedOnUtc,
+                hasData ? primaryProperty!.PrimaryContinent?.ToString() : null,
+                continents);
         }).ToList();
 
         return new PaginatedList<HotelProviderListItemDto>(total, items, pageNumber, pageSize);
@@ -107,21 +118,32 @@ public sealed class GetHotelProvidersQueryHandler(
 
         var items = users.Select(user =>
         {
-            var hasData = supplierData.TryGetValue(user.Id, out var data);
+            var hasData = supplierData.TryGetValue(user.Id, out var properties) && properties!.Count > 0;
+            var primaryProperty = hasData ? properties![0] : null;
+            var propertyCount = hasData ? properties!.Count : 0;
+            var roomCount = hasData ? properties!.Sum(p => p.RoomCount) : 0;
+            var continents = hasData
+                ? properties!
+                    .SelectMany(p => p.Continents)
+                    .Distinct()
+                    .Select(c => c.ToString())
+                    .ToList()
+                : [];
             return new HotelProviderListItemDto(
                 user.Id,
-                hasData ? data!.SupplierName : user.FullName ?? string.Empty,
-                hasData ? data!.SupplierCode : string.Empty,
-                hasData ? data!.Email ?? user.Email : user.Email,
-                hasData ? data!.Phone ?? user.PhoneNumber : user.PhoneNumber,
-                hasData ? data!.Address : null,
+                hasData ? primaryProperty!.SupplierName : user.FullName ?? string.Empty,
+                hasData ? primaryProperty!.SupplierCode : string.Empty,
+                hasData ? primaryProperty!.Email ?? user.Email : user.Email,
+                hasData ? primaryProperty!.Phone ?? user.PhoneNumber : user.PhoneNumber,
+                hasData ? primaryProperty!.Address : null,
                 user.AvatarUrl,
                 user.Status,
-                hasData ? data!.AccommodationCount : 0,
-                hasData ? data!.RoomCount : 0,
-                hasData ? data!.CreatedOnUtc : user.CreatedOnUtc,
-                hasData ? data!.PrimaryContinent?.ToString() : null,
-                hasData ? data!.Continents.Select(c => c.ToString()).ToList() : []);
+                hasData ? propertyCount : 0,
+                hasData ? propertyCount : 0,
+                roomCount,
+                hasData ? primaryProperty!.CreatedOnUtc : user.CreatedOnUtc,
+                hasData ? primaryProperty!.PrimaryContinent?.ToString() : null,
+                continents);
         }).ToList();
 
         return new PaginatedList<HotelProviderListItemDto>(total, items, pageNumber, pageSize);

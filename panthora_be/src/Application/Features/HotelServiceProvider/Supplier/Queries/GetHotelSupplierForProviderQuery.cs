@@ -7,4 +7,4 @@ using Domain.Enums;
 using ErrorOr;
 using global::Contracts.Interfaces;
 
-public sealed record GetHotelSupplierForProviderQuery : IQuery<ErrorOr<HotelSupplierInfoDto>>;
+public sealed record GetHotelSupplierForProviderQuery : IQuery<ErrorOr<List<HotelSupplierListItemDto>>>;

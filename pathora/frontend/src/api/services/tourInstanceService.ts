@@ -23,6 +23,7 @@ interface AddCustomDayResponse {
 
 export interface CreateTourInstanceActivityAssignment {
   originalActivityId: string;
+  supplierId?: string | null;
   roomType?: string | null;
   accommodationQuantity?: number | null;
   vehicleId?: string | null;
@@ -42,7 +43,6 @@ export interface CreateTourInstancePayload {
   thumbnailUrl?: string | null;
   imageUrls?: string[];
   tourRequestId?: string | null;
-  hotelProviderId?: string | null;
   transportProviderId?: string | null;
   activityAssignments?: CreateTourInstanceActivityAssignment[];
 }
@@ -89,6 +89,13 @@ export interface GuideConflict {
 
 export interface GuideAvailabilityResult {
   conflicts: GuideConflict[];
+}
+
+export interface ProviderApprovalPayload {
+  providerType: "Hotel" | "Transport";
+  isApproved: boolean;
+  note?: string;
+  accommodationActivityIds?: string[];
 }
 
 export interface UpdateTourInstancePayload {
@@ -241,10 +248,15 @@ export const tourInstanceService = {
       thumbnailUrl: data.thumbnailUrl || null,
       imageUrls: normalizeStringArray(data.imageUrls),
       tourRequestId: data.tourRequestId || null,
-      hotelProviderId: data.hotelProviderId || null,
       transportProviderId: data.transportProviderId || null,
       activityAssignments: data.activityAssignments?.length
-        ? data.activityAssignments
+        ? data.activityAssignments.map((assignment) => ({
+            originalActivityId: assignment.originalActivityId,
+            supplierId: assignment.supplierId || null,
+            roomType: assignment.roomType || null,
+            accommodationQuantity: assignment.accommodationQuantity ?? null,
+            vehicleId: assignment.vehicleId || null,
+          }))
         : undefined,
     };
 
@@ -414,29 +426,37 @@ export const tourInstanceService = {
     return result ? normalizeInstanceDetail(result) : null;
   },
 
+  approve: async (id: string, payload: ProviderApprovalPayload) => {
+    const response = await api.post<ApiResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.APPROVE(id),
+      payload,
+    );
+    return extractResult<string>(response.data);
+  },
+
   hotelApprove: async (
     id: string,
     isApproved: boolean,
     note?: string,
-  ) => {
-    const response = await api.post<ApiResponse<string>>(
-      API_ENDPOINTS.TOUR_INSTANCE.HOTEL_APPROVE(id),
-      { isApproved, note },
-    );
-    return extractResult<string>(response.data);
-  },
+    accommodationActivityIds?: string[],
+  ) =>
+    tourInstanceService.approve(id, {
+      providerType: "Hotel",
+      isApproved,
+      note,
+      accommodationActivityIds,
+    }),
 
   transportApprove: async (
     id: string,
     isApproved: boolean,
     note?: string,
-  ) => {
-    const response = await api.post<ApiResponse<string>>(
-      API_ENDPOINTS.TOUR_INSTANCE.TRANSPORT_APPROVE(id),
-      { isApproved, note },
-    );
-    return extractResult<string>(response.data);
-  },
+  ) =>
+    tourInstanceService.approve(id, {
+      providerType: "Transport",
+      isApproved,
+      note,
+    }),
 
   assignVehicleToActivity: async (
     instanceId: string,
@@ -480,5 +500,17 @@ export const tourInstanceService = {
       availableAfter: number;
       totalRooms: number;
     }>(response.data);
+  },
+
+  assignAccommodationSupplier: async (
+    instanceId: string,
+    activityId: string,
+    supplierId: string,
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ACCOMMODATION_SUPPLIER(instanceId, activityId),
+      { supplierId },
+    );
+    return extractResult<unknown>(response.data);
   },
 };

@@ -36,10 +36,15 @@ export default function UpcomingToursSection({
   tokens,
 }: UpcomingToursSectionProps) {
   const getApprovalStatus = (tour: NormalizedTourInstanceVm) => {
-    const status =
-      providerType === "hotel"
-        ? tour.hotelApprovalStatus
-        : tour.transportApprovalStatus;
+    // Hotel approval is now per-accommodation activity, not at instance level.
+    // For the upcoming tours section, use transport status for transport providers
+    // and show a generic "Xem chi tiết" for hotel providers.
+    const status = tour.transportApprovalStatus;
+
+    if (providerType === "hotel") {
+      // Hotel approval is per-activity now — show generic status here
+      return { label: "Xem chi tiết", color: tokens.blue, bg: `rgba(59, 130, 246, 0.08)` };
+    }
 
     if (status === 1) return { label: "Đang chờ duyệt", color: tokens.orange, bg: `rgba(245, 158, 11, 0.08)` };
     if (status === 2) return { label: "Đã duyệt", color: tokens.accent, bg: `rgba(16, 185, 129, 0.08)` };

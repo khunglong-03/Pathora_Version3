@@ -27,12 +27,8 @@ public sealed record TourInstanceDto(
     DateTimeOffset? ConfirmationDeadline,
     List<TourInstanceManagerDto> Managers,
     List<string> IncludedServices,
-    int HotelApprovalStatus,
     int TransportApprovalStatus,
-    string? HotelApprovalNote,
     string? TransportApprovalNote,
-    Guid? HotelProviderId,
-    string? HotelProviderName,
     Guid? TransportProviderId,
     string? TransportProviderName,
     List<TourInstanceDayDto>? Days = null);

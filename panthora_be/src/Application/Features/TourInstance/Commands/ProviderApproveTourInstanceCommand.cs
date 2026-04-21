@@ -15,7 +15,8 @@ public sealed record ProviderApproveTourInstanceCommand(
     Guid InstanceId,
     bool IsApproved,
     string? Note,
-    string ProviderType) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    string ProviderType,
+    List<Guid>? AccommodationActivityIds = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }
@@ -27,6 +28,7 @@ public sealed class ProviderApproveTourInstanceCommandValidator : AbstractValida
         RuleFor(x => x.InstanceId).NotEmpty();
         RuleFor(x => x.Note).MaximumLength(1000);
         RuleFor(x => x.ProviderType).Must(x => x is "Hotel" or "Transport").WithMessage("ProviderType must be either 'Hotel' or 'Transport'.");
+        RuleForEach(x => x.AccommodationActivityIds).NotEmpty();
     }
 }
 
@@ -38,8 +40,13 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
     public async Task<ErrorOr<Success>> Handle(ProviderApproveTourInstanceCommand request, CancellationToken cancellationToken)
     {
         if (request.ProviderType != "Transport" || !request.IsApproved)
-            return await tourInstanceService.ProviderApprove(request.InstanceId, request.IsApproved, request.Note,
-                request.ProviderType, cancellationToken);
+            return await tourInstanceService.ProviderApprove(
+                request.InstanceId,
+                request.IsApproved,
+                request.Note,
+                request.ProviderType,
+                request.AccommodationActivityIds,
+                cancellationToken);
                 
         var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
         if (instance == null)
@@ -58,6 +65,12 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
                 $"Các hoạt động vận chuyển chưa được gán xe/tài xế: {string.Join(", ", unassignedActivityIds)}");
         }
 
-        return await tourInstanceService.ProviderApprove(request.InstanceId, request.IsApproved, request.Note, request.ProviderType, cancellationToken);
+        return await tourInstanceService.ProviderApprove(
+            request.InstanceId,
+            request.IsApproved,
+            request.Note,
+            request.ProviderType,
+            request.AccommodationActivityIds,
+            cancellationToken);
     }
 }

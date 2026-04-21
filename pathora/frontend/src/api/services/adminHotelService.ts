@@ -18,6 +18,7 @@ export interface HotelSupplierItem {
   primaryContinent: string | null;
   continents: string[];
   accommodationCount: number;
+  propertyCount?: number;
   roomCount: number;
   createdOnUtc: string | null;
 }

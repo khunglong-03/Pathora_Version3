@@ -31,7 +31,6 @@ public sealed class PublicTourInstanceControllerTests
             BasePrice: 1000m,
             Status: "Available",
             InstanceType: "Public",
-            HotelApprovalStatus: 2,
             TransportApprovalStatus: 2);
 
         var response = new PaginatedList<TourInstanceVm>(1, [vm], 1, 10);
@@ -82,12 +81,8 @@ public sealed class PublicTourInstanceControllerTests
             ConfirmationDeadline: null,
             Managers: [],
             IncludedServices: [],
-            HotelApprovalStatus: 2,
             TransportApprovalStatus: 2,
-            HotelApprovalNote: null,
             TransportApprovalNote: null,
-            HotelProviderId: null,
-            HotelProviderName: null,
             TransportProviderId: null,
             TransportProviderName: null);
 

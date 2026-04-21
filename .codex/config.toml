@@ -1,3 +1,9 @@
 [mcp_servers.gitnexus]
 command = "npx"
 args = ["-y", "gitnexus@latest", "mcp"]
+
+[mcp_servers.gitnexus.tools.impact]
+approval_mode = "approve"
+
+[mcp_servers.gitnexus.tools.detect_changes]
+approval_mode = "approve"

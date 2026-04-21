@@ -18,23 +18,24 @@ public sealed class GetHotelProviderByIdQueryHandler(
         CancellationToken cancellationToken)
     {
         var user = await userRepository.FindById(request.Id, cancellationToken);
-        Domain.Entities.SupplierEntity? supplier = null;
+        List<Domain.Entities.SupplierEntity> suppliers = [];
 
         if (user is null)
         {
             // Fallback: The ID might be a SupplierId (used by the tour instance creator)
-            supplier = await supplierRepository.GetByIdAsync(request.Id, cancellationToken);
+            var supplier = await supplierRepository.GetByIdAsync(request.Id, cancellationToken);
             if (supplier is not null && supplier.OwnerUserId.HasValue)
             {
                 user = await userRepository.FindById(supplier.OwnerUserId.Value, cancellationToken);
+                suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(supplier.OwnerUserId.Value, cancellationToken);
             }
         }
-        else
+        else if (user is not null)
         {
-            supplier = await supplierRepository.FindByOwnerUserIdAsync(user.Id, cancellationToken);
+            suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(user.Id, cancellationToken);
         }
 
-        if (user is null && supplier is null)
+        if (user is null && suppliers.Count == 0)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, "Hotel provider not found.");
 
         var (bookingCount, activeBookingCount, completedBookingCount) = user is not null
@@ -42,59 +43,97 @@ public sealed class GetHotelProviderByIdQueryHandler(
             : (0, 0, 0);
 
         var accommodationSummaries = new List<HotelAccommodationSummaryDto>();
+        var propertySummaries = new List<HotelPropertySummaryDto>();
         var roomOptions = new List<HotelProviderRoomOptionDto>();
         var totalRooms = 0;
-        var continents = new List<string>();
+        var continents = new HashSet<string>();
 
-        if (supplier is not null)
+        foreach (var supplier in suppliers)
         {
             var inventories = await inventoryRepository.GetByHotelAsync(supplier.Id, cancellationToken);
-            accommodationSummaries = inventories
+            var propertyAccommodationCount = inventories.Count;
+            var propertyRoomCount = inventories.Sum(inv => inv.TotalRooms);
+            var propertyContinents = inventories
+                .Where(inv => !string.IsNullOrWhiteSpace(inv.LocationArea?.ToString()))
+                .Select(inv => inv.LocationArea!.ToString()!)
+                .Distinct()
+                .ToList();
+
+            if (propertyContinents.Count == 0 && supplier.Continent.HasValue)
+            {
+                propertyContinents = [supplier.Continent.Value.ToString()];
+            }
+
+            propertySummaries.Add(new HotelPropertySummaryDto(
+                supplier.Id,
+                supplier.SupplierCode,
+                supplier.Name,
+                supplier.Address,
+                supplier.Phone,
+                supplier.Email,
+                supplier.Continent?.ToString(),
+                propertyContinents,
+                propertyAccommodationCount,
+                propertyRoomCount));
+
+            accommodationSummaries.AddRange(inventories
                 .Select(inv => new HotelAccommodationSummaryDto(
                     inv.Id,
+                    supplier.Id,
+                    supplier.Name,
                     inv.RoomType.ToString(),
                     inv.TotalRooms,
                     inv.Name,
                     inv.LocationArea?.ToString()))
-                .ToList();
-            roomOptions = inventories
-                .GroupBy(inv => inv.RoomType)
-                .Select(group => new HotelProviderRoomOptionDto(
-                    group.Key.ToString(),
-                    group.Key.ToString(),
-                    group.Sum(inv => inv.TotalRooms)))
-                .OrderBy(option => option.Label)
-                .ToList();
-            totalRooms = inventories.Sum(inv => inv.TotalRooms);
-            continents = accommodationSummaries
-                .Select(summary => summary.LocationArea)
-                .Where(locationArea => !string.IsNullOrWhiteSpace(locationArea))
-                .Distinct()
-                .Cast<string>()
-                .ToList();
+                .ToList());
+
+            totalRooms += propertyRoomCount;
+
+            foreach (var continent in propertyContinents)
+            {
+                continents.Add(continent);
+            }
         }
 
-        var primaryContinent = supplier?.Continent?.ToString();
+        roomOptions = accommodationSummaries
+            .GroupBy(acc => acc.RoomType)
+            .Select(group => new HotelProviderRoomOptionDto(
+                group.Key,
+                group.Key,
+                group.Sum(acc => acc.TotalRooms)))
+            .OrderBy(option => option.Label)
+            .ToList();
+
+        var primarySupplier = propertySummaries.FirstOrDefault();
+        var primaryContinent = primarySupplier?.PrimaryContinent;
+        var createdOnUtc = user is not null
+            ? user.CreatedOnUtc
+            : suppliers
+                .OrderBy(s => s.CreatedOnUtc)
+                .Select(s => (DateTimeOffset?)s.CreatedOnUtc)
+                .FirstOrDefault();
         if (continents.Count == 0 && primaryContinent is not null)
         {
-            continents = [primaryContinent];
+            continents.Add(primaryContinent);
         }
 
         return new HotelProviderDetailDto(
-            user?.Id ?? supplier!.Id,
-            supplier?.Name ?? user?.FullName ?? string.Empty,
-            supplier?.SupplierCode ?? string.Empty,
-            supplier?.Address,
-            supplier?.Phone ?? user?.PhoneNumber,
-            supplier?.Email ?? user?.Email,
+            user?.Id ?? primarySupplier!.Id,
+            primarySupplier?.SupplierName ?? user?.FullName ?? string.Empty,
+            primarySupplier?.SupplierCode ?? string.Empty,
+            primarySupplier?.Address,
+            primarySupplier?.Phone ?? user?.PhoneNumber,
+            primarySupplier?.Email ?? user?.Email,
             user?.AvatarUrl,
             user?.Status ?? UserStatus.Active,
-            user?.CreatedOnUtc ?? supplier?.CreatedOnUtc,
+            createdOnUtc,
             primaryContinent,
-            continents,
+            continents.ToList(),
+            propertySummaries,
             accommodationSummaries,
             roomOptions,
             accommodationSummaries.Count,
+            propertySummaries.Count,
             totalRooms,
             bookingCount,
             activeBookingCount,

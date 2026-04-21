@@ -23,7 +23,13 @@ public interface ITourInstanceService
     Task<ErrorOr<Success>> Update(UpdateTourInstanceCommand request);
     Task<ErrorOr<Success>> Delete(Guid id);
     Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus);
-    Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, string providerType, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> ProviderApprove(
+        Guid instanceId,
+        bool isApproved,
+        string? note,
+        string providerType,
+        IReadOnlyCollection<Guid>? accommodationActivityIds = null,
+        CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
     Task<ErrorOr<TourInstanceDto>> GetDetail(Guid id);
@@ -80,12 +86,17 @@ public class TourInstanceService(
             return Error.Validation(ErrorConstants.User.InvalidIdCode, ErrorConstants.User.InvalidIdFormatDescription);
 
         var performedBy = _user.Id;
-        var validatedRoomAssignmentsResult = await ValidateRoomAssignmentsAsync(
-            request.HotelProviderId,
-            request.ActivityAssignments);
-        if (validatedRoomAssignmentsResult.IsError)
-            return validatedRoomAssignmentsResult.Errors;
-        var validatedRoomAssignments = validatedRoomAssignmentsResult.Value;
+        // Room validation now deferred to accommodation-level supplier assignment
+        var validatedRoomAssignments = new Dictionary<Guid, RoomType>();
+        if (request.ActivityAssignments?.Any(a => !string.IsNullOrWhiteSpace(a.RoomType)) == true)
+        {
+            foreach (var assignment in request.ActivityAssignments.Where(a => !string.IsNullOrWhiteSpace(a.RoomType)))
+            {
+                if (!Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
+                    return Error.Validation("RoomType.Invalid", "Invalid room type.");
+                validatedRoomAssignments[assignment.OriginalActivityId] = roomType;
+            }
+        }
 
         // TC1.3: Validate vehicle assignments (Phase 1 contract)
         var validatedVehicleAssignmentsResult = await ValidateVehicleAssignmentsAsync(
@@ -138,7 +149,6 @@ public class TourInstanceService(
             thumbnail: thumbnail,
             images: request.ImageUrls?.Select(url => new ImageEntity { PublicURL = url }).ToList(),
             includedServices: request.IncludedServices,
-            hotelProviderId: request.HotelProviderId,
             transportProviderId: request.TransportProviderId);
 
         if (request.GuideUserIds?.Count > 0)
@@ -206,7 +216,8 @@ public class TourInstanceService(
                         instanceActivity.Accommodation = TourInstancePlanAccommodationEntity.Create(
                             instanceActivity.Id,
                             roomType,
-                            assignedData?.AccommodationQuantity ?? 1
+                            assignedData?.AccommodationQuantity ?? 1,
+                            assignedData?.SupplierId
                         );
                         break;
                     case TourDayActivityType.Transportation:
@@ -251,45 +262,8 @@ public class TourInstanceService(
         }
     }
 
-    private async Task<ErrorOr<Dictionary<Guid, RoomType>>> ValidateRoomAssignmentsAsync(
-        Guid? hotelProviderId,
-        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
-    {
-        var roomAssignments = (activityAssignments ?? [])
-            .Where(assignment => !string.IsNullOrWhiteSpace(assignment.RoomType))
-            .ToList();
-
-        if (roomAssignments.Count == 0)
-            return new Dictionary<Guid, RoomType>();
-
-        if (!hotelProviderId.HasValue)
-        {
-            return Error.Validation(
-                "TourInstance.HotelProviderRequiredForRoomAssignments",
-                "Hotel provider is required when assigning rooms.");
-        }
-
-        var supplier = await _supplierRepository.GetByIdAsync(hotelProviderId.Value);
-        if (supplier is null)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
-
-        var validatedRoomAssignments = new Dictionary<Guid, RoomType>();
-        foreach (var assignment in roomAssignments)
-        {
-            if (!Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
-                return Error.Validation("RoomType.Invalid", "Invalid room type.");
-
-            var inventory = await _hotelRoomInventoryRepository.FindByHotelAndRoomTypeAsync(
-                hotelProviderId.Value,
-                roomType);
-            if (inventory is null)
-                return Error.Validation("Inventory.NotFound", "Khách sạn không có loại phòng này.");
-
-            validatedRoomAssignments[assignment.OriginalActivityId] = roomType;
-        }
-
-        return validatedRoomAssignments;
-    }
+    // NOTE: Room assignment validation is now deferred to accommodation-level supplier assignment
+    // See AssignRoomToAccommodationCommand for per-activity room validation
 
     private async Task<ErrorOr<Dictionary<Guid, Guid>>> ValidateVehicleAssignmentsAsync(
         Guid? transportProviderId,
@@ -385,34 +359,6 @@ public class TourInstanceService(
     {
         if (_notificationBroadcaster is null) return;
 
-        // Notify HotelProvider
-        if (entity.HotelProviderId.HasValue)
-        {
-            try
-            {
-                var hotelSupplier = await _supplierRepository.GetByIdAsync(entity.HotelProviderId.Value);
-                if (hotelSupplier?.OwnerUserId is null)
-                {
-                    _logger.LogWarning(
-                        "Cannot notify HotelProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
-                        entity.Id, entity.HotelProviderId.Value);
-                }
-                else
-                {
-                    await _notificationBroadcaster.NotifyProviderAssignmentAsync(
-                        entity.Id, entity.Title, entity.TourName,
-                        entity.StartDate, entity.EndDate, "Hotel",
-                        hotelSupplier.OwnerUserId.Value);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex,
-                    "Failed to send assignment notification to HotelProvider for TourInstance {TourInstanceId}",
-                    entity.Id);
-            }
-        }
-
         // Notify TransportProvider
         if (entity.TransportProviderId.HasValue)
         {
@@ -440,6 +386,47 @@ public class TourInstanceService(
                     entity.Id);
             }
         }
+
+        var hotelOwnerGroups = entity.InstanceDays
+            .Where(day => !day.IsDeleted)
+            .SelectMany(day => day.Activities)
+            .Where(activity => activity.ActivityType == TourDayActivityType.Accommodation)
+            .Select(activity => activity.Accommodation?.SupplierId)
+            .Where(supplierId => supplierId.HasValue)
+            .Select(supplierId => supplierId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (hotelOwnerGroups.Count == 0)
+            return;
+
+        try
+        {
+            var suppliers = await _supplierRepository.GetAllAsync(cancellationToken);
+            var assignedHotelOwners = suppliers
+                .Where(s => hotelOwnerGroups.Contains(s.Id) && s.OwnerUserId.HasValue)
+                .GroupBy(s => s.OwnerUserId!.Value)
+                .Select(group => group.Key)
+                .ToList();
+
+            foreach (var ownerUserId in assignedHotelOwners)
+            {
+                await _notificationBroadcaster.NotifyProviderAssignmentAsync(
+                    entity.Id,
+                    entity.Title,
+                    entity.TourName,
+                    entity.StartDate,
+                    entity.EndDate,
+                    "Hotel",
+                    ownerUserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to send grouped hotel assignment notifications for TourInstance {TourInstanceId}",
+                entity.Id);
+        }
     }
 
     private async Task NotifyProviderApprovalResultAsync(TourInstanceEntity instance, string providerName, bool isApproved, string? reason)
@@ -465,6 +452,26 @@ public class TourInstanceService(
                 "Failed to send approval result notification for TourInstance {TourInstanceId}",
                 instance.Id);
         }
+    }
+
+    private static string BuildHotelApprovalNotificationLabel(
+        IReadOnlyCollection<SupplierEntity> ownerSuppliers,
+        IEnumerable<Guid> approvedSupplierIds)
+    {
+        var supplierNames = ownerSuppliers
+            .Where(supplier => approvedSupplierIds.Contains(supplier.Id))
+            .Select(supplier => supplier.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return supplierNames.Count switch
+        {
+            0 => "Hotel provider",
+            1 => supplierNames[0],
+            _ => $"Hotel properties: {string.Join(", ", supplierNames)}"
+        };
     }
 
     public async Task<ErrorOr<Success>> Update(UpdateTourInstanceCommand request)
@@ -542,23 +549,51 @@ public class TourInstanceService(
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> ProviderApprove(Guid instanceId, bool isApproved, string? note, string providerType, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> ProviderApprove(
+        Guid instanceId,
+        bool isApproved,
+        string? note,
+        string providerType,
+        IReadOnlyCollection<Guid>? accommodationActivityIds = null,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
-        if (supplier is null)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+        // For hotel providers, one owner may have multiple supplier records.
+        // For transport, the single-supplier lookup is still correct.
+        List<SupplierEntity> ownerSuppliers;
+        SupplierEntity supplier;
+
+        if (providerType == "Hotel")
+        {
+            ownerSuppliers = await _supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+            if (ownerSuppliers.Count == 0)
+                return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+            // Use the first supplier as the "primary" for notification naming
+            supplier = ownerSuppliers[0];
+        }
+        else
+        {
+            var singleSupplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+            if (singleSupplier is null)
+                return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+            supplier = singleSupplier;
+            ownerSuppliers = [supplier];
+        }
 
         var instance = await _tourInstanceRepository.FindById(instanceId, cancellationToken: cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        var ownerSupplierIds = ownerSuppliers.Select(s => s.Id).ToHashSet();
+
         bool hasAccess = providerType switch
         {
-            "Hotel" => supplier.Id == instance.HotelProviderId,
             "Transport" => supplier.Id == instance.TransportProviderId,
+            "Hotel" => instance.InstanceDays
+                .SelectMany(d => d.Activities)
+                .Any(a => a.Accommodation?.SupplierId != null && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)),
             _ => false
         };
 
@@ -585,10 +620,18 @@ public class TourInstanceService(
             var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
             if (fullInstance != null)
             {
+                var requestedActivityIds = accommodationActivityIds?.Count > 0
+                    ? accommodationActivityIds.ToHashSet()
+                    : null;
+
                 var accommodationActivities = fullInstance.InstanceDays
                     .Where(d => !d.IsDeleted)
                     .SelectMany(d => d.Activities)
-                    .Where(a => a.ActivityType == TourDayActivityType.Accommodation)
+                    .Where(a =>
+                        a.ActivityType == TourDayActivityType.Accommodation
+                        && a.Accommodation?.SupplierId != null
+                        && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)
+                        && (requestedActivityIds is null || requestedActivityIds.Contains(a.Id)))
                     .ToList();
 
                 var activityIds = accommodationActivities.Select(a => a.Id).ToList();
@@ -615,11 +658,53 @@ public class TourInstanceService(
         }
 
         var statusBeforeApprove = instance.Status;
-        instance.ApproveByProvider(supplier.Id, isApproved, note);
+        string notificationProviderName = supplier.Name;
+
+        if (providerType == "Transport")
+        {
+            instance.ApproveByTransportProvider(supplier.Id, isApproved, note);
+        }
+        else if (providerType == "Hotel")
+        {
+            // Approve accommodation activities owned by this supplier
+            var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+            if (fullInst != null)
+            {
+                var requestedActivityIds = accommodationActivityIds?.Count > 0
+                    ? accommodationActivityIds.ToHashSet()
+                    : null;
+                var approvedSupplierIds = fullInst.InstanceDays
+                    .Where(day => !day.IsDeleted)
+                    .SelectMany(day => day.Activities)
+                    .Where(act =>
+                        act.Accommodation?.SupplierId != null
+                        && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
+                        && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
+                    .Select(act => act.Accommodation!.SupplierId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var day in fullInst.InstanceDays)
+                {
+                    foreach (var act in day.Activities)
+                    {
+                        if (act.Accommodation?.SupplierId != null
+                            && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
+                            && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
+                        {
+                            act.Accommodation.ApproveBySupplier(isApproved, note);
+                        }
+                    }
+                }
+                fullInst.CheckAndActivateTourInstance();
+                instance = fullInst;
+                notificationProviderName = BuildHotelApprovalNotificationLabel(ownerSuppliers, approvedSupplierIds);
+            }
+        }
         await _tourInstanceRepository.Update(instance, cancellationToken);
 
         // Notify manager and admins about the approval result (fire-and-forget)
-        await NotifyProviderApprovalResultAsync(instance, supplier.Name, isApproved, note);
+        await NotifyProviderApprovalResultAsync(instance, notificationProviderName, isApproved, note);
 
         // If both providers approved and instance became Available, notify admins
         if (statusBeforeApprove == TourInstanceStatus.PendingApproval && instance.Status == TourInstanceStatus.Available)
@@ -645,12 +730,17 @@ public class TourInstanceService(
         if (!Guid.TryParse(_user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
-        if (supplier is null)
+        // Support multi-supplier owners: get all supplier records for this user
+        var suppliers = await _supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (suppliers.Count == 0)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var entities = await _tourInstanceRepository.FindProviderAssigned(supplier.Id, pageNumber, pageSize, approvalStatus, cancellationToken);
-        var total = await _tourInstanceRepository.CountProviderAssigned(supplier.Id, approvalStatus, cancellationToken);
+        // Use the first supplier ID for the repository query (which internally handles
+        // hotel access via accommodation-level joins across all owner suppliers)
+        var primarySupplierId = suppliers[0].Id;
+
+        var entities = await _tourInstanceRepository.FindProviderAssigned(primarySupplierId, pageNumber, pageSize, approvalStatus, cancellationToken);
+        var total = await _tourInstanceRepository.CountProviderAssigned(primarySupplierId, approvalStatus, cancellationToken);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
@@ -677,12 +767,16 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        // Check if the current user owns a supplier that is the Hotel or Transport provider for this instance
-        var supplier = await _supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
-        if (supplier is null)
+        // Check if the current user owns a supplier that is the Transport or Hotel provider for this instance
+        var suppliers = await _supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (suppliers.Count == 0)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
 
-        var hasAccess = entity.HotelProviderId == supplier.Id || entity.TransportProviderId == supplier.Id;
+        var supplierIds = suppliers.Select(s => s.Id).ToHashSet();
+        var hasAccess = (entity.TransportProviderId.HasValue && supplierIds.Contains(entity.TransportProviderId.Value))
+            || entity.InstanceDays
+                .SelectMany(d => d.Activities)
+                .Any(a => a.Accommodation?.SupplierId != null && supplierIds.Contains(a.Accommodation.SupplierId.Value));
         if (!hasAccess)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 

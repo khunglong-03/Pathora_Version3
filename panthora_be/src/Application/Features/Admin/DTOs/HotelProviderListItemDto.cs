@@ -12,6 +12,7 @@ public sealed record HotelProviderListItemDto(
     string? AvatarUrl,
     UserStatus Status,
     int AccommodationCount,
+    int PropertyCount,
     int RoomCount,
     DateTimeOffset? CreatedOnUtc,
     string? PrimaryContinent,

@@ -1570,7 +1570,17 @@
       "invalidLongitude": "Kinh độ phải từ -180 đến 180",
       "invalidEstimatedCost": "Chi phí ước tính phải bằng 0 hoặc lớn hơn",
       "invalidLinkUrl": "Vui lòng nhập URL hợp lệ bắt đầu bằng http:// hoặc https://",
-      "invalidCoverageAmount": "Số tiền bảo hiểm phải lớn hơn 0"
+      "invalidCoverageAmount": "Số tiền bảo hiểm phải lớn hơn 0",
+      "minOneActivityPerDay": "Ngày {{day}} cần ít nhất 1 hoạt động",
+      "minOneActivityPerDayToast": "Mỗi ngày cần ít nhất 1 hoạt động",
+      "dayCountMustMatchDuration": "Số ngày phải khớp thời lượng đã cấu hình: {{expected}} ngày (hiện có {{actual}} ngày)",
+      "activityOverlap": "Hoạt động này chồng giờ với hoạt động trước (kết thúc lúc {{prevEnd}})",
+      "activityOvernight": "Hoạt động không được kéo qua ngày mới (Giờ kết thúc phải sau giờ bắt đầu trong cùng ngày)"
+    },
+    "confirm": {
+      "removeDay": "Xóa ngày {{dayNumber}}? Toàn bộ hoạt động trong ngày sẽ bị mất.",
+      "removeActivity": "Xóa hoạt động \"{{title}}\"?",
+      "removeClassification": "Xóa gói tour \"{{name}}\"? Toàn bộ ngày và hoạt động trong gói sẽ bị mất."
     },
     "invalidDuration": "Thời lượng không hợp lệ",
     "basicInfo": {
@@ -1806,10 +1816,15 @@
       "optional": "Tùy chọn",
       "locationName": "Địa điểm",
       "placeholderLocation": "Tên địa điểm...",
-      "fromLocation": "Từ",
-      "toLocation": "Đến",
+      "fromLocation": "Từ (địa điểm)",
+      "toLocation": "Đến (địa điểm)",
+      "fromLocationEn": "From (location)",
+      "toLocationEn": "To (location)",
+      "fromLocationPlaceholder": "VD: Hà Nội",
+      "toLocationPlaceholder": "VD: TP. Hồ Chí Minh",
       "placeholderFromLocation": "Điểm khởi hành...",
       "placeholderToLocation": "Điểm đến...",
+      "cannotRemoveDayTooltip": "Không thể xóa: tour đang có đúng số ngày đã cấu hình ({{durationDays}} ngày)",
       "transportationType": "Phương tiện",
       "durationMinutes": "Thời gian (phút)",
       "accommodationName": "Tên khách sạn",

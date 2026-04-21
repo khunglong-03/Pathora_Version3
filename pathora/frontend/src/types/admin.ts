@@ -212,14 +212,30 @@ export interface HotelProviderListItem {
   address?: string;
   status: string;
   accommodationCount?: number;
+  propertyCount?: number;
   roomCount?: number;
   createdOnUtc?: string | null;
   primaryContinent?: string | null;
   continents: string[];
 }
 
+export interface HotelPropertySummary {
+  id: string;
+  supplierCode: string;
+  supplierName: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  primaryContinent: string | null;
+  continents: string[];
+  accommodationCount: number;
+  totalRooms: number;
+}
+
 export interface HotelAccommodationSummary {
   id: string;
+  supplierId: string;
+  supplierName: string;
   roomType: string;
   totalRooms: number;
   name: string | null;
@@ -245,9 +261,11 @@ export interface HotelProviderDetail {
   createdOnUtc: string | null;
   primaryContinent: string | null;
   continents: string[];
+  properties: HotelPropertySummary[];
   accommodations: HotelAccommodationSummary[];
   roomOptions?: HotelProviderRoomOption[];
   accommodationCount: number;
+  propertyCount: number;
   totalRooms: number;
   bookingCount: number;
   activeBookingCount: number;

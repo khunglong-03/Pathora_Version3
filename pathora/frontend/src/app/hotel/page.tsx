@@ -8,7 +8,6 @@ import {
   CalendarCheckIcon,
   ClockCountdownIcon,
   DoorOpenIcon,
-  PlusIcon,
   ListChecksIcon,
   ArrowRightIcon,
   BuildingOfficeIcon,
@@ -21,10 +20,19 @@ import type {
   AccommodationItem,
   GuestArrivalItem,
   GuestStayStatus,
+  HotelSupplierInfo,
 } from "@/api/services/hotelProviderService";
 import type { NormalizedTourInstanceVm } from "@/types/tour";
 import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
 import dayjs from "dayjs";
+
+type CreatePropertyDraft = {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  notes: string;
+};
 
 // --- Design Tokens (Taste Frontend) ---
 const T = {
@@ -221,23 +229,42 @@ function OccupancyHeroCard({ total, available }: { total: number; available: num
 // --- Main Page ---
 export default function HotelDashboardPage() {
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
+  const [suppliers, setSuppliers] = useState<HotelSupplierInfo[]>([]);
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [recentArrivals, setRecentArrivals] = useState<GuestArrivalItem[]>([]);
   const [availableRooms, setAvailableRooms] = useState<number>(-1);
   const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatePropertyOpen, setIsCreatePropertyOpen] = useState(false);
+  const [isCreatingProperty, setIsCreatingProperty] = useState(false);
+  const [createPropertyError, setCreatePropertyError] = useState<string | null>(null);
+  const [createPropertyDraft, setCreatePropertyDraft] = useState<CreatePropertyDraft>({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    notes: "",
+  });
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const today = new Date().toISOString().split("T")[0];
-      const [accommodationsData, arrivalsData, availabilityData] = await Promise.all([
+      const [accommodationsData, arrivalsData, availabilityData, supplierData] = await Promise.all([
         hotelProviderService.getAccommodations(),
         hotelProviderService.getGuestArrivals({}),
         hotelProviderService.getRoomAvailability(today, today),
+        hotelProviderService.getSupplierInfo(),
       ]);
       setAccommodations(accommodationsData);
+      setSuppliers(supplierData);
+      setSelectedSupplierId((current) =>
+        current && supplierData.some((supplier) => supplier.id === current)
+          ? current
+          : (supplierData[0]?.id ?? "")
+      );
       setAvailableRooms(
         availabilityData.reduce((sum, a) => sum + a.availableRooms, 0)
       );
@@ -273,7 +300,11 @@ export default function HotelDashboardPage() {
     void loadData();
   }, [loadData]);
 
-  const totalRooms = accommodations.reduce((sum, acc) => sum + acc.totalRooms, 0);
+  const selectedSupplier = suppliers.find((supplier) => supplier.id === selectedSupplierId) ?? null;
+  const visibleAccommodations = selectedSupplier
+    ? accommodations.filter((acc) => acc.supplierId === selectedSupplier.id)
+    : accommodations;
+  const totalRooms = visibleAccommodations.reduce((sum, acc) => sum + acc.totalRooms, 0);
   const pendingArrivals = recentArrivals.filter((a) => a.status === "Pending").length;
   const today = new Date().toISOString().split("T")[0];
   const todayCheckins = recentArrivals.filter((a) => a.checkInDate?.startsWith(today) && a.status === "Pending").length;
@@ -285,9 +316,96 @@ export default function HotelDashboardPage() {
     });
   };
 
+  const resetCreatePropertyForm = () => {
+    setCreatePropertyDraft({
+      name: "",
+      address: "",
+      phone: "",
+      email: "",
+      notes: "",
+    });
+    setCreatePropertyError(null);
+    setIsCreatePropertyOpen(false);
+  };
+
+  const handleCreateProperty = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedName = createPropertyDraft.name.trim();
+    if (!trimmedName) {
+      setCreatePropertyError("Tên cơ sở là bắt buộc.");
+      return;
+    }
+
+    setIsCreatingProperty(true);
+    setCreatePropertyError(null);
+    try {
+      const createdSupplier = await hotelProviderService.createSupplierInfo({
+        name: trimmedName,
+        address: createPropertyDraft.address.trim() || undefined,
+        phone: createPropertyDraft.phone.trim() || undefined,
+        email: createPropertyDraft.email.trim() || undefined,
+        notes: createPropertyDraft.notes.trim() || undefined,
+      });
+      await loadData();
+      setSelectedSupplierId(createdSupplier.id);
+      resetCreatePropertyForm();
+    } catch (err) {
+      setCreatePropertyError(err instanceof Error ? err.message : "Không thể tạo cơ sở mới.");
+    } finally {
+      setIsCreatingProperty(false);
+    }
+  };
+
   return (
     <div style={{ backgroundColor: T.bg, minHeight: "100dvh", padding: "40px", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
       <div style={{ width: "100%" }}>
+        {suppliers.length > 1 && (
+          <div style={{ marginBottom: "24px", backgroundColor: T.cardBg, border: `1px solid ${T.border}`, borderRadius: "16px", padding: "20px", boxShadow: T.shadow }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap", marginBottom: "16px" }}>
+              <div>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: T.text }}>Danh sách cơ sở</div>
+                <div style={{ fontSize: "13px", color: T.textMuted, marginTop: "4px" }}>Chọn property để xem tồn phòng và khách đến theo từng cơ sở.</div>
+              </div>
+              <div style={{ fontSize: "13px", color: T.textMuted }}>
+                {suppliers.length} cơ sở
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+              {suppliers.map((supplier) => {
+                const isSelected = supplier.id === selectedSupplierId;
+                const propertyAccommodations = accommodations.filter((acc) => acc.supplierId === supplier.id);
+                const propertyRooms = propertyAccommodations.reduce((sum, acc) => sum + acc.totalRooms, 0);
+
+                return (
+                  <button
+                    key={supplier.id}
+                    type="button"
+                    onClick={() => setSelectedSupplierId(supplier.id)}
+                    style={{
+                      textAlign: "left",
+                      borderRadius: "16px",
+                      padding: "16px",
+                      border: isSelected ? `1px solid ${T.blue}` : `1px solid ${T.border}`,
+                      backgroundColor: isSelected ? "rgba(59,130,246,0.06)" : "#fff",
+                      boxShadow: isSelected ? "0 10px 24px rgba(59,130,246,0.12)" : "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ fontSize: "15px", fontWeight: 700, color: T.text }}>{supplier.name}</div>
+                    <div style={{ fontSize: "12px", color: T.textMuted, marginTop: "6px", minHeight: "32px" }}>
+                      {supplier.address ?? "Chưa có địa chỉ"}
+                    </div>
+                    <div style={{ display: "flex", gap: "16px", marginTop: "14px", fontSize: "12px", color: T.textMuted }}>
+                      <span>{propertyAccommodations.length} loại phòng</span>
+                      <span>{propertyRooms} phòng</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         
         {/* Header Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
@@ -297,6 +415,24 @@ export default function HotelDashboardPage() {
           </div>
           
           <div style={{ display: "flex", gap: "12px" }}>
+            <motion.button
+              type="button"
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                setCreatePropertyError(null);
+                setIsCreatePropertyOpen((current) => !current);
+              }}
+              style={{
+                height: 44, padding: "0 20px", display: "flex", alignItems: "center", gap: 8,
+                backgroundColor: T.cardBg, color: T.text, borderRadius: "12px",
+                border: `1px solid ${T.border}`, fontWeight: 600, fontSize: "14px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.02)", cursor: "pointer"
+              }}
+            >
+              <BuildingOfficeIcon size={18} />
+              Thêm cơ sở mới
+            </motion.button>
             <Link href="/hotel/rooms">
               <motion.button
                 whileHover={{ y: -2, scale: 1.02 }}
@@ -330,6 +466,129 @@ export default function HotelDashboardPage() {
             </Link>
           </div>
         </div>
+
+        {isCreatePropertyOpen && (
+          <motion.form
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            onSubmit={handleCreateProperty}
+            style={{
+              marginBottom: "24px",
+              backgroundColor: T.cardBg,
+              border: `1px solid ${T.border}`,
+              borderRadius: T.radius,
+              boxShadow: T.shadow,
+              padding: "24px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: T.text }}>Thêm property mới</div>
+              <div style={{ fontSize: "13px", color: T.textMuted, marginTop: "4px" }}>
+                Tạo thêm một cơ sở khách sạn để quản lý riêng phòng và phê duyệt.
+              </div>
+            </div>
+
+            {[
+              { key: "name", label: "Tên cơ sở", required: true, type: "text" },
+              { key: "address", label: "Địa chỉ", required: false, type: "text" },
+              { key: "phone", label: "Số điện thoại", required: false, type: "text" },
+              { key: "email", label: "Email", required: false, type: "email" },
+            ].map((field) => (
+              <label key={field.key} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: T.text }}>
+                  {field.label}
+                  {field.required ? " *" : ""}
+                </span>
+                <input
+                  type={field.type}
+                  value={createPropertyDraft[field.key as keyof CreatePropertyDraft]}
+                  onChange={(event) =>
+                    setCreatePropertyDraft((current) => ({
+                      ...current,
+                      [field.key]: event.target.value,
+                    }))
+                  }
+                  style={{
+                    height: 44,
+                    borderRadius: "12px",
+                    border: `1px solid ${T.border}`,
+                    padding: "0 14px",
+                    fontSize: "14px",
+                    color: T.text,
+                    backgroundColor: "#fff",
+                  }}
+                />
+              </label>
+            ))}
+
+            <label style={{ display: "flex", flexDirection: "column", gap: "8px", gridColumn: "1 / -1" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: T.text }}>Ghi chú</span>
+              <textarea
+                value={createPropertyDraft.notes}
+                onChange={(event) =>
+                  setCreatePropertyDraft((current) => ({
+                    ...current,
+                    notes: event.target.value,
+                  }))
+                }
+                rows={4}
+                style={{
+                  borderRadius: "12px",
+                  border: `1px solid ${T.border}`,
+                  padding: "12px 14px",
+                  fontSize: "14px",
+                  color: T.text,
+                  backgroundColor: "#fff",
+                  resize: "vertical",
+                }}
+              />
+            </label>
+
+            <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+              <div style={{ fontSize: "13px", color: createPropertyError ? T.red : T.textMuted }}>
+                {createPropertyError ?? "Property mới sẽ được gắn vào chính tài khoản chủ khách sạn hiện tại."}
+              </div>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={resetCreatePropertyForm}
+                  style={{
+                    height: 42,
+                    padding: "0 18px",
+                    borderRadius: "12px",
+                    border: `1px solid ${T.border}`,
+                    backgroundColor: "#fff",
+                    color: T.text,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingProperty}
+                  style={{
+                    height: 42,
+                    padding: "0 18px",
+                    borderRadius: "12px",
+                    border: "none",
+                    backgroundColor: T.blue,
+                    color: "#fff",
+                    fontWeight: 600,
+                    cursor: isCreatingProperty ? "wait" : "pointer",
+                    opacity: isCreatingProperty ? 0.7 : 1,
+                  }}
+                >
+                  {isCreatingProperty ? "Đang tạo..." : "Lưu property"}
+                </button>
+              </div>
+            </div>
+          </motion.form>
+        )}
 
         {/* Loading State */}
         {isLoading && (

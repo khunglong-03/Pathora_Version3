@@ -1,4 +1,7 @@
-namespace Domain.Specs.Domain.Entities;
+namespace Domain.Specs.Entities;
+
+using global::Domain.Entities;
+using global::Domain.Enums;
 
 /// <summary>
 /// Unit tests for HotelRoomInventoryEntity.
@@ -234,7 +237,16 @@ public sealed class HotelRoomInventoryEntityTests
             totalRooms: 10,
             performedBy: "admin");
 
-        entity.Update(totalRooms: 1, performedBy: "admin");
+        entity.Update(
+            totalRooms: 1,
+            roomType: entity.RoomType,
+            name: entity.Name,
+            address: entity.Address,
+            locationArea: entity.LocationArea,
+            operatingCountries: entity.OperatingCountries,
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
+            performedBy: "admin");
 
         Assert.Equal(1, entity.TotalRooms);
     }
@@ -249,7 +261,16 @@ public sealed class HotelRoomInventoryEntityTests
             performedBy: "admin");
 
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            entity.Update(totalRooms: 0, performedBy: "admin"));
+            entity.Update(
+                totalRooms: 0,
+                roomType: entity.RoomType,
+                name: entity.Name,
+                address: entity.Address,
+                locationArea: entity.LocationArea,
+                operatingCountries: entity.OperatingCountries,
+                imageUrls: entity.ImageUrls,
+                notes: entity.Notes,
+                performedBy: "admin"));
 
         Assert.Contains("TotalRooms must be greater than 0", exception.Message);
     }
@@ -264,7 +285,16 @@ public sealed class HotelRoomInventoryEntityTests
             performedBy: "admin");
 
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            entity.Update(totalRooms: -5, performedBy: "admin"));
+            entity.Update(
+                totalRooms: -5,
+                roomType: entity.RoomType,
+                name: entity.Name,
+                address: entity.Address,
+                locationArea: entity.LocationArea,
+                operatingCountries: entity.OperatingCountries,
+                imageUrls: entity.ImageUrls,
+                notes: entity.Notes,
+                performedBy: "admin"));
 
         Assert.Contains("TotalRooms must be greater than 0", exception.Message);
     }
@@ -282,8 +312,13 @@ public sealed class HotelRoomInventoryEntityTests
 
         entity.Update(
             totalRooms: null,
+            roomType: entity.RoomType,
             name: null,
             address: null,
+            locationArea: entity.LocationArea,
+            operatingCountries: entity.OperatingCountries,
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
             performedBy: "admin");
 
         Assert.Null(entity.Name);
@@ -299,7 +334,16 @@ public sealed class HotelRoomInventoryEntityTests
             totalRooms: 10,
             performedBy: "admin");
 
-        entity.Update(operatingCountries: "  fr  ", performedBy: "admin");
+        entity.Update(
+            totalRooms: entity.TotalRooms,
+            roomType: entity.RoomType,
+            name: entity.Name,
+            address: entity.Address,
+            locationArea: entity.LocationArea,
+            operatingCountries: "  fr  ",
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
+            performedBy: "admin");
 
         Assert.Equal("FR", entity.OperatingCountries);
     }
@@ -317,7 +361,16 @@ public sealed class HotelRoomInventoryEntityTests
 
         System.Threading.Thread.Sleep(2); // ensure time passes
 
-        entity.Update(totalRooms: 20, performedBy: "admin");
+        entity.Update(
+            totalRooms: 20,
+            roomType: entity.RoomType,
+            name: entity.Name,
+            address: entity.Address,
+            locationArea: entity.LocationArea,
+            operatingCountries: entity.OperatingCountries,
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
+            performedBy: "admin");
 
         Assert.Equal(entity.CreatedOnUtc, entity.CreatedOnUtc); // unchanged
         Assert.True(entity.LastModifiedOnUtc > originalModified);
@@ -334,7 +387,16 @@ public sealed class HotelRoomInventoryEntityTests
             name: "Hotel Name",
             address: "Hotel Address");
 
-        entity.Update(totalRooms: 15, performedBy: "admin");
+        entity.Update(
+            totalRooms: 15,
+            roomType: entity.RoomType,
+            name: entity.Name,
+            address: entity.Address,
+            locationArea: entity.LocationArea,
+            operatingCountries: entity.OperatingCountries,
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
+            performedBy: "admin");
 
         Assert.Equal(15, entity.TotalRooms);
         Assert.Equal("Hotel Name", entity.Name);
@@ -351,7 +413,16 @@ public sealed class HotelRoomInventoryEntityTests
             performedBy: "admin",
             name: "Hotel Name");
 
-        entity.Update(roomType: Domain.Enums.RoomType.Suite, performedBy: "admin");
+        entity.Update(
+            totalRooms: entity.TotalRooms,
+            roomType: Domain.Enums.RoomType.Suite,
+            name: entity.Name,
+            address: entity.Address,
+            locationArea: entity.LocationArea,
+            operatingCountries: entity.OperatingCountries,
+            imageUrls: entity.ImageUrls,
+            notes: entity.Notes,
+            performedBy: "admin");
 
         Assert.Equal(Domain.Enums.RoomType.Suite, entity.RoomType);
         Assert.Equal(10, entity.TotalRooms);

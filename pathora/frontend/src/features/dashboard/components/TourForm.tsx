@@ -772,6 +772,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       if (plans.length === 0) {
         newErrors.dayPlans = t("tourAdmin.validation.atLeastOneDayPlan", "At least one day plan is required.");
       }
+
+      // Day count must match classification.durationDays
+      const durationDays = Number(classifications[activePackageIndex]?.durationDays ?? 0);
+      if (Number.isFinite(durationDays) && durationDays > 0 && plans.length !== durationDays) {
+        newErrors[`cls_${activePackageIndex}_dayCountMismatch`] = t(
+          "tourAdmin.validation.dayCountMustMatchDuration",
+          "Day count must match configured duration: {{expected}} days (currently {{actual}})",
+          { expected: durationDays, actual: plans.length },
+        );
+      }
+
       plans.forEach((plan, i) => {
         if (!plan.title.trim())
           newErrors[`plan_${i}_title`] = t("tourAdmin.required", "Required");
@@ -779,8 +790,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           newErrors[`plan_${i}_description`] = t("tourAdmin.required", "Required");
       });
 
-      // Validate linkToResources URLs
       plans.forEach((plan, planIdx) => {
+        // Min 1 activity per day — skip per-activity checks if day is empty
+        if (plan.activities.length === 0) {
+          newErrors[`day_${planIdx}_empty`] = t(
+            "tourAdmin.validation.minOneActivityPerDay",
+            "Day {{day}} needs at least 1 activity",
+            { day: planIdx + 1 },
+          );
+          return;
+        }
+
         plan.activities.forEach((act, actIdx) => {
           // Validate estimatedCost: optional, but if provided must be >= 0
           if (act.estimatedCost.trim()) {
@@ -793,7 +813,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             }
           }
 
-          // Validate startTime and endTime: both required; endTime must be after startTime
+          // Validate startTime and endTime: both required; endTime must be after startTime (no overnight)
           if (!act.startTime.trim()) {
             newErrors[`act_${planIdx}_${actIdx}_startTime`] = t(
               "tourAdmin.itineraries.startTimeRequired",
@@ -809,8 +829,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           if (act.startTime.trim() && act.endTime.trim()) {
             if (act.endTime <= act.startTime) {
               newErrors[`act_${planIdx}_${actIdx}_endTime`] = t(
-                "tourAdmin.itineraries.endTimeMustBeAfterStartTime",
-                "End time must be after start time",
+                "tourAdmin.validation.activityOvernight",
+                "Activity cannot span overnight (End time must be after Start time within the same day)",
               );
             }
           }
@@ -824,8 +844,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             }
           });
 
-
-
           // Validate type-7 (transportation) required fields
           if (act.activityType === "7") {
             if (!act.fromLocation.trim())
@@ -837,6 +855,23 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           // Validate type-8 (accommodation) — Phase 2: Supplier details handled at instance time
           // No form validation needed for accommodation activities anymore
         });
+
+        // Cross-activity time ordering: no overlap when sorted by startTime
+        const timed = plan.activities
+          .map((act, origIdx) => ({ act, origIdx }))
+          .filter(({ act }) => act.startTime.trim() && act.endTime.trim() && act.endTime > act.startTime);
+        timed.sort((a, b) => a.act.startTime.localeCompare(b.act.startTime));
+        for (let i = 1; i < timed.length; i += 1) {
+          const prev = timed[i - 1].act;
+          const curr = timed[i];
+          if (curr.act.startTime < prev.endTime) {
+            newErrors[`act_${planIdx}_${curr.origIdx}_startTime`] = t(
+              "tourAdmin.validation.activityOverlap",
+              "This activity overlaps with the previous one (ends at {{prevEnd}})",
+              { prevEnd: prev.endTime },
+            );
+          }
+        }
       });
     }
 
@@ -1998,9 +2033,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         <button
                           type="button"
                           onClick={() =>
-                            isEditMode
-                              ? setConfirmDelete({ type: "classification", index1: clsI })
-                              : removeClassification(clsI)
+                            setConfirmDelete({ type: "classification", index1: clsI })
                           }
                           aria-label={t("tourAdmin.packages.removePackage")}
                           className="text-stone-400 hover:text-red-500 transition-colors">
@@ -2246,6 +2279,14 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   </button>
                 </div>
 
+                {errors[`cls_${ci}_dayCountMismatch`] && (
+                  <div className="mb-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-2">
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      {errors[`cls_${ci}_dayCountMismatch`]}
+                    </p>
+                  </div>
+                )}
+
                 {(dayPlans[ci] ?? []).length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
                     <Icon
@@ -2258,7 +2299,13 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {(dayPlans[ci] ?? []).map((day, di) => (
+                    {(dayPlans[ci] ?? []).map((day, di) => {
+                      const classificationDurationDays = Number(classifications[ci]?.durationDays ?? 0);
+                      const cannotRemoveDay =
+                        Number.isFinite(classificationDurationDays) &&
+                        classificationDurationDays > 0 &&
+                        (dayPlans[ci] ?? []).length <= classificationDurationDays;
+                      return (
                       <div
                         key={di}
                         className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
@@ -2291,12 +2338,18 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           <button
                             type="button"
                             onClick={() =>
-                            isEditMode
-                              ? setConfirmDelete({ type: "dayPlan", index1: ci, index2: di })
-                              : removeDayPlan(ci, di)
-                          }
+                              setConfirmDelete({ type: "dayPlan", index1: ci, index2: di })
+                            }
+                            disabled={cannotRemoveDay}
+                            title={
+                              cannotRemoveDay
+                                ? t("tourAdmin.itineraries.cannotRemoveDayTooltip", {
+                                    durationDays: classificationDurationDays,
+                                  })
+                                : t("tourAdmin.itineraries.removeDay")
+                            }
                             aria-label={t("tourAdmin.itineraries.removeDay")}
-                            className="text-white/70 hover:text-white transition-colors">
+                            className="text-white/70 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-white/70">
                             <Icon icon="heroicons:x-mark" className="size-5" />
                           </button>
                         </div>
@@ -2354,9 +2407,16 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                             </div>
 
                             {day.activities.length === 0 && (
-                              <p className="text-xs text-slate-400 text-center py-4">
-                                {t("tourAdmin.itineraries.noActivitiesYet")}
-                              </p>
+                              <>
+                                <p className="text-xs text-slate-400 text-center py-4">
+                                  {t("tourAdmin.itineraries.noActivitiesYet")}
+                                </p>
+                                {errors[`day_${di}_empty`] && (
+                                  <p className="text-xs text-red-600 text-center pb-2">
+                                    {errors[`day_${di}_empty`]}
+                                  </p>
+                                )}
+                              </>
                             )}
 
                             {day.activities.map((act, ai) => (
@@ -2370,9 +2430,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      isEditMode
-                                        ? setConfirmDelete({ type: "activity", index1: ci, index2: di, index3: ai })
-                                        : removeActivity(ci, di, ai)
+                                      setConfirmDelete({ type: "activity", index1: ci, index2: di, index3: ai })
                                     }
                                     aria-label={t("tourAdmin.itineraries.removeActivity")}
                                     className="text-red-400 hover:text-red-600 transition-colors">
@@ -2643,46 +2701,50 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇻🇳 {t("tourAdmin.itineraries.fromLocation", "From (VI)")} <span className="text-red-500">*</span>
+                                        🇻🇳 {t("tourAdmin.itineraries.fromLocation", "Từ (địa điểm)")} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="text"
                                         value={act.fromLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "fromLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.fromLocationPlaceholder", "VD: Hà Nội")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇬🇧 {t("tourAdmin.itineraries.fromLocationEn", "From (EN)")}
+                                        🇬🇧 {t("tourAdmin.itineraries.fromLocationEn", "From (location)")}
                                       </label>
                                       <input
                                         type="text"
                                         value={act.enFromLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "enFromLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.fromLocationPlaceholder", "e.g., Hanoi")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇻🇳 {t("tourAdmin.itineraries.toLocation", "To (VI)")} <span className="text-red-500">*</span>
+                                        🇻🇳 {t("tourAdmin.itineraries.toLocation", "Đến (địa điểm)")} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="text"
                                         value={act.toLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "toLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.toLocationPlaceholder", "VD: TP. Hồ Chí Minh")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇬🇧 {t("tourAdmin.itineraries.toLocationEn", "To (EN)")}
+                                        🇬🇧 {t("tourAdmin.itineraries.toLocationEn", "To (location)")}
                                       </label>
                                       <input
                                         type="text"
                                         value={act.enToLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "enToLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.toLocationPlaceholder", "e.g., Ho Chi Minh City")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
@@ -2754,7 +2816,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -3462,13 +3525,29 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           </div>
         </div>
 
-      {/* Delete Confirmation Dialog (Edit Mode) */}
+      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         active={confirmDelete !== null}
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleConfirmDelete}
         title={t("tourAdmin.confirmDelete.title")}
-        message={t("tourAdmin.confirmDelete.message")}
+        message={(() => {
+          if (!confirmDelete) return t("tourAdmin.confirmDelete.message");
+          if (confirmDelete.type === "dayPlan") {
+            const dayNumber = (dayPlans[confirmDelete.index1]?.[confirmDelete.index2!]?.dayNumber) ?? String((confirmDelete.index2 ?? 0) + 1);
+            return t("tourAdmin.confirm.removeDay", { dayNumber });
+          }
+          if (confirmDelete.type === "activity") {
+            const act = dayPlans[confirmDelete.index1]?.[confirmDelete.index2!]?.activities[confirmDelete.index3!];
+            const title = act?.title?.trim() || t("tourAdmin.itineraries.activityNumber", { number: (confirmDelete.index3 ?? 0) + 1 });
+            return t("tourAdmin.confirm.removeActivity", { title });
+          }
+          if (confirmDelete.type === "classification") {
+            const name = classifications[confirmDelete.index1]?.name?.trim() || t("tourAdmin.packages.packageNumber", { number: confirmDelete.index1 + 1 });
+            return t("tourAdmin.confirm.removeClassification", { name });
+          }
+          return t("tourAdmin.confirmDelete.message");
+        })()}
         confirmLabel={t("tourAdmin.confirmDelete.confirm")}
         cancelLabel={t("tourAdmin.confirmDelete.cancel")}
       />

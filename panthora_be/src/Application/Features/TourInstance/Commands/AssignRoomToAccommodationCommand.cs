@@ -50,17 +50,16 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         if (!Guid.TryParse(user.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
-        if (supplier is null)
+        var ownerSuppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+        if (ownerSuppliers.Count == 0)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+        var ownerSupplierIds = ownerSuppliers.Select(s => s.Id).ToHashSet();
 
         var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
 
-        if (instance.HotelProviderId != supplier.Id)
-            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Hotel provider for this tour instance.");
-
+        // Find the accommodation activity first, then check supplier ownership
         var activity = instance.InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
@@ -71,6 +70,12 @@ public sealed class AssignRoomToAccommodationCommandHandler(
 
         if (activity.ActivityType != TourDayActivityType.Accommodation)
             return Error.Validation("TourInstanceActivity.InvalidType", "Activity is not an accommodation.");
+
+        // Check if any of the owner's suppliers is assigned to this accommodation activity
+        if (activity.Accommodation?.SupplierId is null || !ownerSupplierIds.Contains(activity.Accommodation.SupplierId.Value))
+            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Hotel provider for this accommodation activity.");
+
+        var supplier = ownerSuppliers.First(s => s.Id == activity.Accommodation.SupplierId.Value);
 
         if (activity.TourInstanceDay == null)
             return Error.Validation("TourInstanceActivity.NoDay", "Activity is not correctly linked to an instance day.");

@@ -25,7 +25,6 @@ public sealed record CreateTourInstanceCommand(
     string? ThumbnailUrl = null,
     Guid? TourRequestId = null,
     List<string>? ImageUrls = null,
-    Guid? HotelProviderId = null,
     Guid? TransportProviderId = null,
     List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {

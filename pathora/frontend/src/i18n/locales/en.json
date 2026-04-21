@@ -1570,7 +1570,17 @@
       "invalidLongitude": "Longitude must be between -180 and 180",
       "invalidEstimatedCost": "Estimated cost must be 0 or greater",
       "invalidLinkUrl": "Please enter a valid URL starting with http:// or https://",
-      "invalidCoverageAmount": "Coverage amount must be greater than 0"
+      "invalidCoverageAmount": "Coverage amount must be greater than 0",
+      "minOneActivityPerDay": "Day {{day}} needs at least 1 activity",
+      "minOneActivityPerDayToast": "Each day needs at least 1 activity",
+      "dayCountMustMatchDuration": "Day count must match configured duration: {{expected}} days (currently {{actual}})",
+      "activityOverlap": "This activity overlaps with the previous one (ends at {{prevEnd}})",
+      "activityOvernight": "Activity cannot span overnight (End time must be after Start time within the same day)"
+    },
+    "confirm": {
+      "removeDay": "Remove day {{dayNumber}}? All activities in this day will be lost.",
+      "removeActivity": "Remove activity \"{{title}}\"?",
+      "removeClassification": "Remove package \"{{name}}\"? All days and activities in this package will be lost."
     },
     "invalidDuration": "Invalid duration",
     "basicInfo": {
@@ -1815,8 +1825,13 @@
       "placeholderLocation": "Location name...",
       "placeholderFromLocation": "Departure location...",
       "placeholderToLocation": "Arrival location...",
-      "fromLocation": "From",
-      "toLocation": "To",
+      "fromLocation": "From (location)",
+      "toLocation": "To (location)",
+      "fromLocationEn": "From (location)",
+      "toLocationEn": "To (location)",
+      "fromLocationPlaceholder": "e.g., Hanoi",
+      "toLocationPlaceholder": "e.g., Ho Chi Minh City",
+      "cannotRemoveDayTooltip": "Cannot remove: tour already matches the configured day count ({{durationDays}} days)",
       "requiredFromLocation": "From location is required",
       "requiredToLocation": "To location is required",
       "customLocation": "Custom location...",
