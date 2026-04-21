@@ -95,10 +95,10 @@ export function ActivityItem({ activity }: ActivityItemProps) {
                 {TransportationTypeMap[activity.transportationType] ??
                   t("landing.tourDetail.transport")}
               </span>
-              {activity.fromLocation && activity.toLocation && (
+              {activity.fromLocationName && activity.toLocationName && (
                 <span>
-                  {activity.fromLocation} →{" "}
-                  {activity.toLocation}
+                  {activity.fromLocationName} →{" "}
+                  {activity.toLocationName}
                 </span>
               )}
               {activity.durationMinutes != null && (
