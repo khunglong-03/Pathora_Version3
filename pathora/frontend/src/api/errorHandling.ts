@@ -31,6 +31,7 @@ interface ErrorLogPayload {
   statusCode: number | null;
   timestamp: string;
   headers: Record<string, string>;
+  data?: any;
 }
 
 const SENSITIVE_HEADER_NAMES = new Set([
@@ -159,6 +160,7 @@ export const buildErrorLogPayload = (
     typeof window !== "undefined" ? window.location.origin : "server";
   const statusCode = error.response?.status ?? null;
   const headers = sanitizeHeaders(error.config?.headers);
+  const data = error.response?.data;
 
   return {
     message,
@@ -171,6 +173,7 @@ export const buildErrorLogPayload = (
     statusCode,
     timestamp,
     headers,
+    data,
   };
 };
 
