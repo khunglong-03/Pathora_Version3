@@ -9,14 +9,7 @@ export interface TourDayActivityTranslationData {
   toLocation?: string | null;
 }
 
-export interface TourPlanRouteTranslationData {
-  fromLocationName?: string | null;
-  toLocationName?: string | null;
-  transportationType?: string | null;
-  transportationName?: string | null;
-  ticketInfo?: string | null;
-  note?: string | null;
-}
+
 
 export interface TourDayTranslationData {
   title: string;
@@ -64,23 +57,7 @@ export interface TourPlanLocationDto {
   note: string | null;
 }
 
-export interface TourPlanRouteDto {
-  id: string;
-  order: number;
-  transportationType: number;
-  transportationName: string | null;
-  transportationNote: string | null;
-  fromLocation: TourPlanLocationDto | null;
-  toLocation: TourPlanLocationDto | null;
-  estimatedDepartureTime: string | null;
-  estimatedArrivalTime: string | null;
-  durationMinutes: number | null;
-  distanceKm: number | null;
-  price: number | null;
-  bookingReference: string | null;
-  note: string | null;
-  translations?: Record<string, TourPlanRouteTranslationData>;
-}
+
 
 export interface TourPlanAccommodationDto {
   id: string;
@@ -117,7 +94,10 @@ export interface TourDayActivityDto {
   isOptional: boolean;
   startTime: string | null;
   endTime: string | null;
-  routes: TourPlanRouteDto[];
+  fromLocationId?: string | null;
+  toLocationId?: string | null;
+  distanceKm?: number | null;
+  bookingReference?: string | null;
   accommodation: TourPlanAccommodationDto | null;
   translations?: Record<string, TourDayActivityTranslationData>;
   enTransportationType?: string | null;

@@ -83,7 +83,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var driverId = Guid.NewGuid();
         var vehicleId = Guid.NewGuid();
 
-        var routeEntity = new TourPlanRouteEntity { Id = routeId, Order = 1 };
+        var routeEntity = new TourDayActivityEntity { Id = routeId, Order = 1 };
         var driver = new DriverEntity
         {
             Id = driverId,
@@ -112,8 +112,8 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         {
             BookingActivityReservationId = bookingActivity.Id,
             BookingActivityReservation = bookingActivity,
-            TourPlanRouteId = routeId,
-            TourPlanRoute = routeEntity,
+            TourDayActivityId = routeId,
+            TourDayActivity = routeEntity,
             DriverId = driverId,
             Driver = driver,
             VehicleId = vehicleId,
@@ -130,7 +130,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Single(result.Value.Routes);
         var route = result.Value.Routes[0];
-        Assert.Equal(routeId, route.TourPlanRouteId);
+        Assert.Equal(routeId, route.TourDayActivityId);
         Assert.Equal(1, route.RouteOrder);
 
         Assert.NotNull(route.Driver);
@@ -157,35 +157,35 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var (query, userId) = Query();
         var bookingId = query.BookingId;
 
-        var route1 = new TourPlanRouteEntity { Id = Guid.NewGuid(), Order = 1 };
-        var route2 = new TourPlanRouteEntity { Id = Guid.NewGuid(), Order = 2 };
-        var route3 = new TourPlanRouteEntity { Id = Guid.NewGuid(), Order = 3 };
+        var route1 = new TourDayActivityEntity { Id = Guid.NewGuid(), Order = 1 };
+        var route2 = new TourDayActivityEntity { Id = Guid.NewGuid(), Order = 2 };
+        var route3 = new TourDayActivityEntity { Id = Guid.NewGuid(), Order = 3 };
 
         var rt1 = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = route1.Id,
+            TourDayActivityId = route1.Id,
             DriverId = Guid.NewGuid(),
             VehicleId = Guid.NewGuid(),
-            TourPlanRoute = route1,
+            TourDayActivity = route1,
             Driver = new DriverEntity { Id = Guid.NewGuid(), FullName = "Driver 1", LicenseNumber = "AAA1111111", LicenseType = DriverLicenseType.B2, PhoneNumber = "0911111111" },
             Vehicle = new VehicleEntity { Id = Guid.NewGuid(), VehiclePlate = "30A-11111", VehicleType = VehicleType.Car, SeatCapacity = 4 }
         };
         var rt2 = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = route2.Id,
+            TourDayActivityId = route2.Id,
             DriverId = null,
             VehicleId = null,
-            TourPlanRoute = route2
+            TourDayActivity = route2
         };
         var rt3 = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = route3.Id,
+            TourDayActivityId = route3.Id,
             DriverId = Guid.NewGuid(),
             VehicleId = Guid.NewGuid(),
-            TourPlanRoute = route3,
+            TourDayActivity = route3,
             Driver = new DriverEntity { Id = Guid.NewGuid(), FullName = "Driver 3", LicenseNumber = "CCC3333333", LicenseType = DriverLicenseType.D, PhoneNumber = "0933333333" },
             Vehicle = new VehicleEntity { Id = Guid.NewGuid(), VehiclePlate = "30C-33333", VehicleType = VehicleType.Minibus, SeatCapacity = 15 }
         };
@@ -199,7 +199,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
 
         Assert.False(result.IsError);
         Assert.Equal(3, result.Value.Routes.Count);
-        Assert.Equal(route1.Id, result.Value.Routes[0].TourPlanRouteId);
+        Assert.Equal(route1.Id, result.Value.Routes[0].TourDayActivityId);
         Assert.NotNull(result.Value.Routes[0].Driver);
         Assert.Null(result.Value.Routes[1].Driver);
         Assert.Null(result.Value.Routes[1].Vehicle);
@@ -218,7 +218,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
-        var route = new TourPlanRouteEntity { Id = routeId, Order = 1 };
+        var route = new TourDayActivityEntity { Id = routeId, Order = 1 };
         var driver = new DriverEntity
         {
             Id = Guid.NewGuid(),
@@ -230,10 +230,10 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = routeId,
+            TourDayActivityId = routeId,
             DriverId = driver.Id,
             VehicleId = null,
-            TourPlanRoute = route,
+            TourDayActivity = route,
             Driver = driver
         };
 
@@ -262,7 +262,7 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
-        var route = new TourPlanRouteEntity { Id = routeId, Order = 1 };
+        var route = new TourDayActivityEntity { Id = routeId, Order = 1 };
         var vehicle = new VehicleEntity
         {
             Id = Guid.NewGuid(),
@@ -276,10 +276,10 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = routeId,
+            TourDayActivityId = routeId,
             DriverId = null,
             VehicleId = vehicle.Id,
-            TourPlanRoute = route,
+            TourDayActivity = route,
             Vehicle = vehicle
         };
 
@@ -322,9 +322,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = routeId,
+            TourDayActivityId = routeId,
             DriverId = driver.Id,
-            TourPlanRoute = new TourPlanRouteEntity { Id = routeId, Order = 1 },
+            TourDayActivity = new TourDayActivityEntity { Id = routeId, Order = 1 },
             Driver = driver
         };
 
@@ -356,9 +356,9 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = routeId,
+            TourDayActivityId = routeId,
             DriverId = driver.Id,
-            TourPlanRoute = new TourPlanRouteEntity { Id = routeId, Order = 1 },
+            TourDayActivity = new TourDayActivityEntity { Id = routeId, Order = 1 },
             Driver = driver
         };
 
@@ -384,12 +384,12 @@ public sealed class GetBookingTransportInfoQueryHandlerTests
         var bookingId = query.BookingId;
         var routeId = Guid.NewGuid();
 
-        var route = new TourPlanRouteEntity { Id = routeId, Order = 0 };
+        var route = new TourDayActivityEntity { Id = routeId, Order = 0 };
         var routeTransport = new TourDayActivityRouteTransportEntity
         {
             BookingActivityReservationId = Guid.NewGuid(),
-            TourPlanRouteId = routeId,
-            TourPlanRoute = route
+            TourDayActivityId = routeId,
+            TourDayActivity = route
         };
 
         _bookingRepository.GetByIdAsync(bookingId)

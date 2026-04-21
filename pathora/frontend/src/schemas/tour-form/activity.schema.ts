@@ -1,32 +1,6 @@
 import { z } from "zod";
 
-const activityRouteSchema = z.object({
-  id: z.string(),
-  fromLocationIndex: z.string(),
-  fromLocationCustom: z.string().min(1, "Điểm khởi hành không được để trống"),
-  enFromLocationCustom: z.string(),
-  toLocationIndex: z.string(),
-  toLocationCustom: z.string().min(1, "Điểm đến không được để trống"),
-  enToLocationCustom: z.string(),
-  transportationType: z.string(),
-  enTransportationType: z.string(),
-  durationMinutes: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().nonnegative("Thời gian không được âm"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  price: z
-    .string()
-    .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().nonnegative("Giá không được âm"))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any)
-    .optional(),
-  note: z.string(),
-  enNote: z.string(),
-});
+
 
 // Base activity schema fields (no activityType — used for discriminated union variants)
 const baseActivityFields = {
@@ -70,7 +44,7 @@ const baseActivityFields = {
     )
     .optional()
     .default([]),
-  routes: z.array(activityRouteSchema).optional().default([]),
+
   // Location fields — all activity types
   locationName: z.string().optional(),
   enLocationName: z.string().optional(),

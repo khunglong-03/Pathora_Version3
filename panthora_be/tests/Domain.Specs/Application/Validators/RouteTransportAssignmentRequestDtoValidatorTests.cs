@@ -27,7 +27,7 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
 
     private static RouteTransportAssignmentRequestDto ValidDto() => new(
         BookingActivityReservationId: Guid.NewGuid(),
-        TourPlanRouteId: Guid.NewGuid(),
+        TourDayActivityId: Guid.NewGuid(),
         DriverId: null,
         VehicleId: null);
 
@@ -38,12 +38,12 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
     {
         var dto = new RouteTransportAssignmentRequestDto(
             BookingActivityReservationId: Guid.Empty,
-            TourPlanRouteId: Guid.Empty,
+            TourDayActivityId: Guid.Empty,
             DriverId: null,
             VehicleId: null);
         var result = _validator.TestValidate(dto);
         result.ShouldHaveValidationErrorFor(x => x.BookingActivityReservationId);
-        result.ShouldHaveValidationErrorFor(x => x.TourPlanRouteId);
+        result.ShouldHaveValidationErrorFor(x => x.TourDayActivityId);
     }
 
     [Fact]
@@ -64,11 +64,11 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_EmptyTourPlanRouteId_Fails()
+    public void Validate_EmptyTourDayActivityId_Fails()
     {
-        var dto = ValidDto() with { TourPlanRouteId = Guid.Empty };
+        var dto = ValidDto() with { TourDayActivityId = Guid.Empty };
         var result = _validator.TestValidate(dto);
-        result.ShouldHaveValidationErrorFor(x => x.TourPlanRouteId)
+        result.ShouldHaveValidationErrorFor(x => x.TourDayActivityId)
             .WithErrorMessage("Tour plan route ID is required.");
     }
 
@@ -176,7 +176,7 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
         var dto = ValidDto() with { VehicleId = vehicleId };
         var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveValidationErrorFor(x => x.VehicleId);
-        await _routeTransportRepository.Received(0).GetTourContinentByRouteIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _routeTransportRepository.Received(0).GetTourContinentByActivityIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -191,10 +191,10 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
 
         _vehicleRepository.GetByIdAsync(vehicleId)
             .Returns(new VehicleEntity { Id = vehicleId, OwnerId = Guid.NewGuid(), VehiclePlate = "30A-55555", VehicleType = VehicleType.Car, SeatCapacity = 5, LocationArea = Continent.Asia });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(tourRouteId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(tourRouteId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
-        var dto = ValidDto() with { TourPlanRouteId = tourRouteId, VehicleId = vehicleId };
+        var dto = ValidDto() with { TourDayActivityId = tourRouteId, VehicleId = vehicleId };
         var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -207,10 +207,10 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
 
         _vehicleRepository.GetByIdAsync(vehicleId)
             .Returns(new VehicleEntity { Id = vehicleId, OwnerId = Guid.NewGuid(), VehiclePlate = "30A-66666", VehicleType = VehicleType.Car, SeatCapacity = 5, LocationArea = Continent.Europe });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(tourRouteId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(tourRouteId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
-        var dto = ValidDto() with { TourPlanRouteId = tourRouteId, VehicleId = vehicleId };
+        var dto = ValidDto() with { TourDayActivityId = tourRouteId, VehicleId = vehicleId };
         var result = await _validator.TestValidateAsync(dto);
         result.ShouldHaveValidationErrorFor(x => x.VehicleId)
             .WithErrorMessage("Vehicle's location area must match the tour's continent.");
@@ -224,10 +224,10 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
 
         _vehicleRepository.GetByIdAsync(vehicleId)
             .Returns(new VehicleEntity { Id = vehicleId, OwnerId = Guid.NewGuid(), VehiclePlate = "30A-77777", VehicleType = VehicleType.Car, SeatCapacity = 5, LocationArea = null });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(tourRouteId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(tourRouteId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
-        var dto = ValidDto() with { TourPlanRouteId = tourRouteId, VehicleId = vehicleId };
+        var dto = ValidDto() with { TourDayActivityId = tourRouteId, VehicleId = vehicleId };
         var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -240,10 +240,10 @@ public sealed class RouteTransportAssignmentRequestDtoValidatorTests
 
         _vehicleRepository.GetByIdAsync(vehicleId)
             .Returns(new VehicleEntity { Id = vehicleId, OwnerId = Guid.NewGuid(), VehiclePlate = "30A-88888", VehicleType = VehicleType.Car, SeatCapacity = 5, LocationArea = Continent.Europe });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(tourRouteId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(tourRouteId, Arg.Any<CancellationToken>())
             .Returns((Continent?)null);
 
-        var dto = ValidDto() with { TourPlanRouteId = tourRouteId, VehicleId = vehicleId };
+        var dto = ValidDto() with { TourDayActivityId = tourRouteId, VehicleId = vehicleId };
         var result = await _validator.TestValidateAsync(dto);
         result.ShouldNotHaveAnyValidationErrors();
     }

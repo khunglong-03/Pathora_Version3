@@ -85,7 +85,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: new List<string>
@@ -156,7 +156,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null)
                             ],
                             Translations: null)
@@ -217,7 +217,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: null)
@@ -280,7 +280,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: new List<string>())
@@ -343,7 +343,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: new List<string>
@@ -417,7 +417,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: new List<string>
@@ -487,7 +487,7 @@ public sealed class TourActivityResourceLinkTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: new List<string>
@@ -621,7 +621,7 @@ public sealed class TourActivityResourceLinkUpdateTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     LinkToResources: new List<string>
                                     {
@@ -710,7 +710,7 @@ public sealed class TourActivityResourceLinkUpdateTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null)
                             ])
                     ],
@@ -840,7 +840,7 @@ public sealed class TourActivityResourceLinkUpdateTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     LinkToResources: new List<string>
                                     {
@@ -927,7 +927,7 @@ public sealed class ActivityResourceLinkValidatorTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: links)

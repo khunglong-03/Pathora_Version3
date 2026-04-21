@@ -47,10 +47,31 @@ public class TourDayActivityConfiguration : IEntityTypeConfiguration<TourDayActi
 
         builder.Property(a => a.EndTime);
 
-        builder.HasMany(a => a.Routes)
-            .WithOne(r => r.TourDayActivity)
-            .HasForeignKey("TourDayActivityId")
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(a => a.FromLocation)
+            .WithMany()
+            .HasForeignKey(a => a.FromLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(a => a.ToLocation)
+            .WithMany()
+            .HasForeignKey(a => a.ToLocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(a => a.TransportationType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder.Property(a => a.TransportationName)
+            .HasMaxLength(300);
+
+        builder.Property(a => a.Price)
+            .HasColumnType("numeric(18,2)");
+
+        builder.Property(a => a.DistanceKm)
+            .HasColumnType("numeric(10,2)");
+
+        builder.Property(a => a.BookingReference)
+            .HasMaxLength(200);
 
         builder.HasOne(a => a.Accommodation)
             .WithOne(acc => acc.TourDayActivity)

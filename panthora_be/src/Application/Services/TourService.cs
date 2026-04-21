@@ -165,6 +165,22 @@ public class TourService(
 
                             var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
 
+                            var enTranslation = act.Translations?.GetValueOrDefault("en");
+                            var fromLocationName = enTranslation?.FromLocationName;
+                            var toLocationName = enTranslation?.ToLocationName;
+                            
+                            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour.Id);
+                            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour.Id);
+
+                            TransportationType? routeTransportType = null;
+                            if (!string.IsNullOrWhiteSpace(act.TransportationType))
+                            {
+                                if (EnumHelper.TryParseDefinedEnum<TransportationType>(act.TransportationType, out var tType))
+                                {
+                                    routeTransportType = tType;
+                                }
+                            }
+
                             var activity = TourDayActivityEntity.Create(
                                 day.Id,
                                 activityOrder,
@@ -177,39 +193,19 @@ public class TourService(
                                 endTime,
                                 act.EstimatedCost,
                                 act.IsOptional,
-                                resourceLinks);
+                                resourceLinks,
+                                fromLocation?.Id ?? act.FromLocationId,
+                                toLocation?.Id ?? act.ToLocationId,
+                                routeTransportType,
+                                act.TransportationName,
+                                act.DurationMinutes,
+                                act.DistanceKm,
+                                act.Price,
+                                act.BookingReference);
+
                             activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
-
-                            // Add Routes (Transportations)
-                            foreach (var route in act.Routes)
-                            {
-                                var routeOrder = act.Routes.IndexOf(route) + 1;
-                                var fromLocation = await ResolveLocationAsync(route.FromLocationId, route.FromLocationName, tour.Id);
-                                var toLocation = await ResolveLocationAsync(route.ToLocationId, route.ToLocationName, tour.Id);
-
-                                // Validator guarantees TransportationType is a valid enum — parse with assertion
-                                _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTransportType);
-
-                                var routeEntity = TourPlanRouteEntity.Create(
-                                    routeOrder,
-                                    routeTransportType,
-                                    _user.Id ?? string.Empty,
-                                    route.TransportationName,
-                                    null, // transportationNote
-                                    null, // estimatedDepartureTime
-                                    null, // estimatedArrivalTime
-                                    route.DurationMinutes,
-                                    null, // distanceKm
-                                    route.Price,
-                                    route.TicketInfo,
-                                    route.Note);
-
-                                routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
-
-                                routeEntity.FromLocation = fromLocation;
-                                routeEntity.ToLocation = toLocation;
-                                activity.Routes.Add(routeEntity);
-                            }
+                            activity.FromLocation = fromLocation;
+                            activity.ToLocation = toLocation;
 
                             // Add Accommodation
                             if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))
@@ -697,24 +693,14 @@ public class TourService(
             link.SoftDelete(performedBy);
         }
 
-        foreach (var route in activity.Routes)
+        if (activity.FromLocation != null)
         {
-            CascadeSoftDeleteRoute(route, performedBy);
-        }
-    }
-
-    private static void CascadeSoftDeleteRoute(TourPlanRouteEntity route, string performedBy)
-    {
-        route.SoftDelete(performedBy);
-
-        if (route.FromLocation != null)
-        {
-            route.FromLocation.SoftDelete(performedBy);
+            activity.FromLocation.SoftDelete(performedBy);
         }
 
-        if (route.ToLocation != null)
+        if (activity.ToLocation != null)
         {
-            route.ToLocation.SoftDelete(performedBy);
+            activity.ToLocation.SoftDelete(performedBy);
         }
     }
 
@@ -1107,11 +1093,37 @@ public class TourService(
             if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
             var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
 
+            var enTranslation = act.Translations?.GetValueOrDefault("en");
+            var fromLocationName = enTranslation?.FromLocationName;
+            var toLocationName = enTranslation?.ToLocationName;
+            
+            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tourId);
+            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tourId);
+
+            TransportationType? routeTransportType = null;
+            if (!string.IsNullOrWhiteSpace(act.TransportationType))
+            {
+                if (EnumHelper.TryParseDefinedEnum<TransportationType>(act.TransportationType, out var tType))
+                {
+                    routeTransportType = tType;
+                }
+            }
+
             if (activity != null)
             {
                 activity.Update(activityOrder, activityType, act.Title, _user.Id ?? string.Empty,
-                    act.Description, act.Note, startTime, endTime, act.EstimatedCost, act.IsOptional);
+                    act.Description, act.Note, startTime, endTime, act.EstimatedCost, act.IsOptional,
+                    fromLocation?.Id ?? act.FromLocationId,
+                    toLocation?.Id ?? act.ToLocationId,
+                    routeTransportType,
+                    act.TransportationName,
+                    act.DurationMinutes,
+                    act.DistanceKm,
+                    act.Price,
+                    act.BookingReference);
                 activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
+                activity.FromLocation = fromLocation;
+                activity.ToLocation = toLocation;
 
                 // Replace ResourceLinks (Soft delete old, add new)
                 foreach (var link in activity.ResourceLinks.Where(l => !l.IsDeleted))
@@ -1124,54 +1136,6 @@ public class TourService(
                         activity.Id, link.Url, link.Order, _user.Id ?? string.Empty);
                     _unitOfWork.MarkAsAdded(rl);
                     activity.ResourceLinks.Add(rl);
-                }
-
-                // Replace Routes (Soft delete old, add new)
-                foreach (var route in activity.Routes.Where(r => !r.IsDeleted))
-                {
-                    route.SoftDelete(_user.Id ?? string.Empty);
-                }
-                foreach (var route in act.Routes)
-                {
-                    var routeOrder = act.Routes.IndexOf(route) + 1;
-                    // Validator guarantees TransportationType is a valid enum — use helper
-                    _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTypeEnum);
-                    var transportationType = routeTypeEnum;
-                    var fromLocation = TourPlanLocationEntity.Create(
-                        route.FromLocationName ?? string.Empty,
-                        LocationType.Other,
-                        _user.Id ?? string.Empty,
-                        tourId,
-                        tourDayActivityId: activity.Id);
-                    _unitOfWork.MarkAsAdded(fromLocation);
-                    var toLocation = TourPlanLocationEntity.Create(
-                        route.ToLocationName ?? string.Empty,
-                        LocationType.Other,
-                        _user.Id ?? string.Empty,
-                        tourId,
-                        tourDayActivityId: activity.Id);
-                    _unitOfWork.MarkAsAdded(toLocation);
-                    var routeEntity = TourPlanRouteEntity.Create(
-                        routeOrder,
-                        transportationType,
-                        _user.Id ?? string.Empty,
-                        route.TransportationName,
-                        null,
-                        null,
-                        null,
-                        route.DurationMinutes,
-                        null,
-                        route.Price,
-                        route.TicketInfo,
-                        route.Note);
-                    _unitOfWork.MarkAsAdded(routeEntity);
-                    routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
-                    routeEntity.FromLocation = fromLocation;
-                    routeEntity.ToLocation = toLocation;
-                    routeEntity.TourDayActivityId = activity.Id;
-                    // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
-                    // shared location entities when multiple routes reference the same location.
-                    activity.Routes.Add(routeEntity);
                 }
 
                 // Add or Update Accommodation
@@ -1245,53 +1209,19 @@ public class TourService(
                 activity = TourDayActivityEntity.Create(
                     day.Id, activityOrder, activityType, act.Title,
                     _user.Id ?? string.Empty, act.Description, act.Note,
-                    startTime, endTime, act.EstimatedCost, act.IsOptional, resourceLinks);
+                    startTime, endTime, act.EstimatedCost, act.IsOptional, resourceLinks,
+                    fromLocation?.Id ?? act.FromLocationId,
+                    toLocation?.Id ?? act.ToLocationId,
+                    routeTransportType,
+                    act.TransportationName,
+                    act.DurationMinutes,
+                    act.DistanceKm,
+                    act.Price,
+                    act.BookingReference);
                 _unitOfWork.MarkAsAdded(activity);
                 activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
-
-                // Add routes for new activity
-                foreach (var route in act.Routes)
-                {
-                    var routeOrder = act.Routes.IndexOf(route) + 1;
-                    // Validator guarantees TransportationType is a valid enum — use helper
-                    _ = EnumHelper.TryParseDefinedEnum<TransportationType>(route.TransportationType, out var routeTypeEnum);
-                    var transportationType = routeTypeEnum;
-                    var fromLocation = TourPlanLocationEntity.Create(
-                        route.FromLocationName ?? string.Empty,
-                        LocationType.Other,
-                        _user.Id ?? string.Empty,
-                        tourId,
-                        tourDayActivityId: activity.Id);
-                    _unitOfWork.MarkAsAdded(fromLocation);
-                    var toLocation = TourPlanLocationEntity.Create(
-                        route.ToLocationName ?? string.Empty,
-                        LocationType.Other,
-                        _user.Id ?? string.Empty,
-                        tourId,
-                        tourDayActivityId: activity.Id);
-                    _unitOfWork.MarkAsAdded(toLocation);
-                    var routeEntity = TourPlanRouteEntity.Create(
-                        routeOrder,
-                        transportationType,
-                        _user.Id ?? string.Empty,
-                        route.TransportationName,
-                        null,
-                        null,
-                        null,
-                        route.DurationMinutes,
-                        null,
-                        route.Price,
-                        route.TicketInfo,
-                        route.Note);
-                    _unitOfWork.MarkAsAdded(routeEntity);
-                    routeEntity.Translations = NormalizeTranslationsFromPayload(route.RouteTranslations);
-                    routeEntity.FromLocation = fromLocation;
-                    routeEntity.ToLocation = toLocation;
-                    routeEntity.TourDayActivityId = activity.Id;
-                    // Do NOT assign route.Translations to fromLocation/toLocation — that overwrites
-                    // shared location entities when multiple routes reference the same location.
-                    activity.Routes.Add(routeEntity);
-                }
+                activity.FromLocation = fromLocation;
+                activity.ToLocation = toLocation;
 
                 // Add Accommodation
                 if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))

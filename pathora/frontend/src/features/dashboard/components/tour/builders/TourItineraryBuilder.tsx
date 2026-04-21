@@ -31,7 +31,7 @@ interface ActivityForm {
   startTime: string;
   endTime: string;
   linkToResources: string[];
-  routes: ActivityRouteForm[];
+
   locationName: string;
   enLocationName: string;
   locationCity: string;
@@ -69,23 +69,7 @@ interface ActivityForm {
   longitude: string;
 }
 
-interface ActivityRouteForm {
-  id: string;
-  fromLocationIndex: string;
-  fromLocationCustom: string;
-  enFromLocationCustom: string;
-  toLocationIndex: string;
-  toLocationCustom: string;
-  enToLocationCustom: string;
-  transportationType: string;
-  enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
-  durationMinutes: string;
-  price: string;
-  note: string;
-  enNote: string;
-}
+
 
 interface DayPlanForm {
   id?: string;
@@ -131,7 +115,7 @@ interface TourItineraryBuilderProps {
   classifications: ClassificationForm[];
   dayPlans: DayPlanForm[][];
   selectedPackageIndex: number;
-  expandedRoutes: Record<string, boolean>;
+
   isEditMode: boolean;
   activeLang: "vi" | "en";
   activityTypes: string[];
@@ -143,13 +127,9 @@ interface TourItineraryBuilderProps {
   onAddActivity: (clsIndex: number, dayIndex: number) => void;
   onRemoveActivity: (clsIndex: number, dayIndex: number, actIndex: number) => void;
   onUpdateActivity: (clsIndex: number, dayIndex: number, actIndex: number, field: keyof ActivityForm, value: string | boolean) => void;
-  onAddRoute: (pi: number, di: number, ai: number) => void;
-  onRemoveRoute: (pi: number, di: number, ai: number, ri: number) => void;
-  onUpdateRoute: (pi: number, di: number, ai: number, ri: number, field: keyof ActivityRouteForm, value: string) => void;
   onAddLinkToResource: (clsIndex: number, dayIndex: number, actIndex: number) => void;
   onRemoveLinkToResource: (clsIndex: number, dayIndex: number, actIndex: number, linkIndex: number) => void;
   onUpdateLinkToResource: (clsIndex: number, dayIndex: number, actIndex: number, linkIndex: number, value: string) => void;
-  onToggleActivityRoute: (pi: number, di: number, ai: number, ri?: number) => void;
   onConfirmDelete: () => void;
   setConfirmDelete: React.Dispatch<React.SetStateAction<{
     type: "classification" | "dayPlan" | "activity";
@@ -163,7 +143,6 @@ export function TourItineraryBuilder({
   classifications,
   dayPlans,
   selectedPackageIndex,
-  expandedRoutes,
   isEditMode,
   activeLang,
   activityTypes,
@@ -175,13 +154,9 @@ export function TourItineraryBuilder({
   onAddActivity,
   onRemoveActivity,
   onUpdateActivity,
-  onAddRoute,
-  onRemoveRoute,
-  onUpdateRoute,
   onAddLinkToResource,
   onRemoveLinkToResource,
   onUpdateLinkToResource,
-  onToggleActivityRoute,
   setConfirmDelete,
 }: TourItineraryBuilderProps) {
   const { t } = useTranslation();
@@ -1098,239 +1073,8 @@ export function TourItineraryBuilder({
                           </div>
                         )}
 
-                        {/* Route Section */}
-                        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                              {t("tourAdmin.itineraries.routes", "Routes")}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => onAddRoute(ci, di, ai)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-500/30 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
-                              <Icon icon="heroicons:plus" className="size-3" />
-                              {t("tourAdmin.itineraries.addRoute")}
-                            </button>
-                          </div>
 
-                          {act.routes.length === 0 && (
-                            <p className="text-xs text-slate-400 text-center py-2">
-                              {t("tourAdmin.itineraries.noRoutesYet", "No routes yet")}
-                            </p>
-                          )}
 
-                          {act.routes.map((route, ri) => {
-                            const routeKey = ci + "_" + di + "_" + ai + "_" + ri;
-                            const isExpanded = expandedRoutes[routeKey] ?? false;
-                            return (
-                              <div
-                                key={route.id}
-                                className="bg-slate-50 dark:bg-slate-800/30 rounded-lg p-3 mb-2 border border-slate-100 dark:border-slate-700/50">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                    {t("tourAdmin.itineraries.route", "Route")} #{ri + 1}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => onToggleActivityRoute(ci, di, ai, ri)}
-                                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                                      <Icon
-                                        icon={isExpanded ? "heroicons:chevron-up" : "heroicons:chevron-down"}
-                                        className="size-3.5"
-                                      />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => onRemoveRoute(ci, di, ai, ri)}
-                                      aria-label={t("tourAdmin.itineraries.removeRoute")}
-                                      className="text-red-400 hover:text-red-600 transition-colors">
-                                      <Icon icon="heroicons:trash" className="size-3.5" />
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {isExpanded ? (
-                                  <div className="space-y-2">
-                                    {/* From + To Location */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.itineraries.fromLocation", "From")} <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.fromLocationCustom}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "fromLocationCustom", e.target.value)}
-                                          placeholder={t("tourAdmin.itineraries.placeholderFromLocation", "Departure location")}
-                                          className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom && (
-                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.fromLocationCustom}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.itineraries.toLocation", "To")} <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.toLocationCustom}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "toLocationCustom", e.target.value)}
-                                          placeholder={t("tourAdmin.itineraries.placeholderToLocation", "Arrival location")}
-                                          className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom && (
-                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.toLocationCustom}</p>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Transportation Type */}
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        {t("tourAdmin.transportation.type", "Type")}
-                                      </label>
-                                      <select
-                                        value={route.transportationType}
-                                        onChange={(e) => onUpdateRoute(ci, di, ai, ri, "transportationType", e.target.value)}
-                                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none transition">
-                                        {TRANSPORTATION_TYPE_OPTIONS.map((opt, idx) => (
-                                          <option key={opt.value} value={opt.value}>
-                                            {transportationTypes[idx]}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-
-                                    {/* Transportation Name VI / EN */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          🇻🇳 {t("tourAdmin.transportation.name", "Name (VI)")}
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.transportationName}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "transportationName", e.target.value)}
-                                          placeholder={t("tourAdmin.transportation.placeholderTransportationName", "e.g. Bus")}
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          🇬🇧 {t("tourAdmin.transportation.name", "Name (EN)")}
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.enTransportationName}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "enTransportationName", e.target.value)}
-                                          placeholder="Name in English..."
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    {/* Duration + Price */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.transportation.duration", "Duration (min)")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min={0}
-                                          value={route.durationMinutes}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "durationMinutes", e.target.value)}
-                                          placeholder="0"
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes
-                                              ? "border-red-400 dark:border-red-500"
-                                              : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes && (
-                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.durationMinutes}</p>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          {t("tourAdmin.transportation.price", "Price ($)")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min={0}
-                                          step={1000}
-                                          value={route.price}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "price", e.target.value)}
-                                          placeholder="0"
-                                          className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price
-                                              ? "border-red-400 dark:border-red-500"
-                                              : "border-slate-300 dark:border-slate-600"
-                                          }`}
-                                        />
-                                        {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price && (
-                                          <p className="text-red-500 text-xs mt-0.5">{// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.routes?.[ri] as any)?.price}</p>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Note VI / EN */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          🇻🇳 {t("tourAdmin.itineraries.note", "Note (VI)")}
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.note}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "note", e.target.value)}
-                                          placeholder={t("tourAdmin.itineraries.placeholderAdditionalNotes", "Additional notes...")}
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                          🇬🇧 {t("tourAdmin.itineraries.note", "Note (EN)")}
-                                        </label>
-                                        <input
-                                          type="text"
-                                          value={route.enNote}
-                                          onChange={(e) => onUpdateRoute(ci, di, ai, ri, "enNote", e.target.value)}
-                                          placeholder="Notes in English..."
-                                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-xs text-slate-400 italic">
-                                    {route.transportationName || t("tourAdmin.itineraries.customLocation", "Custom location...")}
-                                    {" → "}
-                                    {route.transportationName || t("tourAdmin.itineraries.customLocation", "Custom location...")}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
                       </div>
                     ))}
                   </div>

@@ -23,7 +23,7 @@ public sealed class RouteTransportAssignmentRequestDtoValidator
         RuleFor(x => x.BookingActivityReservationId)
             .NotEmpty().WithMessage("Booking activity reservation ID is required.");
 
-        RuleFor(x => x.TourPlanRouteId)
+        RuleFor(x => x.TourDayActivityId)
             .NotEmpty().WithMessage("Tour plan route ID is required.");
 
         RuleFor(x => x)
@@ -64,8 +64,8 @@ public sealed class RouteTransportAssignmentRequestDtoValidator
         if (vehicle is null || !vehicle.LocationArea.HasValue)
             return true;
 
-        var tourContinent = await _routeTransportRepository.GetTourContinentByRouteIdAsync(
-            dto.TourPlanRouteId, ct);
+        var tourContinent = await _routeTransportRepository.GetTourContinentByActivityIdAsync(
+            dto.TourDayActivityId, ct);
 
         if (!tourContinent.HasValue)
             return true;

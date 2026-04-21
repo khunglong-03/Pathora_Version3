@@ -30,8 +30,7 @@ public sealed class TourProfile : Profile
 
         CreateMap<TourPlanLocationEntity, TourPlanLocationDto>();
 
-        CreateMap<TourPlanRouteEntity, TourPlanRouteDto>()
-            .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));
+
 
         CreateMap<TourPlanAccommodationEntity, TourPlanAccommodationDto>();
 

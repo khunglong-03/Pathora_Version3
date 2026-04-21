@@ -18,8 +18,8 @@ public interface ITourDayActivityRouteTransportRepository : IRepository<TourDayA
     Task<TourDayActivityRouteTransportEntity?> FindByIdWithTourAsync(
         Guid id,
         CancellationToken cancellationToken = default);
-    Task<Domain.Enums.Continent?> GetTourContinentByRouteIdAsync(
-        Guid tourPlanRouteId,
+    Task<Domain.Enums.Continent?> GetTourContinentByActivityIdAsync(
+        Guid tourDayActivityId,
         CancellationToken cancellationToken = default);
     Task<List<TourDayActivityRouteTransportEntity>> FindByOwnerIdAsync(
         Guid ownerId,

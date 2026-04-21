@@ -31,13 +31,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.FromLocation)
+                        .ThenInclude(a => a.FromLocation)
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.ToLocation)
+                        .ThenInclude(a => a.ToLocation)
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
@@ -63,13 +61,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.FromLocation)
+                        .ThenInclude(a => a.FromLocation)
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
-                        .ThenInclude(a => a.Routes)
-                            .ThenInclude(r => r.ToLocation)
+                        .ThenInclude(a => a.ToLocation)
             .Include(t => t.Classifications)
                 .ThenInclude(c => c.Plans)
                     .ThenInclude(p => p.Activities)
@@ -458,11 +454,10 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 t.Classifications
                     .SelectMany(c => c.Plans)
                     .SelectMany(p => p.Activities)
-                    .SelectMany(a => a.Routes)
-                    .Any(r =>
-                        r.FromLocation != null &&
-                        ((r.FromLocation.City != null && r.FromLocation.City.ToLower().Contains(search)) ||
-                        (r.FromLocation.Country != null && r.FromLocation.Country.ToLower().Contains(search)))));
+                    .Any(a =>
+                        a.FromLocation != null &&
+                        ((a.FromLocation.City != null && a.FromLocation.City.ToLower().Contains(search)) ||
+                        (a.FromLocation.Country != null && a.FromLocation.Country.ToLower().Contains(search)))));
         }
 
         if (!string.IsNullOrWhiteSpace(destination))
@@ -471,10 +466,9 @@ public class TourRepository(AppDbContext context) : ITourRepository
             query = query.Where(t => t.Classifications
                 .SelectMany(c => c.Plans)
                 .SelectMany(p => p.Activities)
-                .SelectMany(a => a.Routes)
-                .Any(r => r.FromLocation != null &&
-                          ((r.FromLocation.City != null && r.FromLocation.City.ToLower().Contains(destLower)) ||
-                          (r.FromLocation.Country != null && r.FromLocation.Country.ToLower().Contains(destLower)))));
+                .Any(a => a.FromLocation != null &&
+                          ((a.FromLocation.City != null && a.FromLocation.City.ToLower().Contains(destLower)) ||
+                          (a.FromLocation.Country != null && a.FromLocation.Country.ToLower().Contains(destLower)))));
         }
 
         if (!string.IsNullOrWhiteSpace(classification))
@@ -574,14 +568,14 @@ public class TourRepository(AppDbContext context) : ITourRepository
 
     public async Task<decimal> GetTotalDistanceKm(CancellationToken cancellationToken = default)
     {
-        return await _context.TourPlanRoutes
-            .Where(r => r.DistanceKm != null)
-            .Where(r => r.TourDayActivity != null && r.TourDayActivity.TourDay != null &&
-                        r.TourDayActivity.TourDay.Classification != null &&
-                        r.TourDayActivity.TourDay.Classification.Tour != null &&
-                        r.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
-                        !r.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
-            .SumAsync(r => (decimal?)r.DistanceKm, cancellationToken) ?? 0;
+        return await _context.TourDayActivities
+            .Where(a => a.DistanceKm != null)
+            .Where(a => a.TourDay != null &&
+                        a.TourDay.Classification != null &&
+                        a.TourDay.Classification.Tour != null &&
+                        a.TourDay.Classification.Tour.Status == TourStatus.Active &&
+                        !a.TourDay.Classification.Tour.IsDeleted)
+            .SumAsync(a => (decimal?)a.DistanceKm, cancellationToken) ?? 0;
     }
 
     public async Task<List<string>> GetAllDestinations(CancellationToken cancellationToken = default)

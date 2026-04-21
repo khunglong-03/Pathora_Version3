@@ -2414,6 +2414,10 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("BookingReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
@@ -2430,11 +2434,20 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<decimal?>("DistanceKm")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("integer");
+
                     b.Property<TimeOnly?>("EndTime")
                         .HasColumnType("time without time zone");
 
                     b.Property<decimal?>("EstimatedCost")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("FromLocationId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2457,6 +2470,9 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<TimeOnly?>("StartTime")
                         .HasColumnType("time without time zone");
 
@@ -2465,6 +2481,9 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid?>("ToLocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TourDayId")
                         .HasColumnType("uuid");
 
@@ -2472,7 +2491,19 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
+                    b.Property<string>("TransportationName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("TransportationType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("FromLocationId");
+
+                    b.HasIndex("ToLocationId");
 
                     b.HasIndex("TourDayId");
 
@@ -2603,7 +2634,7 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TourPlanRouteId")
+                    b.Property<Guid>("TourDayActivityId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
@@ -2621,11 +2652,11 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("TourPlanRouteId");
+                    b.HasIndex("TourDayActivityId");
 
                     b.HasIndex("VehicleId");
 
-                    b.HasIndex("BookingActivityReservationId", "TourPlanRouteId")
+                    b.HasIndex("BookingActivityReservationId", "TourDayActivityId")
                         .IsUnique();
 
                     b.ToTable("TourDayActivityRouteTransports", (string)null);
@@ -3600,101 +3631,6 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("City", "Country");
 
                     b.ToTable("TourPlanLocations", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.TourPlanRouteEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BookingReference")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedOnUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("DeletedOnUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal?>("DistanceKm")
-                        .HasColumnType("numeric(10,2)");
-
-                    b.Property<int?>("DurationMinutes")
-                        .HasColumnType("integer");
-
-                    b.Property<TimeOnly?>("EstimatedArrivalTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<TimeOnly?>("EstimatedDepartureTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<Guid?>("FromLocationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<Guid?>("ToLocationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("TourDayActivityEntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TourDayActivityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Translations")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("TransportationName")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("TransportationNote")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("TransportationType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromLocationId");
-
-                    b.HasIndex("ToLocationId");
-
-                    b.HasIndex("TourDayActivityEntityId");
-
-                    b.HasIndex("TourDayActivityId");
-
-                    b.ToTable("TourPlanRoutes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TourRequestEntity", b =>
@@ -4707,11 +4643,25 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entities.TourDayActivityEntity", b =>
                 {
+                    b.HasOne("Domain.Entities.TourPlanLocationEntity", "FromLocation")
+                        .WithMany()
+                        .HasForeignKey("FromLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Domain.Entities.TourPlanLocationEntity", "ToLocation")
+                        .WithMany()
+                        .HasForeignKey("ToLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Domain.Entities.TourDayEntity", "TourDay")
                         .WithMany("Activities")
                         .HasForeignKey("TourDayId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("FromLocation");
+
+                    b.Navigation("ToLocation");
 
                     b.Navigation("TourDay");
                 });
@@ -4759,9 +4709,9 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Domain.Entities.TourPlanRouteEntity", "TourPlanRoute")
+                    b.HasOne("Domain.Entities.TourDayActivityEntity", "TourDayActivity")
                         .WithMany()
-                        .HasForeignKey("TourPlanRouteId")
+                        .HasForeignKey("TourDayActivityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -4774,7 +4724,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.Navigation("Driver");
 
-                    b.Navigation("TourPlanRoute");
+                    b.Navigation("TourDayActivity");
 
                     b.Navigation("Vehicle");
                 });
@@ -5154,35 +5104,6 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("TourDayActivity");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPlanRouteEntity", b =>
-                {
-                    b.HasOne("Domain.Entities.TourPlanLocationEntity", "FromLocation")
-                        .WithMany()
-                        .HasForeignKey("FromLocationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Domain.Entities.TourPlanLocationEntity", "ToLocation")
-                        .WithMany()
-                        .HasForeignKey("ToLocationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Domain.Entities.TourDayActivityEntity", null)
-                        .WithMany("Routes")
-                        .HasForeignKey("TourDayActivityEntityId");
-
-                    b.HasOne("Domain.Entities.TourDayActivityEntity", "TourDayActivity")
-                        .WithMany()
-                        .HasForeignKey("TourDayActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FromLocation");
-
-                    b.Navigation("ToLocation");
-
-                    b.Navigation("TourDayActivity");
-                });
-
             modelBuilder.Entity("Domain.Entities.TourRequestEntity", b =>
                 {
                     b.HasOne("Domain.Entities.UserEntity", "Reviewer")
@@ -5364,8 +5285,6 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Accommodation");
 
                     b.Navigation("ResourceLinks");
-
-                    b.Navigation("Routes");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourDayActivityStatusEntity", b =>

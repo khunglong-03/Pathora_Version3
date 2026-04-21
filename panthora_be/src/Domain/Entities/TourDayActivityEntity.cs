@@ -42,9 +42,17 @@ public class TourDayActivityEntity : Aggregate<Guid>
     /// <summary>Thời gian kết thúc hoạt động.</summary>
     public TimeOnly? EndTime { get; set; }
 
-    // Route
-    /// <summary>Danh sách các tuyến di chuyển trong hoạt động này.</summary>
-    public virtual List<TourPlanRouteEntity> Routes { get; set; } = [];
+    // Transportation (Flat fields)
+    public Guid? FromLocationId { get; set; }
+    public virtual TourPlanLocationEntity? FromLocation { get; set; }
+    public Guid? ToLocationId { get; set; }
+    public virtual TourPlanLocationEntity? ToLocation { get; set; }
+    public TransportationType? TransportationType { get; set; }
+    public string? TransportationName { get; set; }
+    public int? DurationMinutes { get; set; }
+    public decimal? DistanceKm { get; set; }
+    public decimal? Price { get; set; }
+    public string? BookingReference { get; set; }
 
     // Accommodation
     /// <summary>Thông tin lưu trú (nếu loại hoạt động là Accommodation).</summary>
@@ -54,11 +62,12 @@ public class TourDayActivityEntity : Aggregate<Guid>
     /// <summary>Danh sách các link tài nguyên (URL tham khảo, booking, v.v.).</summary>
     public virtual List<TourDayActivityResourceLinkEntity> ResourceLinks { get; set; } = [];
 
-    public static TourDayActivityEntity Create(Guid tourDayId, int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false, IEnumerable<(string Url, int Order)>? resourceLinks = null)
+    public static TourDayActivityEntity Create(Guid tourDayId, int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false, IEnumerable<(string Url, int Order)>? resourceLinks = null, Guid? fromLocationId = null, Guid? toLocationId = null, TransportationType? transportationType = null, string? transportationName = null, int? durationMinutes = null, decimal? distanceKm = null, decimal? price = null, string? bookingReference = null)
     {
         EnsureValidOrder(order);
         EnsureValidTimeRange(startTime, endTime);
         EnsureNonNegativeEstimatedCost(estimatedCost);
+        EnsureValidTransportFields(activityType, transportationType, durationMinutes, distanceKm, price);
 
         var entity = new TourDayActivityEntity
         {
@@ -73,6 +82,14 @@ public class TourDayActivityEntity : Aggregate<Guid>
             IsOptional = isOptional,
             StartTime = startTime,
             EndTime = endTime,
+            FromLocationId = fromLocationId,
+            ToLocationId = toLocationId,
+            TransportationType = transportationType,
+            TransportationName = transportationName,
+            DurationMinutes = durationMinutes,
+            DistanceKm = distanceKm,
+            Price = price,
+            BookingReference = bookingReference,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
@@ -90,11 +107,12 @@ public class TourDayActivityEntity : Aggregate<Guid>
         return entity;
     }
 
-    public void Update(int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false)
+    public void Update(int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false, Guid? fromLocationId = null, Guid? toLocationId = null, TransportationType? transportationType = null, string? transportationName = null, int? durationMinutes = null, decimal? distanceKm = null, decimal? price = null, string? bookingReference = null)
     {
         EnsureValidOrder(order);
         EnsureValidTimeRange(startTime, endTime);
         EnsureNonNegativeEstimatedCost(estimatedCost);
+        EnsureValidTransportFields(activityType, transportationType, durationMinutes, distanceKm, price);
 
         Order = order;
         ActivityType = activityType;
@@ -105,6 +123,14 @@ public class TourDayActivityEntity : Aggregate<Guid>
         IsOptional = isOptional;
         StartTime = startTime;
         EndTime = endTime;
+        FromLocationId = fromLocationId;
+        ToLocationId = toLocationId;
+        TransportationType = transportationType;
+        TransportationName = transportationName;
+        DurationMinutes = durationMinutes;
+        DistanceKm = distanceKm;
+        Price = price;
+        BookingReference = bookingReference;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
@@ -130,6 +156,32 @@ public class TourDayActivityEntity : Aggregate<Guid>
         if (estimatedCost.HasValue && estimatedCost.Value < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(estimatedCost), "Estimated cost must be non-negative.");
+        }
+    }
+
+    private static void EnsureValidTransportFields(TourDayActivityType activityType, TransportationType? transportationType, int? durationMinutes, decimal? distanceKm, decimal? price)
+    {
+        if (activityType == TourDayActivityType.Transportation)
+        {
+            if (transportationType == null)
+            {
+                throw new ArgumentNullException(nameof(transportationType), "TransportationType is required for Transportation activities.");
+            }
+        }
+
+        if (durationMinutes.HasValue && durationMinutes.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes), "Duration minutes must be non-negative.");
+        }
+
+        if (distanceKm.HasValue && distanceKm.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(distanceKm), "Distance must be non-negative.");
+        }
+
+        if (price.HasValue && price.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(price), "Price must be non-negative.");
         }
     }
 

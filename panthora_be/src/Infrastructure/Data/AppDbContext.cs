@@ -57,7 +57,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourInsuranceEntity> TourInsurances => Set<TourInsuranceEntity>();
     public DbSet<TourPlanAccommodationEntity> TourPlanAccommodations => Set<TourPlanAccommodationEntity>();
     public DbSet<TourPlanLocationEntity> TourPlanLocations => Set<TourPlanLocationEntity>();
-    public DbSet<TourPlanRouteEntity> TourPlanRoutes => Set<TourPlanRouteEntity>();
+
     public DbSet<MailEntity> Mails => Set<MailEntity>();
     public DbSet<LogError> logErrors => Set<LogError>();
     public DbSet<RegisterEntity> Registers => Set<RegisterEntity>();

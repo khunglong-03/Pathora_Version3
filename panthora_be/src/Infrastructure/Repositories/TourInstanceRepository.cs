@@ -294,8 +294,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     {
         return await _context.TourDayActivities
             .AsNoTracking()
-            .Include(a => a.Routes).ThenInclude(r => r.FromLocation)
-            .Include(a => a.Routes).ThenInclude(r => r.ToLocation)
+            .Include(a => a.FromLocation)
+            .Include(a => a.ToLocation)
             .Include(a => a.Accommodation)
             .Include(a => a.ResourceLinks)
             .FirstOrDefaultAsync(a => a.Id == activityId && a.TourDayId == tourDayId && !a.IsDeleted, cancellationToken);

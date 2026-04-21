@@ -81,61 +81,39 @@ export function ActivityItem({ activity }: ActivityItemProps) {
           </p>
         )}
 
-        {activity.routes.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {[...activity.routes]
-              .sort((a, b) => a.order - b.order)
-              .map((route) => {
-                const departureTime = formatDateTimeLabel(
-                  route.estimatedDepartureTime,
-                );
-                const arrivalTime = formatDateTimeLabel(route.estimatedArrivalTime);
-                const routeTime = [departureTime, arrivalTime]
-                  .filter(Boolean)
-                  .join(" → ");
-
-                return (
-                  <div
-                    key={route.id}
-                    className="rounded-lg px-3 py-2.5 text-[11px]"
-                    style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Icon
-                        icon="heroicons:arrow-right"
-                        className="size-3 shrink-0"
-                        style={{ color: "var(--tour-caption)" }}
-                      />
-                      <span className="font-semibold">
-                        {TransportationTypeMap[route.transportationType] ??
-                          t("landing.tourDetail.transport")}
-                      </span>
-                      {route.fromLocation?.locationName &&
-                        route.toLocation?.locationName && (
-                          <span>
-                            {route.fromLocation.locationName} →{" "}
-                            {route.toLocation.locationName}
-                          </span>
-                        )}
-                      {route.durationMinutes != null && (
-                        <span style={{ color: "var(--tour-caption)" }}>
-                          ({route.durationMinutes} {t("landing.tourDetail.minutes")})
-                        </span>
-                      )}
-                    </div>
-                    {routeTime && (
-                      <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
-                        {t("landing.tourDetail.routeTime")}: {routeTime}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+        {activity.transportationType ? (
+          <div
+            className="rounded-lg px-3 py-2.5 text-[11px]"
+            style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Icon
+                icon="heroicons:arrow-right"
+                className="size-3 shrink-0"
+                style={{ color: "var(--tour-caption)" }}
+              />
+              <span className="font-semibold">
+                {TransportationTypeMap[activity.transportationType] ??
+                  t("landing.tourDetail.transport")}
+              </span>
+              {activity.fromLocation && activity.toLocation && (
+                <span>
+                  {activity.fromLocation} →{" "}
+                  {activity.toLocation}
+                </span>
+              )}
+              {activity.durationMinutes != null && (
+                <span style={{ color: "var(--tour-caption)" }}>
+                  ({activity.durationMinutes} {t("landing.tourDetail.minutes")})
+                </span>
+              )}
+            </div>
+            {activity.transportationName && (
+              <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
+                {activity.transportationName}
+              </div>
+            )}
           </div>
-        ) : (
-          <p className="text-[10px] mt-0.5" style={{ color: "var(--tour-caption)" }}>
-            {t("landing.tourDetail.transportation.empty")}
-          </p>
-        )}
+        ) : null}
 
         {activity.accommodation ? (
           <div

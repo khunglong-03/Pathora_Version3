@@ -44,6 +44,12 @@ public sealed class TourDayActivityTranslationData
     public string? TransportationType { get; set; }
     [JsonPropertyName("transportationName")]
     public string? TransportationName { get; set; }
+    [JsonPropertyName("fromLocationName")]
+    public string? FromLocationName { get; set; }
+    [JsonPropertyName("toLocationName")]
+    public string? ToLocationName { get; set; }
+    [JsonPropertyName("ticketInfo")]
+    public string? TicketInfo { get; set; }
 }
 
 public sealed class TourPlanLocationTranslationData
@@ -74,21 +80,7 @@ public sealed class TourPlanAccommodationTranslationData
     public string? Note { get; set; }
 }
 
-public sealed class TourPlanRouteTranslationData
-{
-    [JsonPropertyName("fromLocationName")]
-    public string? FromLocationName { get; set; }
-    [JsonPropertyName("toLocationName")]
-    public string? ToLocationName { get; set; }
-    [JsonPropertyName("transportationType")]
-    public string? TransportationType { get; set; }
-    [JsonPropertyName("transportationName")]
-    public string? TransportationName { get; set; }
-    [JsonPropertyName("ticketInfo")]
-    public string? TicketInfo { get; set; }
-    [JsonPropertyName("note")]
-    public string? Note { get; set; }
-}
+
 
 public sealed class TourInstanceTranslationData
 {

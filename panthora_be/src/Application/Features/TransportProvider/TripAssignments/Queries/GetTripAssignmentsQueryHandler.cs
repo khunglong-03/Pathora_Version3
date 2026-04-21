@@ -25,12 +25,12 @@ public sealed class GetTripAssignmentsQueryHandler(
     private static TripAssignmentListDto MapToDto(Domain.Entities.TourDayActivityRouteTransportEntity entity)
     {
         var booking = entity.BookingActivityReservation;
-        var route = entity.TourPlanRoute;
+        var route = entity.TourDayActivity;
 
         return new TripAssignmentListDto(
             entity.Id,
             booking.BookingId.ToString(),
-            route.TransportationName ?? route.TransportationType.ToString(),
+            route.TransportationName ?? route.TransportationType?.ToString() ?? string.Empty,
             booking.StartTime,
             entity.Vehicle?.VehiclePlate,
             entity.Driver?.FullName,

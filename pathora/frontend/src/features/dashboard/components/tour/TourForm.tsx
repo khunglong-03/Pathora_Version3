@@ -76,7 +76,7 @@ interface ActivityForm {
   startTime: string;
   endTime: string;
   linkToResources: string[];
-  routes: ActivityRouteForm[];
+
   // Location fields
   locationName: string;
   enLocationName: string;
@@ -117,23 +117,7 @@ interface ActivityForm {
   longitude: string;
 }
 
-interface ActivityRouteForm {
-  id: string;
-  fromLocationIndex: string;
-  fromLocationCustom: string;
-  enFromLocationCustom: string;
-  toLocationIndex: string;
-  toLocationCustom: string;
-  enToLocationCustom: string;
-  transportationType: string;
-  enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
-  durationMinutes: string;
-  price: string;
-  note: string;
-  enNote: string;
-}
+
 
 interface DayPlanForm {
   id?: string;
@@ -254,7 +238,7 @@ const emptyActivity = (): ActivityForm => ({
   startTime: "",
   endTime: "",
   linkToResources: [""],
-  routes: [],
+
   locationName: "",
   enLocationName: "",
   locationCity: "",
@@ -292,23 +276,7 @@ const emptyActivity = (): ActivityForm => ({
   longitude: "",
 });
 
-const emptyRoute = (): ActivityRouteForm => ({
-  id: crypto.randomUUID(),
-  fromLocationIndex: "",
-  fromLocationCustom: "",
-  enFromLocationCustom: "",
-  toLocationIndex: "",
-  toLocationCustom: "",
-  enToLocationCustom: "",
-  transportationType: "0",
-  enTransportationType: "",
-  transportationName: "",
-  enTransportationName: "",
-  durationMinutes: "",
-  price: "",
-  note: "",
-  enNote: "",
-});
+
 
 const emptyDayPlan = (): DayPlanForm => ({
   dayNumber: "1",
@@ -524,14 +492,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   /* ── Step 3: Services ─────────────────────────────────────── */
   const [services, setServices] = useState<ServiceForm[]>([emptyService()]);
 
-  /* ── Route UI State ──────────────────────────────────────── */
-  const [expandedRoutes, setExpandedRoutes] = useState<Record<string, boolean>>({});
-  const toggleActivityRoute = (pi: number, di: number, ai: number, ri?: number) => {
-    const key = ri !== undefined
-      ? pi + "_" + di + "_" + ai + "_" + ri
-      : pi + "_" + di + "_" + ai;
-    setExpandedRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+
 
   /* ── Policies ──────────────────────────────────────────── */
   const [pricingPolicies, setPricingPolicies] = useState<PricingPolicy[]>([]);
@@ -672,23 +633,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             startTime: act.startTime ?? "",
             endTime: act.endTime ?? "",
             linkToResources: [""],
-            routes: (act.routes ?? []).map((route) => ({
-              id: route.id,
-              fromLocationIndex: "",
-              fromLocationCustom: route.fromLocation?.locationName ?? "",
-              enFromLocationCustom: route.translations?.en?.fromLocationName ?? "",
-              toLocationIndex: "",
-              toLocationCustom: route.toLocation?.locationName ?? "",
-              enToLocationCustom: route.translations?.en?.toLocationName ?? "",
-              transportationType: String(route.transportationType),
-              enTransportationType: route.translations?.en?.transportationType ?? "",
-              transportationName: route.transportationName ?? "",
-              enTransportationName: route.translations?.en?.transportationName ?? "",
-              durationMinutes: String(route.durationMinutes ?? ""),
-              price: String(route.price ?? ""),
-              note: route.note ?? "",
-              enNote: route.translations?.en?.note ?? "",
-            })),
+
             locationName: act.locationName ?? "",
             enLocationName: "",
             locationCity: act.locationCity ?? "",
@@ -982,30 +927,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     );
   };
 
-  /* ── Route CRUD ───────────────────────────────────────────── */
-  const addRoute = (pi: number, di: number, ai: number) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      updated[pi][di].activities[ai].routes.push(emptyRoute());
-      return updated;
-    });
-  };
 
-  const removeRoute = (pi: number, di: number, ai: number, ri: number) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      updated[pi][di].activities[ai].routes.splice(ri, 1);
-      return updated;
-    });
-  };
-
-  const updateRoute = (pi: number, di: number, ai: number, ri: number, field: keyof ActivityRouteForm, value: string) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      (updated[pi][di].activities[ai].routes[ri] as Record<keyof ActivityRouteForm, string>)[field] = value;
-      return updated;
-    });
-  };
 
   /* ── Insurance CRUD ───────────────────────────────────────── */
   const addInsurance = (clsIndex: number) => {
@@ -1386,7 +1308,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             classifications={watchedValues.classifications as ClassificationForm[]}
             dayPlans={dayPlans}
             selectedPackageIndex={selectedPackageIndex}
-            expandedRoutes={expandedRoutes}
             isEditMode={isEditMode}
             activeLang={activeLang}
             activityTypes={activityTypes}
@@ -1400,10 +1321,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               isEditMode ? setConfirmDelete({ type: "activity", index1: pi, index2: di, index3: ai }) : removeActivity(pi, di, ai)
             }
             onUpdateActivity={updateActivity}
-            onAddRoute={addRoute}
-            onRemoveRoute={removeRoute}
-            onUpdateRoute={updateRoute}
-            onToggleActivityRoute={toggleActivityRoute}
             onAddLinkToResource={addLinkToResource}
             onUpdateLinkToResource={updateLinkToResource}
             onRemoveLinkToResource={removeLinkToResource}

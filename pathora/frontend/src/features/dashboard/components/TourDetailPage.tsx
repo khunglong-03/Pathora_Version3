@@ -98,11 +98,14 @@ function OverviewTab({
   selectedPackageIdx: number;
   allRoutes: {
     id: string;
-    order: number;
-    transportationName: string | null;
-    note: string | null;
-    durationMinutes: number | null;
-    price: number | null;
+    order?: number;
+    transportationName?: string | null;
+    note?: string | null;
+    durationMinutes?: number | null;
+    price?: number | null;
+    fromLocation?: string | null;
+    toLocation?: string | null;
+    transportationType?: string | null;
   }[];
   formatCurrency: (n: number) => string;
 }) {
@@ -149,9 +152,7 @@ function OverviewTab({
               const locationCount =
                 cls.plans?.flatMap((d) =>
                   d.activities.flatMap((a) =>
-                    a.routes.flatMap((r) =>
-                      [r.fromLocation, r.toLocation].filter(Boolean),
-                    ),
+                    [a.fromLocation, a.toLocation].filter(Boolean),
                   ),
                 ).length ?? 0;
               const serviceCount = cls.insurances?.length ?? 0;
@@ -550,12 +551,29 @@ const LOCATION_BADGE_COLORS: Record<number, { bg: string; text: string }> = {
 function LocationsTab({ classification }: { classification: TourClassificationDto }) {
   const locationMap = new Map<string, TourPlanLocationDto>();
   (classification.plans ?? []).forEach((day) =>
-    day.activities.forEach((activity) =>
-      activity.routes.forEach((route) => {
-        if (route.fromLocation) locationMap.set(route.fromLocation.id, route.fromLocation);
-        if (route.toLocation) locationMap.set(route.toLocation.id, route.toLocation);
-      }),
-    ),
+    day.activities.forEach((activity) => {
+      if (activity.locationName) {
+        const key = activity.locationName;
+        if (!locationMap.has(key)) {
+          locationMap.set(key, {
+            id: activity.id ?? key,
+            locationName: activity.locationName,
+            locationDescription: activity.description ?? null,
+            locationType: 99,
+            address: activity.locationAddress ?? null,
+            city: activity.locationCity ?? null,
+            country: activity.locationCountry ?? null,
+            latitude: null,
+            longitude: null,
+            entranceFee: activity.locationEntranceFee ?? null,
+            openingHours: null,
+            closingHours: null,
+            estimatedDurationMinutes: null,
+            note: activity.note ?? null,
+          });
+        }
+      }
+    }),
   );
   const locations = Array.from(locationMap.values());
 
@@ -659,14 +677,14 @@ function TransportationTab({
 }: {
   routes: {
     id: string;
-    order: number;
-    transportationName: string | null;
-    note: string | null;
-    durationMinutes: number | null;
-    price: number | null;
-    fromLocation?: { locationName: string } | null;
-    toLocation?: { locationName: string } | null;
-    transportationType?: number;
+    order?: number;
+    transportationName?: string | null;
+    note?: string | null;
+    durationMinutes?: number | null;
+    price?: number | null;
+    fromLocation?: string | null;
+    toLocation?: string | null;
+    transportationType?: string | null;
   }[];
   packageName?: string;
   formatCurrency: (n: number) => string;
@@ -703,12 +721,12 @@ function TransportationTab({
         {routes.map((route, idx) => {
           const routeTitle =
             route.fromLocation && route.toLocation
-              ? `${route.fromLocation.locationName} to ${route.toLocation.locationName}`
+              ? `${route.fromLocation} to ${route.toLocation}`
               : route.transportationName || `Route ${idx + 1}`;
 
           const transportType =
-            route.transportationType !== undefined
-              ? (TransportationTypeMap[route.transportationType] ?? "")
+            route.transportationType != null
+              ? (TransportationTypeMap[Number(route.transportationType)] ?? "")
               : (route.transportationName ?? "");
 
           const details = [transportType, formatDuration(route.durationMinutes), route.note]
@@ -1200,7 +1218,7 @@ export function TourDetailPage() {
   /* ── Collect all routes from selected package ─────────────── */
   const allRoutes =
     selectedPackage?.plans?.flatMap((day) =>
-      day.activities.flatMap((activity) => activity.routes),
+      day.activities.filter((activity) => activity.activityType === "7" || activity.transportationType != null),
     ) ?? [];
 
   const selectedClassificationTiers = selectedPackage

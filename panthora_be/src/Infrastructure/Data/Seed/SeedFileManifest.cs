@@ -34,7 +34,7 @@ internal static class SeedFileManifest
         new("TourDayActivitySeed", "tour-day-activity.json", ["Id", "TourDayId", "Order"], "Id", null),
         new("TourPlanLocationSeed", "tour-plan-location.json", ["Id", "TourId", "LocationName"], "Id", null),
         new("TourPlanAccommodationSeed", "tour-plan-accommodation.json", ["Id", "AccommodationName"], "Id", null),
-        new("TourPlanRouteSeed", "tour-plan-route.json", ["Id", "Order"], "Id", null),
+
 
         // Layer 3b: Tour Manager Assignments
         new("TourManagerAssignmentSeed", "tour-manager-assignment.json", ["Id", "TourManagerId", "AssignedEntityType"], "Id", null),

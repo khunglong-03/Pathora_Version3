@@ -4,7 +4,7 @@ namespace Domain.Entities;
 
 /// <summary>
 /// Phân công phương tiện và tài xế cho một lịch trình di chuyển trong booking.
-/// Gắn Driver và Vehicle cụ thể với một BookingActivityReservation và TourPlanRoute.
+/// Gắn Driver và Vehicle cụ thể với một BookingActivityReservation và TourDayActivity.
 /// </summary>
 public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
 {
@@ -12,10 +12,10 @@ public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
     public Guid BookingActivityReservationId { get; set; }
     /// <summary>BookingActivityReservation liên quan.</summary>
     public virtual BookingActivityReservationEntity BookingActivityReservation { get; set; } = null!;
-    /// <summary>ID của TourPlanRoute mà tài xế/xe được gán vào.</summary>
-    public Guid TourPlanRouteId { get; set; }
-    /// <summary>TourPlanRoute liên quan.</summary>
-    public virtual TourPlanRouteEntity TourPlanRoute { get; set; } = null!;
+    /// <summary>ID của TourDayActivity mà tài xế/xe được gán vào.</summary>
+    public Guid TourDayActivityId { get; set; }
+    /// <summary>TourDayActivity liên quan.</summary>
+    public virtual TourDayActivityEntity TourDayActivity { get; set; } = null!;
     /// <summary>ID của Driver được phân công.</summary>
     public Guid? DriverId { get; set; }
     /// <summary>Driver được phân công.</summary>
@@ -35,7 +35,7 @@ public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
 
     public static TourDayActivityRouteTransportEntity Create(
         Guid bookingActivityReservationId,
-        Guid tourPlanRouteId,
+        Guid tourDayActivityId,
         Guid? driverId,
         Guid? vehicleId,
         Guid updatedById,
@@ -45,7 +45,7 @@ public class TourDayActivityRouteTransportEntity : Aggregate<Guid>
         {
             Id = Guid.CreateVersion7(),
             BookingActivityReservationId = bookingActivityReservationId,
-            TourPlanRouteId = tourPlanRouteId,
+            TourDayActivityId = tourDayActivityId,
             DriverId = driverId,
             VehicleId = vehicleId,
             UpdatedAt = DateTimeOffset.UtcNow,

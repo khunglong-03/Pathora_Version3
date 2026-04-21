@@ -33,8 +33,8 @@ public sealed class AssignRouteTransportCommandHandler(
         // Validate continent match: vehicle's LocationArea must match tour's Continent
         if (vehicle is not null)
         {
-            var tourContinent = await routeTransportRepository.GetTourContinentByRouteIdAsync(
-                request.Request.TourPlanRouteId, cancellationToken);
+            var tourContinent = await routeTransportRepository.GetTourContinentByActivityIdAsync(
+                request.Request.TourDayActivityId, cancellationToken);
 
             if (tourContinent.HasValue && vehicle.LocationArea.HasValue
                 && vehicle.LocationArea.Value != tourContinent.Value)
@@ -47,7 +47,7 @@ public sealed class AssignRouteTransportCommandHandler(
 
         var entity = TourDayActivityRouteTransportEntity.Create(
             request.Request.BookingActivityReservationId,
-            request.Request.TourPlanRouteId,
+            request.Request.TourDayActivityId,
             request.Request.DriverId,
             request.Request.VehicleId,
             request.CurrentUserId,

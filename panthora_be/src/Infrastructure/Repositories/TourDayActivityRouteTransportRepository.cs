@@ -13,7 +13,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
 {
     public async Task<TourDayActivityRouteTransportEntity?> FindByBookingAndRouteAsync(
         Guid bookingActivityReservationId,
-        Guid tourPlanRouteId,
+        Guid tourDayActivityId,
         CancellationToken cancellationToken = default)
     {
         return await _context.TourDayActivityRouteTransports
@@ -21,7 +21,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .Include(t => t.Driver)
             .Include(t => t.Vehicle)
             .FirstOrDefaultAsync(
-                t => t.BookingActivityReservationId == bookingActivityReservationId && t.TourPlanRouteId == tourPlanRouteId,
+                t => t.BookingActivityReservationId == bookingActivityReservationId && t.TourDayActivityId == tourDayActivityId,
                 cancellationToken);
     }
 
@@ -42,10 +42,9 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .AsNoTracking()
             .Include(t => t.Driver)
             .Include(t => t.Vehicle)
-            .Include(t => t.TourPlanRoute)
-                .ThenInclude(r => r.TourDayActivity)
+            .Include(t => t.TourDayActivity)
             .Where(t => t.BookingActivityReservation.BookingId == bookingId)
-            .OrderBy(t => t.TourPlanRoute.Order)
+            .OrderBy(t => t.TourDayActivity.Order)
             .ToListAsync(cancellationToken);
     }
 
@@ -56,7 +55,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
         var existing = await _context.TourDayActivityRouteTransports
             .FirstOrDefaultAsync(
                 t => t.BookingActivityReservationId == entity.BookingActivityReservationId &&
-                     t.TourPlanRouteId == entity.TourPlanRouteId,
+                     t.TourDayActivityId == entity.TourDayActivityId,
                 cancellationToken);
 
         if (existing != null)
@@ -72,14 +71,14 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Domain.Enums.Continent?> GetTourContinentByRouteIdAsync(
-        Guid tourPlanRouteId,
+    public async Task<Domain.Enums.Continent?> GetTourContinentByActivityIdAsync(
+        Guid tourDayActivityId,
         CancellationToken cancellationToken = default)
     {
-        var classificationId = await _context.TourPlanRoutes
+        var classificationId = await _context.TourDayActivities
             .AsNoTracking()
-            .Where(r => r.Id == tourPlanRouteId)
-            .Select(r => r.TourDayActivity.TourDay.ClassificationId)
+            .Where(r => r.Id == tourDayActivityId)
+            .Select(r => r.TourDay.ClassificationId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (classificationId == Guid.Empty)
@@ -100,8 +99,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .AsNoTracking()
             .Include(t => t.Driver)
             .Include(t => t.Vehicle)
-            .Include(t => t.TourPlanRoute)
-                .ThenInclude(r => r.TourDayActivity)
+            .Include(t => t.TourDayActivity)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
@@ -116,7 +114,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .Include(t => t.Driver)
             .Include(t => t.BookingActivityReservation)
                 .ThenInclude(b => b.Booking)
-            .Include(t => t.TourPlanRoute)
+            .Include(t => t.TourDayActivity)
             .Where(t =>
                 (t.Vehicle != null && t.Vehicle.OwnerId == ownerId) ||
                 (t.Driver != null && t.Driver.UserId == ownerId));
@@ -141,7 +139,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .Include(t => t.Driver)
             .Include(t => t.BookingActivityReservation)
                 .ThenInclude(b => b.Booking)
-            .Include(t => t.TourPlanRoute)
+            .Include(t => t.TourDayActivity)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
@@ -159,7 +157,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.BookingActivityReservation)
-            .Include(t => t.TourPlanRoute)
+            .Include(t => t.TourDayActivity)
             .Where(t =>
                 (t.Vehicle != null && t.Vehicle.OwnerId == ownerId) ||
                 (t.Driver != null && t.Driver.UserId == ownerId))
@@ -192,7 +190,7 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
             .Include(t => t.Driver)
             .Include(t => t.BookingActivityReservation)
                 .ThenInclude(b => b.Booking)
-            .Include(t => t.TourPlanRoute)
+            .Include(t => t.TourDayActivity)
             .Where(t =>
                 (t.Vehicle != null && t.Vehicle.OwnerId == ownerId) ||
                 (t.Driver != null && t.Driver.UserId == ownerId))

@@ -2,13 +2,13 @@ namespace Application.Features.TourTransportAssignment.DTOs;
 
 public sealed record RouteTransportAssignmentRequestDto(
     Guid BookingActivityReservationId,
-    Guid TourPlanRouteId,
+    Guid TourDayActivityId,
     Guid? DriverId,
     Guid? VehicleId
 );
 
 public sealed record TransportInfoDto(
-    Guid TourPlanRouteId,
+    Guid TourDayActivityId,
     int RouteOrder,
     DriverInfoDto? Driver,
     VehicleInfoDto? Vehicle

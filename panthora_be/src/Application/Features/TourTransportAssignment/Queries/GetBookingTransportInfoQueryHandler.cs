@@ -31,8 +31,8 @@ public sealed class GetBookingTransportInfoQueryHandler(
         var routeTransports = await routeTransportRepository.FindByBookingIdAsync(request.BookingId, cancellationToken);
 
         var routes = routeTransports.Select(rt => new TransportInfoDto(
-            rt.TourPlanRouteId,
-            rt.TourPlanRoute?.Order ?? 0,
+            rt.TourDayActivityId,
+            rt.TourDayActivity?.Order ?? 0,
             rt.Driver != null
                 ? new DriverInfoDto(rt.Driver.FullName, rt.Driver.PhoneNumber, MaskLicense(rt.Driver.LicenseNumber))
                 : null,

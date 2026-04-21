@@ -44,7 +44,12 @@ public static class TranslationResolutionExtensions
         {
             Title = requested?.Title ?? fallback?.Title ?? entity.Title,
             Description = requested?.Description ?? fallback?.Description ?? entity.Description,
-            Note = requested?.Note ?? fallback?.Note ?? entity.Note
+            Note = requested?.Note ?? fallback?.Note ?? entity.Note,
+            TransportationName = requested?.TransportationName ?? fallback?.TransportationName ?? entity.TransportationName,
+            FromLocationName = requested?.FromLocationName ?? fallback?.FromLocationName ?? entity.FromLocation?.LocationName,
+            ToLocationName = requested?.ToLocationName ?? fallback?.ToLocationName ?? entity.ToLocation?.LocationName,
+            TransportationType = requested?.TransportationType ?? fallback?.TransportationType,
+            TicketInfo = requested?.TicketInfo ?? fallback?.TicketInfo
         };
     }
 
@@ -70,19 +75,7 @@ public static class TranslationResolutionExtensions
         };
     }
 
-    public static TourPlanRouteTranslationData ResolveTranslation(this TourPlanRouteEntity entity, string? language)
-    {
-        var (requested, fallback) = ResolveCandidates(entity.Translations, language);
-        return new TourPlanRouteTranslationData
-        {
-            FromLocationName = requested?.FromLocationName ?? fallback?.FromLocationName ?? string.Empty,
-            ToLocationName = requested?.ToLocationName ?? fallback?.ToLocationName ?? string.Empty,
-            TransportationType = requested?.TransportationType ?? fallback?.TransportationType,
-            TransportationName = requested?.TransportationName ?? fallback?.TransportationName ?? entity.TransportationName,
-            TicketInfo = requested?.TicketInfo ?? fallback?.TicketInfo,
-            Note = requested?.Note ?? fallback?.Note ?? entity.Note
-        };
-    }
+
 
     public static void ApplyResolvedTranslations(this TourEntity entity, string? language)
     {
@@ -129,11 +122,7 @@ public static class TranslationResolutionExtensions
         entity.Title = translated.Title;
         entity.Description = translated.Description;
         entity.Note = translated.Note;
-
-        foreach (var route in entity.Routes)
-        {
-            route.ApplyResolvedTranslation(language);
-        }
+        entity.TransportationName = translated.TransportationName;
 
         entity.Accommodation?.ApplyResolvedTranslation(language);
     }
@@ -154,12 +143,7 @@ public static class TranslationResolutionExtensions
         entity.Note = translated.Note;
     }
 
-    public static void ApplyResolvedTranslation(this TourPlanRouteEntity entity, string? language)
-    {
-        var translated = entity.ResolveTranslation(language);
-        entity.TransportationName = translated.TransportationName;
-        entity.Note = translated.Note;
-    }
+
 
     public static TourInstanceTranslationData ResolveTranslation(this TourInstanceEntity entity, string? language)
     {

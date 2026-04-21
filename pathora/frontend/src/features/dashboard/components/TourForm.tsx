@@ -71,7 +71,7 @@ interface ActivityForm {
   startTime: string;
   endTime: string;
   linkToResources: string[];
-  routes: ActivityRouteForm[];
+
 
   // Location — all activity types (replaces standalone Locations step)
   locationName: string;
@@ -100,23 +100,7 @@ interface ActivityForm {
   // Phase 2: Supplier details (hotel name, contact, rooms, pricing) now handled at instance/provider selection time
 }
 
-interface ActivityRouteForm {
-  id: string;
-  fromLocationIndex: string;
-  fromLocationCustom: string;
-  enFromLocationCustom: string;
-  toLocationIndex: string;
-  toLocationCustom: string;
-  enToLocationCustom: string;
-  transportationType: string;
-  enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
-  durationMinutes: string;
-  price: string;
-  note: string;
-  enNote: string;
-}
+
 
 interface DayPlanForm {
   id?: string;
@@ -285,7 +269,7 @@ const emptyActivity = (): ActivityForm => ({
   startTime: "",
   endTime: "",
   linkToResources: [""],
-  routes: [],
+
   // Location fields
   locationName: "",
   enLocationName: "",
@@ -310,23 +294,7 @@ const emptyActivity = (): ActivityForm => ({
   // Accommodation fields (type 8) — Phase 2: Supplier details handled at instance time
 });
 
-const emptyRoute = (): ActivityRouteForm => ({
-  id: crypto.randomUUID(),
-  fromLocationIndex: "",
-  fromLocationCustom: "",
-  enFromLocationCustom: "",
-  toLocationIndex: "",
-  toLocationCustom: "",
-  enToLocationCustom: "",
-  transportationType: "0",
-  enTransportationType: "",
-  transportationName: "",
-  enTransportationName: "",
-  durationMinutes: "",
-  price: "",
-  note: "",
-  enNote: "",
-});
+
 
 const emptyDayPlan = (): DayPlanForm => ({
   dayNumber: "1",
@@ -520,14 +488,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   /* ── Step 7: Services ─────────────────────────────────────── */
   const [services, setServices] = useState<ServiceForm[]>([emptyService()]);
 
-  /* ── Route UI State ──────────────────────────────────────── */
-  const [expandedRoutes, setExpandedRoutes] = useState<Record<string, boolean>>({});
-  const toggleActivityRoute = (pi: number, di: number, ai: number, ri?: number) => {
-    const key = ri !== undefined
-      ? pi + "_" + di + "_" + ai + "_" + ri
-      : pi + "_" + di + "_" + ai;
-    setExpandedRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+
 
   /* ── Policies ──────────────────────────────────────────── */
   const [pricingPolicies, setPricingPolicies] = useState<PricingPolicy[]>([]);
@@ -673,23 +634,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             startTime: act.startTime ?? "",
             endTime: act.endTime ?? "",
             linkToResources: [""],
-            routes: (act.routes ?? []).map((route) => ({
-              id: route.id,
-              fromLocationIndex: "",
-              fromLocationCustom: route.fromLocation?.locationName ?? "",
-              enFromLocationCustom: route.translations?.en?.fromLocationName ?? "",
-              toLocationIndex: "",
-              toLocationCustom: route.toLocation?.locationName ?? "",
-              enToLocationCustom: route.translations?.en?.toLocationName ?? "",
-              transportationType: String(route.transportationType),
-              enTransportationType: route.translations?.en?.transportationType ?? "",
-              transportationName: "",
-              enTransportationName: "",
-              durationMinutes: String(route.durationMinutes ?? ""),
-              price: String(route.price ?? ""),
-              note: route.note ?? "",
-              enNote: route.translations?.en?.note ?? "",
-            })),
             // Location fields — all activity types
             locationName: act.locationName ?? "",
             enLocationName: "",
@@ -880,47 +824,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             }
           });
 
-          // Validate routes
-          act.routes.forEach((route, ri) => {
-            // Validate from/to: at least one of index/custom must have value
-            const hasFrom = route.fromLocationIndex !== "" || route.fromLocationCustom.trim() !== "";
-            const hasTo = route.toLocationIndex !== "" || route.toLocationCustom.trim() !== "";
 
-            if (!hasFrom) {
-              newErrors[`route_${planIdx}_${actIdx}_${ri}_from`] = t(
-                "tourAdmin.itineraries.requiredFromLocation",
-                "From location is required",
-              );
-            }
-            if (!hasTo) {
-              newErrors[`route_${planIdx}_${actIdx}_${ri}_to`] = t(
-                "tourAdmin.itineraries.requiredToLocation",
-                "To location is required",
-              );
-            }
-
-            // Validate duration >= 0
-            if (route.durationMinutes.trim()) {
-              const dur = Number(route.durationMinutes);
-              if (Number.isNaN(dur) || dur < 0) {
-                newErrors[`route_${planIdx}_${actIdx}_${ri}_duration`] = t(
-                  "tourAdmin.invalidDuration",
-                  "Invalid duration",
-                );
-              }
-            }
-
-            // Validate price >= 0
-            if (route.price.trim()) {
-              const price = Number(route.price);
-              if (Number.isNaN(price) || price < 0) {
-                newErrors[`route_${planIdx}_${actIdx}_${ri}_price`] = t(
-                  "tourAdmin.invalidPrice",
-                  "Invalid price",
-                );
-              }
-            }
-          });
 
           // Validate type-7 (transportation) required fields
           if (act.activityType === "7") {
@@ -1212,30 +1116,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     );
   };
 
-  /* ── Route CRUD ───────────────────────────────────────────── */
-  const addRoute = (pi: number, di: number, ai: number) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      updated[pi][di].activities[ai].routes.push(emptyRoute());
-      return updated;
-    });
-  };
 
-  const removeRoute = (pi: number, di: number, ai: number, ri: number) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      updated[pi][di].activities[ai].routes.splice(ri, 1);
-      return updated;
-    });
-  };
 
-  const updateRoute = (pi: number, di: number, ai: number, ri: number, field: keyof ActivityRouteForm, value: string) => {
-    setDayPlans((prev) => {
-      const updated = [...prev];
-      (updated[pi][di].activities[ai].routes[ri] as Record<keyof ActivityRouteForm, string>)[field] = value;
-      return updated;
-    });
-  };
 
   /* ── Insurance CRUD ───────────────────────────────────────── */
   const addInsurance = (clsIndex: number) => {
@@ -1924,27 +1806,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 </div>
               )}
 
-              {/* ── Image Upload (shared — always visible regardless of language tab) ── */}
-              <TourImageUpload
-                thumbnail={thumbnail}
-                setThumbnail={setThumbnail}
-                images={images}
-                setImages={setImages}
-                t={t}
-                thumbnailError={thumbnailError}
-                imagesError={imagesError}
-                onThumbnailError={setThumbnailError}
-                onImagesError={setImagesError}
-                existingImages={existingImages}
-                onRemoveExistingImage={(img) => {
-                  setExistingImages((prev) =>
-                    prev.filter((e) => e.fileId !== img.fileId),
-                  );
-                }}
-                existingThumbnail={existingThumbnail}
-                onRemoveExistingThumbnail={() => setExistingThumbnail(null)}
-              />
-
               {/* ── English Content ── */}
               {activeLang === "en" && (
                 <div className="space-y-5">
@@ -2044,6 +1905,29 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   </div>
                 </div>
               )}
+
+              {/* ── Image Upload (shared — always visible regardless of language tab) ── */}
+              <div className="mt-8">
+                <TourImageUpload
+                  thumbnail={thumbnail}
+                  setThumbnail={setThumbnail}
+                  images={images}
+                  setImages={setImages}
+                  t={t}
+                  thumbnailError={thumbnailError}
+                  imagesError={imagesError}
+                  onThumbnailError={setThumbnailError}
+                  onImagesError={setImagesError}
+                  existingImages={existingImages}
+                  onRemoveExistingImage={(img) => {
+                    setExistingImages((prev) =>
+                      prev.filter((e) => e.fileId !== img.fileId),
+                    );
+                  }}
+                  existingThumbnail={existingThumbnail}
+                  onRemoveExistingThumbnail={() => setExistingThumbnail(null)}
+                />
+              </div>
 
               {/* ── Policy Selectors (TourDesigner hides these) ─── */}
               {showPolicySections ? (
@@ -2911,234 +2795,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   </div>
                                 )}
 
-                                {/* Route Section */}
-                                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                      {t("tourAdmin.itineraries.routes", "Routes")}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => addRoute(ci, di, ai)}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-500/30 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
-                                      <Icon icon="heroicons:plus" className="size-3" />
-                                      {t("tourAdmin.itineraries.addRoute")}
-                                    </button>
-                                  </div>
-
-                                  {act.routes.length === 0 && (
-                                    <p className="text-xs text-slate-400 text-center py-2">
-                                      {t("tourAdmin.itineraries.noRoutesYet", "No routes yet")}
-                                    </p>
-                                  )}
-
-                                  {act.routes.map((route, ri) => {
-                                    const routeKey = ci + "_" + di + "_" + ai + "_" + ri;
-                                    const isExpanded = expandedRoutes[routeKey] ?? false;
-                                    const hasRouteError = 
-                                      errors[`route_${ci}_${di}_${ai}_${ri}_from`] ||
-                                      errors[`route_${ci}_${di}_${ai}_${ri}_to`] ||
-                                      errors[`route_${ci}_${di}_${ai}_${ri}_duration`] ||
-                                      errors[`route_${ci}_${di}_${ai}_${ri}_price`];
-                                      
-                                    return (
-                                      <div
-                                        key={route.id}
-                                        className={`bg-slate-50 dark:bg-slate-800/30 rounded-lg p-3 mb-2 border ${hasRouteError ? "border-red-300 dark:border-red-500/50" : "border-slate-100 dark:border-slate-700/50"}`}>
-                                        <div className="flex items-center justify-between mb-2">
-                                          <span className={`text-xs font-medium ${hasRouteError ? "text-red-500 font-semibold" : "text-slate-600 dark:text-slate-400"}`}>
-                                            {t("tourAdmin.itineraries.route", "Route")} #{ri + 1}
-                                            {hasRouteError && " (Invalid)"}
-                                          </span>
-                                          <div className="flex items-center gap-2">
-                                            <button
-                                              type="button"
-                                              onClick={() => toggleActivityRoute(ci, di, ai, ri)}
-                                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                                              <Icon
-                                                icon={isExpanded ? "heroicons:chevron-up" : "heroicons:chevron-down"}
-                                                className="size-3.5"
-                                              />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => removeRoute(ci, di, ai, ri)}
-                                              aria-label={t("tourAdmin.itineraries.removeRoute")}
-                                              className="text-red-400 hover:text-red-600 transition-colors">
-                                              <Icon icon="heroicons:trash" className="size-3.5" />
-                                            </button>
-                                          </div>
-                                        </div>
-
-                                        {isExpanded ? (
-                                          <div className="space-y-2">
-                                            {/* From + To Location — plain text inputs */}
-                                            <div className="grid grid-cols-2 gap-2">
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  {t("tourAdmin.itineraries.fromLocation", "From")} <span className="text-red-500">*</span>
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.fromLocationCustom}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "fromLocationCustom", e.target.value)}
-                                                  placeholder={t("tourAdmin.itineraries.placeholderFromLocation", "Departure location")}
-                                                  className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                                    errors[`route_${ci}_${di}_${ai}_${ri}_from`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                                  }`}
-                                                />
-                                                {errors[`route_${ci}_${di}_${ai}_${ri}_from`] && (
-                                                  <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_from`]}</p>
-                                                )}
-                                              </div>
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  {t("tourAdmin.itineraries.toLocation", "To")} <span className="text-red-500">*</span>
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.toLocationCustom}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "toLocationCustom", e.target.value)}
-                                                  placeholder={t("tourAdmin.itineraries.placeholderToLocation", "Arrival location")}
-                                                  className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                                    errors[`route_${ci}_${di}_${ai}_${ri}_to`] ? "border-red-400 dark:border-red-500" : "border-slate-300 dark:border-slate-600"
-                                                  }`}
-                                                />
-                                                {errors[`route_${ci}_${di}_${ai}_${ri}_to`] && (
-                                                  <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_to`]}</p>
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            {/* Transportation Type */}
-                                            <div>
-                                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                {t("tourAdmin.transportation.type", "Type")}
-                                              </label>
-                                              <select
-                                                value={route.transportationType}
-                                                onChange={(e) => updateRoute(ci, di, ai, ri, "transportationType", e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-1 focus:ring-orange-500 outline-none transition">
-                                                {TRANSPORTATION_TYPE_OPTIONS.map((opt, idx) => (
-                                                  <option key={opt.value} value={opt.value}>
-                                                    {transportationTypes[idx]}
-                                                  </option>
-                                                ))}
-                                              </select>
-                                            </div>
-
-                                            {/* Transportation Name VI / EN */}
-                                            <div className="grid grid-cols-2 gap-2">
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  🇻🇳 {t("tourAdmin.transportation.name", "Name (VI)")}
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.transportationName}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "transportationName", e.target.value)}
-                                                  placeholder={t("tourAdmin.transportation.placeholderTransportationName", "e.g. Bus")}
-                                                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                                />
-                                              </div>
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  🇬🇧 {t("tourAdmin.transportation.name", "Name (EN)")}
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.enTransportationName}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "enTransportationName", e.target.value)}
-                                                  placeholder="Name in English..."
-                                                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                                />
-                                              </div>
-                                            </div>
-
-                                            {/* Duration + Price */}
-                                            <div className="grid grid-cols-2 gap-2">
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  {t("tourAdmin.transportation.duration", "Duration (min)")}
-                                                </label>
-                                                <input
-                                                  type="number"
-                                                  min={0}
-                                                  value={route.durationMinutes}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "durationMinutes", e.target.value)}
-                                                  placeholder="0"
-                                                  className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                                    errors[`route_${ci}_${di}_${ai}_${ri}_duration`]
-                                                      ? "border-red-400 dark:border-red-500"
-                                                      : "border-slate-300 dark:border-slate-600"
-                                                  }`}
-                                                />
-                                                {errors[`route_${ci}_${di}_${ai}_${ri}_duration`] && (
-                                                  <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_duration`]}</p>
-                                                )}
-                                              </div>
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  {t("tourAdmin.transportation.price", "Price ($)")}
-                                                </label>
-                                                <input
-                                                  type="number"
-                                                  min={0}
-                                                  step={1000}
-                                                  value={route.price}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "price", e.target.value)}
-                                                  placeholder="0"
-                                                  className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition ${
-                                                    errors[`route_${ci}_${di}_${ai}_${ri}_price`]
-                                                      ? "border-red-400 dark:border-red-500"
-                                                      : "border-slate-300 dark:border-slate-600"
-                                                  }`}
-                                                />
-                                                {errors[`route_${ci}_${di}_${ai}_${ri}_price`] && (
-                                                  <p className="text-red-500 text-xs mt-0.5">{errors[`route_${ci}_${di}_${ai}_${ri}_price`]}</p>
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            {/* Note VI / EN */}
-                                            <div className="grid grid-cols-2 gap-2">
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  🇻🇳 {t("tourAdmin.itineraries.note", "Note (VI)")}
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.note}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "note", e.target.value)}
-                                                  placeholder={t("tourAdmin.itineraries.placeholderAdditionalNotes", "Additional notes...")}
-                                                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                                />
-                                              </div>
-                                              <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                                  🇬🇧 {t("tourAdmin.itineraries.note", "Note (EN)")}
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={route.enNote}
-                                                  onChange={(e) => updateRoute(ci, di, ai, ri, "enNote", e.target.value)}
-                                                  placeholder="Notes in English..."
-                                                  className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition"
-                                                />
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="text-xs text-slate-400 italic">
-                                            {route.transportationName || t("tourAdmin.itineraries.customLocation", "Custom location...")}
-                                            {" → "}
-                                            {route.transportationName || t("tourAdmin.itineraries.customLocation", "Custom location...")}
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
                               </div>
                             ))}
                           </div>

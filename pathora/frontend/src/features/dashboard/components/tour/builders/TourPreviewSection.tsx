@@ -52,7 +52,6 @@ interface ActivityForm {
   startTime: string;
   endTime: string;
   linkToResources: string[];
-  routes: ActivityRouteForm[];
   locationName: string;
   enLocationName: string;
   locationCity: string;
@@ -88,24 +87,6 @@ interface ActivityForm {
   specialRequest: string;
   latitude: string;
   longitude: string;
-}
-
-interface ActivityRouteForm {
-  id: string;
-  fromLocationIndex: string;
-  fromLocationCustom: string;
-  enFromLocationCustom: string;
-  toLocationIndex: string;
-  toLocationCustom: string;
-  enToLocationCustom: string;
-  transportationType: string;
-  enTransportationType: string;
-  transportationName: string;
-  enTransportationName: string;
-  durationMinutes: string;
-  price: string;
-  note: string;
-  enNote: string;
 }
 
 interface ServiceForm {

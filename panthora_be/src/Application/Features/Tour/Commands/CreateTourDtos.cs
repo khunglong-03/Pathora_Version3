@@ -25,37 +25,29 @@ public sealed record DayPlanDto(
 );
 
 public sealed record ActivityDto(
-    Guid? Id,
-    string ActivityType,
-    string Title,
-    string? Description,
-    string? Note,
-    decimal? EstimatedCost,
-    bool IsOptional,
-    string? StartTime,
-    string? EndTime,
-    List<RouteDto> Routes,
-    AccommodationDto? Accommodation,
+    Guid? Id = null,
+    string ActivityType = "",
+    string Title = "",
+    string? Description = null,
+    string? Note = null,
+    decimal? EstimatedCost = null,
+    bool IsOptional = false,
+    string? StartTime = null,
+    string? EndTime = null,
+    Guid? FromLocationId = null,
+    Guid? ToLocationId = null,
+    string? TransportationType = null,
+    string? TransportationName = null,
+    int? DurationMinutes = null,
+    decimal? DistanceKm = null,
+    decimal? Price = null,
+    string? BookingReference = null,
+    AccommodationDto? Accommodation = null,
     Dictionary<string, TourDayActivityTranslationData>? Translations = null,
     List<string>? LinkToResources = null
 );
 
-public sealed record RouteDto(
-    string TransportationType,
-    string? FromLocationName,
-    string? ToLocationName,
-    Guid? FromLocationId,
-    Guid? ToLocationId,
-    string? TransportationName,
-    int? DurationMinutes,
-    string? PricingType,
-    decimal? Price,
-    bool RequiresIndividualTicket,
-    string? TicketInfo,
-    string? Note,
-    Dictionary<string, TourPlanLocationTranslationData>? Translations,
-    Dictionary<string, TourPlanRouteTranslationData>? RouteTranslations
-);
+
 
 public sealed record InsuranceDto(
     Guid? Id,

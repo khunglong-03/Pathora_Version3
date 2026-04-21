@@ -103,9 +103,25 @@ public sealed class ActivityDtoValidator : AbstractValidator<ActivityDto>
         RuleFor(x => x.EstimatedCost)
             .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ActivityEstimatedCostNonNegative);
 
-        RuleForEach(x => x.Routes)
-            .SetValidator(new RouteDtoValidator())
-            .When(x => x.Routes != null && x.Routes.Any());
+        RuleFor(x => x.DurationMinutes)
+            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.RouteDurationNonNegative)
+            .When(x => x.DurationMinutes.HasValue);
+
+        RuleFor(x => x.Price)
+            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.RoutePriceNonNegative)
+            .When(x => x.Price.HasValue);
+
+        When(x => !string.IsNullOrEmpty(x.TransportationType), () =>
+        {
+            RuleFor(x => x.TransportationType)
+                .Custom((value, context) =>
+                {
+                    if (!EnumHelper.TryParseDefinedEnum<TransportationType>(value, out _))
+                    {
+                        context.AddFailure($"{context.PropertyPath} has invalid value '{value}'.");
+                    }
+                });
+        });
 
         RuleFor(x => x.Accommodation)
             .SetValidator(new AccommodationDtoValidator()!)
@@ -123,43 +139,6 @@ public sealed class ActivityDtoValidator : AbstractValidator<ActivityDto>
     }
 }
 
-public sealed class RouteDtoValidator : AbstractValidator<RouteDto>
-{
-    public RouteDtoValidator()
-    {
-        // TransportationType is always required
-        RuleFor(x => x.TransportationType)
-            .NotEmpty().WithMessage(ValidationMessages.TransportationTypeRequired);
-
-        RuleFor(x => x.TransportationType)
-            .Custom((value, context) =>
-            {
-                if (!EnumHelper.TryParseDefinedEnum<TransportationType>(value, out _))
-                {
-                    context.AddFailure($"{context.PropertyPath} has invalid value '{value}'.");
-                }
-            });
-
-        // From/To: either the FK or the text name must be provided
-        When(x => !x.FromLocationId.HasValue, () =>
-        {
-            RuleFor(x => x.FromLocationName)
-                .NotEmpty().WithMessage(ValidationMessages.RouteFromLocationNameRequired);
-        });
-
-        When(x => !x.ToLocationId.HasValue, () =>
-        {
-            RuleFor(x => x.ToLocationName)
-                .NotEmpty().WithMessage(ValidationMessages.RouteToLocationNameRequired);
-        });
-
-        RuleFor(x => x.DurationMinutes)
-            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.RouteDurationNonNegative);
-
-        RuleFor(x => x.Price)
-            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.RoutePriceNonNegative);
-    }
-}
 
 public sealed class TransportationDtoValidator : AbstractValidator<TransportationDto>
 {

@@ -41,7 +41,7 @@ interface ActivityPayloadInput {
   isOptional: boolean;
   startTime: string;
   endTime: string;
-  routes: ActivityRoutePayloadInput[];
+
 
   // Location fields — all activity types (replaces standalone Locations step)
   locationName: string;
@@ -130,22 +130,7 @@ interface LocationPayloadInput {
   enAddress: string;
 }
 
-// Route within an activity
-interface ActivityRoutePayloadInput {
-  id: string;
-  fromLocationIndex: string;
-  fromLocationCustom: string;
-  enFromLocationCustom: string;
-  toLocationIndex: string;
-  toLocationCustom: string;
-  enToLocationCustom: string;
-  transportationType: string;
-  enTransportationType: string;
-  durationMinutes: string;
-  price: string;
-  note: string;
-  enNote: string;
-}
+
 
 interface ServicePayloadInput {
   id?: string;
@@ -352,7 +337,27 @@ const buildClassificationsPayload = (
           isOptional: activity.isOptional,
           startTime: toOptionalString(activity.startTime),
           endTime: toOptionalString(activity.endTime),
-          routes: buildRoutesPayload(activity, uniqueLocations),
+          // Include activity-level location/transport data
+          // Accommodation supplier details and transport supplier names are now instance-time only
+          locationName: activity.locationName ?? "",
+          enLocationName: activity.enLocationName ?? "",
+          locationCity: activity.locationCity ?? "",
+          enLocationCity: activity.enLocationCity ?? "",
+          locationCountry: activity.locationCountry ?? "",
+          enLocationCountry: activity.enLocationCountry ?? "",
+          locationAddress: activity.locationAddress ?? "",
+          enLocationAddress: activity.enLocationAddress ?? "",
+          locationEntranceFee: activity.locationEntranceFee ?? "",
+          fromLocation: activity.activityType === "7" ? (activity.fromLocation || null) : null,
+          enFromLocation: activity.activityType === "7" ? (activity.enFromLocation || null) : null,
+          toLocation: activity.activityType === "7" ? (activity.toLocation || null) : null,
+          enToLocation: activity.activityType === "7" ? (activity.enToLocation || null) : null,
+          transportationType: activity.activityType === "7" ? (activity.transportationType || null) : null,
+          enTransportationType: activity.activityType === "7" ? (activity.enTransportationType || null) : null,
+          transportationName: activity.activityType === "7" ? (activity.transportationName || null) : null,
+          enTransportationName: activity.activityType === "7" ? (activity.enTransportationName || null) : null,
+          durationMinutes: activity.activityType === "7" ? parseIntValue(activity.durationMinutes, 0) : null,
+          price: activity.activityType === "7" ? parseDecimal(activity.price, 0) : null,
           accommodation: isAccommodation ? {
             accommodationName: activity.locationName || activity.title,
             address: activity.locationAddress || "",
@@ -378,27 +383,6 @@ const buildClassificationsPayload = (
               }
             }
           } : null,
-          // Include activity-level location/transport data
-          // Accommodation supplier details and transport supplier names are now instance-time only
-          locationName: activity.locationName ?? "",
-          enLocationName: activity.enLocationName ?? "",
-          locationCity: activity.locationCity ?? "",
-          enLocationCity: activity.enLocationCity ?? "",
-          locationCountry: activity.locationCountry ?? "",
-          enLocationCountry: activity.enLocationCountry ?? "",
-          locationAddress: activity.locationAddress ?? "",
-          enLocationAddress: activity.enLocationAddress ?? "",
-          locationEntranceFee: activity.locationEntranceFee ?? "",
-          fromLocation: activity.fromLocation ?? "",
-          enFromLocation: activity.enFromLocation ?? "",
-          toLocation: activity.toLocation ?? "",
-          enToLocation: activity.enToLocation ?? "",
-          transportationType: activity.transportationType ?? "",
-          enTransportationType: activity.enTransportationType ?? "",
-          transportationName: activity.transportationName ?? "",
-          enTransportationName: activity.enTransportationName ?? "",
-          durationMinutes: activity.durationMinutes ?? "",
-          price: activity.price ?? "",
           translations: buildActivityTranslations(
             activity.title,
             activity.description,
@@ -452,122 +436,6 @@ const buildClassificationsPayload = (
   });
 };
 
-// ── Route payload builder ─────────────────────────────────────────────
-
-const buildRoutesPayload = (
-  activity: any,
-  locations: LocationPayloadInput[],
-) => {
-  const routes = activity.routes || [];
-  let mappedRoutes = routes.map((route: any) => {
-    // Resolve from location
-    let fromLocationName: string | null = null;
-    let fromLocationId: string | null = null;
-    if (route.fromLocationIndex !== "") {
-      const idx = parseIntValue(route.fromLocationIndex);
-      if (idx < locations.length) {
-        fromLocationName = locations[idx].locationName;
-        fromLocationId = null;
-      }
-    } else {
-      fromLocationName = route.fromLocationCustom || null;
-      fromLocationId = null;
-    }
-
-    // Resolve to location
-    let toLocationName: string | null = null;
-    let toLocationId: string | null = null;
-    if (route.toLocationIndex !== "") {
-      const idx = parseIntValue(route.toLocationIndex);
-      if (idx < locations.length) {
-        toLocationName = locations[idx].locationName;
-        toLocationId = null;
-      }
-    } else {
-      toLocationName = route.toLocationCustom || null;
-      toLocationId = null;
-    }
-
-    const hasEnTransportation =
-      route.enTransportationType.trim().length > 0 ||
-      (route.enNote ?? "").trim().length > 0;
-
-    return {
-      id: route.id,
-      fromLocationIndex: route.fromLocationIndex !== "" ? parseIntValue(route.fromLocationIndex) : null,
-      fromLocationCustom: route.fromLocationIndex === "" ? route.fromLocationCustom : null,
-      enFromLocationCustom: route.fromLocationIndex === "" ? route.enFromLocationCustom : null,
-      toLocationIndex: route.toLocationIndex !== "" ? parseIntValue(route.toLocationIndex) : null,
-      toLocationCustom: route.toLocationIndex === "" ? route.toLocationCustom : null,
-      enToLocationCustom: route.toLocationIndex === "" ? route.enToLocationCustom : null,
-      fromLocationName,
-      toLocationName,
-      fromLocationId,
-      toLocationId,
-      transportationType: route.transportationType,
-      enTransportationType: route.enTransportationType || null,
-      transportationName: null,
-      enTransportationName: null,
-      durationMinutes: parseIntValue(route.durationMinutes, 0),
-      price: parseDecimal(route.price, 0),
-      pricingType: null,
-      requiresIndividualTicket: false,
-      ticketInfo: null,
-      note: route.note || null,
-      enNote: route.enNote || null,
-      routeTranslations: {
-        vi: {
-          transportationName: null,
-          note: route.note,
-        },
-        ...(hasEnTransportation
-          ? {
-              en: {
-                transportationName: null,
-                note: route.enNote,
-              },
-            }
-          : {}),
-      },
-    };
-  });
-
-  // If activityType is 7 (Transportation), extract top-level transportation fields as the first route
-  if (activity.activityType === "7") {
-    const hasTopLevelRoute = activity.fromLocation || activity.toLocation || activity.transportationType;
-    if (hasTopLevelRoute) {
-      const topLevelRoute = {
-        transportationType: activity.transportationType || "1",
-        fromLocationName: activity.fromLocation || null,
-        toLocationName: activity.toLocation || null,
-        fromLocationId: null,
-        toLocationId: null,
-        transportationName: activity.transportationName || null,
-        durationMinutes: parseIntValue(activity.durationMinutes, 0),
-        price: parseDecimal(activity.price, 0),
-        pricingType: null,
-        requiresIndividualTicket: false,
-        ticketInfo: null,
-        note: null,
-        routeTranslations: {
-          vi: {
-            transportationName: null,
-            note: null,
-          },
-          ...(activity.enTransportationName ? {
-            en: {
-              transportationName: null,
-              note: null,
-            }
-          } : {})
-        }
-      };
-      mappedRoutes = [topLevelRoute, ...mappedRoutes];
-    }
-  }
-
-  return mappedRoutes;
-};
 
 export const buildServicesPayload = (services: ServicePayloadInput[], mode: "create" | "edit" = "create") =>
   services

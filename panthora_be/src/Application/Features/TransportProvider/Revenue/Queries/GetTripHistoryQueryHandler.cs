@@ -34,7 +34,7 @@ public sealed class GetTripHistoryQueryHandler(
         var result = items.Select(rt => new TripHistoryItemDto(
             rt.Id,
             rt.BookingActivityReservation?.BookingId.ToString() ?? string.Empty,
-            rt.TourPlanRoute?.TransportationName ?? rt.TourPlanRoute?.TransportationType.ToString() ?? string.Empty,
+            rt.TourDayActivity?.TransportationName ?? rt.TourDayActivity?.TransportationType?.ToString() ?? string.Empty,
             rt.UpdatedAt,
             rt.Vehicle?.VehiclePlate ?? string.Empty,
             rt.Driver?.FullName ?? string.Empty,

@@ -69,7 +69,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 LicenseType = DriverLicenseType.B2,
                 PhoneNumber = "0912345678"
             });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
         var command = ValidCommand(currentUserId, bookingId, routeId, driverId, vehicleId);
@@ -80,7 +80,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
         await _routeTransportRepository.Received().UpsertAsync(
             Arg.Is<TourDayActivityRouteTransportEntity>(e =>
                 e.BookingActivityReservationId == bookingId &&
-                e.TourPlanRouteId == routeId &&
+                e.TourDayActivityId == routeId &&
                 e.DriverId == driverId &&
                 e.VehicleId == vehicleId),
             Arg.Any<CancellationToken>());
@@ -154,7 +154,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 SeatCapacity = 50,
                 LocationArea = Continent.Europe
             });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
         var command = ValidCommand(currentUserId, bookingId, routeId, vehicleId: vehicleId);
@@ -190,7 +190,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 SeatCapacity = 15,
                 LocationArea = Continent.Asia
             });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
         var command = ValidCommand(currentUserId, bookingId, routeId, vehicleId: vehicleId);
@@ -201,7 +201,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
         await _routeTransportRepository.Received().UpsertAsync(
             Arg.Is<TourDayActivityRouteTransportEntity>(e =>
                 e.BookingActivityReservationId == bookingId &&
-                e.TourPlanRouteId == routeId &&
+                e.TourDayActivityId == routeId &&
                 e.VehicleId == vehicleId &&
                 e.DriverId == null),
             Arg.Any<CancellationToken>());
@@ -239,7 +239,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
         await _routeTransportRepository.Received().UpsertAsync(
             Arg.Is<TourDayActivityRouteTransportEntity>(e =>
                 e.BookingActivityReservationId == bookingId &&
-                e.TourPlanRouteId == routeId &&
+                e.TourDayActivityId == routeId &&
                 e.DriverId == driverId &&
                 e.VehicleId == null),
             Arg.Any<CancellationToken>());
@@ -264,7 +264,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
         await _routeTransportRepository.Received().UpsertAsync(
             Arg.Is<TourDayActivityRouteTransportEntity>(e =>
                 e.BookingActivityReservationId == bookingId &&
-                e.TourPlanRouteId == routeId &&
+                e.TourDayActivityId == routeId &&
                 e.DriverId == null &&
                 e.VehicleId == null),
             Arg.Any<CancellationToken>());
@@ -293,7 +293,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 SeatCapacity = 8,
                 LocationArea = null
             });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns(Continent.Asia);
 
         var command = ValidCommand(currentUserId, bookingId, routeId, vehicleId: vehicleId);
@@ -326,7 +326,7 @@ public sealed class AssignRouteTransportCommandHandlerTests
                 SeatCapacity = 5,
                 LocationArea = Continent.Americas
             });
-        _routeTransportRepository.GetTourContinentByRouteIdAsync(routeId, Arg.Any<CancellationToken>())
+        _routeTransportRepository.GetTourContinentByActivityIdAsync(routeId, Arg.Any<CancellationToken>())
             .Returns((Continent?)null);
 
         var command = ValidCommand(currentUserId, bookingId, routeId, vehicleId: vehicleId);

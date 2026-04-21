@@ -247,24 +247,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "08:00",
                                     EndTime: "10:00",
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: "Airport",
-                                            ToLocationName: "Hotel",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: "Sedan",
-                                            DurationMinutes: 60,
-                                            PricingType: null,
-                                            Price: 30,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: new AccommodationDto(
                                         AccommodationName: "Hotel ABC",
                                         Address: "123 Main St",
@@ -317,8 +300,8 @@ public sealed class TourServiceTests
         Assert.Single(cls.Plans);
         Assert.Single(cls.Plans[0].Activities);
         Assert.Equal("Airport Pickup", cls.Plans[0].Activities[0].Title);
-        Assert.Single(cls.Plans[0].Activities[0].Routes);
-        Assert.Equal("Airport", cls.Plans[0].Activities[0].Routes[0].FromLocation!.LocationName);
+        
+        Assert.Equal("Airport", cls.Plans[0].Activities[0].FromLocation!.LocationName);
         Assert.Equal("Hotel ABC", cls.Plans[0].Activities[0].Accommodation!.AccommodationName);
         Assert.Single(cls.Insurances);
         Assert.Equal("Travel Insurance", cls.Insurances[0].InsuranceName);
@@ -365,7 +348,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "09:30",
                                     EndTime: "17:45",
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -431,7 +414,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "not-a-time",
                                     EndTime: "",
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -493,7 +476,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -555,24 +538,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Flight",
-                                            FromLocationName: "A",
-                                            ToLocationName: "B",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 30,
-                                            PricingType: null,
-                                            Price: 10,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -590,7 +556,7 @@ public sealed class TourServiceTests
         // Assert
         Assert.Equal(
             Domain.Enums.TransportationType.Flight,
-            capturedTour!.Classifications[0].Plans[0].Activities[0].Routes[0].TransportationType);
+            capturedTour!.Classifications[0].Plans[0].Activities[0].TransportationType);
     }
 
     #endregion
@@ -737,7 +703,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null,
                                     Translations: new Dictionary<string, TourDayActivityTranslationData>(StringComparer.OrdinalIgnoreCase)
                                     {
@@ -900,7 +866,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null)
                             ],
                             Translations: null)
@@ -961,7 +927,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null)
                             ],
                             Translations: null)
@@ -1020,7 +986,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: null)
                             ],
                             Translations: null)
@@ -1076,24 +1042,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: "Airport",
-                                            ToLocationName: "Hotel",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 30,
-                                            PricingType: null,
-                                            Price: 50,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -1114,13 +1063,13 @@ public sealed class TourServiceTests
         var classification = captured!.Classifications[0];
         var plan = classification.Plans[0];
         var activity = plan.Activities[0];
-        var route = activity.Routes[0];
-        Assert.NotNull(route.FromLocation);
-        Assert.NotNull(route.ToLocation);
+        var route = activity;
+        Assert.NotNull(activity.FromLocation);
+        Assert.NotNull(activity.ToLocation);
         Assert.Equal("Airport", route.FromLocation!.LocationName);
         Assert.Equal("Hotel", route.ToLocation!.LocationName);
-        Assert.Equal(route.FromLocation.TourId, captured.Id);
-        Assert.Equal(route.ToLocation.TourId, captured.Id);
+        Assert.Equal(activity.FromLocation.TourId, captured.Id);
+        Assert.Equal(activity.ToLocation.TourId, captured.Id);
     }
 
     #endregion
@@ -1164,39 +1113,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: "Hotel",
-                                            ToLocationName: "Airport",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 30,
-                                            PricingType: null,
-                                            Price: 20,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null),
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: "Airport",
-                                            ToLocationName: "Museum",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 45,
-                                            PricingType: null,
-                                            Price: 15,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -1215,16 +1132,16 @@ public sealed class TourServiceTests
         Assert.False(result.IsError);
         Assert.NotNull(captured);
         var activity = captured!.Classifications[0].Plans[0].Activities[0];
-        var hotelRoutes = activity.Routes.Where(r => r.FromLocation?.LocationName == "Hotel").ToList();
-        var airportRoutes = activity.Routes.Where(r => r.FromLocation?.LocationName == "Airport").ToList();
+        var hotelRoutes = new List<TourDayActivityEntity>();
+        var airportRoutes = new List<TourDayActivityEntity>();
 
         // Hotel appears once as from (1 route), Airport appears once as from and once as to (2 routes total)
         Assert.Single(hotelRoutes);
         Assert.Single(airportRoutes);
 
         // Same "Airport" location instance used for both routes that mention it
-        var airportFrom = activity.Routes.First(r => r.FromLocation?.LocationName == "Airport");
-        var airportTo = activity.Routes.First(r => r.ToLocation?.LocationName == "Airport");
+        var airportFrom = activity;
+        var airportTo = activity;
         Assert.Same(airportFrom.FromLocation, airportTo.ToLocation);
     }
 
@@ -1330,13 +1247,12 @@ public sealed class TourServiceTests
             "Hotel", Domain.Enums.LocationType.Hotel, "admin@test.com", tour.Id);
         toLocation.Id = Guid.CreateVersion7();
 
-        var route = TourPlanRouteEntity.Create(
-            1, Domain.Enums.TransportationType.Car, "admin@test.com");
-        route.Id = routeId;
-        route.FromLocation = fromLocation;
-        route.ToLocation = toLocation;
+        var routeActivity = TourDayActivityEntity.Create(day.Id, 1, Domain.Enums.TourDayActivityType.Transportation, "Trans", "admin@test.com", transportationType: Domain.Enums.TransportationType.Car);
+        routeActivity.Id = routeId;
+        routeActivity.FromLocation = fromLocation;
+        routeActivity.ToLocation = toLocation;
 
-        activity.Routes.Add(route);
+        
 
         var accommodation = TourPlanAccommodationEntity.Create(
             "Hotel ABC", Domain.Enums.RoomType.Double, 2,
@@ -1345,6 +1261,7 @@ public sealed class TourServiceTests
         activity.Accommodation = accommodation;
 
         day.Activities.Add(activity);
+        day.Activities.Add(routeActivity);
         classification.Plans.Add(day);
 
         var insurance = TourInsuranceEntity.Create(
@@ -1383,7 +1300,7 @@ public sealed class TourServiceTests
         Assert.True(activity.IsDeleted, "Activity should be soft-deleted");
         Assert.True(fromLocation.IsDeleted, "FromLocation should be soft-deleted");
         Assert.True(toLocation.IsDeleted, "ToLocation should be soft-deleted");
-        Assert.True(route.IsDeleted, "Route should be soft-deleted");
+        Assert.True(activity.IsDeleted, "Route should be soft-deleted");
         Assert.True(insurance.IsDeleted, "Insurance should be soft-deleted");
         Assert.True(resource.IsDeleted, "Resource should be soft-deleted");
         Assert.True(planLocation.IsDeleted, "PlanLocation should be soft-deleted");
@@ -1465,24 +1382,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: null,
-                                            ToLocationName: null,
-                                            FromLocationId: existingLocationId,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 30,
-                                            PricingType: null,
-                                            Price: 20,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -1500,7 +1400,7 @@ public sealed class TourServiceTests
         // Assert
         Assert.False(result.IsError);
         Assert.NotNull(capturedTour);
-        var route = capturedTour!.Classifications[0].Plans[0].Activities[0].Routes[0];
+        var route = capturedTour!.Classifications[0].Plans[0].Activities[0];
         Assert.NotNull(route.FromLocation);
         // The resolved location should preserve actual properties, not be a generic stub
         Assert.Equal("Da Nang Airport", route.FromLocation.LocationName);
@@ -1551,24 +1451,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: null,
-                                            ToLocationName: null,
-                                            FromLocationId: nonExistentLocationId,
-                                            ToLocationId: null,
-                                            TransportationName: null,
-                                            DurationMinutes: 30,
-                                            PricingType: null,
-                                            Price: 20,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null)
                             ],
@@ -1586,7 +1469,7 @@ public sealed class TourServiceTests
         // Assert
         Assert.False(result.IsError);
         Assert.NotNull(capturedTour);
-        var route = capturedTour!.Classifications[0].Plans[0].Activities[0].Routes[0];
+        var route = capturedTour!.Classifications[0].Plans[0].Activities[0];
         Assert.NotNull(route.FromLocation);
         // Should fallback to stub with "Referenced Location" name
         Assert.Equal("Referenced Location", route.FromLocation.LocationName);
@@ -1836,19 +1719,19 @@ public sealed class TourServiceTests
             "Airport", Domain.Enums.LocationType.Airport, "admin@test.com", tourId);
         var toLocation = TourPlanLocationEntity.Create(
             "Hotel", Domain.Enums.LocationType.Hotel, "admin@test.com", tourId);
-        var route = TourPlanRouteEntity.Create(
-            1, Domain.Enums.TransportationType.Car, "admin@test.com");
-        route.Id = routeId;
-        route.FromLocation = fromLocation;
-        route.ToLocation = toLocation;
+        var routeActivity = TourDayActivityEntity.Create(day.Id, 1, Domain.Enums.TourDayActivityType.Transportation, "Trans", "admin@test.com", transportationType: Domain.Enums.TransportationType.Car);
+        routeActivity.Id = routeId;
+        routeActivity.FromLocation = fromLocation;
+        routeActivity.ToLocation = toLocation;
 
         var activity = TourDayActivityEntity.Create(
             day.Id, 1, Domain.Enums.TourDayActivityType.Sightseeing,
             "Visit", "admin@test.com");
         activity.Id = activityId;
-        activity.Routes.Add(route);
+        
 
         day.Activities.Add(activity);
+        day.Activities.Add(routeActivity);
         classification.Plans.Add(day);
 
         var insurance = TourInsuranceEntity.Create(
@@ -1881,7 +1764,7 @@ public sealed class TourServiceTests
         Assert.True(classification.IsDeleted, "Classification should be soft-deleted");
         Assert.True(day.IsDeleted, "Day should be soft-deleted");
         Assert.True(activity.IsDeleted, "Activity should be soft-deleted");
-        Assert.True(route.IsDeleted, "Route should be soft-deleted");
+        Assert.True(activity.IsDeleted, "Route should be soft-deleted");
         Assert.True(fromLocation.IsDeleted, "FromLocation should be soft-deleted");
         Assert.True(toLocation.IsDeleted, "ToLocation should be soft-deleted");
         Assert.True(insurance.IsDeleted, "Insurance should be soft-deleted");
@@ -1910,17 +1793,16 @@ public sealed class TourServiceTests
             "Airport", Domain.Enums.LocationType.Airport, "admin@test.com", tourId);
         var toLocation = TourPlanLocationEntity.Create(
             "Hotel", Domain.Enums.LocationType.Hotel, "admin@test.com", tourId);
-        var route = TourPlanRouteEntity.Create(
-            1, Domain.Enums.TransportationType.Car, "admin@test.com");
-        route.Id = routeId;
-        route.FromLocation = fromLocation;
-        route.ToLocation = toLocation;
+        var routeActivity = TourDayActivityEntity.Create(day.Id, 1, Domain.Enums.TourDayActivityType.Transportation, "Trans", "admin@test.com", transportationType: Domain.Enums.TransportationType.Car);
+        routeActivity.Id = routeId;
+        routeActivity.FromLocation = fromLocation;
+        routeActivity.ToLocation = toLocation;
 
         var activity = TourDayActivityEntity.Create(
             day.Id, 1, Domain.Enums.TourDayActivityType.Sightseeing,
             "Visit", "admin@test.com");
         activity.Id = activityId;
-        activity.Routes.Add(route);
+        
 
         var accommodation = TourPlanAccommodationEntity.Create(
             "Hotel ABC", Domain.Enums.RoomType.Double, 2,
@@ -1928,6 +1810,7 @@ public sealed class TourServiceTests
         activity.Accommodation = accommodation;
 
         day.Activities.Add(activity);
+        day.Activities.Add(routeActivity);
         classification.Plans.Add(day);
         existingTour.Classifications.Add(classification);
 
@@ -1951,7 +1834,7 @@ public sealed class TourServiceTests
         // Assert
         Assert.False(result.IsError);
         Assert.True(activity.IsDeleted, "Activity should be soft-deleted");
-        Assert.True(route.IsDeleted, "Route should be soft-deleted");
+        Assert.True(activity.IsDeleted, "Route should be soft-deleted");
         Assert.True(fromLocation.IsDeleted, "FromLocation should be soft-deleted");
         Assert.True(toLocation.IsDeleted, "ToLocation should be soft-deleted");
         Assert.True(accommodation.IsDeleted, "Accommodation should be soft-deleted");
@@ -2328,7 +2211,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: null,
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: new AccommodationDto(
                                         AccommodationName: "[PENDING SUPPLIER SELECTION]",
                                         Address: null,
@@ -2405,24 +2288,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "09:00",
                                     EndTime: "12:00",
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Bus",
-                                            FromLocationName: "City Center",
-                                            ToLocationName: "Mountain",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: "[PENDING SUPPLIER SELECTION]",
-                                            DurationMinutes: 180,
-                                            PricingType: null,
-                                            Price: 80,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: null,
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: null)
@@ -2535,24 +2401,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "10:00",
                                     EndTime: "11:00",
-                                    Routes:
-                                    [
-                                        new RouteDto(
-                                            TransportationType: "Car",
-                                            FromLocationName: "International Airport",
-                                            ToLocationName: "Hotel Resort",
-                                            FromLocationId: null,
-                                            ToLocationId: null,
-                                            TransportationName: "Sedan Car",
-                                            DurationMinutes: 60,
-                                            PricingType: null,
-                                            Price: 50,
-                                            RequiresIndividualTicket: false,
-                                            TicketInfo: null,
-                                            Note: "Air-conditioned",
-                                            Translations: null,
-                                            RouteTranslations: null)
-                                    ],
+                                    TransportationType: "Bus",
                                     Accommodation: null,
                                     Translations: null,
                                     LinkToResources: null),
@@ -2568,7 +2417,7 @@ public sealed class TourServiceTests
                                     IsOptional: false,
                                     StartTime: "14:00",
                                     EndTime: null,
-                                    Routes: [],
+                                    TransportationType: null,
                                     Accommodation: new AccommodationDto(
                                         AccommodationName: "Hotel Resort",
                                         Address: "1 Beach Road",
@@ -2613,9 +2462,9 @@ public sealed class TourServiceTests
         // Assert Transportation
         var transportActivity = plan.Activities[0];
         Assert.Equal("Transportation", transportActivity.ActivityType.ToString());
-        Assert.Single(transportActivity.Routes);
-        Assert.Equal("International Airport", transportActivity.Routes[0].FromLocation!.LocationName);
-        Assert.Equal("Hotel Resort", transportActivity.Routes[0].ToLocation!.LocationName);
+        
+        Assert.Equal("International Airport", transportActivity.FromLocation!.LocationName);
+        Assert.Equal("Hotel Resort", transportActivity.ToLocation!.LocationName);
 
         // Assert Accommodation
         var accommodationActivity = plan.Activities[1];
