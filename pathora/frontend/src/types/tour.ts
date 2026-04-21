@@ -5,8 +5,8 @@ export interface TourDayActivityTranslationData {
   note?: string | null;
   transportationType?: string | null;
   transportationName?: string | null;
-  fromLocation?: string | null;
-  toLocation?: string | null;
+  fromLocationName?: string | null;
+  toLocationName?: string | null;
 }
 
 
@@ -80,6 +80,7 @@ export interface TourPlanAccommodationDto {
   latitude: number | null;
   longitude: number | null;
   note: string | null;
+  translations?: Record<string, any>;
 }
 
 export interface TourDayActivityDto {
@@ -109,8 +110,8 @@ export interface TourDayActivityDto {
   locationAddress?: string | null;
   locationEntranceFee?: number | null;
   // Transportation fields — for type 7 (Transportation) activities
-  fromLocation?: string | null;
-  toLocation?: string | null;
+  fromLocationName?: string | null;
+  toLocationName?: string | null;
   transportationType?: string | null;
   transportationName?: string | null;
   durationMinutes?: number | null;

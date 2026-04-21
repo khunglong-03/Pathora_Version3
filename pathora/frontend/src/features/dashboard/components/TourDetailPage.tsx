@@ -152,7 +152,7 @@ function OverviewTab({
               const locationCount =
                 cls.plans?.flatMap((d) =>
                   d.activities.flatMap((a) =>
-                    [a.fromLocation, a.toLocation].filter(Boolean),
+                    [a.fromLocationName, a.toLocationName].filter(Boolean),
                   ),
                 ).length ?? 0;
               const serviceCount = cls.insurances?.length ?? 0;
@@ -682,8 +682,8 @@ function TransportationTab({
     note?: string | null;
     durationMinutes?: number | null;
     price?: number | null;
-    fromLocation?: string | null;
-    toLocation?: string | null;
+    fromLocationName?: string | null;
+    toLocationName?: string | null;
     transportationType?: string | null;
   }[];
   packageName?: string;
@@ -720,8 +720,8 @@ function TransportationTab({
       <div className="space-y-3">
         {routes.map((route, idx) => {
           const routeTitle =
-            route.fromLocation && route.toLocation
-              ? `${route.fromLocation} to ${route.toLocation}`
+            route.fromLocationName && route.toLocationName
+              ? `${route.fromLocationName} to ${route.toLocationName}`
               : route.transportationName || `Route ${idx + 1}`;
 
           const transportType =
@@ -875,6 +875,18 @@ function ItineraryTab({ classification }: { classification: TourClassificationDt
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold ${badgeColor.bg} ${badgeColor.text}`}>
                               {typeName}
                             </span>
+                            {(activity.activityType === "7" || activity.activityType === "Transportation") && activity.transportationName ? (
+                              <span className="inline-flex items-center gap-1 font-medium text-amber-600 text-xs">
+                                <Icon icon="heroicons:truck" className="size-3" />
+                                {activity.transportationName}
+                              </span>
+                            ) : null}
+                            {(activity.activityType === "8" || activity.activityType === "Accommodation") && (activity.accommodation?.accommodationName || activity.locationName) ? (
+                              <span className="inline-flex items-center gap-1 font-medium text-indigo-600 text-xs">
+                                <Icon icon="heroicons:building-office-2" className="size-3" />
+                                {activity.accommodation?.accommodationName || activity.locationName}
+                              </span>
+                            ) : null}
                             {activity.startTime && (
                               <span className="text-xs text-stone-400">
                                 {activity.startTime}{activity.endTime && ` – ${activity.endTime}`}

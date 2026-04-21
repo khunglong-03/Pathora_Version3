@@ -568,171 +568,63 @@ export function TourItineraryBuilder({
                           </div>
                         </div>
 
-                        {/* Link to Resources and generic location (hidden for transportation) */}
-                        {act.activityType !== "7" && (
-                          <>
+                        {/* Type 8: Accommodation */}
+                        {act.activityType === "8" && (
+                          <div className="mb-3 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div className="md:col-span-2">
+                              <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+                                {t("tourAdmin.itineraries.accommodationDetails", "Accommodation Details")}
+                              </h4>
+                            </div>
                             <div>
                               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                            {t("tourAdmin.itineraries.linkToResources")}
-                          </label>
-                          <div className="space-y-2">
-                            {act.linkToResources.map((link, li) => (
-                              <div
-                                key={li}
-                                className="flex items-start gap-2">
-                                <div className="flex-1">
-                                  <input
-                                    type="text"
-                                    value={link}
-                                    onChange={(e) =>
-                                      onUpdateLinkToResource(
-                                        ci,
-                                        di,
-                                        ai,
-                                        li,
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder={t("tourAdmin.itineraries.placeholderHttps")}
-                                    className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message
-                                        ? "border-red-400 dark:border-red-500"
-                                        : "border-slate-300 dark:border-slate-600"
-                                    }`}
-                                  />
-                                  {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message && (
-                                    <p className="text-red-500 text-xs mt-0.5">
-                                      {// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(errors.dayPlans?.[ci]?.[di]?.activities?.[ai]?.linkToResources?.[li] as any)?.message}
-                                    </p>
-                                  )}
-                                </div>
-                                {act.linkToResources.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      onRemoveLinkToResource(
-                                        ci,
-                                        di,
-                                        ai,
-                                        li,
-                                      )
-                                    }
-                                    aria-label="Remove link"
-                                    className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all rounded p-1 mt-0.5">
-                                    <Icon
-                                      icon="heroicons:x-mark"
-                                      className="size-4"
-                                    />
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onAddLinkToResource(ci, di, ai)
-                              }
-                              className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors">
-                              <Icon
-                                icon="heroicons:plus"
-                                className="size-3"
+                                {t("tourAdmin.itineraries.accommodationName", "Accommodation Name")} (VI)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.locationName}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "locationName", e.target.value)}
+                                placeholder="Tên khách sạn / Nơi lưu trú..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                               />
-                              {t("tourAdmin.buttons.addLink")}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Activity location fields — ALL activity types */}
-                        <div className="mb-3 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                              {t("tourAdmin.itineraries.locationName", "Location")} (VI)
-                            </label>
-                            <input
-                              type="text"
-                              value={act.locationName}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationName", e.target.value)}
-                              placeholder={t("tourAdmin.itineraries.placeholderLocation", "Location name...")}
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                              {t("tourAdmin.itineraries.locationName", "Location")} (EN)
-                            </label>
-                            <input
-                              type="text"
-                              value={act.enLocationName}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationName", e.target.value)}
-                              placeholder="Location name in English..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">City (VI)</label>
-                            <input
-                              type="text"
-                              value={act.locationCity}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationCity", e.target.value)}
-                              placeholder="City..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">City (EN)</label>
-                            <input
-                              type="text"
-                              value={act.enLocationCity}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationCity", e.target.value)}
-                              placeholder="City in English..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Country (VI)</label>
-                            <input
-                              type="text"
-                              value={act.locationCountry}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationCountry", e.target.value)}
-                              placeholder="Country..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Country (EN)</label>
-                            <input
-                              type="text"
-                              value={act.enLocationCountry}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationCountry", e.target.value)}
-                              placeholder="Country in English..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address (VI)</label>
-                            <input
-                              type="text"
-                              value={act.locationAddress}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "locationAddress", e.target.value)}
-                              placeholder="Address..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Address (EN)</label>
-                            <input
-                              type="text"
-                              value={act.enLocationAddress}
-                              onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationAddress", e.target.value)}
-                              placeholder="Address in English..."
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                {t("tourAdmin.itineraries.accommodationName", "Accommodation Name")} (EN)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.enLocationName}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationName", e.target.value)}
+                                placeholder="Accommodation name in English..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                {t("tourAdmin.itineraries.address", "Address")} (VI)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.locationAddress}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "locationAddress", e.target.value)}
+                                placeholder="Địa chỉ..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                {t("tourAdmin.itineraries.address", "Address")} (EN)
+                              </label>
+                              <input
+                                type="text"
+                                value={act.enLocationAddress}
+                                onChange={(e) => onUpdateActivity(ci, di, ai, "enLocationAddress", e.target.value)}
+                                placeholder="Address in English..."
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              />
                             </div>
                           </div>
-                          </>
                         )}
 
                         {/* Type 7: Transportation */}

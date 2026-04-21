@@ -237,10 +237,16 @@ export function TourDesignerTourDetailPage() {
                                       <div>
                                         <p className="font-medium text-slate-800">{act.title}</p>
                                         <p className="text-xs text-slate-500 mt-0.5">
-                                          {act.activityType === "7" && act.transportationName ? (
+                                          {(act.activityType === "7" || act.activityType === "Transportation") && act.transportationName ? (
                                             <span className="inline-flex items-center gap-1 font-medium text-amber-600 mr-2">
                                               <Icon icon="heroicons:truck" className="size-3" />
                                               {act.transportationName}
+                                            </span>
+                                          ) : null}
+                                          {(act.activityType === "8" || act.activityType === "Accommodation") && (act.accommodation?.accommodationName || act.locationName) ? (
+                                            <span className="inline-flex items-center gap-1 font-medium text-indigo-600 mr-2">
+                                              <Icon icon="heroicons:building-office-2" className="size-3" />
+                                              {act.accommodation?.accommodationName || act.locationName}
                                             </span>
                                           ) : null}
                                           {(act.startTime || act.endTime) && (

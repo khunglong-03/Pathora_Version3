@@ -26,5 +26,6 @@ public sealed record TourPlanAccommodationDto(
     string? CreatedBy,
     DateTimeOffset CreatedOnUtc,
     string? LastModifiedBy,
-    DateTimeOffset? LastModifiedOnUtc
+    DateTimeOffset? LastModifiedOnUtc,
+    Dictionary<string, Domain.Entities.Translations.TourPlanAccommodationTranslationData>? Translations = null
 );

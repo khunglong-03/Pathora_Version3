@@ -338,6 +338,24 @@ const emptyService = (): ServiceForm => ({
    All state, handlers, validation, and wizard logic live here.
    Step JSX is delegated to builder components in ./builders/
    ══════════════════════════════════════════════════════════════ */
+const mapActivityType = (type: string | number): string => {
+  if (typeof type === "number") return String(type);
+  const map: Record<string, string> = {
+    "Sightseeing": "0",
+    "Dining": "1",
+    "Shopping": "2",
+    "Adventure": "3",
+    "Relaxation": "4",
+    "Cultural": "5",
+    "Entertainment": "6",
+    "Transportation": "7",
+    "Accommodation": "8",
+    "FreeTime": "9",
+    "Other": "99"
+  };
+  return map[type] ?? String(type);
+};
+
 export default function TourForm({ mode, initialData, existingImages: initialExistingImages, onSubmit, onCancel }: TourFormProps) {
   const { t } = useTranslation();
   const isEditMode = mode === "edit";
@@ -619,7 +637,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           enDescription: day.translations?.en?.description ?? "",
           activities: (day.activities ?? []).map((act) => ({
             id: act.id,
-            activityType: String(act.activityType),
+            activityType: mapActivityType(act.activityType),
             title: act.title ?? "",
             enTitle: act.translations?.en?.title ?? "",
             description: act.description ?? "",

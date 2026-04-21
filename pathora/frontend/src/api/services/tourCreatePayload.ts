@@ -213,16 +213,27 @@ const buildActivityTranslations = (
   enNote: string,
   enTransportationType?: string,
   enTransportationName?: string,
+  viFromLocation?: string,
+  viToLocation?: string,
+  enFromLocation?: string,
+  enToLocation?: string,
 ): Record<string, Record<string, string | undefined>> => {
   const result: Record<string, Record<string, string | undefined>> = {
     vi: { title: viTitle, description: viDesc, note: viNote },
   };
+  
+  if (viFromLocation?.trim()) result.vi.fromLocationName = viFromLocation.trim();
+  if (viToLocation?.trim()) result.vi.toLocationName = viToLocation.trim();
+
   const hasEnTransportation = (enTransportationType?.trim().length ?? 0) > 0 || (enTransportationName?.trim().length ?? 0) > 0;
+  const hasEnLocation = (enFromLocation?.trim().length ?? 0) > 0 || (enToLocation?.trim().length ?? 0) > 0;
+  
   if (
     enTitle.trim().length > 0 ||
     enDesc.trim().length > 0 ||
     enNote.trim().length > 0 ||
-    hasEnTransportation
+    hasEnTransportation ||
+    hasEnLocation
   ) {
     const enObj: Record<string, string | undefined> = {
       title: enTitle,
@@ -232,6 +243,10 @@ const buildActivityTranslations = (
     if (hasEnTransportation) {
       if (enTransportationType?.trim().length) enObj.transportationType = enTransportationType;
       if (enTransportationName?.trim().length) enObj.transportationName = enTransportationName;
+    }
+    if (hasEnLocation) {
+      if (enFromLocation?.trim().length) enObj.fromLocationName = enFromLocation.trim();
+      if (enToLocation?.trim().length) enObj.toLocationName = enToLocation.trim();
     }
     result.en = enObj;
   }
@@ -390,8 +405,12 @@ const buildClassificationsPayload = (
             activity.enTitle,
             activity.enDescription,
             activity.enNote,
-            activity.enTransportationType,
-            activity.enTransportationName,
+            activity.activityType === "7" ? activity.enTransportationType : undefined,
+            activity.activityType === "7" ? activity.enTransportationName : undefined,
+            activity.activityType === "7" ? activity.fromLocation : undefined,
+            activity.activityType === "7" ? activity.toLocation : undefined,
+            activity.activityType === "7" ? activity.enFromLocation : undefined,
+            activity.activityType === "7" ? activity.enToLocation : undefined,
           ),
         };
       }),

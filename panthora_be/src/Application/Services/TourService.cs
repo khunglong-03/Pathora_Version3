@@ -167,8 +167,8 @@ public class TourService(
                             var fromLocationName = enTranslation?.FromLocationName;
                             var toLocationName = enTranslation?.ToLocationName;
                             
-                            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour.Id);
-                            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour.Id);
+                            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
+                            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 
                             TransportationType? routeTransportType = null;
                             if (!string.IsNullOrWhiteSpace(act.TransportationType))
@@ -827,39 +827,41 @@ public class TourService(
     /// <summary>
     /// Resolves a location: uses the provided LocationId if available,
     /// otherwise looks up or creates a TourPlanLocationEntity for the given name.
-    /// Deduplication is performed within the current Create() call.
+    /// Returns null when neither an id nor a name is supplied so callers don't
+    /// wire ghost "Unknown" locations onto entities. Newly-created locations are
+    /// attached to <paramref name="tour"/> and marked added so EF inserts them
+    /// on the Update path (where the graph is already tracked).
     /// </summary>
-    private async Task<TourPlanLocationEntity> ResolveLocationAsync(Guid? locationId, string? locationName, Guid tourId)
+    private async Task<TourPlanLocationEntity?> ResolveLocationAsync(Guid? locationId, string? locationName, TourEntity tour)
     {
-        if (locationId.HasValue && locationId != Guid.Empty)
+        var hasId = locationId.HasValue && locationId != Guid.Empty;
+        var hasName = !string.IsNullOrWhiteSpace(locationName);
+        if (!hasId && !hasName)
         {
-            // Reference to an existing location — fetch the actual entity from DB
-            var existingLocation = await _tourRepository.FindLocationByIdAsync(locationId.Value);
+            return null;
+        }
+
+        if (hasId)
+        {
+            var existingLocation = await _tourRepository.FindLocationByIdAsync(locationId!.Value);
             if (existingLocation != null)
             {
-                // Update the TourId to point to the current tour and return the fetched entity
-                existingLocation.TourId = tourId;
+                existingLocation.TourId = tour.Id;
                 return existingLocation;
             }
-            // Fallback to stub if not found
-            return TourPlanLocationEntity.Create(
+            // Fallback stub — FK target did not exist; track as added.
+            var stub = TourPlanLocationEntity.Create(
                 locationName ?? "Referenced Location",
                 LocationType.Other,
                 _user.Id ?? string.Empty,
-                tourId);
+                tour.Id);
+            AttachNewLocation(tour, stub);
+            return stub;
         }
 
-        if (string.IsNullOrWhiteSpace(locationName))
-        {
-            return TourPlanLocationEntity.Create(
-                "Unknown",
-                LocationType.Other,
-                _user.Id ?? string.Empty,
-                tourId);
-        }
-
-        var key = (locationName.Trim(), (string?)null, (string?)null);
-        if (_locationCache!.TryGetValue(key, out var cached))
+        _locationCache ??= new Dictionary<(string Name, string? City, string? Country), TourPlanLocationEntity>();
+        var key = (locationName!.Trim(), (string?)null, (string?)null);
+        if (_locationCache.TryGetValue(key, out var cached))
         {
             return cached;
         }
@@ -868,9 +870,19 @@ public class TourService(
             locationName.Trim(),
             LocationType.Other,
             _user.Id ?? string.Empty,
-            tourId);
+            tour.Id);
         _locationCache[key] = location;
+        AttachNewLocation(tour, location);
         return location;
+    }
+
+    private void AttachNewLocation(TourEntity tour, TourPlanLocationEntity location)
+    {
+        if (!tour.PlanLocations.Contains(location))
+        {
+            tour.PlanLocations.Add(location);
+        }
+        _unitOfWork.MarkAsAdded(location);
     }
 
     /// <summary>
@@ -962,7 +974,7 @@ public class TourService(
                 tour.Classifications.Add(classification);
             }
 
-            await UpdatePlansAsync(classification, cls.Plans);
+            await UpdatePlansAsync(tour, classification, cls.Plans);
 
             // Update Insurances (replace-on-submit)
             var providedInsuranceIds = cls.Insurances.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
@@ -1016,7 +1028,7 @@ public class TourService(
         }
     }
 
-    private async Task UpdatePlansAsync(TourClassificationEntity classification, List<DayPlanDto> plans)
+    private async Task UpdatePlansAsync(TourEntity tour, TourClassificationEntity classification, List<DayPlanDto> plans)
     {
         foreach (var plan in plans)
         {
@@ -1043,11 +1055,11 @@ public class TourService(
                 classification.Plans.Add(day);
             }
 
-            await UpdateActivitiesAsync(classification.TourId, day, plan.Activities);
+            await UpdateActivitiesAsync(tour, day, plan.Activities);
         }
     }
 
-    private async Task UpdateActivitiesAsync(Guid tourId, TourDayEntity day, List<ActivityDto> activities)
+    private async Task UpdateActivitiesAsync(TourEntity tour, TourDayEntity day, List<ActivityDto> activities)
     {
         foreach (var act in activities)
         {
@@ -1070,8 +1082,8 @@ public class TourService(
             var fromLocationName = enTranslation?.FromLocationName;
             var toLocationName = enTranslation?.ToLocationName;
             
-            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tourId);
-            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tourId);
+            var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
+            var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 
             TransportationType? routeTransportType = null;
             if (!string.IsNullOrWhiteSpace(act.TransportationType))

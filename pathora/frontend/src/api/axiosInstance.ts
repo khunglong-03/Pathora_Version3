@@ -84,6 +84,42 @@ const attachInterceptors = (instance: AxiosInstance): void => {
         delete config.headers["Content-Type"];
       }
 
+      // --- DEV LOGGER: Bắt và in ra mọi request gửi đi ---
+      if (process.env.NODE_ENV === "development") {
+        console.groupCollapsed(`🚀 [API REQUEST] ${config.method?.toUpperCase()} ${config.url}`);
+        if (config.params && Object.keys(config.params).length > 0) {
+          console.log("Params:", config.params);
+        }
+        
+        let parsedData = config.data;
+        if (config.data instanceof FormData) {
+          const obj: Record<string, any> = {};
+          config.data.forEach((value, key) => {
+            if (value instanceof File) {
+              obj[key] = `[File: ${value.name} (${value.size} bytes)]`;
+            } else if (obj[key] !== undefined) {
+              if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+              obj[key].push(value);
+            } else {
+              obj[key] = value;
+            }
+          });
+          console.log("Payload (FormData):", obj);
+        } else if (typeof config.data === "string") {
+          try {
+            console.log("Payload (JSON):", JSON.parse(config.data));
+          } catch {
+            console.log("Payload (Raw String):", config.data);
+          }
+        } else if (config.data) {
+          console.log("Payload (Object):", config.data);
+        } else {
+          console.log("Payload: (Empty)");
+        }
+        console.groupEnd();
+      }
+      // ----------------------------------------------------
+
       return config;
     },
     (error) => {

@@ -361,6 +361,29 @@ const emptyService = (): ServiceForm => ({
 });
 
 /* ══════════════════════════════════════════════════════════════
+   TourForm — Shell Component
+   All state, handlers, validation, and wizard logic live here.
+   ══════════════════════════════════════════════════════════════ */
+
+const mapActivityType = (type: string | number): string => {
+  if (typeof type === "number") return String(type);
+  const map: Record<string, string> = {
+    "Sightseeing": "0",
+    "Dining": "1",
+    "Shopping": "2",
+    "Adventure": "3",
+    "Relaxation": "4",
+    "Cultural": "5",
+    "Entertainment": "6",
+    "Transportation": "7",
+    "Accommodation": "8",
+    "FreeTime": "9",
+    "Other": "99"
+  };
+  return map[type] ?? String(type);
+};
+
+/* ══════════════════════════════════════════════════════════════
    Create Tour Page — Multi-step Wizard (5 Steps)
    Note: Accommodations, Locations, Transportation steps removed —
          their data is now embedded in activity forms.
@@ -620,7 +643,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           enDescription: day.translations?.en?.description ?? "",
           activities: (day.activities ?? []).map((act) => ({
             id: act.id,
-            activityType: String(act.activityType),
+            activityType: mapActivityType(act.activityType),
             title: act.title ?? "",
             enTitle: act.translations?.en?.title ?? "",
             description: act.description ?? "",
@@ -633,20 +656,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             endTime: act.endTime ?? "",
             linkToResources: [""],
             // Location fields — all activity types
-            locationName: act.locationName ?? "",
-            enLocationName: "",
+            locationName: act.accommodation?.accommodationName ?? act.locationName ?? "",
+            enLocationName: act.accommodation?.translations?.en?.accommodationName ?? "",
             locationCity: act.locationCity ?? "",
             enLocationCity: "",
             locationCountry: act.locationCountry ?? "",
             enLocationCountry: "",
-            locationAddress: act.locationAddress ?? "",
-            enLocationAddress: "",
+            locationAddress: act.accommodation?.address ?? act.locationAddress ?? "",
+            enLocationAddress: act.accommodation?.translations?.en?.address ?? "",
             locationEntranceFee: String(act.locationEntranceFee ?? ""),
             // Transportation fields — type 7
-            fromLocation: act.fromLocation ?? "",
-            enFromLocation: act.translations?.en?.fromLocation ?? "",
-            toLocation: act.toLocation ?? "",
-            enToLocation: act.translations?.en?.toLocation ?? "",
+            fromLocation: act.fromLocationName ?? "",
+            enFromLocation: act.translations?.en?.fromLocationName ?? "",
+            toLocation: act.toLocationName ?? "",
+            enToLocation: act.translations?.en?.toLocationName ?? "",
             transportationType: act.transportationType ?? "0",
             enTransportationType: act.translations?.en?.transportationType ?? "",
             transportationName: act.transportationName ?? "",
@@ -820,7 +843,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     if (step === 3) {
       // Step 3 = Services (was step 6)
       services.forEach((svc, i) => {
-        if (svc.serviceName.trim() || svc.pricingType.trim() || svc.price.trim()) {
+        const hasAnyField = svc.serviceName.trim() || svc.enServiceName.trim() || svc.pricingType.trim() || svc.price.trim() || svc.salePrice.trim() || svc.email.trim() || svc.contactNumber.trim();
+        if (hasAnyField) {
           if (!svc.serviceName.trim())
             newErrors[`svc_${i}_name`] = t("tourAdmin.required", "Required");
           if (!svc.pricingType.trim())
@@ -1239,6 +1263,24 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     setServices((prev) =>
       prev.map((svc, i) => (i === index ? { ...svc, [field]: value } : svc)),
     );
+    
+    // Real-time validation clearing
+    if (field === "serviceName") {
+      if (value.trim()) {
+        setErrors((prev) => {
+          const { [`svc_${index}_name`]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }
+    if (field === "pricingType") {
+      if (value.trim()) {
+        setErrors((prev) => {
+          const { [`svc_${index}_pricingType`]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    }
   };
 
   /* ── Submit ───────────────────────────────────────────────── */
@@ -2535,95 +2577,66 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   </div>
                                 </div>
 
-                                {/* Link to Resources and generic location (hidden for transportation) */}
-                                {act.activityType !== "7" && (
-                                  <>
+
+
+                                {/* Type 8: Accommodation */}
+                                {act.activityType === "8" && (
+                                  <div className="mb-3 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <div className="md:col-span-2">
+                                      <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+                                        {t("tourAdmin.itineraries.accommodationDetails", "Accommodation Details")}
+                                      </h4>
+                                    </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                    {t("tourAdmin.itineraries.linkToResources")}
-                                  </label>
-                                  <div className="space-y-2">
-                                    {act.linkToResources.map((link, li) => (
-                                      <div
-                                        key={li}
-                                        className="flex items-start gap-2">
-                                        <div className="flex-1">
-                                          <input
-                                            type="text"
-                                            value={link}
-                                            onChange={(e) =>
-                                              updateLinkToResource(
-                                                ci,
-                                                di,
-                                                ai,
-                                                li,
-                                                e.target.value,
-                                              )
-                                            }
-                                            placeholder={t("tourAdmin.itineraries.placeholderHttps")}
-                                            className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                              errors[`link_${di}_${ai}_${li}`]
-                                                ? "border-red-400 dark:border-red-500"
-                                                : "border-slate-300 dark:border-slate-600"
-                                            }`}
-                                          />
-                                          {errors[`link_${di}_${ai}_${li}`] && (
-                                            <p className="text-red-500 text-xs mt-0.5">
-                                              {errors[`link_${di}_${ai}_${li}`]}
-                                            </p>
-                                          )}
-                                        </div>
-                                        {act.linkToResources.length > 1 && (
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              removeLinkToResource(
-                                                ci,
-                                                di,
-                                                ai,
-                                                li,
-                                              )
-                                            }
-                                            aria-label="Remove link"
-                                            className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all rounded p-1 mt-0.5">
-                                            <Icon
-                                              icon="heroicons:x-mark"
-                                              className="size-4"
-                                            />
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        addLinkToResource(ci, di, ai)
-                                      }
-                                      className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors">
-                                      <Icon
-                                        icon="heroicons:plus"
-                                        className="size-3"
+                                        {t("tourAdmin.itineraries.accommodationName", "Accommodation Name")} (VI)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.locationName}
+                                        onChange={(e) => updateActivity(ci, di, ai, "locationName", e.target.value)}
+                                        placeholder="Tên khách sạn / Nơi lưu trú..."
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
-                                      {t("tourAdmin.buttons.addLink")}
-                                    </button>
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        {t("tourAdmin.itineraries.accommodationName", "Accommodation Name")} (EN)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.enLocationName}
+                                        onChange={(e) => updateActivity(ci, di, ai, "enLocationName", e.target.value)}
+                                        placeholder="Accommodation name in English..."
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        {t("tourAdmin.itineraries.address", "Address")} (VI)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.locationAddress}
+                                        onChange={(e) => updateActivity(ci, di, ai, "locationAddress", e.target.value)}
+                                        placeholder="Địa chỉ..."
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                        {t("tourAdmin.itineraries.address", "Address")} (EN)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={act.enLocationAddress}
+                                        onChange={(e) => updateActivity(ci, di, ai, "enLocationAddress", e.target.value)}
+                                        placeholder="Address in English..."
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                      />
+                                    </div>
                                   </div>
-                                </div>
-
-                                {/* Activity location field — ALL activity types */}
-                                <div className="mb-3">
-                                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                    {t("tourAdmin.itineraries.locationName", "Location")} ({t("tourAdmin.itineraries.optional", "Optional")})
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={act.locationName}
-                                    onChange={(e) => updateActivity(ci, di, ai, "locationName", e.target.value)}
-                                    placeholder={t("tourAdmin.itineraries.placeholderLocation", "Location name...")}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                  />
-                                </div>
-                              </>
-                            )}
+                                )}
 
                             {/* Type 7: Transportation — TU, DEN, Phuong tien, Thoi gian */}
                                 {act.activityType === "7" && (
