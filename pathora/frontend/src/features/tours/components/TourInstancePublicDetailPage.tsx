@@ -731,46 +731,39 @@ export function TourInstancePublicDetailPage() {
                                           </p>
                                         )}
 
-                                        {/* Routes */}
-                                        {activity.routes && activity.routes.length > 0 && (
-                                          <div className="flex flex-col gap-2">
-                                            {activity.routes.map((route) => {
-                                              return (
-                                                <div
-                                                  key={route.id}
-                                                  className="rounded-lg px-3 py-2.5 text-[11px]"
-                                                  style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
-                                                  {route.vehiclePlate ? (
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                      <Icon icon="heroicons:truck" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
-                                                      <span className="font-semibold font-mono">{route.vehiclePlate}</span>
-                                                      {route.vehicleType && (
-                                                        <span style={{ color: "var(--tour-caption)" }}>{route.vehicleType}</span>
-                                                      )}
-                                                      {route.seatCapacity && (
-                                                        <span style={{ color: "var(--tour-caption)" }}>({route.seatCapacity} chỗ)</span>
-                                                      )}
-                                                      {route.driverName && (
-                                                        <span style={{ color: "var(--tour-caption)" }}>- Tài xế: {route.driverName}</span>
-                                                      )}
-                                                    </div>
-                                                  ) : (
-                                                    <div className="flex flex-wrap items-center gap-1.5">
-                                                      <Icon icon="heroicons:arrow-right" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
-                                                      <span className="font-semibold">{t("landing.tourDetail.transport", "Transport")}</span>
-                                                      {route.pickupLocation && route.dropoffLocation && (
-                                                        <span>{route.pickupLocation} → {route.dropoffLocation}</span>
-                                                      )}
-                                                    </div>
-                                                  )}
-                                                  {(route.departureTime || route.arrivalTime) && (
-                                                    <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
-                                                      Giờ: {route.departureTime ? new Date(route.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"} → {route.arrivalTime ? new Date(route.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"}
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              );
-                                            })}
+                                        {/* Transport Info */}
+                                        {activity.activityType?.toLowerCase() === "transportation" && (
+                                          <div
+                                            className="rounded-lg px-3 py-2.5 text-[11px]"
+                                            style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
+                                            {activity.vehiclePlate ? (
+                                              <div className="flex flex-wrap items-center gap-2">
+                                                <Icon icon="heroicons:truck" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
+                                                <span className="font-semibold font-mono">{activity.vehiclePlate}</span>
+                                                {activity.vehicleType && (
+                                                  <span style={{ color: "var(--tour-caption)" }}>{activity.vehicleType}</span>
+                                                )}
+                                                {activity.seatCapacity && (
+                                                  <span style={{ color: "var(--tour-caption)" }}>({activity.seatCapacity} chỗ)</span>
+                                                )}
+                                                {activity.driverName && (
+                                                  <span style={{ color: "var(--tour-caption)" }}>- Tài xế: {activity.driverName}</span>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <div className="flex flex-wrap items-center gap-1.5">
+                                                <Icon icon="heroicons:arrow-right" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
+                                                <span className="font-semibold">{t("landing.tourDetail.transport", "Transport")}</span>
+                                                {activity.pickupLocation && activity.dropoffLocation && (
+                                                  <span>{activity.pickupLocation} → {activity.dropoffLocation}</span>
+                                                )}
+                                              </div>
+                                            )}
+                                            {(activity.departureTime || activity.arrivalTime) && (
+                                              <div className="mt-1" style={{ color: "var(--tour-caption)" }}>
+                                                Giờ: {activity.departureTime ? new Date(activity.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"} → {activity.arrivalTime ? new Date(activity.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "—"}
+                                              </div>
+                                            )}
                                           </div>
                                         )}
 

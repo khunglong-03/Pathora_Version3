@@ -40,7 +40,6 @@ public interface ITourInstanceService
 
 public class TourInstanceService(
     ITourInstanceRepository tourInstanceRepository,
-    ITourInstancePlanRouteRepository routeRepository,
     ITourRepository tourRepository,
     ITourRequestRepository tourRequestRepository,
     ISupplierRepository supplierRepository,
@@ -211,10 +210,15 @@ public class TourInstanceService(
                         );
                         break;
                     case TourDayActivityType.Transportation:
-                        instanceActivity.Routes.Add(TourInstancePlanRouteEntity.Create(
-                            instanceActivity.Id,
-                            assignedData?.VehicleId
-                        ));
+                        instanceActivity.FromLocationId = templateActivity.FromLocationId;
+                        instanceActivity.ToLocationId = templateActivity.ToLocationId;
+                        instanceActivity.TransportationType = templateActivity.TransportationType;
+                        instanceActivity.TransportationName = templateActivity.TransportationName;
+                        instanceActivity.DurationMinutes = templateActivity.DurationMinutes;
+                        instanceActivity.DistanceKm = templateActivity.DistanceKm;
+                        instanceActivity.Price = templateActivity.Price;
+                        instanceActivity.BookingReference = templateActivity.BookingReference;
+                        instanceActivity.VehicleId = assignedData?.VehicleId;
                         break;
                 }
 
@@ -563,10 +567,17 @@ public class TourInstanceService(
 
         if (providerType == "Transport" && isApproved)
         {
-            var routes = await routeRepository.GetByTourInstanceIdAsync(instanceId, cancellationToken);
-            var unassigned = routes.Where(r => r.VehicleId == null || r.DriverId == null).ToList();
-            if (unassigned.Count > 0)
-                return Error.Validation("TourInstance.RoutesNotAssigned", $"Còn {unassigned.Count} tuyến chưa được gán xe/tài xế.");
+            var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+            if (fullInstance != null)
+            {
+                var unassigned = fullInstance.InstanceDays
+                    .Where(d => !d.IsDeleted)
+                    .SelectMany(d => d.Activities)
+                    .Where(a => a.ActivityType == TourDayActivityType.Transportation && (a.VehicleId == null || a.DriverId == null))
+                    .ToList();
+                if (unassigned.Count > 0)
+                    return Error.Validation("TourInstance.ActivitiesNotAssigned", $"Còn {unassigned.Count} hoạt động vận chuyển chưa được gán xe/tài xế.");
+            }
         }
 
         if (providerType == "Hotel" && isApproved)

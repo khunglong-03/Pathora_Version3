@@ -1764,7 +1764,6 @@
       "addActivity": "Thêm hoạt động",
       "addAccommodation": "Thêm lưu trú",
       "addLocation": "Thêm địa điểm",
-      "addRoute": "Thêm tuyến đường",
       "addInsurance": "Thêm bảo hiểm",
       "addLink": "Thêm liên kết",
       "addService": "Thêm dịch vụ"
@@ -1826,11 +1825,7 @@
       "placeholderDescribeActivity": "Mô tả hoạt động này",
       "placeholderAdditionalNotes": "Bất kỳ ghi chú bổ sung nào",
       "placeholderHttps": "https://...",
-      "route": "Tuyến đường",
-      "routes": "Tuyến đường",
-      "addRoute": "Thêm tuyến đường",
-      "removeRoute": "Xóa tuyến đường",
-      "noRoutesYet": "Chưa có tuyến đường nào",
+
       "requiredFromLocation": "Cần chọn hoặc nhập địa điểm đi",
       "requiredToLocation": "Cần chọn hoặc nhập địa điểm đến",
       "customLocation": "Địa điểm tùy chỉnh...",
@@ -1878,9 +1873,8 @@
       "placeholderAddress": "Địa chỉ đầy đủ..."
     },
     "transportation": {
-      "sectionTitle": "Tuyến phương tiện",
+      "sectionTitle": "Phương tiện",
       "infoBanner": "Nhóm tài nguyên dùng chung. Liên kết với hoạt động trong bước Lịch trình.",
-      "routeNumber": "Tuyến #{number}",
       "fromLocation": "Từ địa điểm",
       "toLocation": "Đến địa điểm",
       "transportationType": "Loại phương tiện",
@@ -1891,7 +1885,7 @@
       "requiresIndividualTicket": "Yêu cầu vé riêng",
       "ticketInfo": "Thông tin vé",
       "note": "Ghi chú",
-      "removeRoute": "Xóa tuyến đường",
+
       "placeholderFrom": "Hà Nội",
       "placeholderTo": "Vịnh Hạ Long",
       "placeholderTransportationType": "Xe bus, Máy bay, Ô tô...",
@@ -1939,7 +1933,7 @@
       "resources": "Tài nguyên",
       "accommodations": "Lưu trú",
       "locations": "Địa điểm",
-      "routes": "Tuyến đường",
+
       "services": "Dịch vụ",
       "insurancePackages": "Gói Bảo hiểm",
       "untitled": "Chưa có tiêu đề",

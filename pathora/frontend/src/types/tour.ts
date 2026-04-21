@@ -422,7 +422,31 @@ export interface TourInstanceDayActivityDto {
   isOptional: boolean;
   note: string | null;
   accommodation: TourInstancePlanAccommodationDto | null;
-  routes: TourInstancePlanRouteDto[];
+
+  // Transportation plan info (flattened from former routes)
+  transportationType?: string | null;
+  transportationName?: string | null;
+  fromLocation?: TourPlanLocationDto | null;
+  toLocation?: TourPlanLocationDto | null;
+  durationMinutes?: number | null;
+  distanceKm?: number | null;
+  price?: number | null;
+  bookingReference?: string | null;
+
+  // Instance-specific vehicle assignment (flattened)
+  vehicleId?: string | null;
+  vehiclePlate?: string | null;
+  vehicleType?: string | null;
+  vehicleBrand?: string | null;
+  vehicleModel?: string | null;
+  seatCapacity?: number | null;
+  driverId?: string | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  pickupLocation?: string | null;
+  dropoffLocation?: string | null;
+  departureTime?: string | null;
+  arrivalTime?: string | null;
 }
 
 export interface TourInstancePlanAccommodationDto {
@@ -432,22 +456,7 @@ export interface TourInstancePlanAccommodationDto {
   roomBlocksTotal?: number;
 }
 
-export interface TourInstancePlanRouteDto {
-  id: string;
-  vehicleId: string | null;
-  driverId: string | null;
-  departureTime: string | null;
-  arrivalTime: string | null;
-  vehiclePlate: string | null;
-  vehicleType: string | null;
-  vehicleBrand: string | null;
-  vehicleModel: string | null;
-  seatCapacity: number | null;
-  driverName: string | null;
-  driverPhone: string | null;
-  pickupLocation: string | null;
-  dropoffLocation: string | null;
-}
+// TourInstancePlanRouteDto removed — vehicle/driver data is now flattened onto TourInstanceDayActivityDto
 
 export interface TourInstanceDto {
   id: string;

@@ -160,10 +160,10 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
-    [HttpPut("{instanceId:guid}/routes/{routeId:guid}/assign")]
-    public async Task<IActionResult> AssignVehicleToRoute(Guid instanceId, Guid routeId, [FromBody] AssignVehicleToRouteRequest request)
+    [HttpPut("{instanceId:guid}/activities/{activityId:guid}/assign")]
+    public async Task<IActionResult> AssignVehicleToActivity(Guid instanceId, Guid activityId, [FromBody] AssignVehicleToRouteRequest request)
     {
-        var result = await Sender.Send(new AssignVehicleToRouteCommand(instanceId, routeId, request.VehicleId, request.DriverId));
+        var result = await Sender.Send(new AssignVehicleToRouteCommand(instanceId, activityId, request.VehicleId, request.DriverId));
         return HandleResult(result);
     }
 

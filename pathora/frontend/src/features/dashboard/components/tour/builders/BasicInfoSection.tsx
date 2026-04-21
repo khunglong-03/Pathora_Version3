@@ -10,9 +10,7 @@ import LanguageTabs from "@/components/ui/LanguageTabs";
 import type { SupportedLanguage } from "@/components/ui/LanguageTabs";
 import type { ImageDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
-import type { PricingPolicy } from "@/types/pricingPolicy";
-import type { DepositPolicy } from "@/types/depositPolicy";
-import type { CancellationPolicy } from "@/types/cancellationPolicy";
+
 
 import type { TourFormValues } from "@/schemas/tour-form";
 
@@ -47,12 +45,7 @@ interface BasicInfoSectionProps {
   existingImages: ImageDto[];
   thumbnailError: string | undefined;
   imagesError: string | undefined;
-  pricingPolicies: PricingPolicy[];
-  depositPolicies: DepositPolicy[];
-  cancellationPolicies: CancellationPolicy[];
-  selectedPricingPolicyId: string;
-  selectedDepositPolicyId: string;
-  selectedCancellationPolicyId: string;
+
 
   activeLang: SupportedLanguage;
   isEditMode: boolean;
@@ -62,9 +55,7 @@ interface BasicInfoSectionProps {
   setExistingThumbnail: React.Dispatch<React.SetStateAction<ImageDto | null>>;
   setImages: React.Dispatch<React.SetStateAction<File[]>>;
   setExistingImages: React.Dispatch<React.SetStateAction<ImageDto[]>>;
-  setSelectedPricingPolicyId: (v: string) => void;
-  setSelectedDepositPolicyId: (v: string) => void;
-  setSelectedCancellationPolicyId: (v: string) => void;
+
 
   setActiveLang: (v: SupportedLanguage) => void;
   setThumbnailError: (v: string | undefined) => void;
@@ -82,12 +73,7 @@ export function BasicInfoSection({
   existingImages,
   thumbnailError,
   imagesError,
-  pricingPolicies,
-  depositPolicies,
-  cancellationPolicies,
-  selectedPricingPolicyId,
-  selectedDepositPolicyId,
-  selectedCancellationPolicyId,
+
 
   activeLang,
   isEditMode,
@@ -97,9 +83,7 @@ export function BasicInfoSection({
   setExistingThumbnail,
   setImages,
   setExistingImages,
-  setSelectedPricingPolicyId,
-  setSelectedDepositPolicyId,
-  setSelectedCancellationPolicyId,
+
 
   setActiveLang,
   setThumbnailError,
@@ -486,44 +470,7 @@ export function BasicInfoSection({
         </div>
       )}
 
-      {/* ── Policy Selectors ──────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200 mt-6">
-        {/* Pricing Policy */}
-        <SearchableSelect
-          label={t("tourAdmin.basicInfo.pricingPolicy")}
-          placeholder={t("tourAdmin.basicInfo.searchPricingPolicy")}
-          value={selectedPricingPolicyId}
-          onChange={setSelectedPricingPolicyId}
-          options={pricingPolicies.map((p) => ({
-            value: p.id,
-            label: p.name,
-          }))}
-        />
 
-        {/* Deposit Policy */}
-        <SearchableSelect
-          label={t("tourAdmin.basicInfo.depositPolicy")}
-          placeholder={t("tourAdmin.basicInfo.searchDepositPolicy")}
-          value={selectedDepositPolicyId}
-          onChange={setSelectedDepositPolicyId}
-          options={depositPolicies.map((p) => ({
-            value: p.id,
-            label: `${p.tourScopeName} - ${p.depositTypeName} ${p.depositValue}${p.depositType === 2 ? "%" : ""}`,
-          }))}
-        />
-
-        {/* Cancellation Policy */}
-        <SearchableSelect
-          label={t("tourAdmin.basicInfo.cancellationPolicy")}
-          placeholder={t("tourAdmin.basicInfo.searchCancellationPolicy")}
-          value={selectedCancellationPolicyId}
-          onChange={setSelectedCancellationPolicyId}
-          options={cancellationPolicies.map((p) => ({
-            value: p.id,
-            label: `${p.policyCode} (${p.tourScopeName}, ${p.tiers.length} tier${p.tiers.length !== 1 ? "s" : ""})`,
-          }))}
-        />
-      </div>
     </div>
   );
 }

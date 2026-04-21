@@ -29,7 +29,7 @@ public sealed class AssignVehicleToRouteCommandValidator : AbstractValidator<Ass
 }
 
 public sealed class AssignVehicleToRouteCommandHandler(
-    ITourInstancePlanRouteRepository routeRepository,
+    ITourInstanceRepository tourInstanceRepository,
     IVehicleRepository vehicleRepository,
     IDriverRepository driverRepository,
     ISupplierRepository supplierRepository,
@@ -45,11 +45,14 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
-        var route = await routeRepository.GetDetailsByIdTrackingAsync(request.RouteId, cancellationToken);
-        if (route is null || route.TourInstanceDayActivity.TourInstanceDay.TourInstanceId != request.InstanceId)
-            return Error.NotFound("TourInstancePlanRoute.NotFound", "Route not found for the specified tour instance.");
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        if (instance is null)
+            return Error.NotFound("TourInstance.NotFound", "Tour Instance not found.");
 
-        var instance = route.TourInstanceDayActivity.TourInstanceDay.TourInstance;
+        var activity = instance.InstanceDays.SelectMany(d => d.Activities).FirstOrDefault(a => a.Id == request.RouteId);
+        if (activity is null)
+            return Error.NotFound("TourInstanceDayActivity.NotFound", "Activity not found for the specified tour instance.");
+
         if (instance.TransportProviderId != supplier.Id)
             return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this tour instance.");
 
@@ -73,11 +76,10 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (!driver.IsActive)
             return Error.Validation("Driver.Inactive", "Driver is inactive.");
 
-        route.AssignTransport(
-            vehicleId: request.VehicleId,
-            driverId: request.DriverId);
+        activity.VehicleId = request.VehicleId;
+        activity.DriverId = request.DriverId;
 
-        routeRepository.Update(route);
+        await tourInstanceRepository.Update(instance, cancellationToken);
 
         return new AssignVehicleToRouteResponseDto(
             Success: true,

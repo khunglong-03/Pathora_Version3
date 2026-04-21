@@ -568,9 +568,11 @@ export function TourItineraryBuilder({
                           </div>
                         </div>
 
-                        {/* Link to Resources */}
-                        <div>
-                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        {/* Link to Resources and generic location (hidden for transportation) */}
+                        {act.activityType !== "7" && (
+                          <>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                             {t("tourAdmin.itineraries.linkToResources")}
                           </label>
                           <div className="space-y-2">
@@ -728,8 +730,10 @@ export function TourItineraryBuilder({
                               placeholder="Address in English..."
                               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                             />
+                            </div>
                           </div>
-                        </div>
+                          </>
+                        )}
 
                         {/* Type 7: Transportation */}
                         {act.activityType === "7" && (

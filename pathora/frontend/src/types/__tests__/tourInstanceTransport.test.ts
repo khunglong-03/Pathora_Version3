@@ -1,14 +1,13 @@
 /**
  * Tests verifying the TourInstanceDto, TourInstanceDayDto,
- * TourInstanceDayActivityDto, and TourInstancePlanRouteDto types
- * correctly support transport/vehicle/driver/provider fields.
+ * and TourInstanceDayActivityDto types correctly support flattened
+ * transport/vehicle/driver/provider fields (no nested routes).
  */
 import { describe, expect, it } from "vitest";
 import type {
   TourInstanceDto,
   TourInstanceDayDto,
   TourInstanceDayActivityDto,
-  TourInstancePlanRouteDto,
   TourInstancePlanAccommodationDto,
 } from "../tour";
 
@@ -139,7 +138,7 @@ describe("TourInstanceDto — provider fields", () => {
 });
 
 describe("TourInstanceDayDto — flat activity structure", () => {
-  it("uses flat activities field (not nested tourDay.activities)", () => {
+  it("uses flat activities field with transport data directly on activity", () => {
     const day: TourInstanceDayDto = {
       id: "day-001",
       instanceDayNumber: 1,
@@ -161,23 +160,20 @@ describe("TourInstanceDayDto — flat activity structure", () => {
           isOptional: false,
           note: null,
           accommodation: null,
-          routes: [
-            {
-              id: "route-001",
-              vehicleId: "v-001",
-              departureTime: "2025-07-01T08:00:00Z",
-              arrivalTime: "2025-07-01T12:00:00Z",
-              vehiclePlate: "30A-12345",
-              vehicleType: "Bus",
-              vehicleBrand: "Hyundai",
-              vehicleModel: "County",
-              seatCapacity: 45,
-              driverName: "Nguyen Van A",
-              driverPhone: "0909123456",
-              pickupLocation: "Hanoi Old Quarter",
-              dropoffLocation: "Ha Long Bay Pier",
-            },
-          ],
+          // Flattened transport fields
+          vehicleId: "v-001",
+          vehiclePlate: "30A-12345",
+          vehicleType: "Bus",
+          vehicleBrand: "Hyundai",
+          vehicleModel: "County",
+          seatCapacity: 45,
+          driverId: "d-001",
+          driverName: "Nguyen Van A",
+          driverPhone: "0909123456",
+          pickupLocation: "Hanoi Old Quarter",
+          dropoffLocation: "Ha Long Bay Pier",
+          departureTime: "2025-07-01T08:00:00Z",
+          arrivalTime: "2025-07-01T12:00:00Z",
         },
       ],
     };
@@ -185,7 +181,11 @@ describe("TourInstanceDayDto — flat activity structure", () => {
     expect(day.activities).toBeDefined();
     expect(day.activities.length).toBe(1);
     expect(day.activities[0].activityType).toBe("Transportation");
-    expect(day.activities[0].routes.length).toBe(1);
+    // Transport fields are directly on activity — no nested routes
+    expect(day.activities[0].vehiclePlate).toBe("30A-12345");
+    expect(day.activities[0].driverName).toBe("Nguyen Van A");
+    expect(day.activities[0].pickupLocation).toBe("Hanoi Old Quarter");
+    expect(day.activities[0].dropoffLocation).toBe("Ha Long Bay Pier");
   });
 
   it("supports custom day with no activities", () => {
@@ -205,125 +205,106 @@ describe("TourInstanceDayDto — flat activity structure", () => {
   });
 });
 
-describe("TourInstancePlanRouteDto — vehicle and driver fields", () => {
-  it("maps full vehicle info with driver", () => {
-    const route: TourInstancePlanRouteDto = {
-      id: "route-001",
+describe("TourInstanceDayActivityDto — flattened transport fields", () => {
+  it("maps full vehicle info with driver directly on activity", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-transport-001",
+      order: 1,
+      activityType: "Transportation",
+      title: "Bus to Ha Long",
+      description: null,
+      startTime: "08:00",
+      endTime: "12:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
       vehicleId: "v-001",
-      departureTime: "2025-07-01T08:00:00Z",
-      arrivalTime: "2025-07-01T12:00:00Z",
       vehiclePlate: "30A-12345",
       vehicleType: "Bus",
       vehicleBrand: "Hyundai",
       vehicleModel: "County",
       seatCapacity: 45,
+      driverId: "d-001",
       driverName: "Nguyen Van A",
       driverPhone: "0909123456",
       pickupLocation: "Hotel Lobby",
       dropoffLocation: "Ha Long Pier",
+      departureTime: "2025-07-01T08:00:00Z",
+      arrivalTime: "2025-07-01T12:00:00Z",
     };
 
-    expect(route.vehiclePlate).toBe("30A-12345");
-    expect(route.vehicleType).toBe("Bus");
-    expect(route.vehicleBrand).toBe("Hyundai");
-    expect(route.vehicleModel).toBe("County");
-    expect(route.seatCapacity).toBe(45);
-    expect(route.driverName).toBe("Nguyen Van A");
-    expect(route.driverPhone).toBe("0909123456");
-    expect(route.pickupLocation).toBe("Hotel Lobby");
-    expect(route.dropoffLocation).toBe("Ha Long Pier");
-    expect(route.departureTime).toBe("2025-07-01T08:00:00Z");
-    expect(route.arrivalTime).toBe("2025-07-01T12:00:00Z");
+    expect(activity.vehiclePlate).toBe("30A-12345");
+    expect(activity.vehicleType).toBe("Bus");
+    expect(activity.vehicleBrand).toBe("Hyundai");
+    expect(activity.vehicleModel).toBe("County");
+    expect(activity.seatCapacity).toBe(45);
+    expect(activity.driverName).toBe("Nguyen Van A");
+    expect(activity.driverPhone).toBe("0909123456");
+    expect(activity.pickupLocation).toBe("Hotel Lobby");
+    expect(activity.dropoffLocation).toBe("Ha Long Pier");
+    expect(activity.departureTime).toBe("2025-07-01T08:00:00Z");
+    expect(activity.arrivalTime).toBe("2025-07-01T12:00:00Z");
   });
 
-  it("supports route with vehicle only (no driver)", () => {
-    const route: TourInstancePlanRouteDto = {
-      id: "route-002",
+  it("supports activity with vehicle only (no driver)", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-transport-002",
+      order: 2,
+      activityType: "Transportation",
+      title: "Airport Transfer",
+      description: null,
+      startTime: "09:00",
+      endTime: "10:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
       vehicleId: "v-002",
-      departureTime: "2025-07-02T09:00:00Z",
-      arrivalTime: null,
       vehiclePlate: "51B-88888",
       vehicleType: "Car",
       vehicleBrand: "Toyota",
       vehicleModel: "Camry",
       seatCapacity: 5,
+      driverId: null,
       driverName: null,
       driverPhone: null,
       pickupLocation: "Airport",
       dropoffLocation: "City Center Hotel",
     };
 
-    expect(route.driverName).toBeNull();
-    expect(route.driverPhone).toBeNull();
-    expect(route.seatCapacity).toBe(5);
+    expect(activity.driverName).toBeNull();
+    expect(activity.driverPhone).toBeNull();
+    expect(activity.seatCapacity).toBe(5);
   });
 
-  it("supports route with driver only (no vehicle)", () => {
-    const route: TourInstancePlanRouteDto = {
-      id: "route-003",
+  it("supports activity with no vehicle or driver assigned yet", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-transport-003",
+      order: 1,
+      activityType: "Transportation",
+      title: "Pending Transfer",
+      description: null,
+      startTime: "14:00",
+      endTime: "17:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
       vehicleId: null,
-      departureTime: null,
-      arrivalTime: null,
       vehiclePlate: null,
       vehicleType: null,
       vehicleBrand: null,
       vehicleModel: null,
       seatCapacity: null,
-      driverName: "Le Van B",
-      driverPhone: "0933123456",
-      pickupLocation: "Meeting Point",
-      dropoffLocation: "Beach",
-    };
-
-    expect(route.vehicleId).toBeNull();
-    expect(route.vehiclePlate).toBeNull();
-    expect(route.driverName).toBe("Le Van B");
-    expect(route.driverPhone).toBe("0933123456");
-  });
-
-  it("supports route with no vehicle or driver assigned yet", () => {
-    const route: TourInstancePlanRouteDto = {
-      id: "route-004",
-      vehicleId: null,
-      departureTime: null,
-      arrivalTime: null,
-      vehiclePlate: null,
-      vehicleType: null,
-      vehicleBrand: null,
-      vehicleModel: null,
-      seatCapacity: null,
+      driverId: null,
       driverName: null,
       driverPhone: null,
       pickupLocation: null,
       dropoffLocation: null,
     };
 
-    expect(route.vehiclePlate).toBeNull();
-    expect(route.driverName).toBeNull();
-    expect(route.pickupLocation).toBeNull();
-    expect(route.dropoffLocation).toBeNull();
-  });
-
-  it("supports unassigned route with only timing", () => {
-    const route: TourInstancePlanRouteDto = {
-      id: "route-005",
-      vehicleId: null,
-      departureTime: "2025-07-03T14:00:00Z",
-      arrivalTime: "2025-07-03T17:00:00Z",
-      vehiclePlate: null,
-      vehicleType: null,
-      vehicleBrand: null,
-      vehicleModel: null,
-      seatCapacity: null,
-      driverName: null,
-      driverPhone: null,
-      pickupLocation: "Airport",
-      dropoffLocation: "Hotel",
-    };
-
-    expect(route.departureTime).toBe("2025-07-03T14:00:00Z");
-    expect(route.arrivalTime).toBe("2025-07-03T17:00:00Z");
-    expect(route.pickupLocation).toBe("Airport");
+    expect(activity.vehiclePlate).toBeNull();
+    expect(activity.driverName).toBeNull();
+    expect(activity.pickupLocation).toBeNull();
+    expect(activity.dropoffLocation).toBeNull();
   });
 });
 
@@ -344,7 +325,6 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
         roomType: "Double",
         quantity: 5,
       },
-      routes: [],
     };
 
     expect(activity.activityType).toBe("Accommodation");
@@ -365,14 +345,13 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
       isOptional: true,
       note: null,
       accommodation: null,
-      routes: [],
     };
 
     expect(activity.accommodation).toBeNull();
     expect(activity.isOptional).toBe(true);
   });
 
-  it("supports activity with both accommodation and routes", () => {
+  it("supports activity with both accommodation and transport fields", () => {
     const activity: TourInstanceDayActivityDto = {
       id: "act-mixed-001",
       order: 3,
@@ -388,27 +367,23 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
         roomType: "Suite",
         quantity: 2,
       },
-      routes: [
-        {
-          id: "route-006",
-          vehicleId: "v-003",
-          departureTime: "2025-07-01T17:00:00Z",
-          arrivalTime: "2025-07-01T18:00:00Z",
-          vehiclePlate: "60A-11111",
-          vehicleType: "Minibus",
-          vehicleBrand: "Ford",
-          vehicleModel: "Transit",
-          seatCapacity: 15,
-          driverName: "Tran Thi C",
-          driverPhone: "0977123456",
-          pickupLocation: "Ha Long Pier",
-          dropoffLocation: "Grand Hotel Lobby",
-        },
-      ],
+      vehicleId: "v-003",
+      vehiclePlate: "60A-11111",
+      vehicleType: "Minibus",
+      vehicleBrand: "Ford",
+      vehicleModel: "Transit",
+      seatCapacity: 15,
+      driverId: "d-003",
+      driverName: "Tran Thi C",
+      driverPhone: "0977123456",
+      pickupLocation: "Ha Long Pier",
+      dropoffLocation: "Grand Hotel Lobby",
+      departureTime: "2025-07-01T17:00:00Z",
+      arrivalTime: "2025-07-01T18:00:00Z",
     };
 
     expect(activity.accommodation).not.toBeNull();
-    expect(activity.routes.length).toBe(1);
-    expect(activity.routes[0].vehiclePlate).toBe("60A-11111");
+    expect(activity.vehiclePlate).toBe("60A-11111");
+    expect(activity.driverName).toBe("Tran Thi C");
   });
 });

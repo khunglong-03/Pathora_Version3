@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421133811_FlattenTourItineraryFull")]
+    partial class FlattenTourItineraryFull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2558,6 +2561,51 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("TourDayActivityGuides", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourDayActivityResourceLinkEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DeletedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TourDayActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourDayActivityId");
+
+                    b.ToTable("TourDayActivityResourceLinks", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.TourDayActivityRouteTransportEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4641,6 +4689,17 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourDayActivityResourceLinkEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.TourDayActivityEntity", "TourDayActivity")
+                        .WithMany("ResourceLinks")
+                        .HasForeignKey("TourDayActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TourDayActivity");
+                });
+
             modelBuilder.Entity("Domain.Entities.TourDayActivityRouteTransportEntity", b =>
                 {
                     b.HasOne("Domain.Entities.BookingActivityReservationEntity", "BookingActivityReservation")
@@ -5229,6 +5288,8 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("Domain.Entities.TourDayActivityEntity", b =>
                 {
                     b.Navigation("Accommodation");
+
+                    b.Navigation("ResourceLinks");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourDayActivityStatusEntity", b =>

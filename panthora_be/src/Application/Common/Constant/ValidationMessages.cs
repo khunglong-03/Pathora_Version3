@@ -205,8 +205,6 @@ public static class ValidationMessages
     public const string ActivityTitleMaxLength200 = "Activity title must not exceed 200 characters.";
     public const string ActivityDescriptionMaxLength1000 = "Activity description must not exceed 1000 characters.";
     public const string ActivityEstimatedCostNonNegative = "Estimated cost must be greater than or equal to 0.";
-    public const string ActivityResourceLinkInvalid = "Each resource link must be a valid absolute URL with http or https scheme (e.g., https://example.com).";
-    public const string ActivityResourceLinkMaxLength2048 = "Each resource link URL must not exceed 2048 characters.";
 
     // Route / Transportation shared
     public const string TransportationTypeRequired = "Transportation type is required.";

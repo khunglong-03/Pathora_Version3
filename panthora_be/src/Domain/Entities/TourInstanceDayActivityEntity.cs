@@ -35,11 +35,30 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     // Tách nhánh thông tin lịch trình cho Accommodation
     public virtual TourInstancePlanAccommodationEntity? Accommodation { get; set; }
 
-    // Tách nhánh thông tin lịch trình cho Route (Transport)
-    public virtual List<TourInstancePlanRouteEntity> Routes { get; set; } = [];
-
     // Tách nhánh thông tin lịch trình cho Accommodation Room Blocks
     public virtual List<RoomBlockEntity> RoomBlocks { get; set; } = [];
+
+    // Transportation Plan info
+    public Guid? FromLocationId { get; set; }
+    public virtual TourPlanLocationEntity? FromLocation { get; set; }
+    public Guid? ToLocationId { get; set; }
+    public virtual TourPlanLocationEntity? ToLocation { get; set; }
+    public TransportationType? TransportationType { get; set; }
+    public string? TransportationName { get; set; }
+    public int? DurationMinutes { get; set; }
+    public decimal? DistanceKm { get; set; }
+    public decimal? Price { get; set; }
+    public string? BookingReference { get; set; }
+
+    // Instance-specific Vehicle Assignment info
+    public Guid? VehicleId { get; set; }
+    public virtual VehicleEntity? Vehicle { get; set; }
+    public Guid? DriverId { get; set; }
+    public virtual DriverEntity? Driver { get; set; }
+    public string? PickupLocation { get; set; }
+    public string? DropoffLocation { get; set; }
+    public DateTimeOffset? DepartureTime { get; set; }
+    public DateTimeOffset? ArrivalTime { get; set; }
 
     public static TourInstanceDayActivityEntity Create(
         Guid tourInstanceDayId,

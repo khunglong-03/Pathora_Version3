@@ -8,7 +8,7 @@ import Select from "@/components/ui/Select";
 
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { transportProviderService, Vehicle, Driver } from "@/api/services/transportProviderService";
-import { TourInstanceDto, TourInstancePlanRouteDto } from "@/types/tour";
+import { TourInstanceDto, TourInstanceDayActivityDto } from "@/types/tour";
 
 export default function TransportTourAssignmentPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ export default function TransportTourAssignmentPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   
   const [loading, setLoading] = useState(true);
-  const [submittingRouteId, setSubmittingRouteId] = useState<string | null>(null);
+  const [submittingActivityId, setSubmittingActivityId] = useState<string | null>(null);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
@@ -43,17 +43,17 @@ export default function TransportTourAssignmentPage() {
         setVehicles(vehiclesList);
         setDrivers(driversList);
 
-        // Initialize state with existing assignments
+        // Initialize state with existing assignments — now directly from activity
         if (tourDetail?.days) {
           const initialAssigns: Record<string, { vehicleId: string; driverId: string }> = {};
           tourDetail.days.forEach(day => {
             day.activities.forEach(act => {
-              act.routes?.forEach(route => {
-                initialAssigns[route.id] = {
-                  vehicleId: route.vehicleId ?? "",
-                  driverId: route.driverId ?? "",
+              if (act.activityType?.toLowerCase() === "transportation") {
+                initialAssigns[act.id] = {
+                  vehicleId: act.vehicleId ?? "",
+                  driverId: act.driverId ?? "",
                 };
-              });
+              }
             });
           });
           setAssignments(initialAssigns);
@@ -68,53 +68,53 @@ export default function TransportTourAssignmentPage() {
     fetchData().catch(console.error);
   }, [id]);
 
-  const routesList = useMemo(() => {
-    const list: { dayTitle: string; activityTitle: string; route: TourInstancePlanRouteDto }[] = [];
+  const transportActivities = useMemo(() => {
+    const list: { dayTitle: string; activityTitle: string; activity: TourInstanceDayActivityDto }[] = [];
     if (!tour?.days) return list;
     
     tour.days.forEach(day => {
       day.activities.forEach(act => {
-        act.routes?.forEach(route => {
-          list.push({ dayTitle: day.title, activityTitle: act.title, route });
-        });
+        if (act.activityType?.toLowerCase() === "transportation") {
+          list.push({ dayTitle: day.title, activityTitle: act.title, activity: act });
+        }
       });
     });
     return list;
   }, [tour]);
 
   const isAllAssigned = useMemo(() => {
-    return routesList.every((item) => {
-      const assigned = assignments[item.route.id];
+    return transportActivities.every((item) => {
+      const assigned = assignments[item.activity.id];
       return assigned?.vehicleId && assigned?.driverId;
     });
-  }, [routesList, assignments]);
+  }, [transportActivities, assignments]);
 
-  const handleAssignmentChange = (routeId: string, field: "vehicleId" | "driverId", value: string) => {
+  const handleAssignmentChange = (activityId: string, field: "vehicleId" | "driverId", value: string) => {
     setAssignments(prev => ({
       ...prev,
-      [routeId]: {
-        ...prev[routeId],
+      [activityId]: {
+        ...prev[activityId],
         [field]: value
       }
     }));
   };
 
-  const handleSaveRoute = async (routeId: string) => {
-    const assign = assignments[routeId];
+  const handleSaveActivity = async (activityId: string) => {
+    const assign = assignments[activityId];
     if (!assign?.vehicleId || !assign?.driverId) {
       toast.error("Vui lòng chọn cả xe và tài xế.");
       return;
     }
 
-    setSubmittingRouteId(routeId);
+    setSubmittingActivityId(activityId);
     try {
-      const result: any = await tourInstanceService.assignVehicleToRoute(id as string, routeId, {
+      const result: any = await tourInstanceService.assignVehicleToActivity(id as string, activityId, {
         vehicleId: assign.vehicleId,
         driverId: assign.driverId,
       });
       
       if (result) {
-        toast.success("Lưu dữ liệu phần tuyến phụ thành công.");
+        toast.success("Lưu dữ liệu phân công thành công.");
         if (result.seatCapacityWarning) {
           toast.warning(`Cảnh báo: Sức chứa xe (${result.vehicleSeatCapacity}) nhỏ hơn lượng khách (${result.tourMaxParticipation}).`);
         }
@@ -125,7 +125,7 @@ export default function TransportTourAssignmentPage() {
       }
     } catch (error: any) {
     } finally {
-      setSubmittingRouteId(null);
+      setSubmittingActivityId(null);
     }
   };
 
@@ -228,20 +228,20 @@ export default function TransportTourAssignmentPage() {
 
       <div className="grid gap-6 lg:grid-cols-[2.5fr_1fr]">
         <div className="space-y-6">
-          {routesList.length === 0 ? (
+          {transportActivities.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
                Không có hoạt động di chuyển nào.
             </div>
           ) : (
-            routesList.map(({ dayTitle, activityTitle, route }) => {
-              const currentAssigns = assignments[route.id] || { vehicleId: "", driverId: "" };
+            transportActivities.map(({ dayTitle, activityTitle, activity }) => {
+              const currentAssigns = assignments[activity.id] || { vehicleId: "", driverId: "" };
               const selectedVehicle = vehicles.find(v => v.id === currentAssigns.vehicleId);
               const isCapacityWarning = selectedVehicle && selectedVehicle.seatCapacity < tour.maxParticipation;
-              const hasUnsavedChanges = route.vehicleId !== currentAssigns.vehicleId || route.driverId !== currentAssigns.driverId;
-              const isSaved = !!(route.vehicleId && route.driverId && !hasUnsavedChanges);
+              const hasUnsavedChanges = activity.vehicleId !== currentAssigns.vehicleId || activity.driverId !== currentAssigns.driverId;
+              const isSaved = !!(activity.vehicleId && activity.driverId && !hasUnsavedChanges);
 
               return (
-                <div key={route.id} className={`rounded-2xl border bg-white p-5 shadow-sm transition-all ${isSaved ? "border-emerald-200 ring-1 ring-emerald-500/10" : "border-slate-200"}`}>
+                <div key={activity.id} className={`rounded-2xl border bg-white p-5 shadow-sm transition-all ${isSaved ? "border-emerald-200 ring-1 ring-emerald-500/10" : "border-slate-200"}`}>
                   <div className="mb-4 flex items-start justify-between border-b border-slate-100 pb-4">
                     <div>
                       <div className="flex items-center justify-between">
@@ -251,9 +251,9 @@ export default function TransportTourAssignmentPage() {
                         </div>
                       </div>
                       <div className="mt-2 text-slate-900">
-                        {route.pickupLocation && route.dropoffLocation ? (
+                        {activity.pickupLocation && activity.dropoffLocation ? (
                           <div className="flex items-center gap-2 text-lg font-black text-slate-900">
-                            {route.pickupLocation} <Icon icon="heroicons:arrow-right" className="size-4 text-slate-400" /> {route.dropoffLocation}
+                            {activity.pickupLocation} <Icon icon="heroicons:arrow-right" className="size-4 text-slate-400" /> {activity.dropoffLocation}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-lg font-black text-slate-900">
@@ -270,7 +270,7 @@ export default function TransportTourAssignmentPage() {
                       <Select 
                         label="Chọn Xe Vận Tải"
                         value={currentAssigns.vehicleId}
-                        onChange={(e) => handleAssignmentChange(route.id, "vehicleId", e.target.value)}
+                        onChange={(e) => handleAssignmentChange(activity.id, "vehicleId", e.target.value)}
                         options={vehicleOptions}
                         placeholder="-- Chọn xe --"
                       />
@@ -286,7 +286,7 @@ export default function TransportTourAssignmentPage() {
                        <Select 
                         label="Chọn Tài Xế"
                         value={currentAssigns.driverId}
-                        onChange={(e) => handleAssignmentChange(route.id, "driverId", e.target.value)}
+                        onChange={(e) => handleAssignmentChange(activity.id, "driverId", e.target.value)}
                         options={driverOptions}
                         placeholder="-- Chọn tài xế --"
                       />
@@ -295,11 +295,11 @@ export default function TransportTourAssignmentPage() {
 
                   <div className="mt-5 flex justify-end">
                     <button 
-                      onClick={() => handleSaveRoute(route.id)}
-                      disabled={!currentAssigns.vehicleId || !currentAssigns.driverId || (!hasUnsavedChanges && route.vehicleId != null) || submittingRouteId === route.id}
+                      onClick={() => handleSaveActivity(activity.id)}
+                      disabled={!currentAssigns.vehicleId || !currentAssigns.driverId || (!hasUnsavedChanges && activity.vehicleId != null) || submittingActivityId === activity.id}
                       className="rounded-xl border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-50"
                     >
-                      {submittingRouteId === route.id ? "Đang lưu..." : hasUnsavedChanges ? "Lưu lại" : "Đã Ghi Nhận"}
+                      {submittingActivityId === activity.id ? "Đang lưu..." : hasUnsavedChanges ? "Lưu lại" : "Đã Ghi Nhận"}
                     </button>
                   </div>
                 </div>
@@ -318,21 +318,21 @@ export default function TransportTourAssignmentPage() {
                     <span className="font-bold text-slate-900">{tour.currentParticipation} / {tour.maxParticipation} người</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-500">Lộ trình cần xe:</span>
-                    <span className="font-bold text-slate-900">{routesList.length} lộ trình</span>
+                    <span className="font-medium text-slate-500">Hoạt động cần xe:</span>
+                    <span className="font-bold text-slate-900">{transportActivities.length} hoạt động</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-slate-500">Đã gán xe xong:</span>
                     <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-bold text-indigo-700">
-                      {routesList.filter(r => r.route.vehicleId && r.route.driverId).length} / {routesList.length}
+                      {transportActivities.filter(r => r.activity.vehicleId && r.activity.driverId).length} / {transportActivities.length}
                     </span>
                   </div>
-                  {routesList.length > 0 && (
+                  {transportActivities.length > 0 && (
                     <div className="pt-2">
                       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
                           className="h-full rounded-full bg-indigo-600 transition-all duration-500"
-                          style={{ width: `${(routesList.filter(r => r.route.vehicleId && r.route.driverId).length / routesList.length) * 100}%` }}
+                          style={{ width: `${(transportActivities.filter(r => r.activity.vehicleId && r.activity.driverId).length / transportActivities.length) * 100}%` }}
                         />
                       </div>
                     </div>

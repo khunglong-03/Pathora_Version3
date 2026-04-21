@@ -53,7 +53,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourClassificationEntity> TourClassifications => Set<TourClassificationEntity>();
     public DbSet<TourDayEntity> TourDays => Set<TourDayEntity>();
     public DbSet<TourDayActivityEntity> TourDayActivities => Set<TourDayActivityEntity>();
-    public DbSet<TourDayActivityResourceLinkEntity> TourDayActivityResourceLinks => Set<TourDayActivityResourceLinkEntity>();
     public DbSet<TourInsuranceEntity> TourInsurances => Set<TourInsuranceEntity>();
     public DbSet<TourPlanAccommodationEntity> TourPlanAccommodations => Set<TourPlanAccommodationEntity>();
     public DbSet<TourPlanLocationEntity> TourPlanLocations => Set<TourPlanLocationEntity>();
@@ -94,7 +93,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourInstanceDayEntity> TourInstanceDays => Set<TourInstanceDayEntity>();
     public DbSet<TourInstanceDayActivityEntity> TourInstanceDayActivities => Set<TourInstanceDayActivityEntity>();
     public DbSet<TourInstancePlanAccommodationEntity> TourInstancePlanAccommodations => Set<TourInstancePlanAccommodationEntity>();
-    public DbSet<TourInstancePlanRouteEntity> TourInstancePlanRoutes => Set<TourInstancePlanRouteEntity>();
     public DbSet<UserSettingEntity> UserSettings => Set<UserSettingEntity>();
     public DbSet<TourManagerAssignmentEntity> TourManagerAssignments => Set<TourManagerAssignmentEntity>();
     public DbSet<VehicleEntity> Vehicles => Set<VehicleEntity>();

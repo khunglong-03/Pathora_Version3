@@ -157,7 +157,7 @@ export default function TourInstanceDetailPage() {
       const apiError = handleApiError(error);
       toast.error(
         apiError.message ||
-          t("tourInstance.fetchError", "Failed to load tour instance details"),
+        t("tourInstance.fetchError", "Failed to load tour instance details"),
       );
       setData(null);
       setForm(null);
@@ -192,10 +192,10 @@ export default function TourInstanceDetailPage() {
         const apiError = handleApiError(error);
         toast.error(
           apiError.message ||
-            t(
-              "tourInstance.fetchError",
-              "Failed to load tour instance details",
-            ),
+          t(
+            "tourInstance.fetchError",
+            "Failed to load tour instance details",
+          ),
         );
         setData(null);
         setForm(null);
@@ -536,9 +536,9 @@ export default function TourInstanceDetailPage() {
           <p className="text-base font-semibold text-stone-900">
             {dataState === "error"
               ? t(
-                  "tourInstance.form.error.title",
-                  "Could not load tour instance",
-                )
+                "tourInstance.form.error.title",
+                "Could not load tour instance",
+              )
               : t("tourInstance.notFound", "Tour instance not found")}
           </p>
           {dataState === "error" && errorMessage && (
@@ -590,12 +590,12 @@ export default function TourInstanceDetailPage() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
         <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row relative">
           <button
-             type="button"
-             onClick={() => router.push("/manager/tour-instances")}
-             className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 hover:bg-white hover:text-stone-900 shadow-sm border border-stone-200/50 transition-all">
-             <Icon icon="heroicons:arrow-left" className="size-4" />
+            type="button"
+            onClick={() => router.push("/manager/tour-instances")}
+            className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 hover:bg-white hover:text-stone-900 shadow-sm border border-stone-200/50 transition-all">
+            <Icon icon="heroicons:arrow-left" className="size-4" />
           </button>
-          
+
           {data.thumbnail?.publicURL ? (
             <div className="relative w-full md:w-80 lg:w-96 shrink-0 bg-stone-100">
               <img src={data.thumbnail.publicURL} alt={data.title} className="h-full w-full object-cover min-h-[200px]" />
@@ -605,7 +605,7 @@ export default function TourInstanceDetailPage() {
               <Icon icon="heroicons:photo" className="size-10 text-stone-300" />
             </div>
           )}
-          
+
           <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-1.5 md:ml-6 mt-6 md:mt-0">
@@ -618,7 +618,7 @@ export default function TourInstanceDetailPage() {
                   <span>{data.classificationName}</span>
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
                 <TourStatusBadge status={data.status} />
                 {!isEditing ? (
@@ -651,20 +651,20 @@ export default function TourInstanceDetailPage() {
                 )}
               </div>
             </div>
-            
+
             <div className="mt-6 pt-6 border-t border-stone-100 flex flex-wrap gap-3">
-               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
-                 <Icon icon="heroicons:clock" className="size-4 text-stone-400" />
-                 {data.durationDays || 0} {t("tourInstance.days", "days")}
-               </span>
-               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
-                 <Icon icon="heroicons:globe-americas" className="size-4 text-stone-400" />
-                 {data.instanceType}
-               </span>
-               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
-                 <Icon icon="heroicons:map-pin" className="size-4 text-stone-400" />
-                 {data.location || "—"}
-               </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                <Icon icon="heroicons:clock" className="size-4 text-stone-400" />
+                {data.durationDays || 0} {t("tourInstance.days", "days")}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                <Icon icon="heroicons:globe-americas" className="size-4 text-stone-400" />
+                {data.instanceType}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
+                <Icon icon="heroicons:map-pin" className="size-4 text-stone-400" />
+                {data.location || "—"}
+              </span>
             </div>
           </div>
         </header>
@@ -700,65 +700,65 @@ export default function TourInstanceDetailPage() {
                   </div>
 
                   {data.includedServices && data.includedServices.length > 0 && (
-                     <div className="mt-6 pt-5 border-t border-stone-100">
-                        <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-400">
-                          {t("tourInstance.includedServices", "Included Services")}
-                        </h3>
-                        <div className="flex flex-wrap gap-2.5">
-                           {data.includedServices.map((service) => (
-                              <span key={service} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/50 border border-emerald-100/60 px-3 py-1.5 text-xs font-semibold text-emerald-800">
-                                <Icon icon="heroicons:check" className="size-3.5 text-emerald-500" />
-                                {service}
-                              </span>
-                           ))}
-                        </div>
-                     </div>
+                    <div className="mt-6 pt-5 border-t border-stone-100">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-400">
+                        {t("tourInstance.includedServices", "Included Services")}
+                      </h3>
+                      <div className="flex flex-wrap gap-2.5">
+                        {data.includedServices.map((service) => (
+                          <span key={service} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/50 border border-emerald-100/60 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+                            <Icon icon="heroicons:check" className="size-3.5 text-emerald-500" />
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </article>
 
                 {data.images && data.images.length > 0 && (
-                   <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                      <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
-                        {t("tourInstance.form.media", "Media")}
-                      </h2>
-                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
-                        {data.images.map((img, i) => (
-                           <div key={i} className="aspect-[4/3] rounded-xl border border-stone-200/60 overflow-hidden bg-stone-100 group relative">
-                             <img src={img.publicURL || ""} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                           </div>
-                        ))}
-                      </div>
-                   </article>
+                  <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
+                      {t("tourInstance.form.media", "Media")}
+                    </h2>
+                    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+                      {data.images.map((img, i) => (
+                        <div key={i} className="aspect-[4/3] rounded-xl border border-stone-200/60 overflow-hidden bg-stone-100 group relative">
+                          <img src={img.publicURL || ""} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        </div>
+                      ))}
+                    </div>
+                  </article>
                 )}
               </div>
 
               {/* RIGHT COLUMN: Providers & Team */}
               <div className="space-y-6">
-                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    <ProviderStatusCard
-                       icon="heroicons:truck" iconColor="text-cyan-600"
-                       label={t("tourInstance.transportProvider", "Transport provider")}
-                       providerName={data.transportProviderName}
-                       approvalStatus={data.transportApprovalStatus}
-                       approvalNote={data.transportApprovalNote}
-                       emptyMessage={t("tourInstance.noTransportProvider", "No transport provider assigned")}
-                    />
-                    <ProviderStatusCard
-                       icon="heroicons:building-office" iconColor="text-indigo-600"
-                       label={t("tourInstance.hotelProvider", "Hotel provider")}
-                       providerName={data.hotelProviderName}
-                       approvalStatus={data.hotelApprovalStatus}
-                       approvalNote={data.hotelApprovalNote}
-                       emptyMessage={t("tourInstance.noHotelProvider", "No hotel provider assigned")}
-                    />
-                 </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                  <ProviderStatusCard
+                    icon="heroicons:truck" iconColor="text-cyan-600"
+                    label={t("tourInstance.transportProvider", "Transport provider")}
+                    providerName={data.transportProviderName}
+                    approvalStatus={data.transportApprovalStatus}
+                    approvalNote={data.transportApprovalNote}
+                    emptyMessage={t("tourInstance.noTransportProvider", "No transport provider assigned")}
+                  />
+                  <ProviderStatusCard
+                    icon="heroicons:building-office" iconColor="text-indigo-600"
+                    label={t("tourInstance.hotelProvider", "Hotel provider")}
+                    providerName={data.hotelProviderName}
+                    approvalStatus={data.hotelApprovalStatus}
+                    approvalNote={data.hotelApprovalNote}
+                    emptyMessage={t("tourInstance.noHotelProvider", "No hotel provider assigned")}
+                  />
+                </div>
 
-                 <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
-                       {t("tourInstance.guidesAndManagers", "Team")}
-                    </h2>
-                    <TeamSection managers={data.managers ?? []} />
-                 </article>
+                <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
+                    {t("tourInstance.guidesAndManagers", "Team")}
+                  </h2>
+                  <TeamSection managers={data.managers ?? []} />
+                </article>
               </div>
             </section>
 
@@ -858,320 +858,318 @@ export default function TourInstanceDetailPage() {
                         <div className="flex items-center justify-between gap-3 p-4 bg-stone-50/50 border-b border-stone-100">
                           <div className="flex flex-1 items-center gap-3">
                             {editingDayId === day.id ? (
-                            <div className="flex-1 grid gap-2 md:grid-cols-2">
-                              <input
-                                className={inputClassName}
-                                value={dayEditForm[day.id]?.title ?? ""}
-                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], title: e.target.value } }))}
-                                placeholder={t("tourInstance.form.title", "Title")}
-                              />
-                              <input
-                                type="date"
-                                className={inputClassName}
-                                value={dayEditForm[day.id]?.actualDate ?? ""}
-                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], actualDate: e.target.value } }))}
-                              />
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
+                              <div className="flex-1 grid gap-2 md:grid-cols-2">
+                                <input
+                                  className={inputClassName}
+                                  value={dayEditForm[day.id]?.title ?? ""}
+                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], title: e.target.value } }))}
+                                  placeholder={t("tourInstance.form.title", "Title")}
+                                />
+                                <input
+                                  type="date"
+                                  className={inputClassName}
+                                  value={dayEditForm[day.id]?.actualDate ?? ""}
+                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], actualDate: e.target.value } }))}
+                                />
                               </div>
-                              {day.actualDate && (
-                                <p className="text-xs text-stone-500">
-                                  {t("tourInstance.form.actualDate", "Actual Date")}:{" "}
-                                  {new Date(day.actualDate).toLocaleDateString("vi-VN")}
-                                  {day.startTime && ` ${day.startTime}`}
-                                  {day.endTime && ` - ${day.endTime}`}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {editingDayId === day.id ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={cancelEditDay}
-                                className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">
-                                {t("common.cancel", "Cancel")}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={saveDay}
-                                className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
-                                {t("common.save", "Save")}
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => startEditDay(day)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-white px-3 py-1.5 text-xs font-semibold text-orange-500 hover:bg-orange-50">
-                              <Icon icon="heroicons:pencil-square" className="size-3.5" />
-                              {t("common.edit", "Edit")}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Day Edit Form */}
-                      {editingDayId === day.id && dayEditForm[day.id] && (
-                        <div className="p-4 space-y-3 border-b border-stone-200 bg-blue-50">
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-stone-600">
-                                {t("tourInstance.form.startTime", "Start Time")}
-                              </label>
-                              <input
-                                type="time"
-                                className={inputClassName}
-                                value={dayEditForm[day.id]?.startTime ?? ""}
-                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], startTime: e.target.value } }))}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-xs font-medium text-stone-600">
-                                {t("tourInstance.form.endTime", "End Time")}
-                              </label>
-                              <input
-                                type="time"
-                                className={inputClassName}
-                                value={dayEditForm[day.id]?.endTime ?? ""}
-                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], endTime: e.target.value } }))}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">
-                              {t("tourInstance.form.description", "Description")}
-                            </label>
-                            <textarea
-                              className={inputClassName + " resize-none"}
-                              rows={2}
-                              value={dayEditForm[day.id]?.description ?? ""}
-                              onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], description: e.target.value } }))}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">
-                              {t("tourInstance.form.note", "Note")}
-                            </label>
-                            <input
-                              className={inputClassName}
-                              value={dayEditForm[day.id]?.note ?? ""}
-                              onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], note: e.target.value } }))}
-                              placeholder={t("tourInstance.form.notePlaceholder", "Admin note for this day...")}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {!dayEditForm[day.id] && day.description && (
-                        <p className="px-4 py-2 text-xs text-stone-600 border-b border-stone-100 bg-stone-50">
-                          {day.description}
-                        </p>
-                      )}
-
-                      {!dayEditForm[day.id] && day.note && (
-                        <div className="px-4 py-2 border-b border-stone-100">
-                          <p className="text-xs text-stone-500">
-                            <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span> {day.note}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Activities */}
-                      {day.activities && day.activities.length > 0 && (
-                        <div className="p-4 space-y-2">
-                          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
-                            {t("tourInstance.activities", "Activities")}
-                          </p>
-                          {day.activities.map((activity) => (
-                            <div key={activity.id} className="rounded-xl border border-stone-100 p-3 hover:border-stone-300 transition-colors">
-                              {editingActivityId === activity.id && activityEditForm[activity.id] ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-stone-900">{activity.title}</p>
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={cancelEditActivity}
-                                        className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-600 hover:bg-stone-100">
-                                        {t("common.cancel", "Cancel")}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={saveActivity}
-                                        className="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
-                                        {t("common.save", "Save")}
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div className="grid gap-2 md:grid-cols-2">
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-medium text-stone-500">
-                                        {t("tourInstance.form.startTime", "Start Time")}
-                                      </label>
-                                      <input
-                                        type="time"
-                                        className={inputClassName}
-                                        value={activityEditForm[activity.id]?.startTime ?? ""}
-                                        onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], startTime: e.target.value } }))}
-                                      />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-medium text-stone-500">
-                                        {t("tourInstance.form.endTime", "End Time")}
-                                      </label>
-                                      <input
-                                        type="time"
-                                        className={inputClassName}
-                                        value={activityEditForm[activity.id]?.endTime ?? ""}
-                                        onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], endTime: e.target.value } }))}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-medium text-stone-500">
-                                      {t("tourInstance.form.note", "Note")}
-                                    </label>
-                                    <input
-                                      className={inputClassName}
-                                      value={activityEditForm[activity.id]?.note ?? ""}
-                                      onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], note: e.target.value } }))}
-                                      placeholder={t("tourInstance.form.activityNotePlaceholder", "Admin note for this activity...")}
-                                    />
-                                  </div>
-                                  <label className="flex items-center gap-2 text-xs text-stone-600">
-                                    <input
-                                      type="checkbox"
-                                      checked={activityEditForm[activity.id]?.isOptional ?? false}
-                                      onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], isOptional: e.target.checked } }))}
-                                      className="size-4 rounded border-stone-300 text-orange-500"
-                                    />
-                                    {t("tourInstance.optional", "Optional")}
-                                  </label>
+                            ) : (
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
                                 </div>
-                              ) : (
-                                <div className="flex items-start gap-3">
-                                  <span className="mt-0.5 shrink-0 inline-flex items-center justify-center size-6 rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                                    {activity.order}
-                                  </span>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="text-sm font-medium text-stone-900">{activity.title}</p>
-                                      {activity.isOptional && (
-                                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-                                          {t("tourInstance.optional", "Optional")}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {activity.description && (
-                                      <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">{activity.description}</p>
-                                    )}
-                                    <div className="flex items-center gap-3 mt-1 text-xs text-stone-400">
-                                      {activity.startTime && <span>{activity.startTime}</span>}
-                                      {activity.endTime && <span> - {activity.endTime}</span>}
-                                    </div>
+                                {day.actualDate && (
+                                  <p className="text-xs text-stone-500">
+                                    {t("tourInstance.form.actualDate", "Actual Date")}:{" "}
+                                    {new Date(day.actualDate).toLocaleDateString("vi-VN")}
+                                    {day.startTime && ` ${day.startTime}`}
+                                    {day.endTime && ` - ${day.endTime}`}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {editingDayId === day.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={cancelEditDay}
+                                  className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">
+                                  {t("common.cancel", "Cancel")}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={saveDay}
+                                  className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                  {t("common.save", "Save")}
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => startEditDay(day)}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-white px-3 py-1.5 text-xs font-semibold text-orange-500 hover:bg-orange-50">
+                                <Icon icon="heroicons:pencil-square" className="size-3.5" />
+                                {t("common.edit", "Edit")}
+                              </button>
+                            )}
+                          </div>
+                        </div>
 
-                                    {/* Transport Info — Transportation activity */}
-                                    {activity.activityType?.toLowerCase() === "transportation" && activity.routes && activity.routes.length > 0 && (
-                                      <div className="mt-2 space-y-1.5 rounded-lg border border-cyan-100 bg-cyan-50/60 p-2.5">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-600 mb-1.5 flex items-center gap-1.5">
-                                          <Icon icon="heroicons:truck" className="size-3" />
-                                          {t("tourInstance.transport.vehicleInfo", "Thông tin xe")}
-                                        </p>
-                                        {activity.routes.map((route) => (
-                                          <div key={route.id} className="space-y-1">
-                                            {route.vehiclePlate ? (
+                        {/* Day Edit Form */}
+                        {editingDayId === day.id && dayEditForm[day.id] && (
+                          <div className="p-4 space-y-3 border-b border-stone-200 bg-blue-50">
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div className="space-y-1">
+                                <label className="text-xs font-medium text-stone-600">
+                                  {t("tourInstance.form.startTime", "Start Time")}
+                                </label>
+                                <input
+                                  type="time"
+                                  className={inputClassName}
+                                  value={dayEditForm[day.id]?.startTime ?? ""}
+                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], startTime: e.target.value } }))}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-xs font-medium text-stone-600">
+                                  {t("tourInstance.form.endTime", "End Time")}
+                                </label>
+                                <input
+                                  type="time"
+                                  className={inputClassName}
+                                  value={dayEditForm[day.id]?.endTime ?? ""}
+                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], endTime: e.target.value } }))}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-stone-600">
+                                {t("tourInstance.form.description", "Description")}
+                              </label>
+                              <textarea
+                                className={inputClassName + " resize-none"}
+                                rows={2}
+                                value={dayEditForm[day.id]?.description ?? ""}
+                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], description: e.target.value } }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-stone-600">
+                                {t("tourInstance.form.note", "Note")}
+                              </label>
+                              <input
+                                className={inputClassName}
+                                value={dayEditForm[day.id]?.note ?? ""}
+                                onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], note: e.target.value } }))}
+                                placeholder={t("tourInstance.form.notePlaceholder", "Admin note for this day...")}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {!dayEditForm[day.id] && day.description && (
+                          <p className="px-4 py-2 text-xs text-stone-600 border-b border-stone-100 bg-stone-50">
+                            {day.description}
+                          </p>
+                        )}
+
+                        {!dayEditForm[day.id] && day.note && (
+                          <div className="px-4 py-2 border-b border-stone-100">
+                            <p className="text-xs text-stone-500">
+                              <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span> {day.note}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Activities */}
+                        {day.activities && day.activities.length > 0 && (
+                          <div className="p-4 space-y-2">
+                            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
+                              {t("tourInstance.activities", "Activities")}
+                            </p>
+                            {day.activities.map((activity) => (
+                              <div key={activity.id} className="rounded-xl border border-stone-100 p-3 hover:border-stone-300 transition-colors">
+                                {editingActivityId === activity.id && activityEditForm[activity.id] ? (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-sm font-medium text-stone-900">{activity.title}</p>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={cancelEditActivity}
+                                          className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-600 hover:bg-stone-100">
+                                          {t("common.cancel", "Cancel")}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={saveActivity}
+                                          className="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
+                                          {t("common.save", "Save")}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div className="grid gap-2 md:grid-cols-2">
+                                      <div className="space-y-1">
+                                        <label className="text-xs font-medium text-stone-500">
+                                          {t("tourInstance.form.startTime", "Start Time")}
+                                        </label>
+                                        <input
+                                          type="time"
+                                          className={inputClassName}
+                                          value={activityEditForm[activity.id]?.startTime ?? ""}
+                                          onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], startTime: e.target.value } }))}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-xs font-medium text-stone-500">
+                                          {t("tourInstance.form.endTime", "End Time")}
+                                        </label>
+                                        <input
+                                          type="time"
+                                          className={inputClassName}
+                                          value={activityEditForm[activity.id]?.endTime ?? ""}
+                                          onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], endTime: e.target.value } }))}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-medium text-stone-500">
+                                        {t("tourInstance.form.note", "Note")}
+                                      </label>
+                                      <input
+                                        className={inputClassName}
+                                        value={activityEditForm[activity.id]?.note ?? ""}
+                                        onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], note: e.target.value } }))}
+                                        placeholder={t("tourInstance.form.activityNotePlaceholder", "Admin note for this activity...")}
+                                      />
+                                    </div>
+                                    <label className="flex items-center gap-2 text-xs text-stone-600">
+                                      <input
+                                        type="checkbox"
+                                        checked={activityEditForm[activity.id]?.isOptional ?? false}
+                                        onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], isOptional: e.target.checked } }))}
+                                        className="size-4 rounded border-stone-300 text-orange-500"
+                                      />
+                                      {t("tourInstance.optional", "Optional")}
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-start gap-3">
+                                    <span className="mt-0.5 shrink-0 inline-flex items-center justify-center size-6 rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                                      {activity.order}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-sm font-medium text-stone-900">{activity.title}</p>
+                                        {activity.isOptional && (
+                                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                                            {t("tourInstance.optional", "Optional")}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {activity.description && (
+                                        <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">{activity.description}</p>
+                                      )}
+                                      <div className="flex items-center gap-3 mt-1 text-xs text-stone-400">
+                                        {activity.startTime && <span>{activity.startTime}</span>}
+                                        {activity.endTime && <span> - {activity.endTime}</span>}
+                                      </div>
+
+                                      {/* Transport Info — Transportation activity */}
+                                      {activity.activityType?.toLowerCase() === "transportation" && (
+                                        <div className="mt-2 space-y-1.5 rounded-lg border border-cyan-100 bg-cyan-50/60 p-2.5">
+                                          <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-600 mb-1.5 flex items-center gap-1.5">
+                                            <Icon icon="heroicons:truck" className="size-3" />
+                                            {t("tourInstance.transport.vehicleInfo", "Thông tin xe")}
+                                          </p>
+                                          <div className="space-y-1">
+                                            {activity.vehiclePlate ? (
                                               <div className="flex items-center gap-2">
                                                 <Icon icon="heroicons:identification" className="size-3 text-cyan-600 shrink-0" />
-                                                <span className="text-xs font-semibold text-stone-800 font-mono">{route.vehiclePlate}</span>
-                                                {route.vehicleType && (
+                                                <span className="text-xs font-semibold text-stone-800 font-mono">{activity.vehiclePlate}</span>
+                                                {activity.vehicleType && (
                                                   <span className="text-[10px] text-stone-500 bg-stone-200 px-1.5 py-0.5 rounded">
-                                                    {route.vehicleType}
+                                                    {activity.vehicleType}
                                                   </span>
                                                 )}
-                                                {route.seatCapacity && (
+                                                {activity.seatCapacity && (
                                                   <span className="text-[10px] text-stone-500 flex items-center gap-0.5">
                                                     <Icon icon="heroicons:user-group" className="size-3" />
-                                                    {route.seatCapacity}
+                                                    {activity.seatCapacity}
                                                   </span>
                                                 )}
-                                                {route.vehicleBrand && (
-                                                  <span className="text-[10px] text-stone-400">{route.vehicleBrand}{route.vehicleModel ? ` ${route.vehicleModel}` : ""}</span>
+                                                {activity.vehicleBrand && (
+                                                  <span className="text-[10px] text-stone-400">{activity.vehicleBrand}{activity.vehicleModel ? ` ${activity.vehicleModel}` : ""}</span>
                                                 )}
                                               </div>
                                             ) : (
                                               <p className="text-[10px] text-amber-600 italic">{t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}</p>
                                             )}
-                                            {route.driverName && (
+                                            {activity.driverName && (
                                               <div className="flex items-center gap-2">
                                                 <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
-                                                <span className="text-xs text-stone-700">{route.driverName}</span>
-                                                {route.driverPhone && (
-                                                  <span className="text-[10px] text-stone-400">{route.driverPhone}</span>
+                                                <span className="text-xs text-stone-700">{activity.driverName}</span>
+                                                {activity.driverPhone && (
+                                                  <span className="text-[10px] text-stone-400">{activity.driverPhone}</span>
                                                 )}
                                               </div>
                                             )}
-                                            {(route.pickupLocation || route.dropoffLocation) && (
+                                            {(activity.pickupLocation || activity.dropoffLocation) && (
                                               <div className="space-y-0.5">
-                                                {route.pickupLocation && (
+                                                {activity.pickupLocation && (
                                                   <div className="flex items-start gap-1.5">
                                                     <Icon icon="heroicons:map-pin" className="size-3 text-emerald-600 mt-0.5 shrink-0" />
                                                     <div>
                                                       <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm đón: </span>
-                                                      <span className="text-xs text-stone-700">{route.pickupLocation}</span>
+                                                      <span className="text-xs text-stone-700">{activity.pickupLocation}</span>
                                                     </div>
                                                   </div>
                                                 )}
-                                                {route.dropoffLocation && (
+                                                {activity.dropoffLocation && (
                                                   <div className="flex items-start gap-1.5">
                                                     <Icon icon="heroicons:map-pin" className="size-3 text-red-500 mt-0.5 shrink-0" />
                                                     <div>
                                                       <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm trả: </span>
-                                                      <span className="text-xs text-stone-700">{route.dropoffLocation}</span>
+                                                      <span className="text-xs text-stone-700">{activity.dropoffLocation}</span>
                                                     </div>
                                                   </div>
                                                 )}
                                               </div>
                                             )}
-                                            {(route.departureTime || route.arrivalTime) && (
+                                            {(activity.departureTime || activity.arrivalTime) && (
                                               <div className="flex items-center gap-3 text-[10px] text-stone-500">
-                                                {route.departureTime && (
-                                                  <span>Khởi hành: {new Date(route.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                {activity.departureTime && (
+                                                  <span>Khởi hành: {new Date(activity.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
                                                 )}
-                                                {route.arrivalTime && (
-                                                  <span>Đến: {new Date(route.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                {activity.arrivalTime && (
+                                                  <span>Đến: {new Date(activity.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
                                                 )}
                                               </div>
                                             )}
                                           </div>
-                                        ))}
-                                      </div>
-                                    )}
+                                        </div>
+                                      )}
 
-                                    {activity.note && (
-                                      <p className="text-xs text-stone-500 mt-1">
-                                        <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span> {activity.note}
-                                      </p>
-                                    )}
+                                      {activity.note && (
+                                        <p className="text-xs text-stone-500 mt-1">
+                                          <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span> {activity.note}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => startEditActivity(day.id, activity)}
+                                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
+                                      <Icon icon="heroicons:pencil" className="size-3" />
+                                    </button>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => startEditActivity(day.id, activity)}
-                                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
-                                    <Icon icon="heroicons:pencil" className="size-3" />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -58,11 +58,7 @@ public class TourDayActivityEntity : Aggregate<Guid>
     /// <summary>Thông tin lưu trú (nếu loại hoạt động là Accommodation).</summary>
     public virtual TourPlanAccommodationEntity? Accommodation { get; set; }
 
-    // Resource Links
-    /// <summary>Danh sách các link tài nguyên (URL tham khảo, booking, v.v.).</summary>
-    public virtual List<TourDayActivityResourceLinkEntity> ResourceLinks { get; set; } = [];
-
-    public static TourDayActivityEntity Create(Guid tourDayId, int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false, IEnumerable<(string Url, int Order)>? resourceLinks = null, Guid? fromLocationId = null, Guid? toLocationId = null, TransportationType? transportationType = null, string? transportationName = null, int? durationMinutes = null, decimal? distanceKm = null, decimal? price = null, string? bookingReference = null)
+    public static TourDayActivityEntity Create(Guid tourDayId, int order, TourDayActivityType activityType, string title, string performedBy, string? description = null, string? note = null, TimeOnly? startTime = null, TimeOnly? endTime = null, decimal? estimatedCost = null, bool isOptional = false, Guid? fromLocationId = null, Guid? toLocationId = null, TransportationType? transportationType = null, string? transportationName = null, int? durationMinutes = null, decimal? distanceKm = null, decimal? price = null, string? bookingReference = null)
     {
         EnsureValidOrder(order);
         EnsureValidTimeRange(startTime, endTime);
@@ -95,14 +91,6 @@ public class TourDayActivityEntity : Aggregate<Guid>
             CreatedOnUtc = DateTimeOffset.UtcNow,
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
-
-        if (resourceLinks != null)
-        {
-            foreach (var link in resourceLinks)
-            {
-                entity.ResourceLinks.Add(TourDayActivityResourceLinkEntity.Create(entity.Id, link.Url, link.Order, performedBy));
-            }
-        }
 
         return entity;
     }

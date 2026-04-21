@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { PencilSimple, EyeIcon } from "@phosphor-icons/react";
 
+import { Icon } from "@/components/ui";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { tourService } from "@/api/services/tourService";
 import type { TourDto } from "@/types/tour";
@@ -217,6 +218,52 @@ export function TourDesignerTourDetailPage() {
                       <p className="text-xs text-slate-400 mt-1">
                         {cls.durationDays} {t("tourDesigner.durationDays", "day(s)")}
                       </p>
+                    )}
+
+                    {cls.plans && cls.plans.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-slate-200">
+                        <h4 className="text-sm font-semibold text-slate-800 mb-3">{t("tourDesigner.itinerary", "Itinerary")}</h4>
+                        <div className="space-y-4">
+                          {cls.plans.map((day) => (
+                            <div key={day.id} className="bg-white rounded-lg border border-slate-200 p-4">
+                              <h5 className="text-sm font-bold text-slate-800">
+                                {t("tourDesigner.day", "Day")} {day.dayNumber}: {day.title}
+                              </h5>
+                              {day.activities && day.activities.length > 0 ? (
+                                <ul className="mt-3 space-y-3">
+                                  {day.activities.map((act, actIdx) => (
+                                    <li key={act.id} className="flex gap-3 text-sm text-slate-600">
+                                      <span className="font-semibold text-indigo-500 w-5 shrink-0">#{actIdx + 1}</span>
+                                      <div>
+                                        <p className="font-medium text-slate-800">{act.title}</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                          {act.activityType === "7" && act.transportationName ? (
+                                            <span className="inline-flex items-center gap-1 font-medium text-amber-600 mr-2">
+                                              <Icon icon="heroicons:truck" className="size-3" />
+                                              {act.transportationName}
+                                            </span>
+                                          ) : null}
+                                          {(act.startTime || act.endTime) && (
+                                            <span className="inline-flex items-center gap-1">
+                                              <Icon icon="heroicons:clock" className="size-3" />
+                                              {act.startTime} {act.endTime && `- ${act.endTime}`}
+                                            </span>
+                                          )}
+                                        </p>
+                                        {act.description && (
+                                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">{act.description}</p>
+                                        )}
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-xs text-slate-500 mt-2 italic">{t("tourDesigner.noActivities", "No activities yet")}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 ))}

@@ -147,10 +147,6 @@ internal sealed class TourPurgeExecutor : ITourPurgeExecutor
 
                     if (dayIds.Count > 0)
                     {
-                        await _context.TourDayActivityResourceLinks
-                            .Where(l => dayIds.Contains(l.TourDayActivityId))
-                            .ExecuteDeleteAsync(cancellationToken);
-
                         await _context.TourDayActivities
                             .Where(a => dayIds.Contains(a.TourDayId))
                             .ExecuteDeleteAsync(cancellationToken);

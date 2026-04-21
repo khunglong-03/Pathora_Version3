@@ -96,6 +96,9 @@ public static class DependencyInjection
         // In Development, use in-memory cache only (faster startup, no Redis required)
         if (!isDevelopment && !string.IsNullOrEmpty(redisConnection))
         {
+            var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection);
+            services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexer);
+            
             services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
             fusionCacheBuilder.WithRegisteredDistributedCache();
         }

@@ -438,9 +438,9 @@ export const tourInstanceService = {
     return extractResult<string>(response.data);
   },
 
-  assignVehicleToRoute: async (
+  assignVehicleToActivity: async (
     instanceId: string,
-    routeId: string,
+    activityId: string,
     data: { vehicleId: string; driverId: string },
   ) => {
     const response = await api.put<ApiResponse<{
@@ -449,7 +449,7 @@ export const tourInstanceService = {
       vehicleSeatCapacity?: number | null;
       tourMaxParticipation?: number | null;
     }>>(
-      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ROUTE_VEHICLE(instanceId, routeId),
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ACTIVITY_VEHICLE(instanceId, activityId),
       { vehicleId: data.vehicleId, driverId: data.driverId },
     );
     return extractResult<{

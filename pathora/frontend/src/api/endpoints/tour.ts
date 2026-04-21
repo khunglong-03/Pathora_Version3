@@ -38,7 +38,7 @@ export interface TourInstanceEndpoints {
   GET_PROVIDER_ASSIGNED: string;
   HOTEL_APPROVE: (id: string) => string;
   TRANSPORT_APPROVE: (id: string) => string;
-  ASSIGN_ROUTE_VEHICLE: (instanceId: string, routeId: string) => string;
+  ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
 }
 
@@ -89,8 +89,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
   HOTEL_APPROVE: (id: string): string => `/api/tour-instance/${id}/hotel-approve`,
   TRANSPORT_APPROVE: (id: string): string => `/api/tour-instance/${id}/transport-approve`,
-  ASSIGN_ROUTE_VEHICLE: (instanceId: string, routeId: string): string =>
-    `/api/tour-instance/${instanceId}/routes/${routeId}/assign`,
+  ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/assign`,
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-rooms`,
 };

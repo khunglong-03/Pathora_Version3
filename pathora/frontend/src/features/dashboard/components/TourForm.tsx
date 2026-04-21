@@ -491,9 +491,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
 
   /* ── Policies ──────────────────────────────────────────── */
-  const [pricingPolicies, setPricingPolicies] = useState<PricingPolicy[]>([]);
-  const [depositPolicies, setDepositPolicies] = useState<DepositPolicy[]>([]);
-  const [cancellationPolicies, setCancellationPolicies] = useState<CancellationPolicy[]>([]);
+
   const [selectedPricingPolicyId, setSelectedPricingPolicyId] = useState<string>("");
   const [selectedDepositPolicyId, setSelectedDepositPolicyId] = useState<string>("");
   const [selectedCancellationPolicyId, setSelectedCancellationPolicyId] = useState<string>("");
@@ -702,28 +700,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   const [thumbnailError, setThumbnailError] = useState<string>();
   const [imagesError, setImagesError] = useState<string>();
 
-  /* ── Fetch Policies ──────────────────────────────────────────── */
-  const policiesFetched = useRef(false);
-  useEffect(() => {
-    if (policiesFetched.current) return;
-    policiesFetched.current = true;
 
-    const fetchPolicies = async () => {
-      try {
-        const [ppRes, dpRes, cpRes] = await Promise.all([
-          pricingPolicyService.getAll(),
-          depositPolicyService.getAll(),
-          cancellationPolicyService.getAll(),
-        ]);
-        if (ppRes.success && ppRes.data) setPricingPolicies(ppRes.data);
-        if (dpRes.success && dpRes.data) setDepositPolicies(dpRes.data);
-        if (cpRes.success && cpRes.data) setCancellationPolicies(cpRes.data);
-      } catch (err) {
-        console.error("Failed to fetch policies:", err);
-      }
-    };
-    fetchPolicies();
-  }, []);
 
   const collectStepErrors = (
     step: number,
@@ -1929,47 +1906,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 />
               </div>
 
-              {/* ── Policy Selectors (TourDesigner hides these) ─── */}
-              {showPolicySections ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200 mt-6">
-                  {/* Pricing Policy */}
-                  <SearchableSelect
-                    label={t("tourAdmin.basicInfo.pricingPolicy")}
-                    placeholder={t("tourAdmin.basicInfo.searchPricingPolicy")}
-                    value={selectedPricingPolicyId}
-                    onChange={setSelectedPricingPolicyId}
-                    options={pricingPolicies.map((p) => ({
-                      value: p.id,
-                      label: p.name,
-                    }))}
-                  />
 
-                  {/* Deposit Policy */}
-                  <SearchableSelect
-                    label={t("tourAdmin.basicInfo.depositPolicy")}
-                    placeholder={t("tourAdmin.basicInfo.searchDepositPolicy")}
-                    value={selectedDepositPolicyId}
-                    onChange={setSelectedDepositPolicyId}
-                    options={depositPolicies.map((p) => ({
-                      value: p.id,
-                      label: `${p.tourScopeName} - ${p.depositTypeName} ${p.depositValue}${p.depositType === 2 ? "%" : ""}`,
-                    }))}
-                  />
-
-                  {/* Cancellation Policy */}
-                  <SearchableSelect
-                    label={t("tourAdmin.basicInfo.cancellationPolicy")}
-                    placeholder={t("tourAdmin.basicInfo.searchCancellationPolicy")}
-                    value={selectedCancellationPolicyId}
-                    onChange={setSelectedCancellationPolicyId}
-                    options={cancellationPolicies.map((p) => ({
-                      value: p.id,
-                      label: `${p.policyCode} (${p.tourScopeName}, ${p.tiers.length} tier${p.tiers.length !== 1 ? "s" : ""})`,
-                    }))}
-                  />
-
-                </div>
-              ) : null}
             </div>
           )}
 
@@ -2598,9 +2535,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   </div>
                                 </div>
 
-                                {/* Link to Resources */}
-                                <div>
-                                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                {/* Link to Resources and generic location (hidden for transportation) */}
+                                {act.activityType !== "7" && (
+                                  <>
+                                    <div>
+                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                                     {t("tourAdmin.itineraries.linkToResources")}
                                   </label>
                                   <div className="space-y-2">
@@ -2683,8 +2622,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                     className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                   />
                                 </div>
+                              </>
+                            )}
 
-                                {/* Type 7: Transportation — TU, DEN, Phuong tien, Thoi gian */}
+                            {/* Type 7: Transportation — TU, DEN, Phuong tien, Thoi gian */}
                                 {act.activityType === "7" && (
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                                     <div>

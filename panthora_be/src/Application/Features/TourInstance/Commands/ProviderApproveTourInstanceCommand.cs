@@ -32,7 +32,7 @@ public sealed class ProviderApproveTourInstanceCommandValidator : AbstractValida
 
 public sealed class ProviderApproveTourInstanceCommandHandler(
     ITourInstanceService tourInstanceService,
-    ITourInstancePlanRouteRepository routeRepository)
+    ITourInstanceRepository tourInstanceRepository)
     : ICommandHandler<ProviderApproveTourInstanceCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(ProviderApproveTourInstanceCommand request, CancellationToken cancellationToken)
@@ -40,17 +40,22 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
         if (request.ProviderType != "Transport" || !request.IsApproved)
             return await tourInstanceService.ProviderApprove(request.InstanceId, request.IsApproved, request.Note,
                 request.ProviderType, cancellationToken);
-        var routes = await routeRepository.GetByTourInstanceIdAsync(request.InstanceId, cancellationToken);
-        var unassignedRouteIds = routes
-            .Where(route => route.VehicleId is null || route.DriverId is null)
-            .Select(route => route.Id)
+                
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        if (instance == null)
+            return Error.NotFound("TourInstance.NotFound", "Tour Instance not found.");
+
+        var unassignedActivityIds = instance.InstanceDays
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation && (a.VehicleId is null || a.DriverId is null))
+            .Select(a => a.Id)
             .ToList();
 
-        if (unassignedRouteIds.Count > 0)
+        if (unassignedActivityIds.Count > 0)
         {
             return Error.Validation(
                 "TourInstance.RoutesNotAssigned",
-                $"Các tuyến vận chuyển chưa được gán xe/tài xế: {string.Join(", ", unassignedRouteIds)}");
+                $"Các hoạt động vận chuyển chưa được gán xe/tài xế: {string.Join(", ", unassignedActivityIds)}");
         }
 
         return await tourInstanceService.ProviderApprove(request.InstanceId, request.IsApproved, request.Note, request.ProviderType, cancellationToken);

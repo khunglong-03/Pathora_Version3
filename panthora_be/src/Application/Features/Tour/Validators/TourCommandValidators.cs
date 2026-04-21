@@ -111,7 +111,26 @@ public sealed class ActivityDtoValidator : AbstractValidator<ActivityDto>
             .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.RoutePriceNonNegative)
             .When(x => x.Price.HasValue);
 
-        When(x => !string.IsNullOrEmpty(x.TransportationType), () =>
+        When(x => x.ActivityType == "7", () =>
+        {
+            RuleFor(x => x.TransportationType)
+                .NotEmpty().WithMessage(ValidationMessages.TransportationTypeRequired)
+                .Custom((value, context) =>
+                {
+                    if (!string.IsNullOrEmpty(value) && !EnumHelper.TryParseDefinedEnum<TransportationType>(value, out _))
+                    {
+                        context.AddFailure($"{context.PropertyPath} has invalid value '{value}'.");
+                    }
+                });
+
+            RuleFor(x => x).Must(x => x.FromLocationId.HasValue || !string.IsNullOrEmpty(x.Translations?.FirstOrDefault().Value.FromLocationName))
+                .WithMessage(ValidationMessages.RouteFromLocationNameRequired);
+
+            RuleFor(x => x).Must(x => x.ToLocationId.HasValue || !string.IsNullOrEmpty(x.Translations?.FirstOrDefault().Value.ToLocationName))
+                .WithMessage(ValidationMessages.RouteToLocationNameRequired);
+        });
+
+        When(x => x.ActivityType != "7" && !string.IsNullOrEmpty(x.TransportationType), () =>
         {
             RuleFor(x => x.TransportationType)
                 .Custom((value, context) =>
@@ -126,16 +145,6 @@ public sealed class ActivityDtoValidator : AbstractValidator<ActivityDto>
         RuleFor(x => x.Accommodation)
             .SetValidator(new AccommodationDtoValidator()!)
             .When(x => x.Accommodation != null);
-
-        RuleForEach(x => x.LinkToResources)
-            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri?.Scheme == "http" || uri?.Scheme == "https"))
-            .WithMessage(ValidationMessages.ActivityResourceLinkInvalid)
-            .When(x => x.LinkToResources != null && x.LinkToResources.Count > 0);
-
-        RuleForEach(x => x.LinkToResources)
-            .MaximumLength(2048)
-            .WithMessage(ValidationMessages.ActivityResourceLinkMaxLength2048)
-            .When(x => x.LinkToResources != null && x.LinkToResources.Count > 0);
     }
 }
 

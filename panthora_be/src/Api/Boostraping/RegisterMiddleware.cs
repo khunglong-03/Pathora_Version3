@@ -11,6 +11,7 @@ public static class RegisterMiddleware
 
     public static WebApplication UseAppMiddleware(this WebApplication app)
     {
+        app.UseMiddleware<StartupCacheClearMiddleware>();
         app.UseMiddleware<SwaggerAuthBypassMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 

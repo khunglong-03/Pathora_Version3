@@ -22,29 +22,34 @@ public sealed record TourInstanceDayActivityDto(
     bool IsOptional,
     string? Note,
     TourInstancePlanAccommodationDto? Accommodation,
-    List<TourInstancePlanRouteDto>? Routes);
+    
+    // Transportation Plan info
+    string? TransportationType,
+    string? TransportationName,
+    TourPlanLocationDto? FromLocation,
+    TourPlanLocationDto? ToLocation,
+    int? DurationMinutes,
+    decimal? DistanceKm,
+    decimal? Price,
+    string? BookingReference,
+    
+    // Instance-specific Vehicle Assignment info
+    Guid? VehicleId,
+    string? VehiclePlate,
+    string? VehicleType,
+    string? VehicleBrand,
+    string? VehicleModel,
+    int? SeatCapacity,
+    Guid? DriverId,
+    string? DriverName,
+    string? DriverPhone,
+    string? PickupLocation,
+    string? DropoffLocation,
+    DateTimeOffset? DepartureTime,
+    DateTimeOffset? ArrivalTime);
 
 public sealed record TourInstancePlanAccommodationDto(
     Guid Id,
     string RoomType,
     int Quantity,
     int RoomBlocksTotal = 0);
-
-public sealed record TourInstancePlanRouteDto(
-    Guid Id,
-    Guid? VehicleId,
-    DateTimeOffset? DepartureTime,
-    DateTimeOffset? ArrivalTime,
-    // Vehicle info
-    string? VehiclePlate,
-    string? VehicleType,
-    string? VehicleBrand,
-    string? VehicleModel,
-    int? SeatCapacity,
-    // Driver info
-    Guid? DriverId,
-    string? DriverName,
-    string? DriverPhone,
-    // Location info
-    string? PickupLocation,
-    string? DropoffLocation);

@@ -43,8 +43,7 @@ public sealed record ActivityDto(
     decimal? Price = null,
     string? BookingReference = null,
     AccommodationDto? Accommodation = null,
-    Dictionary<string, TourDayActivityTranslationData>? Translations = null,
-    List<string>? LinkToResources = null
+    Dictionary<string, TourDayActivityTranslationData>? Translations = null
 );
 
 

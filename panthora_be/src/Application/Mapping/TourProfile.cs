@@ -18,11 +18,9 @@ public sealed class TourProfile : Profile
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));
 
         CreateMap<TourDayActivityEntity, TourDayActivityDto>()
-            .ForCtorParam(
-                nameof(TourDayActivityDto.linkToResources),
-                opt => opt.MapFrom(src => src.ResourceLinks
-                    .OrderBy(l => l.Order)
-                    .Select(l => l.Url).ToList()))
+            .ForCtorParam(nameof(TourDayActivityDto.FromLocationName), opt => opt.MapFrom(src => src.FromLocation != null ? src.FromLocation.LocationName : null))
+            .ForCtorParam(nameof(TourDayActivityDto.ToLocationName), opt => opt.MapFrom(src => src.ToLocation != null ? src.ToLocation.LocationName : null))
+            .ForCtorParam(nameof(TourDayActivityDto.TransportationType), opt => opt.MapFrom(src => src.TransportationType != null ? src.TransportationType.ToString() : null))
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));
 
         CreateMap<TourInsuranceEntity, TourInsuranceDto>()

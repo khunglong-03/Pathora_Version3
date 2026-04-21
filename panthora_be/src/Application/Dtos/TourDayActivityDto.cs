@@ -26,12 +26,11 @@ public sealed record TourDayActivityDto(
     decimal? Price,
     string? BookingReference,
     TourPlanAccommodationDto? Accommodation,
-    List<string>? linkToResources,
     string? CreatedBy,
     DateTimeOffset CreatedOnUtc,
     string? LastModifiedBy,
     DateTimeOffset? LastModifiedOnUtc,
     Dictionary<string, TourDayActivityTranslationData>? Translations = null,
-    string? enTransportationType = null,
-    string? enTransportationName = null
+    string? EnTransportationType = null,
+    string? EnTransportationName = null
 );

@@ -179,7 +179,22 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-21 2:57am GMT+7
+# [Pathora_Version3] recent context, 2026-04-21 10:02pm GMT+7
 
-No previous sessions found.
+Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
+Format: ID TIME TYPE TITLE
+Fetch details: get_observations([IDs]) | Search: mem-search skill
+
+Stats: 7 obs (3,232t read) | 901,032t work | 100% savings
+
+### Apr 21, 2026
+15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
+17 3:01a 🔵 TourEntity.Create() Silently Drops Policy IDs — Params Accepted But Never Assigned
+18 " 🔵 TourRepository .Include() Policy Navigation Calls Are Missing from tasks.md
+19 " 🔵 Task 5.8 References Wrong Filename — DataSeeder.cs Does Not Exist
+20 " 🔵 Five Test Files Contain Policy FK References Not Covered by tasks.md
+21 " 🔵 Two Duplicate TourForm.tsx Files Exist — Legacy and Refactored Versions Both Have Policy Code
+22 " 🔵 CalculateRefund Should Use FindByTourScopeAndDays Not FindByTourScope — Task 4.1 Picks Wrong Method
+
+Access 901k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

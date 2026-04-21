@@ -16,14 +16,15 @@ vi.mock("react-toastify", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    warning: vi.fn(),
   },
 }));
 
 vi.mock("@/api/services/tourInstanceService", () => ({
   tourInstanceService: {
-    getInstanceDetail: vi.fn(),
-    assignVehicleToRoute: vi.fn(),
-    providerApproveInstance: vi.fn(),
+    getMyAssignedInstanceDetail: vi.fn(),
+    assignVehicleToActivity: vi.fn(),
+    transportApprove: vi.fn(),
   },
 }));
 
@@ -38,6 +39,8 @@ describe("TransportTourAssignmentPage", () => {
   const mockTour = {
     id: "tour-id-123",
     tourName: "Test Tour",
+    tourCode: "TT001",
+    currentParticipation: 10,
     maxParticipation: 20,
     transportApprovalStatus: 1, // Pending
     days: [
@@ -45,14 +48,15 @@ describe("TransportTourAssignmentPage", () => {
         title: "Day 1",
         activities: [
           {
-            title: "Activity 1",
-            routes: [
-              {
-                id: "route-1",
-                pickupLocation: "Hotel A",
-                dropoffLocation: "Airport B",
-              },
-            ],
+            id: "act-1",
+            activityType: "Transportation",
+            title: "Bus to Ha Long",
+            pickupLocation: "Hotel A",
+            dropoffLocation: "Airport B",
+            vehicleId: null,
+            driverId: null,
+            vehiclePlate: null,
+            driverName: null,
           },
         ],
       },
@@ -60,39 +64,37 @@ describe("TransportTourAssignmentPage", () => {
   };
 
   const mockVehicles = [
-    { id: "v1", name: "Bus A", seatCapacity: 15, licensePlate: "123" }, // capacity < 20 (WARNING)
-    { id: "v2", name: "Bus B", seatCapacity: 30, licensePlate: "456" }, // OK
+    { id: "v1", vehiclePlate: "30A-123", brand: "Hyundai", model: "County", seatCapacity: 15 },
+    { id: "v2", vehiclePlate: "51B-456", brand: "Ford", model: "Transit", seatCapacity: 30 },
   ];
 
   const mockDrivers = [
-    { id: "d1", fullName: "Driver John" },
+    { id: "d1", fullName: "Driver John", licenseNumber: "B2-123" },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (tourInstanceService.getInstanceDetail as any).mockResolvedValue(mockTour);
+    (tourInstanceService.getMyAssignedInstanceDetail as any).mockResolvedValue(mockTour);
     (transportProviderService.getVehicles as any).mockResolvedValue(mockVehicles);
     (transportProviderService.getDrivers as any).mockResolvedValue(mockDrivers);
   });
 
   it("renders loading state initially", async () => {
-    // Make API call promise unresolved initially to test loading skeleton
     let resolveApi: any;
-    (tourInstanceService.getInstanceDetail as any).mockReturnValue(new Promise(res => { resolveApi = res; }));
+    (tourInstanceService.getMyAssignedInstanceDetail as any).mockReturnValue(new Promise(res => { resolveApi = res; }));
     
     render(<TransportTourAssignmentPage />);
     
-    // "Skeleton" or equivalent loading state
-    // Let's just expect standard fallback or nothing since it displays SkeletonCard which is mocked globally
-    // We will just verify it does not error out.
+    // Verify it does not error out during loading
     resolveApi(mockTour);
   });
 
-  it.skip("renders tour data and allows assignment", async () => {
-    // skipped
+  it.skip("renders tour data with flattened activity-based assignments", async () => {
+    // Test that transport activities are displayed directly from activity fields
+    // not from nested routes[]
   });
 
-  it.skip("displays warning if seat capacity is low", async () => {
-    // skipped 
+  it.skip("calls assignVehicleToActivity (not assignVehicleToRoute)", async () => {
+    // Verify the correct service method is called with activityId
   });
 });

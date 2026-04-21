@@ -163,8 +163,6 @@ public class TourService(
                                 endTime = et;
                             }
 
-                            var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
-
                             var enTranslation = act.Translations?.GetValueOrDefault("en");
                             var fromLocationName = enTranslation?.FromLocationName;
                             var toLocationName = enTranslation?.ToLocationName;
@@ -193,7 +191,6 @@ public class TourService(
                                 endTime,
                                 act.EstimatedCost,
                                 act.IsOptional,
-                                resourceLinks,
                                 fromLocation?.Id ?? act.FromLocationId,
                                 toLocation?.Id ?? act.ToLocationId,
                                 routeTransportType,
@@ -688,11 +685,6 @@ public class TourService(
             activity.Accommodation.SoftDelete(performedBy);
         }
 
-        foreach (var link in activity.ResourceLinks)
-        {
-            link.SoftDelete(performedBy);
-        }
-
         if (activity.FromLocation != null)
         {
             activity.FromLocation.SoftDelete(performedBy);
@@ -929,24 +921,6 @@ public class TourService(
             StringComparer.OrdinalIgnoreCase);
     }
 
-    private static IEnumerable<(string Url, int Order)> NormalizeResourceLinks(List<string>? links)
-    {
-        if (links is null || links.Count == 0)
-        {
-            return [];
-        }
-
-        // Trim and filter empty/whitespace
-        var filtered = links
-            .Select(l => l?.Trim())
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .DistinctBy(l => l!.ToLowerInvariant())
-            .ToList();
-
-        // Preserve order: assign sequential order (1-based) preserving first-occurrence order
-        return filtered.Select((l, i) => (Url: l!, Order: i + 1));
-    }
-
     private static void MergeTranslations(TourEntity tour, Dictionary<string, TourTranslationData>? translations)
     {
         if (translations is null || translations.Count == 0)
@@ -1091,7 +1065,6 @@ public class TourService(
             TimeOnly? endTime = null;
             if (!string.IsNullOrWhiteSpace(act.StartTime) && TimeOnly.TryParse(act.StartTime, out var st)) startTime = st;
             if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
-            var resourceLinks = NormalizeResourceLinks(act.LinkToResources);
 
             var enTranslation = act.Translations?.GetValueOrDefault("en");
             var fromLocationName = enTranslation?.FromLocationName;
@@ -1124,19 +1097,6 @@ public class TourService(
                 activity.Translations = NormalizeTranslationsFromPayload(act.Translations);
                 activity.FromLocation = fromLocation;
                 activity.ToLocation = toLocation;
-
-                // Replace ResourceLinks (Soft delete old, add new)
-                foreach (var link in activity.ResourceLinks.Where(l => !l.IsDeleted))
-                {
-                    link.SoftDelete(_user.Id ?? string.Empty);
-                }
-                foreach (var link in resourceLinks)
-                {
-                    var rl = TourDayActivityResourceLinkEntity.Create(
-                        activity.Id, link.Url, link.Order, _user.Id ?? string.Empty);
-                    _unitOfWork.MarkAsAdded(rl);
-                    activity.ResourceLinks.Add(rl);
-                }
 
                 // Add or Update Accommodation
                 if (act.Accommodation != null && !string.IsNullOrWhiteSpace(act.Accommodation.AccommodationName))
@@ -1209,7 +1169,7 @@ public class TourService(
                 activity = TourDayActivityEntity.Create(
                     day.Id, activityOrder, activityType, act.Title,
                     _user.Id ?? string.Empty, act.Description, act.Note,
-                    startTime, endTime, act.EstimatedCost, act.IsOptional, resourceLinks,
+                    startTime, endTime, act.EstimatedCost, act.IsOptional,
                     fromLocation?.Id ?? act.FromLocationId,
                     toLocation?.Id ?? act.ToLocationId,
                     routeTransportType,

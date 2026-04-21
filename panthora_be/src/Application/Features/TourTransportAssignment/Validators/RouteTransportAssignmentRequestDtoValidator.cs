@@ -24,7 +24,7 @@ public sealed class RouteTransportAssignmentRequestDtoValidator
             .NotEmpty().WithMessage("Booking activity reservation ID is required.");
 
         RuleFor(x => x.TourDayActivityId)
-            .NotEmpty().WithMessage("Tour plan route ID is required.");
+            .NotEmpty().WithMessage("Tour day activity ID is required.");
 
         RuleFor(x => x)
             .MustAsync(HaveSameOwner)

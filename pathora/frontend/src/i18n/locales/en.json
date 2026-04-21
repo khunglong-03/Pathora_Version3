@@ -1764,7 +1764,6 @@
       "addActivity": "Add Activity",
       "addAccommodation": "Add Accommodation",
       "addLocation": "Add Location",
-      "addRoute": "Add Route",
       "addInsurance": "Add Insurance",
       "addLink": "Add link",
       "addService": "Add service"
@@ -1813,11 +1812,7 @@
       "placeholderDescribeActivity": "Describe this activity",
       "placeholderAdditionalNotes": "Any additional notes",
       "placeholderHttps": "https://...",
-      "route": "Route",
-      "routes": "Routes",
-      "addRoute": "Add Route",
-      "removeRoute": "Remove Route",
-      "noRoutesYet": "No routes yet",
+
       "placeholderLocation": "Location name...",
       "placeholderFromLocation": "Departure location...",
       "placeholderToLocation": "Arrival location...",
@@ -1871,9 +1866,8 @@
       "placeholderAddress": "Full address..."
     },
     "transportation": {
-      "sectionTitle": "Transportation Routes",
+      "sectionTitle": "Transportation",
       "infoBanner": "Shared resource pool. Link to activities in Itinerary step.",
-      "routeNumber": "Route #{number}",
       "fromLocation": "From Location",
       "toLocation": "To Location",
       "transportationType": "Transportation Type",
@@ -1884,7 +1878,7 @@
       "requiresIndividualTicket": "Requires Individual Ticket",
       "ticketInfo": "Ticket Info",
       "note": "Note",
-      "removeRoute": "Remove route",
+
       "placeholderFrom": "Hanoi",
       "placeholderTo": "Halong Bay",
       "placeholderTransportationType": "Bus, Flight, Car...",
@@ -1932,7 +1926,7 @@
       "resources": "Resources",
       "accommodations": "Accommodations",
       "locations": "Locations",
-      "routes": "Routes",
+
       "services": "Services",
       "insurancePackages": "Insurance Packages",
       "untitled": "Untitled",

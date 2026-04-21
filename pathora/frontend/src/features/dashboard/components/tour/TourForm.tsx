@@ -495,9 +495,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
 
   /* ── Policies ──────────────────────────────────────────── */
-  const [pricingPolicies, setPricingPolicies] = useState<PricingPolicy[]>([]);
-  const [depositPolicies, setDepositPolicies] = useState<DepositPolicy[]>([]);
-  const [cancellationPolicies, setCancellationPolicies] = useState<CancellationPolicy[]>([]);
+
   const [selectedPricingPolicyId, setSelectedPricingPolicyId] = useState<string>("");
   const [selectedDepositPolicyId, setSelectedDepositPolicyId] = useState<string>("");
   const [selectedCancellationPolicyId, setSelectedCancellationPolicyId] = useState<string>("");
@@ -712,27 +710,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   const [thumbnailError, setThumbnailError] = useState<string>();
   const [imagesError, setImagesError] = useState<string>();
 
-  /* ── Fetch Policies ──────────────────────────────────────────── */
-  const policiesFetched = useRef(false);
-  useEffect(() => {
-    if (policiesFetched.current) return;
-    policiesFetched.current = true;
-    const fetchPolicies = async () => {
-      try {
-        const [ppRes, dpRes, cpRes] = await Promise.all([
-          pricingPolicyService.getAll(),
-          depositPolicyService.getAll(),
-          cancellationPolicyService.getAll(),
-        ]);
-        if (ppRes.success && ppRes.data) setPricingPolicies(ppRes.data);
-        if (dpRes.success && dpRes.data) setDepositPolicies(dpRes.data);
-        if (cpRes.success && cpRes.data) setCancellationPolicies(cpRes.data);
-      } catch (err) {
-        console.error("Failed to fetch policies:", err);
-      }
-    };
-    fetchPolicies();
-  }, []);
+
 
   // Step field name maps for trigger-based wizard validation
   const STEP_FIELD_NAMES: Record<number, (keyof TourFormValues)[]> = {
@@ -1262,12 +1240,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             existingImages={existingImages}
             thumbnailError={thumbnailError}
             imagesError={imagesError}
-            pricingPolicies={pricingPolicies}
-            depositPolicies={depositPolicies}
-            cancellationPolicies={cancellationPolicies}
-            selectedPricingPolicyId={selectedPricingPolicyId}
-            selectedDepositPolicyId={selectedDepositPolicyId}
-            selectedCancellationPolicyId={selectedCancellationPolicyId}
             isEditMode={isEditMode}
             setBasicInfo={(field, value) => form.setValue(`basicInfo.${field}` as keyof TourFormValues, value as never, { shouldValidate: true })}
             setEnTranslation={(field, value) => form.setValue(`enTranslation.${field}` as keyof TourFormValues, value as never, { shouldValidate: true })}
@@ -1278,9 +1250,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             setExistingImages={setExistingImages}
             setThumbnailError={setThumbnailError}
             setImagesError={setImagesError}
-            setSelectedPricingPolicyId={setSelectedPricingPolicyId}
-            setSelectedDepositPolicyId={setSelectedDepositPolicyId}
-            setSelectedCancellationPolicyId={setSelectedCancellationPolicyId}
             onRemoveExistingImage={(img) =>
               setExistingImages((prev) => prev.filter((i) => i.fileId !== img.fileId))
             }

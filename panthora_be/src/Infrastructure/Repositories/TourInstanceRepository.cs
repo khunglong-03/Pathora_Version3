@@ -166,8 +166,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Include(t => t.HotelProvider)
             .Include(t => t.TransportProvider)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Vehicle)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
@@ -271,8 +271,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Thumbnail)
             .Include(t => t.Images)
             .Include(t => t.Managers).ThenInclude(m => m.User)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Vehicle)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Routes).ThenInclude(r => r.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .FirstOrDefaultAsync(t => t.Id == id
                 && !t.IsDeleted
@@ -284,7 +284,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     {
         return await _context.TourInstanceDays
             .AsNoTracking()
-            .Include(d => d.Activities).ThenInclude(a => a.Routes)
+            .Include(d => d.Activities).ThenInclude(a => a.Vehicle)
+            .Include(d => d.Activities).ThenInclude(a => a.Driver)
             .Include(d => d.Activities).ThenInclude(a => a.Accommodation)
             .AsSplitQuery()
             .FirstOrDefaultAsync(d => d.Id == dayId && d.TourInstanceId == instanceId, cancellationToken);
@@ -297,7 +298,6 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(a => a.FromLocation)
             .Include(a => a.ToLocation)
             .Include(a => a.Accommodation)
-            .Include(a => a.ResourceLinks)
             .FirstOrDefaultAsync(a => a.Id == activityId && a.TourDayId == tourDayId && !a.IsDeleted, cancellationToken);
     }
 
