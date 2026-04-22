@@ -8,8 +8,6 @@ public interface IVehicleBlockRepository : IRepository<VehicleBlockEntity>
     Task<VehicleBlockEntity?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<VehicleBlockEntity>> FindActiveBlocksAsync(Guid vehicleId, DateOnly date, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<VehicleBlockEntity>> GetByActivityIdAsync(Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default);
-    Task AddAsync(VehicleBlockEntity entity, CancellationToken cancellationToken = default);
-    void Update(VehicleBlockEntity entity);
     void Remove(VehicleBlockEntity entity);
     Task DeleteByActivityAsync(Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default);
     Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);

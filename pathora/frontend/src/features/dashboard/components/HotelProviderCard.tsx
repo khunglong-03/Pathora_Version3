@@ -5,7 +5,7 @@ import { BedIcon, PhoneIcon, EnvelopeSimpleIcon, ProhibitIcon, ShieldCheckIcon }
 import type { HotelProviderListItem } from "@/types/admin";
 import { ContinentChip, ContinentChips } from "@/components/shared/ContinentChip";
 import { userService } from "@/api/services/userService";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 
 interface HotelProviderCardProps {
   provider: HotelProviderListItem;

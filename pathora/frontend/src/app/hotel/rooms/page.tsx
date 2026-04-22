@@ -52,6 +52,10 @@ export default function RoomsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const loadAccommodations = useCallback(async () => {
     setIsLoading(true);
     setError(null);

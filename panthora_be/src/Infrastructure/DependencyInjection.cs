@@ -19,6 +19,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 using Application.Services;
 using Application.Options;
+using Application.Common.Interfaces;
 
 namespace Infrastructure;
 
