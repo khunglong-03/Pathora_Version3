@@ -121,6 +121,26 @@ public class TourInstanceService(
         if (accommodationValidationResult.IsError)
             return accommodationValidationResult.Errors;
 
+        // Scope addendum 2026-04-23: reject if manager-requested vehicle count exceeds
+        // the transport supplier's active fleet of that vehicle type.
+        var fleetGuardResult = await ValidateRequestedVehicleCountAgainstFleetAsync(request.ActivityAssignments);
+        if (fleetGuardResult.IsError)
+            return fleetGuardResult.Errors;
+
+        if (request.ActivityAssignments?.Any(static a =>
+                a.TransportSupplierId.HasValue && !a.RequestedVehicleType.HasValue) == true)
+        {
+            return Error.Validation(
+                "TourInstance.TransportPlanMissingVehicleType",
+                "Phải chọn loại xe khi đã chọn nhà cung cấp vận chuyển.");
+        }
+
+        // Scope addendum 2026-04-23: reject if manager-requested accommodation quantity
+        // exceeds the hotel supplier's configured room inventory of that room type.
+        var roomGuardResult = await ValidateAccommodationQuantityAgainstInventoryAsync(request.ActivityAssignments);
+        if (roomGuardResult.IsError)
+            return roomGuardResult.Errors;
+
         // Validate TourRequestId if provided
         TourRequestEntity? tourRequest = null;
         if (request.TourRequestId.HasValue)
@@ -252,8 +272,9 @@ public class TourInstanceService(
                         {
                             instanceActivity.AssignTransportSupplier(
                                 assignedData.TransportSupplierId.Value,
-                                assignedData.RequestedVehicleType ?? VehicleType.Coach,
-                                assignedData.RequestedSeatCount ?? request.MaxParticipation);
+                                assignedData.RequestedVehicleType!.Value,
+                                assignedData.RequestedSeatCount ?? request.MaxParticipation,
+                                assignedData.RequestedVehicleCount);
                         }
                         break;
                 }
@@ -366,6 +387,85 @@ public class TourInstanceService(
         }
 
         return validatedVehicleAssignments;
+    }
+
+    /// <summary>
+    /// Scope addendum 2026-04-23: when manager sets <c>RequestedVehicleCount</c> on a transport
+    /// activity and has already picked a supplier, reject the create if the count exceeds the
+    /// supplier's assignable fleet (vehicles scoped to that supplier plus legacy owner-only rows),
+    /// matching approve-time ownership rules.
+    /// </summary>
+    private async Task<ErrorOr<Success>> ValidateRequestedVehicleCountAgainstFleetAsync(
+        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
+    {
+        var candidates = (activityAssignments ?? [])
+            .Where(a => a.RequestedVehicleCount.HasValue
+                && a.RequestedVehicleCount.Value > 0
+                && a.TransportSupplierId.HasValue
+                && a.RequestedVehicleType.HasValue)
+            .ToList();
+
+        if (candidates.Count == 0)
+            return Result.Success;
+
+        foreach (var assignment in candidates)
+        {
+            var supplier = await _supplierRepository.GetByIdAsync(assignment.TransportSupplierId!.Value);
+            if (supplier is null || !supplier.OwnerUserId.HasValue)
+                continue; // upstream supplier validator already handles missing supplier
+
+            var fleetSize = await _vehicleRepository.CountActiveByTransportSupplierFleetAsync(
+                assignment.TransportSupplierId!.Value,
+                supplier.OwnerUserId,
+                assignment.RequestedVehicleType!.Value);
+
+            if (assignment.RequestedVehicleCount!.Value > fleetSize)
+            {
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleCountExceedsFleetCode,
+                    TourInstanceTransportErrors.VehicleCountExceedsFleetDescription);
+            }
+        }
+
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Scope addendum 2026-04-23: when manager sets <c>AccommodationQuantity</c> + supplier +
+    /// room type, reject create if the requested quantity exceeds the supplier's configured
+    /// inventory total for that room type.
+    /// </summary>
+    private async Task<ErrorOr<Success>> ValidateAccommodationQuantityAgainstInventoryAsync(
+        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
+    {
+        var candidates = (activityAssignments ?? [])
+            .Where(a => a.AccommodationQuantity.HasValue
+                && a.AccommodationQuantity.Value > 0
+                && a.SupplierId.HasValue
+                && !string.IsNullOrWhiteSpace(a.RoomType))
+            .ToList();
+
+        if (candidates.Count == 0)
+            return Result.Success;
+
+        foreach (var assignment in candidates)
+        {
+            if (!Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
+                continue; // invalid room type already flagged earlier
+
+            var inventory = await _hotelRoomInventoryRepository
+                .FindByHotelAndRoomTypeAsync(assignment.SupplierId!.Value, roomType);
+
+            var inventoryTotal = inventory?.TotalRooms ?? 0;
+            if (assignment.AccommodationQuantity!.Value > inventoryTotal)
+            {
+                return Error.Validation(
+                    TourInstanceTransportErrors.RoomCountExceedsInventoryCode,
+                    TourInstanceTransportErrors.RoomCountExceedsInventoryDescription);
+            }
+        }
+
+        return Result.Success;
     }
 
     private async Task<ErrorOr<Success>> ValidateAccommodationSuppliersAsync(
@@ -598,15 +698,23 @@ public class TourInstanceService(
             var fullEntity = await _tourInstanceRepository.FindByIdWithInstanceDays(request.Id);
             if (fullEntity is not null)
             {
-                var vehicleIds = fullEntity.InstanceDays
+                var vehicleIds = new HashSet<Guid>();
+                foreach (var a in fullEntity.InstanceDays
                     .Where(d => !d.IsDeleted)
                     .SelectMany(d => d.Activities)
-                    .Where(a => a.ActivityType == TourDayActivityType.Transportation
-                                && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved
-                                && a.VehicleId.HasValue)
-                    .Select(a => a.VehicleId!.Value)
-                    .Distinct()
-                    .ToList();
+                    .Where(x => x.ActivityType == TourDayActivityType.Transportation
+                                && x.TransportationApprovalStatus == ProviderApprovalStatus.Approved))
+                {
+                    if (a.TransportAssignments.Count > 0)
+                    {
+                        foreach (var t in a.TransportAssignments)
+                            vehicleIds.Add(t.VehicleId);
+                    }
+                    else if (a.VehicleId.HasValue)
+                    {
+                        vehicleIds.Add(a.VehicleId.Value);
+                    }
+                }
 
                 var capacityMap = new Dictionary<Guid, int>(vehicleIds.Count);
                 foreach (var vid in vehicleIds)
@@ -828,7 +936,7 @@ public class TourInstanceService(
             {
                 await RunTransactional(async () =>
                 {
-                    var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+                    var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, cancellationToken);
                     if (fullInstance is null) return;
 
                     var requestedTransportActivityIds = transportationActivityIds?.ToHashSet();
@@ -846,13 +954,22 @@ public class TourInstanceService(
                         var act = transportActivities[i];
                         if (isApproved)
                         {
-                            if (act.VehicleId is null || act.DriverId is null)
+                            if (!act.HasCompleteVehicleAndDriverAssignment())
                             {
                                 throw new BulkApproveValidationException(
                                     "TourInstance.BulkApproveFailed",
                                     $"Activity '{act.Title}' (#{i}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
                             }
-                            act.ApproveTransportation(act.VehicleId.Value, act.DriverId.Value, note);
+
+                            if (act.TransportAssignments.Count > 0)
+                            {
+                                var first = act.TransportAssignments.OrderBy(x => x.Id).First();
+                                act.ApproveTransportation(first.VehicleId, first.DriverId, note);
+                            }
+                            else
+                            {
+                                act.ApproveTransportation(act.VehicleId!.Value, act.DriverId, note);
+                            }
                         }
                         else
                         {

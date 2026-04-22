@@ -39,9 +39,10 @@ import {
   TourClassificationDto,
   TourDto,
   UserInfo,
-  TransportationTypeMap,
+  VehicleTypeMap,
+  vehicleTypeNameToKey,
 } from "@/types/tour";
-import type { HotelProviderDetail } from "@/types/admin";
+import type { HotelProviderDetail, TransportProviderDetail } from "@/types/admin";
 import dayjs from "dayjs";
 
 type FormState = {
@@ -66,6 +67,7 @@ type FormState = {
       vehicleId?: string;
       requestedVehicleType?: number;
       requestedSeatCount?: number;
+      requestedVehicleCount?: number;
     }
   >;
 };
@@ -92,7 +94,11 @@ type EditableActivity = {
   _editing?: boolean;
 };
 
-type Translate = (key: string, fallback?: string) => string;
+type Translate = (
+  key: string,
+  fallback?: string,
+  options?: Record<string, unknown>,
+) => string;
 
 const INITIAL_FORM: FormState = {
   tourId: "",
@@ -357,6 +363,247 @@ function ManagerChip({ user, onRemove }: ManagerChipProps) {
   );
 }
 
+// Pure validators for the Transport Plan block. Exported only for tests.
+export function isVehicleTypeInvalidForSupplier(
+  assignment:
+    | { supplierId?: string; requestedVehicleType?: number }
+    | undefined,
+  allowed: Record<string, Set<number>>,
+): boolean {
+  if (!assignment) return false;
+  const rawSupplier = assignment.supplierId;
+  const supplierId =
+    typeof rawSupplier === "string" && rawSupplier.trim() !== ""
+      ? rawSupplier.trim()
+      : undefined;
+  const vehicleType = assignment.requestedVehicleType;
+  if (!supplierId) {
+    if (vehicleType === undefined || vehicleType === null) return false;
+    return true;
+  }
+  if (vehicleType === undefined || vehicleType === null) return true;
+  const set = allowed[supplierId];
+  if (!set) return true;
+  return !set.has(vehicleType);
+}
+
+export function validateTransportActivities(
+  assignments: FormState["activityAssignments"],
+  classification: TourClassificationDto | null,
+  allowed: Record<string, Set<number>>,
+): string[] {
+  if (!classification?.plans?.length) return [];
+  const invalid: string[] = [];
+  for (const day of classification.plans) {
+    for (const activity of day.activities ?? []) {
+      if (activity.activityType !== "Transportation") continue;
+      if (isVehicleTypeInvalidForSupplier(assignments[activity.id], allowed)) {
+        invalid.push(activity.id);
+      }
+    }
+  }
+  return invalid;
+}
+
+export function buildAllowedVehicleKeysBySupplierId(
+  transportDetailsBySupplierId: Record<string, TransportProviderDetail>,
+): Record<string, Set<number>> {
+  const out: Record<string, Set<number>> = {};
+  for (const [supplierId, counts] of Object.entries(
+    buildVehicleCountsBySupplierId(transportDetailsBySupplierId),
+  )) {
+    out[supplierId] = new Set(Object.keys(counts).map(Number));
+  }
+  return out;
+}
+
+/**
+ * For each supplier, count **active** vehicles grouped by numeric VehicleType key.
+ * Used by the UI to render "Bus (3 xe)" labels and a running total badge.
+ * Vehicles whose `vehicleType` string doesn't map to VehicleTypeMap are dropped
+ * (and `vehicleTypeNameToKey` emits a console.warn listing known values).
+ */
+export function buildVehicleCountsBySupplierId(
+  transportDetailsBySupplierId: Record<string, TransportProviderDetail>,
+): Record<string, Record<number, number>> {
+  const out: Record<string, Record<number, number>> = {};
+  for (const [supplierId, detail] of Object.entries(
+    transportDetailsBySupplierId,
+  )) {
+    const counts: Record<number, number> = {};
+    for (const vehicle of detail.vehicles ?? []) {
+      if (!vehicle.isActive) continue;
+      const key = vehicleTypeNameToKey(vehicle.vehicleType);
+      if (key === undefined) continue;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    out[supplierId] = counts;
+  }
+  return out;
+}
+
+/** Sum of active vehicles across all types for a supplier. */
+export function sumVehicleCounts(
+  counts: Record<number, number> | undefined,
+): number {
+  if (!counts) return 0;
+  return Object.values(counts).reduce((a, b) => a + b, 0);
+}
+
+/**
+ * "Bus" + 3 → "Bus (3 xe)". Kept as a plain function so tests can assert
+ * rendered label exactly without depending on i18next interpolation.
+ */
+export function formatVehicleOptionLabel(label: string, count: number): string {
+  return `${label} (${count} xe)`;
+}
+
+/** Total-fleet badge label: 3 → "3 xe khả dụng". */
+export function formatVehiclesAvailableBadge(total: number): string {
+  return `${total} xe khả dụng`;
+}
+
+// Renders the Vehicle Type <select> with 6 tracked states, a11y wiring, and
+// inline invalid messaging. The "supplier has no vehicles" path keeps the
+// select enabled when a stale value is present so the user can clear it.
+interface VehicleTypeSelectProps {
+  activityId: string;
+  supplierId?: string;
+  value?: number;
+  transportDetailsLoading: boolean;
+  hasDetail: boolean;
+  hasError: boolean;
+  allowedKeys: Set<number> | undefined;
+  /** Map of numeric vehicle-type key → count of active vehicles for the selected supplier. */
+  vehicleCountsByType?: Record<number, number>;
+  invalid: boolean;
+  className: string;
+  onChange: (next: number | undefined) => void;
+  t: Translate;
+}
+
+function VehicleTypeSelect({
+  activityId,
+  supplierId,
+  value,
+  transportDetailsLoading,
+  hasDetail,
+  hasError,
+  allowedKeys,
+  vehicleCountsByType,
+  invalid,
+  className,
+  onChange,
+  t,
+}: VehicleTypeSelectProps) {
+  type State =
+    | "selectProviderFirst"
+    | "loading"
+    | "fetchFailed"
+    | "noActiveVehicles"
+    | "invalidStale"
+    | "ready";
+
+  const hasValue = value !== undefined && value !== null;
+
+  let state: State;
+  if (!supplierId) {
+    state = "selectProviderFirst";
+  } else if (hasError) {
+    state = "fetchFailed";
+  } else if (!hasDetail && transportDetailsLoading) {
+    state = "loading";
+  } else if (!allowedKeys || allowedKeys.size === 0) {
+    state = "noActiveVehicles";
+  } else if (hasValue && !allowedKeys.has(value)) {
+    state = "invalidStale";
+  } else {
+    state = "ready";
+  }
+
+  // In noActiveVehicles, keep the select enabled so the user can clear a stale
+  // value. Same logic when invalid — user needs to fix it.
+  const disabled =
+    state === "selectProviderFirst" ||
+    state === "loading" ||
+    state === "fetchFailed" ||
+    (state === "noActiveVehicles" && !hasValue);
+
+  const selectId = `vehicleType-${activityId}`;
+  const errorId = `${selectId}-error`;
+  const invalidClasses = invalid
+    ? " ring-1 ring-rose-500 border-rose-500"
+    : "";
+
+  const placeholderByState: Record<State, string> = {
+    selectProviderFirst: t(
+      "tourInstance.wizard.vehicleType.selectProviderFirst",
+      "Select a transport provider first",
+    ),
+    loading: t(
+      "tourInstance.wizard.vehicleType.loadingVehicles",
+      "Loading available vehicles…",
+    ),
+    fetchFailed: t(
+      "tourInstance.wizard.vehicleType.fetchFailed",
+      "Could not load vehicles. Try again later.",
+    ),
+    noActiveVehicles: t(
+      "tourInstance.wizard.vehicleType.noActiveVehicles",
+      "This provider has no active vehicles yet",
+    ),
+    invalidStale: "",
+    ready: "",
+  };
+
+  return (
+    <>
+      <select
+        id={selectId}
+        className={className + invalidClasses}
+        value={hasValue ? String(value) : ""}
+        disabled={disabled}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? errorId : undefined}
+        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}>
+        <option value="">{placeholderByState[state]}</option>
+        {(state === "ready" || state === "invalidStale") &&
+          [...(allowedKeys ?? [])]
+            .sort((a, b) => a - b)
+            .map((k) => {
+              const label = VehicleTypeMap[k];
+              const count = vehicleCountsByType?.[k];
+              // Render "Bus (3 xe)" when we know how many active vehicles of
+              // this type exist; fall back to bare label ("Bus") otherwise.
+              // Interpolation is done inline instead of through i18next to
+              // stay independent of the mocked `t` signature in unit tests.
+              return (
+                <option key={k} value={k}>
+                  {count && count > 0 ? formatVehicleOptionLabel(label, count) : label}
+                </option>
+              );
+            })}
+        {/* Render the current stale value so the browser can keep showing it while the user fixes the mismatch. */}
+        {hasValue &&
+          state !== "ready" &&
+          VehicleTypeMap[value!] !== undefined && (
+            <option value={String(value)}>{VehicleTypeMap[value!]}</option>
+          )}
+      </select>
+      {invalid && (
+        <p
+          id={errorId}
+          className="mt-0.5 text-[10px] text-rose-600 break-words">
+          {t(
+            "tourInstance.wizard.vehicleType.invalidForSupplier",
+            "This vehicle type is not offered by the selected provider",
+          )}
+        </p>
+      )}
+    </>
+  );
+}
+
 // ─── InstanceDetailsStep ───────────────────────────────────────────────────────
 interface InstanceDetailsStepProps {
   form: FormState;
@@ -386,9 +633,15 @@ interface InstanceDetailsStepProps {
   uploadingThumbnail: boolean;
   uploadingImages: boolean;
   hotelDetailsBySupplierId: Record<string, HotelProviderDetail>;
+  transportDetailsBySupplierId: Record<string, TransportProviderDetail>;
+  transportDetailsError: Record<string, true>;
+  transportDetailsLoading: boolean;
+  allowedVehicleKeysBySupplierId: Record<string, Set<number>>;
+  vehicleCountsBySupplierId: Record<string, Record<number, number>>;
+  invalidVehicleActivityIds: Set<string>;
   updateActivityAssignment: (
     activityId: string,
-    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number },
+    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number; requestedVehicleCount?: number },
   ) => void;
   editableItinerary: EditableDay[];
   onUpdateActivity: (
@@ -426,6 +679,12 @@ function InstanceDetailsStep({
   uploadingThumbnail,
   uploadingImages,
   hotelDetailsBySupplierId,
+  transportDetailsBySupplierId,
+  transportDetailsError,
+  transportDetailsLoading,
+  allowedVehicleKeysBySupplierId,
+  vehicleCountsBySupplierId,
+  invalidVehicleActivityIds,
   updateActivityAssignment,
   editableItinerary,
   onUpdateActivity,
@@ -956,7 +1215,7 @@ function InstanceDetailsStep({
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               <div>
                                 <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                  Title
+                                  {t("tourInstance.wizard.activity.title", "Title")}
                                 </label>
                                 <input
                                   className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
@@ -970,7 +1229,7 @@ function InstanceDetailsStep({
                               </div>
                               <div>
                                 <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                  Type
+                                  {t("tourInstance.wizard.activity.type", "Type")}
                                 </label>
                                 <select
                                   className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
@@ -1143,22 +1402,65 @@ function InstanceDetailsStep({
 
                                   <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                        {t("tourInstance.wizard.vehicleType", "Vehicle Type")}
-                                      </label>
-                                      <select
+                                      <div className="flex items-baseline justify-between gap-2">
+                                        <label
+                                          htmlFor={`vehicleType-${activity.id}`}
+                                          className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.vehicleTypeLabel", "Vehicle Type")}
+                                        </label>
+                                        {(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          if (!supId) return null;
+                                          const counts = vehicleCountsBySupplierId[supId];
+                                          const total = sumVehicleCounts(counts);
+                                          if (total <= 0) return null;
+                                          return (
+                                            <span className="text-[10px] font-medium text-cyan-700">
+                                              {formatVehiclesAvailableBadge(total)}
+                                            </span>
+                                          );
+                                        })()}
+                                      </div>
+                                      <VehicleTypeSelect
+                                        activityId={activity.id}
+                                        supplierId={form.activityAssignments[activity.id]?.supplierId}
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleType}
+                                        transportDetailsLoading={transportDetailsLoading}
+                                        hasDetail={
+                                          !!form.activityAssignments[activity.id]?.supplierId &&
+                                          !!transportDetailsBySupplierId[
+                                            form.activityAssignments[activity.id]!.supplierId!
+                                          ]
+                                        }
+                                        hasError={
+                                          !!form.activityAssignments[activity.id]?.supplierId &&
+                                          !!transportDetailsError[
+                                            form.activityAssignments[activity.id]!.supplierId!
+                                          ]
+                                        }
+                                        allowedKeys={
+                                          form.activityAssignments[activity.id]?.supplierId
+                                            ? allowedVehicleKeysBySupplierId[
+                                                form.activityAssignments[activity.id]!.supplierId!
+                                              ]
+                                            : undefined
+                                        }
+                                        vehicleCountsByType={
+                                          form.activityAssignments[activity.id]?.supplierId
+                                            ? vehicleCountsBySupplierId[
+                                                form.activityAssignments[activity.id]!.supplierId!
+                                              ]
+                                            : undefined
+                                        }
+                                        invalid={invalidVehicleActivityIds.has(activity.id)}
                                         className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
-                                        value={form.activityAssignments[activity.id]?.requestedVehicleType ?? ""}
-                                        onChange={(e) => {
+                                        onChange={(next) =>
                                           updateActivityAssignment(activity.id, {
-                                            requestedVehicleType: e.target.value ? Number(e.target.value) : undefined,
-                                          });
-                                        }}>
-                                        <option value="">-- {t("common.any", "Any")} --</option>
-                                        {Object.entries(TransportationTypeMap).map(([val, label]) => (
-                                          <option key={val} value={val}>{label}</option>
-                                        ))}
-                                      </select>
+                                            requestedVehicleType: next,
+                                          })
+                                        }
+                                        t={t}
+                                      />
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -1177,6 +1479,23 @@ function InstanceDetailsStep({
                                         placeholder={t("common.optional", "Optional")}
                                       />
                                     </div>
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.vehicleCount", "Vehicle Count")}
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleCount ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedVehicleCount: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}
+                                        placeholder={t("common.optional", "Optional")}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1185,7 +1504,7 @@ function InstanceDetailsStep({
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                  Start
+                                  {t("tourInstance.wizard.activity.start", "Start")}
                                 </label>
                                 <input
                                   type="time"
@@ -1202,7 +1521,7 @@ function InstanceDetailsStep({
                               </div>
                               <div>
                                 <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                  End
+                                  {t("tourInstance.wizard.activity.end", "End")}
                                 </label>
                                 <input
                                   type="time"
@@ -1220,7 +1539,7 @@ function InstanceDetailsStep({
                             </div>
                             <div>
                               <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                Description
+                                {t("tourInstance.wizard.activity.description", "Description")}
                               </label>
                               <input
                                 className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
@@ -1467,22 +1786,65 @@ function InstanceDetailsStep({
 
                                   <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                        {t("tourInstance.wizard.vehicleType", "Vehicle Type")}
-                                      </label>
-                                      <select
+                                      <div className="flex items-baseline justify-between gap-2">
+                                        <label
+                                          htmlFor={`vehicleType-${activity.id}`}
+                                          className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.vehicleTypeLabel", "Vehicle Type")}
+                                        </label>
+                                        {(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          if (!supId) return null;
+                                          const counts = vehicleCountsBySupplierId[supId];
+                                          const total = sumVehicleCounts(counts);
+                                          if (total <= 0) return null;
+                                          return (
+                                            <span className="text-[10px] font-medium text-cyan-700">
+                                              {formatVehiclesAvailableBadge(total)}
+                                            </span>
+                                          );
+                                        })()}
+                                      </div>
+                                      <VehicleTypeSelect
+                                        activityId={activity.id}
+                                        supplierId={form.activityAssignments[activity.id]?.supplierId}
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleType}
+                                        transportDetailsLoading={transportDetailsLoading}
+                                        hasDetail={
+                                          !!form.activityAssignments[activity.id]?.supplierId &&
+                                          !!transportDetailsBySupplierId[
+                                            form.activityAssignments[activity.id]!.supplierId!
+                                          ]
+                                        }
+                                        hasError={
+                                          !!form.activityAssignments[activity.id]?.supplierId &&
+                                          !!transportDetailsError[
+                                            form.activityAssignments[activity.id]!.supplierId!
+                                          ]
+                                        }
+                                        allowedKeys={
+                                          form.activityAssignments[activity.id]?.supplierId
+                                            ? allowedVehicleKeysBySupplierId[
+                                                form.activityAssignments[activity.id]!.supplierId!
+                                              ]
+                                            : undefined
+                                        }
+                                        vehicleCountsByType={
+                                          form.activityAssignments[activity.id]?.supplierId
+                                            ? vehicleCountsBySupplierId[
+                                                form.activityAssignments[activity.id]!.supplierId!
+                                              ]
+                                            : undefined
+                                        }
+                                        invalid={invalidVehicleActivityIds.has(activity.id)}
                                         className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
-                                        value={form.activityAssignments[activity.id]?.requestedVehicleType ?? ""}
-                                        onChange={(e) => {
+                                        onChange={(next) =>
                                           updateActivityAssignment(activity.id, {
-                                            requestedVehicleType: e.target.value ? Number(e.target.value) : undefined,
-                                          });
-                                        }}>
-                                        <option value="">-- {t("common.any", "Any")} --</option>
-                                        {Object.entries(TransportationTypeMap).map(([val, label]) => (
-                                          <option key={val} value={val}>{label}</option>
-                                        ))}
-                                      </select>
+                                            requestedVehicleType: next,
+                                          })
+                                        }
+                                        t={t}
+                                      />
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -1496,6 +1858,23 @@ function InstanceDetailsStep({
                                         onChange={(e) => {
                                           updateActivityAssignment(activity.id, {
                                             requestedSeatCount: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}
+                                        placeholder={t("common.optional", "Optional")}
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.vehicleCount", "Vehicle Count")}
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleCount ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedVehicleCount: e.target.value ? Number(e.target.value) : undefined,
                                           });
                                         }}
                                         placeholder={t("common.optional", "Optional")}
@@ -1600,6 +1979,13 @@ export function CreateTourInstancePage({
     Record<string, HotelProviderDetail>
   >({});
 
+  const [transportDetailsBySupplierId, setTransportDetailsBySupplierId] =
+    useState<Record<string, TransportProviderDetail>>({});
+  const [transportDetailsError, setTransportDetailsError] = useState<
+    Record<string, true>
+  >({});
+  const [transportDetailsLoading, setTransportDetailsLoading] = useState(false);
+
   // Editable itinerary — mutable copy of classification plans
   const [editableItinerary, setEditableItinerary] = useState<EditableDay[]>([]);
 
@@ -1681,6 +2067,7 @@ export function CreateTourInstancePage({
   }, []);
 
   const fetchProviders = useCallback(async () => {
+    setTransportDetailsLoading(true);
     try {
       const [hotels, transports] = await Promise.all([
         supplierService.getSuppliers("2"), // SupplierType.Accommodation = 2
@@ -1688,15 +2075,24 @@ export function CreateTourInstancePage({
       ]);
 
       const normalizedHotels = Array.isArray(hotels) ? hotels : [];
+      const normalizedTransports = Array.isArray(transports) ? transports : [];
       setHotelProviders(normalizedHotels);
-      setTransportProviders(Array.isArray(transports) ? transports : []);
+      setTransportProviders(normalizedTransports);
 
-      const hotelDetailResults = await Promise.allSettled(
-        normalizedHotels.map(async (hotel) => ({
-          supplierId: hotel.id,
-          detail: await adminService.getHotelProviderDetail(hotel.id),
-        })),
-      );
+      const [hotelDetailResults, transportDetailResults] = await Promise.all([
+        Promise.allSettled(
+          normalizedHotels.map(async (hotel) => ({
+            supplierId: hotel.id,
+            detail: await adminService.getHotelProviderDetail(hotel.id),
+          })),
+        ),
+        Promise.allSettled(
+          normalizedTransports.map(async (tp) => ({
+            supplierId: tp.id,
+            detail: await adminService.getTransportProviderDetail(tp.id),
+          })),
+        ),
+      ]);
 
       const nextHotelDetails: Record<string, HotelProviderDetail> = {};
       hotelDetailResults.forEach((result) => {
@@ -1705,8 +2101,33 @@ export function CreateTourInstancePage({
         }
       });
       setHotelDetailsBySupplierId(nextHotelDetails);
+
+      const nextTransportDetails: Record<string, TransportProviderDetail> = {};
+      const nextTransportErrors: Record<string, true> = {};
+      transportDetailResults.forEach((result, idx) => {
+        if (result.status === "fulfilled" && result.value.detail) {
+          nextTransportDetails[result.value.supplierId] = {
+            ...result.value.detail,
+            vehicles: result.value.detail.vehicles ?? [],
+          };
+        } else {
+          const supplierId = normalizedTransports[idx]?.id;
+          if (supplierId) nextTransportErrors[supplierId] = true;
+          if (result.status === "rejected") {
+            const handledError = handleApiError(result.reason);
+            console.error(
+              "Failed to fetch transport provider detail:",
+              handledError.message,
+            );
+          }
+        }
+      });
+      setTransportDetailsBySupplierId(nextTransportDetails);
+      setTransportDetailsError(nextTransportErrors);
     } catch (error) {
       handleApiError(error);
+    } finally {
+      setTransportDetailsLoading(false);
     }
   }, []);
 
@@ -1717,8 +2138,42 @@ export function CreateTourInstancePage({
       setHotelProviders([]);
       setHotelDetailsBySupplierId({});
       setTransportProviders([]);
+      setTransportDetailsBySupplierId({});
+      setTransportDetailsError({});
+      setTransportDetailsLoading(false);
     }
   }, [fetchProviders, tourDetail]);
+
+  // Derive { supplierId -> { vehicleTypeKey -> count } } and its Set<key> projection
+  // from preloaded transport details. Memoised so we don't re-filter
+  // O(activities × vehicles) on every render.
+  const vehicleCountsBySupplierId = useMemo(
+    () => buildVehicleCountsBySupplierId(transportDetailsBySupplierId),
+    [transportDetailsBySupplierId],
+  );
+  const allowedVehicleKeysBySupplierId = useMemo(() => {
+    const out: Record<string, Set<number>> = {};
+    for (const [supplierId, counts] of Object.entries(vehicleCountsBySupplierId)) {
+      out[supplierId] = new Set(Object.keys(counts).map(Number));
+    }
+    return out;
+  }, [vehicleCountsBySupplierId]);
+
+  const invalidVehicleActivityIds = useMemo(
+    () =>
+      new Set(
+        validateTransportActivities(
+          form.activityAssignments,
+          selectedClassification,
+          allowedVehicleKeysBySupplierId,
+        ),
+      ),
+    [
+      form.activityAssignments,
+      selectedClassification,
+      allowedVehicleKeysBySupplierId,
+    ],
+  );
 
   // Fetch guides for optional guide selection
   const fetchGuides = useCallback(async () => {
@@ -1994,7 +2449,7 @@ export function CreateTourInstancePage({
 
   const updateActivityAssignment = (
     activityId: string,
-    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number },
+    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number; requestedVehicleCount?: number },
   ) => {
     setForm((prev) => {
       const current = prev.activityAssignments[activityId] || {};
@@ -2209,14 +2664,40 @@ export function CreateTourInstancePage({
 
     // Room assignment validation removed — hotel provider is now per-activity
 
+    // Transport Plan: per-activity vehicle type must match selected supplier.
+    const invalidTransportIds = validateTransportActivities(
+      form.activityAssignments,
+      selectedClassification,
+      allowedVehicleKeysBySupplierId,
+    );
+    if (invalidTransportIds.length > 0) {
+      newErrors.transportVehicleType = t(
+        "tourInstance.wizard.vehicleType.submitBlocked",
+        "Please fix vehicle type mismatches before continuing",
+      );
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error(
-        t(
-          "tourInstance.validationFailed",
-          "Please fill in all required fields",
-        ),
-      );
+      if (invalidTransportIds.length === 0) {
+        toast.error(
+          t(
+            "tourInstance.validationFailed",
+            "Please fill in all required fields",
+          ),
+        );
+      }
+      if (invalidTransportIds.length > 0) {
+        const firstId = invalidTransportIds[0];
+        const el =
+          typeof document !== "undefined"
+            ? document.getElementById(`vehicleType-${firstId}`)
+            : null;
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          (el as HTMLSelectElement).focus();
+        }
+      }
       return;
     }
 
@@ -2430,6 +2911,12 @@ export function CreateTourInstancePage({
             uploadingThumbnail={uploadingThumbnail}
             uploadingImages={uploadingImages}
             hotelDetailsBySupplierId={hotelDetailsBySupplierId}
+            transportDetailsBySupplierId={transportDetailsBySupplierId}
+            transportDetailsError={transportDetailsError}
+            transportDetailsLoading={transportDetailsLoading}
+            allowedVehicleKeysBySupplierId={allowedVehicleKeysBySupplierId}
+            vehicleCountsBySupplierId={vehicleCountsBySupplierId}
+            invalidVehicleActivityIds={invalidVehicleActivityIds}
             updateActivityAssignment={updateActivityAssignment}
             editableItinerary={editableItinerary}
             onUpdateActivity={handleUpdateActivity}

@@ -259,6 +259,10 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// Mirrors <see cref="AreAllAccommodationsApproved"/>.
     /// Filters out soft-deleted days (ER-16).
     /// </summary>
+    /// <summary>
+    /// True when every transportation activity that has a supplier is <see cref="ProviderApprovalStatus.Approved"/>.
+    /// Seat totals and vehicle rows are enforced at approve time; activation does not re-sum capacity.
+    /// </summary>
     public bool AreAllTransportationApproved()
     {
         var transportActivities = InstanceDays
@@ -288,21 +292,34 @@ public class TourInstanceEntity : Aggregate<Guid>
         if (resolveVehicleCapacity is null) throw new ArgumentNullException(nameof(resolveVehicleCapacity));
         if (newMaxParticipation <= MaxParticipation) return;
 
-        var approvedActivitiesWithVehicle = InstanceDays
+        var approvedTransportActivities = InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
             .Where(a => a.ActivityType == TourDayActivityType.Transportation
-                        && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved
-                        && a.VehicleId.HasValue)
+                        && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved)
             .ToList();
 
-        foreach (var activity in approvedActivitiesWithVehicle)
+        foreach (var activity in approvedTransportActivities)
         {
-            var capacity = resolveVehicleCapacity(activity.VehicleId!.Value);
-            if (capacity < newMaxParticipation)
+            int totalSeats;
+            if (activity.TransportAssignments.Count > 0)
+            {
+                totalSeats = activity.TransportAssignments.Sum(t =>
+                    t.SeatCountSnapshot ?? resolveVehicleCapacity(t.VehicleId));
+            }
+            else if (activity.VehicleId.HasValue)
+            {
+                totalSeats = resolveVehicleCapacity(activity.VehicleId.Value);
+            }
+            else
+            {
+                continue;
+            }
+
+            if (totalSeats < newMaxParticipation)
             {
                 throw new InvalidOperationException(
-                    $"Xe đã duyệt cho hoạt động '{activity.Title}' chỉ có {capacity} ghế, không đủ cho MaxParticipation mới ({newMaxParticipation}).");
+                    $"Tổng sức chỗ xe đã duyệt cho hoạt động '{activity.Title}' là {totalSeats} ghế, không đủ cho MaxParticipation mới ({newMaxParticipation}).");
             }
         }
     }

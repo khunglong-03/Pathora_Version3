@@ -136,3 +136,5 @@ ndepend.xml
 .codex/
 .gemini/
 # Cursor Workspace
+.autoplan-restore/
+.codex/

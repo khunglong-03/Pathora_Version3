@@ -188,7 +188,12 @@ public class TourInstanceController : BaseApiController
         [FromBody] AssignTransportSupplierRequest request)
     {
         var result = await Sender.Send(new AssignTransportSupplierCommand(
-            instanceId, activityId, request.SupplierId, request.RequestedVehicleType, request.RequestedSeatCount));
+            instanceId,
+            activityId,
+            request.SupplierId,
+            request.RequestedVehicleType,
+            request.RequestedSeatCount,
+            request.RequestedVehicleCount));
         return HandleResult(result);
     }
 
@@ -204,8 +209,17 @@ public class TourInstanceController : BaseApiController
         Guid activityId,
         [FromBody] ApproveTransportationRequest request)
     {
+        var assignments = request.Assignments is { Count: > 0 }
+            ? request.Assignments.ConvertAll(a => new TransportApprovalAssignmentDto(a.VehicleId, a.DriverId))
+            : null;
+
         var result = await Sender.Send(new ApproveTransportationActivityCommand(
-            instanceId, activityId, request.VehicleId, request.DriverId, request.Note));
+            instanceId,
+            activityId,
+            assignments,
+            request.VehicleId,
+            request.DriverId,
+            request.Note));
         return HandleResult(result);
     }
 
@@ -255,11 +269,17 @@ public sealed record AssignSupplierRequest(Guid SupplierId);
 public sealed record AssignTransportSupplierRequest(
     Guid SupplierId,
     VehicleType RequestedVehicleType,
-    int RequestedSeatCount);
+    int RequestedSeatCount,
+    // Scope addendum 2026-04-23 — manager-specified vehicle count (nullable).
+    int? RequestedVehicleCount = null);
 
+public sealed record TransportAssignmentRequest(Guid VehicleId, Guid? DriverId);
+
+/// <summary>Approve with <see cref="Assignments"/> (preferred) or legacy <see cref="VehicleId"/> + <see cref="DriverId"/>.</summary>
 public sealed record ApproveTransportationRequest(
-    Guid VehicleId,
-    Guid DriverId,
+    List<TransportAssignmentRequest>? Assignments = null,
+    Guid? VehicleId = null,
+    Guid? DriverId = null,
     string? Note = null);
 
 public sealed record RejectTransportationRequest(

@@ -172,6 +172,30 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc.Supplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Driver)
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
+    }
+
+    public async Task<TourInstanceEntity?> FindByIdWithInstanceDaysForUpdate(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .AsSplitQuery()
+            .Include(t => t.Managers).ThenInclude(m => m.User)
+#pragma warning disable CS0618
+            .Include(t => t.TransportProvider)
+#pragma warning restore CS0618
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc.Supplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Driver)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 

@@ -179,13 +179,13 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-22 6:42pm GMT+7
+# [Pathora_Version3] recent context, 2026-04-23 5:12am GMT+7
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 39 obs (18,169t read) | 1,762,345t work | 99% savings
+Stats: 45 obs (22,373t read) | 2,041,330t work | 99% savings
 
 ### Apr 21, 2026
 15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
@@ -228,6 +228,12 @@ Stats: 39 obs (18,169t read) | 1,762,345t work | 99% savings
 120 " 🔵 GetTransportProviderByIdQueryHandler Uses Dual Lookup Path: User ID or Supplier ID
 121 " 🔵 TransportProviderListItemDto Exposes UserStatus Enum (Not VerifyStatus) — No Pending State Representable
 122 6:35p 🔵 OpenSpec change "transport-per-activity-request-and-approval" ready for implementation
+123 6:42p 🟣 Transport Per-Activity Request and Approval — 55/131 Tasks Complete
+124 6:43p 🔵 Exact File Inventory for transport-per-activity-request-and-approval Change
+125 " 🔵 17 Engineering Review Gaps Identified Post-Plan in design.md
+126 6:44p 🔵 TransportTourAssignmentPage Still Uses Deprecated assignVehicleToActivity — Task 7.4 Not Done
+127 " 🔵 ApproveTransportationActivityCommand Handler Implementation Details
+128 6:45p 🔵 CreateTourInstancePage Has Per-Activity Transport UI but Still Sends Legacy transportProviderId
 
-Access 1762k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 2041k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

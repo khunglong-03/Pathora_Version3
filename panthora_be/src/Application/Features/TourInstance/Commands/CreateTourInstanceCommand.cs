@@ -90,6 +90,11 @@ public sealed class CreateTourInstanceActivityAssignmentDtoValidator : AbstractV
         RuleFor(x => x.RequestedVehicleType)
             .IsInEnum().When(x => x.RequestedVehicleType.HasValue)
             .WithMessage("Invalid vehicle type requested.");
+
+        RuleFor(x => x.RequestedVehicleType)
+            .Must(vt => vt.HasValue)
+            .When(x => x.TransportSupplierId.HasValue)
+            .WithMessage("Phải chọn loại xe khi đã chọn nhà cung cấp vận chuyển.");
     }
 }
 

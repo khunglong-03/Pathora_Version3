@@ -78,6 +78,41 @@ public sealed class TourInstanceEntityCapacityGuardTests
         instance.EnsureCapacityCoversAllApprovedTransports(newMaxParticipation: 60, ResolveCapacity);
     }
 
+    [Fact]
+    public void EnsureCapacityCoversAllApprovedTransports_WhenTwoAssignmentRowsSumCoversNewMax_DoesNotThrow()
+    {
+        var instance = CreateInstance(maxParticipation: 20);
+        var day = CreateDay(instance, 1);
+        var v1 = Guid.NewGuid();
+        var v2 = Guid.NewGuid();
+        var activity = CreateApprovedTransportWithAssignments(day, (v1, 25), (v2, 25));
+        day.Activities.Add(activity);
+        instance.InstanceDays.Add(day);
+
+        int ResolveCapacity(Guid id) => id == v1 ? 25 : id == v2 ? 25 : throw new Xunit.Sdk.XunitException("Unexpected vehicle id");
+
+        instance.EnsureCapacityCoversAllApprovedTransports(newMaxParticipation: 45, ResolveCapacity);
+    }
+
+    [Fact]
+    public void EnsureCapacityCoversAllApprovedTransports_WhenTwoAssignmentRowsSumBelowNewMax_Throws()
+    {
+        var instance = CreateInstance(maxParticipation: 20);
+        var day = CreateDay(instance, 1);
+        var v1 = Guid.NewGuid();
+        var v2 = Guid.NewGuid();
+        var activity = CreateApprovedTransportWithAssignments(day, (v1, 20), (v2, 20));
+        day.Activities.Add(activity);
+        instance.InstanceDays.Add(day);
+
+        int ResolveCapacity(Guid id) => id == v1 ? 20 : id == v2 ? 20 : 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            instance.EnsureCapacityCoversAllApprovedTransports(newMaxParticipation: 45, ResolveCapacity));
+
+        Assert.Contains("không đủ", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static TourInstanceEntity CreateInstance(int maxParticipation)
     {
         var instance = TourInstanceEntity.Create(
@@ -118,6 +153,33 @@ public sealed class TourInstanceEntityCapacityGuardTests
         activity.VehicleId = vehicleId;
         activity.DriverId = Guid.NewGuid();
         activity.TransportationApprovalStatus = ProviderApprovalStatus.Approved;
+        return activity;
+    }
+
+    private static TourInstanceDayActivityEntity CreateApprovedTransportWithAssignments(
+        TourInstanceDayEntity day,
+        params (Guid VehicleId, int SeatSnapshot)[] rows)
+    {
+        var activity = TourInstanceDayActivityEntity.Create(
+            day.Id, 1, TourDayActivityType.Transportation, "Multi leg", "tester");
+        activity.TransportSupplierId = Guid.NewGuid();
+        activity.RequestedVehicleType = VehicleType.Coach;
+        activity.RequestedSeatCount = 50;
+        activity.TransportationApprovalStatus = ProviderApprovalStatus.Approved;
+        foreach (var (vehicleId, seat) in rows)
+        {
+            activity.TransportAssignments.Add(
+                TourInstanceTransportAssignmentEntity.Create(
+                    activity.Id,
+                    vehicleId,
+                    Guid.NewGuid(),
+                    seat,
+                    "tester"));
+        }
+
+        var primary = rows[0].VehicleId;
+        activity.VehicleId = primary;
+        activity.DriverId = Guid.NewGuid();
         return activity;
     }
 }

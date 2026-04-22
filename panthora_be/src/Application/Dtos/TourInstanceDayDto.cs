@@ -11,6 +11,20 @@ public sealed record TourInstanceDayDto(
     string? Note,
     List<TourInstanceDayActivityDto> Activities);
 
+/// <summary>One approved (or planned) vehicle row on a transportation activity.</summary>
+public sealed record TourInstanceTransportAssignmentDto(
+    Guid Id,
+    Guid VehicleId,
+    Guid? DriverId,
+    int? SeatCountSnapshot,
+    string? VehiclePlate,
+    string? VehicleType,
+    string? VehicleBrand,
+    string? VehicleModel,
+    int? VehicleSeatCapacity,
+    string? DriverName,
+    string? DriverPhone);
+
 public sealed record TourInstanceDayActivityDto(
     Guid Id,
     int Order,
@@ -36,6 +50,8 @@ public sealed record TourInstanceDayActivityDto(
     // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
     string? RequestedVehicleType,
     int? RequestedSeatCount,
+    /// <summary>Scope addendum 2026-04-23 — manager-requested vehicle count (nullable for legacy).</summary>
+    int? RequestedVehicleCount,
     Guid? TransportSupplierId,
     string? TransportSupplierName,
     string? TransportationApprovalStatus,
@@ -54,7 +70,9 @@ public sealed record TourInstanceDayActivityDto(
     string? PickupLocation,
     string? DropoffLocation,
     DateTimeOffset? DepartureTime,
-    DateTimeOffset? ArrivalTime);
+    DateTimeOffset? ArrivalTime,
+    /// <summary>Concrete vehicles for this leg (multi-vehicle). Empty when none; legacy <see cref="VehicleId"/> may still mirror the first row.</summary>
+    List<TourInstanceTransportAssignmentDto> TransportAssignments);
 
 public sealed record TourInstancePlanAccommodationDto(
     Guid Id,

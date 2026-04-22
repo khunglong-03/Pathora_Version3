@@ -7,6 +7,9 @@
  * - Tour instance detail page (`TourInstanceDetailPage`)
  *
  * @note
+ * Multi-vehicle transport (several `transportAssignments` per activity) does not change how
+ * per-activity **approval status** is represented; this helper still keys off the same string/numeric fields.
+ *
  * `TourInstanceVm` (the list DTO) carries only an instance-level `transportApprovalStatus: number`
  * — it does NOT contain `days[]` or per-activity data. The helper that accepts a numeric status
  * (`getInstanceApprovalAppearance`) is therefore a **worst-status-wins** approximation; it cannot

@@ -4,6 +4,7 @@ using Application.Common.Authorization;
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using Contracts.Interfaces;
+using Domain;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using Domain.Entities;
@@ -15,18 +16,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.TourInstance.Commands;
 
+/// <summary>One vehicle row in a multi-vehicle approve request (or single-row legacy body).</summary>
+public sealed record TransportApprovalAssignmentDto(Guid VehicleId, Guid? DriverId);
+
 /// <summary>
 /// Approve transportation for a specific activity — the transport provider
-/// confirms vehicle + driver assignment.
-/// One transaction: ownership check → vehicle capacity → availability →
-/// delete stale VehicleBlock → domain ApproveTransportation →
-/// insert Hard VehicleBlock → CheckAndActivateTourInstance.
+/// confirms one or more vehicle + driver assignments.
+/// One transaction: ownership check → validate fleet → availability per vehicle →
+/// delete stale VehicleBlock → replace assignment rows → domain ApproveTransportation (legacy mirror) →
+/// insert Hard VehicleBlock per vehicle → CheckAndActivateTourInstance.
 /// </summary>
 public sealed record ApproveTransportationActivityCommand(
     Guid InstanceId,
     Guid ActivityId,
-    Guid VehicleId,
-    Guid DriverId,
+    IReadOnlyList<TransportApprovalAssignmentDto>? Assignments,
+    /// <summary>Legacy single-pair shim when <see cref="Assignments"/> is null or empty.</summary>
+    Guid? VehicleId = null,
+    Guid? DriverId = null,
     string? Note = null
 ) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
@@ -39,8 +45,19 @@ public sealed class ApproveTransportationActivityCommandValidator : AbstractVali
     {
         RuleFor(x => x.InstanceId).NotEmpty();
         RuleFor(x => x.ActivityId).NotEmpty();
-        RuleFor(x => x.VehicleId).NotEmpty();
-        RuleFor(x => x.DriverId).NotEmpty();
+        RuleFor(x => x)
+            .Must(cmd => (cmd.Assignments is { Count: > 0 }) || (cmd.VehicleId.HasValue && cmd.DriverId.HasValue))
+            .WithMessage("Cần danh sách Assignments hoặc cặp VehicleId + DriverId.");
+        When(x => x.Assignments is { Count: > 0 }, () =>
+        {
+            RuleForEach(x => x.Assignments!)
+                .ChildRules(a =>
+                {
+                    a.RuleFor(r => r.VehicleId).NotEmpty();
+                    a.RuleFor(r => r.DriverId).NotEmpty()
+                        .WithMessage("Mỗi xe phải có tài xế (DriverId).");
+                });
+        });
     }
 }
 
@@ -63,12 +80,21 @@ public sealed class ApproveTransportationActivityCommandHandler(
         var roleCheck = TourInstanceRoleGuard.Require(user, TourInstanceRoleGuard.ProviderRoles);
         if (roleCheck.IsError) return roleCheck.Errors;
 
-        // Load instance with full graph
-        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        var normalized = NormalizeAssignments(request);
+        if (normalized.Count == 0)
+            return Error.Validation("TourInstanceActivity.NoAssignments", "Danh sách xe duyệt không được rỗng.");
+
+        if (TourInstanceTransportAssignmentRules.HasDuplicateVehicleIds(normalized.Select(x => x.VehicleId)))
+        {
+            return Error.Validation(
+                TourInstanceTransportErrors.DuplicateVehicleInActivityCode,
+                TourInstanceTransportErrors.DuplicateVehicleInActivityDescription);
+        }
+
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        // Find activity
         var activity = instance.InstanceDays
             .SelectMany(d => d.Activities)
             .FirstOrDefault(a => a.Id == request.ActivityId);
@@ -82,86 +108,101 @@ public sealed class ApproveTransportationActivityCommandHandler(
         if (!activity.TransportSupplierId.HasValue)
             return Error.Validation("TourInstanceActivity.NoSupplier", "Hoạt động chưa được gán nhà cung cấp vận chuyển.");
 
-        // Verify caller owns the supplier
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
         if (suppliers.Count == 0 || !suppliers.Any(s => s.Id == activity.TransportSupplierId.Value))
             return Error.Validation(
                 TourInstanceTransportErrors.ProviderNotAssignedCode,
                 "Bạn không phải nhà cung cấp vận chuyển cho hoạt động này.");
 
-        // Idempotent: if already approved with same vehicle+driver, return success
-        if (activity.TransportationApprovalStatus == ProviderApprovalStatus.Approved
-            && activity.VehicleId == request.VehicleId
-            && activity.DriverId == request.DriverId)
-        {
+        if (IsIdempotentApproved(activity, normalized))
             return Result.Success;
-        }
 
-        // Validate vehicle (ER-5: prefer SupplierId match; fall back to OwnerId for rows
-        // that have not been backfilled with SupplierId yet).
-        var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
-        if (vehicle is null || vehicle.IsDeleted)
-            return Error.Validation("Vehicle.NotOwned", "Phương tiện không thuộc quyền sở hữu của bạn.");
-
-        bool vehicleBelongsToSupplier = vehicle.SupplierId.HasValue
-            ? vehicle.SupplierId == activity.TransportSupplierId
-            : vehicle.OwnerId == currentUserId;
-
-        if (!vehicleBelongsToSupplier)
-            return Error.Validation(
-                TourInstanceTransportErrors.VehicleWrongSupplierCode,
-                "Phương tiện không thuộc nhà cung cấp đã được gán cho hoạt động này.");
-
-        if (!vehicle.IsActive)
-            return Error.Validation("Vehicle.Inactive", "Phương tiện đang ngừng hoạt động.");
-
-        // Vehicle type match (ER-6)
-        if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
-            return Error.Validation(
-                TourInstanceTransportErrors.VehicleWrongTypeCode,
-                $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType}).");
-
-        // Seat capacity check
-        var requiredSeats = activity.RequestedSeatCount ?? instance.MaxParticipation;
-        if (vehicle.SeatCapacity < requiredSeats)
+        // Strict vehicle-count guard (scope addendum 2026-04-23): when manager pre-specifies
+        // how many vehicles are required, provider must approve with exactly that many rows.
+        if (activity.RequestedVehicleCount is { } requiredCount && normalized.Count != requiredCount)
         {
             return Error.Validation(
-                TourInstanceTransportErrors.VehicleInsufficientCapacityCode,
-                $"Sức chứa của xe ({vehicle.SeatCapacity}) không đủ cho số ghế yêu cầu ({requiredSeats}).");
+                TourInstanceTransportErrors.VehicleCountMismatchCode,
+                TourInstanceTransportErrors.VehicleCountMismatchDescription);
         }
 
-        // Availability check (date overlap)
+        var requiredSeats = activity.RequestedSeatCount ?? instance.MaxParticipation;
+
+        // Pre-load and validate all vehicles & drivers (outside transaction; repeated inside tx for races).
+        var vehicleEntities = new List<(Guid Id, VehicleEntity Entity)>();
+        foreach (var row in normalized)
+        {
+            var vehicle = await vehicleRepository.GetByIdAsync(row.VehicleId, cancellationToken);
+            if (vehicle is null || vehicle.IsDeleted)
+                return Error.Validation("Vehicle.NotOwned", "Phương tiện không thuộc quyền sở hữu của bạn.");
+
+            bool vehicleBelongsToSupplier = vehicle.SupplierId.HasValue
+                ? vehicle.SupplierId == activity.TransportSupplierId
+                : vehicle.OwnerId == currentUserId;
+
+            if (!vehicleBelongsToSupplier)
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleWrongSupplierCode,
+                    "Phương tiện không thuộc nhà cung cấp đã được gán cho hoạt động này.");
+
+            if (!vehicle.IsActive)
+                return Error.Validation("Vehicle.Inactive", "Phương tiện đang ngừng hoạt động.");
+
+            if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleWrongTypeCode,
+                    $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType}).");
+
+            if (row.DriverId == Guid.Empty)
+                return Error.Validation("Driver.Required", "Mỗi xe phải có tài xế.");
+
+            var driver = await driverRepository.GetByIdAsync(row.DriverId, cancellationToken);
+            if (driver is null)
+                return Error.Validation("Driver.NotOwned", "Tài xế không thuộc quyền sở hữu của bạn.");
+
+            bool driverBelongsToSupplier = driver.SupplierId.HasValue
+                ? driver.SupplierId == activity.TransportSupplierId
+                : driver.UserId == currentUserId;
+
+            if (!driverBelongsToSupplier)
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleWrongSupplierCode,
+                    "Tài xế không thuộc nhà cung cấp đã được gán cho hoạt động này.");
+
+            if (!driver.IsActive)
+                return Error.Validation("Driver.Inactive", "Tài xế đang ngừng hoạt động.");
+
+            vehicleEntities.Add((vehicle.Id, vehicle));
+        }
+
+        var totalSeatCapacity = vehicleEntities.Sum(v => v.Entity.SeatCapacity);
+        if (!TourInstanceTransportAssignmentRules.SeatCapacityCoversRequest(totalSeatCapacity, requiredSeats))
+        {
+            if (normalized.Count == 1)
+            {
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleInsufficientCapacityCode,
+                    $"Sức chứa của xe ({totalSeatCapacity}) không đủ cho số ghế yêu cầu ({requiredSeats}).");
+            }
+
+            return Error.Validation(
+                TourInstanceTransportErrors.TransportFleetInsufficientCapacityCode,
+                TourInstanceTransportErrors.TransportFleetInsufficientCapacityDescription);
+        }
+
         var activityDate = activity.TourInstanceDay.ActualDate;
-        var availabilityCheck = await availabilityService.CheckVehicleAvailabilityAsync(
-            request.VehicleId, activityDate, request.ActivityId, cancellationToken);
+        foreach (var row in normalized)
+        {
+            var availabilityCheck = await availabilityService.CheckVehicleAvailabilityAsync(
+                row.VehicleId, activityDate, request.ActivityId, cancellationToken);
 
-        if (availabilityCheck.IsError) return availabilityCheck.Errors;
-        if (!availabilityCheck.Value)
-            return Error.Validation(
-                TourInstanceTransportErrors.VehicleUnavailableCode,
-                "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+            if (availabilityCheck.IsError) return availabilityCheck.Errors;
+            if (!availabilityCheck.Value)
+                return Error.Validation(
+                    TourInstanceTransportErrors.VehicleUnavailableCode,
+                    "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+        }
 
-        // Validate driver (ER-5: prefer SupplierId match; fall back to UserId for rows
-        // that have not been backfilled with SupplierId yet).
-        var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
-        if (driver is null)
-            return Error.Validation("Driver.NotOwned", "Tài xế không thuộc quyền sở hữu của bạn.");
-
-        bool driverBelongsToSupplier = driver.SupplierId.HasValue
-            ? driver.SupplierId == activity.TransportSupplierId
-            : driver.UserId == currentUserId;
-
-        if (!driverBelongsToSupplier)
-            return Error.Validation(
-                TourInstanceTransportErrors.VehicleWrongSupplierCode,
-                "Tài xế không thuộc nhà cung cấp đã được gán cho hoạt động này.");
-
-        if (!driver.IsActive)
-            return Error.Validation("Driver.Inactive", "Tài xế đang ngừng hoạt động.");
-
-        // Execute in transaction at RepeatableRead isolation (ER-1/ER-11) with 3x retry on
-        // Postgres serialization failures (SQLSTATE 40001). Unique violations (23505) indicate
-        // another tour grabbed the vehicle first → map to Vehicle.Unavailable (ER-4).
         const int maxAttempts = 3;
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
@@ -169,30 +210,49 @@ public sealed class ApproveTransportationActivityCommandHandler(
             {
                 await unitOfWork.ExecuteTransactionAsync(IsolationLevel.RepeatableRead, async () =>
                 {
-                    // ER-1.3: re-check availability INSIDE the transaction, right before INSERT,
-                    // to close the read-then-write race window.
-                    var txCheck = await availabilityService.CheckVehicleAvailabilityAsync(
-                        request.VehicleId, activityDate, request.ActivityId, cancellationToken);
-                    if (txCheck.IsError || !txCheck.Value)
+                    foreach (var row in normalized)
                     {
-                        throw new TransportApproveConflictException(
-                            TourInstanceTransportErrors.VehicleUnavailableCode,
-                            "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+                        var txCheck = await availabilityService.CheckVehicleAvailabilityAsync(
+                            row.VehicleId, activityDate, request.ActivityId, cancellationToken);
+                        if (txCheck.IsError || !txCheck.Value)
+                        {
+                            throw new TransportApproveConflictException(
+                                TourInstanceTransportErrors.VehicleUnavailableCode,
+                                "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+                        }
                     }
 
                     await vehicleBlockRepository.DeleteByActivityAsync(request.ActivityId, cancellationToken);
 
-                    activity.ApproveTransportation(request.VehicleId, request.DriverId, request.Note);
+                    activity.TransportAssignments.Clear();
 
-                    // Tour-level holds are always Hard. Soft holds are reserved for unpaid customer bookings.
-                    var block = VehicleBlockEntity.Create(
-                        request.VehicleId,
-                        activityDate,
-                        currentUserId.ToString(),
-                        tourInstanceDayActivityId: request.ActivityId,
-                        holdStatus: HoldStatus.Hard);
+                    var performedBy = currentUserId.ToString();
+                    foreach (var row in normalized)
+                    {
+                        var seatSnap = vehicleEntities.First(v => v.Id == row.VehicleId).Entity.SeatCapacity;
+                        activity.TransportAssignments.Add(
+                            TourInstanceTransportAssignmentEntity.Create(
+                                activity.Id,
+                                row.VehicleId,
+                                row.DriverId,
+                                seatSnap,
+                                performedBy));
+                    }
 
-                    await vehicleBlockRepository.AddAsync(block, cancellationToken);
+                    var primary = normalized[0];
+                    activity.ApproveTransportation(primary.VehicleId, primary.DriverId, request.Note);
+
+                    foreach (var row in normalized)
+                    {
+                        var block = VehicleBlockEntity.Create(
+                            row.VehicleId,
+                            activityDate,
+                            performedBy,
+                            tourInstanceDayActivityId: request.ActivityId,
+                            holdStatus: HoldStatus.Hard);
+
+                        await vehicleBlockRepository.AddAsync(block, cancellationToken);
+                    }
 
                     instance.CheckAndActivateTourInstance();
 
@@ -208,14 +268,12 @@ public sealed class ApproveTransportationActivityCommandHandler(
             }
             catch (DbUpdateException dbEx) when (IsPostgresSqlState(dbEx, "23505"))
             {
-                // Unique violation (VehicleId, BlockedDate, HoldStatus) — another request won.
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleUnavailableCode,
                     "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
             }
             catch (DbUpdateException dbEx) when (IsPostgresSqlState(dbEx, "40001") && attempt < maxAttempts)
             {
-                // Serialization failure — safe to retry.
                 await Task.Delay(50 * attempt, cancellationToken);
                 continue;
             }
@@ -227,24 +285,19 @@ public sealed class ApproveTransportationActivityCommandHandler(
             }
             catch (DbUpdateConcurrencyException)
             {
-                // ER-2: RowVersion conflict — another request already flipped status.
-                // Reload and return success if target state was reached by someone else.
-                var reloaded = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+                var reloaded = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
                 var reloadedActivity = reloaded?.InstanceDays
                     .SelectMany(d => d.Activities)
                     .FirstOrDefault(a => a.Id == request.ActivityId);
 
-                if (reloadedActivity is not null
-                    && reloadedActivity.TransportationApprovalStatus == ProviderApprovalStatus.Approved
-                    && reloadedActivity.VehicleId == request.VehicleId
-                    && reloadedActivity.DriverId == request.DriverId)
-                {
+                if (reloadedActivity is not null && IsIdempotentApproved(reloadedActivity, normalized))
                     return Result.Success;
-                }
 
-                if (attempt < maxAttempts)
+                if (attempt < maxAttempts && reloaded is not null)
                 {
                     await Task.Delay(50 * attempt, cancellationToken);
+                    instance = reloaded;
+                    activity = instance.InstanceDays.SelectMany(d => d.Activities).First(a => a.Id == request.ActivityId);
                     continue;
                 }
 
@@ -254,15 +307,54 @@ public sealed class ApproveTransportationActivityCommandHandler(
             }
         }
 
-        // Unreachable: loop either returns Success or throws.
         return Error.Failure("Vehicle.Unavailable", "Không thể duyệt phương tiện sau nhiều lần thử.");
     }
 
-    /// <summary>
-    /// True when <paramref name="ex"/> (or any inner exception) is a Npgsql exception whose
-    /// <c>SqlState</c> equals <paramref name="expectedState"/>. Uses duck-typing via reflection
-    /// so Application layer stays DB-agnostic.
-    /// </summary>
+    private static List<(Guid VehicleId, Guid DriverId)> NormalizeAssignments(ApproveTransportationActivityCommand request)
+    {
+        if (request.Assignments is { Count: > 0 })
+            return request.Assignments
+                .Where(a => a.VehicleId != Guid.Empty)
+                .Select(a => (a.VehicleId, a.DriverId ?? Guid.Empty))
+                .ToList();
+
+        if (request.VehicleId.HasValue && request.DriverId.HasValue)
+            return [(request.VehicleId.Value, request.DriverId.Value)];
+
+        return [];
+    }
+
+    private static bool IsIdempotentApproved(
+        TourInstanceDayActivityEntity activity,
+        IReadOnlyList<(Guid VehicleId, Guid DriverId)> normalized)
+    {
+        if (activity.TransportationApprovalStatus != ProviderApprovalStatus.Approved)
+            return false;
+
+        var next = normalized.OrderBy(x => x.VehicleId).ToList();
+
+        if (activity.TransportAssignments.Count > 0)
+        {
+            var cur = activity.TransportAssignments
+                .OrderBy(x => x.VehicleId)
+                .Select(x => (x.VehicleId, x.DriverId ?? Guid.Empty))
+                .ToList();
+            if (cur.Count != next.Count)
+                return false;
+            for (var i = 0; i < cur.Count; i++)
+            {
+                if (cur[i].VehicleId != next[i].VehicleId || cur[i].Item2 != next[i].DriverId)
+                    return false;
+            }
+
+            return true;
+        }
+
+        return next.Count == 1
+               && activity.VehicleId == next[0].VehicleId
+               && activity.DriverId == next[0].DriverId;
+    }
+
     private static bool IsPostgresSqlState(Exception ex, string expectedState)
     {
         for (var cur = (Exception?)ex; cur is not null; cur = cur.InnerException)
@@ -271,6 +363,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
             if (prop is not null && prop.GetValue(cur) as string == expectedState)
                 return true;
         }
+
         return false;
     }
 }

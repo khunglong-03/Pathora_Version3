@@ -72,7 +72,7 @@ describe("BulkApproveConfirmationModal", () => {
     expect(screen.getByText(/Xác nhận duyệt 2 hoạt động/)).toBeInTheDocument();
     expect(screen.getByText("Bus to Ha Long")).toBeInTheDocument();
     expect(screen.getByText("Return to Hanoi")).toBeInTheDocument();
-    expect(screen.getAllByText("30A-123")[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/30A-123 \/ John Doe/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("—")[0]).toBeInTheDocument();
   });
 

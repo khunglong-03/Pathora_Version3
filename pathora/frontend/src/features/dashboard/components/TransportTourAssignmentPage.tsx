@@ -26,17 +26,46 @@ type TransportActivityItem = {
   activity: TourInstanceDayActivityDto;
 };
 
-export type ApprovalDraft = {
+export type TransportAssignmentRowDraft = {
   vehicleId: string;
   driverId: string;
+};
+
+/** Per-activity approve/reject draft: multiple vehicle rows + shared note. */
+export type ApprovalDraft = {
+  rows: TransportAssignmentRowDraft[];
   note: string;
 };
 
 const EMPTY_APPROVAL_DRAFT: ApprovalDraft = {
-  vehicleId: "",
-  driverId: "",
+  rows: [{ vehicleId: "", driverId: "" }],
   note: "",
 };
+
+function activityDraftFromActivity(
+  activity: TourInstanceDayActivityDto,
+): ApprovalDraft {
+  const note = activity.transportationApprovalNote ?? "";
+  const fromApi = activity.transportAssignments?.filter((t) => t.vehicleId);
+  if (fromApi && fromApi.length > 0) {
+    return {
+      rows: fromApi.map((t) => ({
+        vehicleId: t.vehicleId,
+        driverId: t.driverId ?? "",
+      })),
+      note,
+    };
+  }
+  return {
+    rows: [
+      {
+        vehicleId: activity.vehicleId ?? "",
+        driverId: activity.driverId ?? "",
+      },
+    ],
+    note,
+  };
+}
 
 const isTransportationActivity = (activityType?: string | null) => {
   const normalized = activityType?.trim().toLowerCase();
@@ -119,6 +148,19 @@ const formatTimeRange = (
   return formatTimeValue(start ?? end ?? "");
 };
 
+function sumSeatCapacityForRows(
+  rows: TransportAssignmentRowDraft[],
+  vehicles: { id: string; seatCapacity?: number }[],
+): number {
+  let sum = 0;
+  for (const r of rows) {
+    if (!r.vehicleId) continue;
+    const v = vehicles.find((x) => x.id === r.vehicleId);
+    if (v?.seatCapacity) sum += v.seatCapacity;
+  }
+  return sum;
+}
+
 export default function TransportTourAssignmentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -139,6 +181,19 @@ export default function TransportTourAssignmentPage() {
     message: string;
     failedActivityId?: string;
   } | null>(null);
+  const [activityErrors, setActivityErrors] = useState<Record<string, string>>({});
+
+  const setActivityError = useCallback((activityId: string, message: string | null) => {
+    setActivityErrors((current) => {
+      if (message === null) {
+        if (!(activityId in current)) return current;
+        const next = { ...current };
+        delete next[activityId];
+        return next;
+      }
+      return { ...current, [activityId]: message };
+    });
+  }, []);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -161,11 +216,7 @@ export default function TransportTourAssignmentPage() {
           day.activities.forEach((activity) => {
             if (!isTransportationActivity(activity.activityType)) return;
 
-            nextDrafts[activity.id] = {
-              vehicleId: activity.vehicleId ?? "",
-              driverId: activity.driverId ?? "",
-              note: activity.transportationApprovalNote ?? "",
-            };
+            nextDrafts[activity.id] = activityDraftFromActivity(activity);
           });
         });
         setApprovalDrafts(nextDrafts);
@@ -264,11 +315,26 @@ export default function TransportTourAssignmentPage() {
   const bulkIncompleteTitles = useMemo(() => {
     return bulkEligibleActivities
       .filter((item) => {
-        const draft = approvalDrafts[item.activity.id];
-        return !draft?.vehicleId || !draft?.driverId;
+        const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
+        const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+        if (filled.length === 0) return true;
+        if (filled.length !== new Set(filled.map((r) => r.vehicleId)).size) return true;
+        const required =
+          item.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
+        const sum = sumSeatCapacityForRows(filled, vehicles);
+        if (sum < required) return true;
+        const requestedType = item.activity.requestedVehicleType;
+        if (requestedType) {
+          const badType = filled.some((r) => {
+            const v = vehicles.find((x) => x.id === r.vehicleId);
+            return v && v.vehicleType !== requestedType;
+          });
+          if (badType) return true;
+        }
+        return false;
       })
       .map((item) => item.activity.title);
-  }, [bulkEligibleActivities, approvalDrafts]);
+  }, [bulkEligibleActivities, approvalDrafts, tour?.maxParticipation, vehicles]);
 
   const approveDraft = approveActivityId
     ? approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT
@@ -278,52 +344,121 @@ export default function TransportTourAssignmentPage() {
     ? approvalDrafts[rejectActivityId] ?? EMPTY_APPROVAL_DRAFT
     : EMPTY_APPROVAL_DRAFT;
 
-  const selectedApproveVehicle = useMemo(
-    () =>
-      vehicles.find((vehicle) => vehicle.id === approveDraft.vehicleId) ?? null,
-    [approveDraft.vehicleId, vehicles],
-  );
-
-  const selectedApproveDriver = useMemo(
-    () =>
-      drivers.find((driver) => driver.id === approveDraft.driverId) ?? null,
-    [approveDraft.driverId, drivers],
-  );
-
-  const vehicleTypeMismatch = Boolean(
-    selectedApproveVehicle
-    && activeApproveItem?.activity.requestedVehicleType
-    && selectedApproveVehicle.vehicleType !== activeApproveItem.activity.requestedVehicleType,
-  );
-
-  const seatCapacityShortfall = Boolean(
-    selectedApproveVehicle
-    && selectedApproveVehicle.seatCapacity
-      < (activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0),
-  );
+  const approveModalValidation = useMemo(() => {
+    if (!activeApproveItem || !approveActivityId) {
+      return {
+        typeMismatch: false,
+        seatShortfall: false,
+        duplicateVehicle: false,
+        hasFilledRow: false,
+        totalSeats: 0,
+        countMismatch: false,
+        requestedCount: undefined as number | undefined,
+        filledCount: 0,
+      };
+    }
+    const draft = approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT;
+    const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+    const requestedType = activeApproveItem.activity.requestedVehicleType;
+    const required =
+      activeApproveItem.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
+    let typeMismatch = false;
+    for (const r of filled) {
+      const v = vehicles.find((x) => x.id === r.vehicleId);
+      if (v && requestedType && v.vehicleType !== requestedType) {
+        typeMismatch = true;
+        break;
+      }
+    }
+    const duplicateVehicle =
+      filled.length > 0
+      && filled.map((r) => r.vehicleId).length
+        !== new Set(filled.map((r) => r.vehicleId)).size;
+    const totalSeats = sumSeatCapacityForRows(filled, vehicles);
+    const seatShortfall = filled.length > 0 && totalSeats < required;
+    // Scope addendum 2026-04-23: strict vehicle count match when manager set one.
+    const requestedCount = activeApproveItem.activity.requestedVehicleCount ?? undefined;
+    const countMismatch =
+      requestedCount !== undefined && filled.length !== requestedCount;
+    return {
+      typeMismatch,
+      seatShortfall,
+      duplicateVehicle,
+      hasFilledRow: filled.length > 0,
+      totalSeats,
+      countMismatch,
+      requestedCount,
+      filledCount: filled.length,
+    };
+  }, [
+    activeApproveItem,
+    approveActivityId,
+    approvalDrafts,
+    tour?.maxParticipation,
+    vehicles,
+  ]);
 
   const updateDraft = useCallback(
-    (
-      activityId: string,
-      updates: Partial<ApprovalDraft>,
-    ) => {
-      setApprovalDrafts((current) => ({
-        ...current,
-        [activityId]: {
-          ...(current[activityId] ?? EMPTY_APPROVAL_DRAFT),
-          ...updates,
-        },
-      }));
+    (activityId: string, updates: Partial<ApprovalDraft>) => {
+      setApprovalDrafts((current) => {
+        const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+        return {
+          ...current,
+          [activityId]: {
+            rows: updates.rows ?? prev.rows,
+            note: updates.note !== undefined ? updates.note : prev.note,
+          },
+        };
+      });
     },
     [],
   );
 
-  const openApproveModal = (activity: TourInstanceDayActivityDto) => {
-    updateDraft(activity.id, {
-      vehicleId: activity.vehicleId ?? "",
-      driverId: activity.driverId ?? "",
-      note: activity.transportationApprovalNote ?? "",
+  const patchRow = useCallback(
+    (activityId: string, rowIndex: number, partial: Partial<TransportAssignmentRowDraft>) => {
+      setApprovalDrafts((current) => {
+        const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+        const nextRows = prev.rows.map((r, i) =>
+          i === rowIndex ? { ...r, ...partial } : r,
+        );
+        return { ...current, [activityId]: { ...prev, rows: nextRows } };
+      });
+    },
+    [],
+  );
+
+  const addAssignmentRow = useCallback((activityId: string) => {
+    setApprovalDrafts((current) => {
+      const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+      return {
+        ...current,
+        [activityId]: {
+          ...prev,
+          rows: [...prev.rows, { vehicleId: "", driverId: "" }],
+        },
+      };
     });
+  }, []);
+
+  const removeAssignmentRow = useCallback((activityId: string, rowIndex: number) => {
+    setApprovalDrafts((current) => {
+      const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+      if (prev.rows.length <= 1) return current;
+      return {
+        ...current,
+        [activityId]: {
+          ...prev,
+          rows: prev.rows.filter((_, i) => i !== rowIndex),
+        },
+      };
+    });
+  }, []);
+
+  const openApproveModal = (activity: TourInstanceDayActivityDto) => {
+    setApprovalDrafts((current) => ({
+      ...current,
+      [activity.id]: activityDraftFromActivity(activity),
+    }));
     setApproveActivityId(activity.id);
   };
 
@@ -337,7 +472,8 @@ export default function TransportTourAssignmentPage() {
   const handleApproveActivity = async () => {
     if (!id || !approveActivityId) return;
 
-    if (!approveDraft.vehicleId || !approveDraft.driverId) {
+    const filled = approveDraft.rows.filter((r) => r.vehicleId && r.driverId);
+    if (filled.length === 0) {
       toast.error(
         t(
           "tourInstance.transport.missingAssignment",
@@ -346,12 +482,40 @@ export default function TransportTourAssignmentPage() {
       );
       return;
     }
+    if (approveModalValidation.duplicateVehicle) {
+      toast.error(
+        t(
+          "tourInstance.transport.duplicateVehicle",
+          "Khong duoc trung xe trong cung mot hoat dong.",
+        ),
+      );
+      return;
+    }
+    if (
+      approveModalValidation.typeMismatch
+      || approveModalValidation.seatShortfall
+    ) {
+      return;
+    }
+    if (approveModalValidation.countMismatch) {
+      toast.error(
+        t(
+          "tourInstance.transport.vehicleCountMismatch",
+          "So xe duyet phai khop so xe Manager yeu cau ({{required}}).",
+          { required: approveModalValidation.requestedCount ?? "?" },
+        ),
+      );
+      return;
+    }
 
     setActionKey(`approve:${approveActivityId}`);
+    setActivityError(approveActivityId, null);
     try {
       await tourInstanceService.approveTransportation(id, approveActivityId, {
-        vehicleId: approveDraft.vehicleId,
-        driverId: approveDraft.driverId,
+        assignments: filled.map(({ vehicleId, driverId }) => ({
+          vehicleId,
+          driverId,
+        })),
         note: approveDraft.note.trim() || undefined,
       });
 
@@ -365,7 +529,9 @@ export default function TransportTourAssignmentPage() {
       await loadData();
     } catch (error) {
       const apiError = handleApiError(error);
-      toast.error(t(apiError.message));
+      const message = t(apiError.message);
+      toast.error(message);
+      setActivityError(approveActivityId, message);
     } finally {
       setActionKey(null);
     }
@@ -375,6 +541,7 @@ export default function TransportTourAssignmentPage() {
     if (!id || !rejectActivityId) return;
 
     setActionKey(`reject:${rejectActivityId}`);
+    setActivityError(rejectActivityId, null);
     try {
       await tourInstanceService.rejectTransportation(id, rejectActivityId, {
         note: rejectDraft.note.trim() || undefined,
@@ -390,7 +557,9 @@ export default function TransportTourAssignmentPage() {
       await loadData();
     } catch (error) {
       const apiError = handleApiError(error);
-      toast.error(t(apiError.message));
+      const message = t(apiError.message);
+      toast.error(message);
+      setActivityError(rejectActivityId, message);
     } finally {
       setActionKey(null);
     }
@@ -402,24 +571,35 @@ export default function TransportTourAssignmentPage() {
     setActionKey("bulk-approve");
     setBulkFailedState(null);
 
+    const trimmedShared = sharedNote?.trim();
     try {
-      const activityIds = bulkEligibleActivities.map((i) => i.activity.id);
-      await tourInstanceService.approveTransportation(id, "bulk", {
-        isBulk: true,
-        note: sharedNote,
-        activityIds,
-      } as any);
+      for (const item of bulkEligibleActivities) {
+        const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
+        const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+        const note = (trimmedShared || draft.note.trim()) || undefined;
+        await tourInstanceService.approveTransportation(
+          id,
+          item.activity.id,
+          {
+            assignments: filled.map(({ vehicleId, driverId }) => ({
+              vehicleId,
+              driverId,
+            })),
+            note,
+          },
+        );
+      }
 
       setIsBulkApproveModalOpen(false);
       toast.success(
         t("tourInstance.transport.bulkApproveSuccess", "Da duyet {{count}} yeu cau", { count: bulkEligibleActivities.length })
       );
-      
+
       await loadData();
     } catch (error) {
       const apiError = handleApiError(error);
       const failedActivityId = (error as any)?.response?.data?.failedActivityId;
-      
+
       setBulkFailedState({
         message: t(apiError.message),
         failedActivityId,
@@ -626,6 +806,16 @@ export default function TransportTourAssignmentPage() {
                         {item.activity.requestedSeatCount ?? tour.maxParticipation}
                       </p>
                     </div>
+                    {item.activity.requestedVehicleCount != null && (
+                      <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                          {t("tourInstance.transport.requestedVehicles", "So xe yeu cau")}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                          {item.activity.requestedVehicleCount}
+                        </p>
+                      </div>
+                    )}
                     <div className="rounded-2xl bg-slate-50 px-4 py-3">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         {t("tourInstance.transport.route", "Tuyen")}
@@ -646,39 +836,87 @@ export default function TransportTourAssignmentPage() {
                         {t("tourInstance.transport.assignment", "Xe va tai xe hien tai")}
                       </p>
                     </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-700/70">
-                          {t("tourInstance.transport.vehicle", "Xe")}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
-                          {item.activity.vehiclePlate
-                            ? `${item.activity.vehiclePlate} • ${item.activity.vehicleType ?? ""}`.trim()
-                            : t(
-                              "tourInstance.transport.noVehicle",
-                              "Chua chon xe",
-                            )}
-                        </p>
+                    {item.activity.transportAssignments
+                    && item.activity.transportAssignments.length > 0 ? (
+                      <ul className="mt-3 space-y-3">
+                        {item.activity.transportAssignments.map((ta) => (
+                          <li
+                            key={ta.id}
+                            className="rounded-xl border border-cyan-100/80 bg-white/70 px-3 py-2 text-sm"
+                          >
+                            <p className="font-semibold text-slate-900">
+                              {ta.vehiclePlate
+                                ? `${ta.vehiclePlate}${ta.vehicleType ? ` • ${ta.vehicleType}` : ""}`
+                                : t("tourInstance.transport.noVehicle", "Chua chon xe")}
+                            </p>
+                            <p className="mt-0.5 text-slate-600">
+                              {ta.driverName
+                                || t(
+                                  "tourInstance.transport.noDriver",
+                                  "Chua chon tai xe",
+                                )}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-700/70">
+                            {t("tourInstance.transport.vehicle", "Xe")}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900">
+                            {item.activity.vehiclePlate
+                              ? `${item.activity.vehiclePlate} • ${item.activity.vehicleType ?? ""}`.trim()
+                              : t(
+                                "tourInstance.transport.noVehicle",
+                                "Chua chon xe",
+                              )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-700/70">
+                            {t("tourInstance.transport.driver", "Tai xe")}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900">
+                            {item.activity.driverName
+                              || t(
+                                "tourInstance.transport.noDriver",
+                                "Chua chon tai xe",
+                              )}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-700/70">
-                          {t("tourInstance.transport.driver", "Tai xe")}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900">
-                          {item.activity.driverName
-                            || t(
-                              "tourInstance.transport.noDriver",
-                              "Chua chon tai xe",
-                            )}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                     {item.activity.transportationApprovalNote && (
                       <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-sm text-slate-600">
                         {item.activity.transportationApprovalNote}
                       </p>
                     )}
                   </div>
+
+                  {activityErrors[item.activity.id] && (
+                    <div
+                      role="alert"
+                      className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+                    >
+                      <Icon icon="heroicons:exclamation-circle" className="mt-0.5 size-4 shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-semibold">
+                          {t("tourInstance.transport.rowErrorTitle", "Thao tac that bai")}
+                        </p>
+                        <p className="mt-0.5">{activityErrors[item.activity.id]}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-rose-500 hover:text-rose-700"
+                        onClick={() => setActivityError(item.activity.id, null)}
+                        aria-label={t("common.dismiss", "Dong")}
+                      >
+                        <Icon icon="heroicons:x-mark" className="size-4" />
+                      </button>
+                    </div>
+                  )}
 
                   <div className="mt-5 flex flex-wrap justify-end gap-3">
                     <button
@@ -690,7 +928,16 @@ export default function TransportTourAssignmentPage() {
                       }
                       className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <Icon icon="heroicons:x-mark" className="size-4" />
+                      <Icon
+                        icon={
+                          actionKey === `reject:${item.activity.id}`
+                            ? "heroicons:arrow-path"
+                            : "heroicons:x-mark"
+                        }
+                        className={`size-4 ${
+                          actionKey === `reject:${item.activity.id}` ? "animate-spin" : ""
+                        }`}
+                      />
                       {t("tourInstance.transport.reject", "Tu choi")}
                     </button>
                     <button
@@ -703,8 +950,16 @@ export default function TransportTourAssignmentPage() {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <Icon
-                        icon={isApproved ? "heroicons:pencil-square" : "heroicons:check"}
-                        className="size-4"
+                        icon={
+                          actionKey === `approve:${item.activity.id}`
+                            ? "heroicons:arrow-path"
+                            : isApproved
+                              ? "heroicons:pencil-square"
+                              : "heroicons:check"
+                        }
+                        className={`size-4 ${
+                          actionKey === `approve:${item.activity.id}` ? "animate-spin" : ""
+                        }`}
                       />
                       {isApproved
                         ? t(
@@ -741,10 +996,11 @@ export default function TransportTourAssignmentPage() {
               type="button"
               onClick={handleApproveActivity}
               disabled={
-                !approveDraft.vehicleId
-                || !approveDraft.driverId
-                || vehicleTypeMismatch
-                || seatCapacityShortfall
+                !approveModalValidation.hasFilledRow
+                || approveModalValidation.duplicateVehicle
+                || approveModalValidation.typeMismatch
+                || approveModalValidation.seatShortfall
+                || approveModalValidation.countMismatch
                 || actionKey === `approve:${approveActivityId}`
               }
               className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -770,29 +1026,81 @@ export default function TransportTourAssignmentPage() {
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Select
-                label={t("tourInstance.transport.vehicle", "Xe")}
-                value={approveDraft.vehicleId}
-                onChange={(event) =>
-                  updateDraft(activeApproveItem.activity.id, {
-                    vehicleId: event.target.value,
-                  })
+            <div className="space-y-3">
+              {approveDraft.rows.map((row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className="grid gap-4 rounded-2xl border border-slate-100 bg-slate-50/90 p-4 md:grid-cols-[1fr_1fr_auto] md:items-end"
+                >
+                  <Select
+                    label={t("tourInstance.transport.vehicle", "Xe")}
+                    value={row.vehicleId}
+                    onChange={(event) =>
+                      patchRow(activeApproveItem.activity.id, rowIndex, {
+                        vehicleId: event.target.value,
+                      })
+                    }
+                    options={vehicleOptions}
+                    placeholder={t("tourInstance.transport.selectVehicle", "Chon xe")}
+                  />
+                  <Select
+                    label={t("tourInstance.transport.driver", "Tai xe")}
+                    value={row.driverId}
+                    onChange={(event) =>
+                      patchRow(activeApproveItem.activity.id, rowIndex, {
+                        driverId: event.target.value,
+                      })
+                    }
+                    options={driverOptions}
+                    placeholder={t("tourInstance.transport.selectDriver", "Chon tai xe")}
+                  />
+                  <div className="flex justify-end pb-1">
+                    {approveDraft.rows.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeAssignmentRow(
+                            activeApproveItem.activity.id,
+                            rowIndex,
+                          )
+                        }
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                      >
+                        {t("tourInstance.transport.removeRow", "Xoa dong")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addAssignmentRow(activeApproveItem.activity.id)}
+                disabled={
+                  approveModalValidation.requestedCount !== undefined
+                  && approveDraft.rows.length >= approveModalValidation.requestedCount
                 }
-                options={vehicleOptions}
-                placeholder={t("tourInstance.transport.selectVehicle", "Chon xe")}
-              />
-              <Select
-                label={t("tourInstance.transport.driver", "Tai xe")}
-                value={approveDraft.driverId}
-                onChange={(event) =>
-                  updateDraft(activeApproveItem.activity.id, {
-                    driverId: event.target.value,
-                  })
-                }
-                options={driverOptions}
-                placeholder={t("tourInstance.transport.selectDriver", "Chon tai xe")}
-              />
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {t("tourInstance.transport.addVehicleRow", "+ Them xe")}
+              </button>
+              {approveModalValidation.requestedCount !== undefined && (
+                <p
+                  className={`text-xs font-semibold ${
+                    approveModalValidation.countMismatch
+                      ? "text-rose-600"
+                      : "text-slate-500"
+                  }`}
+                >
+                  {t(
+                    "tourInstance.transport.vehicleCountStatus",
+                    "{{filled}}/{{required}} xe",
+                    {
+                      filled: approveModalValidation.filledCount,
+                      required: approveModalValidation.requestedCount,
+                    },
+                  )}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 md:grid-cols-3">
@@ -815,28 +1123,51 @@ export default function TransportTourAssignmentPage() {
               </div>
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  {t("tourInstance.transport.selectedVehicle", "Xe dang chon")}
+                  {t("tourInstance.transport.totalSelectedSeats", "Tong cho da chon")}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-900">
-                  {selectedApproveVehicle?.vehiclePlate
-                    || t("common.notAvailable", "Chua chon")}
+                  {approveModalValidation.totalSeats}
                 </p>
               </div>
             </div>
 
-            {(vehicleTypeMismatch || seatCapacityShortfall) && (
+            {(approveModalValidation.typeMismatch
+              || approveModalValidation.seatShortfall
+              || approveModalValidation.duplicateVehicle) && (
               <div className="space-y-1">
-                <div role="alert" id="approve-vehicle-select" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 space-y-1">
-                  {vehicleTypeMismatch && (
+                <div role="alert" id="approve-vehicle-select" className="space-y-1 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                  {approveModalValidation.duplicateVehicle && (
                     <p>
-                      {t("tourInstance.transport.typeMismatch", "Loại xe không khớp với yêu cầu")} 
-                      (cần {activeApproveItem?.activity.requestedVehicleType}, đang chọn {selectedApproveVehicle?.vehicleType})
+                      {t(
+                        "tourInstance.transport.duplicateVehicleHint",
+                        "Khong duoc chon cung mot xe cho nhieu dong.",
+                      )}
                     </p>
                   )}
-                  {seatCapacityShortfall && (
+                  {approveModalValidation.typeMismatch && (
                     <p>
-                      {t("tourInstance.transport.capacityShortfall", "Sức chứa không đủ")} 
-                      (cần {activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0}, xe có {selectedApproveVehicle?.seatCapacity})
+                      {t("tourInstance.transport.typeMismatch", "Loại xe không khớp với yêu cầu")}
+                      {" "}
+                      (
+                      {t("tourInstance.transport.needType", "can")}
+                      {" "}
+                      {activeApproveItem?.activity.requestedVehicleType}
+                      )
+                    </p>
+                  )}
+                  {approveModalValidation.seatShortfall && (
+                    <p>
+                      {t("tourInstance.transport.capacityShortfall", "Sức chứa không đủ")}
+                      {" "}
+                      (
+                      {t("tourInstance.transport.needSeats", "can")}
+                      {" "}
+                      {activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0}
+                      {", "}
+                      {t("tourInstance.transport.selectedSeatsSum", "tong cho")}
+                      {" "}
+                      {approveModalValidation.totalSeats}
+                      )
                     </p>
                   )}
                 </div>
@@ -845,12 +1176,6 @@ export default function TransportTourAssignmentPage() {
                     {t("tourInstance.transport.contactManager", "Liên hệ manager để đổi loại xe yêu cầu")}
                   </a>
                 </div>
-              </div>
-            )}
-
-            {selectedApproveDriver && (
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                {`${selectedApproveDriver.fullName} • ${selectedApproveDriver.licenseNumber}`}
               </div>
             )}
 

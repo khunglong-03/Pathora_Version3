@@ -49,7 +49,7 @@ public sealed class RejectTransportationActivityCommandHandler(
         if (roleCheck.IsError) return roleCheck.Errors;
 
         // Load instance with full graph
-        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 

@@ -59,7 +59,7 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
         var unassignedActivityIds = instance.InstanceDays
             .SelectMany(d => d.Activities)
             .Where(a => a.ActivityType == TourDayActivityType.Transportation
-                        && (a.VehicleId is null || a.DriverId is null)
+                        && !a.HasCompleteVehicleAndDriverAssignment()
                         && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(a.Id)))
             .Select(a => a.Id)
             .ToList();

@@ -56,6 +56,26 @@ export default function BulkApproveConfirmationModal({
   const getDriverName = (driverId?: string) =>
     drivers.find((d) => d.id === driverId)?.fullName ?? "—";
 
+  const formatDraftSummary = (
+    draft?: ApprovalDraft | { vehicleId?: string; driverId?: string; note?: string },
+  ) => {
+    if (draft && "rows" in draft && Array.isArray(draft.rows)) {
+      const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+      if (filled.length === 0) return "—";
+      return filled
+        .map(
+          (r) =>
+            `${getVehiclePlate(r.vehicleId)} / ${getDriverName(r.driverId)}`,
+        )
+        .join(" · ");
+    }
+    const legacy = draft as { vehicleId?: string; driverId?: string } | undefined;
+    if (legacy?.vehicleId && legacy?.driverId) {
+      return `${getVehiclePlate(legacy.vehicleId)} / ${getDriverName(legacy.driverId)}`;
+    }
+    return "—";
+  };
+
   return (
     <Modal
       isOpen={open}
@@ -115,11 +135,8 @@ export default function BulkApproveConfirmationModal({
                   <span className="min-w-0 flex-1 truncate font-medium text-slate-900" title={item.activity.title}>
                     {item.activity.title}
                   </span>
-                  <span className="shrink-0 text-slate-500">
-                    {getVehiclePlate(draft?.vehicleId)}
-                  </span>
-                  <span className="shrink-0 text-slate-500">
-                    {getDriverName(draft?.driverId)}
+                  <span className="min-w-0 max-w-[280px] shrink-0 truncate text-slate-500" title={formatDraftSummary(draft)}>
+                    {formatDraftSummary(draft)}
                   </span>
                 </div>
 
@@ -132,7 +149,7 @@ export default function BulkApproveConfirmationModal({
                     Ngày {item.dayNumber}: {item.activity.title}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    {getVehiclePlate(draft?.vehicleId)} • {getDriverName(draft?.driverId)}
+                    {formatDraftSummary(draft)}
                   </p>
                 </div>
 

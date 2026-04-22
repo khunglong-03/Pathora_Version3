@@ -8,6 +8,9 @@ public interface ITourInstanceRepository
     Task<TourInstanceEntity?> FindById(Guid id, bool asNoTracking = false, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindByIdWithInstanceDays(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Tracked graph for commands that mutate activities (e.g. transport assignments).</summary>
+    Task<TourInstanceEntity?> FindByIdWithInstanceDaysForUpdate(Guid id, CancellationToken cancellationToken = default);
     Task<TourInstanceDayEntity?> FindInstanceDayById(Guid instanceId, Guid dayId, CancellationToken cancellationToken = default);
     Task<TourDayActivityEntity?> FindTourDayActivityById(Guid tourDayId, Guid activityId, CancellationToken cancellationToken = default);
     Task UpdateInstanceDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default);

@@ -67,6 +67,18 @@ public static class TourInstanceTransportErrors
             "Sức chứa của xe không đủ cho số ghế yêu cầu.",
             "Vehicle seat capacity is not enough for the requested seat count.");
 
+    public const string DuplicateVehicleInActivityCode = "TourInstanceActivity.DuplicateVehicle";
+    public static readonly LocalizedMessage DuplicateVehicleInActivityDescription =
+        new(
+            "Không được gán trùng cùng một xe cho một hoạt động.",
+            "The same vehicle cannot be assigned twice to one activity.");
+
+    public const string TransportFleetInsufficientCapacityCode = "TourInstanceActivity.TransportFleetInsufficientCapacity";
+    public static readonly LocalizedMessage TransportFleetInsufficientCapacityDescription =
+        new(
+            "Tổng sức chỗ các xe không đủ cho số ghế yêu cầu.",
+            "Combined vehicle seat capacity is not enough for the requested seat count.");
+
     public const string VehicleWrongSupplierCode = "Vehicle.WrongSupplier";
     public static readonly LocalizedMessage VehicleWrongSupplierDescription =
         new(
@@ -102,4 +114,23 @@ public static class TourInstanceTransportErrors
         new(
             "Số khách tối đa mới vượt sức chứa của xe đã được duyệt cho tour này.",
             "The new max participation exceeds the seat capacity of vehicles already approved for this tour.");
+
+    // Scope addendum 2026-04-23 — manager-specified vehicle count + inventory guard.
+    public const string VehicleCountMismatchCode = "TourInstanceActivity.VehicleCountMismatch";
+    public static readonly LocalizedMessage VehicleCountMismatchDescription =
+        new(
+            "Số xe được duyệt không khớp với số xe Manager yêu cầu cho hoạt động này.",
+            "The number of approved vehicles does not match the count requested by the manager.");
+
+    public const string VehicleCountExceedsFleetCode = "TourInstanceActivity.VehicleCountExceedsFleet";
+    public static readonly LocalizedMessage VehicleCountExceedsFleetDescription =
+        new(
+            "Số xe yêu cầu vượt quá số xe đang hoạt động của nhà cung cấp.",
+            "Requested vehicle count exceeds the active fleet of the supplier.");
+
+    public const string RoomCountExceedsInventoryCode = "TourInstanceActivity.RoomCountExceedsInventory";
+    public static readonly LocalizedMessage RoomCountExceedsInventoryDescription =
+        new(
+            "Số phòng yêu cầu vượt quá số phòng đang hoạt động của nhà cung cấp.",
+            "Requested room count exceeds the active inventory of the supplier.");
 }

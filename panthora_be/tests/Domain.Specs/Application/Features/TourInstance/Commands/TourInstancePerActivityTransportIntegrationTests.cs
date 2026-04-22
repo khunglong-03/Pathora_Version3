@@ -78,6 +78,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         var d2 = Guid.NewGuid();
 
         tourRepo.FindByIdWithInstanceDays(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
+        tourRepo.FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
         tourRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         vehicleBlockRepo.AddAsync(Arg.Any<VehicleBlockEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         vehicleBlockRepo.DeleteByActivityAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -88,6 +89,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         {
             Id = v1,
             OwnerId = userA,
+            SupplierId = supplierA,
             IsActive = true,
             IsDeleted = false,
             VehicleType = VehicleType.Coach,
@@ -97,13 +99,14 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         {
             Id = v2,
             OwnerId = userB,
+            SupplierId = supplierB,
             IsActive = true,
             IsDeleted = false,
             VehicleType = VehicleType.Coach,
             SeatCapacity = 20
         });
-        driverRepo.GetByIdAsync(d1, Arg.Any<CancellationToken>()).Returns(new DriverEntity { Id = d1, UserId = userA, IsActive = true });
-        driverRepo.GetByIdAsync(d2, Arg.Any<CancellationToken>()).Returns(new DriverEntity { Id = d2, UserId = userB, IsActive = true });
+        driverRepo.GetByIdAsync(d1, Arg.Any<CancellationToken>()).Returns(new DriverEntity { Id = d1, UserId = userA, SupplierId = supplierA, IsActive = true });
+        driverRepo.GetByIdAsync(d2, Arg.Any<CancellationToken>()).Returns(new DriverEntity { Id = d2, UserId = userB, SupplierId = supplierB, IsActive = true });
 
         var handler = new ApproveTransportationActivityCommandHandler(
             tourRepo,
@@ -120,7 +123,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         supplierRepo.FindAllByOwnerUserIdAsync(userA, Arg.Any<CancellationToken>())
             .Returns([new SupplierEntity { Id = supplierA, OwnerUserId = userA }]);
 
-        var r1 = await handler.Handle(new ApproveTransportationActivityCommand(instanceId, act1.Id, v1, d1), CancellationToken.None);
+        var r1 = await handler.Handle(new ApproveTransportationActivityCommand(instanceId, act1.Id, null, v1, d1), CancellationToken.None);
         Assert.False(r1.IsError);
         Assert.Equal(TourInstanceStatus.PendingApproval, instance.Status);
 
@@ -129,7 +132,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         supplierRepo.FindAllByOwnerUserIdAsync(userB, Arg.Any<CancellationToken>())
             .Returns([new SupplierEntity { Id = supplierB, OwnerUserId = userB }]);
 
-        var r2 = await handler.Handle(new ApproveTransportationActivityCommand(instanceId, act2.Id, v2, d2), CancellationToken.None);
+        var r2 = await handler.Handle(new ApproveTransportationActivityCommand(instanceId, act2.Id, null, v2, d2), CancellationToken.None);
         Assert.False(r2.IsError);
         Assert.Equal(TourInstanceStatus.Available, instance.Status);
     }
@@ -163,6 +166,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         day.TourInstance = instance;
         day.TourInstanceId = instance.Id;
         tourRepo.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        tourRepo.FindByIdWithInstanceDaysForUpdate(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
         tourRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         vehicleBlockRepo.DeleteByActivityAsync(act.Id, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
@@ -180,6 +184,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         var tourRepo = Substitute.For<ITourInstanceRepository>();
         var supplierRepo = Substitute.For<ISupplierRepository>();
         var vehicleBlockRepo = Substitute.For<IVehicleBlockRepository>();
+        var vehicleRepo = Substitute.For<IVehicleRepository>();
         var user = Substitute.For<IUser>();
         user.Id.Returns(Guid.NewGuid().ToString());
 
@@ -202,11 +207,12 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         day.TourInstance = instance;
         day.TourInstanceId = instance.Id;
         tourRepo.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        tourRepo.FindByIdWithInstanceDaysForUpdate(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
         tourRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         supplierRepo.GetByIdAsync(newS, Arg.Any<CancellationToken>())
             .Returns(new SupplierEntity { Id = newS, Name = "NewT", IsActive = true, SupplierType = SupplierType.Transport });
 
-        var handler = new AssignTransportSupplierCommandHandler(tourRepo, supplierRepo, vehicleBlockRepo, user);
+        var handler = new AssignTransportSupplierCommandHandler(tourRepo, supplierRepo, vehicleBlockRepo, vehicleRepo, user);
         var result = await handler.Handle(
             new AssignTransportSupplierCommand(instance.Id, act.Id, newS, VehicleType.Van, 20),
             CancellationToken.None);

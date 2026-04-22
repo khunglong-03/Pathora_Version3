@@ -170,6 +170,34 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         return [.. matched];
     }
 
+    public Task<int> CountActiveByOwnerAndTypeAsync(
+        Guid ownerId, Domain.Enums.VehicleType vehicleType, CancellationToken cancellationToken = default)
+    {
+        return _context.Vehicles
+            .AsNoTracking()
+            .CountAsync(
+                v => v.OwnerId == ownerId && v.VehicleType == vehicleType && v.IsActive && !v.IsDeleted,
+                cancellationToken);
+    }
+
+    public Task<int> CountActiveByTransportSupplierFleetAsync(
+        Guid transportSupplierId,
+        Guid? fleetOwnerUserId,
+        VehicleType vehicleType,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Vehicles
+            .AsNoTracking()
+            .CountAsync(
+                v => !v.IsDeleted
+                     && v.IsActive
+                     && v.VehicleType == vehicleType
+                     && (
+                         v.SupplierId == transportSupplierId
+                         || (v.SupplierId == null && fleetOwnerUserId.HasValue && v.OwnerId == fleetOwnerUserId.Value)),
+                cancellationToken);
+    }
+
     public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)
     {
         await _context.Vehicles

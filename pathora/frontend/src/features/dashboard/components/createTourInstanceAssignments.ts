@@ -5,6 +5,8 @@ export interface DraftActivityAssignment {
   vehicleId?: string;
   requestedVehicleType?: number;
   requestedSeatCount?: number;
+  // Scope addendum 2026-04-23 — manager-specified vehicle count.
+  requestedVehicleCount?: number;
 }
 
 export interface CreateInstanceActivityAssignmentPayload {
@@ -15,6 +17,7 @@ export interface CreateInstanceActivityAssignmentPayload {
   vehicleId?: string;
   requestedVehicleType?: number;
   requestedSeatCount?: number;
+  requestedVehicleCount?: number;
 }
 
 const normalizeOptionalValue = (value?: string) => {
@@ -51,6 +54,7 @@ export const mapActivityAssignmentsForPayload = (
       vehicleId: normalizeOptionalValue(assignment.vehicleId),
       requestedVehicleType: assignment.requestedVehicleType,
       requestedSeatCount: assignment.requestedSeatCount,
+      requestedVehicleCount: assignment.requestedVehicleCount,
     }))
     .filter(
       (assignment) =>
@@ -58,5 +62,6 @@ export const mapActivityAssignmentsForPayload = (
         assignment.roomType ||
         assignment.vehicleId ||
         assignment.requestedVehicleType !== undefined ||
-        assignment.requestedSeatCount !== undefined
+        assignment.requestedSeatCount !== undefined ||
+        assignment.requestedVehicleCount !== undefined
     );

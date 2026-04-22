@@ -309,6 +309,32 @@ export const TransportationTypeMap: Record<number, string> = {
   99: "Other",
 };
 
+// Boundary map between the Vehicle Type picker and the backend payload
+// (`TourInstanceDayActivityEntity.RequestedVehicleType : VehicleType`).
+// Keys MUST stay 1:1 with `panthora_be/src/Domain/Enums/VehicleType.cs`.
+// If BE adds a value (e.g. Limousine = 7), update this map too.
+// NOTE: do NOT use this on read paths — BE returns the enum name as a string
+// via global JsonStringEnumConverter; use it only when the UI sends a numeric key.
+export const VehicleTypeMap: Record<number, string> = {
+  1: "Car",
+  2: "Bus",
+  3: "Minibus",
+  4: "Van",
+  5: "Coach",
+  6: "Motorbike",
+};
+
+export function vehicleTypeNameToKey(name: string): number | undefined {
+  const entry = Object.entries(VehicleTypeMap).find(([, label]) => label === name);
+  if (!entry) {
+    console.warn(
+      `[VehicleTypeMap] Unknown vehicle type name "${name}". Known: ${Object.values(VehicleTypeMap).join(", ")}.`,
+    );
+    return undefined;
+  }
+  return Number(entry[0]);
+}
+
 export const LegacyRoomTypeMap: Record<number, string> = {
   0: "Single (Legacy)",
   1: "Double (Legacy)",
@@ -412,6 +438,21 @@ export interface TourInstanceDayDto {
   activities: TourInstanceDayActivityDto[];
 }
 
+/** One concrete vehicle (and driver) row for a transportation activity; mirrors backend `TourInstanceTransportAssignmentDto`. */
+export interface TourInstanceTransportAssignmentDto {
+  id: string;
+  vehicleId: string;
+  driverId?: string | null;
+  seatCountSnapshot?: number | null;
+  vehiclePlate?: string | null;
+  vehicleType?: string | null;
+  vehicleBrand?: string | null;
+  vehicleModel?: string | null;
+  vehicleSeatCapacity?: number | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
+}
+
 export interface TourInstanceDayActivityDto {
   id: string;
   order: number;
@@ -437,6 +478,8 @@ export interface TourInstanceDayActivityDto {
   // Transport Plan fields (per-activity)
   requestedVehicleType?: string | null;
   requestedSeatCount?: number | null;
+  /** Scope addendum 2026-04-23 — manager-requested vehicle count (nullable for legacy). */
+  requestedVehicleCount?: number | null;
   transportSupplierId?: string | null;
   transportSupplierName?: string | null;
   transportationApprovalStatus?: string | null;
@@ -456,6 +499,8 @@ export interface TourInstanceDayActivityDto {
   dropoffLocation?: string | null;
   departureTime?: string | null;
   arrivalTime?: string | null;
+  /** Multi-vehicle rows when present; legacy flattened `vehicleId` / `driverId` may still reflect the primary row. */
+  transportAssignments?: TourInstanceTransportAssignmentDto[];
 }
 
 export interface TourInstancePlanAccommodationDto {

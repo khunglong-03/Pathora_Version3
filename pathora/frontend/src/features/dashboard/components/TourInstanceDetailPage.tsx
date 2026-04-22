@@ -1297,7 +1297,43 @@ export default function TourInstanceDetailPage() {
                                               <p className="text-[10px] font-medium uppercase text-stone-500">
                                                 {t("tourInstance.transport.assignedVehicle", "Assigned vehicle")}
                                               </p>
-                                              {activity.vehiclePlate ? (
+                                              {activity.transportAssignments
+                                              && activity.transportAssignments.length > 0 ? (
+                                                <ul className="mt-1 space-y-2">
+                                                  {activity.transportAssignments.map((ta) => (
+                                                    <li
+                                                      key={ta.id}
+                                                      className="rounded-lg border border-stone-100 bg-white/80 px-2 py-1.5"
+                                                    >
+                                                      <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="text-xs font-semibold text-stone-800 font-mono">
+                                                          {ta.vehiclePlate || "—"}
+                                                        </span>
+                                                        {ta.vehicleType && (
+                                                          <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
+                                                            {ta.vehicleType}
+                                                          </span>
+                                                        )}
+                                                        {ta.vehicleSeatCapacity && (
+                                                          <span className="flex items-center gap-0.5 text-[10px] text-stone-500">
+                                                            <Icon icon="heroicons:user-group" className="size-3" />
+                                                            {ta.vehicleSeatCapacity}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                      {(ta.driverName || ta.driverPhone) && (
+                                                        <div className="mt-1 flex items-center gap-2">
+                                                          <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
+                                                          <span className="text-xs text-stone-700">{ta.driverName}</span>
+                                                          {ta.driverPhone && (
+                                                            <span className="text-[10px] text-stone-400">{ta.driverPhone}</span>
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                    </li>
+                                                  ))}
+                                                </ul>
+                                              ) : activity.vehiclePlate ? (
                                                 <div className="flex flex-wrap items-center gap-2">
                                                   <span className="text-xs font-semibold text-stone-800 font-mono">{activity.vehiclePlate}</span>
                                                   {activity.vehicleType && (
@@ -1321,7 +1357,11 @@ export default function TourInstanceDetailPage() {
                                           </div>
 
                                           <div className="space-y-1">
-                                            {activity.driverName && (
+                                            {!(
+                                              activity.transportAssignments
+                                              && activity.transportAssignments.length > 0
+                                            )
+                                            && activity.driverName && (
                                               <div className="flex items-center gap-2">
                                                 <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
                                                 <span className="text-xs text-stone-700">{activity.driverName}</span>

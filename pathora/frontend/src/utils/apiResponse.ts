@@ -104,6 +104,11 @@ interface BackendErrorPayload {
  */
 export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
   "TourInstanceActivity.SeatCountBelowCapacity",
+  "TourInstanceActivity.DuplicateVehicle",
+  "TourInstanceActivity.TransportFleetInsufficientCapacity",
+  "TourInstanceActivity.VehicleCountMismatch",
+  "TourInstanceActivity.VehicleCountExceedsFleet",
+  "TourInstanceActivity.RoomCountExceedsInventory",
   "Vehicle.WrongType",
   "Vehicle.InsufficientCapacity",
   "Vehicle.WrongSupplier",
@@ -120,6 +125,9 @@ export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
  */
 const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstanceActivity.SeatCountBelowCapacity": "tourInstance.transport.errors.seatCountBelowCapacity",
+  "TourInstanceActivity.DuplicateVehicle": "tourInstance.transport.errors.duplicateVehicleInActivity",
+  "TourInstanceActivity.TransportFleetInsufficientCapacity":
+    "tourInstance.transport.errors.transportFleetInsufficientCapacity",
   "Vehicle.WrongType": "tourInstance.transport.errors.vehicleWrongType",
   "Vehicle.InsufficientCapacity": "tourInstance.transport.errors.vehicleInsufficientCapacity",
   "Vehicle.WrongSupplier": "tourInstance.transport.errors.vehicleWrongSupplier",
@@ -128,6 +136,9 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.ProviderNotAssigned": "tourInstance.transport.errors.providerNotAssigned",
   "TourInstance.BulkApproveFailed": "tourInstance.transport.errors.bulkApproveFailed",
   "TourInstance.CapacityExceeded": "tourInstance.transport.errors.capacityExceeded",
+  "TourInstanceActivity.VehicleCountMismatch": "tourInstance.transport.errors.vehicleCountMismatch",
+  "TourInstanceActivity.VehicleCountExceedsFleet": "tourInstance.transport.errors.vehicleCountExceedsFleet",
+  "TourInstanceActivity.RoomCountExceedsInventory": "tourInstance.transport.errors.roomCountExceedsInventory",
 };
 
 /**

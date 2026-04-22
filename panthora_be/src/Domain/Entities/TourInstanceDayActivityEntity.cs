@@ -38,6 +38,12 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     // Tách nhánh thông tin lịch trình cho Accommodation Room Blocks
     public virtual List<RoomBlockEntity> RoomBlocks { get; set; } = [];
 
+    /// <summary>
+    /// Concrete vehicles assigned to this transportation activity (multi-vehicle).
+    /// Eager-load this collection in instance-detail queries that need vehicles (avoid N+1).
+    /// </summary>
+    public virtual List<TourInstanceTransportAssignmentEntity> TransportAssignments { get; set; } = [];
+
     // Transportation Plan info
     public Guid? FromLocationId { get; set; }
     public virtual TourPlanLocationEntity? FromLocation { get; set; }
@@ -55,6 +61,11 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public VehicleType? RequestedVehicleType { get; set; }
     /// <summary>Số ghế yêu cầu (thường ≥ MaxParticipation). Provider phải chọn xe có SeatCapacity ≥ giá trị này.</summary>
     public int? RequestedSeatCount { get; set; }
+    /// <summary>
+    /// Số xe Manager yêu cầu cho activity này (scope addendum 2026-04-23). NULL cho legacy rows —
+    /// khi NULL, chỉ áp seat-sum rule. Khi set, approve phải có đúng giá trị này số dòng assignment.
+    /// </summary>
+    public int? RequestedVehicleCount { get; set; }
     /// <summary>ID của Transport Supplier được gán cho activity này (thay thế TourInstance.TransportProviderId).</summary>
     public Guid? TransportSupplierId { get; set; }
     /// <summary>Transport Supplier navigation property.</summary>
@@ -130,7 +141,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     /// Resets approval status to Pending and clears any previously assigned vehicle/driver.
     /// Mirrors <see cref="TourInstancePlanAccommodationEntity.AssignSupplier"/>.
     /// </summary>
-    public void AssignTransportSupplier(Guid supplierId, VehicleType vehicleType, int seatCount)
+    public void AssignTransportSupplier(Guid supplierId, VehicleType vehicleType, int seatCount, int? vehicleCount = null)
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only assign transport supplier to Transportation activities.");
@@ -138,11 +149,13 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         TransportSupplierId = supplierId;
         RequestedVehicleType = vehicleType;
         RequestedSeatCount = seatCount;
+        RequestedVehicleCount = vehicleCount;
         TransportationApprovalStatus = ProviderApprovalStatus.Pending;
         TransportationApprovalNote = null;
         // Clear previous vehicle/driver assignment — provider must re-approve
         VehicleId = null;
         DriverId = null;
+        TransportAssignments.Clear();
     }
 
     /// <summary>
@@ -150,7 +163,19 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     /// Caller is responsible for creating the corresponding <c>VehicleBlock</c> Hard hold.
     /// </summary>
     /// <returns>The VehicleId and blocked date info for the caller to create a VehicleBlock.</returns>
-    public void ApproveTransportation(Guid vehicleId, Guid driverId, string? note)
+    /// <summary>
+    /// True when the activity has at least one transport assignment row with vehicle+driver,
+    /// or legacy single <see cref="VehicleId"/> + <see cref="DriverId"/> on this entity (dual-read rollout).
+    /// </summary>
+    public bool HasCompleteVehicleAndDriverAssignment()
+    {
+        if (TransportAssignments.Count > 0)
+            return TransportAssignments.All(t => t.VehicleId != Guid.Empty && t.DriverId.HasValue);
+
+        return VehicleId.HasValue && DriverId.HasValue;
+    }
+
+    public void ApproveTransportation(Guid vehicleId, Guid? driverId, string? note)
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only approve transportation on Transportation activities.");
@@ -174,6 +199,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
 
         VehicleId = null;
         DriverId = null;
+        TransportAssignments.Clear();
         TransportationApprovalStatus = ProviderApprovalStatus.Rejected;
         TransportationApprovalNote = note;
     }

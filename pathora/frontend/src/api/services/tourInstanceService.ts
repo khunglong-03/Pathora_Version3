@@ -21,6 +21,24 @@ interface AddCustomDayResponse {
   actualDate: string;
 }
 
+/** One vehicle + driver row for POST .../transportation/{activityId}/approve */
+export type ApproveTransportationAssignmentRow = {
+  vehicleId: string;
+  driverId: string;
+};
+
+/** Prefer `assignments` for multi-vehicle; legacy `{ vehicleId, driverId }` still supported by the API. */
+export type ApproveTransportationPayload =
+  | {
+      assignments: ApproveTransportationAssignmentRow[];
+      note?: string;
+    }
+  | {
+      vehicleId: string;
+      driverId: string;
+      note?: string;
+    };
+
 export interface CreateTourInstanceActivityAssignment {
   originalActivityId: string;
   supplierId?: string | null;
@@ -505,11 +523,28 @@ export const tourInstanceService = {
   approveTransportation: async (
     instanceId: string,
     activityId: string,
-    data: { vehicleId: string; driverId: string; note?: string }
+    data: ApproveTransportationPayload,
   ) => {
+    const body =
+      "assignments" in data
+      && Array.isArray(data.assignments)
+      && data.assignments.length > 0
+        ? {
+            assignments: data.assignments.map((a) => ({
+              vehicleId: a.vehicleId,
+              driverId: a.driverId,
+            })),
+            note: data.note,
+          }
+        : {
+            vehicleId: (data as { vehicleId: string }).vehicleId,
+            driverId: (data as { driverId: string }).driverId,
+            note: (data as { note?: string }).note,
+          };
+
     const response = await api.post<ApiResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.APPROVE_TRANSPORTATION(instanceId, activityId),
-      data
+      body,
     );
     return extractResult<unknown>(response.data);
   },

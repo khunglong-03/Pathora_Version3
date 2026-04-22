@@ -8,7 +8,11 @@ import { Icon, Modal } from "@/components/ui";
 import { supplierService, type SupplierItem } from "@/api/services/supplierService";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
-import type { TourInstanceDayActivityDto } from "@/types/tour";
+import {
+  VehicleTypeMap,
+  vehicleTypeNameToKey,
+  type TourInstanceDayActivityDto,
+} from "@/types/tour";
 import { normalizeApprovalStatus } from "@/utils/approvalStatusHelper";
 
 interface SupplierReassignmentModalProps {
@@ -21,6 +25,23 @@ interface SupplierReassignmentModalProps {
 }
 
 type FetchState = "loading" | "empty" | "error" | "ready";
+
+const toVehicleTypeSelectValue = (
+  requestedVehicleType: TourInstanceDayActivityDto["requestedVehicleType"],
+) => {
+  if (!requestedVehicleType) return "";
+
+  const numericValue = Number(requestedVehicleType);
+  if (
+    Number.isInteger(numericValue)
+    && VehicleTypeMap[numericValue] !== undefined
+  ) {
+    return String(numericValue);
+  }
+
+  const mapped = vehicleTypeNameToKey(requestedVehicleType);
+  return mapped !== undefined ? String(mapped) : "";
+};
 
 export default function SupplierReassignmentModal({
   open,
@@ -39,7 +60,7 @@ export default function SupplierReassignmentModal({
   // Form state
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [requestedVehicleType, setRequestedVehicleType] = useState<string>(
-    activity.requestedVehicleType ?? "0",
+    toVehicleTypeSelectValue(activity.requestedVehicleType),
   );
   const [requestedSeatCount, setRequestedSeatCount] = useState<number>(
     activity.requestedSeatCount ?? 0,
@@ -49,7 +70,7 @@ export default function SupplierReassignmentModal({
   // Track dirty state for Esc guard
   const initialValues = useRef({
     supplierId: "",
-    vehicleType: activity.requestedVehicleType ?? "0",
+    vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
     seatCount: activity.requestedSeatCount ?? 0,
   });
 
@@ -92,11 +113,13 @@ export default function SupplierReassignmentModal({
       void fetchSuppliers();
       // Reset form
       setSelectedSupplierId("");
-      setRequestedVehicleType(activity.requestedVehicleType ?? "0");
+      setRequestedVehicleType(
+        toVehicleTypeSelectValue(activity.requestedVehicleType),
+      );
       setRequestedSeatCount(activity.requestedSeatCount ?? 0);
       initialValues.current = {
         supplierId: "",
-        vehicleType: activity.requestedVehicleType ?? "0",
+        vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
         seatCount: activity.requestedSeatCount ?? 0,
       };
     }
@@ -127,7 +150,12 @@ export default function SupplierReassignmentModal({
   }, [isDirty, onClose]);
 
   const handleSubmit = async () => {
-    if (!selectedSupplierId) return;
+    if (
+      !selectedSupplierId
+      || (activityType === "Transportation" && !requestedVehicleType)
+    ) {
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -165,17 +193,10 @@ export default function SupplierReassignmentModal({
   }));
 
   const vehicleTypeOptions = [
-    { label: t("tourDesigner.transportationTypes.0", "Máy bay"), value: "0" },
-    { label: t("tourDesigner.transportationTypes.1", "Tàu hỏa"), value: "1" },
-    { label: t("tourDesigner.transportationTypes.2", "Xe buýt"), value: "2" },
-    { label: t("tourDesigner.transportationTypes.3", "Ô tô"), value: "3" },
-    { label: t("tourDesigner.transportationTypes.4", "Taxi"), value: "4" },
-    { label: t("tourDesigner.transportationTypes.5", "Thuyền"), value: "5" },
-    { label: t("tourDesigner.transportationTypes.6", "Phà"), value: "6" },
-    { label: t("tourDesigner.transportationTypes.7", "Xe máy"), value: "7" },
-    { label: t("tourDesigner.transportationTypes.8", "Xe đạp"), value: "8" },
-    { label: t("tourDesigner.transportationTypes.9", "Đi bộ"), value: "9" },
-    { label: t("tourDesigner.transportationTypes.99", "Khác"), value: "99" },
+    ...Object.entries(VehicleTypeMap).map(([value, label]) => ({
+      label: t(`vehicleTypes.${label}`, label),
+      value,
+    })),
   ];
 
   const actionLabel = isApproved ? "Đổi và huỷ phê duyệt" : "Đổi nhà cung cấp";
@@ -275,6 +296,9 @@ export default function SupplierReassignmentModal({
                     onChange={(e) => setRequestedVehicleType(e.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
+                    <option value="">
+                      {t("tourInstance.transport.selectVehicleType", "Select vehicle type...")}
+                    </option>
                     {vehicleTypeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -314,7 +338,11 @@ export default function SupplierReassignmentModal({
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              disabled={!selectedSupplierId || submitting}
+              disabled={
+                !selectedSupplierId
+                || submitting
+                || (activityType === "Transportation" && !requestedVehicleType)
+              }
               className={`rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
                 isApproved
                   ? "bg-rose-600 hover:bg-rose-700"

@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422183049_AddTourInstanceTransportAssignments")]
+    partial class AddTourInstanceTransportAssignments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2923,9 +2926,6 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<int?>("RequestedSeatCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("RequestedVehicleCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("RequestedVehicleType")

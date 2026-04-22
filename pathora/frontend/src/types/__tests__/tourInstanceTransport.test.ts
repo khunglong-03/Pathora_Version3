@@ -320,6 +320,75 @@ describe("TourInstanceDayActivityDto — flattened transport fields", () => {
   });
 });
 
+describe("TourInstanceDayActivityDto — multi-vehicle transportAssignments", () => {
+  it("supports multiple rows with snapshots alongside legacy primary vehicle fields", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-mv-001",
+      order: 1,
+      activityType: "Transportation",
+      title: "Convoy",
+      description: null,
+      startTime: "07:00",
+      endTime: "12:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
+      requestedVehicleType: "Coach",
+      requestedSeatCount: 50,
+      transportSupplierId: "sup-1",
+      transportSupplierName: "Fleet Co",
+      transportationApprovalStatus: "Approved",
+      transportationApprovalNote: null,
+      vehicleId: "v-primary",
+      vehiclePlate: "30A-00001",
+      vehicleType: "Coach",
+      vehicleBrand: "Hyundai",
+      vehicleModel: "Universe",
+      seatCapacity: 45,
+      driverId: "d-primary",
+      driverName: "Lead Driver",
+      driverPhone: "0900000000",
+      pickupLocation: "Depot",
+      dropoffLocation: "Site",
+      transportAssignments: [
+        {
+          id: "asg-1",
+          vehicleId: "v-1",
+          driverId: "d-1",
+          seatCountSnapshot: 25,
+          vehiclePlate: "30A-11111",
+          vehicleType: "Coach",
+          vehicleBrand: "Hyundai",
+          vehicleModel: "County",
+          vehicleSeatCapacity: 29,
+          driverName: "Driver One",
+          driverPhone: "0911111111",
+        },
+        {
+          id: "asg-2",
+          vehicleId: "v-2",
+          driverId: "d-2",
+          seatCountSnapshot: 30,
+          vehiclePlate: "30A-22222",
+          vehicleType: "Coach",
+          vehicleBrand: "Isuzu",
+          vehicleModel: "Samco",
+          vehicleSeatCapacity: 35,
+          driverName: "Driver Two",
+          driverPhone: "0922222222",
+        },
+      ],
+    };
+
+    expect(activity.transportAssignments).toHaveLength(2);
+    const sum =
+      (activity.transportAssignments![0].seatCountSnapshot ?? 0) +
+      (activity.transportAssignments![1].seatCountSnapshot ?? 0);
+    expect(sum).toBe(55);
+    expect(activity.vehicleId).toBe("v-primary");
+  });
+});
+
 describe("TourInstanceDayActivityDto — accommodation field", () => {
   it("maps accommodation with room type, quantity, and supplier fields", () => {
     const activity: TourInstanceDayActivityDto = {

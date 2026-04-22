@@ -19,7 +19,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
-const mockT = vi.fn((_key: string, fallback?: string) => fallback ?? _key);
+const mockT = vi.fn((_key: string, fallback?: string, opts?: Record<string, unknown>) => {
+  const template = fallback ?? _key;
+  if (!opts) return template;
+  return template.replace(/\{\{(\w+)\}\}/g, (_m, name) => String(opts[name] ?? ""));
+});
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: mockT,
@@ -178,8 +182,7 @@ describe("TransportTourAssignmentPage", () => {
         "tour-id-123",
         "act-1",
         {
-          vehicleId: "v1",
-          driverId: "d1",
+          assignments: [{ vehicleId: "v1", driverId: "d1" }],
           note: "Ready to operate",
         },
       );
@@ -327,5 +330,84 @@ describe("TransportTourAssignmentPage", () => {
     
     expect(screen.queryByText(/Loại xe không khớp với yêu cầu/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Sức chứa không đủ/i)).not.toBeInTheDocument();
+  });
+
+  it("adds and removes assignment rows in the approve modal", async () => {
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 10 },
+      { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 10 },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    expect(screen.getAllByRole("combobox")).toHaveLength(2); // 1 row (vehicle + driver)
+
+    fireEvent.click(screen.getByRole("button", { name: /\+ Them xe/i }));
+    expect(screen.getAllByRole("combobox")).toHaveLength(4); // 2 rows now
+
+    const removeButtons = screen.getAllByRole("button", { name: /Xoa dong/i });
+    fireEvent.click(removeButtons[removeButtons.length - 1]);
+    await waitFor(() => {
+      expect(screen.getAllByRole("combobox")).toHaveLength(2);
+    });
+  });
+
+  it("blocks approve and disables add-row when assignment count does not match RequestedVehicleCount", async () => {
+    vi.mocked(tourInstanceService.getMyAssignedInstanceDetail).mockResolvedValue({
+      ...mockTour,
+      days: [
+        {
+          ...mockTour.days[0],
+          activities: [
+            {
+              ...mockTour.days[0].activities[0],
+              requestedVehicleCount: 2,
+              requestedSeatCount: 20,
+            },
+          ],
+        },
+      ],
+    } as never);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 25 },
+      { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 25 },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    // Fill just 1 row — count mismatch (1/2)
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "v1" } });
+    fireEvent.change(selects[1], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/1\/2 xe/i)).toBeInTheDocument();
+    });
+
+    const submitBtns = screen.getAllByRole("button", { name: /Gan xe va duyet/i });
+    expect(submitBtns[submitBtns.length - 1]).toBeDisabled();
+
+    // Add a second row → 2/2, submit enabled
+    fireEvent.click(screen.getByRole("button", { name: /\+ Them xe/i }));
+
+    const afterAdd = screen.getAllByRole("combobox");
+    fireEvent.change(afterAdd[2], { target: { value: "v2" } });
+    fireEvent.change(afterAdd[3], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/2\/2 xe/i)).toBeInTheDocument();
+    });
+
+    const reSubmitBtns = screen.getAllByRole("button", { name: /Gan xe va duyet/i });
+    expect(reSubmitBtns[reSubmitBtns.length - 1]).toBeEnabled();
+
+    // Add-row button disabled when cap reached
+    expect(screen.getByRole("button", { name: /\+ Them xe/i })).toBeDisabled();
   });
 });
