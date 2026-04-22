@@ -22,40 +22,19 @@ public class TourInstanceEntity : Aggregate<Guid>
 
     // Provider Assignment & Approval
     // NOTE: Hotel provider assignment has moved to TourInstancePlanAccommodationEntity (per-activity level).
-
-    /// <summary>ID của Transport Provider.</summary>
-    public Guid? TransportProviderId { get; set; }
-    /// <summary>Đơn vị vận chuyển cho đợt tour này.</summary>
-    public virtual SupplierEntity? TransportProvider { get; set; }
+    // NOTE: Transport provider assignment has moved to TourInstanceDayActivityEntity.TransportSupplierId (per-activity level).
 
     /// <summary>
-    /// DEPRECATED: Trạng thái duyệt của Transport Provider. 
-    /// Dùng TransportationApprovalStatus trên từng activity thay thế.
-    /// Getter trả về kết quả tổng hợp (rollup) từ các hoạt động vận chuyển.
+    /// DEPRECATED: Legacy single transport provider for the entire instance.
+    /// Source of truth is now <c>TourInstanceDayActivityEntity.TransportSupplierId</c> (per-activity).
+    /// Derived getter returns the first transportation activity's supplier for backward compat.
+    /// Will be dropped in a future migration (Release C).
     /// </summary>
-    [Obsolete("Use transportation activity statuses instead.")]
-    public ProviderApprovalStatus TransportApprovalStatus 
-    { 
-        get => GetTransportApprovalRollup();
-        set { /* No-op for backward compat */ } 
-    }
-
-    /// <summary>DEPRECATED: Ghi chú/lý do từ chối. Dùng TransportationApprovalNote trên activity thay thế.</summary>
-    [Obsolete("Use transportation activity notes instead.")]
-    public string? TransportApprovalNote { get; set; }
-
-    private ProviderApprovalStatus GetTransportApprovalRollup()
-    {
-        var transportActivities = InstanceDays
-            .SelectMany(d => d.Activities)
-            .Where(a => a.ActivityType == TourDayActivityType.Transportation)
-            .ToList();
-
-        if (transportActivities.Count == 0) return ProviderApprovalStatus.Approved;
-        if (transportActivities.Any(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Rejected)) return ProviderApprovalStatus.Rejected;
-        if (transportActivities.All(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Approved)) return ProviderApprovalStatus.Approved;
-        return ProviderApprovalStatus.Pending;
-    }
+    [Obsolete("Use TourInstanceDayActivityEntity.TransportSupplierId per-activity instead.")]
+    public Guid? TransportProviderId { get; set; }
+    /// <summary>DEPRECATED: Navigation property kept temporarily for backward compat DTO mapping.</summary>
+    [Obsolete("Use TourInstanceDayActivityEntity.TransportSupplier per-activity instead.")]
+    public virtual SupplierEntity? TransportProvider { get; set; }
 
     // Instance identity
     /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
@@ -122,6 +101,14 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
 
+    /// <summary>
+    /// Concurrency token (ER-2). EF is configured with <c>IsRowVersion()</c> so that
+    /// concurrent status transitions throw <c>DbUpdateConcurrencyException</c>, which the
+    /// service layer catches and converts into an idempotent success (or a re-read retry).
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Timestamp]
+    public byte[] RowVersion { get; set; } = [];
+
     // Translations (vi/en)
     /// <summary>Bản dịch đa ngôn ngữ (en/vi) cho instance.</summary>
     public Dictionary<string, TourInstanceTranslationData> Translations { get; set; } = [];
@@ -166,7 +153,9 @@ public class TourInstanceEntity : Aggregate<Guid>
             Id = Guid.CreateVersion7(),
             TourId = tourId,
             ClassificationId = classificationId,
+#pragma warning disable CS0618 // Self-reference to deprecated field during factory construction
             TransportProviderId = transportProviderId,
+#pragma warning restore CS0618
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
             TourName = tourName,
@@ -246,27 +235,17 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>
-    /// Transport provider approves or rejects at instance level.
-    /// Hotel approval is now handled per accommodation activity.
-    /// </summary>
-    public void ApproveByTransportProvider(Guid providerId, bool isApproved, string? reason)
-    {
-        if (TransportProviderId != providerId)
-            throw new InvalidOperationException("Provider không phải Transport Provider của instance này.");
-
-        // TODO: Logic to update each transport activity's status will be implemented in Task 8.
-        // For now, this is a placeholder to allow the rollup getter to work.
-
-        CheckAndActivateTourInstance();
-    }
+    // ApproveByTransportProvider has been removed — transport approval is now per-activity.
+    // Use TourInstanceDayActivityEntity.ApproveTransportation() / RejectTransportation() instead.
 
     /// <summary>
     /// Check if all accommodations with assigned suppliers are approved.
+    /// Filters out soft-deleted days (ER-16).
     /// </summary>
     public bool AreAllAccommodationsApproved()
     {
         var accommodations = InstanceDays
+            .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
             .Where(a => a.Accommodation is not null && a.Accommodation.SupplierId.HasValue)
             .Select(a => a.Accommodation!)
@@ -276,13 +255,67 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
-    /// Check readiness: transport approved + all accommodation suppliers approved → Available.
+    /// Check if all transportation activities with assigned suppliers are approved.
+    /// Mirrors <see cref="AreAllAccommodationsApproved"/>.
+    /// Filters out soft-deleted days (ER-16).
+    /// </summary>
+    public bool AreAllTransportationApproved()
+    {
+        var transportActivities = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation && a.TransportSupplierId.HasValue)
+            .ToList();
+
+        return transportActivities.Count == 0 || transportActivities.All(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Approved);
+    }
+
+    /// <summary>
+    /// Guards <see cref="MaxParticipation"/> increases: for every transportation activity that has
+    /// already been Approved with a concrete vehicle, the resolved vehicle seat capacity must
+    /// be at least <paramref name="newMaxParticipation"/> (ER-7).
+    /// </summary>
+    /// <param name="newMaxParticipation">The proposed new MaxParticipation.</param>
+    /// <param name="resolveVehicleCapacity">Function (typically wired to a repo lookup) returning SeatCapacity for a VehicleId.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if any approved activity's assigned vehicle cannot accommodate the new size.
+    /// The caller should translate to <c>TourInstance.CapacityExceeded</c>.
+    /// </exception>
+    public void EnsureCapacityCoversAllApprovedTransports(
+        int newMaxParticipation,
+        Func<Guid, int> resolveVehicleCapacity)
+    {
+        if (resolveVehicleCapacity is null) throw new ArgumentNullException(nameof(resolveVehicleCapacity));
+        if (newMaxParticipation <= MaxParticipation) return;
+
+        var approvedActivitiesWithVehicle = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved
+                        && a.VehicleId.HasValue)
+            .ToList();
+
+        foreach (var activity in approvedActivitiesWithVehicle)
+        {
+            var capacity = resolveVehicleCapacity(activity.VehicleId!.Value);
+            if (capacity < newMaxParticipation)
+            {
+                throw new InvalidOperationException(
+                    $"Xe đã duyệt cho hoạt động '{activity.Title}' chỉ có {capacity} ghế, không đủ cho MaxParticipation mới ({newMaxParticipation}).");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check readiness: ALL transportation + ALL accommodation activities approved → Available.
+    /// Uses per-activity checks (no rollup). Replaces the old TransportProviderId-based check.
     /// </summary>
     public void CheckAndActivateTourInstance()
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool transportOk = !TransportProviderId.HasValue || GetTransportApprovalRollup() == ProviderApprovalStatus.Approved;
+        bool transportOk = AreAllTransportationApproved();
         bool accommodationsOk = AreAllAccommodationsApproved();
 
         if (transportOk && accommodationsOk)

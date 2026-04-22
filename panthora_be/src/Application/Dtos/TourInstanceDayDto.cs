@@ -22,7 +22,7 @@ public sealed record TourInstanceDayActivityDto(
     bool IsOptional,
     string? Note,
     TourInstancePlanAccommodationDto? Accommodation,
-    
+
     // Transportation Plan info
     string? TransportationType,
     string? TransportationName,
@@ -32,7 +32,15 @@ public sealed record TourInstanceDayActivityDto(
     decimal? DistanceKm,
     decimal? Price,
     string? BookingReference,
-    
+
+    // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
+    string? RequestedVehicleType,
+    int? RequestedSeatCount,
+    Guid? TransportSupplierId,
+    string? TransportSupplierName,
+    string? TransportationApprovalStatus,
+    string? TransportationApprovalNote,
+
     // Instance-specific Vehicle Assignment info
     Guid? VehicleId,
     string? VehiclePlate,

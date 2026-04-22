@@ -27,6 +27,8 @@ export interface CreateTourInstanceActivityAssignment {
   roomType?: string | null;
   accommodationQuantity?: number | null;
   vehicleId?: string | null;
+  requestedVehicleType?: number | null;
+  requestedSeatCount?: number | null;
 }
 
 export interface CreateTourInstancePayload {
@@ -43,7 +45,6 @@ export interface CreateTourInstancePayload {
   thumbnailUrl?: string | null;
   imageUrls?: string[];
   tourRequestId?: string | null;
-  transportProviderId?: string | null;
   activityAssignments?: CreateTourInstanceActivityAssignment[];
 }
 
@@ -96,6 +97,7 @@ export interface ProviderApprovalPayload {
   isApproved: boolean;
   note?: string;
   accommodationActivityIds?: string[];
+  transportationActivityIds?: string[];
 }
 
 export interface UpdateTourInstancePayload {
@@ -248,7 +250,6 @@ export const tourInstanceService = {
       thumbnailUrl: data.thumbnailUrl || null,
       imageUrls: normalizeStringArray(data.imageUrls),
       tourRequestId: data.tourRequestId || null,
-      transportProviderId: data.transportProviderId || null,
       activityAssignments: data.activityAssignments?.length
         ? data.activityAssignments.map((assignment) => ({
             originalActivityId: assignment.originalActivityId,
@@ -256,6 +257,8 @@ export const tourInstanceService = {
             roomType: assignment.roomType || null,
             accommodationQuantity: assignment.accommodationQuantity ?? null,
             vehicleId: assignment.vehicleId || null,
+            requestedVehicleType: assignment.requestedVehicleType ?? null,
+            requestedSeatCount: assignment.requestedSeatCount ?? null,
           }))
         : undefined,
     };
@@ -368,10 +371,14 @@ export const tourInstanceService = {
   getProviderAssigned: async (
     pageNumber = 1,
     pageSize = 10,
+    approvalStatus?: number,
   ) => {
     const params = new URLSearchParams();
     params.append("pageNumber", pageNumber.toString());
     params.append("pageSize", pageSize.toString());
+    if (approvalStatus !== undefined) {
+      params.append("approvalStatus", approvalStatus.toString());
+    }
 
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
 
@@ -451,13 +458,16 @@ export const tourInstanceService = {
     id: string,
     isApproved: boolean,
     note?: string,
+    transportationActivityIds?: string[],
   ) =>
     tourInstanceService.approve(id, {
       providerType: "Transport",
       isApproved,
       note,
+      transportationActivityIds,
     }),
 
+  /** @deprecated Use approveTransportation instead */
   assignVehicleToActivity: async (
     instanceId: string,
     activityId: string,
@@ -478,6 +488,42 @@ export const tourInstanceService = {
       vehicleSeatCapacity?: number | null;
       tourMaxParticipation?: number | null;
     }>(response.data);
+  },
+
+  assignTransportSupplier: async (
+    instanceId: string,
+    activityId: string,
+    data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number }
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_TRANSPORT_SUPPLIER(instanceId, activityId),
+      data
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  approveTransportation: async (
+    instanceId: string,
+    activityId: string,
+    data: { vehicleId: string; driverId: string; note?: string }
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.APPROVE_TRANSPORTATION(instanceId, activityId),
+      data
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  rejectTransportation: async (
+    instanceId: string,
+    activityId: string,
+    data: { note?: string }
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.REJECT_TRANSPORTATION(instanceId, activityId),
+      data
+    );
+    return extractResult<unknown>(response.data);
   },
 
   assignRoomToAccommodation: async (

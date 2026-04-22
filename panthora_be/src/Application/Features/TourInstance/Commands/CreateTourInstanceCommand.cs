@@ -25,6 +25,7 @@ public sealed record CreateTourInstanceCommand(
     string? ThumbnailUrl = null,
     Guid? TourRequestId = null,
     List<string>? ImageUrls = null,
+    [property: Obsolete("Use per-activity TransportSupplierId in ActivityAssignments instead.")]
     Guid? TransportProviderId = null,
     List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
@@ -62,6 +63,33 @@ public sealed class CreateTourInstanceCommandValidator : AbstractValidator<Creat
 
         RuleFor(x => x.InstanceType)
             .IsInEnum().WithMessage(ValidationMessages.TourInstanceInstanceTypeInvalid);
+
+        RuleForEach(x => x.ActivityAssignments)
+            .SetValidator(new CreateTourInstanceActivityAssignmentDtoValidator());
+
+        // When a per-activity transport plan specifies seat count, it must cover the tour size (TC1.3)
+        RuleFor(x => x)
+            .Must(cmd => cmd.ActivityAssignments is null
+                || !cmd.ActivityAssignments.Any(a =>
+                    a.RequestedSeatCount.HasValue
+                    && a.RequestedSeatCount.Value < cmd.MaxParticipation))
+            .WithMessage("Số ghế yêu cầu (RequestedSeatCount) phải lớn hơn hoặc bằng MaxParticipation khi được chỉ định.");
+    }
+}
+
+public sealed class CreateTourInstanceActivityAssignmentDtoValidator : AbstractValidator<CreateTourInstanceActivityAssignmentDto>
+{
+    public CreateTourInstanceActivityAssignmentDtoValidator()
+    {
+        RuleFor(x => x.OriginalActivityId).NotEmpty();
+
+        RuleFor(x => x.RequestedSeatCount)
+            .GreaterThan(0).When(x => x.RequestedSeatCount.HasValue)
+            .WithMessage("Requested seat count must be greater than zero.");
+
+        RuleFor(x => x.RequestedVehicleType)
+            .IsInEnum().When(x => x.RequestedVehicleType.HasValue)
+            .WithMessage("Invalid vehicle type requested.");
     }
 }
 

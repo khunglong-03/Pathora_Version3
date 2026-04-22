@@ -11,10 +11,7 @@ public sealed class TourInstanceProfile : Profile
     {
         CreateMap<TourInstanceEntity, TourInstanceVm>()
             .ForCtorParam(nameof(TourInstanceVm.Status), opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()))
-#pragma warning disable CS0618
-            .ForCtorParam(nameof(TourInstanceVm.TransportApprovalStatus), opt => opt.MapFrom(src => (int)src.TransportApprovalStatus));
-#pragma warning restore CS0618
+            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()));
 
         CreateMap<TourInstanceEntity, DuplicateInstanceSummaryDto>()
             .ForCtorParam(nameof(DuplicateInstanceSummaryDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -29,8 +26,10 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.TotalBookings), opt => opt.MapFrom(_ => 0))
             .ForCtorParam(nameof(TourInstanceDto.Revenue), opt => opt.MapFrom(_ => 0m))
             .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()))
+#pragma warning disable CS0618
             .ForCtorParam(nameof(TourInstanceDto.TransportProviderId), opt => opt.MapFrom(src => src.TransportProviderId))
             .ForCtorParam(nameof(TourInstanceDto.TransportProviderName), opt => opt.MapFrom(src => src.TransportProvider != null ? src.TransportProvider.Name : null));
+#pragma warning restore CS0618
 
         CreateMap<TourInstanceManagerEntity, TourInstanceManagerDto>()
             .ForCtorParam(nameof(TourInstanceManagerDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -69,6 +68,14 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayActivityDto.DistanceKm), opt => opt.MapFrom(src => src.DistanceKm))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.Price), opt => opt.MapFrom(src => src.Price))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.BookingReference), opt => opt.MapFrom(src => src.BookingReference))
+            // Transport Plan fields (per-activity)
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.RequestedVehicleType), opt => opt.MapFrom(src => src.RequestedVehicleType != null ? src.RequestedVehicleType.ToString() : null))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.RequestedSeatCount), opt => opt.MapFrom(src => src.RequestedSeatCount))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportSupplierId), opt => opt.MapFrom(src => src.TransportSupplierId))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportSupplierName), opt => opt.MapFrom(src => src.TransportSupplier != null ? src.TransportSupplier.Name : null))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalStatus), opt => opt.MapFrom(src => src.TransportationApprovalStatus.ToString()))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalNote), opt => opt.MapFrom(src => src.TransportationApprovalNote))
+            // Instance-specific Vehicle Assignment info
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleId), opt => opt.MapFrom(src => src.VehicleId))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehiclePlate), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehiclePlate : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleType), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehicleType.ToString() : null))

@@ -1,14 +1,20 @@
 export interface DraftActivityAssignment {
   supplierId?: string;
   roomType?: string;
+  accommodationQuantity?: number;
   vehicleId?: string;
+  requestedVehicleType?: number;
+  requestedSeatCount?: number;
 }
 
 export interface CreateInstanceActivityAssignmentPayload {
   originalActivityId: string;
   supplierId?: string;
   roomType?: string;
+  accommodationQuantity?: number;
   vehicleId?: string;
+  requestedVehicleType?: number;
+  requestedSeatCount?: number;
 }
 
 const normalizeOptionalValue = (value?: string) => {
@@ -41,6 +47,16 @@ export const mapActivityAssignmentsForPayload = (
       originalActivityId,
       supplierId: normalizeOptionalValue(assignment.supplierId),
       roomType: normalizeOptionalValue(assignment.roomType),
+      accommodationQuantity: assignment.accommodationQuantity,
       vehicleId: normalizeOptionalValue(assignment.vehicleId),
+      requestedVehicleType: assignment.requestedVehicleType,
+      requestedSeatCount: assignment.requestedSeatCount,
     }))
-    .filter((assignment) => assignment.supplierId || assignment.roomType || assignment.vehicleId);
+    .filter(
+      (assignment) =>
+        assignment.supplierId ||
+        assignment.roomType ||
+        assignment.vehicleId ||
+        assignment.requestedVehicleType !== undefined ||
+        assignment.requestedSeatCount !== undefined
+    );

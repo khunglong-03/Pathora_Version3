@@ -94,4 +94,52 @@ public sealed class TourInstanceNotificationService(
             "TourInstance status change to {NewStatus} sent to admins for TourInstance {TourInstanceId}",
             newStatus, tourInstanceId);
     }
+
+    public async Task NotifyProviderAssignedAsync(
+        Guid supplierId,
+        Guid activityId,
+        Guid tourInstanceId,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            SupplierId = supplierId,
+            ActivityId = activityId,
+            TourInstanceId = tourInstanceId,
+            Event = "Assigned"
+        };
+
+        await _hubContext.Clients
+            .Group($"supplier:{supplierId}")
+            .SendAsync("ReceiveSupplierAssignmentEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Supplier assigned notification sent to supplier {SupplierId} for activity {ActivityId} of TourInstance {TourInstanceId}",
+            supplierId, activityId, tourInstanceId);
+    }
+
+    public async Task NotifyProviderReleasedAsync(
+        Guid oldSupplierId,
+        Guid activityId,
+        Guid tourInstanceId,
+        string reason,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            SupplierId = oldSupplierId,
+            ActivityId = activityId,
+            TourInstanceId = tourInstanceId,
+            Reason = reason,
+            Event = "Released"
+        };
+
+        await _hubContext.Clients
+            .Group($"supplier:{oldSupplierId}")
+            .SendAsync("ReceiveSupplierAssignmentEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Supplier released notification sent to supplier {SupplierId} for activity {ActivityId} of TourInstance {TourInstanceId} (reason: {Reason})",
+            oldSupplierId, activityId, tourInstanceId, reason);
+    }
 }

@@ -39,11 +39,9 @@ import {
   TourClassificationDto,
   TourDto,
   UserInfo,
+  TransportationTypeMap,
 } from "@/types/tour";
-import type {
-  HotelProviderDetail,
-  TransportProviderDetail,
-} from "@/types/admin";
+import type { HotelProviderDetail } from "@/types/admin";
 import dayjs from "dayjs";
 
 type FormState = {
@@ -59,10 +57,16 @@ type FormState = {
   guideUserIds: string[];
   thumbnailUrl: string;
   imageUrls: string[];
-  transportProviderId: string;
   activityAssignments: Record<
     string,
-    { supplierId?: string; roomType?: string; vehicleId?: string }
+    {
+      supplierId?: string;
+      roomType?: string;
+      accommodationQuantity?: number;
+      vehicleId?: string;
+      requestedVehicleType?: number;
+      requestedSeatCount?: number;
+    }
   >;
 };
 
@@ -103,7 +107,6 @@ const INITIAL_FORM: FormState = {
   guideUserIds: [],
   thumbnailUrl: "",
   imageUrls: [],
-  transportProviderId: "",
   activityAssignments: {},
 };
 
@@ -383,7 +386,6 @@ interface InstanceDetailsStepProps {
   uploadingThumbnail: boolean;
   uploadingImages: boolean;
   hotelDetailsBySupplierId: Record<string, HotelProviderDetail>;
-  transportDetail: TransportProviderDetail | null;
   updateActivityAssignment: (
     activityId: string,
     updates: { supplierId?: string; roomType?: string; vehicleId?: string },
@@ -424,7 +426,6 @@ function InstanceDetailsStep({
   uploadingThumbnail,
   uploadingImages,
   hotelDetailsBySupplierId,
-  transportDetail,
   updateActivityAssignment,
   editableItinerary,
   onUpdateActivity,
@@ -756,47 +757,6 @@ function InstanceDetailsStep({
               })}
             </div>
           )}
-        </div>
-      </CollapsibleSection>
-
-      {/* Provider Assignment */}
-      <CollapsibleSection
-        title={t(
-          "tourInstance.wizard.section.providers",
-          "Provider Assignment",
-        )}
-        defaultOpen={true}>
-        <div className="grid gap-4 md:grid-cols-2 text-sm text-stone-700">
-          {/* Hotel provider is now assigned per-accommodation activity after instance creation */}
-          <div className="space-y-2">
-            <p className="text-xs text-stone-400 italic">
-              {t("tourInstance.form.hotelProviderNote", "Hotel providers are assigned per-accommodation activity after creating the instance.")}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="font-semibold text-stone-700">
-              {t("tourInstance.form.transportProvider", "Transport Provider")}
-            </label>
-            <select
-              className={inputClassName}
-              value={form.transportProviderId}
-              onChange={(e) =>
-                updateField("transportProviderId", e.target.value)
-              }>
-              <option value="">
-                {t(
-                  "tourInstance.form.selectTransport",
-                  "Select Transport Provider...",
-                )}
-              </option>
-              {transportProviders.map((tp, idx) => (
-                <option key={tp.id ?? `transport-${idx}`} value={tp.id}>
-                  {tp.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </CollapsibleSection>
 
@@ -1153,42 +1113,71 @@ function InstanceDetailsStep({
                               </div>
                             )}
 
-                            {activity.activityType === "Transportation" &&
-                              transportDetail &&
-                              transportDetail.vehicles &&
-                              transportDetail.vehicles.length > 0 && (
+                            {activity.activityType === "Transportation" && (
                               <div className="space-y-2 rounded-lg border border-cyan-200 bg-cyan-50/60 p-2.5">
                                 <p className="text-[10px] font-semibold text-cyan-700 uppercase tracking-wider">
-                                  {t("tourInstance.wizard.supplierAssignment", "Supplier Assignment")}
+                                  {t("tourInstance.wizard.transportPlan", "Transport Plan")}
                                 </p>
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                    {t("tourInstance.wizard.vehicle", "Vehicle")}
-                                  </label>
-                                  <select
-                                    className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
-                                    value={
-                                      form.activityAssignments[activity.id]
-                                        ?.vehicleId ?? ""
-                                    }
-                                    onChange={(e) => {
-                                      updateActivityAssignment(activity.id, {
-                                        vehicleId: e.target.value || undefined,
-                                      });
-                                    }}>
-                                    <option value="">
-                                      {t(
-                                        "tourInstance.wizard.selectVehicle",
-                                        "-- Select vehicle --",
-                                      )}
-                                    </option>
-                                    {transportDetail.vehicles.map((v) => (
-                                      <option key={v.id} value={v.id}>
-                                        {v.vehiclePlate} ({v.seatCapacity}{" "}
-                                        {t("tourInstance.wizard.seats", "seats")})
+
+                                <div className="space-y-2">
+                                  <div>
+                                    <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                      {t("tourInstance.wizard.transportProvider", "Transport Provider")}
+                                    </label>
+                                    <select
+                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      value={form.activityAssignments[activity.id]?.supplierId ?? ""}
+                                      onChange={(e) => {
+                                        updateActivityAssignment(activity.id, {
+                                          supplierId: e.target.value || undefined,
+                                        });
+                                      }}>
+                                      <option value="">
+                                        {t("tourInstance.wizard.selectSupplierOptional", "-- Select Supplier (Optional) --")}
                                       </option>
-                                    ))}
-                                  </select>
+                                      {transportProviders.map((tp) => (
+                                        <option key={tp.id} value={tp.id}>{tp.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.vehicleType", "Vehicle Type")}
+                                      </label>
+                                      <select
+                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleType ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedVehicleType: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}>
+                                        <option value="">-- {t("common.any", "Any")} --</option>
+                                        {Object.entries(TransportationTypeMap).map(([val, label]) => (
+                                          <option key={val} value={val}>{label}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.seatCount", "Seat Count")}
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedSeatCount: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}
+                                        placeholder={t("common.optional", "Optional")}
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -1337,11 +1326,17 @@ function InstanceDetailsStep({
                                   </span>
                                 )}
                               {activity.activityType === "Transportation" &&
-                                form.activityAssignments[activity.id]?.vehicleId &&
-                                transportDetail?.vehicles && (
+                                (form.activityAssignments[activity.id]?.supplierId ||
+                                 form.activityAssignments[activity.id]?.requestedVehicleType ||
+                                 form.activityAssignments[activity.id]?.requestedSeatCount) && (
                                   <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-800">
                                     <Icon icon="heroicons:truck" className="size-3" />
-                                    {transportDetail.vehicles.find(v => v.id === form.activityAssignments[activity.id]?.vehicleId)?.vehiclePlate ?? t("tourInstance.wizard.vehicleAssigned", "Vehicle assigned")}
+                                    {form.activityAssignments[activity.id]?.supplierId
+                                      ? (transportProviders.find(tp => tp.id === form.activityAssignments[activity.id]?.supplierId)?.name ?? t("tourInstance.wizard.transportAssigned", "Transport assigned"))
+                                      : t("tourInstance.wizard.transportAssigned", "Transport assigned")}
+                                    {form.activityAssignments[activity.id]?.requestedVehicleType !== undefined && (
+                                      <span className="text-blue-600"> · {TransportationTypeMap[form.activityAssignments[activity.id]?.requestedVehicleType ?? 99]}</span>
+                                    )}
                                   </span>
                                 )}
                             </div>
@@ -1439,8 +1434,6 @@ export function CreateTourInstancePage({
   const [hotelDetailsBySupplierId, setHotelDetailsBySupplierId] = useState<
     Record<string, HotelProviderDetail>
   >({});
-  const [transportDetail, setTransportDetail] =
-    useState<TransportProviderDetail | null>(null);
 
   // Editable itinerary — mutable copy of classification plans
   const [editableItinerary, setEditableItinerary] = useState<EditableDay[]>([]);
@@ -1561,19 +1554,6 @@ export function CreateTourInstancePage({
       setTransportProviders([]);
     }
   }, [fetchProviders, tourDetail]);
-
-  useEffect(() => {
-    if (form.transportProviderId) {
-      adminService
-        .getTransportProviderDetail(form.transportProviderId)
-        .then((res) => {
-          if (res) setTransportDetail(res);
-        })
-        .catch(() => setTransportDetail(null));
-    } else {
-      setTransportDetail(null);
-    }
-  }, [form.transportProviderId]);
 
   // Fetch guides for optional guide selection
   const fetchGuides = useCallback(async () => {
@@ -2098,7 +2078,6 @@ export function CreateTourInstancePage({
         thumbnailUrl: form.thumbnailUrl.trim() || undefined,
         imageUrls: form.imageUrls.map((url) => url.trim()).filter(Boolean),
         tourRequestId: effectiveTourRequestId ?? undefined,
-        transportProviderId: form.transportProviderId || undefined,
         activityAssignments:
           mappedActivityAssignments.length > 0
             ? mappedActivityAssignments
@@ -2286,7 +2265,6 @@ export function CreateTourInstancePage({
             uploadingThumbnail={uploadingThumbnail}
             uploadingImages={uploadingImages}
             hotelDetailsBySupplierId={hotelDetailsBySupplierId}
-            transportDetail={transportDetail}
             updateActivityAssignment={updateActivityAssignment}
             editableItinerary={editableItinerary}
             onUpdateActivity={handleUpdateActivity}

@@ -179,13 +179,13 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-22 5:48am GMT+7
+# [Pathora_Version3] recent context, 2026-04-22 6:42pm GMT+7
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 38 obs (17,885t read) | 1,761,657t work | 99% savings
+Stats: 39 obs (18,169t read) | 1,762,345t work | 99% savings
 
 ### Apr 21, 2026
 15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
@@ -227,6 +227,7 @@ Stats: 38 obs (17,885t read) | 1,761,657t work | 99% savings
 119 5:20a 🔵 Critical: pendingCount Is Also Broken — "Pending" Falls Through UserStatus Filter, Returns Total Count
 120 " 🔵 GetTransportProviderByIdQueryHandler Uses Dual Lookup Path: User ID or Supplier ID
 121 " 🔵 TransportProviderListItemDto Exposes UserStatus Enum (Not VerifyStatus) — No Pending State Representable
+122 6:35p 🔵 OpenSpec change "transport-per-activity-request-and-approval" ready for implementation
 
 Access 1762k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

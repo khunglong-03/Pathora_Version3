@@ -70,7 +70,7 @@ public sealed class TourInstancePlanAccommodationEntityTests
         // Arrange
         var entity = TourInstancePlanAccommodationEntity.Create(Guid.NewGuid(), supplierId: Guid.NewGuid());
         entity.ApproveBySupplier(true, "Approved");
-        
+
         var newSupplierId = Guid.NewGuid();
 
         // Act

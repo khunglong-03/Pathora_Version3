@@ -30,8 +30,7 @@ public sealed class PublicTourInstanceControllerTests
             MaxParticipation: 20,
             BasePrice: 1000m,
             Status: "Available",
-            InstanceType: "Public",
-            TransportApprovalStatus: 2);
+            InstanceType: "Public");
 
         var response = new PaginatedList<TourInstanceVm>(1, [vm], 1, 10);
         var (controller, probe) = ApiControllerTestHelper
@@ -81,8 +80,6 @@ public sealed class PublicTourInstanceControllerTests
             ConfirmationDeadline: null,
             Managers: [],
             IncludedServices: [],
-            TransportApprovalStatus: 2,
-            TransportApprovalNote: null,
             TransportProviderId: null,
             TransportProviderName: null);
 

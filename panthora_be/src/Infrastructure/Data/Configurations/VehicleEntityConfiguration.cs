@@ -52,10 +52,16 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
         builder.HasIndex(x => x.IsDeleted);
         builder.HasIndex(x => x.LocationArea);
         builder.HasIndex(x => x.OperatingCountries);
+        builder.HasIndex(x => x.SupplierId);
 
         builder.HasOne(x => x.Owner)
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Supplier)
+            .WithMany()
+            .HasForeignKey(x => x.SupplierId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Global query filter to exclude inactive vehicles or those owned by banned users

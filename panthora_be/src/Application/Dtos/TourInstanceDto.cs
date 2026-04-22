@@ -27,8 +27,8 @@ public sealed record TourInstanceDto(
     DateTimeOffset? ConfirmationDeadline,
     List<TourInstanceManagerDto> Managers,
     List<string> IncludedServices,
-    int TransportApprovalStatus,
-    string? TransportApprovalNote,
+    /// <summary>DEPRECATED: Use per-activity TransportSupplierId instead. Will be removed in next release.</summary>
     Guid? TransportProviderId,
+    /// <summary>DEPRECATED: Use per-activity TransportSupplierName instead. Will be removed in next release.</summary>
     string? TransportProviderName,
     List<TourInstanceDayDto>? Days = null);

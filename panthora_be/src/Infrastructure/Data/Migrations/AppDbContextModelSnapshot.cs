@@ -950,6 +950,9 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
@@ -959,6 +962,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("LicenseNumber")
                         .IsUnique();
+
+                    b.HasIndex("SupplierId");
 
                     b.HasIndex("UserId");
 
@@ -2917,6 +2922,13 @@ namespace Infrastructure.Data.Migrations
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<int?>("RequestedSeatCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RequestedVehicleType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<TimeOnly?>("StartTime")
                         .HasColumnType("time without time zone");
 
@@ -2929,6 +2941,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TourInstanceDayId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TransportSupplierId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TransportationApprovalNote")
@@ -2960,6 +2975,8 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("ToLocationId");
 
                     b.HasIndex("TourInstanceDayId");
+
+                    b.HasIndex("TransportSupplierId");
 
                     b.HasIndex("VehicleId");
 
@@ -3102,6 +3119,13 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("MaxParticipation")
                         .HasColumnType("integer");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasDefaultValue(new byte[0]);
+
                     b.Property<DateTimeOffset>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -3136,13 +3160,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("Translations")
                         .IsRequired()
                         .HasColumnType("jsonb");
-
-                    b.Property<string>("TransportApprovalNote")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int>("TransportApprovalStatus")
-                        .HasColumnType("integer");
 
                     b.Property<Guid?>("TransportProviderId")
                         .HasColumnType("uuid");
@@ -4078,7 +4095,7 @@ namespace Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"HoldStatus\" = 1");
 
-                    b.ToTable("VehicleBlocks");
+                    b.ToTable("VehicleBlocks", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.VehicleEntity", b =>
@@ -4133,6 +4150,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
 
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("VehicleImageUrls")
                         .HasColumnType("jsonb");
 
@@ -4155,6 +4175,8 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("OperatingCountries");
 
                     b.HasIndex("OwnerId");
+
+                    b.HasIndex("SupplierId");
 
                     b.HasIndex("VehiclePlate")
                         .IsUnique();
@@ -4483,11 +4505,18 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entities.DriverEntity", b =>
                 {
+                    b.HasOne("Domain.Entities.SupplierEntity", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Domain.Entities.UserEntity", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Supplier");
 
                     b.Navigation("User");
                 });
@@ -4829,7 +4858,7 @@ namespace Infrastructure.Data.Migrations
 
                             b1.HasKey("TourEntityId");
 
-                            b1.ToTable("Tours");
+                            b1.ToTable("Tours", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TourEntityId");
@@ -4902,6 +4931,11 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.SupplierEntity", "TransportSupplier")
+                        .WithMany()
+                        .HasForeignKey("TransportSupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Domain.Entities.VehicleEntity", "Vehicle")
                         .WithMany()
                         .HasForeignKey("VehicleId");
@@ -4913,6 +4947,8 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("ToLocation");
 
                     b.Navigation("TourInstanceDay");
+
+                    b.Navigation("TransportSupplier");
 
                     b.Navigation("Vehicle");
                 });
@@ -4982,7 +5018,7 @@ namespace Infrastructure.Data.Migrations
 
                             b1.HasKey("TourInstanceEntityId");
 
-                            b1.ToTable("TourInstances");
+                            b1.ToTable("TourInstances", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TourInstanceEntityId");
@@ -5250,7 +5286,14 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.SupplierEntity", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Owner");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Domain.Entities.VisaApplicationEntity", b =>

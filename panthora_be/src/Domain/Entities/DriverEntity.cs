@@ -27,6 +27,16 @@ public class DriverEntity : Aggregate<Guid>
     /// <summary>Ghi chú bổ sung.</summary>
     public string? Notes { get; set; }
 
+    /// <summary>
+    /// ER-5: the transport <see cref="SupplierEntity"/> this driver belongs to.
+    /// Transport approve validates <c>driver.SupplierId == activity.TransportSupplierId</c>
+    /// in addition to ownership. Nullable for back-compat with existing rows.
+    /// </summary>
+    public Guid? SupplierId { get; set; }
+
+    /// <summary>Supplier navigation.</summary>
+    public virtual SupplierEntity? Supplier { get; set; }
+
     public static DriverEntity Create(
         Guid userId,
         string fullName,

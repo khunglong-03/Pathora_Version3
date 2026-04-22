@@ -65,7 +65,7 @@ public class SoftHoldCleanupWorkerService(
                     vehicleBlockRepo.Remove(block);
                 }
             }
-            
+
             if (expiredRoomBlocks.Count > 0 || expiredVehicleBlocks.Count > 0)
             {
                 await unitOfWork.SaveChangeAsync(stoppingToken);

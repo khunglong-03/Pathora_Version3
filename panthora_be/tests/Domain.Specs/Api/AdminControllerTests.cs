@@ -126,14 +126,14 @@ public sealed class AdminControllerTests
         var providers = new List<HotelProviderListItemDto>
         {
             new(
-                Guid.NewGuid(), 
-                "Hotel Co", 
-                "SUP-001", 
-                "hotel@example.com", 
-                "0123456789", 
-                null, 
-                null, 
-                UserStatus.Active, 
+                Guid.NewGuid(),
+                "Hotel Co",
+                "SUP-001",
+                "hotel@example.com",
+                "0123456789",
+                null,
+                null,
+                UserStatus.Active,
                 Guid.NewGuid(), // OwnerUserId
                 3,              // AccommodationCount
                 3,              // PropertyCount

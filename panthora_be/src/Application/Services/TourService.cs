@@ -165,15 +165,15 @@ public class TourService(
 
                             var enTranslation = act.Translations?.GetValueOrDefault("en");
                             var viTranslation = act.Translations?.GetValueOrDefault("vi");
-                            
-                            var fromLocationName = enTranslation?.FromLocationName 
+
+                            var fromLocationName = enTranslation?.FromLocationName
                                 ?? viTranslation?.FromLocationName
                                 ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
-                                
-                            var toLocationName = enTranslation?.ToLocationName 
+
+                            var toLocationName = enTranslation?.ToLocationName
                                 ?? viTranslation?.ToLocationName
                                 ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
-                            
+
                             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
                             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 
@@ -1093,15 +1093,15 @@ public class TourService(
 
             var enTranslation = act.Translations?.GetValueOrDefault("en");
             var viTranslation = act.Translations?.GetValueOrDefault("vi");
-            
-            var fromLocationName = enTranslation?.FromLocationName 
+
+            var fromLocationName = enTranslation?.FromLocationName
                 ?? viTranslation?.FromLocationName
                 ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
-                
-            var toLocationName = enTranslation?.ToLocationName 
+
+            var toLocationName = enTranslation?.ToLocationName
                 ?? viTranslation?.ToLocationName
                 ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
-            
+
             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 

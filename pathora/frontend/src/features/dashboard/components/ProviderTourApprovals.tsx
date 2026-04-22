@@ -20,13 +20,14 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   const { t } = useTranslation();
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvalStatus, setApprovalStatus] = useState<number | undefined>(undefined);
 
   const isHotel = providerType === "hotel";
 
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await tourInstanceService.getProviderAssigned(1, 50);
+      const result = await tourInstanceService.getProviderAssigned(1, 50, approvalStatus);
       setInstances(result?.data ?? []);
     } catch (error) {
       handleApiError(error);
@@ -34,7 +35,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, approvalStatus]);
 
   useEffect(() => {
     void fetchAssignments();
@@ -42,12 +43,23 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
 
   return (
     <>
-
       <div className="p-4 md:p-6 lg:p-8 xl:p-10 w-full">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900">Danh sách Tour được chỉ định</h2>
             <p className="mt-1 text-sm text-slate-500">Các tour đang chờ bạn tiếp nhận và sắp xếp dịch vụ</p>
+          </div>
+          <div>
+            <select
+              className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              value={approvalStatus ?? ""}
+              onChange={(e) => setApprovalStatus(e.target.value ? Number(e.target.value) : undefined)}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="1">Đang chờ duyệt</option>
+              <option value="2">Đã duyệt</option>
+              <option value="3">Đã từ chối</option>
+            </select>
           </div>
         </div>
 
@@ -64,7 +76,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
              </div>
             <h3 className="text-xl font-bold text-slate-900">Không có yêu cầu nào</h3>
             <p className="mt-2 text-base text-slate-500 max-w-md">
-              Hiện tại bạn chưa được chỉ định vào đợt tour nào đang chờ phê duyệt. Trở lại sau nhé.
+              Hiện tại bạn chưa được chỉ định vào đợt tour nào với trạng thái này.
             </p>
           </div>
         ) : (
@@ -72,14 +84,11 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             {instances.map((instance) => {
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
-              // Hotel approval is now per-accommodation activity, not at instance level.
-              // For hotel providers, we show "Pending" generically and let the detail page show per-activity status.
-              const myApprovalStatus =
-                providerType === "hotel"
-                  ? 1 // Default to Pending — actual status is per-activity
-                  : instance.transportApprovalStatus;
-              const isApproved = myApprovalStatus === 2;
-              const isRejected = myApprovalStatus === 3;
+              // Both hotel and transport approvals are now per-activity, not at instance level.
+              // We show a generic status on the card and let the detail page show per-activity status.
+              const isApproved = approvalStatus === 2;
+              const isRejected = approvalStatus === 3;
+              const isPending = approvalStatus === 1;
 
               return (
                 <div 
@@ -101,12 +110,14 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                        <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
                          isApproved ? "bg-emerald-50 text-emerald-700" :
                          isRejected ? "bg-rose-50 text-rose-700" :
-                         "bg-amber-50 text-amber-700"
+                         isPending ? "bg-amber-50 text-amber-700" :
+                         "bg-indigo-50 text-indigo-700"
                        }`}>
                          {isApproved ? <Icon icon="heroicons:check-circle-solid" className="size-3.5" /> : 
                           isRejected ? <Icon icon="heroicons:x-circle-solid" className="size-3.5" /> : 
-                          <Icon icon="heroicons:clock-solid" className="size-3.5" />}
-                         {isApproved ? "Đã duyệt" : isRejected ? "Đã từ chối" : "Đang chờ"}
+                          isPending ? <Icon icon="heroicons:clock-solid" className="size-3.5" /> :
+                          <Icon icon="heroicons:information-circle-solid" className="size-3.5" />}
+                         {isApproved ? "Đã duyệt" : isRejected ? "Đã từ chối" : isPending ? "Đang chờ" : "Có yêu cầu"}
                        </div>
                     </div>
                     

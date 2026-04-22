@@ -92,7 +92,7 @@ public class TourInstanceServiceValidationTests
 
         var supplier = new SupplierEntity { Id = providerId, Name = "Test Transport", IsActive = true, OwnerUserId = ownerUserId };
         _supplierRepository.GetByIdAsync(providerId).Returns(supplier);
-        
+
         // Mock owner user not banned
         _tourInstanceRepository.FindUserByIdAsync(ownerUserId).Returns(new UserEntity { Id = ownerUserId, Status = UserStatus.Active });
 
@@ -174,7 +174,7 @@ public class TourInstanceServiceValidationTests
 
         var supplier = new SupplierEntity { Id = providerId, Name = "Banned Transport", IsActive = true, OwnerUserId = ownerUserId };
         _supplierRepository.GetByIdAsync(providerId).Returns(supplier);
-        
+
         // Mock owner user BANNED
         _tourInstanceRepository.FindUserByIdAsync(ownerUserId).Returns(new UserEntity { Id = ownerUserId, Status = UserStatus.Banned });
 

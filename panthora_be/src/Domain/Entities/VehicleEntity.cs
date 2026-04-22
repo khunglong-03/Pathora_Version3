@@ -28,6 +28,17 @@ public class VehicleEntity : Aggregate<Guid>
     public Guid OwnerId { get; set; }
     /// <summary>Chủ sở hữu phương tiện.</summary>
     public virtual UserEntity Owner { get; set; } = null!;
+
+    /// <summary>
+    /// ER-5: the transport <see cref="SupplierEntity"/> this vehicle belongs to.
+    /// Multi-supplier owners can have vehicles scoped to a specific supplier; transport
+    /// approve validates <c>vehicle.SupplierId == activity.TransportSupplierId</c>, not
+    /// <c>OwnerId</c>. Nullable for back-compat with existing rows.
+    /// </summary>
+    public Guid? SupplierId { get; set; }
+
+    /// <summary>Supplier navigation.</summary>
+    public virtual SupplierEntity? Supplier { get; set; }
     /// <summary>Trạng thái hoạt động: true = đang hoạt động, false = bị vô hiệu hóa.</summary>
     public bool IsActive { get; set; } = true;
     /// <summary>Đánh dấu đã xóa mềm.</summary>

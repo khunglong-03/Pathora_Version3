@@ -6,4 +6,4 @@ using Xunit;
 namespace Domain.Specs.Application.Features.BookingManagement.Supplier;
 
 // Add a placeholder to fix build errors in the incomplete test file
-public class SupplierCommandValidationAndUpdateTests {}
+public class SupplierCommandValidationAndUpdateTests { }

@@ -18,5 +18,4 @@ public sealed record TourInstanceVm(
     int MaxParticipation,
     decimal BasePrice,
     string Status,
-    string InstanceType,
-    int TransportApprovalStatus);
+    string InstanceType);

@@ -85,11 +85,11 @@ public sealed class AssignRoomToAccommodationCommandHandler(
 
         // Hard capacity check
         var availabilityCheck = await availabilityService.CheckRoomAvailabilityAsync(
-            supplier.Id, 
-            roomType, 
-            activity.TourInstanceDay.ActualDate, 
-            request.RoomCount, 
-            request.AccommodationActivityId, 
+            supplier.Id,
+            roomType,
+            activity.TourInstanceDay.ActualDate,
+            request.RoomCount,
+            request.AccommodationActivityId,
             cancellationToken);
 
         if (availabilityCheck.IsError) return availabilityCheck.Errors;

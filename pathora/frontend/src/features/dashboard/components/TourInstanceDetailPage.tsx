@@ -18,7 +18,6 @@ import {
 } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import {
-  ProviderStatusCard,
   StatCard,
   TeamSection,
   InfoRow,
@@ -45,6 +44,91 @@ type EditForm = {
 
 const inputClassName =
   "w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20";
+
+type ApprovalSummary = {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  unassigned: number;
+};
+
+const isTransportationActivity = (activityType?: string | null) => {
+  const normalized = activityType?.trim().toLowerCase();
+  return normalized === "transportation" || normalized === "7";
+};
+
+const isAccommodationActivity = (activityType?: string | null) => {
+  const normalized = activityType?.trim().toLowerCase();
+  return normalized === "accommodation" || normalized === "8";
+};
+
+const normalizeApprovalStatus = (status?: string | null) =>
+  status?.trim().toLowerCase() ?? "";
+
+const getApprovalAppearance = (status?: string | null) => {
+  switch (normalizeApprovalStatus(status)) {
+    case "approved":
+      return {
+        label: "Da duyet",
+        icon: "heroicons:check-circle",
+        className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      };
+    case "rejected":
+      return {
+        label: "Da tu choi",
+        icon: "heroicons:x-circle",
+        className: "bg-rose-50 text-rose-700 border-rose-200",
+      };
+    case "pending":
+      return {
+        label: "Dang cho duyet",
+        icon: "heroicons:clock",
+        className: "bg-amber-50 text-amber-700 border-amber-200",
+      };
+    default:
+      return {
+        label: "Chua giao",
+        icon: "heroicons:information-circle",
+        className: "bg-slate-100 text-slate-600 border-slate-200",
+      };
+  }
+};
+
+const buildApprovalSummary = (
+  items: Array<{ assigned: boolean; status?: string | null }>,
+): ApprovalSummary =>
+  items.reduce(
+    (summary, item) => {
+      summary.total += 1;
+
+      if (!item.assigned) {
+        summary.unassigned += 1;
+        return summary;
+      }
+
+      switch (normalizeApprovalStatus(item.status)) {
+        case "approved":
+          summary.approved += 1;
+          break;
+        case "rejected":
+          summary.rejected += 1;
+          break;
+        default:
+          summary.pending += 1;
+          break;
+      }
+
+      return summary;
+    },
+    {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
+      unassigned: 0,
+    },
+  );
 
 const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
   title: data.title ?? "",
@@ -123,12 +207,32 @@ export default function TourInstanceDetailPage() {
     }
   }, [id]);
 
-  const participantRatio = useMemo(() => {
-    if (!data || data.maxParticipation <= 0) return 0;
-    return Math.min(
-      100,
-      Math.round((data.currentParticipation / data.maxParticipation) * 100),
-    );
+  const approvalSummary = useMemo(() => {
+    const activities = (data?.days ?? []).flatMap((day) => day.activities ?? []);
+
+    return {
+      transport: buildApprovalSummary(
+        activities
+          .filter((activity) => isTransportationActivity(activity.activityType))
+          .map((activity) => ({
+            assigned: Boolean(
+              activity.transportSupplierId || activity.transportSupplierName,
+            ),
+            status: activity.transportationApprovalStatus,
+          })),
+      ),
+      accommodation: buildApprovalSummary(
+        activities
+          .filter((activity) => isAccommodationActivity(activity.activityType))
+          .map((activity) => ({
+            assigned: Boolean(
+              activity.accommodation?.supplierId
+                || activity.accommodation?.supplierName,
+            ),
+            status: activity.accommodation?.supplierApprovalStatus,
+          })),
+      ),
+    };
   }, [data]);
 
   const guides = useMemo(
@@ -734,17 +838,42 @@ export default function TourInstanceDetailPage() {
 
               {/* RIGHT COLUMN: Providers & Team */}
               <div className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                  <ProviderStatusCard
-                    icon="heroicons:truck" iconColor="text-cyan-600"
-                    label={t("tourInstance.transportProvider", "Transport provider")}
-                    providerName={data.transportProviderName}
-                    approvalStatus={data.transportApprovalStatus}
-                    approvalNote={data.transportApprovalNote}
-                    emptyMessage={t("tourInstance.noTransportProvider", "No transport provider assigned")}
-                  />
-                  {/* Hotel provider info is now per-accommodation activity — see itinerary below */}
-                </div>
+                <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <h2 className="mb-4 border-b border-stone-100 pb-3 text-sm font-bold uppercase tracking-wider text-stone-500">
+                    {t("tourInstance.approvalOverview", "Approval Overview")}
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4">
+                      <div className="flex items-center gap-2">
+                        <Icon icon="heroicons:truck" className="size-4 text-cyan-600" />
+                        <h3 className="text-sm font-bold text-cyan-900">
+                          {t("tourInstance.transportApprovals", "Transportation")}
+                        </h3>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+                        <span>{`${t("tourInstance.approved", "Approved")}: ${approvalSummary.transport.approved}`}</span>
+                        <span>{`${t("tourInstance.pending", "Pending")}: ${approvalSummary.transport.pending}`}</span>
+                        <span>{`${t("tourInstance.rejected", "Rejected")}: ${approvalSummary.transport.rejected}`}</span>
+                        <span>{`${t("tourInstance.unassigned", "Unassigned")}: ${approvalSummary.transport.unassigned}`}</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
+                      <div className="flex items-center gap-2">
+                        <Icon icon="heroicons:building-office-2" className="size-4 text-amber-600" />
+                        <h3 className="text-sm font-bold text-amber-900">
+                          {t("tourInstance.hotelApprovals", "Accommodation")}
+                        </h3>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+                        <span>{`${t("tourInstance.approved", "Approved")}: ${approvalSummary.accommodation.approved}`}</span>
+                        <span>{`${t("tourInstance.pending", "Pending")}: ${approvalSummary.accommodation.pending}`}</span>
+                        <span>{`${t("tourInstance.rejected", "Rejected")}: ${approvalSummary.accommodation.rejected}`}</span>
+                        <span>{`${t("tourInstance.unassigned", "Unassigned")}: ${approvalSummary.accommodation.unassigned}`}</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
 
                 <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                   <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-4 pb-3 border-b border-stone-100">
@@ -1069,36 +1198,131 @@ export default function TourInstanceDetailPage() {
                                         {activity.endTime && <span> - {activity.endTime}</span>}
                                       </div>
 
-                                      {/* Transport Info — Transportation activity */}
-                                      {activity.activityType?.toLowerCase() === "transportation" && (
-                                        <div className="mt-2 space-y-1.5 rounded-lg border border-cyan-100 bg-cyan-50/60 p-2.5">
-                                          <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-600 mb-1.5 flex items-center gap-1.5">
-                                            <Icon icon="heroicons:truck" className="size-3" />
-                                            {t("tourInstance.transport.vehicleInfo", "Thông tin xe")}
-                                          </p>
+                                      {isAccommodationActivity(activity.activityType) && (
+                                        <div className="mt-2 space-y-2 rounded-lg border border-amber-100 bg-amber-50/70 p-3">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                                              <Icon icon="heroicons:building-office-2" className="size-3" />
+                                              {t("tourInstance.accommodation.approval", "Accommodation approval")}
+                                            </p>
+                                            <span
+                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).className}`}
+                                            >
+                                              <Icon icon={getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).icon} className="size-3" />
+                                              {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
+                                            </span>
+                                          </div>
+                                          <div className="grid gap-2 sm:grid-cols-2">
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.accommodation.supplier", "Supplier")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.accommodation?.supplierName || t("tourInstance.noHotelProvider", "No hotel provider assigned")}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.accommodation.roomType", "Room type")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.accommodation?.roomType || "—"}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.accommodation.quantity", "Quantity")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.accommodation?.quantity ?? "—"}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.accommodation.blockedRooms", "Blocked rooms")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.accommodation?.roomBlocksTotal ?? 0}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          {activity.accommodation?.supplierApprovalNote && (
+                                            <p className="rounded-lg bg-white/70 px-2.5 py-2 text-xs text-stone-600">
+                                              <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span>{" "}
+                                              {activity.accommodation.supplierApprovalNote}
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {isTransportationActivity(activity.activityType) && (
+                                        <div className="mt-2 space-y-2 rounded-lg border border-cyan-100 bg-cyan-50/70 p-3">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700">
+                                              <Icon icon="heroicons:truck" className="size-3" />
+                                              {t("tourInstance.transport.approval", "Transportation approval")}
+                                            </p>
+                                            <span
+                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.transportationApprovalStatus).className}`}
+                                            >
+                                              <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
+                                              {getApprovalAppearance(activity.transportationApprovalStatus).label}
+                                            </span>
+                                          </div>
+
+                                          <div className="grid gap-2 sm:grid-cols-2">
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.transport.provider", "Supplier")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.transportSupplierName || t("tourInstance.noTransportProvider", "No transport provider assigned")}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.transport.requestedVehicleType", "Requested vehicle type")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.requestedVehicleType || "—"}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.transport.requestedSeatCount", "Requested seats")}
+                                              </p>
+                                              <p className="text-xs font-semibold text-stone-800">
+                                                {activity.requestedSeatCount ?? "—"}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                {t("tourInstance.transport.assignedVehicle", "Assigned vehicle")}
+                                              </p>
+                                              {activity.vehiclePlate ? (
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                  <span className="text-xs font-semibold text-stone-800 font-mono">{activity.vehiclePlate}</span>
+                                                  {activity.vehicleType && (
+                                                    <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
+                                                      {activity.vehicleType}
+                                                    </span>
+                                                  )}
+                                                  {activity.seatCapacity && (
+                                                    <span className="flex items-center gap-0.5 text-[10px] text-stone-500">
+                                                      <Icon icon="heroicons:user-group" className="size-3" />
+                                                      {activity.seatCapacity}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <p className="text-[10px] italic text-amber-600">
+                                                  {t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+
                                           <div className="space-y-1">
-                                            {activity.vehiclePlate ? (
-                                              <div className="flex items-center gap-2">
-                                                <Icon icon="heroicons:identification" className="size-3 text-cyan-600 shrink-0" />
-                                                <span className="text-xs font-semibold text-stone-800 font-mono">{activity.vehiclePlate}</span>
-                                                {activity.vehicleType && (
-                                                  <span className="text-[10px] text-stone-500 bg-stone-200 px-1.5 py-0.5 rounded">
-                                                    {activity.vehicleType}
-                                                  </span>
-                                                )}
-                                                {activity.seatCapacity && (
-                                                  <span className="text-[10px] text-stone-500 flex items-center gap-0.5">
-                                                    <Icon icon="heroicons:user-group" className="size-3" />
-                                                    {activity.seatCapacity}
-                                                  </span>
-                                                )}
-                                                {activity.vehicleBrand && (
-                                                  <span className="text-[10px] text-stone-400">{activity.vehicleBrand}{activity.vehicleModel ? ` ${activity.vehicleModel}` : ""}</span>
-                                                )}
-                                              </div>
-                                            ) : (
-                                              <p className="text-[10px] text-amber-600 italic">{t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}</p>
-                                            )}
                                             {activity.driverName && (
                                               <div className="flex items-center gap-2">
                                                 <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
@@ -1141,6 +1365,13 @@ export default function TourInstanceDetailPage() {
                                               </div>
                                             )}
                                           </div>
+
+                                          {activity.transportationApprovalNote && (
+                                            <p className="rounded-lg bg-white/70 px-2.5 py-2 text-xs text-stone-600">
+                                              <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span>{" "}
+                                              {activity.transportationApprovalNote}
+                                            </p>
+                                          )}
                                         </div>
                                       )}
 

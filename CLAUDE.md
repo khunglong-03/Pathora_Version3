@@ -326,3 +326,42 @@ Key routing rules:
 - Architecture review → invoke plan-eng-review
 - Save progress, checkpoint, resume → invoke checkpoint
 - Code quality, health check → invoke health
+
+---
+
+## Domain note — per-activity transport approval
+
+Transport approval is **per-activity**, not per-instance. This was moved out of
+`TourInstance.TransportProviderId` (now `[Obsolete]`, kept as a derived getter for
+one release) onto `TourInstanceDayActivityEntity`:
+
+- `RequestedVehicleType`, `RequestedSeatCount`, `TransportSupplierId` — the plan
+  fields the Manager picks at creation time.
+- `ApproveTransportation(vehicleId, driverId, note)` — called by the Transport
+  provider. Caller is responsible for inserting a `VehicleBlock` (Hard hold).
+- `RejectTransportation(note)` — caller deletes the `VehicleBlock`.
+- `AreAllTransportationApproved()` + `AreAllAccommodationsApproved()` drive
+  `CheckAndActivateTourInstance()` — the tour transitions to `Available` only
+  when **every** per-activity supplier has approved.
+
+Concurrency rules (ER-1/ER-2/ER-4/ER-8):
+
+- Approve paths run inside `IUnitOfWork.ExecuteTransactionAsync(IsolationLevel.RepeatableRead, …)`
+  and re-check availability inside the transaction before INSERT.
+- `TourInstanceEntity.RowVersion` is an EF `IsRowVersion()` token — handlers catch
+  `DbUpdateConcurrencyException`, reload, and return idempotent success if the
+  target state was reached by another request.
+- Bulk transport approve (`ProviderApproveTourInstanceCommand` Transport branch)
+  is all-or-nothing: a mid-loop failure throws `BulkApproveValidationException`
+  mapped to `TourInstance.BulkApproveFailed`.
+
+Cleanup rules (ER-3):
+
+- `TourInstanceService.Delete` and `ChangeStatus(Cancelled)` call both
+  `IRoomBlockRepository.DeleteByTourInstanceAsync` and
+  `IVehicleBlockRepository.DeleteByTourInstanceAsync` so inventory is freed.
+- `AssignTransportSupplier` and `AssignAccommodationSupplier` delete the prior
+  supplier's block when the supplier actually changes.
+
+Error code registry: `Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`.
+

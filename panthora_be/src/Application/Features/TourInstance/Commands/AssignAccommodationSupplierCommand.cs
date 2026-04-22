@@ -1,5 +1,7 @@
 using Application.Common;
+using Application.Common.Authorization;
 using Application.Common.Constant;
+using Application.Services;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Enums;
@@ -35,13 +37,18 @@ public sealed class AssignAccommodationSupplierCommandValidator : AbstractValida
 public sealed class AssignAccommodationSupplierCommandHandler(
     ITourInstanceRepository tourInstanceRepository,
     ISupplierRepository supplierRepository,
-    IUser user
+    IRoomBlockRepository roomBlockRepository,
+    IUser user,
+    ITourInstanceNotificationBroadcaster? notifications = null
 ) : ICommandHandler<AssignAccommodationSupplierCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(AssignAccommodationSupplierCommand request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(user.Id, out _))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+
+        var roleCheck = TourInstanceRoleGuard.Require(user, TourInstanceRoleGuard.ManagementRoles);
+        if (roleCheck.IsError) return roleCheck.Errors;
 
         // Validate supplier exists and is a hotel type
         var supplier = await supplierRepository.GetByIdAsync(request.SupplierId, cancellationToken);
@@ -70,8 +77,17 @@ public sealed class AssignAccommodationSupplierCommandHandler(
         if (activity.Accommodation is null)
             return Error.Validation("TourInstanceActivity.NoAccommodation", "Hoạt động lưu trú chưa có thông tin phòng.");
 
+        var previousSupplierId = activity.Accommodation.SupplierId;
+        bool isSupplierChanged = previousSupplierId.HasValue && previousSupplierId.Value != request.SupplierId;
+
         // Assign supplier — resets approval to Pending
         activity.Accommodation.AssignSupplier(request.SupplierId);
+
+        if (isSupplierChanged)
+        {
+            // Delete any stale room blocks hold by the previous supplier
+            await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(activity.Id, cancellationToken);
+        }
 
         // If instance was Available, move back to PendingApproval since a new supplier needs to approve
         if (instance.Status == TourInstanceStatus.Available)
@@ -80,6 +96,34 @@ public sealed class AssignAccommodationSupplierCommandHandler(
         }
 
         await tourInstanceRepository.Update(instance, cancellationToken);
+
+        // ER-13: fire Released + Assigned notifications (fire-and-forget).
+        if (notifications is not null)
+        {
+            try
+            {
+                if (isSupplierChanged && previousSupplierId.HasValue)
+                {
+                    await notifications.NotifyProviderReleasedAsync(
+                        previousSupplierId.Value,
+                        activity.Id,
+                        instance.Id,
+                        reason: "supplier-changed",
+                        ct: cancellationToken);
+                }
+
+                await notifications.NotifyProviderAssignedAsync(
+                    request.SupplierId,
+                    activity.Id,
+                    instance.Id,
+                    cancellationToken);
+            }
+            catch
+            {
+                // Notifications must never break the assignment flow.
+            }
+        }
+
         return Result.Success;
     }
 }

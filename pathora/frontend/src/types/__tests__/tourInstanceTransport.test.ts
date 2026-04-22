@@ -289,6 +289,36 @@ describe("TourInstanceDayActivityDto — flattened transport fields", () => {
     expect(activity.pickupLocation).toBeNull();
     expect(activity.dropoffLocation).toBeNull();
   });
+
+  it("supports per-activity transport planning and approval fields", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-transport-004",
+      order: 4,
+      activityType: "Transportation",
+      title: "Mountain transfer",
+      description: null,
+      startTime: "06:00",
+      endTime: "10:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
+      requestedVehicleType: "Coach",
+      requestedSeatCount: 28,
+      transportSupplierId: "supplier-transport-1",
+      transportSupplierName: "Sapa Mountain Transit",
+      transportationApprovalStatus: "Pending",
+      transportationApprovalNote: "Need luggage compartment space",
+    };
+
+    expect(activity.requestedVehicleType).toBe("Coach");
+    expect(activity.requestedSeatCount).toBe(28);
+    expect(activity.transportSupplierId).toBe("supplier-transport-1");
+    expect(activity.transportSupplierName).toBe("Sapa Mountain Transit");
+    expect(activity.transportationApprovalStatus).toBe("Pending");
+    expect(activity.transportationApprovalNote).toBe(
+      "Need luggage compartment space",
+    );
+  });
 });
 
 describe("TourInstanceDayActivityDto — accommodation field", () => {

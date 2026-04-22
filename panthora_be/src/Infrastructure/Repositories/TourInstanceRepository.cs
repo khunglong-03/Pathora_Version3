@@ -164,9 +164,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .AsNoTracking()
             .AsSplitQuery()
             .Include(t => t.Managers).ThenInclude(m => m.User)
+#pragma warning disable CS0618
             .Include(t => t.TransportProvider)
+#pragma warning restore CS0618
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc.Supplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
@@ -337,21 +340,20 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Classification)
             .Include(t => t.Thumbnail)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
             .Where(t => !t.IsDeleted);
 
-        // Match instances where provider is transport OR supplier on any accommodation
+        // Match instances where provider is transport supplier on any activity OR accommodation supplier on any activity
         query = query.Where(t =>
-            t.TransportProviderId == providerId ||
+            t.InstanceDays.Any(d => d.Activities.Any(a => a.TransportSupplierId == providerId)) ||
             t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId)));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-#pragma warning disable CS0618
             query = query.Where(t =>
-                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status) ||
+                t.InstanceDays.Any(d => d.Activities.Any(a => a.TransportSupplierId == providerId && a.TransportationApprovalStatus == status)) ||
                 t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status)));
-#pragma warning restore CS0618
         }
 
         return await query
@@ -369,17 +371,15 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Where(t => !t.IsDeleted);
 
         query = query.Where(t =>
-            t.TransportProviderId == providerId ||
+            t.InstanceDays.Any(d => d.Activities.Any(a => a.TransportSupplierId == providerId)) ||
             t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId)));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-#pragma warning disable CS0618
             query = query.Where(t =>
-                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status) ||
+                t.InstanceDays.Any(d => d.Activities.Any(a => a.TransportSupplierId == providerId && a.TransportationApprovalStatus == status)) ||
                 t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status)));
-#pragma warning restore CS0618
         }
 
         return await query.CountAsync(cancellationToken);

@@ -12,6 +12,7 @@ using Domain.Entities.Translations;
 using Domain.Enums;
 using Domain.Mails;
 using Domain.ValueObjects;
+using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
@@ -29,6 +30,7 @@ public interface ITourInstanceService
         string? note,
         string providerType,
         IReadOnlyCollection<Guid>? accommodationActivityIds = null,
+        IReadOnlyCollection<Guid>? transportationActivityIds = null,
         CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetProviderAssigned(int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
@@ -56,7 +58,9 @@ public class TourInstanceService(
     IUser user,
     IMapper mapper,
     ILogger<TourInstanceService> logger,
-    ITourInstanceNotificationBroadcaster? notificationBroadcaster = null) : ITourInstanceService
+    ITourInstanceNotificationBroadcaster? notificationBroadcaster = null,
+    IVehicleBlockRepository? vehicleBlockRepository = null,
+    IUnitOfWork? unitOfWork = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
@@ -69,7 +73,9 @@ public class TourInstanceService(
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
+    private readonly IUnitOfWork? _unitOfWork = unitOfWork;
     private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
+    private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -237,6 +243,14 @@ public class TourInstanceService(
                         instanceActivity.Price = templateActivity.Price;
                         instanceActivity.BookingReference = templateActivity.BookingReference;
                         instanceActivity.VehicleId = assignedData?.VehicleId;
+                        // Per-activity transport plan fields
+                        if (assignedData?.TransportSupplierId.HasValue == true)
+                        {
+                            instanceActivity.AssignTransportSupplier(
+                                assignedData.TransportSupplierId.Value,
+                                assignedData.RequestedVehicleType ?? VehicleType.Coach,
+                                assignedData.RequestedSeatCount ?? request.MaxParticipation);
+                        }
                         break;
                 }
 
@@ -273,7 +287,7 @@ public class TourInstanceService(
     // See AssignRoomToAccommodationCommand for per-activity room validation
 
     private async Task<ErrorOr<Dictionary<Guid, Guid>>> ValidateVehicleAssignmentsAsync(
-        Guid? transportProviderId,
+        Guid? legacyTransportProviderId,
         IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
     {
         var vehicleAssignments = (activityAssignments ?? [])
@@ -283,62 +297,68 @@ public class TourInstanceService(
         if (vehicleAssignments.Count == 0)
             return new Dictionary<Guid, Guid>();
 
-        if (!transportProviderId.HasValue)
-        {
-            return Error.Validation(
-                "TourInstance.TransportProviderRequiredForVehicleAssignments",
-                "Transport provider is required when assigning vehicles.");
-        }
+        var validatedVehicleAssignments = new Dictionary<Guid, Guid>();
 
-        var supplier = await _supplierRepository.GetByIdAsync(transportProviderId.Value);
-        if (supplier is null || supplier.IsDeleted)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
-
-        // Task 3.1: Validate supplier is active
-        if (!supplier.IsActive)
-        {
-            return Error.Validation(
-                "TourInstance.SupplierInactive",
-                $"Transport provider '{supplier.Name}' is inactive.");
-        }
-
-        // Task 3.1: Check if the owner user is banned
-        if (supplier.OwnerUserId.HasValue)
-        {
-            var owner = await _tourInstanceRepository.FindUserByIdAsync(supplier.OwnerUserId.Value);
-            if (owner?.Status == UserStatus.Banned)
-            {
-                return Error.Validation("TourInstance.SupplierBanned", $"Tài khoản của nhà cung cấp '{supplier.Name}' đã bị khóa.");
-            }
-        }
-
-        // Task 2.1-2.3: Validate vehicle ownership via batch query
-        // Vehicle.OwnerId maps to User, and Supplier.OwnerUserId maps to the same User.
-        if (!supplier.OwnerUserId.HasValue)
-        {
-            return Error.Validation(
-                "TourInstance.SupplierMissingOwner",
-                $"Transport provider '{supplier.Name}' has no owner assigned.");
-        }
-
-        var requestedVehicleIds = vehicleAssignments
-            .Select(a => a.VehicleId!.Value)
-            .Distinct()
+        // Group assignments by the effective supplier ID (per-activity or fallback to legacy)
+        var assignmentsBySupplier = vehicleAssignments
+            .GroupBy(a => a.TransportSupplierId ?? legacyTransportProviderId)
             .ToList();
 
-        var ownedVehicleIds = await _vehicleRepository.FindActiveIdsByOwnerAsync(
-            requestedVehicleIds, supplier.OwnerUserId.Value);
-
-        var validatedVehicleAssignments = new Dictionary<Guid, Guid>();
-        foreach (var assignment in vehicleAssignments)
+        foreach (var group in assignmentsBySupplier)
         {
-            if (!ownedVehicleIds.Contains(assignment.VehicleId!.Value))
+            var supplierId = group.Key;
+            if (!supplierId.HasValue)
             {
                 return Error.Validation(
-                    "TourInstance.VehicleNotOwnedByProvider",
-                    $"Phương tiện ID '{assignment.VehicleId}' không thuộc quyền sở hữu của nhà cung cấp '{supplier.Name}' hoặc đã bị ngừng hoạt động.");
+                    "TourInstance.TransportSupplierRequiredForVehicleAssignments",
+                    "Transport supplier is required when assigning vehicles.");
             }
-            validatedVehicleAssignments[assignment.OriginalActivityId] = assignment.VehicleId!.Value;
+
+            var supplier = await _supplierRepository.GetByIdAsync(supplierId.Value);
+            if (supplier is null || supplier.IsDeleted)
+                return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
+
+            if (!supplier.IsActive)
+            {
+                return Error.Validation(
+                    "TourInstance.SupplierInactive",
+                    $"Transport provider '{supplier.Name}' is inactive.");
+            }
+
+            if (supplier.OwnerUserId.HasValue)
+            {
+                var owner = await _tourInstanceRepository.FindUserByIdAsync(supplier.OwnerUserId.Value);
+                if (owner?.Status == UserStatus.Banned)
+                {
+                    return Error.Validation("TourInstance.SupplierBanned", $"Tài khoản của nhà cung cấp '{supplier.Name}' đã bị khóa.");
+                }
+            }
+
+            if (!supplier.OwnerUserId.HasValue)
+            {
+                return Error.Validation(
+                    "TourInstance.SupplierMissingOwner",
+                    $"Transport provider '{supplier.Name}' has no owner assigned.");
+            }
+
+            var requestedVehicleIds = group
+                .Select(a => a.VehicleId!.Value)
+                .Distinct()
+                .ToList();
+
+            var ownedVehicleIds = await _vehicleRepository.FindActiveIdsByOwnerAsync(
+                requestedVehicleIds, supplier.OwnerUserId.Value);
+
+            foreach (var assignment in group)
+            {
+                if (!ownedVehicleIds.Contains(assignment.VehicleId!.Value))
+                {
+                    return Error.Validation(
+                        "TourInstance.VehicleNotOwnedByProvider",
+                        $"Phương tiện ID '{assignment.VehicleId}' không thuộc quyền sở hữu của nhà cung cấp '{supplier.Name}' hoặc đã bị ngừng hoạt động.");
+                }
+                validatedVehicleAssignments[assignment.OriginalActivityId] = assignment.VehicleId!.Value;
+            }
         }
 
         return validatedVehicleAssignments;
@@ -437,17 +457,25 @@ public class TourInstanceService(
     {
         if (_notificationBroadcaster is null) return;
 
-        // Notify TransportProvider
-        if (entity.TransportProviderId.HasValue)
+        // Notify TransportProviders (per-activity, collect distinct suppliers)
+        var transportSupplierIds = entity.InstanceDays
+            .Where(day => !day.IsDeleted)
+            .SelectMany(day => day.Activities)
+            .Where(act => act.TransportSupplierId.HasValue)
+            .Select(act => act.TransportSupplierId!.Value)
+            .Distinct()
+            .ToList();
+
+        foreach (var transportSupplierId in transportSupplierIds)
         {
             try
             {
-                var transportSupplier = await _supplierRepository.GetByIdAsync(entity.TransportProviderId.Value);
+                var transportSupplier = await _supplierRepository.GetByIdAsync(transportSupplierId);
                 if (transportSupplier?.OwnerUserId is null)
                 {
                     _logger.LogWarning(
                         "Cannot notify TransportProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
-                        entity.Id, entity.TransportProviderId.Value);
+                        entity.Id, transportSupplierId);
                 }
                 else
                 {
@@ -460,8 +488,8 @@ public class TourInstanceService(
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
-                    "Failed to send assignment notification to TransportProvider for TourInstance {TourInstanceId}",
-                    entity.Id);
+                    "Failed to send assignment notification to TransportProvider {SupplierId} for TourInstance {TourInstanceId}",
+                    transportSupplierId, entity.Id);
             }
         }
 
@@ -558,6 +586,44 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        // ER-7: if MaxParticipation is increasing, ensure every vehicle already Approved for
+        // a transportation activity still covers the new size. Only load the full graph when
+        // a raise is actually requested.
+        if (request.MaxParticipation > entity.MaxParticipation)
+        {
+            var fullEntity = await _tourInstanceRepository.FindByIdWithInstanceDays(request.Id);
+            if (fullEntity is not null)
+            {
+                var vehicleIds = fullEntity.InstanceDays
+                    .Where(d => !d.IsDeleted)
+                    .SelectMany(d => d.Activities)
+                    .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                                && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved
+                                && a.VehicleId.HasValue)
+                    .Select(a => a.VehicleId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                var capacityMap = new Dictionary<Guid, int>(vehicleIds.Count);
+                foreach (var vid in vehicleIds)
+                {
+                    var vehicle = await _vehicleRepository.GetByIdAsync(vid);
+                    capacityMap[vid] = vehicle?.SeatCapacity ?? 0;
+                }
+
+                try
+                {
+                    fullEntity.EnsureCapacityCoversAllApprovedTransports(
+                        request.MaxParticipation,
+                        id => capacityMap.TryGetValue(id, out var c) ? c : 0);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Error.Validation("TourInstance.CapacityExceeded", ex.Message);
+                }
+            }
+        }
+
         var performedBy = _user.Id ?? string.Empty;
 
         // Update Managers
@@ -611,6 +677,12 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        // ER-3: clean up room/vehicle blocks tied to this tour instance before soft-delete,
+        // so inventory is freed back to the supplier.
+        await _roomBlockRepository.DeleteByTourInstanceAsync(id);
+        if (_vehicleBlockRepository is not null)
+            await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
+
         await _tourInstanceRepository.SoftDelete(id);
         return Result.Success;
     }
@@ -624,6 +696,15 @@ public class TourInstanceService(
         var performedBy = _user.Id ?? string.Empty;
         entity.ChangeStatus(newStatus, performedBy);
         await _tourInstanceRepository.Update(entity);
+
+        // ER-3: whenever the tour transitions into Cancelled, free all inventory holds.
+        if (newStatus == TourInstanceStatus.Cancelled)
+        {
+            await _roomBlockRepository.DeleteByTourInstanceAsync(id);
+            if (_vehicleBlockRepository is not null)
+                await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
+        }
+
         return Result.Success;
     }
 
@@ -633,6 +714,7 @@ public class TourInstanceService(
         string? note,
         string providerType,
         IReadOnlyCollection<Guid>? accommodationActivityIds = null,
+        IReadOnlyCollection<Guid>? transportationActivityIds = null,
         CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(_user.Id, out var currentUserId))
@@ -668,7 +750,9 @@ public class TourInstanceService(
 
         bool hasAccess = providerType switch
         {
-            "Transport" => supplier.Id == instance.TransportProviderId,
+            "Transport" => instance.InstanceDays
+                .SelectMany(d => d.Activities)
+                .Any(a => a.TransportSupplierId.HasValue && ownerSupplierIds.Contains(a.TransportSupplierId.Value)),
             "Hotel" => instance.InstanceDays
                 .SelectMany(d => d.Activities)
                 .Any(a => a.Accommodation?.SupplierId != null && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)),
@@ -678,20 +762,6 @@ public class TourInstanceService(
         if (!hasAccess)
             return Error.Validation("TourInstance.ProviderNotAssigned", $"You are not assigned as the {providerType} provider for this tour instance.");
 
-        if (providerType == "Transport" && isApproved)
-        {
-            var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
-            if (fullInstance != null)
-            {
-                var unassigned = fullInstance.InstanceDays
-                    .Where(d => !d.IsDeleted)
-                    .SelectMany(d => d.Activities)
-                    .Where(a => a.ActivityType == TourDayActivityType.Transportation && (a.VehicleId == null || a.DriverId == null))
-                    .ToList();
-                if (unassigned.Count > 0)
-                    return Error.Validation("TourInstance.ActivitiesNotAssigned", $"Còn {unassigned.Count} hoạt động vận chuyển chưa được gán xe/tài xế.");
-            }
-        }
 
         if (providerType == "Hotel" && isApproved)
         {
@@ -738,47 +808,129 @@ public class TourInstanceService(
         var statusBeforeApprove = instance.Status;
         string notificationProviderName = supplier.Name;
 
-        if (providerType == "Transport")
+        // ER-1/ER-8: prefer a RepeatableRead transaction; fall back to plain execution for
+        // tests/test-harness where IUnitOfWork is not provided.
+        async Task RunTransactional(Func<Task> work)
         {
-            instance.ApproveByTransportProvider(supplier.Id, isApproved, note);
+            if (_unitOfWork is not null)
+                await _unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, work);
+            else
+                await work();
         }
-        else if (providerType == "Hotel")
-        {
-            // Approve accommodation activities owned by this supplier
-            var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
-            if (fullInst != null)
-            {
-                var requestedActivityIds = accommodationActivityIds?.Count > 0
-                    ? accommodationActivityIds.ToHashSet()
-                    : null;
-                var approvedSupplierIds = fullInst.InstanceDays
-                    .Where(day => !day.IsDeleted)
-                    .SelectMany(day => day.Activities)
-                    .Where(act =>
-                        act.Accommodation?.SupplierId != null
-                        && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
-                        && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
-                    .Select(act => act.Accommodation!.SupplierId!.Value)
-                    .Distinct()
-                    .ToList();
 
-                foreach (var day in fullInst.InstanceDays)
+        try
+        {
+            if (providerType == "Transport")
+            {
+                await RunTransactional(async () =>
                 {
-                    foreach (var act in day.Activities)
+                    var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+                    if (fullInstance is null) return;
+
+                    var requestedTransportActivityIds = transportationActivityIds?.ToHashSet();
+                    var transportActivities = fullInstance.InstanceDays
+                        .Where(d => !d.IsDeleted)
+                        .SelectMany(d => d.Activities)
+                        .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                                 && a.TransportSupplierId.HasValue
+                                 && ownerSupplierIds.Contains(a.TransportSupplierId.Value)
+                                 && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(a.Id)))
+                        .ToList();
+
+                    for (int i = 0; i < transportActivities.Count; i++)
                     {
-                        if (act.Accommodation?.SupplierId != null
-                            && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
-                            && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
+                        var act = transportActivities[i];
+                        if (isApproved)
                         {
-                            act.Accommodation.ApproveBySupplier(isApproved, note);
+                            if (act.VehicleId is null || act.DriverId is null)
+                            {
+                                throw new BulkApproveValidationException(
+                                    "TourInstance.BulkApproveFailed",
+                                    $"Activity '{act.Title}' (#{i}) chưa được gán xe/tài xế. Hãy gán trước khi duyệt.");
+                            }
+                            act.ApproveTransportation(act.VehicleId.Value, act.DriverId.Value, note);
+                        }
+                        else
+                        {
+                            act.RejectTransportation(note);
                         }
                     }
-                }
-                fullInst.CheckAndActivateTourInstance();
-                instance = fullInst;
-                notificationProviderName = BuildHotelApprovalNotificationLabel(ownerSuppliers, approvedSupplierIds);
+                    fullInstance.CheckAndActivateTourInstance();
+                    instance = fullInstance;
+                });
+            }
+            else if (providerType == "Hotel")
+            {
+                // ER-1: accommodation approve path wrapped in RepeatableRead transaction so that
+                // RoomBlock INSERT/DELETE and activity status flips commit atomically.
+                await RunTransactional(async () =>
+                {
+                    var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+                    if (fullInst is null) return;
+
+                    var requestedActivityIds = accommodationActivityIds?.Count > 0
+                        ? accommodationActivityIds.ToHashSet()
+                        : null;
+                    var approvedSupplierIds = fullInst.InstanceDays
+                        .Where(day => !day.IsDeleted)
+                        .SelectMany(day => day.Activities)
+                        .Where(act =>
+                            act.Accommodation?.SupplierId != null
+                            && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
+                            && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
+                        .Select(act => act.Accommodation!.SupplierId!.Value)
+                        .Distinct()
+                        .ToList();
+
+                    foreach (var day in fullInst.InstanceDays)
+                    {
+                        foreach (var act in day.Activities)
+                        {
+                            if (act.Accommodation?.SupplierId != null
+                                && ownerSupplierIds.Contains(act.Accommodation.SupplierId.Value)
+                                && (requestedActivityIds is null || requestedActivityIds.Contains(act.Id)))
+                            {
+                                // ER-4.3: idempotent — if already at target status, skip
+                                var alreadyAtTarget = isApproved
+                                    ? act.Accommodation.SupplierApprovalStatus == ProviderApprovalStatus.Approved
+                                    : act.Accommodation.SupplierApprovalStatus == ProviderApprovalStatus.Rejected;
+                                if (alreadyAtTarget) continue;
+
+                                act.Accommodation.ApproveBySupplier(isApproved, note);
+
+                                if (isApproved)
+                                {
+                                    // Tour-level holds are always Hard. Soft holds reserved for unpaid customer bookings.
+                                    var block = RoomBlockEntity.Create(
+                                        supplierId: act.Accommodation.SupplierId.Value,
+                                        roomType: act.Accommodation.RoomType ?? Domain.Enums.RoomType.Standard,
+                                        blockedDate: act.TourInstanceDay.ActualDate,
+                                        roomCountBlocked: act.Accommodation.Quantity,
+                                        performedBy: currentUserId.ToString(),
+                                        tourInstanceDayActivityId: act.Id,
+                                        holdStatus: HoldStatus.Hard
+                                    );
+                                    await _roomBlockRepository.AddAsync(block, cancellationToken);
+                                }
+                                else
+                                {
+                                    await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
+                                }
+                            }
+                        }
+                    }
+                    fullInst.CheckAndActivateTourInstance();
+                    instance = fullInst;
+                    notificationProviderName = BuildHotelApprovalNotificationLabel(ownerSuppliers, approvedSupplierIds);
+                });
             }
         }
+        catch (BulkApproveValidationException bex)
+        {
+            // ER-8: middle-of-loop failure rolled back entire transaction.
+            return Error.Validation(bex.Code, bex.Message);
+        }
+
         await _tourInstanceRepository.Update(instance, cancellationToken);
 
         // Notify manager and admins about the approval result (fire-and-forget)
@@ -854,10 +1006,11 @@ public class TourInstanceService(
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
 
         var supplierIds = suppliers.Select(s => s.Id).ToHashSet();
-        var hasAccess = (entity.TransportProviderId.HasValue && supplierIds.Contains(entity.TransportProviderId.Value))
-            || entity.InstanceDays
+        // Check access: user owns a supplier that is transport or hotel provider for any activity
+        var hasAccess = entity.InstanceDays
                 .SelectMany(d => d.Activities)
-                .Any(a => a.Accommodation?.SupplierId != null && supplierIds.Contains(a.Accommodation.SupplierId.Value));
+                .Any(a => (a.TransportSupplierId.HasValue && supplierIds.Contains(a.TransportSupplierId.Value))
+                        || (a.Accommodation?.SupplierId != null && supplierIds.Contains(a.Accommodation.SupplierId.Value)));
         if (!hasAccess)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -1050,4 +1203,13 @@ public class TourInstanceService(
 
         return _mapper.Map<TourDayActivityDto>(activity);
     }
+}
+
+/// <summary>
+/// Sentinel thrown inside the bulk-approve transaction to roll back every pending
+/// activity change and surface a structured validation error (ER-8).
+/// </summary>
+internal sealed class BulkApproveValidationException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
 }

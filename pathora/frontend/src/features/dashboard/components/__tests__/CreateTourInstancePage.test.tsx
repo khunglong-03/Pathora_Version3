@@ -118,6 +118,16 @@ describe("CreateTourInstancePage", () => {
                   endTime: null,
                   isOptional: false,
                 },
+                {
+                  id: "activity-trans-1",
+                  order: 2,
+                  activityType: "Transportation",
+                  title: "Transfer to Ha Long",
+                  description: null,
+                  startTime: null,
+                  endTime: null,
+                  isOptional: false,
+                },
               ],
             },
           ],
@@ -137,6 +147,22 @@ describe("CreateTourInstancePage", () => {
             email: null,
             address: "Hanoi",
             supplierType: "Accommodation",
+            note: null,
+            isActive: true,
+          },
+        ];
+      }
+
+      if (type === "1") {
+        return [
+          {
+            id: "trans-1",
+            supplierCode: "TRANSPORT-001",
+            name: "Transport Beta",
+            phone: null,
+            email: null,
+            address: "Ha Noi",
+            supplierType: "Transport",
             note: null,
             isActive: true,
           },
@@ -175,7 +201,7 @@ describe("CreateTourInstancePage", () => {
     vi.mocked(tourRequestService.getTourRequestDetail).mockResolvedValue(null as any);
   });
 
-  it("renders the accommodation supplier picker and submits supplierId in activity assignments", async () => {
+  it("submits per-activity accommodation and transport assignments without legacy transportProviderId", async () => {
     render(<CreateTourInstancePage />);
 
     await waitFor(() => {
@@ -237,23 +263,51 @@ describe("CreateTourInstancePage", () => {
       target: { value: "Standard" },
     });
 
+    const transportSupplierSelect = screen.getByRole("option", {
+      name: "-- Select Supplier (Optional) --",
+    }).parentElement as HTMLSelectElement;
+    fireEvent.change(transportSupplierSelect, {
+      target: { value: "trans-1" },
+    });
+
+    const vehicleTypeSelect = screen.getByRole("option", {
+      name: "-- Any --",
+    }).parentElement as HTMLSelectElement;
+    fireEvent.change(vehicleTypeSelect, {
+      target: { value: "1" },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Optional"), {
+      target: { value: "18" },
+    });
+
     fireEvent.click(screen.getByText("Create instance"));
 
     await waitFor(() => {
-      expect(tourInstanceService.createInstance).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Northern Escape - Premium Launch",
-          tourId: "tour-1",
-          classificationId: "class-1",
-          activityAssignments: [
-            expect.objectContaining({
-              originalActivityId: "activity-acc-1",
-              supplierId: "sup-1",
-              roomType: "Standard",
-            }),
-          ],
-        }),
-      );
+      expect(tourInstanceService.createInstance).toHaveBeenCalledTimes(1);
     });
+
+    const submittedPayload = vi.mocked(tourInstanceService.createInstance).mock
+      .calls[0][0] as Record<string, unknown>;
+
+    expect(submittedPayload).toMatchObject({
+      title: "Northern Escape - Premium Launch",
+      tourId: "tour-1",
+      classificationId: "class-1",
+    });
+    expect(submittedPayload).not.toHaveProperty("transportProviderId");
+    expect(submittedPayload.activityAssignments).toEqual([
+      expect.objectContaining({
+        originalActivityId: "activity-acc-1",
+        supplierId: "sup-1",
+        roomType: "Standard",
+      }),
+      expect.objectContaining({
+        originalActivityId: "activity-trans-1",
+        supplierId: "trans-1",
+        requestedVehicleType: 1,
+        requestedSeatCount: 18,
+      }),
+    ]);
   });
 });

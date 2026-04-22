@@ -49,14 +49,10 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasMaxLength(50)
             .IsRequired();
 
-#pragma warning disable CS0618
-        builder.Property(t => t.TransportApprovalStatus)
-            .HasConversion<int>()
-            .IsRequired();
-
-        builder.Property(t => t.TransportApprovalNote)
-            .HasMaxLength(1000);
-#pragma warning restore CS0618
+        // DEPRECATED: TransportApprovalStatus and TransportApprovalNote columns still exist in DB
+        // but properties have been removed from TourInstanceEntity.
+        // These columns will be dropped in the AddTransportPlanToActivity migration.
+        // DO NOT re-add EF mapping for removed properties.
 
         builder.Property(t => t.CancellationReason)
             .HasMaxLength(1000);
@@ -78,6 +74,13 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
         // Soft delete
         builder.Property(t => t.IsDeleted)
             .HasDefaultValue(false);
+
+        // ER-2: optimistic concurrency token. Postgres maps this to `bytea` (xmin is handled
+        // by `UseXminAsConcurrencyToken` in AppDbContext-wide config when needed).
+        builder.Property(t => t.RowVersion)
+            .IsRowVersion()
+            .IsRequired()
+            .HasDefaultValue(Array.Empty<byte>());
 
         // IncludedServices as JSONB column with value comparer for change tracking
         builder.Property(t => t.IncludedServices)
@@ -133,10 +136,14 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
 
         // NOTE: HotelProvider FK removed — hotel assignment is now per-accommodation activity
 
+        // DEPRECATED: TransportProvider FK — will be dropped in Release C migration (drop-transport-provider-id-column).
+        // Source of truth is now TourInstanceDayActivityEntity.TransportSupplierId per-activity.
+#pragma warning disable CS0618
         builder.HasOne(t => t.TransportProvider)
             .WithMany()
             .HasForeignKey(t => t.TransportProviderId)
             .OnDelete(DeleteBehavior.Restrict);
+#pragma warning restore CS0618
 
         // Managers (TourInstanceManagers) — configured via separate configuration class
         builder.Navigation(t => t.Managers);

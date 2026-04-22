@@ -38,11 +38,11 @@ public sealed class GetDriverActivitiesQueryHandler(
             a.TourDayActivityId,
             a.TourDayActivity?.Title ?? "Unknown Activity",
             a.TourDayActivity?.Description,
-            a.TourDayActivity?.StartTime.HasValue == true 
-                ? a.BookingActivityReservation?.StartTime?.Date.Add(a.TourDayActivity.StartTime.Value.ToTimeSpan()) 
+            a.TourDayActivity?.StartTime.HasValue == true
+                ? a.BookingActivityReservation?.StartTime?.Date.Add(a.TourDayActivity.StartTime.Value.ToTimeSpan())
                 : a.BookingActivityReservation?.StartTime,
-            a.TourDayActivity?.EndTime.HasValue == true 
-                ? a.BookingActivityReservation?.EndTime?.Date.Add(a.TourDayActivity.EndTime.Value.ToTimeSpan()) 
+            a.TourDayActivity?.EndTime.HasValue == true
+                ? a.BookingActivityReservation?.EndTime?.Date.Add(a.TourDayActivity.EndTime.Value.ToTimeSpan())
                 : a.BookingActivityReservation?.EndTime,
             null, // FromLocation (would need more includes/joins if required)
             null, // ToLocation

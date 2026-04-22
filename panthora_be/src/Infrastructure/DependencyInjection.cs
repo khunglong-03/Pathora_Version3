@@ -101,7 +101,7 @@ public static class DependencyInjection
         {
             var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection);
             services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexer);
-            
+
             services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
             fusionCacheBuilder.WithRegisteredDistributedCache();
         }

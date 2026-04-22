@@ -70,10 +70,10 @@ public class TourInstanceServiceProviderAssignedTests
         var userId = Guid.NewGuid();
         var supplierId = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
-        
-        var suppliers = new List<SupplierEntity> 
-        { 
-            new() { Id = supplierId, Name = "Test Supplier", OwnerUserId = userId } 
+
+        var suppliers = new List<SupplierEntity>
+        {
+            new() { Id = supplierId, Name = "Test Supplier", OwnerUserId = userId }
         };
         _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(suppliers);
@@ -107,8 +107,7 @@ public class TourInstanceServiceProviderAssignedTests
                 10,
                 1000,
                 "Available",
-                "Public",
-                1));
+                "Public"));
 
         // Act
         var result = await _sut.GetProviderAssigned(1, 10);
@@ -128,9 +127,9 @@ public class TourInstanceServiceProviderAssignedTests
         var supplier1Id = Guid.NewGuid();
         var supplier2Id = Guid.NewGuid();
         _user.Id.Returns(userId.ToString());
-        
-        var suppliers = new List<SupplierEntity> 
-        { 
+
+        var suppliers = new List<SupplierEntity>
+        {
             new() { Id = supplier1Id, Name = "Supplier 1", OwnerUserId = userId },
             new() { Id = supplier2Id, Name = "Supplier 2", OwnerUserId = userId }
         };
@@ -169,8 +168,7 @@ public class TourInstanceServiceProviderAssignedTests
                 10,
                 1000,
                 "Available",
-                "Public",
-                1));
+                "Public"));
 
         // Act
         var result = await _sut.GetProviderAssigned(1, 10);

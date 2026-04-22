@@ -57,7 +57,7 @@ public class UpdateUserStatusCommandHandlerTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal(UserStatus.Banned, user.Status);
-        
+
         await _supplierRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
         await _vehicleRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
         await _driverRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
@@ -85,7 +85,7 @@ public class UpdateUserStatusCommandHandlerTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal(UserStatus.Active, user.Status);
-        
+
         await _supplierRepository.DidNotReceive().DeactivateAllByOwnerAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
     }

@@ -433,6 +433,14 @@ export interface TourInstanceDayActivityDto {
   price?: number | null;
   bookingReference?: string | null;
 
+  // Transport Plan fields (per-activity)
+  requestedVehicleType?: string | null;
+  requestedSeatCount?: number | null;
+  transportSupplierId?: string | null;
+  transportSupplierName?: string | null;
+  transportationApprovalStatus?: string | null;
+  transportationApprovalNote?: string | null;
+
   // Instance-specific vehicle assignment (flattened)
   vehicleId?: string | null;
   vehiclePlate?: string | null;

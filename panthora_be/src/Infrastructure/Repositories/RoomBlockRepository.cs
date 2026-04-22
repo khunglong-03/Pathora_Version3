@@ -114,4 +114,14 @@ public class RoomBlockRepository(AppDbContext context)
             .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId.Value))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default)
+    {
+        var blocks = await _dbSet
+            .Where(x => x.TourInstanceDayActivity != null
+                        && x.TourInstanceDayActivity.TourInstanceDay.TourInstanceId == tourInstanceId)
+            .ToListAsync(cancellationToken);
+
+        _dbSet.RemoveRange(blocks);
+    }
 }

@@ -56,6 +56,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
         var assignHandler = new AssignAccommodationSupplierCommandHandler(
             _tourInstanceRepository,
             _supplierRepository,
+            _roomBlockRepository,
             _user);
 
         var service = new TourInstanceService(
@@ -81,13 +82,25 @@ public sealed class TourInstanceServiceApprovalFlowTests
         Assert.Equal(ProviderApprovalStatus.Pending, instance.InstanceDays[0].Activities[0].Accommodation?.SupplierApprovalStatus);
         Assert.Equal(TourInstanceStatus.PendingApproval, instance.Status);
 
+        // Seed a matching room block so ProviderApprove's rooms-allocated gate passes.
+        var seededBlock = RoomBlockEntity.Create(
+            supplierId: supplierId,
+            roomType: RoomType.Standard,
+            blockedDate: instance.InstanceDays[0].ActualDate,
+            roomCountBlocked: 1,
+            performedBy: ownerUserId.ToString(),
+            tourInstanceDayActivityId: accommodationActivityId,
+            holdStatus: HoldStatus.Hard);
+        _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { seededBlock });
+
         var approveResult = await service.ProviderApprove(
             instance.Id,
             true,
             "approved",
             "Hotel",
             [accommodationActivityId],
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Assert.False(approveResult.IsError);
         Assert.Equal(ProviderApprovalStatus.Approved, instance.InstanceDays[0].Activities[0].Accommodation?.SupplierApprovalStatus);
@@ -114,6 +127,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             RoomType.Deluxe,
             1,
             supplierId: supplierBetaId);
+        secondAccommodationActivity.TourInstanceDay = instance.InstanceDays[0];
         instance.InstanceDays[0].Activities.Add(secondAccommodationActivity);
         instance.InstanceDays[0].Activities[0].Accommodation!.AssignSupplier(supplierAlphaId);
 
@@ -139,8 +153,15 @@ public sealed class TourInstanceServiceApprovalFlowTests
             .Returns([supplierAlpha, supplierBeta]);
         _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.FindByIdWithInstanceDays(instance.Id, Arg.Any<CancellationToken>()).Returns(instance);
+        // Seed matching room blocks for both activities so rooms-allocated gate passes.
+        var actId1 = instance.InstanceDays[0].Activities[0].Id;
+        var actId2 = secondAccommodationActivity.Id;
         _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns(Array.Empty<RoomBlockEntity>());
+            .Returns(new[]
+            {
+                RoomBlockEntity.Create(supplierAlphaId, RoomType.Standard, instance.InstanceDays[0].ActualDate, 1, ownerUserId.ToString(), tourInstanceDayActivityId: actId1, holdStatus: HoldStatus.Hard),
+                RoomBlockEntity.Create(supplierBetaId, RoomType.Deluxe, instance.InstanceDays[0].ActualDate, 1, ownerUserId.ToString(), tourInstanceDayActivityId: actId2, holdStatus: HoldStatus.Hard)
+            });
 
         var service = new TourInstanceService(
             _tourInstanceRepository,
@@ -165,7 +186,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
                 instance.InstanceDays[0].Activities[0].Id,
                 secondAccommodationActivity.Id
             ],
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Assert.False(result.IsError);
         await _notificationBroadcaster.Received().NotifyProviderApprovalResultAsync(
@@ -179,6 +200,9 @@ public sealed class TourInstanceServiceApprovalFlowTests
 
     private static TourInstanceEntity CreatePendingApprovalInstance()
     {
+        // Manager's user id — must parse as Guid since prod NotifyProviderApprovalResultAsync
+        // short-circuits on non-Guid CreatedBy.
+        var managerUserId = Guid.NewGuid().ToString();
         var instance = TourInstanceEntity.Create(
             tourId: Guid.NewGuid(),
             classificationId: Guid.NewGuid(),
@@ -191,12 +215,9 @@ public sealed class TourInstanceServiceApprovalFlowTests
             endDate: DateTimeOffset.UtcNow.Date.AddDays(1),
             maxParticipation: 10,
             basePrice: 100m,
-            performedBy: "tester",
+            performedBy: managerUserId,
             transportProviderId: Guid.NewGuid());
 
-#pragma warning disable CS0618
-        instance.TransportApprovalStatus = ProviderApprovalStatus.Approved;
-#pragma warning restore CS0618
         instance.Status = TourInstanceStatus.PendingApproval;
 
         var day = TourInstanceDayEntity.Create(
@@ -217,6 +238,8 @@ public sealed class TourInstanceServiceApprovalFlowTests
             accommodationActivity.Id,
             RoomType.Standard,
             1);
+        // Wire parent navigation — prod code reads activity.TourInstanceDay.
+        accommodationActivity.TourInstanceDay = day;
 
         day.Activities.Add(accommodationActivity);
         instance.InstanceDays.Add(day);

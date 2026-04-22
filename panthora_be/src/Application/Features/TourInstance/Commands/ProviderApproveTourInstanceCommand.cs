@@ -16,7 +16,8 @@ public sealed record ProviderApproveTourInstanceCommand(
     bool IsApproved,
     string? Note,
     string ProviderType,
-    List<Guid>? AccommodationActivityIds = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    List<Guid>? AccommodationActivityIds = null,
+    List<Guid>? TransportationActivityIds = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }
@@ -46,15 +47,20 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
                 request.Note,
                 request.ProviderType,
                 request.AccommodationActivityIds,
+                request.TransportationActivityIds,
                 cancellationToken);
-                
+
         var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
         if (instance == null)
             return Error.NotFound("TourInstance.NotFound", "Tour Instance not found.");
 
+        var requestedTransportActivityIds = request.TransportationActivityIds?.ToHashSet();
+
         var unassignedActivityIds = instance.InstanceDays
             .SelectMany(d => d.Activities)
-            .Where(a => a.ActivityType == TourDayActivityType.Transportation && (a.VehicleId is null || a.DriverId is null))
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && (a.VehicleId is null || a.DriverId is null)
+                        && (requestedTransportActivityIds is null || requestedTransportActivityIds.Contains(a.Id)))
             .Select(a => a.Id)
             .ToList();
 
@@ -71,6 +77,7 @@ public sealed class ProviderApproveTourInstanceCommandHandler(
             request.Note,
             request.ProviderType,
             request.AccommodationActivityIds,
+            request.TransportationActivityIds,
             cancellationToken);
     }
 }

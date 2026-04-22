@@ -50,6 +50,16 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public decimal? Price { get; set; }
     public string? BookingReference { get; set; }
 
+    // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
+    /// <summary>Loại xe yêu cầu cho activity vận chuyển này (do Manager chỉ định).</summary>
+    public VehicleType? RequestedVehicleType { get; set; }
+    /// <summary>Số ghế yêu cầu (thường ≥ MaxParticipation). Provider phải chọn xe có SeatCapacity ≥ giá trị này.</summary>
+    public int? RequestedSeatCount { get; set; }
+    /// <summary>ID của Transport Supplier được gán cho activity này (thay thế TourInstance.TransportProviderId).</summary>
+    public Guid? TransportSupplierId { get; set; }
+    /// <summary>Transport Supplier navigation property.</summary>
+    public virtual SupplierEntity? TransportSupplier { get; set; }
+
     // Instance-specific Vehicle Assignment info
     public Guid? VehicleId { get; set; }
     public virtual VehicleEntity? Vehicle { get; set; }
@@ -62,7 +72,10 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
 
     /// <summary>Trạng thái phê duyệt của nhà cung cấp vận chuyển cho riêng activity này.</summary>
     public ProviderApprovalStatus TransportationApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
-    /// <summary>Ghi chú từ nhà cung cấp vận chuyển khi phê duyệt/từ chối.</summary>
+    /// <summary>
+    /// Ghi chú từ nhà cung cấp vận chuyển khi phê duyệt/từ chối.
+    /// v1 intentionally overwrites the previous note; approval history is tracked in a future change.
+    /// </summary>
     public string? TransportationApprovalNote { get; set; }
 
     public static TourInstanceDayActivityEntity Create(
@@ -110,5 +123,58 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         EndTime = endTime;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager assigns (or changes) the transport supplier for this transportation activity.
+    /// Resets approval status to Pending and clears any previously assigned vehicle/driver.
+    /// Mirrors <see cref="TourInstancePlanAccommodationEntity.AssignSupplier"/>.
+    /// </summary>
+    public void AssignTransportSupplier(Guid supplierId, VehicleType vehicleType, int seatCount)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only assign transport supplier to Transportation activities.");
+
+        TransportSupplierId = supplierId;
+        RequestedVehicleType = vehicleType;
+        RequestedSeatCount = seatCount;
+        TransportationApprovalStatus = ProviderApprovalStatus.Pending;
+        TransportationApprovalNote = null;
+        // Clear previous vehicle/driver assignment — provider must re-approve
+        VehicleId = null;
+        DriverId = null;
+    }
+
+    /// <summary>
+    /// Transport provider approves this activity: assigns a specific vehicle and driver.
+    /// Caller is responsible for creating the corresponding <c>VehicleBlock</c> Hard hold.
+    /// </summary>
+    /// <returns>The VehicleId and blocked date info for the caller to create a VehicleBlock.</returns>
+    public void ApproveTransportation(Guid vehicleId, Guid driverId, string? note)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only approve transportation on Transportation activities.");
+        if (!TransportSupplierId.HasValue)
+            throw new InvalidOperationException("Cannot approve transportation without an assigned supplier.");
+
+        VehicleId = vehicleId;
+        DriverId = driverId;
+        TransportationApprovalStatus = ProviderApprovalStatus.Approved;
+        TransportationApprovalNote = note;
+    }
+
+    /// <summary>
+    /// Transport provider rejects this activity. Clears vehicle/driver assignment.
+    /// Caller is responsible for deleting any existing <c>VehicleBlock</c>.
+    /// </summary>
+    public void RejectTransportation(string? note)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only reject transportation on Transportation activities.");
+
+        VehicleId = null;
+        DriverId = null;
+        TransportationApprovalStatus = ProviderApprovalStatus.Rejected;
+        TransportationApprovalNote = note;
     }
 }

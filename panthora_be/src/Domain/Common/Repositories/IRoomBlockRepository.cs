@@ -16,4 +16,9 @@ public interface IRoomBlockRepository : IRepository<RoomBlockEntity>
     Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdAsync(Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default);
     Task DeleteByTourInstanceDayActivityIdAsync(Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdsAsync(IEnumerable<Guid> tourInstanceDayActivityIds, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Deletes every <see cref="RoomBlockEntity"/> whose <c>TourInstanceDayActivity</c> belongs to
+    /// the given tour instance. Used by tour cancel / delete cleanup (ER-3).
+    /// </summary>
+    Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
 }

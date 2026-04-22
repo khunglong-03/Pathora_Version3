@@ -17,7 +17,10 @@ public class TourInstancePlanAccommodationEntity : Entity<Guid>
     public virtual SupplierEntity? Supplier { get; set; }
     /// <summary>Trạng thái duyệt của Supplier cho hoạt động này.</summary>
     public ProviderApprovalStatus SupplierApprovalStatus { get; set; } = ProviderApprovalStatus.NotAssigned;
-    /// <summary>Ghi chú/lý do từ chối của Supplier.</summary>
+    /// <summary>
+    /// Ghi chú/lý do từ chối của Supplier.
+    /// v1 intentionally overwrites the previous note; approval history is tracked in a future change.
+    /// </summary>
     public string? SupplierApprovalNote { get; set; }
 
     public RoomType? RoomType { get; set; }
@@ -85,6 +88,7 @@ public class TourInstancePlanAccommodationEntity : Entity<Guid>
 
     /// <summary>
     /// Supplier approves or rejects this accommodation activity.
+    /// v1 intentionally overwrites the previous note; approval history is tracked in a future change.
     /// </summary>
     public void ApproveBySupplier(bool isApproved, string? note = null)
     {

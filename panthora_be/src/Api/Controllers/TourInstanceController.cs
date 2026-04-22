@@ -144,11 +144,13 @@ public class TourInstanceController : BaseApiController
             request.IsApproved,
             request.Note,
             request.ProviderType,
-            request.AccommodationActivityIds));
+            request.AccommodationActivityIds,
+            request.TransportationActivityIds));
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    // ER-12: manager-level assignment requires Admin/Manager/TourDesigner.
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
     [HttpPost("{instanceId:guid}/accommodations/{activityId:guid}/assign-supplier")]
     public async Task<IActionResult> AssignAccommodationSupplier(Guid instanceId, Guid activityId, [FromBody] AssignSupplierRequest request)
     {
@@ -166,9 +168,60 @@ public class TourInstanceController : BaseApiController
 
     [AllowAnonymous]
     [HttpPut("{instanceId:guid}/activities/{activityId:guid}/assign")]
+    [Obsolete("Use POST .../transportation/{activityId}/approve instead. Kept for one release.")]
     public async Task<IActionResult> AssignVehicleToActivity(Guid instanceId, Guid activityId, [FromBody] AssignVehicleToRouteRequest request)
     {
         var result = await Sender.Send(new AssignVehicleToRouteCommand(instanceId, activityId, request.VehicleId, request.DriverId));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Assign (or change) the transport supplier for a transportation activity.
+    /// Sets plan fields (vehicle type, seat count) and resets approval to Pending.
+    /// </summary>
+    // ER-12: only management roles can (re)assign a supplier.
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/assign-supplier")]
+    public async Task<IActionResult> AssignTransportSupplier(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] AssignTransportSupplierRequest request)
+    {
+        var result = await Sender.Send(new AssignTransportSupplierCommand(
+            instanceId, activityId, request.SupplierId, request.RequestedVehicleType, request.RequestedSeatCount));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Provider approves transportation — confirms vehicle + driver for an activity.
+    /// Creates a Hard VehicleBlock hold and may activate the instance if all approvals are complete.
+    /// </summary>
+    // ER-12: only provider roles (plus Admin) can approve their own activities.
+    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/approve")]
+    public async Task<IActionResult> ApproveTransportationActivity(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] ApproveTransportationRequest request)
+    {
+        var result = await Sender.Send(new ApproveTransportationActivityCommand(
+            instanceId, activityId, request.VehicleId, request.DriverId, request.Note));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Provider rejects transportation — declines the assignment for an activity.
+    /// Deletes any VehicleBlock and moves instance back to PendingApproval.
+    /// </summary>
+    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/reject")]
+    public async Task<IActionResult> RejectTransportationActivity(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] RejectTransportationRequest request)
+    {
+        var result = await Sender.Send(new RejectTransportationActivityCommand(
+            instanceId, activityId, request.Note));
         return HandleResult(result);
     }
 
@@ -194,9 +247,23 @@ public sealed record ProviderApproveRequest(
     bool IsApproved,
     string ProviderType,
     string? Note,
-    List<Guid>? AccommodationActivityIds = null);
+    List<Guid>? AccommodationActivityIds = null,
+    List<Guid>? TransportationActivityIds = null);
 
 public sealed record AssignSupplierRequest(Guid SupplierId);
+
+public sealed record AssignTransportSupplierRequest(
+    Guid SupplierId,
+    VehicleType RequestedVehicleType,
+    int RequestedSeatCount);
+
+public sealed record ApproveTransportationRequest(
+    Guid VehicleId,
+    Guid DriverId,
+    string? Note = null);
+
+public sealed record RejectTransportationRequest(
+    string? Note = null);
 
 public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
 

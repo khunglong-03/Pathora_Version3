@@ -19,7 +19,8 @@ public class ResourceAvailabilityService(
         DateOnly date,
         int requestedCount,
         Guid? excludeTourInstanceDayActivityId = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Guid? excludeTourInstanceId = null)
     {
         var inventory = await inventoryRepository.FindByHotelAndRoomTypeAsync(supplierId, roomType, cancellationToken);
         if (inventory == null)
@@ -28,7 +29,7 @@ public class ResourceAvailabilityService(
         }
 
         var totalBlocked = await roomBlockRepository.GetBlockedRoomCountAsync(supplierId, roomType, date, null, cancellationToken);
-        
+
         int selfBlocked = 0;
         if (excludeTourInstanceDayActivityId.HasValue)
         {
@@ -36,7 +37,21 @@ public class ResourceAvailabilityService(
             selfBlocked = activityBlocks.Where(b => b.RoomType == roomType && b.BlockedDate == date).Sum(b => b.RoomCountBlocked);
         }
 
-        var netBlocked = totalBlocked - selfBlocked;
+        // ER-10: subtract tour-level holds belonging to the caller's own TourInstance so a
+        // customer booking doesn't get double-charged for rooms the tour has already held.
+        int tourLevelSelfBlocked = 0;
+        if (excludeTourInstanceId.HasValue)
+        {
+            var tourBlocks = await roomBlockRepository.GetBySupplierAsync(supplierId, cancellationToken);
+            tourLevelSelfBlocked = tourBlocks
+                .Where(b => b.RoomType == roomType
+                            && b.BlockedDate == date
+                            && b.TourInstanceDayActivity is not null
+                            && b.TourInstanceDayActivity.TourInstanceDay.TourInstanceId == excludeTourInstanceId.Value)
+                .Sum(b => b.RoomCountBlocked);
+        }
+
+        var netBlocked = totalBlocked - selfBlocked - tourLevelSelfBlocked;
         var available = inventory.TotalRooms - netBlocked;
 
         if (available < requestedCount)
@@ -56,7 +71,7 @@ public class ResourceAvailabilityService(
         CancellationToken cancellationToken = default)
     {
         var activeBlocks = await vehicleBlockRepository.FindActiveBlocksAsync(vehicleId, date, cancellationToken);
-        
+
         var otherBlocks = excludeTourInstanceDayActivityId.HasValue
             ? activeBlocks.Where(b => b.TourInstanceDayActivityId != excludeTourInstanceDayActivityId.Value)
             : activeBlocks;
@@ -71,7 +86,7 @@ public class ResourceAvailabilityService(
         // The design says "Vehicle has a hard hold" -> fail. 
         // If there's a soft hold, we might still allow another soft hold or wait.
         // For hardening, let's treat any active hold (Soft or Hard) as "Occupied" to be safe.
-        
+
         if (otherBlocks.Any())
         {
             logger.LogWarning("Vehicle availability check failed for {VehicleId} on {Date}. Vehicle has active holds.", vehicleId, date);

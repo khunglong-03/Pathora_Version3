@@ -38,7 +38,7 @@ public sealed class AdminManageVehicleCommandHandlerTests
         var adminId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var request = new CreateVehicleRequestDto("51A-12345", (int)VehicleType.Bus, "Ford", "Transit", 16, (int)Continent.Asia, "VN", [], "Note");
-        
+
         var user = new UserEntity { Id = providerId, IsDeleted = false };
         _userRepository.FindById(providerId, Arg.Any<CancellationToken>()).Returns(user);
         _userRepository.FindTransportProviderByIdAsync(providerId, Arg.Any<CancellationToken>()).Returns(user);
@@ -53,9 +53,9 @@ public sealed class AdminManageVehicleCommandHandlerTests
 
         // Assert
         Assert.False(result.IsError);
-        await _vehicleRepository.Received(1).AddAsync(Arg.Is<VehicleEntity>(v => 
-            v.VehiclePlate == "51A-12345" && 
-            v.OwnerId == providerId && 
+        await _vehicleRepository.Received(1).AddAsync(Arg.Is<VehicleEntity>(v =>
+            v.VehiclePlate == "51A-12345" &&
+            v.OwnerId == providerId &&
             v.CreatedBy == adminId.ToString()));
         await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
     }
@@ -67,7 +67,7 @@ public sealed class AdminManageVehicleCommandHandlerTests
         var adminId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var request = new CreateVehicleRequestDto("51A-12345", (int)VehicleType.Bus, null, null, 16, null, null, null, null);
-        
+
         var user = new UserEntity { Id = providerId, IsDeleted = false };
         _userRepository.FindById(providerId, Arg.Any<CancellationToken>()).Returns(user);
         _userRepository.FindTransportProviderByIdAsync(providerId, Arg.Any<CancellationToken>()).Returns((UserEntity?)null);
@@ -90,7 +90,7 @@ public sealed class AdminManageVehicleCommandHandlerTests
         var adminId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var request = new CreateVehicleRequestDto("51A-12345", (int)VehicleType.Bus, null, null, 16, null, null, null, null);
-        
+
         var user = new UserEntity { Id = providerId, IsDeleted = false };
         _userRepository.FindById(providerId, Arg.Any<CancellationToken>()).Returns(user);
         _userRepository.FindTransportProviderByIdAsync(providerId, Arg.Any<CancellationToken>()).Returns(user);
@@ -116,10 +116,10 @@ public sealed class AdminManageVehicleCommandHandlerTests
         var providerId = Guid.NewGuid();
         var plate = "51A-12345";
         var request = new UpdateVehicleRequestDto((int)VehicleType.Coach, "Mercedes", "Sprinter", 29, (int)Continent.Europe, "DE", [], "Updated note");
-        
+
         var user = new UserEntity { Id = providerId, IsDeleted = false };
         var vehicle = new VehicleEntity { VehiclePlate = plate, OwnerId = providerId };
-        
+
         _userRepository.FindById(providerId, Arg.Any<CancellationToken>()).Returns(user);
         _vehicleRepository.FindByPlateAndOwnerIdAsync(plate, providerId, Arg.Any<CancellationToken>()).Returns(vehicle);
 
@@ -145,10 +145,10 @@ public sealed class AdminManageVehicleCommandHandlerTests
         var providerId = Guid.NewGuid();
         var plate = "51A-12345";
         var vehicleId = Guid.NewGuid();
-        
+
         var user = new UserEntity { Id = providerId, IsDeleted = false };
         var vehicle = new VehicleEntity { Id = vehicleId, VehiclePlate = plate, OwnerId = providerId };
-        
+
         _userRepository.FindById(providerId, Arg.Any<CancellationToken>()).Returns(user);
         _vehicleRepository.FindByPlateAndOwnerIdAsync(plate, providerId, Arg.Any<CancellationToken>()).Returns(vehicle);
 

@@ -59,8 +59,8 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (activity is null)
             return Error.NotFound("TourInstanceDayActivity.NotFound", "Activity not found for the specified tour instance.");
 
-        if (instance.TransportProviderId != supplier.Id)
-            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this tour instance.");
+        if (activity.TransportSupplierId != supplier.Id)
+            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this activity.");
 
         var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
         if (vehicle is null || vehicle.IsDeleted || vehicle.OwnerId != currentUserId)

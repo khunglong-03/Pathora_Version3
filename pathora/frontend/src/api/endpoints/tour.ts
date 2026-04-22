@@ -40,6 +40,9 @@ export interface TourInstanceEndpoints {
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
+  ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string) => string;
+  APPROVE_TRANSPORTATION: (instanceId: string, activityId: string) => string;
+  REJECT_TRANSPORTATION: (instanceId: string, activityId: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -94,6 +97,12 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-supplier`,
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-rooms`,
+  ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/assign-supplier`,
+  APPROVE_TRANSPORTATION: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/approve`,
+  REJECT_TRANSPORTATION: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/reject`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {
