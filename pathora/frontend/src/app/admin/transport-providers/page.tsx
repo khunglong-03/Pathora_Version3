@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
-import type { TransportProviderListItem, PaginatedList } from "@/types/admin";
+import type { TransportProviderListItem, PaginatedList, TransportProviderStats } from "@/types/admin";
 import {
   AdminPageHeader,
   AdminKpiStrip,
@@ -20,12 +20,13 @@ import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
 import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
 
-type StatusFilter = "all" | "Active" | "Inactive";
+type StatusFilter = "all" | "Active" | "Inactive" | "Pending";
 
 const STATUS_TABS: Array<{ label: string; value: StatusFilter }> = [
   { label: "Tất cả", value: "all" },
   { label: "Hoạt động", value: "Active" },
   { label: "Ngừng", value: "Inactive" },
+  { label: "Chờ duyệt", value: "Pending" },
 ];
 
 export default function TransportProvidersPage() {
@@ -44,6 +45,24 @@ export default function TransportProvidersPage() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
   const [selectedContinents, setSelectedContinents] = useState<string[]>([]);
+
+  // Stats from dedicated endpoint
+  const [stats, setStats] = useState<TransportProviderStats | null>(null);
+
+  const loadStats = useCallback(async () => {
+    try {
+      const res = await adminService.getTransportProviderStats(debouncedSearch || undefined);
+      if (res) {
+        setStats(res);
+      }
+    } catch (e) {
+      console.error("Failed to load stats", e);
+    }
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats, reloadToken]);
 
   const loadProviders = useCallback(async () => {
     setIsLoading(true);
@@ -81,33 +100,36 @@ export default function TransportProvidersPage() {
     setCurrentPage(1);
   };
 
-  const activeCount = providers.filter((p) => p.status === "Active").length;
-
   const kpis = [
     {
       label: "Tổng nhà cung cấp",
-      value: total.toString(),
+      value: (stats?.total ?? 0).toString(),
       icon: "Van",
       accent: "#0D9488",
     },
     {
       label: "Đang hoạt động",
-      value: activeCount.toString(),
+      value: (stats?.active ?? 0).toString(),
       icon: "CheckCircle",
       accent: "#22C55E",
     },
     {
       label: "Đang chờ xử lý",
-      value: pendingCount.toString(),
-      icon: "Hourbar",
+      value: (stats?.pending ?? 0).toString(),
+      icon: "Hourglass",
       accent: "#C9873A",
     },
   ];
 
-  const tabsWithCounts = STATUS_TABS.map((tab) => ({
-    ...tab,
-    count: tab.value === "all" ? total : (tab.value === "Active" ? activeCount : total - activeCount),
-  }));
+  const tabsWithCounts = STATUS_TABS.map((tab) => {
+    let count = 0;
+    if (tab.value === "all") count = stats?.total ?? 0;
+    else if (tab.value === "Active") count = stats?.active ?? 0;
+    else if (tab.value === "Inactive") count = stats?.inactive ?? 0;
+    else if (tab.value === "Pending") count = stats?.pending ?? 0;
+    
+    return { ...tab, count };
+  });
 
   return (
     <div className="p-6">

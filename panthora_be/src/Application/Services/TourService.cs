@@ -164,8 +164,15 @@ public class TourService(
                             }
 
                             var enTranslation = act.Translations?.GetValueOrDefault("en");
-                            var fromLocationName = enTranslation?.FromLocationName;
-                            var toLocationName = enTranslation?.ToLocationName;
+                            var viTranslation = act.Translations?.GetValueOrDefault("vi");
+                            
+                            var fromLocationName = enTranslation?.FromLocationName 
+                                ?? viTranslation?.FromLocationName
+                                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
+                                
+                            var toLocationName = enTranslation?.ToLocationName 
+                                ?? viTranslation?.ToLocationName
+                                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
                             
                             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
                             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
@@ -476,6 +483,12 @@ public class TourService(
         if (request.DeletedActivityIds != null && request.DeletedActivityIds.Count > 0)
         {
             await CascadeDeleteActivitiesAsync(tour, request.DeletedActivityIds);
+        }
+
+        // Cascade soft-delete removed plans and their nested activities
+        if (request.DeletedPlanIds != null && request.DeletedPlanIds.Count > 0)
+        {
+            await CascadeDeletePlansAsync(tour, request.DeletedPlanIds);
         }
 
         // Standalone Accommodations, Locations, Transportations and Services are merged as TourResources
@@ -1079,8 +1092,15 @@ public class TourService(
             if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
 
             var enTranslation = act.Translations?.GetValueOrDefault("en");
-            var fromLocationName = enTranslation?.FromLocationName;
-            var toLocationName = enTranslation?.ToLocationName;
+            var viTranslation = act.Translations?.GetValueOrDefault("vi");
+            
+            var fromLocationName = enTranslation?.FromLocationName 
+                ?? viTranslation?.FromLocationName
+                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
+                
+            var toLocationName = enTranslation?.ToLocationName 
+                ?? viTranslation?.ToLocationName
+                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
             
             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
@@ -1247,6 +1267,23 @@ public class TourService(
         foreach (var classification in toDelete)
         {
             CascadeSoftDeleteClassification(classification, _user.Id ?? string.Empty);
+        }
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Cascade soft-deletes plans and all their nested activities.
+    /// </summary>
+    private async Task CascadeDeletePlansAsync(TourEntity tour, List<Guid> deletedIds)
+    {
+        var deletedSet = new HashSet<Guid>(deletedIds);
+        foreach (var classification in tour.Classifications)
+        {
+            var toDelete = classification.Plans.Where(p => deletedSet.Contains(p.Id)).ToList();
+            foreach (var plan in toDelete)
+            {
+                CascadeSoftDeletePlan(plan, _user.Id ?? string.Empty);
+            }
         }
         await Task.CompletedTask;
     }

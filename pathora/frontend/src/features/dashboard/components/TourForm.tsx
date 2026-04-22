@@ -38,6 +38,7 @@ export interface TourFormProps {
   onSubmit: (
     formData: FormData,
     deletedClassificationIds?: string[],
+    deletedPlanIds?: string[],
     deletedActivityIds?: string[],
     lastModifiedOnUtc?: string,
   ) => Promise<void>;
@@ -526,6 +527,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   );
   // Track deleted IDs for cascade soft-delete
   const [deletedClassificationIds, setDeletedClassificationIds] = useState<string[]>([]);
+  const [deletedPlanIds, setDeletedPlanIds] = useState<string[]>([]);
   const [deletedActivityIds, setDeletedActivityIds] = useState<string[]>([]);
 
   /* ── Auto-save draft ────────────────────────────────────────── */
@@ -1062,11 +1064,15 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   };
 
   const removeDayPlan = (clsIndex: number, dayIndex: number) => {
-    setDayPlans((prev) =>
-      prev.map((plans, i) =>
+    setDayPlans((prev) => {
+      const removedPlan = prev[clsIndex][dayIndex];
+      if (removedPlan.id) {
+        setDeletedPlanIds((ids) => [...ids, removedPlan.id!]);
+      }
+      return prev.map((plans, i) =>
         i === clsIndex ? plans.filter((_, j) => j !== dayIndex) : plans,
-      ),
-    );
+      );
+    });
   };
 
   const updateDayPlan = (
@@ -1405,21 +1411,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (initialData?.id) {
           formData.append("id", initialData.id);
         }
-        if (existingImages.length > 0) {
-          const preservedImages = existingImages
-            .filter((img) => img.fileId && img.publicURL)
-            .map((img) => ({
-              fileId: img.fileId,
-              originalFileName: img.originalFileName ?? "",
-              fileName: img.fileName ?? "",
-              publicURL: img.publicURL,
-            }));
-          if (preservedImages.length > 0) {
-            formData.append("existingImages", JSON.stringify(preservedImages));
-          }
-        }
+        const preservedImages = existingImages
+          .filter((img) => img.fileId && img.publicURL)
+          .map((img) => ({
+            fileId: img.fileId,
+            originalFileName: img.originalFileName ?? "",
+            fileName: img.fileName ?? "",
+            publicURL: img.publicURL,
+          }));
+        formData.append("existingImages", JSON.stringify(preservedImages));
         if (deletedClassificationIds.length > 0) {
           formData.append("deletedClassificationIds", JSON.stringify(deletedClassificationIds));
+        }
+        if (deletedPlanIds.length > 0) {
+          formData.append("deletedPlanIds", JSON.stringify(deletedPlanIds));
         }
         if (deletedActivityIds.length > 0) {
           formData.append("deletedActivityIds", JSON.stringify(deletedActivityIds));
@@ -1429,6 +1434,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       await onSubmit(
         formData, 
         deletedClassificationIds, 
+        deletedPlanIds,
         deletedActivityIds, 
         isEditMode ? initialData?.lastModifiedOnUtc : undefined
       );

@@ -15,9 +15,12 @@ import type {
   PaginatedList,
   StaffMemberDto,
   TransportProviderDetail,
+  TransportProviderStats,
+  DriverActivity,
 } from "@/types/admin";
 import { extractData, extractResult } from "@/utils/apiResponse";
 import { type TourManagerSummary } from "./tourManagerAssignmentService";
+import type { CreateVehicleDto, UpdateVehicleDto, Vehicle } from "./transportProviderService";
 
 export interface ManagerBankAccountDto {
   userId: string;
@@ -133,6 +136,14 @@ export const adminService = {
       { params: queryParams },
     );
     return extractResult<PaginatedList<TransportProviderListItem>>(response.data);
+  },
+
+  getTransportProviderStats: async (search?: string) => {
+    const response = await api.get<ApiResponse<TransportProviderStats>>(
+      API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_STATS,
+      { params: { search } }
+    );
+    return extractResult<TransportProviderStats>(response.data);
   },
 
   getTransportProviderDetail: async (id: string) => {
@@ -258,7 +269,39 @@ export const adminService = {
     );
     return extractResult(response.data);
   },
+
+  // Vehicle Management for Transport Providers (Admin-on-behalf)
+  createAdminTransportVehicle: async (providerId: string, data: CreateVehicleDto) => {
+    const response = await api.post<ApiResponse<Vehicle>>(
+      API_ENDPOINTS.ADMIN.CREATE_TRANSPORT_PROVIDER_VEHICLE(providerId),
+      data
+    );
+    return extractResult<Vehicle>(response.data);
+  },
+
+  updateAdminTransportVehicle: async (providerId: string, plate: string, data: UpdateVehicleDto) => {
+    const response = await api.put<ApiResponse<Vehicle>>(
+      API_ENDPOINTS.ADMIN.UPDATE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate),
+      data
+    );
+    return extractResult<Vehicle>(response.data);
+  },
+
+  deleteAdminTransportVehicle: async (providerId: string, plate: string) => {
+    const response = await api.delete<ApiResponse<null>>(
+      API_ENDPOINTS.ADMIN.DELETE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate)
+    );
+    return extractResult<null>(response.data);
+  },
+
+  getDriverActivities: async (providerId: string, driverId: string, params: { page?: number; limit?: number } = {}) => {
+    const response = await api.get<ApiResponse<PaginatedList<DriverActivity>>>(
+      API_ENDPOINTS.ADMIN.GET_DRIVER_ACTIVITIES(providerId, driverId),
+      { params: { pageNumber: params.page ?? 1, pageSize: params.limit ?? 50 } }
+    );
+    return extractResult<PaginatedList<DriverActivity>>(response.data);
+  },
 };
 
-export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto, TransportProviderDetail };
+export type { AdminUserListItem, AdminUserDetail, TransportProviderListItem, HotelProviderListItem, TourManagerStaffDto, ManagerSummaryDto, AdminDashboardOverview, PaginatedList, StaffMemberDto, TransportProviderDetail, TransportProviderStats };
 export type { TourManagerSummary };

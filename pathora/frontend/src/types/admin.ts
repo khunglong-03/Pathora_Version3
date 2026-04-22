@@ -148,9 +148,9 @@ export interface BookingSummaryItem {
 // ─── Transport Provider ─────────────────────────────────────────
 export interface TransportProviderListItem {
   id: string;
-  name: string;
+  fullName: string;
   email?: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
   status: string;
   bookingCount?: number;
@@ -158,6 +158,14 @@ export interface TransportProviderListItem {
   createdAt?: string;
   primaryContinent?: string | null;
   continents: string[];
+}
+
+// ─── Transport Provider Stats ───────────────────────────────────
+export interface TransportProviderStats {
+  total: number;
+  active: number;
+  inactive: number;
+  pending: number;
 }
 
 // ─── Transport Provider Detail ──────────────────────────────────
@@ -180,6 +188,25 @@ export interface DriverSummary {
   licenseType: string;
   phoneNumber: string;
   isActive: boolean;
+}
+
+export interface DriverActivity {
+  id: string;
+  bookingActivityReservationId: string;
+  bookingTitle: string;
+  bookingNote?: string;
+  tourDayActivityId: string;
+  activityTitle: string;
+  activityDescription?: string;
+  startTime?: string;
+  endTime?: string;
+  fromLocation?: string;
+  toLocation?: string;
+  status?: number;
+  rejectionReason?: string;
+  updatedAt: string;
+  vehiclePlate?: string;
+  vehicleType?: string;
 }
 
 export interface TransportProviderDetail {

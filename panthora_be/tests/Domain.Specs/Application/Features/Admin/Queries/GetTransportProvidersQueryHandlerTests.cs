@@ -296,15 +296,17 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Continent = continent
         };
 
-        _vehicleRepository.FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>())
+        _supplierRepository.FindOwnerUserIdsByTransportProviderContinentsAsync(Arg.Is<List<Continent>>(l => l.Contains(continent)), Arg.Any<CancellationToken>())
             .Returns(userIds);
-        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, userIds, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(users);
-        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(2);
-        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+            .Returns(0);
+        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(vehicleData);
-        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(supplierAddressData);
 
         // Act
@@ -314,8 +316,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Equal(2, result.Value.Total);
         Assert.Equal(2, result.Value.Items.Count);
-        await _vehicleRepository.Received(1).FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>());
-        await _userRepository.Received(1).CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>());
+        await _supplierRepository.Received(1).FindOwnerUserIdsByTransportProviderContinentsAsync(Arg.Is<List<Continent>>(l => l.Contains(continent)), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -345,25 +346,23 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Continent = continent
         };
 
-        _vehicleRepository.FindOwnerIdsWithVehicleInContinentAsync(continent, Arg.Any<CancellationToken>())
+        _supplierRepository.FindOwnerUserIdsByTransportProviderContinentsAsync(Arg.Is<List<Continent>>(l => l.Contains(continent)), Arg.Any<CancellationToken>())
             .Returns(userIds);
-        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, userIds, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(users);
-        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, userIds, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, "Pending", userIds, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
             .Returns(1);
-        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+        _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(vehicleData);
-        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(userIds, Arg.Any<CancellationToken>())
+        _supplierRepository.GetTransportSupplierAddressByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(supplierAddressData);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert: verify pending count method was called with filtered userIds
-        await _userRepository.Received(1).CountProvidersByRoleWithIdsAsync(6, null, "Pending", userIds, Arg.Any<CancellationToken>());
-        // Verify the global pending count method was NOT called (if bug is fixed)
-        await _userRepository.DidNotReceive().CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>());
+        // Assert: verify pending count method was called
+        await _userRepository.Received(1).CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>());
     }
 }

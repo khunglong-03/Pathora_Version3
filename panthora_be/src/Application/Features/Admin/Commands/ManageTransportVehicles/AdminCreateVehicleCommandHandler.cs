@@ -1,0 +1,104 @@
+namespace Application.Features.Admin.Commands.ManageTransportVehicles;
+
+using Application.Features.TransportProvider.Vehicles.DTOs;
+using Domain.Common.Repositories;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.UnitOfWork;
+using ErrorOr;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+public sealed class AdminCreateVehicleCommandHandler(
+    IVehicleRepository vehicleRepository,
+    IUserRepository userRepository,
+    ISupplierRepository supplierRepository,
+    IUnitOfWork unitOfWork,
+    ILogger<AdminCreateVehicleCommandHandler> logger)
+    : IRequestHandler<AdminCreateVehicleCommand, ErrorOr<VehicleResponseDto>>
+{
+    public async Task<ErrorOr<VehicleResponseDto>> Handle(
+        AdminCreateVehicleCommand request,
+        CancellationToken cancellationToken)
+    {
+        // 2.6 Ensure target provider is not soft-deleted
+        var user = await userRepository.FindById(request.ProviderUserId, cancellationToken);
+        if (user == null || user.IsDeleted)
+        {
+            return Error.NotFound("Admin.ProviderNotFound", "Target transport provider not found or deleted.");
+        }
+
+        // 2.3 Guard validation: target user must be TransportProvider and linked to valid transport supplier ownership
+        var transportProvider = await userRepository.FindTransportProviderByIdAsync(request.ProviderUserId, cancellationToken);
+        if (transportProvider == null)
+        {
+            return Error.Validation("Admin.InvalidTargetRole", "Target user must have the TransportProvider role.");
+        }
+
+        var suppliers = await supplierRepository.FindAllTransportProvidersAsync(cancellationToken);
+        var hasSupplier = suppliers.Any(s => s.OwnerUserId == request.ProviderUserId);
+        if (!hasSupplier)
+        {
+            return Error.Validation("Admin.NoSupplierOwnership", "Target transport provider does not own any transport supplier profile.");
+        }
+
+        // 2.5 Check for plate collision
+        var existingVehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(request.Request.VehiclePlate, request.ProviderUserId, cancellationToken);
+        if (existingVehicle != null)
+        {
+            return Error.Conflict("Admin.VehiclePlateCollision", $"Vehicle with plate '{request.Request.VehiclePlate}' already exists for this provider.");
+        }
+
+        // 2.9 Structured logging for admin-on-behalf mutation
+        logger.LogInformation(
+            "Admin {AdminId} is creating vehicle {Plate} for Provider {ProviderId}",
+            request.AdminId, request.Request.VehiclePlate, request.ProviderUserId);
+
+        var vehicle = VehicleEntity.Create(
+            request.Request.VehiclePlate,
+            (VehicleType)request.Request.VehicleType,
+            request.Request.SeatCapacity,
+            request.ProviderUserId, // Owner
+            request.AdminId.ToString(), // PerformedBy (Actor)
+            request.Request.Brand,
+            request.Request.Model,
+            request.Request.LocationArea.HasValue ? (Continent)request.Request.LocationArea.Value : null,
+            request.Request.OperatingCountries,
+            request.Request.VehicleImageUrls is { Count: > 0 }
+                ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
+                : null,
+            request.Request.Notes);
+
+        await vehicleRepository.AddAsync(vehicle);
+        await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        return MapToDto(vehicle);
+    }
+
+    private static VehicleResponseDto MapToDto(VehicleEntity v)
+    {
+        List<string>? imageUrls = null;
+        if (!string.IsNullOrEmpty(v.VehicleImageUrls))
+        {
+            try
+            {
+                imageUrls = System.Text.Json.JsonSerializer.Deserialize<List<string>>(v.VehicleImageUrls);
+            }
+            catch { /* ignore */ }
+        }
+
+        return new VehicleResponseDto(
+            v.Id,
+            v.VehiclePlate,
+            v.VehicleType.ToString(),
+            v.Brand,
+            v.Model,
+            v.SeatCapacity,
+            v.LocationArea?.ToString(),
+            v.OperatingCountries,
+            imageUrls,
+            v.IsActive,
+            v.Notes,
+            v.CreatedOnUtc);
+    }
+}

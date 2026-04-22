@@ -23,6 +23,7 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
   const handleSubmit = async (
     formData: FormData,
     deletedClassificationIds?: string[],
+    deletedPlanIds?: string[],
     deletedActivityIds?: string[],
     lastModifiedOnUtc?: string
   ) => {

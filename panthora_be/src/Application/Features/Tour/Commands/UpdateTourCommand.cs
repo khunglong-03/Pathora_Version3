@@ -26,6 +26,7 @@ public sealed record UpdateTourCommand(
     List<TransportationDto>? Transportations = null,
     List<ServiceDto>? Services = null,
     List<Guid>? DeletedClassificationIds = null,
+    List<Guid>? DeletedPlanIds = null,
     List<Guid>? DeletedActivityIds = null,
     TourScope TourScope = TourScope.Domestic,
     Continent? Continent = null,

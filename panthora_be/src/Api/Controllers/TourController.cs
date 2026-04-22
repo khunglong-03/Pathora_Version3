@@ -206,6 +206,7 @@ public class TourController(
         [FromForm] string? transportations = null,
         [FromForm] string? services = null,
         [FromForm] string? deletedClassificationIds = null,
+        [FromForm] string? deletedPlanIds = null,
         [FromForm] string? deletedActivityIds = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
@@ -281,6 +282,20 @@ public class TourController(
             }
         }
 
+        List<Guid>? parsedDeletedPlanIds = null;
+        if (!string.IsNullOrEmpty(deletedPlanIds))
+        {
+            try
+            {
+                parsedDeletedPlanIds = System.Text.Json.JsonSerializer
+                    .Deserialize<List<Guid>>(deletedPlanIds);
+            }
+            catch
+            {
+                // Ignore malformed JSON — service handles gracefully
+            }
+        }
+
         List<Guid>? parsedDeletedActivityIds = null;
         if (!string.IsNullOrEmpty(deletedActivityIds))
         {
@@ -299,7 +314,7 @@ public class TourController(
             id, tourName, shortDescription, longDescription,
             seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
             classificationData, accommodationData, locationData, transportationData, serviceData,
-            parsedDeletedClassificationIds, parsedDeletedActivityIds,
+            parsedDeletedClassificationIds, parsedDeletedPlanIds, parsedDeletedActivityIds,
             tourScope, continent, customerSegment, parsedClientTimestamp);
 
         var isManager = false;

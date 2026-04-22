@@ -12,6 +12,8 @@ public sealed class CreateVehicleRequestDtoValidator : AbstractValidator<CreateV
         RuleFor(x => x.VehiclePlate)
             .NotEmpty().WithMessage("Vehicle plate is required.")
             .MaximumLength(20).WithMessage("Vehicle plate must not exceed 20 characters.")
+            .Matches(@"^[A-Z0-9\s-.]{4,20}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+            .WithMessage("Invalid vehicle plate format (e.g. 51A-12345).")
             .MustAsync(async (plate, ct) => !await vehicleRepository.ExistsByPlateAsync(plate, ct))
             .WithMessage("Vehicle plate already exists.");
 

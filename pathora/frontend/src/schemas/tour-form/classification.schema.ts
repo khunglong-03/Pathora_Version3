@@ -4,6 +4,7 @@ export const classificationSchema = z.object({
   id: z.string().optional(),
   name: z
     .string()
+    .trim()
     .min(1, "Tên gói không được để trống")
     .max(200, "Tên gói không được vượt quá 200 ký tự"),
   enName: z
@@ -22,7 +23,7 @@ export const classificationSchema = z.object({
     .string()
     .min(1, "Giá không được âm")
     .transform((v) => Number(v))
-    .pipe(z.number().nonnegative("Giá không được âm"))
+    .pipe(z.number().positive("Giá phải lớn hơn 0"))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .catch(() => "" as any),
   durationDays: z

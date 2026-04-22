@@ -10,7 +10,10 @@ public static class ManagerEndpoint
 
     // Transport Provider
     public const string TransportProviders = "transport-providers";
+    public const string TransportProviderStats = "transport-providers/stats";
     public const string TransportProviderById = "transport-providers/{id:guid}";
+    public const string AdminTransportVehicles = "transport-providers/{id:guid}/vehicles";
+    public const string AdminTransportVehicleByPlate = "transport-providers/{id:guid}/vehicles/{plate}";
 
     // Hotel Provider
     public const string HotelProviders = "hotel-providers";

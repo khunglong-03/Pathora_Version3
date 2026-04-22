@@ -46,7 +46,9 @@ export interface TourFormProps {
   onSubmit: (
     formData: FormData,
     deletedClassificationIds?: string[],
+    deletedPlanIds?: string[],
     deletedActivityIds?: string[],
+    lastModifiedOnUtc?: string
   ) => Promise<void>;
   onCancel?: () => void;
 }
@@ -391,6 +393,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" }] as any,
       activeLang: "vi",
       deletedClassificationIds: [],
+      deletedPlanIds: [],
       deletedActivityIds: [],
     },
     mode: "onBlur",
@@ -523,6 +526,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     initialExistingImages ?? [],
   );
   const [deletedClassificationIds, setDeletedClassificationIds] = useState<string[]>([]);
+  const [deletedPlanIds, setDeletedPlanIds] = useState<string[]>([]);
   const [deletedActivityIds, setDeletedActivityIds] = useState<string[]>([]);
 
   /* ── Auto-save draft ────────────────────────────────────────── */
@@ -845,11 +849,15 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   };
 
   const removeDayPlan = (clsIndex: number, dayIndex: number) => {
-    setDayPlans((prev) =>
-      prev.map((plans, i) =>
+    setDayPlans((prev) => {
+      const removedPlan = prev[clsIndex][dayIndex];
+      if (removedPlan.id) {
+        setDeletedPlanIds((ids) => [...ids, removedPlan.id!]);
+      }
+      return prev.map((plans, i) =>
         i === clsIndex ? plans.filter((_, j) => j !== dayIndex) : plans,
-      ),
-    );
+      );
+    });
   };
 
   const updateDayPlan = (
@@ -1100,12 +1108,21 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (deletedClassificationIds.length > 0) {
           formData.append("deletedClassificationIds", JSON.stringify(deletedClassificationIds));
         }
+        if (deletedPlanIds.length > 0) {
+          formData.append("deletedPlanIds", JSON.stringify(deletedPlanIds));
+        }
         if (deletedActivityIds.length > 0) {
           formData.append("deletedActivityIds", JSON.stringify(deletedActivityIds));
         }
       }
 
-      await onSubmit(formData, deletedClassificationIds, deletedActivityIds);
+      await onSubmit(
+        formData, 
+        deletedClassificationIds, 
+        deletedPlanIds, 
+        deletedActivityIds,
+        isEditMode ? initialData?.lastModifiedOnUtc : undefined
+      );
 
       if (!isEditMode) {
         localStorage.removeItem(AUTOSAVE_KEY);

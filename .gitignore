@@ -134,4 +134,5 @@ ndepend.xml
 /.voice-tools/
 /manager_dashboard_redesign_plan.md
 .codex/
+.gemini/
 # Cursor Workspace

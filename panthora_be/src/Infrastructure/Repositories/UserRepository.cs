@@ -293,6 +293,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         {
             query = query.Where(u => u.Status == UserStatus.Inactive);
         }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+        }
 
         return await query
             .OrderByDescending(u => u.CreatedOnUtc)
@@ -331,6 +335,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
         {
             query = query.Where(u => u.Status == UserStatus.Inactive);
+        }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query.CountAsync(cancellationToken);
@@ -396,6 +404,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         {
             query = query.Where(u => u.Status == UserStatus.Inactive);
         }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+        }
 
         return await query
             .OrderByDescending(u => u.CreatedOnUtc)
@@ -435,6 +447,10 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
         {
             query = query.Where(u => u.Status == UserStatus.Inactive);
+        }
+        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query.CountAsync(cancellationToken);

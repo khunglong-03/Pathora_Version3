@@ -148,7 +148,20 @@ public sealed class UpdateVehicleCommandHandlerTests
         _vehicleRepository.FindByPlateAndOwnerIdAsync("30A-12345", ownerId, Arg.Any<CancellationToken>())
             .Returns(vehicle);
 
-        var command = ValidCommand("30A-12345");
+        var command = new UpdateVehicleCommand(
+            CurrentUserId: ownerId,
+            VehiclePlate: "30A-12345",
+            Request: new UpdateVehicleRequestDto(
+                VehicleType: (int)VehicleType.Bus,
+                Brand: "Updated Brand",
+                Model: "Updated Model",
+                SeatCapacity: 40,
+                LocationArea: (int?)Continent.Asia,
+                OperatingCountries: "VN",
+                VehicleImageUrls: new List<string>(),
+                Notes: "Updated notes"
+            )
+        );
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

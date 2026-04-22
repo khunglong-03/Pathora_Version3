@@ -35,7 +35,7 @@ const classificationSchemaForCombo = z.object({
     .string()
     .min(1, "Giá không được để trống")
     .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().nonnegative("Giá không được âm"))
+    .pipe(z.number().positive("Giá phải lớn hơn 0"))
     .or(z.string()),
   durationDays: z
     .string()
@@ -75,6 +75,7 @@ export const tourFormSchema = z.object({
   // UI state that travels with form
   activeLang: z.enum(["vi", "en"]).default("vi"),
   deletedClassificationIds: z.array(z.string()).optional().default([]),
+  deletedPlanIds: z.array(z.string()).optional().default([]),
   deletedActivityIds: z.array(z.string()).optional().default([]),
 });
 

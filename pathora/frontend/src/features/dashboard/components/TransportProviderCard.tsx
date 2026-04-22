@@ -29,7 +29,7 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold truncate" style={{ color: "#111827" }}>
-            {provider.name}
+            {provider.fullName}
           </h3>
           <div className="flex items-center gap-1.5 mt-1">
             <span
@@ -59,11 +59,11 @@ export function TransportProviderCard({ provider }: TransportProviderCardProps) 
             </span>
           </div>
         )}
-        {provider.phone && (
+        {provider.phoneNumber && (
           <div className="flex items-center gap-2">
             <PhoneIcon size={14} style={{ color: "#9CA3AF" }} />
             <span className="text-xs" style={{ color: "#6B7280" }}>
-              {provider.phone}
+              {provider.phoneNumber}
             </span>
           </div>
         )}

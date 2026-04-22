@@ -179,13 +179,13 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-22 3:41am GMT+7
+# [Pathora_Version3] recent context, 2026-04-22 5:48am GMT+7
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 12 obs (6,339t read) | 993,200t work | 99% savings
+Stats: 38 obs (17,885t read) | 1,761,657t work | 99% savings
 
 ### Apr 21, 2026
 15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
@@ -201,6 +201,32 @@ Stats: 12 obs (6,339t read) | 993,200t work | 99% savings
 93 " 🔵 Pathora_Version3 project layout: active backend is panthora_be, not backend/; no panthora_be/AGENTS.md exists
 94 3:13a ✅ multi-hotel-per-instance OpenSpec Docs Refined
 95 3:14a 🔵 multi-hotel-per-instance Implementation Progress: 37/66 Tasks Done
+96 5:04a 🔵 fix-tour-edit-bugs openspec directory structure confirmed
+97 " 🔵 fix-tour-edit-bugs: 5 critical Tour Builder edit bugs fully documented
+98 5:05a 🔵 Tour edit form has two TourForm.tsx files — dashboard and tour-designer paths
+99 5:11a 🔵 fix-tour-edit-bugs Task Structure in Pathora_Version3
+100 " 🔵 fix-tour-edit-bugs: Five Critical Bugs Identified in Tour Edit Workflow
+101 " 🔵 fix-tour-edit-bugs Task List: 9 Tasks Across 3 Groups
+102 " 🔵 Pathora_Version3 Project Architecture and Agent Instructions
+103 5:12a 🔵 Transportation Location Mapping Already Fixed in Main TourForm.tsx (lines 669-672)
+104 " 🔵 Image Retention Bug: existingImages Sent as JSON Object Array, Not retainedImageIds
+105 " 🔵 Validation UI: TourForm.tsx Already Has Red Border Logic; BasicInfoSection.tsx Also Has It
+106 " 🔵 TourDayActivityDto Type: fromLocationName/toLocationName Are Optional Fields on Backend DTO
+107 5:13a 🔵 Backend Tour Update API: existingImages Key Confirmed; Concurrency Check Has 1-Second Tolerance
+108 " 🔵 buildTourFormData Does NOT Append retainedImageIds — Image Retention Handled Separately in TourForm.tsx
+109 " 🔵 Autoplan Investigation Complete: Tasks 1.1 and 2.1-2.2 Already Partially Implemented
+110 " 🔵 TourImageUpload.tsx: imagesError IS Displayed; showExistingThumbnail Uses Computed Value (No useState Bug)
+111 " 🔵 Autoplan Full Audit Summary: All fix-tour-edit-bugs Tasks Appear Pre-Implemented; Focus Needed on Verification
+112 5:18a ⚖️ Adversarial CEO Review: Admin-Manage-Transport-Vehicles OpenSpec
+113 " 🔵 KPI Bug Confirmed: activeCount Computed from Current Page Slice
+114 " 🔵 Vehicles Tab is Read-Only; No Admin CRUD UI or Service Methods Exist
+115 " 🔵 Admin Vehicle Endpoints to Reuse Existing CQRS Commands via Provider ID Injection
+116 5:19a 🔵 Backend KPI Bug: total Is Filter-Scoped; pendingCount IS Global; activeCount Missing Entirely
+117 " 🔵 Security Gap: UpdateVehicle and DeleteVehicle Commands Use FindByPlateAndOwnerId — Incompatible with Admin Flow
+118 " 🔵 Transport Provider Admin Endpoints Served by ManagerController (ManagerOnly Policy), Not AdminController
+119 5:20a 🔵 Critical: pendingCount Is Also Broken — "Pending" Falls Through UserStatus Filter, Returns Total Count
+120 " 🔵 GetTransportProviderByIdQueryHandler Uses Dual Lookup Path: User ID or Supplier ID
+121 " 🔵 TransportProviderListItemDto Exposes UserStatus Enum (Not VerifyStatus) — No Pending State Representable
 
-Access 993k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 1762k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>
