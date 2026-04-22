@@ -15,8 +15,13 @@ import { userService } from "@/api/services/userService";
 import {
   NormalizedTourInstanceDto,
   UserInfo,
+  type TourInstanceDayActivityDto,
 } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import {
+  getApprovalAppearance,
+  normalizeApprovalStatus,
+} from "@/utils/approvalStatusHelper";
 import {
   StatCard,
   TeamSection,
@@ -25,6 +30,9 @@ import {
   formatDate,
   toDateInput,
 } from "./tour-instance/ViewComponents";
+import SupplierReassignmentModal from "./SupplierReassignmentModal";
+import { useAuth } from "@/contexts/AuthContext";
+
 
 type EditForm = {
   title: string;
@@ -63,37 +71,7 @@ const isAccommodationActivity = (activityType?: string | null) => {
   return normalized === "accommodation" || normalized === "8";
 };
 
-const normalizeApprovalStatus = (status?: string | null) =>
-  status?.trim().toLowerCase() ?? "";
-
-const getApprovalAppearance = (status?: string | null) => {
-  switch (normalizeApprovalStatus(status)) {
-    case "approved":
-      return {
-        label: "Da duyet",
-        icon: "heroicons:check-circle",
-        className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      };
-    case "rejected":
-      return {
-        label: "Da tu choi",
-        icon: "heroicons:x-circle",
-        className: "bg-rose-50 text-rose-700 border-rose-200",
-      };
-    case "pending":
-      return {
-        label: "Dang cho duyet",
-        icon: "heroicons:clock",
-        className: "bg-amber-50 text-amber-700 border-amber-200",
-      };
-    default:
-      return {
-        label: "Chua giao",
-        icon: "heroicons:information-circle",
-        className: "bg-slate-100 text-slate-600 border-slate-200",
-      };
-  }
-};
+// normalizeApprovalStatus and getApprovalAppearance imported from @/utils/approvalStatusHelper
 
 const buildApprovalSummary = (
   items: Array<{ assigned: boolean; status?: string | null }>,
@@ -183,6 +161,14 @@ export default function TourInstanceDetailPage() {
     description: "",
   });
 
+  // Supplier reassignment modal state (task 3.10)
+  const { user } = useAuth();
+  const canReassign = user?.roles?.some(
+    (r) => r.name === "Admin" || r.name === "Manager" || r.name === "TourDesigner",
+  );
+  const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
+  const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");
+
   // Check if navigated from creation and try to reuse POST response
   useEffect(() => {
     // Try to read full POST response from sessionStorage first
@@ -260,8 +246,7 @@ export default function TourInstanceDetailPage() {
     } catch (error: unknown) {
       const apiError = handleApiError(error);
       toast.error(
-        apiError.message ||
-        t("tourInstance.fetchError", "Failed to load tour instance details"),
+        t(apiError.message, t("tourInstance.fetchError", "Failed to load tour instance details")),
       );
       setData(null);
       setForm(null);
@@ -295,11 +280,7 @@ export default function TourInstanceDetailPage() {
         if (!active) return;
         const apiError = handleApiError(error);
         toast.error(
-          apiError.message ||
-          t(
-            "tourInstance.fetchError",
-            "Failed to load tour instance details",
-          ),
+          t(apiError.message, t("tourInstance.fetchError", "Failed to load tour instance details")),
         );
         setData(null);
         setForm(null);
@@ -420,7 +401,7 @@ export default function TourInstanceDetailPage() {
       }
     } catch (error: unknown) {
       const apiError = handleApiError(error);
-      toast.error(apiError.message || t("tourInstance.dayUpdateError", "Failed to update day"));
+      toast.error(t(apiError.message));
     }
   };
 
@@ -466,7 +447,7 @@ export default function TourInstanceDetailPage() {
       }
     } catch (error: unknown) {
       const apiError = handleApiError(error);
-      toast.error(apiError.message || t("tourInstance.activityUpdateError", "Failed to update activity"));
+      toast.error(t(apiError.message));
     }
   };
 
@@ -501,7 +482,7 @@ export default function TourInstanceDetailPage() {
       await loadData();
     } catch (error: unknown) {
       const apiError = handleApiError(error);
-      toast.error(apiError.message || t("tourInstance.dayAddError", "Failed to add day"));
+      toast.error(t(apiError.message));
     }
   };
 
@@ -599,7 +580,7 @@ export default function TourInstanceDetailPage() {
         await loadData();
       } else {
         toast.error(
-          apiError.message || "Failed to update tour instance",
+          t(apiError.message, "Failed to update tour instance"),
         );
       }
     } finally {
@@ -670,6 +651,7 @@ export default function TourInstanceDetailPage() {
   }
 
   return (
+    <>
     <main className="p-6 md:p-8 pb-32 flex-1 outline-none">
       {showCreatedBanner && (
         <div className="mx-auto max-w-[1440px] mb-4">
@@ -1206,7 +1188,7 @@ export default function TourInstanceDetailPage() {
                                               {t("tourInstance.accommodation.approval", "Accommodation approval")}
                                             </p>
                                             <span
-                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).className}`}
+                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).ringClassName}`}
                                             >
                                               <Icon icon={getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).icon} className="size-3" />
                                               {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
@@ -1262,12 +1244,28 @@ export default function TourInstanceDetailPage() {
                                               <Icon icon="heroicons:truck" className="size-3" />
                                               {t("tourInstance.transport.approval", "Transportation approval")}
                                             </p>
-                                            <span
-                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.transportationApprovalStatus).className}`}
-                                            >
-                                              <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
-                                              {getApprovalAppearance(activity.transportationApprovalStatus).label}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                              <span
+                                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.transportationApprovalStatus).ringClassName}`}
+                                              >
+                                                <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
+                                                {getApprovalAppearance(activity.transportationApprovalStatus).label}
+                                              </span>
+                                              {canReassign && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setReassignActivity(activity);
+                                                    setReassignType("Transportation");
+                                                  }}
+                                                  aria-label={`Đổi nhà cung cấp cho hoạt động ${activity.title}`}
+                                                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                >
+                                                  <Icon icon="heroicons:pencil-square" className="size-3" />
+                                                  Đổi NCC
+                                                </button>
+                                              )}
+                                            </div>
                                           </div>
 
                                           <div className="grid gap-2 sm:grid-cols-2">
@@ -1744,5 +1742,20 @@ export default function TourInstanceDetailPage() {
         )}
       </div>
     </main>
+
+      {/* Supplier Reassignment Modal (tasks 3.10-3.11) */}
+      {reassignActivity && (
+        <SupplierReassignmentModal
+          open={!!reassignActivity}
+          onClose={() => setReassignActivity(null)}
+          activity={reassignActivity}
+          activityType={reassignType}
+          tourInstanceId={id}
+          onSuccess={() => {
+            void loadData();
+          }}
+        />
+      )}
+    </>
   );
 }

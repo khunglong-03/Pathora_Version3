@@ -388,7 +388,7 @@ interface InstanceDetailsStepProps {
   hotelDetailsBySupplierId: Record<string, HotelProviderDetail>;
   updateActivityAssignment: (
     activityId: string,
-    updates: { supplierId?: string; roomType?: string; vehicleId?: string },
+    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number },
   ) => void;
   editableItinerary: EditableDay[];
   onUpdateActivity: (
@@ -1284,8 +1284,8 @@ function InstanceDetailsStep({
                                   {t("tourInstance.optional", "Optional")}
                                 </span>
                               )}
-                              {/* Edit / Delete buttons — visible on hover */}
-                              <span className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Edit / Delete buttons — always visible (was hover-only) */}
+                              <span className="ml-auto flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -1313,33 +1313,198 @@ function InstanceDetailsStep({
                               </span>
                             </div>
 
-                            {/* Compact read-only assignment summary */}
-                            <div className="ml-6 flex flex-wrap items-center gap-2">
-                              {activity.activityType === "Accommodation" &&
-                                form.activityAssignments[activity.id]?.supplierId && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-                                    <Icon icon="heroicons:building-office" className="size-3" />
-                                    {hotelProviders.find(h => h.id === form.activityAssignments[activity.id]?.supplierId)?.name ?? t("tourInstance.wizard.hotelAssigned", "Hotel assigned")}
-                                    {form.activityAssignments[activity.id]?.roomType && (
-                                      <span className="text-amber-600"> · {form.activityAssignments[activity.id]?.roomType}</span>
-                                    )}
-                                  </span>
-                                )}
-                              {activity.activityType === "Transportation" &&
-                                (form.activityAssignments[activity.id]?.supplierId ||
-                                 form.activityAssignments[activity.id]?.requestedVehicleType ||
-                                 form.activityAssignments[activity.id]?.requestedSeatCount) && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-800">
-                                    <Icon icon="heroicons:truck" className="size-3" />
-                                    {form.activityAssignments[activity.id]?.supplierId
-                                      ? (transportProviders.find(tp => tp.id === form.activityAssignments[activity.id]?.supplierId)?.name ?? t("tourInstance.wizard.transportAssigned", "Transport assigned"))
-                                      : t("tourInstance.wizard.transportAssigned", "Transport assigned")}
-                                    {form.activityAssignments[activity.id]?.requestedVehicleType !== undefined && (
-                                      <span className="text-blue-600"> · {TransportationTypeMap[form.activityAssignments[activity.id]?.requestedVehicleType ?? 99]}</span>
-                                    )}
-                                  </span>
-                                )}
-                            </div>
+                            {/* Always-visible supplier picker for Accommodation */}
+                            {activity.activityType === "Accommodation" && (
+                              <div className="ml-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
+                                <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
+                                  {t("tourInstance.wizard.supplierAssignment", "Supplier Assignment")}
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                      {t("tourInstance.wizard.hotelSupplier", "Hotel")}
+                                    </label>
+                                    <select
+                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      value={
+                                        form.activityAssignments[activity.id]
+                                          ?.supplierId ?? ""
+                                      }
+                                      onChange={(e) => {
+                                        const nextSupplierId = e.target.value || undefined;
+                                        const currentSupplierId =
+                                          form.activityAssignments[activity.id]
+                                            ?.supplierId;
+
+                                        updateActivityAssignment(activity.id, {
+                                          supplierId: nextSupplierId,
+                                          roomType:
+                                            currentSupplierId !== nextSupplierId
+                                              ? undefined
+                                              : form.activityAssignments[activity.id]
+                                                  ?.roomType,
+                                        });
+                                      }}>
+                                      <option value="">
+                                        {t(
+                                          "tourInstance.wizard.selectHotelSupplier",
+                                          "-- Select hotel --",
+                                        )}
+                                      </option>
+                                      {hotelProviders.map((hotel) => (
+                                        <option key={hotel.id} value={hotel.id}>
+                                          {hotel.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  {getProviderRoomOptions(
+                                    hotelDetailsBySupplierId[
+                                      form.activityAssignments[activity.id]
+                                        ?.supplierId ?? ""
+                                    ],
+                                  ).length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="space-y-1">
+                                        <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.roomType", "Room")}
+                                        </label>
+                                        {(() => {
+                                          const roomOptions = getProviderRoomOptions(
+                                            hotelDetailsBySupplierId[
+                                              form.activityAssignments[activity.id]
+                                                ?.supplierId ?? ""
+                                            ],
+                                          );
+
+                                          return (
+                                            <select
+                                              className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                              value={
+                                                form.activityAssignments[activity.id]
+                                                  ?.roomType ?? ""
+                                              }
+                                              onChange={(e) => {
+                                                const val = e.target.value || undefined;
+                                                updateActivityAssignment(activity.id, {
+                                                  roomType: val,
+                                                });
+                                              }}>
+                                              <option value="">
+                                                {t(
+                                                  "tourInstance.wizard.selectRoomType",
+                                                  "-- Select room --",
+                                                )}
+                                              </option>
+                                              {roomOptions.map((roomOption) => (
+                                                <option
+                                                  key={roomOption.roomType}
+                                                  value={roomOption.roomType}>
+                                                  {roomOption.label} (
+                                                  {roomOption.totalRooms})
+                                                </option>
+                                              ))}
+                                            </select>
+                                          );
+                                        })()}
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.roomQuantity", "Số phòng")}
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                          value={
+                                            form.activityAssignments[activity.id]
+                                              ?.accommodationQuantity ?? ""
+                                          }
+                                          onChange={(e) => {
+                                            updateActivityAssignment(activity.id, {
+                                              accommodationQuantity: e.target.value
+                                                ? Number(e.target.value)
+                                                : undefined,
+                                            });
+                                          }}
+                                          placeholder={t("common.optional", "Optional")}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Always-visible supplier picker for Transportation */}
+                            {activity.activityType === "Transportation" && (
+                              <div className="ml-6 space-y-2 rounded-lg border border-cyan-200 bg-cyan-50/60 p-2.5">
+                                <p className="text-[10px] font-semibold text-cyan-700 uppercase tracking-wider">
+                                  {t("tourInstance.wizard.transportPlan", "Transport Plan")}
+                                </p>
+                                <div className="space-y-2">
+                                  <div>
+                                    <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                      {t("tourInstance.wizard.transportProvider", "Transport Provider")}
+                                    </label>
+                                    <select
+                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      value={form.activityAssignments[activity.id]?.supplierId ?? ""}
+                                      onChange={(e) => {
+                                        updateActivityAssignment(activity.id, {
+                                          supplierId: e.target.value || undefined,
+                                        });
+                                      }}>
+                                      <option value="">
+                                        {t("tourInstance.wizard.selectSupplierOptional", "-- Select Supplier (Optional) --")}
+                                      </option>
+                                      {transportProviders.map((tp) => (
+                                        <option key={tp.id} value={tp.id}>{tp.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.vehicleType", "Vehicle Type")}
+                                      </label>
+                                      <select
+                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedVehicleType ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedVehicleType: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}>
+                                        <option value="">-- {t("common.any", "Any")} --</option>
+                                        {Object.entries(TransportationTypeMap).map(([val, label]) => (
+                                          <option key={val} value={val}>{label}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                        {t("tourInstance.wizard.seatCount", "Seat Count")}
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
+                                        onChange={(e) => {
+                                          updateActivityAssignment(activity.id, {
+                                            requestedSeatCount: e.target.value ? Number(e.target.value) : undefined,
+                                          });
+                                        }}
+                                        placeholder={t("common.optional", "Optional")}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1829,7 +1994,7 @@ export function CreateTourInstancePage({
 
   const updateActivityAssignment = (
     activityId: string,
-    updates: { supplierId?: string; roomType?: string; vehicleId?: string },
+    updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number },
   ) => {
     setForm((prev) => {
       const current = prev.activityAssignments[activityId] || {};
@@ -2098,7 +2263,7 @@ export function CreateTourInstancePage({
       const handledError = handleApiError(error);
       console.error("Failed to create tour instance:", handledError.message);
       toast.error(
-        handledError.message || t("tourInstance.createError", "Failed to create tour instance"),
+        t(handledError.message)
       );
     } finally {
       setSubmitting(false);
@@ -2119,7 +2284,7 @@ export function CreateTourInstancePage({
       } catch (error) {
         const msg = handleApiError(error);
         toast.error(
-          msg.message || t("tourInstance.form.uploadFailed", "Upload failed"),
+          t(msg.message)
         );
       } finally {
         setUploadingThumbnail(false);
@@ -2144,7 +2309,7 @@ export function CreateTourInstancePage({
       } catch (error) {
         const msg = handleApiError(error);
         toast.error(
-          msg.message || t("tourInstance.form.uploadFailed", "Upload failed"),
+          t(msg.message)
         );
       } finally {
         setUploadingImages(false);

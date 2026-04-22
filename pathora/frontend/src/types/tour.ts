@@ -396,6 +396,7 @@ export interface TourInstanceVm {
   basePrice: number;
   status: string;
   instanceType: string;
+  /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. Used by the rollup pill (section 1) only as a downscope pending backend DTO enrichment. */
   transportApprovalStatus: number;
 }
 
@@ -497,9 +498,13 @@ export interface TourInstanceDto {
   confirmationDeadline: string | null;
   managers: TourInstanceManagerDto[];
   includedServices: string[];
+  /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. */
   transportApprovalStatus: number;
+  /** @deprecated Instance-level approval note is a transition artifact. Per-activity note on days[].activities[].transportationApprovalNote is authoritative. */
   transportApprovalNote?: string | null;
+  /** @deprecated Use days[].activities[].transportSupplierId instead. Scheduled for removal with the drop-transport-provider-id-column change. */
   transportProviderId?: string | null;
+  /** @deprecated Use days[].activities[].transportSupplierName instead. Scheduled for removal with the drop-transport-provider-id-column change. */
   transportProviderName?: string | null;
   days?: TourInstanceDayDto[];
 }

@@ -1111,6 +1111,7 @@
     "RESOURCE_NOT_FOUND": "Resource not found",
     "RESOURCE_NOT_EXISTS": "Resource does not exist",
     "UNKNOWN_ERROR": "Unknown error occurred",
+    "UNEXPECTED": "An unexpected error occurred, please try again later",
     "AGENT_NAME_IS_REQUIRED": "Agent name is required",
     "EMAIL_IS_REQUIRED": "Email is required",
     "USERNAME_IS_REQUIRED": "Username is required",
@@ -2284,7 +2285,19 @@
       "pickup": "Pickup:",
       "dropoff": "Dropoff:",
       "departure": "Dep:",
-      "arrival": "Arr:"
+      "arrival": "Arr:",
+      "errors": {
+        "seatCountBelowCapacity": "Requested seat count cannot be less than the tour's max participation.",
+        "vehicleWrongType": "Vehicle type does not match the type requested for this activity.",
+        "vehicleInsufficientCapacity": "Vehicle seat capacity is not enough for the requested seat count.",
+        "vehicleWrongSupplier": "Vehicle does not belong to the supplier assigned to this activity.",
+        "vehicleUnavailable": "Vehicle is already held for another schedule on the same day.",
+        "roomBlockInsufficientInventory": "Not enough rooms available for this room type on the selected date.",
+        "providerNotAssigned": "You are not the supplier assigned to this activity.",
+        "bulkApproveFailed": "One or more activities could not be approved; the entire batch was rolled back.",
+        "capacityExceeded": "The new max participation exceeds the seat capacity of vehicles already approved for this tour."
+      },
+      "bulkApproveSuccess": "Successfully approved {{count}} transport activities."
     }
   },
   "pricingPolicy": {

@@ -97,8 +97,67 @@ interface BackendErrorPayload {
   errors?: BackendErrorItem[];
 }
 
+/**
+ * Canonical list of backend error codes for the per-activity transport
+ * request & approval flow (ER-15). Must stay in sync with:
+ * `panthora_be/src/Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`
+ */
+export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
+  "TourInstanceActivity.SeatCountBelowCapacity",
+  "Vehicle.WrongType",
+  "Vehicle.InsufficientCapacity",
+  "Vehicle.WrongSupplier",
+  "Vehicle.Unavailable",
+  "RoomBlock.InsufficientInventory",
+  "TourInstance.ProviderNotAssigned",
+  "TourInstance.BulkApproveFailed",
+  "TourInstance.CapacityExceeded",
+] as const;
+
+/**
+ * Maps a transport error code to its i18n translation key.
+ * Returns null if the code is not in the allowlist.
+ */
+const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
+  "TourInstanceActivity.SeatCountBelowCapacity": "tourInstance.transport.errors.seatCountBelowCapacity",
+  "Vehicle.WrongType": "tourInstance.transport.errors.vehicleWrongType",
+  "Vehicle.InsufficientCapacity": "tourInstance.transport.errors.vehicleInsufficientCapacity",
+  "Vehicle.WrongSupplier": "tourInstance.transport.errors.vehicleWrongSupplier",
+  "Vehicle.Unavailable": "tourInstance.transport.errors.vehicleUnavailable",
+  "RoomBlock.InsufficientInventory": "tourInstance.transport.errors.roomBlockInsufficientInventory",
+  "TourInstance.ProviderNotAssigned": "tourInstance.transport.errors.providerNotAssigned",
+  "TourInstance.BulkApproveFailed": "tourInstance.transport.errors.bulkApproveFailed",
+  "TourInstance.CapacityExceeded": "tourInstance.transport.errors.capacityExceeded",
+};
+
+/**
+ * Structured error metadata for API error codes.
+ * `remediation` is undefined today but the signature lets future PRs
+ * add deep-link actions per code without a breaking change.
+ */
+export interface ApiErrorMeta {
+  i18nKey: string | null;
+  remediation?: { kind: "navigate" | "contact" | "retry"; payload: string };
+}
+
+/**
+ * Returns structured metadata for a backend error code.
+ * Useful for UI components that need more than just a translated string.
+ */
+export const getApiErrorMeta = (code: string | undefined): ApiErrorMeta => {
+  if (!code) return { i18nKey: null };
+  const key = TRANSPORT_ERROR_CODE_MAP[code] ?? null;
+  return { i18nKey: key };
+};
+
 // Map backend error codes/messages to translation keys
-const mapToTranslationKey = (errorMessage: string): string => {
+export const mapToTranslationKey = (errorMessage: string): string => {
+  // Check transport error codes first (most specific)
+  const transportKey = TRANSPORT_ERROR_CODE_MAP[errorMessage];
+  if (transportKey) {
+    return transportKey;
+  }
+
   // Map backend error codes to translation keys for login-specific errors
   if (errorMessage === "User.NotFound" || errorMessage === "User.InvalidPassword") {
     return "error_response.INVALID_CREDENTIALS";
@@ -125,6 +184,18 @@ const mapToTranslationKey = (errorMessage: string): string => {
   if (errorMessage === "Current password is incorrect.") {
     return "error_response.INVALID_CREDENTIALS";
   }
+
+  // Unknown-code safety: never echo a raw backend code as a translation key lookup
+  // to prevent translation-key injection (security finding S-3)
+  if (errorMessage === "DEFAULT_ERROR") {
+    return "error_response.UNEXPECTED";
+  }
+
+  // Dev-mode drift warning for unmapped backend codes
+  if (process.env.NODE_ENV === "development" && errorMessage.includes(".")) {
+    console.warn(`[handleApiError] Unmapped backend code: ${errorMessage}`);
+  }
+
   // Return original to allow fallback to error_response lookup
   return errorMessage;
 };

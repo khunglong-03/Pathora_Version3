@@ -8,7 +8,6 @@ import type {
   TourInstanceDto,
   TourInstanceDayDto,
   TourInstanceDayActivityDto,
-  TourInstancePlanAccommodationDto,
 } from "../tour";
 
 describe("TourInstanceDto — provider fields", () => {

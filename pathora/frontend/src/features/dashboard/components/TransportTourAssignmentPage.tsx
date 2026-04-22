@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
 import { Icon, Modal, Select, Textarea } from "@/components/ui";
+import BulkApproveConfirmationModal, { type BulkApproveItem } from "./BulkApproveConfirmationModal";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import {
   transportProviderService,
@@ -25,7 +26,7 @@ type TransportActivityItem = {
   activity: TourInstanceDayActivityDto;
 };
 
-type ApprovalDraft = {
+export type ApprovalDraft = {
   vehicleId: string;
   driverId: string;
   note: string;
@@ -133,6 +134,11 @@ export default function TransportTourAssignmentPage() {
   const [approvalDrafts, setApprovalDrafts] = useState<
     Record<string, ApprovalDraft>
   >({});
+  const [isBulkApproveModalOpen, setIsBulkApproveModalOpen] = useState(false);
+  const [bulkFailedState, setBulkFailedState] = useState<{
+    message: string;
+    failedActivityId?: string;
+  } | null>(null);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -168,13 +174,7 @@ export default function TransportTourAssignmentPage() {
       }
     } catch (error) {
       const apiError = handleApiError(error);
-      toast.error(
-        apiError.message
-          || t(
-            "tourInstance.transport.fetchError",
-            "Giap loi tai du lieu tour.",
-          ),
-      );
+      toast.error(t(apiError.message));
     } finally {
       setLoading(false);
     }
@@ -255,6 +255,21 @@ export default function TransportTourAssignmentPage() {
     [rejectActivityId, transportActivities],
   );
 
+  const bulkEligibleActivities = useMemo(() => {
+    return transportActivities.filter(
+      (item) => normalizeApprovalStatus(item.activity.transportationApprovalStatus) === "pending",
+    );
+  }, [transportActivities]);
+
+  const bulkIncompleteTitles = useMemo(() => {
+    return bulkEligibleActivities
+      .filter((item) => {
+        const draft = approvalDrafts[item.activity.id];
+        return !draft?.vehicleId || !draft?.driverId;
+      })
+      .map((item) => item.activity.title);
+  }, [bulkEligibleActivities, approvalDrafts]);
+
   const approveDraft = approveActivityId
     ? approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT
     : EMPTY_APPROVAL_DRAFT;
@@ -275,11 +290,16 @@ export default function TransportTourAssignmentPage() {
     [approveDraft.driverId, drivers],
   );
 
-  const selectedVehicleSeatWarning = Boolean(
+  const vehicleTypeMismatch = Boolean(
     selectedApproveVehicle
-    && activeApproveItem?.activity.requestedSeatCount
+    && activeApproveItem?.activity.requestedVehicleType
+    && selectedApproveVehicle.vehicleType !== activeApproveItem.activity.requestedVehicleType,
+  );
+
+  const seatCapacityShortfall = Boolean(
+    selectedApproveVehicle
     && selectedApproveVehicle.seatCapacity
-      < activeApproveItem.activity.requestedSeatCount,
+      < (activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0),
   );
 
   const updateDraft = useCallback(
@@ -345,13 +365,7 @@ export default function TransportTourAssignmentPage() {
       await loadData();
     } catch (error) {
       const apiError = handleApiError(error);
-      toast.error(
-        apiError.message
-          || t(
-            "tourInstance.transport.approveError",
-            "Khong the duyet yeu cau van chuyen.",
-          ),
-      );
+      toast.error(t(apiError.message));
     } finally {
       setActionKey(null);
     }
@@ -376,13 +390,40 @@ export default function TransportTourAssignmentPage() {
       await loadData();
     } catch (error) {
       const apiError = handleApiError(error);
-      toast.error(
-        apiError.message
-          || t(
-            "tourInstance.transport.rejectError",
-            "Khong the tu choi yeu cau van chuyen.",
-          ),
+      toast.error(t(apiError.message));
+    } finally {
+      setActionKey(null);
+    }
+  };
+
+  const handleBulkApprove = async (sharedNote: string | undefined) => {
+    if (!id) return;
+
+    setActionKey("bulk-approve");
+    setBulkFailedState(null);
+
+    try {
+      const activityIds = bulkEligibleActivities.map((i) => i.activity.id);
+      await tourInstanceService.approveTransportation(id, "bulk", {
+        isBulk: true,
+        note: sharedNote,
+        activityIds,
+      } as any);
+
+      setIsBulkApproveModalOpen(false);
+      toast.success(
+        t("tourInstance.transport.bulkApproveSuccess", "Da duyet {{count}} yeu cau", { count: bulkEligibleActivities.length })
       );
+      
+      await loadData();
+    } catch (error) {
+      const apiError = handleApiError(error);
+      const failedActivityId = (error as any)?.response?.data?.failedActivityId;
+      
+      setBulkFailedState({
+        message: t(apiError.message),
+        failedActivityId,
+      });
     } finally {
       setActionKey(null);
     }
@@ -442,41 +483,63 @@ export default function TransportTourAssignmentPage() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
-                {t("tourInstance.transport.approved", "Da duyet")}
-              </p>
-              <p className="mt-2 text-3xl font-black text-emerald-900">
-                {approvalSummary.approved}
-              </p>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
+              <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+                  {t("tourInstance.transport.approved", "Da duyet")}
+                </p>
+                <p className="mt-2 text-3xl font-black text-emerald-900">
+                  {approvalSummary.approved}
+                </p>
+              </div>
+              <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
+                  {t("tourInstance.transport.pending", "Dang cho")}
+                </p>
+                <p className="mt-2 text-3xl font-black text-amber-900">
+                  {approvalSummary.pending}
+                </p>
+              </div>
+              <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-rose-600">
+                  {t("tourInstance.transport.rejected", "Da tu choi")}
+                </p>
+                <p className="mt-2 text-3xl font-black text-rose-900">
+                  {approvalSummary.rejected}
+                </p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  {t("tourInstance.transport.total", "Tong hoat dong")}
+                </p>
+                <p className="mt-2 text-3xl font-black text-slate-900">
+                  {transportActivities.length}
+                </p>
+              </div>
             </div>
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
-                {t("tourInstance.transport.pending", "Dang cho")}
-              </p>
-              <p className="mt-2 text-3xl font-black text-amber-900">
-                {approvalSummary.pending}
-              </p>
-            </div>
-            <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-rose-600">
-                {t("tourInstance.transport.rejected", "Da tu choi")}
-              </p>
-              <p className="mt-2 text-3xl font-black text-rose-900">
-                {approvalSummary.rejected}
-              </p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {t("tourInstance.transport.totalActivities", "Tong hoat dong")}
-              </p>
-              <p className="mt-2 text-3xl font-black text-slate-900">
-                {transportActivities.length}
-              </p>
-            </div>
+
+            {bulkEligibleActivities.length > 0 && (
+              <div className="flex flex-col gap-2 self-start lg:self-stretch lg:justify-end">
+                <button
+                  type="button"
+                  disabled={bulkIncompleteTitles.length > 0}
+                  onClick={() => setIsBulkApproveModalOpen(true)}
+                  className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-indigo-300"
+                  aria-describedby={bulkIncompleteTitles.length > 0 ? "bulk-incomplete-reason" : undefined}
+                >
+                  {t("tourInstance.transport.bulkApprove", "Duyệt hàng loạt ({{count}})", { count: bulkEligibleActivities.length })}
+                </button>
+                {bulkIncompleteTitles.length > 0 && (
+                  <p className="text-xs text-amber-700 max-w-xs" id="bulk-incomplete-reason">
+                    {t("tourInstance.transport.bulkIncompleteReason", "Còn {{count}} hoạt động chưa chọn đủ xe/tài xế:", { count: bulkIncompleteTitles.length })} {bulkIncompleteTitles.slice(0, 3).join(", ")}{bulkIncompleteTitles.length > 3 ? "..." : ""}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
 
         {transportActivities.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50/60 p-12 text-center text-slate-500">
@@ -496,6 +559,7 @@ export default function TransportTourAssignmentPage() {
               const isApproved =
                 normalizeApprovalStatus(item.activity.transportationApprovalStatus)
                 === "approved";
+              const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
 
               return (
                 <article
@@ -620,23 +684,27 @@ export default function TransportTourAssignmentPage() {
                     <button
                       type="button"
                       onClick={() => openRejectModal(item.activity)}
-                      disabled={activityActionKey === `reject:${item.activity.id}`}
-                      className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={
+                        actionKey === `reject:${item.activity.id}`
+                        || actionKey === "bulk-approve"
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <Icon icon="heroicons:x-mark" className="mr-1.5 size-4" />
-                      {activityActionKey === `reject:${item.activity.id}`
-                        ? t("common.processing", "Dang xu ly...")
-                        : t("tourInstance.transport.reject", "Tu choi")}
+                      <Icon icon="heroicons:x-mark" className="size-4" />
+                      {t("tourInstance.transport.reject", "Tu choi")}
                     </button>
                     <button
                       type="button"
+                      disabled={
+                        actionKey === `approve:${item.activity.id}`
+                        || actionKey === "bulk-approve"
+                      }
                       onClick={() => openApproveModal(item.activity)}
-                      disabled={activityActionKey === `approve:${item.activity.id}`}
-                      className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <Icon
                         icon={isApproved ? "heroicons:pencil-square" : "heroicons:check"}
-                        className="mr-1.5 size-4"
+                        className="size-4"
                       />
                       {isApproved
                         ? t(
@@ -675,6 +743,8 @@ export default function TransportTourAssignmentPage() {
               disabled={
                 !approveDraft.vehicleId
                 || !approveDraft.driverId
+                || vehicleTypeMismatch
+                || seatCapacityShortfall
                 || actionKey === `approve:${approveActivityId}`
               }
               className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -754,12 +824,27 @@ export default function TransportTourAssignmentPage() {
               </div>
             </div>
 
-            {selectedVehicleSeatWarning && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                {t(
-                  "tourInstance.transport.capacityWarning",
-                  "Suc chua xe dang chon nho hon so ghe yeu cau.",
-                )}
+            {(vehicleTypeMismatch || seatCapacityShortfall) && (
+              <div className="space-y-1">
+                <div role="alert" id="approve-vehicle-select" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 space-y-1">
+                  {vehicleTypeMismatch && (
+                    <p>
+                      {t("tourInstance.transport.typeMismatch", "Loại xe không khớp với yêu cầu")} 
+                      (cần {activeApproveItem?.activity.requestedVehicleType}, đang chọn {selectedApproveVehicle?.vehicleType})
+                    </p>
+                  )}
+                  {seatCapacityShortfall && (
+                    <p>
+                      {t("tourInstance.transport.capacityShortfall", "Sức chứa không đủ")} 
+                      (cần {activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0}, xe có {selectedApproveVehicle?.seatCapacity})
+                    </p>
+                  )}
+                </div>
+                <div className="px-1 text-xs">
+                  <a href="mailto:manager@example.com?subject=Yêu cầu đổi loại xe cho tour" className="text-indigo-600 underline hover:text-indigo-800">
+                    {t("tourInstance.transport.contactManager", "Liên hệ manager để đổi loại xe yêu cầu")}
+                  </a>
+                </div>
               </div>
             )}
 
@@ -828,7 +913,7 @@ export default function TransportTourAssignmentPage() {
             </div>
 
             <Textarea
-              label={t("tourInstance.transport.rejectReason", "Ly do tu choi")}
+              label={t("tourInstance.transport.note", "Ghi chu")}
               value={rejectDraft.note}
               onChange={(event) =>
                 updateDraft(activeRejectItem.activity.id, {
@@ -836,14 +921,30 @@ export default function TransportTourAssignmentPage() {
                 })
               }
               placeholder={t(
-                "tourInstance.transport.rejectPlaceholder",
-                "Nhap ly do tu choi de manager co the cap nhat ke hoach",
+                "tourInstance.transport.rejectReasonPlaceholder",
+                "Nhap ly do tu choi (bat buoc)",
               )}
               row={4}
             />
           </div>
         )}
       </Modal>
+
+      <BulkApproveConfirmationModal
+        open={isBulkApproveModalOpen}
+        onClose={() => {
+          if (actionKey !== "bulk-approve") {
+            setIsBulkApproveModalOpen(false);
+            setBulkFailedState(null);
+          }
+        }}
+        items={bulkEligibleActivities as BulkApproveItem[]}
+        drafts={approvalDrafts}
+        vehicles={vehicles}
+        drivers={drivers}
+        onConfirm={handleBulkApprove}
+        failedState={bulkFailedState}
+      />
     </>
   );
 }

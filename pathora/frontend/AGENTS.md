@@ -52,3 +52,9 @@
 - Never commit secrets; `.env*` files are ignored by default.
 - Follow workspace hardcoded-value governance in `../../docs/hardcoded-value-governance.md` for runtime URLs/config defaults.
 - When introducing new remote image hosts, update `images.remotePatterns` in `next.config.ts`.
+
+## Error Localization (Sentinel-List Pattern)
+- Frontend maps backend API error codes via `src/utils/apiResponse.ts` -> `mapToTranslationKey()`.
+- To prevent translation key injection, we strictly use a Sentinel-List pattern (e.g. `TOUR_INSTANCE_TRANSPORT_ERROR_CODES`).
+- **Rule**: When adding new backend error codes, you MUST add them to the exported constant array, map them in `mapToTranslationKey()`, and provide tests in `utils/__tests__/apiResponse.test.ts` to guarantee 100% i18n coverage.
+- Unknown backend codes default to `"error_response.UNEXPECTED"`, avoiding leaking raw unmapped backend strings to users.

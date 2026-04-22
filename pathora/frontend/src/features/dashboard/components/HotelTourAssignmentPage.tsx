@@ -20,6 +20,13 @@ import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type { AccommodationItem, RoomAvailability } from "@/api/services/hotelProviderService";
 import { TourInstanceDto } from "@/types/tour";
 import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
+import { handleApiError } from "@/utils/apiResponse";
+
+/** Backend maps enum with `.ToString()` → `"Accommodation"`; older clients/tests may send `"8"`. */
+const isAccommodationActivity = (activityType?: string | null) => {
+  const normalized = activityType?.trim().toLowerCase() ?? "";
+  return normalized === "accommodation" || normalized === "8";
+};
 
 interface RoomAssignmentForm {
   [activityId: string]: {
@@ -85,7 +92,7 @@ export default function HotelTourAssignmentPage() {
         const tempAssigns: RoomAssignmentForm = {};
         data.days?.forEach((day) => {
           day.activities?.forEach((act) => {
-            if (act.activityType === "8") {
+            if (isAccommodationActivity(act.activityType)) {
               tempAssigns[act.id] = {
                 roomType:
                   act.accommodation?.roomType ??
@@ -102,7 +109,8 @@ export default function HotelTourAssignmentPage() {
         setAssignments(tempAssigns);
       }
     } catch (error) {
-      toast.error(t("failed_to_load_details") || "Failed to load tour details");
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +137,7 @@ export default function HotelTourAssignmentPage() {
 
     instance.days.forEach((day) => {
       day.activities?.forEach((act) => {
-        if (act.activityType === "8") { // Accommodation
+        if (isAccommodationActivity(act.activityType)) {
           acts.push({
             dayId: day.id,
             dayNumber: day.instanceDayNumber,
@@ -241,8 +249,8 @@ export default function HotelTourAssignmentPage() {
         toast.error(t("failed_to_assign_room") || "Failed to assign room.");
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.title || t("failed_to_assign_room");
-      toast.error(msg);
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
     } finally {
       setAssignments((prev) => ({
         ...prev,
@@ -265,8 +273,8 @@ export default function HotelTourAssignmentPage() {
       setApprovalNote("");
       await fetchDetail();
     } catch (error: any) {
-      const msg = error?.response?.data?.detail || error?.response?.data?.title || t("failed_to_approve");
-      toast.error(msg);
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
     } finally {
       setIsApprovalActionLoading(false);
     }
@@ -286,8 +294,8 @@ export default function HotelTourAssignmentPage() {
       setApprovalNote("");
       await fetchDetail();
     } catch (error: any) {
-      const msg = error?.response?.data?.detail || error?.response?.data?.title || t("failed_to_decline");
-      toast.error(msg);
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
     } finally {
       setIsApprovalActionLoading(false);
     }
@@ -298,7 +306,7 @@ export default function HotelTourAssignmentPage() {
     if (!instance?.days) return 0; // NotAssigned
     const statuses = instance.days
       .flatMap((d) => d.activities ?? [])
-      .filter((a) => a.activityType === "8")
+      .filter((a) => isAccommodationActivity(a.activityType))
       .map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
     if (statuses.length === 0) return 0;
     if (statuses.some((s) => s === "Rejected")) return 3;
@@ -408,10 +416,12 @@ export default function HotelTourAssignmentPage() {
                   disabled={totalAccoms > 0 && assignedAccoms < totalAccoms}
                   title={totalAccoms > 0 && assignedAccoms < totalAccoms ? (t("please_assign_rooms_first") || "Please assign all rooms before approving") : ""}
                 >
-                  <Check className="mr-2" /> {t("approve_assignment") || "Approve All Activities"}
+                  <Check className="mr-2" />{" "}
+                  {t("approve_assignment", { defaultValue: "Approve All Activities" })}
                 </Button>
                 <Button variant="outline" className="w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setIsDeclineModalOpen(true)}>
-                  <X className="mr-2" /> {t("decline_tour") || "Reject All Activities"}
+                  <X className="mr-2" />{" "}
+                  {t("decline_tour", { defaultValue: "Reject All Activities" })}
                 </Button>
               </div>
             </Card>
@@ -587,17 +597,20 @@ export default function HotelTourAssignmentPage() {
 
       <ConfirmationDialog
         active={isApproveModalOpen}
-        title={t("approve_tour") || "Approve Tour"}
-        message={t("approve_tour_confirm") || "Are you sure you want to approve this tour? Make sure all room assignments are correct before approving."}
-        confirmLabel={t("approve") || "Approve"}
-        cancelLabel={t("cancel") || "Cancel"}
+        title={t("approve_tour", { defaultValue: "Approve Tour" })}
+        message={t("approve_tour_confirm", {
+          defaultValue:
+            "Are you sure you want to approve this tour? Make sure all room assignments are correct before approving.",
+        })}
+        confirmLabel={t("approve", { defaultValue: "Approve" })}
+        cancelLabel={t("cancel", { defaultValue: "Cancel" })}
         onConfirm={handleApprove}
         onClose={() => setIsApproveModalOpen(false)}
         isDestructive={false}
       >
         <div className="mt-4">
           <Textarea
-            label={t("note_optional") || "Note (Optional)"}
+            label={t("note_optional", { defaultValue: "Note (Optional)" })}
             value={approvalNote}
             onChange={(e) => setApprovalNote(e.target.value)}
             placeholder="Add any internal notes..."
@@ -608,17 +621,20 @@ export default function HotelTourAssignmentPage() {
 
       <ConfirmationDialog
         active={isDeclineModalOpen}
-        title={t("decline_tour") || "Decline Tour"}
-        message={t("decline_tour_confirm") || "Are you sure you want to decline this tour? This will notify the tour manager and they will have to find another provider."}
-        confirmLabel={t("decline") || "Decline"}
-        cancelLabel={t("cancel") || "Cancel"}
+        title={t("decline_tour", { defaultValue: "Decline Tour" })}
+        message={t("decline_tour_confirm", {
+          defaultValue:
+            "Are you sure you want to decline this tour? This will notify the tour manager and they will have to find another provider.",
+        })}
+        confirmLabel={t("decline", { defaultValue: "Decline" })}
+        cancelLabel={t("cancel", { defaultValue: "Cancel" })}
         onConfirm={handleDecline}
         onClose={() => setIsDeclineModalOpen(false)}
         isDestructive={true}
       >
         <div className="mt-4">
           <Textarea
-            label={t("reason_required") || "Reason (Required)"}
+            label={t("reason_required", { defaultValue: "Reason (Required)" })}
             value={approvalNote}
             onChange={(e) => setApprovalNote(e.target.value)}
             placeholder="Please provide a reason for declining..."

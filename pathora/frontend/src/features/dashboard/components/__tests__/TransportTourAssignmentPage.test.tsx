@@ -19,10 +19,15 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+const mockT = vi.fn((_key: string, fallback?: string) => fallback ?? _key);
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (_key: string, fallback?: string) => fallback ?? _key,
+    t: mockT,
   }),
+  initReactI18next: {
+    type: "3rdParty",
+    init: vi.fn(),
+  },
 }));
 
 vi.mock("react-toastify", () => ({
@@ -154,7 +159,7 @@ describe("TransportTourAssignmentPage", () => {
 
     await screen.findByText("Bus to Ha Long");
 
-    fireEvent.click(screen.getByRole("button", { name: "Gan xe va duyet" }));
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
 
     const selects = screen.getAllByRole("combobox");
     fireEvent.change(selects[0], { target: { value: "v1" } });
@@ -164,7 +169,7 @@ describe("TransportTourAssignmentPage", () => {
     });
 
     const approveButtons = screen.getAllByRole("button", {
-      name: "Gan xe va duyet",
+      name: /Gan xe va duyet/i,
     });
     fireEvent.click(approveButtons[approveButtons.length - 1]);
 
@@ -186,13 +191,13 @@ describe("TransportTourAssignmentPage", () => {
 
     await screen.findByText("Bus to Ha Long");
 
-    fireEvent.click(screen.getByRole("button", { name: "Tu choi" }));
+    fireEvent.click(screen.getByRole("button", { name: /Tu choi/i }));
 
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "Vehicle unavailable on requested date" },
     });
 
-    const rejectButtons = screen.getAllByRole("button", { name: "Tu choi" });
+    const rejectButtons = screen.getAllByRole("button", { name: /Tu choi/i });
     fireEvent.click(rejectButtons[rejectButtons.length - 1]);
 
     await waitFor(() => {
@@ -204,5 +209,123 @@ describe("TransportTourAssignmentPage", () => {
         },
       );
     });
+  });
+
+  it("disables submit and renders error when vehicle type mismatches", async () => {
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      {
+        id: "v2",
+        vehiclePlate: "29A-99999",
+        vehicleType: "Sedan", // Mismatch with requested "Coach"
+        seatCapacity: 20, // Sufficient capacity
+        vehicleStatus: "Available",
+      },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "v2" } });
+    fireEvent.change(selects[1], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Loại xe không khớp với yêu cầu/i)).toBeInTheDocument();
+    });
+
+    const submitBtns = screen.getAllByRole("button", { name: /Gan xe va duyet/i });
+    expect(submitBtns[submitBtns.length - 1]).toBeDisabled();
+    
+    // Check escape hatch link is rendered
+    expect(screen.getByRole("link", { name: /Liên hệ manager để đổi loại xe yêu cầu/i })).toBeInTheDocument();
+  });
+
+  it("disables submit and renders error when seat capacity falls short", async () => {
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      {
+        id: "v3",
+        vehiclePlate: "29B-11111",
+        vehicleType: "Coach", // Matches requested
+        seatCapacity: 10, // Shortfall (requested 18)
+        vehicleStatus: "Available",
+      },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "v3" } });
+    fireEvent.change(selects[1], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Sức chứa không đủ/i)).toBeInTheDocument();
+    });
+
+    const submitBtns = screen.getAllByRole("button", { name: /Gan xe va duyet/i });
+    expect(submitBtns[submitBtns.length - 1]).toBeDisabled();
+    
+    // Check escape hatch link is rendered
+    expect(screen.getByRole("link", { name: /Liên hệ manager để đổi loại xe yêu cầu/i })).toBeInTheDocument();
+  });
+
+  it("renders both messages when both conditions fail", async () => {
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      {
+        id: "v4",
+        vehiclePlate: "29C-22222",
+        vehicleType: "Sedan", // Mismatch
+        seatCapacity: 4, // Shortfall
+        vehicleStatus: "Available",
+      },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "v4" } });
+    fireEvent.change(selects[1], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Loại xe không khớp với yêu cầu/i)).toBeInTheDocument();
+      expect(screen.getByText(/Sức chứa không đủ/i)).toBeInTheDocument();
+    });
+  });
+
+  it("enables submit when matching type and sufficient capacity", async () => {
+    // Restore default mock
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
+      {
+        id: "v1",
+        vehiclePlate: "29A-12345",
+        vehicleType: "Coach",
+        seatCapacity: 20,
+        vehicleStatus: "Available",
+      },
+    ]);
+
+    render(<TransportTourAssignmentPage />);
+    await screen.findByText("Bus to Ha Long");
+
+    fireEvent.click(screen.getByRole("button", { name: /Gan xe va duyet/i }));
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "v1" } });
+    fireEvent.change(selects[1], { target: { value: "d1" } });
+
+    await waitFor(() => {
+      const submitBtns = screen.getAllByRole("button", { name: /Gan xe va duyet/i });
+      expect(submitBtns[submitBtns.length - 1]).toBeEnabled();
+    });
+    
+    expect(screen.queryByText(/Loại xe không khớp với yêu cầu/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Sức chứa không đủ/i)).not.toBeInTheDocument();
   });
 });

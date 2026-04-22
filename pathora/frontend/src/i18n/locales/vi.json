@@ -1111,6 +1111,7 @@
     "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên",
     "RESOURCE_NOT_EXISTS": "Tài nguyên không tồn tại",
     "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định",
+    "UNEXPECTED": "Đã xảy ra lỗi không mong muốn, vui lòng thử lại sau",
     "AGENT_NAME_IS_REQUIRED": "Tên đại lý là bắt buộc",
     "EMAIL_IS_REQUIRED": "Email là bắt buộc",
     "USERNAME_IS_REQUIRED": "Tên đăng nhập là bắt buộc",
@@ -2287,14 +2288,6 @@
       "lastModified": "Cập nhật lần cuối",
       "provider": {
         "note": "Ghi chú:"
-      },
-      "transport": {
-        "vehicleInfo": "Thông tin xe",
-        "notAssigned": "Chưa có xe được phân công",
-        "pickup": "Điểm đón:",
-        "dropoff": "Điểm trả:",
-        "departure": "Khởi hành:",
-        "arrival": "Đến:"
       }
     },
     "wizard": {
@@ -2594,6 +2587,26 @@
       "messages": {
         "saveSuccess": "Đã cập nhật nội dung trang thành công."
       }
+    },
+    "transport": {
+      "vehicleInfo": "Thông tin xe",
+      "notAssigned": "Chưa có xe được phân công",
+      "pickup": "Điểm đón:",
+      "dropoff": "Điểm trả:",
+      "departure": "Khởi hành:",
+      "arrival": "Đến:",
+      "errors": {
+        "seatCountBelowCapacity": "Số ghế yêu cầu không được nhỏ hơn số khách tối đa của tour.",
+        "vehicleWrongType": "Loại xe không khớp với loại xe đã yêu cầu cho hoạt động này.",
+        "vehicleInsufficientCapacity": "Sức chứa của xe không đủ cho số ghế yêu cầu.",
+        "vehicleWrongSupplier": "Xe hông thuộc nhà cukng cấp đã được gán cho hoạt động này.",
+        "vehicleUnavailable": "Xe đã được giữ chỗ cho một lịch trình khác trong cùng ngày.",
+        "roomBlockInsufficientInventory": "Không đủ phòng trống cho loại phòng này vào ngày đã chọn.",
+        "providerNotAssigned": "Bạn không phải là nhà cung cấp được gán cho hoạt động này.",
+        "bulkApproveFailed": "Một hoặc nhiều hoạt động không thể duyệt; toàn bộ đã được rollback.",
+        "capacityExceeded": "Số khách tối đa mới vượt sức chứa của xe đã được duyệt cho tour này."
+      },
+      "bulkApproveSuccess": "Đã duyệt thành công {{count}} hoạt động vận chuyển."
     }
   },
   "translation": {

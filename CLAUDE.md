@@ -121,6 +121,15 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 
 ---
 
+## Frontend Components & Utils
+
+- **`approvalStatusHelper` (`src/utils/approvalStatusHelper.ts`)**: Standardizes the normalization and appearance (colors, icons) of transportation approval statuses.
+- **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
+- **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
+- **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
+
+---
+
 ## OpenSpec Changes (Active)
 
 Có **~17 active changes** trong `openspec/changes/`:

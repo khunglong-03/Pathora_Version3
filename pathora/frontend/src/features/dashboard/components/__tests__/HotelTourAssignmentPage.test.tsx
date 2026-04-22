@@ -59,7 +59,7 @@ describe("HotelTourAssignmentPage", () => {
               supplierApprovalStatus: "Pending",
               roomType: "DELUXE",
               quantity: 2,
-              roomBlocksTotal: 0,
+              roomBlocksTotal: 2,
             },
           },
         ],
@@ -128,8 +128,7 @@ describe("HotelTourAssignmentPage", () => {
     render(<HotelTourAssignmentPage />);
 
     await waitFor(() => {
-      // 1 out of 2 is assigned
-      expect(screen.getByText(/1.*\/.*2.*assigned/i)).toBeInTheDocument();
+      expect(screen.getByText(/2.*\/.*2.*assigned/i)).toBeInTheDocument();
     });
   });
 
@@ -142,7 +141,7 @@ describe("HotelTourAssignmentPage", () => {
     render(<HotelTourAssignmentPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/1.*\/.*2.*assigned/i)).toBeInTheDocument();
+      expect(screen.getByText(/2.*\/.*2.*assigned/i)).toBeInTheDocument();
     });
 
     // Save deluxe room activity (first save button)
@@ -186,6 +185,28 @@ describe("HotelTourAssignmentPage", () => {
       expect(screen.getByText("Activities awaiting decision")).toBeInTheDocument();
     });
 
+    expect(screen.getByText("Day 1: Check-in Hotel")).toBeInTheDocument();
+    expect(screen.getByText("Day 2: Check-out Hotel")).toBeInTheDocument();
+  });
+
+  it("treats API activityType Accommodation (enum string) like legacy numeric 8", async () => {
+    const apiStyleTour = {
+      ...mockTour,
+      days: mockTour.days.map((d) => ({
+        ...d,
+        activities: d.activities.map((a) => ({
+          ...a,
+          activityType: "Accommodation",
+        })),
+      })),
+    };
+    (tourInstanceService.getMyAssignedInstanceDetail as any).mockResolvedValue(apiStyleTour);
+
+    render(<HotelTourAssignmentPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Activities awaiting decision")).toBeInTheDocument();
+    });
     expect(screen.getByText("Day 1: Check-in Hotel")).toBeInTheDocument();
     expect(screen.getByText("Day 2: Check-out Hotel")).toBeInTheDocument();
   });

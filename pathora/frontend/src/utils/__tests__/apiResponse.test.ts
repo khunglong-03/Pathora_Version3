@@ -5,7 +5,11 @@ import {
   extractItems,
   extractResult,
   handleApiError,
+  TOUR_INSTANCE_TRANSPORT_ERROR_CODES,
+  mapToTranslationKey
 } from "../apiResponse";
+import viLocale from "../../i18n/locales/vi.json";
+import enLocale from "../../i18n/locales/en.json";
 
 describe("apiResponse helpers", () => {
   it("extracts items from nested result.items", () => {
@@ -54,5 +58,25 @@ describe("apiResponse helpers", () => {
   it("keeps extractResult backward-compatible", () => {
     const result = extractResult<string>({ result: "ok" });
     expect(result).toBe("ok");
+  });
+
+  it("maps all TOUR_INSTANCE_TRANSPORT_ERROR_CODES to valid i18n keys", () => {
+    for (const code of TOUR_INSTANCE_TRANSPORT_ERROR_CODES) {
+      const key = mapToTranslationKey(code);
+      expect(key, `Expected code ${code} to map to a translation key`).not.toBe("error_response.UNEXPECTED");
+      expect(key, `Expected code ${code} to map to a translation key`).toBeTruthy();
+      
+      const keyParts = key.split(".");
+      let viPointer: any = viLocale;
+      let enPointer: any = enLocale;
+      
+      for (const part of keyParts) {
+        viPointer = viPointer?.[part];
+        enPointer = enPointer?.[part];
+      }
+      
+      expect(viPointer, `Missing Vietnamese translation for ${code} (key: ${key})`).toBeDefined();
+      expect(enPointer, `Missing English translation for ${code} (key: ${key})`).toBeDefined();
+    }
   });
 });

@@ -10,6 +10,7 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";
 import dayjs from "dayjs";
 import { handleApiError } from "@/utils/apiResponse";
+import { getInstanceApprovalAppearance } from "@/utils/approvalStatusHelper";
 
 interface ProviderTourApprovalsProps {
   providerType: "hotel" | "transport";
@@ -21,8 +22,6 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalStatus, setApprovalStatus] = useState<number | undefined>(undefined);
-
-  const isHotel = providerType === "hotel";
 
   const fetchAssignments = useCallback(async () => {
     try {
@@ -56,9 +55,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
               onChange={(e) => setApprovalStatus(e.target.value ? Number(e.target.value) : undefined)}
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="1">Đang chờ duyệt</option>
-              <option value="2">Đã duyệt</option>
-              <option value="3">Đã từ chối</option>
+              <option value="0">Đang chờ duyệt</option>
+              <option value="1">Đã duyệt</option>
+              <option value="2">Đã từ chối</option>
             </select>
           </div>
         </div>
@@ -84,11 +83,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             {instances.map((instance) => {
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
-              // Both hotel and transport approvals are now per-activity, not at instance level.
-              // We show a generic status on the card and let the detail page show per-activity status.
-              const isApproved = approvalStatus === 2;
-              const isRejected = approvalStatus === 3;
-              const isPending = approvalStatus === 1;
+              const appearance = getInstanceApprovalAppearance(instance.transportApprovalStatus);
 
               return (
                 <div 
@@ -107,17 +102,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                        <span className="inline-flex rounded-xl bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-indigo-600 ring-1 ring-indigo-500/10 inset-ring">
                           {instance.tourCode}
                        </span>
-                       <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                         isApproved ? "bg-emerald-50 text-emerald-700" :
-                         isRejected ? "bg-rose-50 text-rose-700" :
-                         isPending ? "bg-amber-50 text-amber-700" :
-                         "bg-indigo-50 text-indigo-700"
-                       }`}>
-                         {isApproved ? <Icon icon="heroicons:check-circle-solid" className="size-3.5" /> : 
-                          isRejected ? <Icon icon="heroicons:x-circle-solid" className="size-3.5" /> : 
-                          isPending ? <Icon icon="heroicons:clock-solid" className="size-3.5" /> :
-                          <Icon icon="heroicons:information-circle-solid" className="size-3.5" />}
-                         {isApproved ? "Đã duyệt" : isRejected ? "Đã từ chối" : isPending ? "Đang chờ" : "Có yêu cầu"}
+                       <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${appearance.ringClassName}`}>
+                         <Icon icon={appearance.icon} className="size-3.5" />
+                         {appearance.label}
                        </div>
                     </div>
                     
@@ -157,3 +144,4 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
     </>
   );
 }
+
