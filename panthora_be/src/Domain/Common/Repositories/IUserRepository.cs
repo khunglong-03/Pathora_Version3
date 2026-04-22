@@ -21,8 +21,8 @@ public interface IUserRepository : IRepository<UserEntity>
     Task<int> CountActiveManagersAsync(CancellationToken cancellationToken);
     Task<Dictionary<string, int>> CountByRolesAsync(string? textSearch, CancellationToken cancellationToken = default);
     Task<bool> IsEmailUnique(string email, CancellationToken cancellationToken = default);
-    Task<List<UserEntity>> FindProvidersByRoleAsync(int roleId, string? search, string? status, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountProvidersByRoleAsync(int roleId, string? search, string? status, CancellationToken cancellationToken = default);
+    Task<List<UserEntity>> FindProvidersByRoleAsync(int roleId, string? search, string? status, List<string>? continents, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> CountProvidersByRoleAsync(int roleId, string? search, string? status, List<string>? continents, CancellationToken cancellationToken = default);
     Task<List<ManagerUserSummaryDto>> GetAllManagerUsersAsync(CancellationToken cancellationToken);
 
     // Filtered by a precomputed set of user IDs (e.g., for continent-filtered provider lists)
@@ -30,6 +30,7 @@ public interface IUserRepository : IRepository<UserEntity>
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         List<Guid> userIds,
         int pageNumber,
         int pageSize,
@@ -38,6 +39,7 @@ public interface IUserRepository : IRepository<UserEntity>
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         List<Guid> userIds,
         CancellationToken cancellationToken = default);
     Task<UserEntity?> FindTransportProviderByIdAsync(Guid id, CancellationToken cancellationToken = default);

@@ -11,6 +11,7 @@ public sealed record HotelProviderDetailDto(
     string? Email,
     string? AvatarUrl,
     UserStatus Status,
+    Guid? OwnerUserId,
     DateTimeOffset? CreatedOnUtc,
     string? PrimaryContinent,
     List<string> Continents,

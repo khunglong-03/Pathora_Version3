@@ -317,6 +317,12 @@ public class IdentityService(
         if (result.IsError)
             return result.Errors;
 
+        var userEntity = await _userRepository.FindById(result.Value.UserId);
+        if (userEntity is null || userEntity.IsDeleted || userEntity.Status != UserStatus.Active)
+        {
+            return Error.Forbidden(ErrorConstants.Auth.AccountForbiddenCode, ErrorConstants.Auth.AccountForbiddenDescription);
+        }
+
         var portalResult = await ResolvePortalAsync(result.Value.UserId);
         if (portalResult.IsError)
         {

@@ -17,6 +17,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
     private readonly ITourRepository _tourRepository = Substitute.For<ITourRepository>();
     private readonly ITourRequestRepository _tourRequestRepository = Substitute.For<ITourRequestRepository>();
     private readonly ISupplierRepository _supplierRepository = Substitute.For<ISupplierRepository>();
+    private readonly IVehicleRepository _vehicleRepository = Substitute.For<IVehicleRepository>();
     private readonly IMailRepository _mailRepository = Substitute.For<IMailRepository>();
     private readonly IRoomBlockRepository _roomBlockRepository = Substitute.For<IRoomBlockRepository>();
     private readonly IHotelRoomInventoryRepository _hotelRoomInventoryRepository = Substitute.For<IHotelRoomInventoryRepository>();
@@ -62,6 +63,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _tourRepository,
             _tourRequestRepository,
             _supplierRepository,
+            _vehicleRepository,
             _mailRepository,
             _roomBlockRepository,
             _hotelRoomInventoryRepository,
@@ -145,6 +147,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _tourRepository,
             _tourRequestRepository,
             _supplierRepository,
+            _vehicleRepository,
             _mailRepository,
             _roomBlockRepository,
             _hotelRoomInventoryRepository,

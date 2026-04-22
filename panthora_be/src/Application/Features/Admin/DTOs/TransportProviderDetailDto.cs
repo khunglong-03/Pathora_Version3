@@ -11,6 +11,7 @@ public sealed record TransportProviderDetailDto(
     string? Email,
     string? AvatarUrl,
     UserStatus Status,
+    Guid? OwnerUserId,
     DateTimeOffset? UserCreatedAt,
     string? PrimaryContinent,
     List<string> Continents,

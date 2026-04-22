@@ -4,4 +4,5 @@ public sealed record TransportProviderStatsDto(
     int Total,
     int Active,
     int Inactive,
-    int Pending);
+    int Pending,
+    int Banned);

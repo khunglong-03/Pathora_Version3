@@ -61,7 +61,7 @@ public sealed class GetDriverActivitiesQueryHandlerTests
                 BookingActivityReservation = new BookingActivityReservationEntity { Title = "Test Booking" },
                 TourDayActivity = new TourDayActivityEntity { Title = "Test Activity" },
                 Status = 1,
-                UpdatedOnUtc = DateTimeOffset.UtcNow
+                UpdatedAt = DateTimeOffset.UtcNow
             }
         };
 

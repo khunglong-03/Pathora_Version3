@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
+import { userService } from "@/api/services/userService";
 import type { TransportProviderListItem, PaginatedList, TransportProviderStats } from "@/types/admin";
 import {
   AdminPageHeader,
@@ -19,14 +20,16 @@ import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
 import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
+import { toast } from "react-toastify";
 
-type StatusFilter = "all" | "Active" | "Inactive" | "Pending";
+type StatusFilter = "all" | "Active" | "Inactive" | "Pending" | "Banned";
 
 const STATUS_TABS: Array<{ label: string; value: StatusFilter }> = [
   { label: "Tất cả", value: "all" },
   { label: "Hoạt động", value: "Active" },
-  { label: "Ngừng", value: "Inactive" },
   { label: "Chờ duyệt", value: "Pending" },
+  { label: "Bị cấm", value: "Banned" },
+  { label: "Ngừng", value: "Inactive" },
 ];
 
 export default function TransportProvidersPage() {
@@ -51,14 +54,17 @@ export default function TransportProvidersPage() {
 
   const loadStats = useCallback(async () => {
     try {
-      const res = await adminService.getTransportProviderStats(debouncedSearch || undefined);
+      const res = await adminService.getTransportProviderStats({
+        search: debouncedSearch || undefined,
+        continents: selectedContinents,
+      });
       if (res) {
         setStats(res);
       }
     } catch (e) {
       console.error("Failed to load stats", e);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, selectedContinents]);
 
   useEffect(() => {
     void loadStats();
@@ -88,7 +94,7 @@ export default function TransportProvidersPage() {
       setProviders([]);
     }
     setIsLoading(false);
-  }, [currentPage, debouncedSearch, statusFilter, selectedContinents]);
+  }, [currentPage, debouncedSearch, statusFilter, selectedContinents, reloadToken]);
 
   useEffect(() => {
     void loadProviders();
@@ -98,6 +104,28 @@ export default function TransportProvidersPage() {
   const handleContinentsChange = (continents: string[]) => {
     setSelectedContinents(continents);
     setCurrentPage(1);
+  };
+
+  const handleToggleBan = async (id: string, currentStatus: string) => {
+    const isBanned = currentStatus === "Banned";
+    const action = isBanned ? "mở khóa" : "khóa";
+    const newStatus = isBanned ? "Active" : "Banned";
+
+    if (!window.confirm(`Bạn có chắc chắn muốn ${action} nhà cung cấp này?`)) {
+      return;
+    }
+
+    try {
+      const res = await userService.updateStatus({ userId: id, newStatus });
+      if (res?.success) {
+        toast.success(`Đã ${action} nhà cung cấp thành công`);
+        handleRefresh();
+      } else {
+        toast.error(`Không thể ${action} nhà cung cấp`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Đã xảy ra lỗi");
+    }
   };
 
   const kpis = [
@@ -127,6 +155,7 @@ export default function TransportProvidersPage() {
     else if (tab.value === "Active") count = stats?.active ?? 0;
     else if (tab.value === "Inactive") count = stats?.inactive ?? 0;
     else if (tab.value === "Pending") count = stats?.pending ?? 0;
+    else if (tab.value === "Banned") count = stats?.banned ?? 0;
     
     return { ...tab, count };
   });
@@ -196,7 +225,10 @@ export default function TransportProvidersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {providers.map((provider) => (
               <Link href={`/admin/transport-providers/${provider.id}`} key={provider.id} className="block">
-                <TransportProviderCard provider={provider} />
+                <TransportProviderCard
+                  provider={provider}
+                  onToggleBan={handleToggleBan}
+                />
               </Link>
             ))}
           </div>

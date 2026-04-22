@@ -22,10 +22,10 @@ public sealed class GetTransportProviderStatsQueryHandlerTests
     {
         // Arrange
         var search = "taxi";
-        _userRepository.CountProvidersByRoleAsync(6, search, null, Arg.Any<CancellationToken>()).Returns(10);
-        _userRepository.CountProvidersByRoleAsync(6, search, "Active", Arg.Any<CancellationToken>()).Returns(7);
-        _userRepository.CountProvidersByRoleAsync(6, search, "Inactive", Arg.Any<CancellationToken>()).Returns(2);
-        _userRepository.CountProvidersByRoleAsync(6, search, "Pending", Arg.Any<CancellationToken>()).Returns(1);
+        _userRepository.CountProvidersByRoleAsync(6, search, null, null, Arg.Any<CancellationToken>()).Returns(10);
+        _userRepository.CountProvidersByRoleAsync(6, search, "Active", null, Arg.Any<CancellationToken>()).Returns(7);
+        _userRepository.CountProvidersByRoleAsync(6, search, "Inactive", null, Arg.Any<CancellationToken>()).Returns(2);
+        _userRepository.CountProvidersByRoleAsync(6, search, "Pending", null, Arg.Any<CancellationToken>()).Returns(1);
 
         var query = new GetTransportProviderStatsQuery(search);
 

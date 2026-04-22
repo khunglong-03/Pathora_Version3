@@ -39,6 +39,6 @@ export const userService = {
       userId: payload.userId,
       newStatus: payload.newStatus,
     });
-    return extractResult<{ success: boolean }>(response.data);
+    return { success: response.status >= 200 && response.status < 300 };
   },
 };

@@ -49,6 +49,7 @@ public class TourInstanceService(
     ITourRepository tourRepository,
     ITourRequestRepository tourRequestRepository,
     ISupplierRepository supplierRepository,
+    IVehicleRepository vehicleRepository,
     IMailRepository mailRepository,
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
@@ -61,6 +62,7 @@ public class TourInstanceService(
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ITourRequestRepository _tourRequestRepository = tourRequestRepository;
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
+    private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
     private readonly IMailRepository _mailRepository = mailRepository;
     private readonly IRoomBlockRepository _roomBlockRepository = roomBlockRepository;
     private readonly IHotelRoomInventoryRepository _hotelRoomInventoryRepository = hotelRoomInventoryRepository;
@@ -105,6 +107,11 @@ public class TourInstanceService(
         if (validatedVehicleAssignmentsResult.IsError)
             return validatedVehicleAssignmentsResult.Errors;
         var validatedVehicleAssignments = validatedVehicleAssignmentsResult.Value;
+
+        // Task 3.1: Validate all accommodation supplier assignments are active
+        var accommodationValidationResult = await ValidateAccommodationSuppliersAsync(request.ActivityAssignments);
+        if (accommodationValidationResult.IsError)
+            return accommodationValidationResult.Errors;
 
         // Validate TourRequestId if provided
         TourRequestEntity? tourRequest = null;
@@ -284,18 +291,89 @@ public class TourInstanceService(
         }
 
         var supplier = await _supplierRepository.GetByIdAsync(transportProviderId.Value);
-        if (supplier is null)
+        if (supplier is null || supplier.IsDeleted)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
 
+        // Task 3.1: Validate supplier is active
+        if (!supplier.IsActive)
+        {
+            return Error.Validation(
+                "TourInstance.SupplierInactive",
+                $"Transport provider '{supplier.Name}' is inactive.");
+        }
+
+        // Task 3.1: Check if the owner user is banned
+        if (supplier.OwnerUserId.HasValue)
+        {
+            var owner = await _tourInstanceRepository.FindUserByIdAsync(supplier.OwnerUserId.Value);
+            if (owner?.Status == UserStatus.Banned)
+            {
+                return Error.Validation("TourInstance.SupplierBanned", $"Tài khoản của nhà cung cấp '{supplier.Name}' đã bị khóa.");
+            }
+        }
+
+        // Task 2.1-2.3: Validate vehicle ownership via batch query
+        // Vehicle.OwnerId maps to User, and Supplier.OwnerUserId maps to the same User.
+        if (!supplier.OwnerUserId.HasValue)
+        {
+            return Error.Validation(
+                "TourInstance.SupplierMissingOwner",
+                $"Transport provider '{supplier.Name}' has no owner assigned.");
+        }
+
+        var requestedVehicleIds = vehicleAssignments
+            .Select(a => a.VehicleId!.Value)
+            .Distinct()
+            .ToList();
+
+        var ownedVehicleIds = await _vehicleRepository.FindActiveIdsByOwnerAsync(
+            requestedVehicleIds, supplier.OwnerUserId.Value);
+
         var validatedVehicleAssignments = new Dictionary<Guid, Guid>();
-        // TC1.3: For now, we accept vehicle assignments. In Phase 5, we'll validate against provider fleet.
-        // TODO: Implement vehicle fleet validation when IVehicleRepository is available in TourInstanceService
         foreach (var assignment in vehicleAssignments)
         {
+            if (!ownedVehicleIds.Contains(assignment.VehicleId!.Value))
+            {
+                return Error.Validation(
+                    "TourInstance.VehicleNotOwnedByProvider",
+                    $"Phương tiện ID '{assignment.VehicleId}' không thuộc quyền sở hữu của nhà cung cấp '{supplier.Name}' hoặc đã bị ngừng hoạt động.");
+            }
             validatedVehicleAssignments[assignment.OriginalActivityId] = assignment.VehicleId!.Value;
         }
 
         return validatedVehicleAssignments;
+    }
+
+    private async Task<ErrorOr<Success>> ValidateAccommodationSuppliersAsync(
+        IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
+    {
+        var supplierIds = (activityAssignments ?? [])
+            .Where(a => a.SupplierId.HasValue)
+            .Select(a => a.SupplierId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (supplierIds.Count == 0)
+            return Result.Success;
+
+        foreach (var supplierId in supplierIds)
+        {
+            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
+            if (supplier == null || supplier.IsDeleted)
+                return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, $"Accommodation supplier ID '{supplierId}' not found.");
+
+            if (!supplier.IsActive)
+                return Error.Validation("TourInstance.SupplierInactive", $"Nhà cung cấp lưu trú '{supplier.Name}' đang ngừng hoạt động.");
+
+            if (supplier.OwnerUserId.HasValue)
+            {
+                var owner = await _tourInstanceRepository.FindUserByIdAsync(supplier.OwnerUserId.Value);
+                if (owner?.Status == UserStatus.Banned)
+                    return Error.Validation("TourInstance.SupplierBanned", $"Tài khoản của nhà cung cấp lưu trú '{supplier.Name}' đã bị khóa.");
+            }
+        }
+
+        return Result.Success;
     }
 
     private async Task TryQueueTourReadyEmailAsync(

@@ -17,17 +17,20 @@ public sealed class GetTransportProviderStatsQueryHandler(
         CancellationToken cancellationToken)
     {
         var total = await userRepository.CountProvidersByRoleAsync(
-            TransportProviderRoleId, request.Search, null, cancellationToken);
+            TransportProviderRoleId, request.Search, null, request.Continents, cancellationToken);
 
         var active = await userRepository.CountProvidersByRoleAsync(
-            TransportProviderRoleId, request.Search, "Active", cancellationToken);
+            TransportProviderRoleId, request.Search, "Active", request.Continents, cancellationToken);
 
         var inactive = await userRepository.CountProvidersByRoleAsync(
-            TransportProviderRoleId, request.Search, "Inactive", cancellationToken);
+            TransportProviderRoleId, request.Search, "Inactive", request.Continents, cancellationToken);
 
         var pending = await userRepository.CountProvidersByRoleAsync(
-            TransportProviderRoleId, request.Search, "Pending", cancellationToken);
+            TransportProviderRoleId, request.Search, "Pending", request.Continents, cancellationToken);
 
-        return new TransportProviderStatsDto(total, active, inactive, pending);
+        var banned = await userRepository.CountProvidersByRoleAsync(
+            TransportProviderRoleId, request.Search, "Banned", request.Continents, cancellationToken);
+
+        return new TransportProviderStatsDto(total, active, inactive, pending, banned);
     }
 }

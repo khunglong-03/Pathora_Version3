@@ -31,4 +31,5 @@ public interface ITourInstanceRepository
     Task<int> CountByGuideUserId(Guid userId, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindByGuideUserId(Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<bool> HasGuideAssignmentAsync(Guid tourInstanceId, Guid userId, CancellationToken cancellationToken = default);
+    Task<UserEntity?> FindUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 }

@@ -83,6 +83,7 @@ public sealed class GetTransportProviderByIdQueryHandler(
             supplier?.Email ?? user?.Email,
             user?.AvatarUrl,
             user?.Status ?? UserStatus.Active,
+            user?.Id,
             user?.CreatedOnUtc ?? supplier?.CreatedOnUtc,
             primaryContinent,
             continents,

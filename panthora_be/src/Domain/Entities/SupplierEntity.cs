@@ -29,6 +29,8 @@ public class SupplierEntity : Aggregate<Guid>
     public string? Note { get; set; }
     /// <summary>ID người phụ trách (owner/user).</summary>
     public Guid? OwnerUserId { get; set; }
+    /// <summary>Người phụ trách (owner/user).</summary>
+    public virtual UserEntity? Owner { get; set; }
     /// <summary>True nếu nhà cung cấp đang hoạt động.</summary>
     public bool IsActive { get; set; }
     /// <summary>Cờ xóa mềm.</summary>
@@ -97,6 +99,20 @@ public class SupplierEntity : Aggregate<Guid>
     {
         IsDeleted = true;
         IsActive = false;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Deactivate(string performedBy)
+    {
+        IsActive = false;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Activate(string performedBy)
+    {
+        IsActive = true;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

@@ -17,4 +17,10 @@ public interface IVehicleRepository : IRepository<VehicleEntity>
     Task<List<Guid>> FindOwnerIdsWithVehiclesInContinentsAsync(List<Domain.Enums.Continent> continents, CancellationToken cancellationToken = default);
     Task<Dictionary<Guid, (int Count, List<Domain.Enums.Continent> Continents)>> GetVehicleDataGroupedByOwnerAsync(
         List<Guid> ownerIds, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Returns active, non-deleted vehicle IDs from <paramref name="vehicleIds"/>
+    /// that belong to <paramref name="ownerId"/>.  Used for fleet ownership validation.
+    /// </summary>
+    Task<HashSet<Guid>> FindActiveIdsByOwnerAsync(
+        IEnumerable<Guid> vehicleIds, Guid ownerId, CancellationToken cancellationToken = default);
 }

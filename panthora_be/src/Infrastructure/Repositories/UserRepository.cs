@@ -264,6 +264,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -276,6 +277,23 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u => u.Id,
                 (ur, u) => u);
 
+        if (continents is { Count: > 0 })
+        {
+            var continentEnums = continents
+                .Select(c => Enum.TryParse<Continent>(c, true, out var result) ? (Continent?)result : null)
+                .Where(c => c.HasValue)
+                .Select(c => c!.Value)
+                .ToList();
+
+            if (continentEnums.Count > 0)
+            {
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                    u => u.Id,
+                    s => s.OwnerUserId,
+                    (u, s) => u);
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
@@ -285,17 +303,16 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(searchLower));
         }
 
-        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(u => u.Status == UserStatus.Active);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.Status == UserStatus.Inactive);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+            if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Active);
+            else if (status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Inactive);
+            else if (status.Equals("Banned", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Banned);
+            else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query
@@ -309,6 +326,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         CancellationToken cancellationToken = default)
     {
         var query = _context.UserRoles
@@ -319,6 +337,23 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u => u.Id,
                 (ur, u) => u);
 
+        if (continents is { Count: > 0 })
+        {
+            var continentEnums = continents
+                .Select(c => Enum.TryParse<Continent>(c, true, out var result) ? (Continent?)result : null)
+                .Where(c => c.HasValue)
+                .Select(c => c!.Value)
+                .ToList();
+
+            if (continentEnums.Count > 0)
+            {
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                    u => u.Id,
+                    s => s.OwnerUserId,
+                    (u, s) => u);
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
@@ -328,17 +363,16 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(searchLower));
         }
 
-        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(u => u.Status == UserStatus.Active);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.Status == UserStatus.Inactive);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+            if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Active);
+            else if (status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Inactive);
+            else if (status.Equals("Banned", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Banned);
+            else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query.CountAsync(cancellationToken);
@@ -374,6 +408,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         List<Guid> userIds,
         int pageNumber,
         int pageSize,
@@ -387,6 +422,23 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u => u.Id,
                 (ur, u) => u);
 
+        if (continents is { Count: > 0 })
+        {
+            var continentEnums = continents
+                .Select(c => Enum.TryParse<Continent>(c, true, out var result) ? (Continent?)result : null)
+                .Where(c => c.HasValue)
+                .Select(c => c!.Value)
+                .ToList();
+
+            if (continentEnums.Count > 0)
+            {
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                    u => u.Id,
+                    s => s.OwnerUserId,
+                    (u, s) => u);
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
@@ -396,17 +448,16 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(searchLower));
         }
 
-        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(u => u.Status == UserStatus.Active);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.Status == UserStatus.Inactive);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+            if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Active);
+            else if (status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Inactive);
+            else if (status.Equals("Banned", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Banned);
+            else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query
@@ -420,6 +471,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         int roleId,
         string? search,
         string? status,
+        List<string>? continents,
         List<Guid> userIds,
         CancellationToken cancellationToken = default)
     {
@@ -431,6 +483,23 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u => u.Id,
                 (ur, u) => u);
 
+        if (continents is { Count: > 0 })
+        {
+            var continentEnums = continents
+                .Select(c => Enum.TryParse<Continent>(c, true, out var result) ? (Continent?)result : null)
+                .Where(c => c.HasValue)
+                .Select(c => c!.Value)
+                .ToList();
+
+            if (continentEnums.Count > 0)
+            {
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                    u => u.Id,
+                    s => s.OwnerUserId,
+                    (u, s) => u);
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
@@ -440,17 +509,16 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 u.Username.ToLower().Contains(searchLower));
         }
 
-        if (!string.IsNullOrWhiteSpace(status) && status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(u => u.Status == UserStatus.Active);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.Status == UserStatus.Inactive);
-        }
-        else if (!string.IsNullOrWhiteSpace(status) && status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
+            if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Active);
+            else if (status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Inactive);
+            else if (status.Equals("Banned", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.Status == UserStatus.Banned);
+            else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(u => u.VerifyStatus == VerifyStatus.Unverified);
         }
 
         return await query.CountAsync(cancellationToken);

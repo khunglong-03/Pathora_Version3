@@ -126,6 +126,7 @@ public sealed class GetHotelProviderByIdQueryHandler(
             primarySupplier?.Email ?? user?.Email,
             user?.AvatarUrl,
             user?.Status ?? UserStatus.Active,
+            user?.Id,
             createdOnUtc,
             primaryContinent,
             continents.ToList(),

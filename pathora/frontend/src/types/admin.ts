@@ -166,6 +166,7 @@ export interface TransportProviderStats {
   active: number;
   inactive: number;
   pending: number;
+  banned: number;
 }
 
 // ─── Transport Provider Detail ──────────────────────────────────
@@ -219,6 +220,8 @@ export interface TransportProviderDetail {
   email?: string;
   avatarUrl?: string;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   userCreatedAt?: string;
   primaryContinent?: string | null;
   vehicles: VehicleSummary[];
@@ -238,6 +241,8 @@ export interface HotelProviderListItem {
   phone?: string;
   address?: string;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   accommodationCount?: number;
   propertyCount?: number;
   roomCount?: number;
@@ -285,6 +290,8 @@ export interface HotelProviderDetail {
   email: string | null;
   avatarUrl: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   createdOnUtc: string | null;
   primaryContinent: string | null;
   continents: string[];

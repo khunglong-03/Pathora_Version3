@@ -215,6 +215,17 @@ export default function HotelSuppliersPage() {
                             />
                             {isActive ? "Hoạt động" : "Ngừng"}
                           </span>
+                          {supplier.status !== "Active" && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold"
+                              style={{
+                                backgroundColor: supplier.status === "Banned" ? "#FEE2E2" : "#FEF3C7",
+                                color: supplier.status === "Banned" ? "#DC2626" : "#D97706",
+                              }}
+                            >
+                              {supplier.status === "Banned" ? "Đã khóa" : "Không hoạt động"}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <ArrowRightIcon size={16} style={{ color: "#9CA3AF" }} className="shrink-0 mt-1" />

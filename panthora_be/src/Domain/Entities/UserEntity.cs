@@ -93,6 +93,13 @@ public class UserEntity : Aggregate<Guid>
 
     public UserSettingEntity? UserSetting { get; set; }
 
+    public void UpdateStatus(UserStatus status, string performedBy)
+    {
+        Status = status;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
     public void SoftDelete(string performedBy)
     {
         IsDeleted = true;

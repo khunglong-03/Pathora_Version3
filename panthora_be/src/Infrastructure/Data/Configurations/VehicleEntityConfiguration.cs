@@ -57,5 +57,8 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Global query filter to exclude inactive vehicles or those owned by banned users
+        builder.HasQueryFilter(x => !x.IsDeleted && x.IsActive && x.Owner.Status == Domain.Enums.UserStatus.Active);
     }
 }

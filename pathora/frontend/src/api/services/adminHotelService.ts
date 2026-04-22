@@ -15,6 +15,8 @@ export interface HotelSupplierItem {
   email: string | null;
   address: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   primaryContinent: string | null;
   continents: string[];
   accommodationCount: number;
@@ -31,6 +33,8 @@ export interface HotelSupplierDetail {
   email: string | null;
   address: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   notes: string | null;
   createdAt: string | null;
   updatedAt: string | null;

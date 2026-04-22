@@ -153,4 +153,20 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             g => g.OwnerId,
             g => (g.Count, g.Continents));
     }
+
+    public async Task<HashSet<Guid>> FindActiveIdsByOwnerAsync(
+        IEnumerable<Guid> vehicleIds, Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        var ids = vehicleIds.ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var matched = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.Id) && v.OwnerId == ownerId && v.IsActive && !v.IsDeleted)
+            .Select(v => v.Id)
+            .ToListAsync(cancellationToken);
+
+        return [.. matched];
+    }
 }

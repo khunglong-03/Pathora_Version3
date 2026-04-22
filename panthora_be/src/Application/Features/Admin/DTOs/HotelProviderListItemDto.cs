@@ -11,6 +11,7 @@ public sealed record HotelProviderListItemDto(
     string? Address,
     string? AvatarUrl,
     UserStatus Status,
+    Guid OwnerUserId,
     int AccommodationCount,
     int PropertyCount,
     int RoomCount,

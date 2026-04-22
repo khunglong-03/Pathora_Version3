@@ -36,11 +36,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             AvatarUrl = "https://example.com/transport.jpg",
             Status = UserStatus.Active
         };
-        _userRepository.FindProvidersByRoleAsync(6, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -68,11 +68,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
     [Fact]
     public async Task Handle_NoTransportProviders_ReturnsEmptyList()
     {
-        _userRepository.FindProvidersByRoleAsync(6, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity>());
-        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -98,11 +98,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Email = "taxi@example.com",
             Status = UserStatus.Active
         };
-        _userRepository.FindProvidersByRoleAsync(6, "taxi", null, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, "taxi", null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, "taxi", null, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, "taxi", null, Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -115,7 +115,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
 
         Assert.False(result.IsError);
         Assert.Single(result.Value.Items);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(6, "taxi", null, 1, 10, Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).FindProvidersByRoleAsync(6, "taxi", null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -128,11 +128,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Email = "active@example.com",
             Status = UserStatus.Active
         };
-        _userRepository.FindProvidersByRoleAsync(6, null, "Active", 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, "Active", Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, null, "Active", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Active", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -158,11 +158,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Email = "inactive@example.com",
             Status = UserStatus.Inactive
         };
-        _userRepository.FindProvidersByRoleAsync(6, null, "Inactive", 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, "Inactive", Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, null, "Inactive", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Inactive", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -188,11 +188,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Email = "active@example.com",
             Status = UserStatus.Active
         };
-        _userRepository.FindProvidersByRoleAsync(6, "taxi", "Active", 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, "taxi", "Active", Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Active", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Active", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, "taxi", "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -205,17 +205,17 @@ public sealed class GetTransportProvidersQueryHandlerTests
 
         Assert.False(result.IsError);
         Assert.Single(result.Value.Items);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(6, "taxi", "Active", 1, 10, Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).FindProvidersByRoleAsync(6, "taxi", "Active", Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_WithPagination_AppliesPageSize()
     {
-        _userRepository.FindProvidersByRoleAsync(6, null, null, 2, 20, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 2, 20, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity>());
-        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -229,7 +229,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Equal(2, result.Value.PageNumber);
         Assert.Equal(20, result.Value.PageSize);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(6, null, null, 2, 20, Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 2, 20, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -242,11 +242,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
             Email = "taxi@example.com",
             Status = UserStatus.Active
         };
-        _userRepository.FindProvidersByRoleAsync(6, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(new List<UserEntity> { user });
-        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<Guid, (int Count, List<Continent> Continents)>());
@@ -258,7 +258,7 @@ public sealed class GetTransportProvidersQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         Assert.False(result.IsError);
-        await _userRepository.Received(1).FindProvidersByRoleAsync(6, null, null, 1, 10, Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).FindProvidersByRoleAsync(6, null, null, Arg.Any<List<string>?>(), 1, 10, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -298,11 +298,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
 
         _supplierRepository.FindOwnerUserIdsByTransportProviderContinentsAsync(Arg.Is<List<Continent>>(l => l.Contains(continent)), Arg.Any<CancellationToken>())
             .Returns(userIds);
-        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(users);
-        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(2);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(0);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(vehicleData);
@@ -348,11 +348,11 @@ public sealed class GetTransportProvidersQueryHandlerTests
 
         _supplierRepository.FindOwnerUserIdsByTransportProviderContinentsAsync(Arg.Is<List<Continent>>(l => l.Contains(continent)), Arg.Any<CancellationToken>())
             .Returns(userIds);
-        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
+        _userRepository.FindProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<List<Guid>>(), 1, 10, Arg.Any<CancellationToken>())
             .Returns(users);
-        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleWithIdsAsync(6, null, null, Arg.Any<List<string>?>(), Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(1);
-        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>())
+        _userRepository.CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>())
             .Returns(1);
         _vehicleRepository.GetVehicleDataGroupedByOwnerAsync(Arg.Any<List<Guid>>(), Arg.Any<CancellationToken>())
             .Returns(vehicleData);
@@ -363,6 +363,6 @@ public sealed class GetTransportProvidersQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert: verify pending count method was called
-        await _userRepository.Received(1).CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<CancellationToken>());
+        await _userRepository.Received(1).CountProvidersByRoleAsync(6, null, "Pending", Arg.Any<List<string>?>(), Arg.Any<CancellationToken>());
     }
 }

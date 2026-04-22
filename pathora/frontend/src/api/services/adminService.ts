@@ -138,10 +138,14 @@ export const adminService = {
     return extractResult<PaginatedList<TransportProviderListItem>>(response.data);
   },
 
-  getTransportProviderStats: async (search?: string) => {
+  getTransportProviderStats: async (params: { search?: string; continents?: string[] } = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.set("search", params.search);
+    params.continents?.forEach((c) => queryParams.append("continents", c));
+
     const response = await api.get<ApiResponse<TransportProviderStats>>(
       API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_STATS,
-      { params: { search } }
+      { params: queryParams }
     );
     return extractResult<TransportProviderStats>(response.data);
   },

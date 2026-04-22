@@ -462,4 +462,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 && m.UserId == userId
                 && m.Role == TourInstanceManagerRole.Guide, cancellationToken);
     }
+
+    public async Task<UserEntity?> FindUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+    }
 }

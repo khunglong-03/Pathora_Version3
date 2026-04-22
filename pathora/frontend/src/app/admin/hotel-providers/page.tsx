@@ -15,6 +15,7 @@ import { HotelProviderCard } from "@/features/dashboard/components/HotelProvider
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
+import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
 
 type StatusFilter = "all" | "Active" | "Inactive";
 
@@ -37,6 +38,7 @@ export default function HotelProvidersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
+  const [selectedContinents, setSelectedContinents] = useState<string[]>([]);
 
   const loadProviders = useCallback(async () => {
     setIsLoading(true);
@@ -47,6 +49,7 @@ export default function HotelProvidersPage() {
       limit: 12,
       search: debouncedSearch || undefined,
       ...(statusFilter !== "all" && { status: statusFilter }),
+      ...(selectedContinents.length > 0 && { continents: selectedContinents }),
     };
 
     const result = await adminService.getHotelProviders(params);
@@ -60,13 +63,17 @@ export default function HotelProvidersPage() {
       setProviders([]);
     }
     setIsLoading(false);
-  }, [currentPage, debouncedSearch, statusFilter]);
+  }, [currentPage, debouncedSearch, statusFilter, selectedContinents, reloadToken]);
 
   useEffect(() => {
     void loadProviders();
   }, [loadProviders]);
 
   const handleRefresh = () => setReloadToken((t) => t + 1);
+  const handleContinentsChange = (continents: string[]) => {
+    setSelectedContinents(continents);
+    setCurrentPage(1);
+  };
 
   const activeCount = providers.filter((p) => p.status === "Active").length;
 
@@ -108,20 +115,29 @@ export default function HotelProvidersPage() {
       <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabs
-          tabs={tabsWithCounts}
-          activeValue={statusFilter}
-          onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
-        />
-        <div className="w-full md:w-72">
-          <TextInput
-            type="text"
-            placeholder="Tìm kiếm nhà cung cấp..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            icon="MagnifyingGlass"
-            hasicon={false}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <AdminFilterTabs
+            tabs={tabsWithCounts}
+            activeValue={statusFilter}
+            onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
+          />
+          <div className="w-full md:w-72">
+            <TextInput
+              type="text"
+              placeholder="Tìm kiếm nhà cung cấp..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              icon="MagnifyingGlass"
+              hasicon={false}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium" style={{ color: "#6B7280" }}>Châu lục:</span>
+          <MultiSelectContinentDropdown
+            selected={selectedContinents}
+            onChange={handleContinentsChange}
           />
         </div>
       </div>
