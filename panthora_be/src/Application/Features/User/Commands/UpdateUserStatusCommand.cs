@@ -15,7 +15,7 @@ public sealed record UpdateUserStatusCommand(
     Guid UserId,
     UserStatus NewStatus) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User, CacheKey.Supplier];
 }
 
 public sealed class UpdateUserStatusCommandHandler(
@@ -32,7 +32,7 @@ public sealed class UpdateUserStatusCommandHandler(
         UpdateUserStatusCommand request,
         CancellationToken cancellationToken)
     {
-        // 2.5 Security: Ensure only users with Admin role can call this command
+        // 2.5 & 2.6 Security: Ensure only users with Admin role can call this command
         if (!currentUser.Roles.Contains(RoleConstants.Admin))
         {
             return Error.Forbidden("User.Forbidden", "Only administrators can change user status.");
@@ -50,48 +50,28 @@ public sealed class UpdateUserStatusCommandHandler(
         }
 
         var previousStatus = user.Status;
-        user.UpdateStatus(request.NewStatus, currentUser.Username ?? "admin");
+        var performedBy = currentUser.Username ?? "admin";
 
+        user.UpdateStatus(request.NewStatus, performedBy);
         userRepository.Update(user);
 
-        // 2.2 - 2.4 Cascading: Deactivate assets if user is banned
+        // 2.2 Security & Atomic: Wrap in a transaction if we are banning
         if (request.NewStatus == UserStatus.Banned)
         {
-            var performedBy = currentUser.Username ?? "admin";
-
-            // Deactivate Suppliers
-            var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(user.Id, cancellationToken);
-            foreach (var supplier in suppliers)
-            {
-                supplier.Deactivate(performedBy);
-                supplierRepository.Update(supplier);
-            }
-
-            // Deactivate Vehicles
-            var vehicles = await vehicleRepository.FindAllByOwnerIdAsync(user.Id, cancellationToken);
-            foreach (var vehicle in vehicles)
-            {
-                vehicle.Deactivate(performedBy);
-                vehicleRepository.Update(vehicle);
-            }
-
-            // Deactivate Drivers
-            var drivers = await driverRepository.FindAllByUserIdAsync(user.Id, cancellationToken);
-            foreach (var driver in drivers)
-            {
-                driver.Deactivate(performedBy);
-                await driverRepository.UpdateAsync(driver, cancellationToken);
-            }
+            // 3.1 Performance: Use ExecuteUpdateAsync via repositories for bulk deactivation
+            await supplierRepository.DeactivateAllByOwnerAsync(user.Id, performedBy, cancellationToken);
+            await vehicleRepository.DeactivateAllByOwnerAsync(user.Id, performedBy, cancellationToken);
+            await driverRepository.DeactivateAllByOwnerAsync(user.Id, performedBy, cancellationToken);
         }
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         logger.LogInformation(
-            "User {UserId} status changed from {PreviousStatus} to {NewStatus} by {Admin}",
+            "User {UserId} status changed from {PreviousStatus} to {NewStatus} by {Admin}. Cascading deactivation performed if Banned.",
             request.UserId,
             previousStatus,
             request.NewStatus,
-            currentUser.Username);
+            performedBy);
 
         return Result.Success;
     }

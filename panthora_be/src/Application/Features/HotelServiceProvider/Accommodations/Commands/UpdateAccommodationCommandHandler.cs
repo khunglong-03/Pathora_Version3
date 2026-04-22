@@ -63,7 +63,9 @@ public sealed class UpdateAccommodationCommandHandler(
             e.Address,
             e.LocationArea?.ToString(),
             e.OperatingCountries,
-            e.ImageUrls,
+            !string.IsNullOrWhiteSpace(e.ImageUrls)
+                ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(e.ImageUrls)
+                : [],
             e.Notes);
     }
 }

@@ -347,9 +347,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
+#pragma warning disable CS0618
             query = query.Where(t =>
                 (t.TransportProviderId == providerId && t.TransportApprovalStatus == status) ||
                 t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status)));
+#pragma warning restore CS0618
         }
 
         return await query
@@ -373,9 +375,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
+#pragma warning disable CS0618
             query = query.Where(t =>
                 (t.TransportProviderId == providerId && t.TransportApprovalStatus == status) ||
                 t.InstanceDays.Any(d => d.Activities.Any(a => a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status)));
+#pragma warning restore CS0618
         }
 
         return await query.CountAsync(cancellationToken);

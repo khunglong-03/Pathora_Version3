@@ -36,6 +36,10 @@ public static class DependencyInjection
         services.AddSingleton<IDatabaseStartupLifecycle, EfCoreDatabaseStartupLifecycle>();
         services.AddSingleton<DatabaseStartupInitializer>();
 
+        // Background Workers
+        services.AddHostedService<OutboxWorkerService>();
+        services.AddHostedService<SoftHoldCleanupWorkerService>();
+
         return services;
     }
 

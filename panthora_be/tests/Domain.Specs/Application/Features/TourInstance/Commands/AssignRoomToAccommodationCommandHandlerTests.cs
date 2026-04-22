@@ -89,7 +89,7 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockInventoryRepository.FindByHotelAndRoomTypeAsync(_supplierId, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns(new HotelRoomInventoryEntity { TotalRooms = 20 });
 
-        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<CancellationToken>())
+        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<HoldStatus?>(), Arg.Any<CancellationToken>())
             .Returns(10); // 10 already blocked globally on that day
 
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())
@@ -125,7 +125,7 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockInventoryRepository.FindByHotelAndRoomTypeAsync(_supplierId, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns(new HotelRoomInventoryEntity { TotalRooms = 20 });
 
-        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<CancellationToken>())
+        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<HoldStatus?>(), Arg.Any<CancellationToken>())
             .Returns(10); // 10 blocked totally on that day
 
         // Assuming 3 of those 10 were from this exact activity previously
@@ -160,7 +160,7 @@ public class AssignRoomToAccommodationCommandHandlerTests
         _mockInventoryRepository.FindByHotelAndRoomTypeAsync(_supplierId, RoomType.Standard, Arg.Any<CancellationToken>())
             .Returns(new HotelRoomInventoryEntity { TotalRooms = 20 });
 
-        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<CancellationToken>())
+        _mockRoomBlockRepository.GetBlockedRoomCountAsync(_supplierId, RoomType.Standard, Arg.Any<DateOnly>(), Arg.Any<HoldStatus?>(), Arg.Any<CancellationToken>())
             .Returns(10);
 
         _mockRoomBlockRepository.GetByTourInstanceDayActivityIdAsync(_activityId, Arg.Any<CancellationToken>())

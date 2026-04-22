@@ -1,5 +1,7 @@
 namespace Domain.Entities;
 
+using Domain.Enums;
+
 /// <summary>
 /// Yêu cầu đặt tour từ khách hàng (lead/tour request). Lưu thông tin liên hệ,
 /// chi tiết chuyến đi, ngân sách, và trạng thái xử lý (Pending → Approved/Rejected/Cancelled).
@@ -56,6 +58,8 @@ public class TourRequestEntity : Aggregate<Guid>
     public virtual UserEntity? Reviewer { get; set; }
     /// <summary>Thời gian được review.</summary>
     public DateTimeOffset? ReviewedAt { get; set; }
+    /// <summary>Role của người review tại thời điểm thực hiện (snapshot).</summary>
+    public string? ReviewerRole { get; set; }
 
     // Link to approved tour instance
     /// <summary>ID TourInstance được duyệt (null nếu chưa duyệt).</summary>
@@ -115,24 +119,26 @@ public class TourRequestEntity : Aggregate<Guid>
         };
     }
 
-    public void Approve(Guid reviewedBy, string performedBy, Guid? tourInstanceId = null, string? adminNote = null)
+    public void Approve(Guid reviewedBy, string performedBy, string reviewerRole, Guid? tourInstanceId = null, string? adminNote = null)
     {
         EnsureValidTransition(Status, TourRequestStatus.Approved);
         Status = TourRequestStatus.Approved;
         ReviewedBy = reviewedBy;
         ReviewedAt = DateTimeOffset.UtcNow;
+        ReviewerRole = reviewerRole;
         TourInstanceId = tourInstanceId;
         AdminNote = adminNote;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    public void Reject(Guid reviewedBy, string performedBy, string? adminNote = null)
+    public void Reject(Guid reviewedBy, string performedBy, string reviewerRole, string? adminNote = null)
     {
         EnsureValidTransition(Status, TourRequestStatus.Rejected);
         Status = TourRequestStatus.Rejected;
         ReviewedBy = reviewedBy;
         ReviewedAt = DateTimeOffset.UtcNow;
+        ReviewerRole = reviewerRole;
         AdminNote = adminNote;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;

@@ -23,4 +23,5 @@ public interface IVehicleRepository : IRepository<VehicleEntity>
     /// </summary>
     Task<HashSet<Guid>> FindActiveIdsByOwnerAsync(
         IEnumerable<Guid> vehicleIds, Guid ownerId, CancellationToken cancellationToken = default);
+    Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default);
 }

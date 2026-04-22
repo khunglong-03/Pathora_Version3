@@ -8,6 +8,7 @@ using Application.Common.Interfaces;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Options;
@@ -29,6 +30,11 @@ internal sealed class TokenManager(
 
     public async Task<ErrorOr<(string AccessToken, string RefreshToken)>> GenerateToken(UserEntity user, CancellationToken cancellationToken = default)
     {
+        if (user.Status == UserStatus.Banned)
+        {
+            return Error.Forbidden("User.Banned", "Your account has been banned.");
+        }
+
         var rolesResult = await roleRepository.FindByUserId(user.Id.ToString(), cancellationToken);
         if (rolesResult.IsError)
         {
@@ -88,6 +94,11 @@ internal sealed class TokenManager(
 
     public async Task<ErrorOr<(string AccessToken, string RefreshToken, List<RoleEntity> Roles)>> GenerateTokenWithRoles(UserEntity user, CancellationToken cancellationToken = default)
     {
+        if (user.Status == UserStatus.Banned)
+        {
+            return Error.Forbidden("User.Banned", "Your account has been banned.");
+        }
+
         var rolesResult = await roleRepository.FindByUserId(user.Id.ToString(), cancellationToken);
         if (rolesResult.IsError)
         {
@@ -165,6 +176,11 @@ internal sealed class TokenManager(
         var user = await userRepository.FindById(tokenEntity.UserId);
         if (user is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
+
+        if (user.Status == UserStatus.Banned)
+        {
+            return Error.Forbidden("User.Banned", "Your account has been banned.");
+        }
 
         // Delete old refresh token
         repo.Delete(tokenEntity);

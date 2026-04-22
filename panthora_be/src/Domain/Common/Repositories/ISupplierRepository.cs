@@ -12,6 +12,7 @@ public sealed record HotelProviderAdminData(
     string? Email,
     DateTimeOffset? CreatedOnUtc,
     Continent? PrimaryContinent,
+    UserStatus OwnerStatus,
     int PropertyCount,
     int RoomCount,
     List<Continent> Continents);
@@ -47,4 +48,5 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
     Task<List<Guid>> GetTransportSupplierIdsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<(int Total, int Active, int Completed)> GetTransportBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<(int Total, int Active, int Completed)> GetHotelBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
+    Task DeactivateAllByOwnerAsync(Guid ownerUserId, string performedBy, CancellationToken cancellationToken = default);
 }

@@ -12,7 +12,9 @@ public sealed class TourInstanceProfile : Profile
         CreateMap<TourInstanceEntity, TourInstanceVm>()
             .ForCtorParam(nameof(TourInstanceVm.Status), opt => opt.MapFrom(src => src.Status.ToString()))
             .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()))
+#pragma warning disable CS0618
             .ForCtorParam(nameof(TourInstanceVm.TransportApprovalStatus), opt => opt.MapFrom(src => (int)src.TransportApprovalStatus));
+#pragma warning restore CS0618
 
         CreateMap<TourInstanceEntity, DuplicateInstanceSummaryDto>()
             .ForCtorParam(nameof(DuplicateInstanceSummaryDto.Id), opt => opt.MapFrom(src => src.Id))

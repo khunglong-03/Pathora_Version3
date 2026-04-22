@@ -24,6 +24,7 @@ import type {
 } from "@/api/services/hotelProviderService";
 import type { NormalizedTourInstanceVm } from "@/types/tour";
 import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
+import HotelOnboardingWizard from "@/features/dashboard/components/HotelOnboardingWizard";
 import dayjs from "dayjs";
 
 type CreatePropertyDraft = {
@@ -355,6 +356,10 @@ export default function HotelDashboardPage() {
       setIsCreatingProperty(false);
     }
   };
+
+  if (!isLoading && !error && suppliers.length === 0) {
+    return <HotelOnboardingWizard onComplete={loadData} />;
+  }
 
   return (
     <div style={{ backgroundColor: T.bg, minHeight: "100dvh", padding: "40px", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>

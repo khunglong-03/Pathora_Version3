@@ -32,7 +32,9 @@ public sealed class GetHotelRoomAvailabilityQueryHandler(
                 var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
                     request.SupplierId,
                     inventory.RoomType,
-                    date);
+                    date,
+                    null,
+                    cancellationToken);
 
                 var availableRooms = inventory.TotalRooms - blockedCount;
 

@@ -12,7 +12,7 @@ public sealed record AccommodationDto(
     string? Address,
     string? LocationArea,
     string? OperatingCountries,
-    string? ImageUrls,
+    List<string>? ImageUrls,
     string? Notes);
 
 public sealed record CreateAccommodationRequestDto(

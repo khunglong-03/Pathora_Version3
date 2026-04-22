@@ -49,12 +49,14 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasMaxLength(50)
             .IsRequired();
 
+#pragma warning disable CS0618
         builder.Property(t => t.TransportApprovalStatus)
             .HasConversion<int>()
             .IsRequired();
 
         builder.Property(t => t.TransportApprovalNote)
             .HasMaxLength(1000);
+#pragma warning restore CS0618
 
         builder.Property(t => t.CancellationReason)
             .HasMaxLength(1000);

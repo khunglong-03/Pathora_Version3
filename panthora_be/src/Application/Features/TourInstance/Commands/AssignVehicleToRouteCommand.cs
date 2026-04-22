@@ -33,6 +33,9 @@ public sealed class AssignVehicleToRouteCommandHandler(
     IVehicleRepository vehicleRepository,
     IDriverRepository driverRepository,
     ISupplierRepository supplierRepository,
+    IVehicleBlockRepository vehicleBlockRepository,
+    IResourceAvailabilityService availabilityService,
+    IUnitOfWork unitOfWork,
     IUser currentUser)
     : ICommandHandler<AssignVehicleToRouteCommand, ErrorOr<AssignVehicleToRouteResponseDto>>
 {
@@ -58,33 +61,62 @@ public sealed class AssignVehicleToRouteCommandHandler(
             return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this tour instance.");
 
         var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
-        if (vehicle is null)
-            return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
-
-        if (vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
+        if (vehicle is null || vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
             return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
 
         if (!vehicle.IsActive)
             return Error.Validation("Vehicle.Inactive", "Vehicle is inactive.");
 
-        var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
-        if (driver is null)
-            return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
+        // Hard capacity check (seats)
+        if (vehicle.SeatCapacity < instance.MaxParticipation)
+        {
+            return Error.Validation("Vehicle.InsufficientCapacity", $"Sức chứa của xe ({vehicle.SeatCapacity}) không đủ cho số khách tối đa của tour ({instance.MaxParticipation}).");
+        }
 
-        if (driver.UserId != currentUserId)
+        // Availability check (overlap)
+        var availabilityCheck = await availabilityService.CheckVehicleAvailabilityAsync(
+            request.VehicleId,
+            activity.TourInstanceDay.ActualDate,
+            request.RouteId,
+            cancellationToken);
+
+        if (availabilityCheck.IsError) return availabilityCheck.Errors;
+        if (!availabilityCheck.Value)
+        {
+            return Error.Validation("Vehicle.Unavailable", "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+        }
+
+        var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
+        if (driver is null || driver.UserId != currentUserId)
             return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
 
         if (!driver.IsActive)
             return Error.Validation("Driver.Inactive", "Driver is inactive.");
 
-        activity.VehicleId = request.VehicleId;
-        activity.DriverId = request.DriverId;
+        await unitOfWork.ExecuteTransactionAsync(async () =>
+        {
+            // Remove existing block for this activity if any
+            await vehicleBlockRepository.DeleteByActivityAsync(request.RouteId, cancellationToken);
 
-        await tourInstanceRepository.Update(instance, cancellationToken);
+            activity.VehicleId = request.VehicleId;
+            activity.DriverId = request.DriverId;
+
+            // Create new hard hold block
+            var block = VehicleBlockEntity.Create(
+                request.VehicleId,
+                activity.TourInstanceDay.ActualDate,
+                currentUserId.ToString(),
+                tourInstanceDayActivityId: request.RouteId,
+                holdStatus: HoldStatus.Hard);
+
+            await vehicleBlockRepository.AddAsync(block, cancellationToken);
+            await tourInstanceRepository.Update(instance, cancellationToken);
+            await unitOfWork.SaveChangeAsync(cancellationToken);
+        });
 
         return new AssignVehicleToRouteResponseDto(
             Success: true,
-            SeatCapacityWarning: vehicle.SeatCapacity < instance.MaxParticipation,
+            SeatCapacityWarning: false, // Hardened to error
             VehicleSeatCapacity: vehicle.SeatCapacity,
             TourMaxParticipation: instance.MaxParticipation);
     }

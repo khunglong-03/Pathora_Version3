@@ -41,6 +41,7 @@ public sealed class AssignRoomToAccommodationCommandHandler(
     IHotelRoomInventoryRepository inventoryRepository,
     ISupplierRepository supplierRepository,
     ITourInstanceRepository tourInstanceRepository,
+    IResourceAvailabilityService availabilityService,
     IUnitOfWork unitOfWork,
     IUser user
 ) : ICommandHandler<AssignRoomToAccommodationCommand, ErrorOr<AssignRoomToAccommodationResponse>>
@@ -59,7 +60,6 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         if (instance is null)
             return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
 
-        // Find the accommodation activity first, then check supplier ownership
         var activity = instance.InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
@@ -71,7 +71,6 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         if (activity.ActivityType != TourDayActivityType.Accommodation)
             return Error.Validation("TourInstanceActivity.InvalidType", "Activity is not an accommodation.");
 
-        // Check if any of the owner's suppliers is assigned to this accommodation activity
         if (activity.Accommodation?.SupplierId is null || !ownerSupplierIds.Contains(activity.Accommodation.SupplierId.Value))
             return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Hotel provider for this accommodation activity.");
 
@@ -83,18 +82,23 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         if (!Enum.TryParse<RoomType>(request.RoomType, true, out var roomType))
             return Error.Validation("RoomType.Invalid", "Invalid room type.");
 
+        // Hard capacity check
+        var availabilityCheck = await availabilityService.CheckRoomAvailabilityAsync(
+            supplier.Id, 
+            roomType, 
+            activity.TourInstanceDay.ActualDate, 
+            request.RoomCount, 
+            request.AccommodationActivityId, 
+            cancellationToken);
+
+        if (availabilityCheck.IsError) return availabilityCheck.Errors;
+        if (!availabilityCheck.Value)
+        {
+            return Error.Validation("RoomBlock.InsufficientInventory", "Không đủ phòng trống cho loại phòng này vào ngày đã chọn.");
+        }
+
         var inventory = await inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, roomType, cancellationToken);
-        if (inventory is null)
-            return Error.Validation("Inventory.NotFound", "Khách sạn không có loại phòng này.");
-
         var blockedDate = activity.TourInstanceDay.ActualDate;
-
-        var existingBlocked = await roomBlockRepository.GetBlockedRoomCountAsync(supplier.Id, roomType, blockedDate, cancellationToken);
-        var selfBlocksList = await roomBlockRepository.GetByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
-        var selfBlocks = selfBlocksList.Where(r => r.RoomType == roomType).Sum(r => r.RoomCountBlocked);
-
-        var netBlocked = existingBlocked - selfBlocks;
-        var available = inventory.TotalRooms - netBlocked;
 
         await unitOfWork.ExecuteTransactionAsync(async () =>
         {
@@ -106,7 +110,8 @@ public sealed class AssignRoomToAccommodationCommandHandler(
                 blockedDate: blockedDate,
                 roomCountBlocked: request.RoomCount,
                 performedBy: currentUserId.ToString(),
-                tourInstanceDayActivityId: request.AccommodationActivityId);
+                tourInstanceDayActivityId: request.AccommodationActivityId,
+                holdStatus: HoldStatus.Hard); // Hard hold since it's provider assignment
 
             roomBlockRepository.Add(block);
             await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -114,8 +119,8 @@ public sealed class AssignRoomToAccommodationCommandHandler(
 
         return new AssignRoomToAccommodationResponse(
             Success: true,
-            AvailabilityWarning: request.RoomCount > available,
-            AvailableAfter: available - request.RoomCount,
-            TotalRooms: inventory.TotalRooms);
+            AvailabilityWarning: false, // Now it's a hard error if insufficient
+            AvailableAfter: 0, // Not used anymore for warnings
+            TotalRooms: inventory?.TotalRooms ?? 0);
     }
 }

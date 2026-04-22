@@ -34,7 +34,7 @@ public sealed class UpdateRoomBlockCommandHandler(
         if (inventory is not null)
         {
             var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
-                entity.SupplierId, entity.RoomType, entity.BlockedDate);
+                entity.SupplierId, entity.RoomType, entity.BlockedDate, null, cancellationToken);
 
             var otherBlockedCount = blockedCount - entity.RoomCountBlocked;
             if (inventory.TotalRooms - otherBlockedCount < request.RoomCountBlocked)

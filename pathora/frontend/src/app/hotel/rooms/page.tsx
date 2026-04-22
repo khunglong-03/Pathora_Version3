@@ -41,17 +41,16 @@ export default function RoomsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [createRoomType, setCreateRoomType] = useState("Standard");
   const [createTotal, setCreateTotal] = useState(1);
+  const [createImageUrls, setCreateImageUrls] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTotal, setEditTotal] = useState(0);
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const loadAccommodations = useCallback(async () => {
     setIsLoading(true);
@@ -77,10 +76,13 @@ export default function RoomsPage() {
       await hotelProviderService.createAccommodation({
         roomType: createRoomType,
         totalRooms: createTotal,
+        imageUrls: createImageUrls,
       });
       setShowCreate(false);
       setCreateTotal(1);
       setCreateRoomType("Standard");
+      setCreateImageUrls([]);
+      setNewImageUrl("");
       await loadAccommodations();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Tạo phòng thất bại");
@@ -91,18 +93,17 @@ export default function RoomsPage() {
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
-    const originalTotal = accommodations.find(a => a.id === editingId)?.totalRooms;
     setSaving(true);
     setSaveError(null);
     try {
       await hotelProviderService.updateAccommodation(editingId, {
         totalRooms: editTotal,
+        imageUrls: editImageUrls,
       });
       setEditingId(null);
       await loadAccommodations();
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Cập nhật thất bại");
-      setEditTotal(originalTotal ?? 0);
     } finally {
       setSaving(false);
     }
@@ -214,6 +215,7 @@ export default function RoomsPage() {
                 className="text-left text-xs uppercase tracking-wider"
                 style={{ color: "#9CA3AF", backgroundColor: "#F8FAFC" }}
               >
+                <th className="px-4 py-3 font-medium">Hình ảnh</th>
                 <th className="px-4 py-3 font-medium">Loại phòng</th>
                 <th className="px-4 py-3 font-medium">Tổng</th>
                 <th className="px-4 py-3 font-medium">Trạng thái</th>
@@ -228,51 +230,34 @@ export default function RoomsPage() {
                   className="border-t"
                   style={{ borderColor: "var(--border)" }}
                 >
+                  <td className="px-4 py-3">
+                    <div className="flex -space-x-2 overflow-hidden">
+                      {acc.imageUrls && acc.imageUrls.length > 0 ? (
+                        acc.imageUrls.slice(0, 3).map((url, i) => (
+                          <img
+                            key={i}
+                            src={url}
+                            alt=""
+                            className="inline-block h-10 w-10 rounded-lg ring-2 ring-white object-cover"
+                          />
+                        ))
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
+                          <EyeIcon size={16} className="text-slate-300" />
+                        </div>
+                      )}
+                      {acc.imageUrls && acc.imageUrls.length > 3 && (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 text-xs font-medium ring-2 ring-white border border-slate-200">
+                          +{acc.imageUrls.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-medium">
                     {ROOM_TYPE_LABELS[acc.roomType] ?? acc.roomType}
                   </td>
                   <td className="px-4 py-3">
-                    {editingId === acc.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={editTotal}
-                          onChange={(e) => setEditTotal(parseInt(e.target.value) || 0)}
-                          className="w-20 px-2 py-1 rounded border text-sm"
-                          style={{ borderColor: "var(--border)" }}
-                        />
-                        <button
-                          onClick={() => void handleSaveEdit()}
-                          disabled={saving}
-                          className="px-2 py-1 rounded text-xs text-white"
-                          style={{ backgroundColor: "#22C55E" }}
-                        >
-                          {saving ? "..." : "OK"}
-                        </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="px-2 py-1 rounded text-xs border text-sm"
-                          style={{ borderColor: "var(--border)" }}
-                        >
-                          Hủy
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>{acc.totalRooms}</span>
-                        <button
-                          onClick={() => {
-                            setEditingId(acc.id);
-                            setEditTotal(acc.totalRooms);
-                          }}
-                          className="p-1 rounded hover:bg-gray-100"
-                          title="Sửa số phòng"
-                        >
-                          <PencilIcon size={14} />
-                        </button>
-                      </div>
-                    )}
+                    <span>{acc.totalRooms}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -286,13 +271,26 @@ export default function RoomsPage() {
                     {acc.notes ?? "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setDeleteId(acc.id)}
-                      className="p-1.5 rounded hover:bg-red-50 text-red-500"
-                      title="Xóa"
-                    >
-                      <TrashIcon size={16} />
-                    </button>
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingId(acc.id);
+                          setEditTotal(acc.totalRooms);
+                          setEditImageUrls(acc.imageUrls || []);
+                        }}
+                        className="p-1.5 rounded hover:bg-slate-100 text-slate-500"
+                        title="Sửa"
+                      >
+                        <PencilIcon size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(acc.id)}
+                        className="p-1.5 rounded hover:bg-red-50 text-red-500"
+                        title="Xóa"
+                      >
+                        <TrashIcon size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -348,6 +346,44 @@ export default function RoomsPage() {
               style={{ borderColor: "var(--border)" }}
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Hình ảnh phòng (URL)</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="Dán link ảnh"
+                className="flex-1 px-3 py-2 rounded-lg border text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newImageUrl) {
+                    setCreateImageUrls([...createImageUrls, newImageUrl]);
+                    setNewImageUrl("");
+                  }
+                }}
+                className="px-3 py-2 bg-slate-100 rounded-lg text-sm"
+              >
+                Thêm
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {createImageUrls.map((url, index) => (
+                <div key={index} className="relative w-16 h-16 rounded border overflow-hidden">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setCreateImageUrls(createImageUrls.filter((_, i) => i !== index))}
+                    className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"
+                  >
+                    <TrashIcon size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={() => { setShowCreate(false); setCreateError(null); }}
@@ -363,6 +399,88 @@ export default function RoomsPage() {
               style={{ backgroundColor: "#6366F1" }}
             >
               {creating ? "Đang thêm..." : "Thêm"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={editingId !== null}
+        onClose={() => { setEditingId(null); setSaveError(null); }}
+        title="Sửa loại phòng"
+        className="max-w-md"
+      >
+        <div className="space-y-4">
+          {saveError && (
+            <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEE2E2", color: "#EF4444" }}>
+              {saveError}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Số phòng</label>
+            <input
+              type="number"
+              min={1}
+              value={editTotal}
+              onChange={(e) => setEditTotal(parseInt(e.target.value) || 1)}
+              className="w-full px-3 py-2 rounded-lg border text-sm"
+              style={{ borderColor: "var(--border)" }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Hình ảnh phòng (URL)</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="Dán link ảnh"
+                className="flex-1 px-3 py-2 rounded-lg border text-sm"
+                style={{ borderColor: "var(--border)" }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newImageUrl) {
+                    setEditImageUrls([...editImageUrls, newImageUrl]);
+                    setNewImageUrl("");
+                  }
+                }}
+                className="px-3 py-2 bg-slate-100 rounded-lg text-sm"
+              >
+                Thêm
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {editImageUrls.map((url, index) => (
+                <div key={index} className="relative w-16 h-16 rounded border overflow-hidden">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
+                    className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"
+                  >
+                    <TrashIcon size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => { setEditingId(null); setSaveError(null); }}
+              className="px-4 py-2 rounded-lg text-sm border"
+              style={{ borderColor: "var(--border)" }}
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => void handleSaveEdit()}
+              disabled={saving}
+              className="px-4 py-2 rounded-lg text-sm text-white"
+              style={{ backgroundColor: "#6366F1" }}
+            >
+              {saving ? "Đang lưu..." : "Lưu thay đổi"}
             </button>
           </div>
         </div>

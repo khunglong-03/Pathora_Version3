@@ -60,6 +60,11 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public DateTimeOffset? DepartureTime { get; set; }
     public DateTimeOffset? ArrivalTime { get; set; }
 
+    /// <summary>Trạng thái phê duyệt của nhà cung cấp vận chuyển cho riêng activity này.</summary>
+    public ProviderApprovalStatus TransportationApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
+    /// <summary>Ghi chú từ nhà cung cấp vận chuyển khi phê duyệt/từ chối.</summary>
+    public string? TransportationApprovalNote { get; set; }
+
     public static TourInstanceDayActivityEntity Create(
         Guid tourInstanceDayId,
         int order,

@@ -231,6 +231,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var suppliers = await _context.Suppliers
             .AsNoTracking()
+            .Include(s => s.Owner)
             .Where(s => !s.IsDeleted
                 && s.SupplierType == SupplierType.Accommodation
                 && s.OwnerUserId.HasValue
@@ -245,7 +246,8 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
                 s.Phone,
                 s.Email,
                 s.CreatedOnUtc,
-                PrimaryContinent = s.Continent
+                PrimaryContinent = s.Continent,
+                OwnerStatus = s.Owner != null ? s.Owner.Status : UserStatus.Active
             })
             .ToListAsync(cancellationToken);
 
@@ -292,6 +294,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
                             supplier.Email,
                             supplier.CreatedOnUtc,
                             supplier.PrimaryContinent,
+                            supplier.OwnerStatus,
                             1,
                             hasInventory ? inventory!.RoomCount : 0,
                             continents);
@@ -377,5 +380,16 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return details is null
             ? (0, 0, 0)
             : (details.Total, details.Active, details.Completed);
+    }
+
+    public async Task DeactivateAllByOwnerAsync(Guid ownerUserId, string performedBy, CancellationToken cancellationToken = default)
+    {
+        await _context.Suppliers
+            .Where(s => s.OwnerUserId == ownerUserId && s.IsActive && !s.IsDeleted)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(s => s.IsActive, false)
+                .SetProperty(s => s.LastModifiedBy, performedBy)
+                .SetProperty(s => s.LastModifiedOnUtc, DateTimeOffset.UtcNow),
+                cancellationToken);
     }
 }

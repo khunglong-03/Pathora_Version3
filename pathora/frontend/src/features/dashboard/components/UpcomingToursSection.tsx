@@ -126,7 +126,7 @@ export default function UpcomingToursSection({
               style={{
                 width: 64,
                 height: 64,
-                backgroundColor: "rgba(0,0,0,0.03)",
+                backgroundColor: "rgba(99, 102, 241, 0.05)",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
@@ -134,7 +134,7 @@ export default function UpcomingToursSection({
                 margin: "0 auto 16px auto",
               }}
             >
-              <CalendarIcon size={32} color={tokens.textMuted} />
+              <CalendarIcon size={32} color={tokens.blue} />
             </div>
             <h4
               style={{
@@ -144,16 +144,20 @@ export default function UpcomingToursSection({
                 margin: 0,
               }}
             >
-              Không có đợt tour nào sắp tới
+              Chào mừng Nhà cung cấp mới!
             </h4>
             <p
               style={{
                 fontSize: "14px",
                 color: tokens.textMuted,
                 marginTop: 8,
+                maxWidth: "360px",
+                margin: "8px auto 0 auto"
               }}
             >
-              Hiện tại không có tour nào được chỉ định cho bạn trong thời gian sắp tới.
+              {providerType === "hotel"
+                ? "Bạn chưa có đợt tour nào được gán. Hãy bắt đầu bằng việc cập nhật trạng thái phòng của bạn."
+                : "Bạn chưa có đợt tour nào được gán. Hãy bắt đầu bằng việc thiết lập đội xe bên dưới."}
             </p>
           </div>
         ) : (

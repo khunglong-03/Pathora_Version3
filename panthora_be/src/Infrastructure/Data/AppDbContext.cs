@@ -100,6 +100,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourDayActivityRouteTransportEntity> TourDayActivityRouteTransports => Set<TourDayActivityRouteTransportEntity>();
     public DbSet<HotelRoomInventoryEntity> HotelRoomInventories => Set<HotelRoomInventoryEntity>();
     public DbSet<RoomBlockEntity> RoomBlocks => Set<RoomBlockEntity>();
+    public DbSet<VehicleBlockEntity> VehicleBlocks => Set<VehicleBlockEntity>();
     public DbSet<GuestArrivalEntity> GuestArrivals => Set<GuestArrivalEntity>();
     public DbSet<GuestArrivalParticipantEntity> GuestArrivalParticipants => Set<GuestArrivalParticipantEntity>();
     public DbSet<ManagerBankAccountEntity> ManagerBankAccounts => Set<ManagerBankAccountEntity>();

@@ -194,7 +194,9 @@ public sealed class TourInstanceServiceApprovalFlowTests
             performedBy: "tester",
             transportProviderId: Guid.NewGuid());
 
+#pragma warning disable CS0618
         instance.TransportApprovalStatus = ProviderApprovalStatus.Approved;
+#pragma warning restore CS0618
         instance.Status = TourInstanceStatus.PendingApproval;
 
         var day = TourInstanceDayEntity.Create(

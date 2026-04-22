@@ -66,6 +66,12 @@ public class TourInstanceDayActivityConfiguration : IEntityTypeConfiguration<Tou
         builder.Property(a => a.BookingReference)
             .HasMaxLength(200);
 
+        builder.Property(a => a.TransportationApprovalStatus)
+            .HasDefaultValue(Domain.Enums.ProviderApprovalStatus.Pending);
+
+        builder.Property(a => a.TransportationApprovalNote)
+            .HasMaxLength(1000);
+
         builder.HasOne(a => a.Accommodation)
             .WithOne(acc => acc.TourInstanceDayActivity)
             .HasForeignKey<TourInstancePlanAccommodationEntity>(acc => acc.TourInstanceDayActivityId)

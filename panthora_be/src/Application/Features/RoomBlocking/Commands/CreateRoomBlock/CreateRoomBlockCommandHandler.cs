@@ -41,7 +41,7 @@ public sealed class CreateRoomBlockCommandHandler(
         if (inventory is not null)
         {
             var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
-                request.SupplierId, request.RoomType, request.BlockedDate);
+                request.SupplierId, request.RoomType, request.BlockedDate, null, cancellationToken);
 
             if (inventory.TotalRooms - blockedCount < request.RoomCountBlocked)
             {

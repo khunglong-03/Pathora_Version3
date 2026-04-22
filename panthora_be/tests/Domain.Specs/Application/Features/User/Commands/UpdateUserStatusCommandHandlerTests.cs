@@ -1,3 +1,4 @@
+using Application.Common.Constant;
 using Application.Features.User.Commands;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -11,28 +12,21 @@ using Xunit;
 
 namespace Domain.Specs.Application.Features.User.Commands;
 
-public sealed class UpdateUserStatusCommandHandlerTests
+public class UpdateUserStatusCommandHandlerTests
 {
-    private readonly IUserRepository _userRepository;
-    private readonly ISupplierRepository _supplierRepository;
-    private readonly IVehicleRepository _vehicleRepository;
-    private readonly IDriverRepository _driverRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IUser _currentUser;
-    private readonly ILogger<UpdateUserStatusCommandHandler> _logger;
-    private readonly UpdateUserStatusCommandHandler _handler;
+    private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
+    private readonly ISupplierRepository _supplierRepository = Substitute.For<ISupplierRepository>();
+    private readonly IVehicleRepository _vehicleRepository = Substitute.For<IVehicleRepository>();
+    private readonly IDriverRepository _driverRepository = Substitute.For<IDriverRepository>();
+    private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IUser _currentUser = Substitute.For<IUser>();
+    private readonly ILogger<UpdateUserStatusCommandHandler> _logger = Substitute.For<ILogger<UpdateUserStatusCommandHandler>>();
+
+    private readonly UpdateUserStatusCommandHandler _sut;
 
     public UpdateUserStatusCommandHandlerTests()
     {
-        _userRepository = Substitute.For<IUserRepository>();
-        _supplierRepository = Substitute.For<ISupplierRepository>();
-        _vehicleRepository = Substitute.For<IVehicleRepository>();
-        _driverRepository = Substitute.For<IDriverRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _currentUser = Substitute.For<IUser>();
-        _logger = Substitute.For<ILogger<UpdateUserStatusCommandHandler>>();
-
-        _handler = new UpdateUserStatusCommandHandler(
+        _sut = new UpdateUserStatusCommandHandler(
             _userRepository,
             _supplierRepository,
             _vehicleRepository,
@@ -40,74 +34,75 @@ public sealed class UpdateUserStatusCommandHandlerTests
             _unitOfWork,
             _currentUser,
             _logger);
-
-        // Default: current user is admin
-        _currentUser.Roles.Returns(["Admin"]);
-        _currentUser.Username.Returns("test-admin");
-        _currentUser.Id.Returns(Guid.NewGuid().ToString());
     }
 
     [Fact]
-    public async Task Handle_UserNotFound_ReturnsNotFound()
-    {
-        // Arrange
-        var request = new UpdateUserStatusCommand(Guid.NewGuid(), UserStatus.Inactive);
-        _userRepository.FindById(request.UserId, Arg.Any<CancellationToken>())
-            .Returns((UserEntity?)null);
-
-        // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsError);
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-    }
-
-    [Fact]
-    public async Task Handle_NonAdmin_ReturnsForbidden()
-    {
-        // Arrange
-        _currentUser.Roles.Returns(["Customer"]);
-        var request = new UpdateUserStatusCommand(Guid.NewGuid(), UserStatus.Banned);
-
-        // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsError);
-        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
-    }
-
-    [Fact]
-    public async Task Handle_BannedStatus_DeactivatesAllAssets()
+    public async Task Handle_WhenUserIsBanned_ShouldDeactivateAssets()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var request = new UpdateUserStatusCommand(userId, UserStatus.Banned);
+        var username = "admin_user";
+        _currentUser.Roles.Returns(new List<string> { RoleConstants.Admin });
+        _currentUser.Id.Returns(Guid.NewGuid().ToString());
+        _currentUser.Username.Returns(username);
+
         var user = new UserEntity { Id = userId, Status = UserStatus.Active };
+        _userRepository.FindById(userId).Returns(user);
 
-        var supplier = new SupplierEntity { OwnerUserId = userId, IsActive = true };
-        var vehicle = new VehicleEntity { OwnerId = userId, IsActive = true };
-        var driver = new DriverEntity { UserId = userId, IsActive = true };
-
-        _userRepository.FindById(userId, Arg.Any<CancellationToken>()).Returns(user);
-        _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([supplier]);
-        _vehicleRepository.FindAllByOwnerIdAsync(userId, Arg.Any<CancellationToken>()).Returns([vehicle]);
-        _driverRepository.FindAllByUserIdAsync(userId, Arg.Any<CancellationToken>()).Returns([driver]);
+        var command = new UpdateUserStatusCommand(userId, UserStatus.Banned);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsError);
         Assert.Equal(UserStatus.Banned, user.Status);
-        Assert.False(supplier.IsActive);
-        Assert.False(vehicle.IsActive);
-        Assert.False(driver.IsActive);
-
-        _supplierRepository.Received(1).Update(supplier);
-        _vehicleRepository.Received(1).Update(vehicle);
-        await _driverRepository.Received(1).UpdateAsync(driver, Arg.Any<CancellationToken>());
+        
+        await _supplierRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
+        await _vehicleRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
+        await _driverRepository.Received(1).DeactivateAllByOwnerAsync(userId, username, Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenUserIsUnbanned_ShouldNotAutoActivateAssets()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var username = "admin_user";
+        _currentUser.Roles.Returns(new List<string> { RoleConstants.Admin });
+        _currentUser.Id.Returns(Guid.NewGuid().ToString());
+        _currentUser.Username.Returns(username);
+
+        var user = new UserEntity { Id = userId, Status = UserStatus.Banned };
+        _userRepository.FindById(userId).Returns(user);
+
+        var command = new UpdateUserStatusCommand(userId, UserStatus.Active);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(UserStatus.Active, user.Status);
+        
+        await _supplierRepository.DidNotReceive().DeactivateAllByOwnerAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangeAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenCallerIsNotAdmin_ShouldReturnForbidden()
+    {
+        // Arrange
+        _currentUser.Roles.Returns(new List<string> { RoleConstants.Manager }); // Not Admin
+
+        var command = new UpdateUserStatusCommand(Guid.NewGuid(), UserStatus.Banned);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 }

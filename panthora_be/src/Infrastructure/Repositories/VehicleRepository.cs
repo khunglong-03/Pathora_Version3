@@ -169,4 +169,15 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
 
         return [.. matched];
     }
+
+    public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)
+    {
+        await _context.Vehicles
+            .Where(v => v.OwnerId == ownerId && v.IsActive && !v.IsDeleted)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(v => v.IsActive, false)
+                .SetProperty(v => v.LastModifiedBy, performedBy)
+                .SetProperty(v => v.LastModifiedOnUtc, DateTimeOffset.UtcNow),
+                cancellationToken);
+    }
 }

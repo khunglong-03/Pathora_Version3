@@ -27,10 +27,35 @@ public class TourInstanceEntity : Aggregate<Guid>
     public Guid? TransportProviderId { get; set; }
     /// <summary>Đơn vị vận chuyển cho đợt tour này.</summary>
     public virtual SupplierEntity? TransportProvider { get; set; }
-    /// <summary>Trạng thái duyệt của Transport Provider.</summary>
-    public ProviderApprovalStatus TransportApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
-    /// <summary>Ghi chú/lý do từ chối của Transport Provider.</summary>
+
+    /// <summary>
+    /// DEPRECATED: Trạng thái duyệt của Transport Provider. 
+    /// Dùng TransportationApprovalStatus trên từng activity thay thế.
+    /// Getter trả về kết quả tổng hợp (rollup) từ các hoạt động vận chuyển.
+    /// </summary>
+    [Obsolete("Use transportation activity statuses instead.")]
+    public ProviderApprovalStatus TransportApprovalStatus 
+    { 
+        get => GetTransportApprovalRollup();
+        set { /* No-op for backward compat */ } 
+    }
+
+    /// <summary>DEPRECATED: Ghi chú/lý do từ chối. Dùng TransportationApprovalNote trên activity thay thế.</summary>
+    [Obsolete("Use transportation activity notes instead.")]
     public string? TransportApprovalNote { get; set; }
+
+    private ProviderApprovalStatus GetTransportApprovalRollup()
+    {
+        var transportActivities = InstanceDays
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation)
+            .ToList();
+
+        if (transportActivities.Count == 0) return ProviderApprovalStatus.Approved;
+        if (transportActivities.Any(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Rejected)) return ProviderApprovalStatus.Rejected;
+        if (transportActivities.All(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Approved)) return ProviderApprovalStatus.Approved;
+        return ProviderApprovalStatus.Pending;
+    }
 
     // Instance identity
     /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
@@ -142,7 +167,6 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourId = tourId,
             ClassificationId = classificationId,
             TransportProviderId = transportProviderId,
-            TransportApprovalStatus = transportProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
             TourName = tourName,
@@ -231,8 +255,8 @@ public class TourInstanceEntity : Aggregate<Guid>
         if (TransportProviderId != providerId)
             throw new InvalidOperationException("Provider không phải Transport Provider của instance này.");
 
-        TransportApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
-        TransportApprovalNote = reason;
+        // TODO: Logic to update each transport activity's status will be implemented in Task 8.
+        // For now, this is a placeholder to allow the rollup getter to work.
 
         CheckAndActivateTourInstance();
     }
@@ -258,7 +282,7 @@ public class TourInstanceEntity : Aggregate<Guid>
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool transportOk = !TransportProviderId.HasValue || TransportApprovalStatus == ProviderApprovalStatus.Approved;
+        bool transportOk = !TransportProviderId.HasValue || GetTransportApprovalRollup() == ProviderApprovalStatus.Approved;
         bool accommodationsOk = AreAllAccommodationsApproved();
 
         if (transportOk && accommodationsOk)

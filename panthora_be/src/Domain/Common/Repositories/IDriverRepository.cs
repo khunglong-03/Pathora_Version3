@@ -13,5 +13,6 @@ public interface IDriverRepository : IRepository<DriverEntity>
     Task CreateAsync(DriverEntity driver, CancellationToken cancellationToken = default);
     Task UpdateAsync(DriverEntity driver, CancellationToken cancellationToken = default);
     Task DeactivateAsync(Guid id, string performedBy, CancellationToken cancellationToken = default);
+    Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default);
     Task<List<DriverEntity>> FindByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
 }

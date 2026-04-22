@@ -93,6 +93,12 @@ public static class ErrorConstants
                 "Chỉ quản trị viên mới có quyền thực hiện thao tác này",
                 "Only administrators can perform this action");
 
+        public const string ReviewerOnlyCode = "TourRequest.ReviewerOnly";
+        public static readonly LocalizedMessage ReviewerOnlyDescription =
+            new(
+                "Chỉ quản trị viên hoặc quản lý mới có quyền thực hiện thao tác này",
+                "Only administrators or managers can perform this action");
+
         public const string InvalidStatusTransitionCode = "TourRequest.InvalidStatusTransition";
         public static readonly LocalizedMessage InvalidStatusTransitionDescription =
             new("Không thể chuyển trạng thái yêu cầu tour", "Cannot transition tour request status");
@@ -493,6 +499,7 @@ public static class ErrorConstants
             var value when value == TourRequest.NotFoundCode => TourRequest.NotFoundDescription,
             var value when value == TourRequest.ForbiddenCode => TourRequest.ForbiddenDescription,
             var value when value == TourRequest.AdminOnlyCode => TourRequest.AdminOnlyDescription,
+            var value when value == TourRequest.ReviewerOnlyCode => TourRequest.ReviewerOnlyDescription,
             var value when value == TourRequest.InvalidStatusTransitionCode => TourRequest.InvalidStatusTransitionDescription,
             var value when value == User.DuplicateEmailCode => User.DuplicateEmailDescription,
             var value when value == Auth.EmailTemporarilyLockedCode => Auth.EmailTemporarilyLockedDescription,

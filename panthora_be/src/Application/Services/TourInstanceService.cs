@@ -811,7 +811,10 @@ public class TourInstanceService(
         // Support multi-supplier owners: get all supplier records for this user
         var suppliers = await _supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
         if (suppliers.Count == 0)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
+        {
+            _logger.LogInformation("User {UserId} is not associated with any supplier. Returning empty list.", currentUserId);
+            return new PaginatedList<TourInstanceVm>(0, [], pageNumber, pageSize);
+        }
 
         // Use the first supplier ID for the repository query (which internally handles
         // hotel access via accommodation-level joins across all owner suppliers)

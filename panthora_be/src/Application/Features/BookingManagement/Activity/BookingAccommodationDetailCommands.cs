@@ -136,7 +136,9 @@ public sealed class CreateAccommodationDetailCommandHandler(
                     var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
                         request.SupplierId.Value,
                         request.RoomType,
-                        date);
+                        date,
+                        null,
+                        cancellationToken);
 
                     if (inventory.TotalRooms - blockedCount < request.RoomCount)
                     {
@@ -321,7 +323,9 @@ public sealed class UpdateAccommodationDetailCommandHandler(
                         var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
                             effectiveSupplierId.Value,
                             effectiveRoomType,
-                            date);
+                            date,
+                            null,
+                            cancellationToken);
 
                         if (inventory.TotalRooms - blockedCount < effectiveRoomCountForBlocks)
                         {

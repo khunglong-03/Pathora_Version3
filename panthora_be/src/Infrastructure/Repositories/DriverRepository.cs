@@ -83,4 +83,15 @@ public class DriverRepository(AppDbContext context) : Repository<DriverEntity>(c
             .OrderBy(d => d.FullName)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)
+    {
+        await _context.Drivers
+            .Where(d => d.UserId == ownerId && d.IsActive)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(d => d.IsActive, false)
+                .SetProperty(d => d.LastModifiedBy, performedBy)
+                .SetProperty(d => d.LastModifiedOnUtc, DateTimeOffset.UtcNow),
+                cancellationToken);
+    }
 }

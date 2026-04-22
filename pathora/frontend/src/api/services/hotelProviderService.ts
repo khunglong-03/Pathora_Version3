@@ -107,7 +107,7 @@ export interface AccommodationItem {
   address: string | null;
   locationArea: string | null;
   operatingCountries: string | null;
-  imageUrls: string | null;
+  imageUrls: string[];
   notes: string | null;
 }
 
@@ -116,6 +116,8 @@ export interface CreateAccommodationDto {
   totalRooms: number;
   name?: string;
   address?: string;
+  imageUrls?: string[];
+  notes?: string;
 }
 
 export interface UpdateAccommodationDto {
@@ -124,7 +126,7 @@ export interface UpdateAccommodationDto {
   name?: string;
   address?: string;
   operatingCountries?: string;
-  imageUrls?: string;
+  imageUrls?: string[];
   notes?: string;
 }
 

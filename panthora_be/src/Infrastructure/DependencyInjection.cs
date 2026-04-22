@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Database));
         services.Configure<CacheOptions>(configuration.GetSection(CacheOptions.Cache));
         services.Configure<TourOptions>(configuration.GetSection(TourOptions.Tour));
+        services.Configure<ProviderAssignmentOptions>(configuration.GetSection(ProviderAssignmentOptions.ProviderAssignment));
         services.Configure<LoggingOptions>(configuration.GetSection("Logging"));
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.Database).Get<DatabaseOptions>() ?? new DatabaseOptions();
@@ -53,6 +54,7 @@ public static class DependencyInjection
             .AddFileService(configuration)
             .AddCacheService(configuration, cacheOptions)
             .AddScoped<ILanguageContext, LanguageContext>()
+            .AddScoped<IResourceAvailabilityService, ResourceAvailabilityService>()
             .AddRepositories(configuration)
             .AddSePayServices(configuration);
     }

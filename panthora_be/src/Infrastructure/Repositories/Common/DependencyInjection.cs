@@ -75,6 +75,7 @@ internal static class DependencyInjection
 
         services.AddScoped<IHotelRoomInventoryRepository, HotelRoomInventoryRepository>();
         services.AddScoped<IRoomBlockRepository, RoomBlockRepository>();
+        services.AddScoped<IVehicleBlockRepository, VehicleBlockRepository>();
         services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
 
         services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
