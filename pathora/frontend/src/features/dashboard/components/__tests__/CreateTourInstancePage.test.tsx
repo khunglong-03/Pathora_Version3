@@ -400,7 +400,7 @@ describe("CreateTourInstancePage", () => {
     expect(submittedPayload.activityAssignments).toEqual([
       expect.objectContaining({
         originalActivityId: "activity-trans-1",
-        supplierId: "trans-1",
+        transportSupplierId: "trans-1",
         // Bus must serialize as VehicleType.Bus = 2, not TransportationTypeMap.Bus = 1.
         requestedVehicleType: 2,
       }),

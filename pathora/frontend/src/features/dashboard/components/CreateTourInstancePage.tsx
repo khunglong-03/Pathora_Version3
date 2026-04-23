@@ -30,6 +30,7 @@ import { handleApiError } from "@/utils/apiResponse";
 import { getProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
+  buildActivityTypeByActivityId,
   clearRoomTypeAssignments,
   hasRoomAssignments,
   mapActivityAssignmentsForPayload,
@@ -2830,6 +2831,7 @@ export function CreateTourInstancePage({
 
       const mappedActivityAssignments = mapActivityAssignmentsForPayload(
         form.activityAssignments,
+        buildActivityTypeByActivityId(selectedClassification),
       );
 
       const payload: CreateTourInstancePayload = {

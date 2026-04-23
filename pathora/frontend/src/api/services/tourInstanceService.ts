@@ -42,11 +42,14 @@ export type ApproveTransportationPayload =
 export interface CreateTourInstanceActivityAssignment {
   originalActivityId: string;
   supplierId?: string | null;
+  /** Per-activity transport supplier; backend `transportSupplierId` (distinct from hotel `supplierId`). */
+  transportSupplierId?: string | null;
   roomType?: string | null;
   accommodationQuantity?: number | null;
   vehicleId?: string | null;
   requestedVehicleType?: number | null;
   requestedSeatCount?: number | null;
+  requestedVehicleCount?: number | null;
 }
 
 export interface CreateTourInstancePayload {
@@ -272,11 +275,13 @@ export const tourInstanceService = {
         ? data.activityAssignments.map((assignment) => ({
             originalActivityId: assignment.originalActivityId,
             supplierId: assignment.supplierId || null,
+            transportSupplierId: assignment.transportSupplierId || null,
             roomType: assignment.roomType || null,
             accommodationQuantity: assignment.accommodationQuantity ?? null,
             vehicleId: assignment.vehicleId || null,
             requestedVehicleType: assignment.requestedVehicleType ?? null,
             requestedSeatCount: assignment.requestedSeatCount ?? null,
+            requestedVehicleCount: assignment.requestedVehicleCount ?? null,
           }))
         : undefined,
     };
