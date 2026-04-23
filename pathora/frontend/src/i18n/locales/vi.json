@@ -2053,6 +2053,12 @@
     "deleteError": "Không thể xóa lịch khởi hành",
     "deleteConfirm": "Bạn có chắc chắn muốn xóa lịch khởi hành này?",
     "notFound": "Không tìm thấy lịch khởi hành",
+    "errors": {
+      "createFailed": "Không thể tạo lịch khởi hành. Vui lòng kiểm tra lại dữ liệu và thử lại.",
+      "updateFailed": "Không thể cập nhật lịch khởi hành. Vui lòng thử lại.",
+      "deleteFailed": "Không thể xóa lịch khởi hành. Vui lòng thử lại.",
+      "notFound": "Không tìm thấy lịch khởi hành."
+    },
     "backToInstances": "Quay Lại Danh Sách",
     "overview": "Tổng Quan",
     "itinerary": "Lịch Trình",
@@ -2331,6 +2337,8 @@
       "roomQuantity": "Số phòng",
       "selectRoomType": "Chọn loại phòng",
       "selectProvider": "Chọn nhà cung cấp",
+      "selectSupplierOptional": "-- Chọn nhà cung cấp (Tùy chọn) --",
+      "selectHotelSupplier": "-- Chọn khách sạn --",
       "addActivity": "Thêm hoạt động",
       "activity": {
         "title": "Tiêu đề",

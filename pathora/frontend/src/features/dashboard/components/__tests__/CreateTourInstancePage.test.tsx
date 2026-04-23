@@ -20,7 +20,17 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("react-i18next", () => {
-  const t = (_key: string, fallback?: string) => fallback ?? _key;
+  const t = (_key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
+    // Support 3-arg form: t(key, fallback, options) with {{var}} interpolation
+    let text = typeof fallback === "string" ? fallback : _key;
+    const vars = typeof fallback === "object" ? fallback : options;
+    if (vars) {
+      for (const [k, v] of Object.entries(vars)) {
+        text = text.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v));
+      }
+    }
+    return text;
+  };
   return {
     useTranslation: () => ({ t }),
     initReactI18next: {
@@ -366,8 +376,8 @@ describe("CreateTourInstancePage", () => {
     await waitFor(() => {
       expect(getVehicleTypeOptionLabels()).toEqual([
         "",
-        "Car (1 xe)",
-        "Bus (2 xe)",
+        "Car (1 vehicles)",
+        "Bus (2 vehicles)",
       ]);
     });
 
@@ -440,7 +450,7 @@ describe("CreateTourInstancePage", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("option", { name: "Bus (1 xe)" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Bus (1 vehicles)" })).toBeInTheDocument();
     });
 
     fireEvent.change(getVehicleTypeSelect(), {
@@ -464,7 +474,7 @@ describe("CreateTourInstancePage", () => {
     // Stale "Bus" value is still rendered as a plain label because it's not in
     // the new supplier's active fleet — only the fresh supplier's active
     // vehicles get count annotations.
-    expect(getVehicleTypeOptionLabels()).toEqual(["", "Car (1 xe)", "Bus"]);
+    expect(getVehicleTypeOptionLabels()).toEqual(["", "Car (1 vehicles)", "Bus"]);
     expect(
       document.querySelector('label[for="vehicleType-activity-trans-1"]'),
     ).toHaveTextContent("Vehicle Type");
@@ -565,7 +575,7 @@ describe("CreateTourInstancePage", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole("option", { name: "Bus (1 xe)" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Bus (1 vehicles)" })).toBeInTheDocument();
       expect(getRoomSelect()).toHaveValue("Standard");
     });
   });

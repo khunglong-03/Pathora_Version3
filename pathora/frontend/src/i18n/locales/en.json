@@ -2046,6 +2046,12 @@
     "deleteError": "Failed to delete tour instance",
     "deleteConfirm": "Are you sure you want to delete this tour instance?",
     "notFound": "Tour instance not found",
+    "errors": {
+      "createFailed": "Failed to create tour instance. Please check the data and try again.",
+      "updateFailed": "Failed to update tour instance. Please try again.",
+      "deleteFailed": "Failed to delete tour instance. Please try again.",
+      "notFound": "Tour instance not found."
+    },
     "backToInstances": "Back to Tour Instances",
     "overview": "Overview",
     "itinerary": "Itinerary",
@@ -2248,6 +2254,8 @@
       "roomQuantity": "Room Count",
       "selectRoomType": "Select a room type",
       "selectProvider": "Select a provider",
+      "selectSupplierOptional": "-- Select Supplier (Optional) --",
+      "selectHotelSupplier": "-- Select hotel --",
       "addActivity": "Add activity",
       "activity": {
         "title": "Title",

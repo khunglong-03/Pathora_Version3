@@ -7,7 +7,16 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (_key: string, fallback?: string) => fallback ?? _key,
+    t: (_key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
+      let text = typeof fallback === "string" ? fallback : _key;
+      const vars = typeof fallback === "object" ? fallback : options;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v));
+        }
+      }
+      return text;
+    },
   }),
   initReactI18next: {
     type: "3rdParty",
@@ -84,6 +93,8 @@ import {
   sumVehicleCounts,
   isVehicleTypeInvalidForSupplier,
   validateTransportActivities,
+  formatVehicleOptionLabel,
+  formatVehiclesAvailableBadge,
 } from "../CreateTourInstancePage";
 
 describe("CreateTourInstancePage helpers", () => {
@@ -256,5 +267,49 @@ describe("CreateTourInstancePage helpers", () => {
     expect(sumVehicleCounts(counts["supplier-1"])).toBe(3);
     expect(sumVehicleCounts(undefined)).toBe(0);
     expect(sumVehicleCounts({})).toBe(0);
+  });
+
+  describe("formatVehicleOptionLabel", () => {
+    const stubT = (
+      _key: string,
+      fallback?: string | Record<string, unknown>,
+      options?: Record<string, unknown>,
+    ) => {
+      let text = typeof fallback === "string" ? fallback : _key;
+      const vars = typeof fallback === "object" ? fallback : options;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v));
+        }
+      }
+      return text;
+    };
+
+    it("returns label with count annotation using t() interpolation", () => {
+      expect(formatVehicleOptionLabel("Bus", 3, stubT)).toBe("Bus (3 vehicles)");
+      expect(formatVehicleOptionLabel("Car", 1, stubT)).toBe("Car (1 vehicles)");
+    });
+  });
+
+  describe("formatVehiclesAvailableBadge", () => {
+    const stubT = (
+      _key: string,
+      fallback?: string | Record<string, unknown>,
+      options?: Record<string, unknown>,
+    ) => {
+      let text = typeof fallback === "string" ? fallback : _key;
+      const vars = typeof fallback === "object" ? fallback : options;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), String(v));
+        }
+      }
+      return text;
+    };
+
+    it("returns total count with availability suffix using t() interpolation", () => {
+      expect(formatVehiclesAvailableBadge(5, stubT)).toBe("5 vehicles available");
+      expect(formatVehiclesAvailableBadge(0, stubT)).toBe("0 vehicles available");
+    });
   });
 });

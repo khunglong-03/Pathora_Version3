@@ -139,6 +139,10 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstanceActivity.VehicleCountMismatch": "tourInstance.transport.errors.vehicleCountMismatch",
   "TourInstanceActivity.VehicleCountExceedsFleet": "tourInstance.transport.errors.vehicleCountExceedsFleet",
   "TourInstanceActivity.RoomCountExceedsInventory": "tourInstance.transport.errors.roomCountExceedsInventory",
+  "TourInstance.CreateFailed": "tourInstance.errors.createFailed",
+  "TourInstance.UpdateFailed": "tourInstance.errors.updateFailed",
+  "TourInstance.DeleteFailed": "tourInstance.errors.deleteFailed",
+  "TourInstance.NotFound": "tourInstance.errors.notFound",
 };
 
 /**
@@ -211,17 +215,20 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   return errorMessage;
 };
 
+/**
+ * Accept any dotted `Domain.Code` token (no spaces, at least one dot, all
+ * chars are word/dot). This lets handlers prefer the structured `details`
+ * field over the raw English `errorMessage` so the user sees a translated
+ * toast for codes like `TourInstance.CreateFailed`.
+ */
+const DOTTED_ERROR_CODE_PATTERN = /^[\w]+(\.[\w]+)+$/;
+
 const shouldUseDetailsAsErrorCode = (details: string | undefined): boolean => {
   if (!details) {
     return false;
   }
 
-  return (
-    details === "User.NotFound" ||
-    details === "User.InvalidPassword" ||
-    details === "User.Disabled" ||
-    details === "User.IsDisabled"
-  );
+  return DOTTED_ERROR_CODE_PATTERN.test(details);
 };
 
 const extractBackendErrorPayload = (

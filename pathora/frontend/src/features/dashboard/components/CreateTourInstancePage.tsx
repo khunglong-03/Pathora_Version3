@@ -100,6 +100,20 @@ type Translate = (
   options?: Record<string, unknown>,
 ) => string;
 
+/** Maps backend activity-type enum values to their i18n keys. */
+const ACTIVITY_TYPE_OPTIONS = [
+  { value: "Sightseeing",    key: "tour.activityTypes.0" },
+  { value: "Dining",         key: "tour.activityTypes.1" },
+  { value: "Shopping",       key: "tour.activityTypes.2" },
+  { value: "Entertainment",  key: "tour.activityTypes.6" },
+  { value: "Cultural",       key: "tour.activityTypes.5" },
+  { value: "Adventure",      key: "tour.activityTypes.3" },
+  { value: "Transportation", key: "tour.activityTypes.7" },
+  { value: "Accommodation",  key: "tour.activityTypes.8" },
+  { value: "FreeTime",       key: "tour.activityTypes.9" },
+  { value: "Other",          key: "tour.activityTypes.99" },
+] as const;
+
 const INITIAL_FORM: FormState = {
   tourId: "",
   classificationId: "",
@@ -405,6 +419,31 @@ export function validateTransportActivities(
   return invalid;
 }
 
+/**
+ * Returns activity IDs whose `requestedSeatCount` is set but lower than the
+ * tour's `maxParticipation`. Mirrors the backend FluentValidation rule so we
+ * fail fast on the client instead of surfacing a 500 from the API.
+ *
+ * Walks `form.activityAssignments` directly — `requestedSeatCount` is only
+ * written by the Transport Plan UI, so user-added activities (which live in
+ * `editableItinerary`, not `classification.plans`) are still covered.
+ */
+export function validateTransportSeatCounts(
+  assignments: FormState["activityAssignments"],
+  _classification: TourClassificationDto | null,
+  maxParticipation: number,
+): string[] {
+  if (!Number.isFinite(maxParticipation) || maxParticipation <= 0) return [];
+  const invalid: string[] = [];
+  for (const [activityId, assignment] of Object.entries(assignments)) {
+    const seat = assignment?.requestedSeatCount;
+    if (typeof seat === "number" && seat > 0 && seat < maxParticipation) {
+      invalid.push(activityId);
+    }
+  }
+  return invalid;
+}
+
 export function buildAllowedVehicleKeysBySupplierId(
   transportDetailsBySupplierId: Record<string, TransportProviderDetail>,
 ): Record<string, Set<number>> {
@@ -451,16 +490,31 @@ export function sumVehicleCounts(
 }
 
 /**
- * "Bus" + 3 → "Bus (3 xe)". Kept as a plain function so tests can assert
- * rendered label exactly without depending on i18next interpolation.
+ * "Bus" + 3 → "Bus (3 vehicles)" / "Bus (3 xe)".
+ * Localised via the `t` function so the label follows the active locale.
  */
-export function formatVehicleOptionLabel(label: string, count: number): string {
-  return `${label} (${count} xe)`;
+export function formatVehicleOptionLabel(
+  label: string,
+  count: number,
+  t: Translate,
+): string {
+  return t(
+    "tourInstance.wizard.vehicleType.optionWithCount_other",
+    "{{label}} ({{count}} vehicles)",
+    { label, count },
+  );
 }
 
-/** Total-fleet badge label: 3 → "3 xe khả dụng". */
-export function formatVehiclesAvailableBadge(total: number): string {
-  return `${total} xe khả dụng`;
+/** Total-fleet badge label: 3 → "3 vehicles available" / "3 xe khả dụng". */
+export function formatVehiclesAvailableBadge(
+  total: number,
+  t: Translate,
+): string {
+  return t(
+    "tourInstance.wizard.vehicleType.vehiclesAvailable_other",
+    "{{count}} vehicles available",
+    { count: total },
+  );
 }
 
 // Renders the Vehicle Type <select> with 6 tracked states, a11y wiring, and
@@ -579,7 +633,7 @@ function VehicleTypeSelect({
               // stay independent of the mocked `t` signature in unit tests.
               return (
                 <option key={k} value={k}>
-                  {count && count > 0 ? formatVehicleOptionLabel(label, count) : label}
+                  {count && count > 0 ? formatVehicleOptionLabel(label, count, t) : label}
                 </option>
               );
             })}
@@ -639,6 +693,7 @@ interface InstanceDetailsStepProps {
   allowedVehicleKeysBySupplierId: Record<string, Set<number>>;
   vehicleCountsBySupplierId: Record<string, Record<number, number>>;
   invalidVehicleActivityIds: Set<string>;
+  invalidSeatCountActivityIds: Set<string>;
   updateActivityAssignment: (
     activityId: string,
     updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number; requestedVehicleCount?: number },
@@ -685,6 +740,7 @@ function InstanceDetailsStep({
   allowedVehicleKeysBySupplierId,
   vehicleCountsBySupplierId,
   invalidVehicleActivityIds,
+  invalidSeatCountActivityIds,
   updateActivityAssignment,
   editableItinerary,
   onUpdateActivity,
@@ -1248,24 +1304,11 @@ function InstanceDetailsStep({
                                       });
                                     }
                                   }}>
-                                  <option value="Sightseeing">
-                                    Sightseeing
-                                  </option>
-                                  <option value="Dining">Dining</option>
-                                  <option value="Shopping">Shopping</option>
-                                  <option value="Entertainment">
-                                    Entertainment
-                                  </option>
-                                  <option value="Cultural">Cultural</option>
-                                  <option value="Adventure">Adventure</option>
-                                  <option value="Transportation">
-                                    Transportation
-                                  </option>
-                                  <option value="Accommodation">
-                                    Accommodation
-                                  </option>
-                                  <option value="FreeTime">Free Time</option>
-                                  <option value="Other">Other</option>
+                                  {ACTIVITY_TYPE_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {t(opt.key, opt.value)}
+                                    </option>
+                                  ))}
                                 </select>
                               </div>
                             </div>
@@ -1416,7 +1459,7 @@ function InstanceDetailsStep({
                                           if (total <= 0) return null;
                                           return (
                                             <span className="text-[10px] font-medium text-cyan-700">
-                                              {formatVehiclesAvailableBadge(total)}
+                                              {formatVehiclesAvailableBadge(total, t)}
                                             </span>
                                           );
                                         })()}
@@ -1463,13 +1506,20 @@ function InstanceDetailsStep({
                                       />
                                     </div>
                                     <div>
-                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                      <label
+                                        htmlFor={`seatCount-${activity.id}`}
+                                        className="text-[10px] font-medium text-stone-500 uppercase">
                                         {t("tourInstance.wizard.seatCount", "Seat Count")}
                                       </label>
                                       <input
+                                        id={`seatCount-${activity.id}`}
                                         type="number"
                                         min={1}
-                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className={`w-full rounded border px-2 py-1 text-xs outline-none ${
+                                          invalidSeatCountActivityIds.has(activity.id)
+                                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                                            : "border-stone-300 focus:ring-orange-500 focus:border-orange-500"
+                                        }`}
                                         value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
                                         onChange={(e) => {
                                           updateActivityAssignment(activity.id, {
@@ -1478,6 +1528,14 @@ function InstanceDetailsStep({
                                         }}
                                         placeholder={t("common.optional", "Optional")}
                                       />
+                                      {invalidSeatCountActivityIds.has(activity.id) && (
+                                        <p className="mt-1 text-[10px] text-red-600">
+                                          {t(
+                                            "tourInstance.transport.errors.seatCountBelowCapacity",
+                                            "Requested seat count cannot be less than the tour's max participation.",
+                                          )}
+                                        </p>
+                                      )}
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -1800,7 +1858,7 @@ function InstanceDetailsStep({
                                           if (total <= 0) return null;
                                           return (
                                             <span className="text-[10px] font-medium text-cyan-700">
-                                              {formatVehiclesAvailableBadge(total)}
+                                              {formatVehiclesAvailableBadge(total, t)}
                                             </span>
                                           );
                                         })()}
@@ -1847,13 +1905,20 @@ function InstanceDetailsStep({
                                       />
                                     </div>
                                     <div>
-                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
+                                      <label
+                                        htmlFor={`seatCount-${activity.id}`}
+                                        className="text-[10px] font-medium text-stone-500 uppercase">
                                         {t("tourInstance.wizard.seatCount", "Seat Count")}
                                       </label>
                                       <input
+                                        id={`seatCount-${activity.id}`}
                                         type="number"
                                         min={1}
-                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className={`w-full rounded border bg-white px-2 py-1 text-xs outline-none ${
+                                          invalidSeatCountActivityIds.has(activity.id)
+                                            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                                            : "border-stone-300 focus:ring-orange-500 focus:border-orange-500"
+                                        }`}
                                         value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
                                         onChange={(e) => {
                                           updateActivityAssignment(activity.id, {
@@ -1862,6 +1927,14 @@ function InstanceDetailsStep({
                                         }}
                                         placeholder={t("common.optional", "Optional")}
                                       />
+                                      {invalidSeatCountActivityIds.has(activity.id) && (
+                                        <p className="mt-1 text-[10px] text-red-600">
+                                          {t(
+                                            "tourInstance.transport.errors.seatCountBelowCapacity",
+                                            "Requested seat count cannot be less than the tour's max participation.",
+                                          )}
+                                        </p>
+                                      )}
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -1942,7 +2015,8 @@ export function CreateTourInstancePage({
     () => false,
   );
   const safeT = useCallback<Translate>(
-    (key, fallback) => (mounted ? t(key, fallback ?? key) : (fallback ?? key)),
+    (key, fallback, options) =>
+      mounted ? t(key, fallback ?? key, options) : (fallback ?? key),
     [mounted, t],
   );
   const router = useRouter();
@@ -2172,6 +2246,22 @@ export function CreateTourInstancePage({
       form.activityAssignments,
       selectedClassification,
       allowedVehicleKeysBySupplierId,
+    ],
+  );
+
+  const invalidSeatCountActivityIds = useMemo(
+    () =>
+      new Set(
+        validateTransportSeatCounts(
+          form.activityAssignments,
+          selectedClassification,
+          Number(form.maxParticipation),
+        ),
+      ),
+    [
+      form.activityAssignments,
+      selectedClassification,
+      form.maxParticipation,
     ],
   );
 
@@ -2570,7 +2660,7 @@ export function CreateTourInstancePage({
         if (day.id !== dayId) return day;
         const newOrder = day.activities.length + 1;
         const newActivity: EditableActivity = {
-          id: `new-${Date.now()}-${newOrder}`,
+          id: crypto.randomUUID(),
           order: newOrder,
           activityType: "Sightseeing",
           title: "",
@@ -2677,13 +2767,37 @@ export function CreateTourInstancePage({
       );
     }
 
+    // Transport Plan: requestedSeatCount must be ≥ maxParticipation (mirrors backend rule).
+    const invalidSeatCountIds = validateTransportSeatCounts(
+      form.activityAssignments,
+      selectedClassification,
+      Number(form.maxParticipation),
+    );
+    if (invalidSeatCountIds.length > 0) {
+      newErrors.transportSeatCount = t(
+        "tourInstance.transport.errors.seatCountBelowCapacity",
+        "Requested seat count cannot be less than the tour's max participation.",
+      );
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      if (invalidTransportIds.length === 0) {
+      if (
+        invalidTransportIds.length === 0 &&
+        invalidSeatCountIds.length === 0
+      ) {
         toast.error(
           t(
             "tourInstance.validationFailed",
             "Please fill in all required fields",
+          ),
+        );
+      }
+      if (invalidSeatCountIds.length > 0) {
+        toast.error(
+          t(
+            "tourInstance.transport.errors.seatCountBelowCapacity",
+            "Requested seat count cannot be less than the tour's max participation.",
           ),
         );
       }
@@ -2696,6 +2810,16 @@ export function CreateTourInstancePage({
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
           (el as HTMLSelectElement).focus();
+        }
+      } else if (invalidSeatCountIds.length > 0) {
+        const firstId = invalidSeatCountIds[0];
+        const el =
+          typeof document !== "undefined"
+            ? document.getElementById(`seatCount-${firstId}`)
+            : null;
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          (el as HTMLInputElement).focus();
         }
       }
       return;
@@ -2742,10 +2866,19 @@ export function CreateTourInstancePage({
       }
     } catch (error: unknown) {
       const handledError = handleApiError(error);
-      console.error("Failed to create tour instance:", handledError.message);
-      toast.error(
-        t(handledError.message)
+      console.error("Failed to create tour instance:", handledError);
+      // Prefer translated message; fall back to the backend's raw text so the
+      // user never sees a silent failure or a raw i18n key.
+      const translated = t(handledError.message);
+      const fallback = t(
+        "tourInstance.errors.createFailed",
+        "Failed to create tour instance. Please check the data and try again.",
       );
+      const message =
+        translated && translated !== handledError.message
+          ? translated
+          : (handledError.details ?? handledError.message ?? fallback);
+      toast.error(message || fallback);
     } finally {
       setSubmitting(false);
     }
@@ -2917,6 +3050,7 @@ export function CreateTourInstancePage({
             allowedVehicleKeysBySupplierId={allowedVehicleKeysBySupplierId}
             vehicleCountsBySupplierId={vehicleCountsBySupplierId}
             invalidVehicleActivityIds={invalidVehicleActivityIds}
+            invalidSeatCountActivityIds={invalidSeatCountActivityIds}
             updateActivityAssignment={updateActivityAssignment}
             editableItinerary={editableItinerary}
             onUpdateActivity={handleUpdateActivity}
