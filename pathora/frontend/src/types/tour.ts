@@ -547,10 +547,6 @@ export interface TourInstanceDto {
   transportApprovalStatus: number;
   /** @deprecated Instance-level approval note is a transition artifact. Per-activity note on days[].activities[].transportationApprovalNote is authoritative. */
   transportApprovalNote?: string | null;
-  /** @deprecated Use days[].activities[].transportSupplierId instead. Scheduled for removal with the drop-transport-provider-id-column change. */
-  transportProviderId?: string | null;
-  /** @deprecated Use days[].activities[].transportSupplierName instead. Scheduled for removal with the drop-transport-provider-id-column change. */
-  transportProviderName?: string | null;
   days?: TourInstanceDayDto[];
 }
 

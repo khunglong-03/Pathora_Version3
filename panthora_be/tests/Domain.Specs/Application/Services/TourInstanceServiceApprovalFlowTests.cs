@@ -216,7 +216,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             maxParticipation: 10,
             basePrice: 100m,
             performedBy: managerUserId,
-            transportProviderId: Guid.NewGuid());
+            requiresApproval: true);
 
         instance.Status = TourInstanceStatus.PendingApproval;
 

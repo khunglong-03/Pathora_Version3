@@ -41,48 +41,15 @@ describe("TourInstanceDto — provider fields", () => {
       includedServices: ["shuttle"],
       transportApprovalStatus: 2, // Approved
       transportApprovalNote: null,
-      transportProviderId: "tp-001",
-      transportProviderName: "Vietransport Co.",
+
       days: [],
     };
 
-    expect(dto.transportProviderId).toBe("tp-001");
-    expect(dto.transportProviderName).toBe("Vietransport Co.");
+
     expect(dto.transportApprovalStatus).toBe(2);
   });
 
-  it("supports null provider fields when no provider assigned", () => {
-    const dto: TourInstanceDto = {
-      id: "inst-002",
-      tourId: "tour-001",
-      tourInstanceCode: "TI-002",
-      title: "Private Tour",
-      tourName: "Private",
-      tourCode: "PR001",
-      classificationId: "cls-001",
-      classificationName: "Economy",
-      location: null,
-      thumbnail: null,
-      images: [],
-      startDate: "2025-07-01T00:00:00Z",
-      endDate: "2025-07-02T00:00:00Z",
-      durationDays: 2,
-      currentParticipation: 0,
-      maxParticipation: 10,
-      basePrice: 500000,
-      status: "Available",
-      instanceType: "Private",
-      managers: [],
-      includedServices: [],
-      transportApprovalStatus: 2,
-      transportProviderId: null,
-      transportProviderName: null,
-      days: [],
-    };
 
-    expect(dto.transportProviderId).toBeNull();
-    expect(dto.transportProviderName).toBeNull();
-  });
 
   it("supports transport approval notes", () => {
     const dto: TourInstanceDto = {
@@ -105,17 +72,20 @@ describe("TourInstanceDto — provider fields", () => {
       basePrice: 800000,
       status: "PendingApproval",
       instanceType: "Public",
+      rating: 0,
+      totalBookings: 0,
+      revenue: 0,
+      confirmationDeadline: null,
       transportApprovalStatus: 1, // Pending
       transportApprovalNote: null,
-      transportProviderId: "tp-002",
-      transportProviderName: "Local Bus",
+
       managers: [],
       includedServices: [],
       days: [],
     };
 
     expect(dto.transportApprovalStatus).toBe(1);
-    expect(dto.transportProviderId).toBe("tp-002");
+
   });
 });
 

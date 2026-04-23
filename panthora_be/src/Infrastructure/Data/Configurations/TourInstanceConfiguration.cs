@@ -136,14 +136,6 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
 
         // NOTE: HotelProvider FK removed — hotel assignment is now per-accommodation activity
 
-        // DEPRECATED: TransportProvider FK — will be dropped in Release C migration (drop-transport-provider-id-column).
-        // Source of truth is now TourInstanceDayActivityEntity.TransportSupplierId per-activity.
-#pragma warning disable CS0618
-        builder.HasOne(t => t.TransportProvider)
-            .WithMany()
-            .HasForeignKey(t => t.TransportProviderId)
-            .OnDelete(DeleteBehavior.Restrict);
-#pragma warning restore CS0618
 
         // Managers (TourInstanceManagers) — configured via separate configuration class
         builder.Navigation(t => t.Managers);

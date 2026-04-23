@@ -164,9 +164,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .AsNoTracking()
             .AsSplitQuery()
             .Include(t => t.Managers).ThenInclude(m => m.User)
-#pragma warning disable CS0618
-            .Include(t => t.TransportProvider)
-#pragma warning restore CS0618
+
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
@@ -184,9 +182,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await _context.TourInstances
             .AsSplitQuery()
             .Include(t => t.Managers).ThenInclude(m => m.User)
-#pragma warning disable CS0618
-            .Include(t => t.TransportProvider)
-#pragma warning restore CS0618
+
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)

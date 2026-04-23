@@ -26,12 +26,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.Rating), opt => opt.MapFrom(_ => 0m))
             .ForCtorParam(nameof(TourInstanceDto.TotalBookings), opt => opt.MapFrom(_ => 0))
             .ForCtorParam(nameof(TourInstanceDto.Revenue), opt => opt.MapFrom(_ => 0m))
-            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()))
-#pragma warning disable CS0618
-            .ForCtorParam(nameof(TourInstanceDto.TransportProviderId), opt => opt.MapFrom(src => src.TransportProviderId))
-            .ForCtorParam(nameof(TourInstanceDto.TransportProviderName), opt => opt.MapFrom(src => src.TransportProvider != null ? src.TransportProvider.Name : null));
-#pragma warning restore CS0618
-
+            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()));
         CreateMap<TourInstanceManagerEntity, TourInstanceManagerDto>()
             .ForCtorParam(nameof(TourInstanceManagerDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstanceManagerDto.UserId), opt => opt.MapFrom(src => src.UserId))

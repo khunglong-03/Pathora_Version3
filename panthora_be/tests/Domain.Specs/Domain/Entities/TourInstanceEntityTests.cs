@@ -164,7 +164,7 @@ public sealed class TourInstanceEntityTests
             maxParticipation: 10,
             basePrice: 100,
             performedBy: "tester",
-            transportProviderId: Guid.NewGuid());
+            requiresApproval: true);
 
         instance.Status = TourInstanceStatus.PendingApproval;
         return instance;

@@ -79,9 +79,7 @@ public sealed class PublicTourInstanceControllerTests
             Revenue: 0,
             ConfirmationDeadline: null,
             Managers: [],
-            IncludedServices: [],
-            TransportProviderId: null,
-            TransportProviderName: null);
+            IncludedServices: []);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<PublicTourInstanceController, GetPublicTourInstanceDetailQuery, TourInstanceDto>(

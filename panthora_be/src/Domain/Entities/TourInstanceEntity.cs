@@ -10,31 +10,14 @@ using Domain.Entities.Translations;
 /// </summary>
 public class TourInstanceEntity : Aggregate<Guid>
 {
-    // Foreign keys
-    /// <summary>ID của Tour cha.</summary>
     public Guid TourId { get; set; }
-    /// <summary>Tour cha.</summary>
     public virtual TourEntity Tour { get; set; } = null!;
-    /// <summary>ID của Classification (phân loại ngày/giá) được sử dụng.</summary>
     public Guid ClassificationId { get; set; }
-    /// <summary>Classification được sử dụng cho instance này.</summary>
     public virtual TourClassificationEntity Classification { get; set; } = null!;
-
     // Provider Assignment & Approval
     // NOTE: Hotel provider assignment has moved to TourInstancePlanAccommodationEntity (per-activity level).
     // NOTE: Transport provider assignment has moved to TourInstanceDayActivityEntity.TransportSupplierId (per-activity level).
 
-    /// <summary>
-    /// DEPRECATED: Legacy single transport provider for the entire instance.
-    /// Source of truth is now <c>TourInstanceDayActivityEntity.TransportSupplierId</c> (per-activity).
-    /// Derived getter returns the first transportation activity's supplier for backward compat.
-    /// Will be dropped in a future migration (Release C).
-    /// </summary>
-    [Obsolete("Use TourInstanceDayActivityEntity.TransportSupplierId per-activity instead.")]
-    public Guid? TransportProviderId { get; set; }
-    /// <summary>DEPRECATED: Navigation property kept temporarily for backward compat DTO mapping.</summary>
-    [Obsolete("Use TourInstanceDayActivityEntity.TransportSupplier per-activity instead.")]
-    public virtual SupplierEntity? TransportProvider { get; set; }
 
     // Instance identity
     /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
@@ -138,12 +121,12 @@ public class TourInstanceEntity : Aggregate<Guid>
         int maxParticipation,
         decimal basePrice,
         string performedBy,
-        Guid? transportProviderId = null,
         string? location = null,
         ImageEntity? thumbnail = null,
         List<ImageEntity>? images = null,
         DateTimeOffset? confirmationDeadline = null,
-        List<string>? includedServices = null)
+        List<string>? includedServices = null,
+        bool requiresApproval = false)
     {
         EnsureValidDateRange(startDate, endDate);
         EnsureValidMaxParticipation(maxParticipation);
@@ -153,16 +136,13 @@ public class TourInstanceEntity : Aggregate<Guid>
             Id = Guid.CreateVersion7(),
             TourId = tourId,
             ClassificationId = classificationId,
-#pragma warning disable CS0618 // Self-reference to deprecated field during factory construction
-            TransportProviderId = transportProviderId,
-#pragma warning restore CS0618
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
             TourName = tourName,
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = transportProviderId.HasValue ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
+            Status = requiresApproval ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),

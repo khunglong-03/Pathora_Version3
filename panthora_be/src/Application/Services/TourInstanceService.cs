@@ -107,11 +107,8 @@ public class TourInstanceService(
         }
 
         // TC1.3: Validate vehicle assignments (Phase 1 contract)
-#pragma warning disable CS0618 // Legacy TransportProviderId kept for one release during per-activity transport transition
         var validatedVehicleAssignmentsResult = await ValidateVehicleAssignmentsAsync(
-            request.TransportProviderId,
             request.ActivityAssignments);
-#pragma warning restore CS0618
         if (validatedVehicleAssignmentsResult.IsError)
             return validatedVehicleAssignmentsResult.Errors;
         var validatedVehicleAssignments = validatedVehicleAssignmentsResult.Value;
@@ -184,9 +181,7 @@ public class TourInstanceService(
             thumbnail: thumbnail,
             images: request.ImageUrls?.Select(url => new ImageEntity { PublicURL = url }).ToList(),
             includedServices: request.IncludedServices,
-#pragma warning disable CS0618 // Legacy TransportProviderId kept for one release during per-activity transport transition
-            transportProviderId: request.TransportProviderId);
-#pragma warning restore CS0618
+            requiresApproval: request.ActivityAssignments?.Any(a => a.TransportSupplierId.HasValue || a.SupplierId.HasValue) == true);
 
         if (request.GuideUserIds?.Count > 0)
         {
@@ -312,7 +307,6 @@ public class TourInstanceService(
     // See AssignRoomToAccommodationCommand for per-activity room validation
 
     private async Task<ErrorOr<Dictionary<Guid, Guid>>> ValidateVehicleAssignmentsAsync(
-        Guid? legacyTransportProviderId,
         IReadOnlyCollection<CreateTourInstanceActivityAssignmentDto>? activityAssignments)
     {
         var vehicleAssignments = (activityAssignments ?? [])
@@ -326,7 +320,7 @@ public class TourInstanceService(
 
         // Group assignments by the effective supplier ID (per-activity or fallback to legacy)
         var assignmentsBySupplier = vehicleAssignments
-            .GroupBy(a => a.TransportSupplierId ?? legacyTransportProviderId)
+            .GroupBy(a => a.TransportSupplierId)
             .ToList();
 
         foreach (var group in assignmentsBySupplier)

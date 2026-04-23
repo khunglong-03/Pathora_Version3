@@ -83,10 +83,9 @@ public class TourInstanceServiceValidationTests
             EndDate: DateTimeOffset.UtcNow.AddDays(5),
             MaxParticipation: 10,
             BasePrice: 1000,
-            TransportProviderId: providerId,
             ActivityAssignments: new List<CreateTourInstanceActivityAssignmentDto>
             {
-                new(originalActivityId, null, null, null, vehicleId)
+                new(originalActivityId, null, null, null, vehicleId, TransportSupplierId: providerId)
             }
         );
 
@@ -127,10 +126,9 @@ public class TourInstanceServiceValidationTests
             EndDate: DateTimeOffset.UtcNow.AddDays(5),
             MaxParticipation: 10,
             BasePrice: 1000,
-            TransportProviderId: providerId,
             ActivityAssignments: new List<CreateTourInstanceActivityAssignmentDto>
             {
-                new(Guid.NewGuid(), null, null, null, Guid.NewGuid())
+                new(Guid.NewGuid(), null, null, null, Guid.NewGuid(), TransportSupplierId: providerId)
             }
         );
 
@@ -165,10 +163,9 @@ public class TourInstanceServiceValidationTests
             EndDate: DateTimeOffset.UtcNow.AddDays(5),
             MaxParticipation: 10,
             BasePrice: 1000,
-            TransportProviderId: providerId,
             ActivityAssignments: new List<CreateTourInstanceActivityAssignmentDto>
             {
-                new(Guid.NewGuid(), null, null, null, Guid.NewGuid())
+                new(Guid.NewGuid(), null, null, null, Guid.NewGuid(), TransportSupplierId: providerId)
             }
         );
 

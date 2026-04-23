@@ -114,7 +114,7 @@ describe("CreateTourInstancePayload", () => {
       requestedVehicleType: 1,
       requestedSeatCount: 24,
     });
-    expect(payload).not.toHaveProperty("transportProviderId");
+
   });
 });
 
@@ -124,7 +124,7 @@ describe("tourInstanceService.createInstance", () => {
     postMock.mockResolvedValue({ data: { id: "instance-123" } });
   });
 
-  it("posts per-activity transport assignments without the deprecated top-level transportProviderId", async () => {
+  it("posts per-activity transport assignments without legacy properties", async () => {
     await tourInstanceService.createInstance({
       tourId: "tour-123",
       classificationId: "cls-456",
@@ -172,7 +172,7 @@ describe("tourInstanceService.createInstance", () => {
         },
       ],
     });
-    expect(submittedPayload).not.toHaveProperty("transportProviderId");
+
   });
 });
 
