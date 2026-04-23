@@ -14,6 +14,7 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
     private readonly IRoleRepository _roleRepository;
     private readonly ITourManagerAssignmentRepository _repository;
     private readonly ITourInstanceRepository _tourInstanceRepository;
+    private readonly global::Contracts.Interfaces.IUser _user;
     private readonly AssignTourManagerTeamCommandHandler _handler;
 
     public AssignTourManagerTeamCommandHandlerTests()
@@ -22,11 +23,14 @@ public sealed class AssignTourManagerTeamCommandHandlerTests
         _roleRepository = Substitute.For<IRoleRepository>();
         _repository = Substitute.For<ITourManagerAssignmentRepository>();
         _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        _user = Substitute.For<global::Contracts.Interfaces.IUser>();
+        _user.Id.Returns("system");
         _handler = new AssignTourManagerTeamCommandHandler(
             _userRepository,
             _roleRepository,
             _repository,
-            _tourInstanceRepository);
+            _tourInstanceRepository,
+            _user);
     }
 
     [Fact]

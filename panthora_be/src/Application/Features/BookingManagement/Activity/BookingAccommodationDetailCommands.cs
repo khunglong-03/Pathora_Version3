@@ -62,12 +62,14 @@ public sealed class CreateAccommodationDetailCommandHandler(
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateAccommodationDetailCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateAccommodationDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var activity = await bookingActivityReservationRepository.GetByIdAsync(request.BookingActivityReservationId);
         if (activity is null)
         {
@@ -102,7 +104,7 @@ public sealed class CreateAccommodationDetailCommandHandler(
             request.BookingActivityReservationId,
             request.AccommodationName,
             request.RoomType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.RoomCount,
             request.SupplierId,
             request.BedType,
@@ -161,7 +163,7 @@ public sealed class CreateAccommodationDetailCommandHandler(
                         request.RoomType,
                         date,
                         request.RoomCount,
-                        "system",
+                        performedBy,
                         entity.Id,
                         activity.BookingId);
 
@@ -227,12 +229,14 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateAccommodationDetailCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateAccommodationDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingAccommodationDetailRepository.GetByIdAsync(request.BookingAccommodationDetailId);
         if (entity is null)
         {
@@ -275,7 +279,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
         entity.Update(
             request.AccommodationName,
             request.RoomType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.RoomCount,
             request.SupplierId,
             request.BedType,
@@ -347,7 +351,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
                             effectiveRoomType,
                             date,
                             effectiveRoomCountForBlocks,
-                            "system",
+                            performedBy,
                             entity.Id,
                             activity.BookingId);
 

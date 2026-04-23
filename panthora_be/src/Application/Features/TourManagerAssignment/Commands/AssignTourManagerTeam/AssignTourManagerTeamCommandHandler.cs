@@ -14,7 +14,8 @@ public sealed class AssignTourManagerTeamCommandHandler(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
         ITourManagerAssignmentRepository repository,
-        ITourInstanceRepository tourInstanceRepository)
+        ITourInstanceRepository tourInstanceRepository,
+        global::Contracts.Interfaces.IUser user)
     : ICommandHandler<AssignTourManagerTeamCommand, ErrorOr<Success>>
 {
     private readonly IUserRepository _userRepository = userRepository;
@@ -26,6 +27,8 @@ public sealed class AssignTourManagerTeamCommandHandler(
         AssignTourManagerTeamCommand request,
         CancellationToken cancellationToken)
     {
+        var performedBy = user.Id ?? "system";
+
         if (!Guid.TryParse(request.TourManagerUserId, out var managerId))
         {
             return Error.Validation(
@@ -155,7 +158,7 @@ public sealed class AssignTourManagerTeamCommandHandler(
                 assignedUserId: item.AssignedUserId,
                 assignedTourId: item.AssignedTourId,
                 roleInTeam: item.AssignedRoleInTeam.HasValue ? (AssignedRoleInTeam)item.AssignedRoleInTeam.Value : null,
-                performedBy: "system");
+                performedBy: performedBy);
 
             await _repository.AssignAsync(assignment, cancellationToken);
         }

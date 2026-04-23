@@ -42,12 +42,14 @@ public sealed class CreateParticipantCommandHandler(
     IBookingTransportDetailRepository bookingTransportDetailRepository,
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateParticipantCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateParticipantCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -90,7 +92,7 @@ public sealed class CreateParticipantCommandHandler(
             request.BookingId,
             request.ParticipantType,
             request.FullName,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DateOfBirth,
             request.Gender,
             request.Nationality);
@@ -130,12 +132,14 @@ public sealed class UpdateParticipantCommandHandler(
     IBookingTransportDetailRepository bookingTransportDetailRepository,
     IBookingAccommodationDetailRepository bookingAccommodationDetailRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateParticipantCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateParticipantCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingParticipantRepository.GetByIdAsync(request.ParticipantId);
         if (entity is null)
         {
@@ -187,7 +191,7 @@ public sealed class UpdateParticipantCommandHandler(
         entity.Update(
             request.ParticipantType,
             request.FullName,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DateOfBirth,
             request.Gender,
             request.Nationality,
@@ -228,12 +232,14 @@ public sealed class CreatePassportCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreatePassportCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreatePassportCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var participant = await bookingParticipantRepository.GetByIdAsync(request.BookingParticipantId);
         if (participant is null)
         {
@@ -268,7 +274,7 @@ public sealed class CreatePassportCommandHandler(
         var entity = PassportEntity.Create(
             request.BookingParticipantId,
             request.PassportNumber,
-            performedBy: "system",
+            performedBy: performedBy,
             request.Nationality,
             request.IssuedAt,
             request.ExpiresAt,
@@ -309,12 +315,14 @@ public sealed class UpdatePassportCommandHandler(
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdatePassportCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdatePassportCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await passportRepository.GetByIdAsync(request.PassportId);
         if (entity is null)
         {
@@ -348,7 +356,7 @@ public sealed class UpdatePassportCommandHandler(
 
         entity.Update(
             request.PassportNumber,
-            performedBy: "system",
+            performedBy: performedBy,
             request.Nationality,
             request.IssuedAt,
             request.ExpiresAt,
@@ -386,12 +394,14 @@ public sealed class CreateVisaApplicationCommandHandler(
     IPassportRepository passportRepository,
     IVisaApplicationRepository visaApplicationRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateVisaApplicationCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateVisaApplicationCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var participant = await bookingParticipantRepository.GetByIdAsync(request.BookingParticipantId);
         if (participant is null)
         {
@@ -412,7 +422,7 @@ public sealed class CreateVisaApplicationCommandHandler(
             request.BookingParticipantId,
             request.PassportId,
             request.DestinationCountry,
-            performedBy: "system",
+            performedBy: performedBy,
             request.MinReturnDate,
             request.VisaFileUrl);
 
@@ -448,12 +458,14 @@ public sealed class UpdateVisaApplicationCommandHandler(
     IBookingParticipantRepository bookingParticipantRepository,
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateVisaApplicationCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateVisaApplicationCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await visaApplicationRepository.GetByIdAsync(request.VisaApplicationId);
         if (entity is null)
         {
@@ -490,7 +502,7 @@ public sealed class UpdateVisaApplicationCommandHandler(
 
         entity.Update(
             request.DestinationCountry,
-            performedBy: "system",
+            performedBy: performedBy,
             request.Status,
             request.MinReturnDate,
             request.RefusalReason,
@@ -533,12 +545,14 @@ public sealed class CreateVisaCommandHandler(
     IBookingRepository bookingRepository,
     IVisaRepository visaRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateVisaCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateVisaCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var visaApplication = await visaApplicationRepository.GetByIdAsync(request.VisaApplicationId);
         if (visaApplication is null)
         {
@@ -584,7 +598,7 @@ public sealed class CreateVisaCommandHandler(
 
         var entity = VisaEntity.Create(
             request.VisaApplicationId,
-            performedBy: "system",
+            performedBy: performedBy,
             request.VisaNumber,
             request.Country,
             request.Status,

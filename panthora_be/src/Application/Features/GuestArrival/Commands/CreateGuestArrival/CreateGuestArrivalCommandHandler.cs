@@ -29,7 +29,7 @@ public sealed class CreateGuestArrivalCommandHandler(
         var existing = await guestArrivalRepository.FindByAccommodationDetailIdAsync(request.BookingAccommodationDetailId);
         if (existing is not null)
         {
-            return Error.Conflict("GuestArrival.Exists", "A guest arrival record already exists for this accommodation detail.");
+            return Error.Conflict(ErrorConstants.GuestArrival.ExistsCode, ErrorConstants.GuestArrival.ExistsDescription.En);
         }
 
         var arrival = GuestArrivalEntity.Create(

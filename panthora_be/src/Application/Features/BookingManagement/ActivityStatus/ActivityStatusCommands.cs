@@ -30,12 +30,14 @@ public sealed class InitializeActivityStatusCommandHandler(
     IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<InitializeActivityStatusCommand, ErrorOr<int>>
 {
     public async Task<ErrorOr<int>> Handle(InitializeActivityStatusCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -64,7 +66,7 @@ public sealed class InitializeActivityStatusCommandHandler(
                 continue;
             }
 
-            var status = TourDayActivityStatusEntity.Create(request.BookingId, tourDay.Id, "system");
+            var status = TourDayActivityStatusEntity.Create(request.BookingId, tourDay.Id, performedBy);
             await tourDayActivityStatusRepository.AddAsync(status);
             createdCount++;
         }
@@ -140,7 +142,8 @@ public sealed class StartActivityCommandHandler(
 
         try
         {
-            status.Start("system", request.ActualStartTime);
+            var performedBy = user.Id ?? "system";
+            status.Start(performedBy, request.ActualStartTime);
         }
         catch (InvalidOperationException ex)
         {
@@ -216,7 +219,8 @@ public sealed class CompleteActivityCommandHandler(
 
         try
         {
-            status.Complete("system", request.ActualEndTime);
+            var performedBy = user.Id ?? "system";
+            status.Complete(performedBy, request.ActualEndTime);
         }
         catch (InvalidOperationException ex)
         {
@@ -297,7 +301,8 @@ public sealed class CancelActivityCommandHandler(
 
         try
         {
-            status.Cancel(reason, "system");
+            var performedBy = user.Id ?? "system";
+            status.Cancel(reason, performedBy);
         }
         catch (InvalidOperationException ex)
         {
@@ -486,12 +491,14 @@ public sealed class AssignGuideToActivityCommandHandler(
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     ITourDayActivityGuideRepository tourDayActivityGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<AssignGuideToActivityCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(AssignGuideToActivityCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var status = await tourDayActivityStatusRepository.GetByBookingIdAndTourDayIdAsync(request.BookingId, request.TourDayId);
         if (status is null)
         {
@@ -511,7 +518,7 @@ public sealed class AssignGuideToActivityCommandHandler(
             status.Id,
             request.UserId,
             request.Role,
-            performedBy: "system",
+            performedBy: performedBy,
             request.CheckInTime,
             request.CheckOutTime,
             request.Note);

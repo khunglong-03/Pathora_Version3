@@ -38,12 +38,14 @@ public sealed class AssignTeamMemberCommandHandler(
     IUserRepository userRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser currentUser,
     ILanguageContext? languageContext = null)
     : ICommandHandler<AssignTeamMemberCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(AssignTeamMemberCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = currentUser.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -72,7 +74,7 @@ public sealed class AssignTeamMemberCommandHandler(
             request.BookingId,
             request.UserId,
             request.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             request.IsLead,
             request.AssignedBy,
             request.Note);
@@ -105,12 +107,14 @@ public sealed class UpdateTeamMemberStatusCommandValidator : AbstractValidator<U
 public sealed class UpdateTeamMemberStatusCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTeamMemberStatusCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTeamMemberStatusCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -121,7 +125,7 @@ public sealed class UpdateTeamMemberStatusCommandHandler(
 
         assignment.Update(
             assignment.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             assignment.IsLead,
             request.Status,
             request.Note);
@@ -328,12 +332,14 @@ public sealed class UpdateTeamMemberAssignmentCommandValidator : AbstractValidat
 public sealed class UpdateTeamMemberAssignmentCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTeamMemberAssignmentCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTeamMemberAssignmentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -344,7 +350,7 @@ public sealed class UpdateTeamMemberAssignmentCommandHandler(
 
         assignment.Update(
             request.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             request.IsLead,
             assignment.Status,
             request.Note);
@@ -393,12 +399,14 @@ public sealed record ConfirmTeamMemberAssignmentCommand(Guid BookingId, Guid Use
 public sealed class ConfirmTeamMemberAssignmentCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<ConfirmTeamMemberAssignmentCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(ConfirmTeamMemberAssignmentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -409,7 +417,7 @@ public sealed class ConfirmTeamMemberAssignmentCommandHandler(
 
         assignment.Update(
             assignment.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             assignment.IsLead,
             AssignmentStatus.Confirmed,
             assignment.Note);

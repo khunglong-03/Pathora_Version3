@@ -19,7 +19,7 @@ public sealed class GetGuestArrivalsByHotelQueryHandler(
         var supplier = await supplierRepository.GetByIdAsync(request.SupplierId);
         if (supplier is null)
         {
-            return Error.NotFound("Supplier.NotFound", "Supplier not found.");
+            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription.En);
         }
 
         var arrivals = await guestArrivalRepository.GetByHotelAsync(request.SupplierId);

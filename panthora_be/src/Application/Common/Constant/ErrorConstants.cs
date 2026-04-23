@@ -321,6 +321,36 @@ public static class ErrorConstants
         public const string CodeExistsCode = "Supplier.CodeExists";
         public static readonly LocalizedMessage CodeExistsDescription =
             new("Mã nhà cung cấp đã tồn tại.", "Supplier code already exists.");
+
+        public const string AccommodationNotFoundCode = "Supplier.AccommodationNotFound";
+        public static readonly LocalizedMessage AccommodationNotFoundDescription =
+            new("Không tìm thấy nhà cung cấp lưu trú cho tài khoản của bạn.", "No accommodation supplier found for your account.");
+
+        public const string NotAccommodationSupplierCode = "Supplier.NotAccommodationSupplier";
+        public static readonly LocalizedMessage NotAccommodationSupplierDescription =
+            new("Bạn không có nhà cung cấp lưu trú.", "You do not have an accommodation supplier.");
+    }
+
+    public static class Accommodation
+    {
+        public const string DuplicateCode = "Accommodation.Duplicate";
+        public static readonly LocalizedMessage DuplicateDescription =
+            new("Đã tồn tại một mục lưu trú cho loại phòng này.", "An accommodation entry for this room type already exists.");
+
+        public const string NotFoundCode = "Accommodation.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy mục lưu trú.", "Accommodation not found.");
+    }
+
+    public static class GuestArrival
+    {
+        public const string NotFoundCode = "GuestArrival.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy thông tin nhận phòng.", "Guest arrival record not found.");
+
+        public const string ExistsCode = "GuestArrival.Exists";
+        public static readonly LocalizedMessage ExistsDescription =
+            new("Thông tin nhận phòng đã tồn tại cho chi tiết lưu trú này.", "A guest arrival record already exists for this accommodation detail.");
     }
 
     public static class SupplierPayable
@@ -530,6 +560,12 @@ public static class ErrorConstants
             var value when value == BookingAccommodationDetail.NotFoundCode => BookingAccommodationDetail.NotFoundDescription,
             var value when value == Supplier.NotFoundCode => Supplier.NotFoundDescription,
             var value when value == Supplier.CodeExistsCode => Supplier.CodeExistsDescription,
+            var value when value == Supplier.AccommodationNotFoundCode => Supplier.AccommodationNotFoundDescription,
+            var value when value == Supplier.NotAccommodationSupplierCode => Supplier.NotAccommodationSupplierDescription,
+            var value when value == Accommodation.DuplicateCode => Accommodation.DuplicateDescription,
+            var value when value == Accommodation.NotFoundCode => Accommodation.NotFoundDescription,
+            var value when value == GuestArrival.NotFoundCode => GuestArrival.NotFoundDescription,
+            var value when value == GuestArrival.ExistsCode => GuestArrival.ExistsDescription,
             var value when value == SupplierPayable.NotFoundCode => SupplierPayable.NotFoundDescription,
             var value when value == ActivityStatus.NotFoundCode => ActivityStatus.NotFoundDescription,
             var value when value == ActivityStatus.CancelledCode => ActivityStatus.CancelledDescription,

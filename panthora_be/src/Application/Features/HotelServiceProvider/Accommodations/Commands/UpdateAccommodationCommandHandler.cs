@@ -27,11 +27,11 @@ public sealed class UpdateAccommodationCommandHandler(
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
         var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "No accommodation supplier found for your account.");
+            return Error.NotFound(ErrorConstants.Supplier.AccommodationNotFoundCode, ErrorConstants.Supplier.AccommodationNotFoundDescription.En);
 
         var entity = await inventoryRepository.FindByIdAsync(request.Id);
         if (entity is null || entity.SupplierId != supplier.Id)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Accommodation not found.");
+            return Error.NotFound(ErrorConstants.Accommodation.NotFoundCode, ErrorConstants.Accommodation.NotFoundDescription.En);
 
         entity.Update(
             totalRooms: request.Request.TotalRooms,

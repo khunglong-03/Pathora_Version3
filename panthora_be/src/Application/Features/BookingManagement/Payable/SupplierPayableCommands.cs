@@ -39,12 +39,14 @@ public sealed class CreateSupplierPayableCommandHandler(
     ISupplierPayableRepository supplierPayableRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateSupplierPayableCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateSupplierPayableCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -72,7 +74,7 @@ public sealed class CreateSupplierPayableCommandHandler(
             request.BookingId,
             request.SupplierId,
             request.ExpectedAmount,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DueAt,
             request.Note);
 
@@ -111,12 +113,14 @@ public sealed class UpdateSupplierPayableCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateSupplierPayableCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateSupplierPayableCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await supplierPayableRepository.GetByIdAsync(request.SupplierPayableId);
         if (entity is null)
         {
@@ -135,7 +139,7 @@ public sealed class UpdateSupplierPayableCommandHandler(
 
         entity.Update(
             request.ExpectedAmount,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DueAt,
             request.Note,
             request.PaidAmount);
@@ -173,12 +177,14 @@ public sealed class RecordSupplierPaymentCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<RecordSupplierPaymentCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(RecordSupplierPaymentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var payable = await supplierPayableRepository.GetByIdAsync(request.SupplierPayableId);
         if (payable is null)
         {
@@ -200,11 +206,11 @@ public sealed class RecordSupplierPaymentCommandHandler(
             request.Amount,
             request.PaidAt,
             request.PaymentMethod,
-            performedBy: "system",
+            performedBy: performedBy,
             request.TransactionRef,
             request.Note);
 
-        payable.RecordPayment(request.Amount, "system");
+        payable.RecordPayment(request.Amount, performedBy);
 
         await supplierReceiptRepository.AddAsync(receipt);
         supplierPayableRepository.Update(payable);

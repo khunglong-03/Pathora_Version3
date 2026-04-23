@@ -28,11 +28,11 @@ public sealed class CreateAccommodationCommandHandler(
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
         var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "No accommodation supplier found for your account.");
+            return Error.NotFound(ErrorConstants.Supplier.AccommodationNotFoundCode, ErrorConstants.Supplier.AccommodationNotFoundDescription.En);
 
         var existing = await inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, request.Request.RoomType);
         if (existing is not null)
-            return Error.Conflict("Accommodation.Duplicate", "An accommodation entry for this room type already exists.");
+            return Error.Conflict(ErrorConstants.Accommodation.DuplicateCode, ErrorConstants.Accommodation.DuplicateDescription.En);
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplier.Id,

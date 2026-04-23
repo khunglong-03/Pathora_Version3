@@ -57,12 +57,14 @@ public sealed class CreateTransportDetailCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateTransportDetailCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateTransportDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var activity = await bookingActivityReservationRepository.GetByIdAsync(request.BookingActivityReservationId);
         if (activity is null)
         {
@@ -98,7 +100,7 @@ public sealed class CreateTransportDetailCommandHandler(
         var entity = BookingTransportDetailEntity.Create(
             request.BookingActivityReservationId,
             request.TransportType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
             request.DepartureAt,
             request.ArrivalAt,
@@ -166,12 +168,14 @@ public sealed class UpdateTransportDetailCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTransportDetailCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTransportDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingTransportDetailRepository.GetByIdAsync(request.BookingTransportDetailId);
         if (entity is null)
         {
@@ -215,7 +219,7 @@ public sealed class UpdateTransportDetailCommandHandler(
 
         entity.Update(
             request.TransportType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
             request.DepartureAt,
             request.ArrivalAt,

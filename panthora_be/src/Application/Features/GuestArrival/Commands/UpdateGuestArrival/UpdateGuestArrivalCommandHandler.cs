@@ -16,7 +16,7 @@ public sealed class UpdateGuestArrivalCommandHandler(
         var arrival = await guestArrivalRepository.FindByIdAsync(request.GuestArrivalId);
         if (arrival is null)
         {
-            return Error.NotFound("GuestArrival.NotFound", "Guest arrival record not found.");
+            return Error.NotFound(ErrorConstants.GuestArrival.NotFoundCode, ErrorConstants.GuestArrival.NotFoundDescription.En);
         }
 
         if (request.CheckedInByUserId.HasValue)

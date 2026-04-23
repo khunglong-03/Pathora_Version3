@@ -13,7 +13,8 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
         ITourManagerAssignmentRepository repository,
-        ITourInstanceRepository tourInstanceRepository)
+        ITourInstanceRepository tourInstanceRepository,
+        global::Contracts.Interfaces.IUser user)
     : ICommandHandler<BulkAssignTourManagerTeamCommand, ErrorOr<Success>>
 {
     private readonly IUserRepository _userRepository = userRepository;
@@ -25,6 +26,8 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
         BulkAssignTourManagerTeamCommand request,
         CancellationToken cancellationToken)
     {
+        var performedBy = user.Id ?? "system";
+
         if (!Guid.TryParse(request.ManagerId, out var managerId))
         {
             return Error.Validation(
@@ -124,9 +127,9 @@ public sealed class BulkAssignTourManagerTeamCommandHandler(
                 assignedUserId: item.AssignedUserId,
                 assignedTourId: item.AssignedTourId,
                 roleInTeam: item.AssignedRoleInTeam.HasValue ? (AssignedRoleInTeam)item.AssignedRoleInTeam.Value : null,
-                performedBy: "system")).ToList();
+                performedBy: performedBy)).ToList();
 
-        await _repository.BulkUpsertAsync(managerId, assignments, "system", cancellationToken);
+        await _repository.BulkUpsertAsync(managerId, assignments, performedBy, cancellationToken);
 
         return Result.Success;
     }

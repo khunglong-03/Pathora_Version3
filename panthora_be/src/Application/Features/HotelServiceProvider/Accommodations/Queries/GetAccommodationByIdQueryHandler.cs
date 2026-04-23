@@ -26,11 +26,11 @@ public sealed class GetAccommodationByIdQueryHandler(
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(Guid.Parse(currentUserId), cancellationToken);
         var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, ErrorConstants.Supplier.NotFoundDescription);
+            return Error.NotFound(ErrorConstants.Supplier.AccommodationNotFoundCode, ErrorConstants.Supplier.AccommodationNotFoundDescription.En);
 
         var entity = await inventoryRepository.FindByIdAsync(request.Id);
         if (entity is null || entity.SupplierId != supplier.Id)
-            return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Accommodation not found.");
+            return Error.NotFound(ErrorConstants.Accommodation.NotFoundCode, ErrorConstants.Accommodation.NotFoundDescription.En);
 
         return MapToDto(entity);
     }

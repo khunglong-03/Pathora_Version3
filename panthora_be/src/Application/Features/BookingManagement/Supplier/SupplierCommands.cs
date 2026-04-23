@@ -56,12 +56,14 @@ public sealed class CreateSupplierCommandValidator : AbstractValidator<CreateSup
 public sealed class CreateSupplierCommandHandler(
     ISupplierRepository supplierRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateSupplierCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var existing = await supplierRepository.GetByCodeAsync(request.SupplierCode);
         if (existing is not null)
         {
@@ -74,7 +76,7 @@ public sealed class CreateSupplierCommandHandler(
             request.SupplierCode,
             request.SupplierType,
             request.Name,
-            performedBy: "system",
+            performedBy: performedBy,
             request.Phone,
             request.Email,
             request.Address,
@@ -122,12 +124,14 @@ public sealed class UpdateSupplierCommandValidator : AbstractValidator<UpdateSup
 public sealed class UpdateSupplierCommandHandler(
     ISupplierRepository supplierRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateSupplierCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await supplierRepository.GetByIdAsync(request.SupplierId);
         if (entity is null)
         {
@@ -148,7 +152,7 @@ public sealed class UpdateSupplierCommandHandler(
             request.SupplierCode,
             request.SupplierType,
             request.Name,
-            performedBy: "system",
+            performedBy: performedBy,
             request.Phone,
             request.Email,
             request.Address,
@@ -171,12 +175,14 @@ public sealed record DeleteSupplierCommand(Guid SupplierId) : ICommand<ErrorOr<S
 public sealed class DeleteSupplierCommandHandler(
     ISupplierRepository supplierRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<DeleteSupplierCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(DeleteSupplierCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await supplierRepository.GetByIdAsync(request.SupplierId, cancellationToken);
         if (entity is null)
         {
@@ -185,7 +191,7 @@ public sealed class DeleteSupplierCommandHandler(
                 ErrorConstants.Supplier.NotFoundDescription.Resolve(lang));
         }
 
-        entity.SoftDelete("system");
+        entity.SoftDelete(performedBy);
         supplierRepository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
@@ -253,6 +259,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
     IMailRepository mailRepository,
     IPasswordResetTokenRepository passwordResetTokenRepository,
     IConfiguration configuration,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateSupplierWithOwnerCommand, ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>
 {
@@ -261,6 +268,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
         CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
 
         // 1. Check email uniqueness
         var isUnique = await userRepository.IsEmailUnique(request.OwnerEmail);
@@ -305,7 +313,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
             request.OwnerFullName,
             request.OwnerEmail,
             hashedPassword,
-            performedBy: "system",
+            performedBy: performedBy,
             avatar: null,
             forcePasswordChange: true);
 
@@ -331,7 +339,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
                 request.SupplierCode,
                 request.SupplierType,
                 request.SupplierName,
-                performedBy: "system",
+                performedBy: performedBy,
                 request.Phone,
                 request.Email,
                 request.Address,

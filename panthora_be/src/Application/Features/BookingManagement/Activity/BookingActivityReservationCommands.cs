@@ -50,12 +50,14 @@ public sealed class CreateBookingActivityReservationCommandHandler(
     IBookingActivityReservationRepository bookingActivityReservationRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateBookingActivityReservationCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateBookingActivityReservationCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -76,7 +78,7 @@ public sealed class CreateBookingActivityReservationCommandHandler(
             request.Order,
             request.ActivityType,
             request.Title,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
             request.Description,
             request.StartTime,
@@ -130,12 +132,14 @@ public sealed class UpdateBookingActivityReservationCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateBookingActivityReservationCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateBookingActivityReservationCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingActivityReservationRepository.GetByIdAsync(request.BookingActivityReservationId);
         if (entity is null)
         {
@@ -156,7 +160,7 @@ public sealed class UpdateBookingActivityReservationCommandHandler(
             request.Order,
             request.ActivityType,
             request.Title,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
             request.Description,
             request.StartTime,

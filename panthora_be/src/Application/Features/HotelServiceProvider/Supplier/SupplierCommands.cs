@@ -113,12 +113,10 @@ public sealed class UpdateSupplierInfoCommandHandler(
             : suppliers.FirstOrDefault();
 
         if (supplier is null)
-            return Error.NotFound(
-                ErrorConstants.Supplier.NotFoundCode,
-                "No accommodation supplier found for your account.");
+            return Error.NotFound(ErrorConstants.Supplier.AccommodationNotFoundCode, ErrorConstants.Supplier.AccommodationNotFoundDescription.En);
 
         if (supplier.SupplierType != SupplierType.Accommodation)
-            return Error.Forbidden("You do not have an accommodation supplier.");
+            return Error.Forbidden(ErrorConstants.Supplier.NotAccommodationSupplierCode, ErrorConstants.Supplier.NotAccommodationSupplierDescription.En);
 
         supplier.Update(
             supplierCode: supplier.SupplierCode,

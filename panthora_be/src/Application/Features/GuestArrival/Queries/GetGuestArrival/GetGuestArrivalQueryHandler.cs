@@ -24,7 +24,7 @@ public sealed class GetGuestArrivalQueryHandler(
         var arrival = await guestArrivalRepository.FindByAccommodationDetailIdAsync(request.BookingAccommodationDetailId);
         if (arrival is null)
         {
-            return Error.NotFound("GuestArrival.NotFound", "Guest arrival record not found.");
+            return Error.NotFound(ErrorConstants.GuestArrival.NotFoundCode, ErrorConstants.GuestArrival.NotFoundDescription.En);
         }
 
         var participants = arrival.Participants.Select(p => new GuestArrivalParticipantDto(
