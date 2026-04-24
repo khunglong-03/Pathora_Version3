@@ -29,21 +29,21 @@ function StatItem({
 
   if (stat.isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-4 md:px-8 animate-pulse">
-        <div className="h-9 w-16 bg-white/10 rounded mb-1" />
-        <div className="h-4 w-20 bg-white/5 rounded" />
+      <div className="flex flex-col items-center justify-center py-6 md:px-8 animate-pulse">
+        <div className="h-10 w-20 bg-stone-200 rounded mb-2" />
+        <div className="h-4 w-24 bg-stone-100 rounded" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-4 md:px-8">
+    <div className="flex flex-col items-center justify-center py-6 md:px-8">
       <span
-        className="text-3xl md:text-4xl font-bold text-slate-900 mb-1 font-[Space_Grotesk]"
+        className="text-4xl md:text-5xl font-black text-stone-900 mb-2 tracking-tighter"
       >
         {stat.isDecimal ? stat.value + stat.suffix : countValue}
       </span>
-      <span className="text-sm text-slate-500 uppercase tracking-wider">
+      <span className="text-[11px] font-bold text-stone-500 uppercase tracking-[0.2em]">
         {t(stat.labelKey)}
       </span>
     </div>
@@ -79,7 +79,7 @@ export const BoldStatsStrip = () => {
         setStats([
           { value: data.totalTours, suffix: "+", labelKey: "landing.stats.items.totalTours" },
           { value: data.totalTravelers, suffix: "+", labelKey: "landing.stats.items.totalTravellers" },
-          { value: data.totalDistanceKm, suffix: " km", labelKey: "landing.stats.items.totalDistanceKm" },
+          { value: data.totalDistanceKm, suffix: "k", labelKey: "landing.stats.items.totalDistanceKm" },
           { value: 24, suffix: "/7", labelKey: "landing.stats.items.support" },
         ]);
         setIsLoading(false);
@@ -87,7 +87,6 @@ export const BoldStatsStrip = () => {
       .catch(() => {
         if (cancelled) return;
         setIsLoading(false);
-        // On error, show fallback — do not crash the page
       });
 
     return () => {
@@ -96,16 +95,16 @@ export const BoldStatsStrip = () => {
   }, []);
 
   return (
-    <section className="relative py-6 bg-white border-y border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className="relative py-8 bg-stone-50 border-b border-stone-200">
+      <div className="max-w-[90rem] mx-auto px-6 md:px-12">
         <div
           ref={ref}
-          className={`grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-slate-200 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          className={`grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x divide-stone-200/80 transition-all duration-1000 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           {error && stats.length === 0 ? (
-            <div className="col-span-4 flex items-center justify-center py-4 text-white/30 text-sm">
+            <div className="col-span-4 flex items-center justify-center py-6 text-stone-400 text-sm font-medium">
               {t("landing.stats.unavailable") || "Statistics temporarily unavailable"}
             </div>
           ) : (

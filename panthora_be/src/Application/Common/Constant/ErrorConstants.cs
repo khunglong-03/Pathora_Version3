@@ -85,9 +85,55 @@ public static class ErrorConstants
         public static readonly LocalizedMessage NotTransportationDescription =
             new("Chỉ có thể xác nhận vận chuyển External cho hoạt động loại Transportation.", "External transport confirmation is only allowed for Transportation activities.");
 
+        public const string InvalidTypeCode = "TourInstanceActivity.InvalidType";
+        public static readonly LocalizedMessage InvalidTypeDescription =
+            new("Hoạt động này không phải loại vận chuyển.", "This activity is not a transportation type.");
+
+        public const string NoAssignmentsCode = "TourInstanceActivity.NoAssignments";
+        public static readonly LocalizedMessage NoAssignmentsDescription =
+            new("Danh sách xe duyệt không được rỗng.", "The list of approved vehicles cannot be empty.");
+
+        public const string NoSupplierCode = "TourInstanceActivity.NoSupplier";
+        public static readonly LocalizedMessage NoSupplierDescription =
+            new("Hoạt động chưa được gán nhà cung cấp vận chuyển.", "Activity has not been assigned a transport supplier.");
+
         public const string NotExternalTransportCode = "TourInstanceActivity.NotExternalTransport";
         public static readonly LocalizedMessage NotExternalTransportDescription =
             new("Hoạt động này đã gán nhà xe trong app (Ground transport). Dùng flow approve thay vì confirm external.", "This activity is assigned to an in-app supplier (Ground transport). Use the approve flow instead of confirm external.");
+    }
+
+    public static class Vehicle
+    {
+        public const string NotOwnedCode = "Vehicle.NotOwned";
+        public static readonly LocalizedMessage NotOwnedDescription =
+            new("Phương tiện không thuộc quyền sở hữu của bạn.", "Vehicle does not belong to your account.");
+
+        public const string InactiveCode = "Vehicle.Inactive";
+        public static readonly LocalizedMessage InactiveDescription =
+            new("Phương tiện đang ngừng hoạt động.", "Vehicle is currently inactive.");
+
+        public const string UnavailableCode = "Vehicle.Unavailable";
+        public static readonly LocalizedMessage UnavailableDescription =
+            new("Hệ thống đang bận; vui lòng thử lại.", "System is busy; please try again later.");
+
+        public const string ExhaustedCode = "Vehicle.Exhausted";
+        public static readonly LocalizedMessage ExhaustedDescription =
+            new("Không thể duyệt phương tiện sau nhiều lần thử.", "Failed to approve vehicle after multiple attempts.");
+    }
+
+    public static class Driver
+    {
+        public const string RequiredCode = "Driver.Required";
+        public static readonly LocalizedMessage RequiredDescription =
+            new("Mỗi xe phải có tài xế.", "Each vehicle must have a driver.");
+
+        public const string NotOwnedCode = "Driver.NotOwned";
+        public static readonly LocalizedMessage NotOwnedDescription =
+            new("Tài xế không thuộc quyền sở hữu của bạn.", "Driver does not belong to your account.");
+
+        public const string InactiveCode = "Driver.Inactive";
+        public static readonly LocalizedMessage InactiveDescription =
+            new("Tài xế đang ngừng hoạt động.", "Driver is currently inactive.");
     }
 
     public static class TourRequest

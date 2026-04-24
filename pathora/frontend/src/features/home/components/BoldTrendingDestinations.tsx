@@ -2,10 +2,12 @@
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
+import { ArrowRight } from "@phosphor-icons/react";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 import { BoldTiltCard } from "./BoldTiltCard";
 import { homeService } from "@/api/services/homeService";
 import type { TrendingDestination } from "@/types/home";
+import { getFallbackImage } from "@/utils/imageFallback";
 
 type DestinationCard = {
   id: string;
@@ -14,8 +16,6 @@ type DestinationCard = {
   image: string;
   tours: number;
 };
-
-import { getFallbackImage } from "@/utils/imageFallback";
 
 const mapTrendingToDestinations = (data: TrendingDestination[]): DestinationCard[] =>
   data.map((dest, idx) => ({
@@ -38,7 +38,7 @@ export const BoldTrendingDestinations = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await homeService.getTrendingDestinations(6);
+      const result = await homeService.getTrendingDestinations(8);
       setDestinations(mapTrendingToDestinations(result ?? []));
     } catch {
       setError(
@@ -55,41 +55,40 @@ export const BoldTrendingDestinations = () => {
   }, [fetchDestinations]);
 
   return (
-    <section className="py-20 md:py-28 bg-[#f8fafc]">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className="py-24 md:py-32 bg-stone-50 overflow-hidden">
+      <div className="max-w-[90rem] mx-auto px-6 md:px-12">
         <div
           ref={titleRef}
-          className={`flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 transition-all duration-700 ${
-            titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          className={`flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 transition-all duration-1000 ${
+            titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div>
-            <span suppressHydrationWarning className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest mb-3 block">
+          <div className="max-w-2xl">
+            <span suppressHydrationWarning className="inline-block px-4 py-1.5 rounded-full bg-stone-200/50 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 border border-stone-200/50 shadow-sm">
               {t("landing.destinations.eyebrow") || "Explore"}
             </span>
             <h2
-              className="text-4xl md:text-5xl font-bold text-slate-900"
-              style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+              className="text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]"
             >
               {t("landing.destinations.title") || "Trending Destinations"}
             </h2>
           </div>
           <Link
             href="/tours"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-medium group"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-stone-200 rounded-xl text-stone-900 hover:bg-stone-100 hover:border-stone-300 transition-all font-bold text-sm shadow-sm hover:shadow-md active:scale-95 group shrink-0"
           >
             {t("landing.destinations.viewAll") || "View all destinations"}
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+            <ArrowRight size={16} weight="bold" className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-5 text-center text-sm text-red-200">
-            <p>{error}</p>
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center max-w-2xl mx-auto">
+            <p className="text-red-800 font-medium">{error}</p>
             <button
               type="button"
               onClick={fetchDestinations}
-              className="mt-3 inline-flex items-center rounded-full border border-red-300/30 px-4 py-2 text-xs font-medium text-red-100 hover:bg-red-500/20 transition-colors"
+              className="mt-4 inline-flex items-center rounded-xl bg-red-100 px-6 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 transition-colors"
             >
               {t("landing.destinations.retry") || "Retry"}
             </button>
@@ -97,38 +96,44 @@ export const BoldTrendingDestinations = () => {
         ) : isLoading ? (
           <div
             ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+            className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:-mx-12 md:px-12"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {Array.from({ length: 5 }).map((_, idx) => (
+            {Array.from({ length: 6 }).map((_, idx) => (
               <div key={idx} className="snap-center shrink-0 animate-pulse">
-                <div className="w-[260px] h-[260px] rounded-2xl bg-white/10" />
+                <div className="w-[280px] h-[360px] md:w-[320px] md:h-[420px] rounded-[1.5rem] bg-stone-200/50" />
               </div>
             ))}
           </div>
         ) : destinations.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-white/60">
+          <div className="rounded-[2rem] border border-stone-200 bg-white p-12 text-center text-stone-500 font-medium">
             {t("landing.destinations.empty") ||
               "No destinations available at the moment."}
           </div>
         ) : (
           <div
             ref={scrollRef}
-            className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+            className="flex gap-6 overflow-x-auto pb-8 pt-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6 md:-mx-12 md:px-12"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {destinations.map((dest, idx) => (
               <div
                 key={dest.id}
-                className="snap-center shrink-0"
-                style={{ animationDelay: `${idx * 100}ms` }}
+                className="snap-center shrink-0 transition-all duration-1000"
+                style={{
+                  animationDelay: `${idx * 100}ms`,
+                  opacity: titleVisible ? 1 : 0,
+                  transform: titleVisible ? 'translateY(0)' : 'translateY(2rem)'
+                }}
               >
                 <BoldTiltCard
                   image={dest.image}
                   title={dest.name}
                   subtitle={dest.country}
                   badge={`${dest.tours} ${dest.tours === 1 ? "tour" : t("landing.destinations.tours") || "tours"}`}
-                  href="/tours"
+                  href={`/tours?destination=${encodeURIComponent(dest.name)}`}
+                  height="h-[360px] md:h-[420px]"
+                  width="w-[280px] md:w-[320px]"
                 />
               </div>
             ))}

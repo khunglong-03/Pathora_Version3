@@ -788,6 +788,20 @@ const ACTIVITY_ICONS: Record<number, string> = {
   99: "heroicons:ellipsis-horizontal-circle",
 };
 
+const TRANSPORT_ICONS: Record<number | string, string> = {
+  0: "heroicons:paper-airplane",
+  1: "mdi:train",
+  2: "mdi:bus",
+  3: "mdi:car",
+  4: "mdi:taxi",
+  5: "mdi:sail-boat",
+  6: "mdi:ferry",
+  7: "mdi:motorbike",
+  8: "mdi:bicycle",
+  9: "mdi:walk",
+  99: "heroicons:truck",
+};
+
 function ItineraryTab({ classification }: { classification: TourClassificationDto }) {
   const days = [...(classification.plans ?? [])].sort((a, b) => a.dayNumber - b.dayNumber);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(
@@ -877,7 +891,7 @@ function ItineraryTab({ classification }: { classification: TourClassificationDt
                             </span>
                             {(activity.activityType === "7" || activity.activityType === "Transportation") && activity.transportationName ? (
                               <span className="inline-flex items-center gap-1 font-medium text-amber-600 text-xs">
-                                <Icon icon="heroicons:truck" className="size-3" />
+                                <Icon icon={TRANSPORT_ICONS[String(activity.transportationType)] || TRANSPORT_ICONS["99"]} className="size-3" />
                                 {activity.transportationName}
                               </span>
                             ) : null}

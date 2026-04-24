@@ -57,6 +57,8 @@ public sealed record BookingActivityReservationDto(
 public sealed record TransportDetailDto(
     [property: JsonPropertyName("bookingTransportDetailId")] Guid BookingTransportDetailId,
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,
     [property: JsonPropertyName("transportType")] TransportType TransportType,
     [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
@@ -79,6 +81,8 @@ public sealed record TransportDetailDto(
 
 public sealed record CreateTransportDetailDto(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,
     [property: JsonPropertyName("transportType")] TransportType TransportType,
     [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,

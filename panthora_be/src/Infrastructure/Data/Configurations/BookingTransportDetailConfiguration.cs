@@ -63,7 +63,11 @@ public class BookingTransportDetailConfiguration : IEntityTypeConfiguration<Book
 
         builder.HasIndex(x => x.BookingActivityReservationId);
         builder.HasIndex(x => x.SupplierId);
+        builder.HasIndex(x => x.BookingParticipantId);
         builder.HasIndex(x => x.Status);
+
+        builder.Property(x => x.PassengerName)
+            .HasMaxLength(200);
 
         builder.HasOne(x => x.BookingActivityReservation)
             .WithMany(x => x.TransportDetails)
@@ -73,6 +77,11 @@ public class BookingTransportDetailConfiguration : IEntityTypeConfiguration<Book
         builder.HasOne(x => x.Supplier)
             .WithMany()
             .HasForeignKey(x => x.SupplierId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(x => x.BookingParticipant)
+            .WithMany()
+            .HasForeignKey(x => x.BookingParticipantId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

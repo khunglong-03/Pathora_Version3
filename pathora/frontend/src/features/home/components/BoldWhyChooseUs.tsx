@@ -9,25 +9,29 @@ const features = [
     Icon: Trophy,
     titleKey: "landing.whyChoose.items.price.title",
     descKey: "landing.whyChoose.items.price.desc",
-    color: "#fb8b02",
+    color: "text-amber-600",
+    bg: "bg-amber-100/50",
   },
   {
     Icon: CompassIcon,
     titleKey: "landing.whyChoose.items.guides.title",
     descKey: "landing.whyChoose.items.guides.desc",
-    color: "#3b82f6",
+    color: "text-blue-600",
+    bg: "bg-blue-100/50",
   },
   {
     Icon: ChatCircleIcon,
     titleKey: "landing.whyChoose.items.support.title",
     descKey: "landing.whyChoose.items.support.desc",
-    color: "#10b981",
+    color: "text-emerald-600",
+    bg: "bg-emerald-100/50",
   },
   {
     Icon: ArrowsClockwiseIcon,
     titleKey: "landing.whyChoose.items.flexible.title",
     descKey: "landing.whyChoose.items.flexible.desc",
-    color: "#fb8b02",
+    color: "text-orange-600",
+    bg: "bg-orange-100/50",
   },
 ];
 
@@ -36,20 +40,19 @@ export const BoldWhyChooseUs = () => {
   const [ref, isVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 });
 
   return (
-    <section className="py-20 md:py-28 bg-white">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className="py-24 md:py-32 bg-stone-50">
+      <div className="max-w-[90rem] mx-auto px-6 md:px-12">
         {/* Header */}
         <div
-          className={`text-center mb-14 transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          className={`text-center max-w-2xl mx-auto mb-20 transition-all duration-1000 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <span suppressHydrationWarning className="text-sm font-medium text-slate-500 uppercase tracking-widest">
+          <span suppressHydrationWarning className="inline-block px-4 py-1.5 rounded-full bg-stone-200/50 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-6 border border-stone-200/50 shadow-sm">
             {t("landing.whyChoose.eyebrow")}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900 tracking-tight"
-            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+            className="text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]"
           >
             {t("landing.whyChoose.title")}
           </h2>
@@ -58,28 +61,27 @@ export const BoldWhyChooseUs = () => {
         {/* 4-Column Grid */}
         <div
           ref={ref}
-          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 transition-all duration-1000 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 transition-all duration-1000 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
           }`}
         >
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-slate-200 hover:shadow-md hover:bg-slate-50 transition-all duration-300 group text-center"
+              className="p-8 rounded-[1.5rem] bg-white border border-stone-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-500 group flex flex-col items-center text-center"
               style={{
                 transitionDelay: isVisible ? `${idx * 100}ms` : "0ms",
               }}
             >
               <div
-                className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                style={{ background: `${feature.color}15`, border: `1px solid ${feature.color}30` }}
+                className={`w-16 h-16 rounded-[1rem] mx-auto mb-6 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 ${feature.bg}`}
               >
-                <feature.Icon size={26} weight="duotone" color={feature.color} />
+                <feature.Icon size={32} weight="fill" className={feature.color} />
               </div>
-              <h3 className="text-slate-900 font-semibold text-sm mb-2">
+              <h3 className="text-stone-900 font-bold text-[17px] mb-3 leading-snug">
                 {t(feature.titleKey)}
               </h3>
-              <p className="text-slate-500 text-xs leading-relaxed">
+              <p className="text-stone-500 text-[14px] leading-relaxed font-medium">
                 {t(feature.descKey)}
               </p>
             </div>

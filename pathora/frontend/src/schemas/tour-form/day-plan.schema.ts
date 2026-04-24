@@ -22,7 +22,37 @@ export const dayPlanSchema = z.object({
     .string()
     .max(2000, "Mô tả (EN) không được vượt quá 2000 ký tự")
     .optional(),
-  activities: z.array(activitySchema).optional().default([]),
+  activities: z.array(activitySchema).optional().default([]).superRefine((activities, ctx) => {
+    let previousEndTime: string | undefined;
+
+    activities.forEach((activity, index) => {
+      if (activity.startTime && activity.endTime) {
+        if (activity.endTime < activity.startTime) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Thời gian kết thúc không được trước thời gian bắt đầu",
+            path: [index, "endTime"],
+          });
+        }
+      }
+
+      if (index > 0 && activity.startTime && previousEndTime) {
+        if (activity.startTime < previousEndTime) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Thời gian bắt đầu không được trước thời gian kết thúc của hoạt động trước",
+            path: [index, "startTime"],
+          });
+        }
+      }
+
+      if (activity.endTime) {
+        previousEndTime = activity.endTime;
+      } else if (activity.startTime) {
+        previousEndTime = activity.startTime;
+      }
+    });
+  }),
 });
 
 export type DayPlanFormValues = z.infer<typeof dayPlanSchema>;

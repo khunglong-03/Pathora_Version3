@@ -80,6 +80,8 @@ public class BookingManagementController : BaseApiController
     {
         var command = new CreateTransportDetailCommand(
             request.BookingActivityReservationId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.SupplierId,
             request.TransportType,
             request.DepartureAt,
@@ -106,6 +108,8 @@ public class BookingManagementController : BaseApiController
     {
         var command = new UpdateTransportDetailCommand(
             detailId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.SupplierId,
             request.TransportType,
             request.DepartureAt,
@@ -408,6 +412,8 @@ public sealed record UpdateTeamMemberRequest(
 
 public sealed record CreateTransportDetailRequest(
     Guid BookingActivityReservationId,
+    Guid? BookingParticipantId,
+    string? PassengerName,
     Guid? SupplierId,
     TransportType TransportType,
     DateTimeOffset? DepartureAt,
@@ -426,6 +432,8 @@ public sealed record CreateTransportDetailRequest(
     string? Note);
 
 public sealed record UpdateTransportDetailRequest(
+    Guid? BookingParticipantId,
+    string? PassengerName,
     Guid? SupplierId,
     TransportType TransportType,
     DateTimeOffset? DepartureAt,

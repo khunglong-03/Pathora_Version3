@@ -23,6 +23,34 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> 
   "4": { bg: "bg-red-100", text: "text-red-700", label: "Từ chối" },
 };
 
+const ACTIVITY_ICONS: Record<string, string> = {
+  "0": "heroicons:eye",
+  "1": "heroicons:cake",
+  "2": "heroicons:shopping-bag",
+  "3": "heroicons:sparkles",
+  "4": "heroicons:ticket",
+  "5": "heroicons:building-library",
+  "6": "heroicons:musical-note",
+  "7": "heroicons:truck",
+  "8": "heroicons:home-modern",
+  "9": "heroicons:clock",
+  "99": "heroicons:ellipsis-horizontal-circle",
+};
+
+const TRANSPORT_ICONS: Record<string, string> = {
+  "0": "heroicons:paper-airplane",
+  "1": "mdi:train",
+  "2": "mdi:bus",
+  "3": "mdi:car",
+  "4": "mdi:taxi",
+  "5": "mdi:sail-boat",
+  "6": "mdi:ferry",
+  "7": "mdi:motorbike",
+  "8": "mdi:bicycle",
+  "9": "mdi:walk",
+  "99": "heroicons:truck",
+};
+
 export function TourDesignerTourDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
@@ -87,186 +115,139 @@ export function TourDesignerTourDetailPage() {
   const canEdit = canTourDesignerEditTour(statusKey);
 
   return (
-    <div className="max-w-6xl w-full mx-auto p-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-        <Link href="/tour-designer/tours" className="hover:text-indigo-600 transition-colors">
-          {t("tourDesigner.breadcrumb.myTours", "My Tours")}
-        </Link>
-        <span>/</span>
-        <span className="text-slate-900 font-medium">{tour.tourName}</span>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">{tour.tourName}</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {tour.shortDescription}
-          </p>
+    <div className="max-w-6xl w-full mx-auto p-6 lg:p-8">
+      {/* Premium Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2.5 text-[13px] font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+          <Link href="/tour-designer/tours" className="hover:text-slate-800 transition-colors">
+            {t("tourDesigner.breadcrumb.myTours", "My Tours")}
+          </Link>
+          <Icon icon="heroicons:chevron-right" className="size-3.5" />
+          <span className="text-slate-800">{tour.tourCode}</span>
         </div>
-
-        {/* Action Panel */}
-        <div className="flex flex-col items-end gap-2">
-          <span
-            role="status"
-            aria-label={t("tourDesigner.statusBadge", "Status")}
-            className={`inline-flex px-3 py-1.5 text-sm font-medium rounded-full ${badge.bg} ${badge.text}`}
-          >
-            {TourStatusMap[Number(tour.status)] ?? badge.label}
-          </span>
-
-          {canEdit && (
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">{tour.tourName}</h1>
+            <p className="text-[15px] text-slate-500 mt-3 max-w-3xl leading-relaxed">
+              {tour.shortDescription}
+            </p>
+            <div className="flex items-center gap-3 mt-5 text-sm">
+              <span className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${badge.bg} ${badge.text} border border-white shadow-sm ring-1 ring-black/5`}>
+                {TourStatusMap[Number(tour.status)] ?? badge.label}
+              </span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-500 font-bold uppercase tracking-wider text-xs">
+                {tour.tourScope === 1 ? "Domestic" : "International"}
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 shrink-0 sm:mt-1">
             <Link
-              href={`/tour-designer/tours/${tourId}/edit`}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
+              href="/tour-designer/tours"
+              className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-200/80 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
             >
-              <PencilSimple size={16} />
-              {t("tourDesigner.actions.edit", "Edit")}
+              {t("common.back", "Back")}
             </Link>
-          )}
+            {canEdit && (
+              <Link
+                href={`/tour-designer/tours/${tourId}/edit`}
+                className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-slate-900 border border-slate-900 rounded-xl hover:bg-slate-800 hover:shadow-md transition-all"
+              >
+                <PencilSimple size={16} weight="bold" />
+                {t("tourDesigner.actions.edit", "Edit")}
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Tour Detail Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Left: Main info */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Info Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+        <div className="xl:col-span-2 space-y-8">
+          
+          {/* Overview Card */}
+          <div className="bg-white rounded-[2rem] border border-slate-200/60 p-6 sm:p-8 shadow-sm">
+            <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+              <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                <Icon icon="heroicons:information-circle" className="size-5" />
+              </div>
               {t("tourDesigner.tourDetail", "Tour Details")}
             </h2>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
               <div>
-                <span className="text-slate-500">Tour Code:</span>
-                <span className="ml-2 font-medium text-slate-900">{tour.tourCode}</span>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tour Code</span>
+                <span className="font-bold text-slate-900 text-[15px]">{tour.tourCode}</span>
               </div>
               <div>
-                <span className="text-slate-500">Scope:</span>
-                <span className="ml-2 font-medium text-slate-900">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Scope</span>
+                <span className="font-bold text-slate-900 text-[15px]">
                   {tour.tourScope === 1 ? "Domestic" : "International"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500">Customer Segment:</span>
-                <span className="ml-2 font-medium text-slate-900">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Segment</span>
+                <span className="font-bold text-slate-900 text-[15px]">
                   {tour.customerSegment === 2 ? "Group" : "Individual"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500">Created:</span>
-                <span className="ml-2 font-medium text-slate-900">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Created</span>
+                <span className="font-bold text-slate-900 text-[15px]">
                   {tour.createdOnUtc ? new Date(tour.createdOnUtc).toLocaleDateString("vi-VN") : "-"}
                 </span>
               </div>
             </div>
 
             {tour.longDescription && (
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-medium text-slate-700 mb-2">Description</h3>
-                <p className="text-sm text-slate-600 whitespace-pre-wrap">{tour.longDescription}</p>
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Description</span>
+                <p className="text-[14.5px] text-slate-600 leading-relaxed whitespace-pre-wrap">{tour.longDescription}</p>
               </div>
             )}
           </div>
 
-          {/* Images */}
-          {tour.images && tour.images.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                {t("tourDesigner.images", "Tour Images")}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {tour.images.map((img, idx) => (
-                  <div key={idx} className="aspect-video rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                    {img.publicURL ? (
-                      <img
-                        src={img.publicURL}
-                        alt={`Tour image ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <EyeIcon size={24} />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Packages/Classifications */}
           {tour.classifications && tour.classifications.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            <div className="space-y-6">
+              <h2 className="text-xl font-black text-slate-900 px-2 flex items-center gap-2">
+                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-500">
+                  <Icon icon="heroicons:map" className="size-6" />
+                </div>
                 {t("tourDesigner.packages", "Tour Packages")}
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-8">
                 {tour.classifications.map((cls, idx) => (
-                  <div key={idx} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-slate-900">{cls.name}</h3>
-                      <span className="text-sm font-semibold text-indigo-600">
-                        {cls.price?.toLocaleString("vi-VN") ?? "-"} VND
-                      </span>
+                  <div key={idx} className="bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200/80 p-6 sm:p-8">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{cls.name}</h3>
+                        {cls.description && (
+                          <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">{cls.description}</p>
+                        )}
+                      </div>
+                      <div className="text-left sm:text-right shrink-0">
+                        <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Price</span>
+                        <span className="text-2xl font-black text-indigo-600">
+                          {cls.price?.toLocaleString("vi-VN") ?? "-"} VND
+                        </span>
+                      </div>
                     </div>
-                    {cls.description && (
-                      <p className="text-sm text-slate-600">{cls.description}</p>
-                    )}
+                    
                     {cls.durationDays && (
-                      <p className="text-xs text-slate-400 mt-1">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-[13px] font-bold uppercase tracking-wider text-slate-600 mb-8 shadow-sm">
+                        <Icon icon="heroicons:calendar" className="size-4 text-slate-400" />
                         {cls.durationDays} {t("tourDesigner.durationDays", "day(s)")}
-                      </p>
+                      </div>
                     )}
 
                     {cls.plans && cls.plans.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-slate-200">
-                        <h4 className="text-sm font-semibold text-slate-800 mb-3">{t("tourDesigner.itinerary", "Itinerary")}</h4>
+                      <div className="space-y-3">
+                        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-4 ml-2">{t("tourDesigner.itinerary", "Itinerary")}</h4>
                         <div className="space-y-4">
                           {cls.plans.map((day) => (
-                            <div key={day.id} className="bg-white rounded-lg border border-slate-200 p-4">
-                              <h5 className="text-sm font-bold text-slate-800">
-                                {t("tourDesigner.day", "Day")} {day.dayNumber}: {day.title}
-                              </h5>
-                              {day.activities && day.activities.length > 0 ? (
-                                <ul className="mt-3 space-y-3">
-                                  {day.activities.map((act, actIdx) => (
-                                    <li key={act.id} className="flex gap-3 text-sm text-slate-600">
-                                      <span className="font-semibold text-indigo-500 w-5 shrink-0">#{actIdx + 1}</span>
-                                      <div>
-                                        <p className="font-medium text-slate-800">{act.title}</p>
-                                        <p className="text-xs text-slate-500 mt-0.5">
-                                          {(act.activityType === "7" || act.activityType === "Transportation") && act.transportationName ? (
-                                            <span className="inline-flex items-center gap-1 font-medium text-amber-600 mr-2">
-                                              <Icon icon="heroicons:truck" className="size-3" />
-                                              {act.transportationName}
-                                            </span>
-                                          ) : null}
-                                          {(act.activityType === "8" || act.activityType === "Accommodation") && (act.accommodation?.accommodationName || act.locationName) ? (
-                                            <span className="inline-flex items-center gap-1 font-medium text-indigo-600 mr-2">
-                                              <Icon icon="heroicons:building-office-2" className="size-3" />
-                                              {act.accommodation?.accommodationName || act.locationName}
-                                            </span>
-                                          ) : null}
-                                          {(act.startTime || act.endTime) && (
-                                            <span className="inline-flex items-center gap-1">
-                                              <Icon icon="heroicons:clock" className="size-3" />
-                                              {act.startTime} {act.endTime && `- ${act.endTime}`}
-                                            </span>
-                                          )}
-                                        </p>
-                                        {act.description && (
-                                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">{act.description}</p>
-                                        )}
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-xs text-slate-500 mt-2 italic">{t("tourDesigner.noActivities", "No activities yet")}</p>
-                              )}
-                            </div>
+                            <DayPlanAccordion key={day.id} day={day} t={t} />
                           ))}
                         </div>
                       </div>
@@ -278,43 +259,181 @@ export function TourDesignerTourDetailPage() {
           )}
         </div>
 
-        {/* Right: Thumbnail + Meta */}
-        <div className="space-y-6">
+        {/* Right Column: Thumbnail & Images */}
+        <div className="space-y-8">
           {/* Thumbnail */}
-          {tour.thumbnail?.publicURL && (
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <img
-                src={tour.thumbnail.publicURL}
-                alt={tour.tourName}
-                className="w-full aspect-video object-cover rounded-lg"
-              />
-            </div>
-          )}
-
+          <div className="bg-white rounded-[2rem] border border-slate-200/60 p-2 shadow-sm">
+            {tour.thumbnail?.publicURL ? (
+               <img
+                  src={tour.thumbnail.publicURL}
+                  alt={tour.tourName}
+                  className="w-full aspect-video object-cover rounded-[1.5rem]"
+                />
+            ) : (
+               <div className="w-full aspect-video bg-slate-100 rounded-[1.5rem] border border-slate-200/60 flex items-center justify-center text-slate-400">
+                  <Icon icon="heroicons:photo" className="size-8 opacity-50" />
+               </div>
+            )}
+          </div>
+          
           {/* Quick Info */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+          <div className="bg-white rounded-[2rem] border border-slate-200/60 p-6 sm:p-8 shadow-sm">
+            <h3 className="text-[15px] font-black text-slate-900 mb-5 flex items-center gap-2">
+              <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
+                <Icon icon="heroicons:sparkles" className="size-4" />
+              </div>
               {t("tourDesigner.quickInfo", "Quick Info")}
             </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Status</span>
-                <span className={`font-medium ${badge.text}`}>
+            <div className="space-y-4 text-[14.5px]">
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Status</span>
+                <span className={`font-bold uppercase text-[11px] tracking-wider ${badge.text}`}>
                   {TourStatusMap[Number(tour.status)] ?? badge.label}
                 </span>
               </div>
               {tour.translations?.en && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">English Name</span>
-                  <span className="font-medium text-slate-900 truncate max-w-[120px]">
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">English Name</span>
+                  <span className="font-bold text-slate-900 truncate max-w-[150px]">
                     {tour.translations.en.tourName ?? "-"}
                   </span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Images */}
+          {tour.images && tour.images.length > 0 && (
+            <div className="bg-white rounded-[2rem] border border-slate-200/60 p-6 sm:p-8 shadow-sm">
+              <h3 className="text-[15px] font-black text-slate-900 mb-5 flex items-center gap-2">
+                <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
+                  <Icon icon="heroicons:photo" className="size-4" />
+                </div>
+                {t("tourDesigner.images", "Gallery")}
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {tour.images.map((img, idx) => (
+                  <div key={idx} className="aspect-square sm:aspect-video xl:aspect-square rounded-[1.25rem] overflow-hidden bg-slate-100 border border-slate-200/60 relative group">
+                    {img.publicURL ? (
+                      <img
+                        src={img.publicURL}
+                        alt={`Tour image ${idx + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <EyeIcon size={24} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function DayPlanAccordion({ day, t }: { day: any; t: any }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const sortedActivities = day.activities ? [...day.activities].sort((a: any, b: any) => a.order - b.order) : [];
+
+  return (
+    <div className="bg-white border border-slate-200/80 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 group">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors duration-200 focus:outline-none"
+      >
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-[15px] font-black shrink-0 border border-indigo-100 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300">
+          {day.dayNumber}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h5 className="text-[15px] font-bold text-slate-900 truncate tracking-tight">
+            {t("tourDesigner.day", "Day")} {day.dayNumber}: {day.title}
+          </h5>
+          {day.description && (
+            <p className="text-[13px] text-slate-500 truncate mt-0.5">{day.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {!isExpanded && sortedActivities.length > 0 && (
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+              {sortedActivities.length} {t("tourDesigner.activities", "activities")}
+            </span>
+          )}
+          <div className={`p-1.5 rounded-full bg-slate-50 text-slate-400 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+            <Icon icon="heroicons:chevron-down" className="size-4" />
+          </div>
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="px-5 pb-5">
+          <div className="border-t border-slate-100/80 pt-4">
+            {sortedActivities.length > 0 ? (
+              <div className="space-y-4 relative before:absolute before:inset-y-0 before:left-[11px] before:w-[2px] before:bg-slate-100">
+                {sortedActivities.map((act: any, actIdx: number) => (
+                  <div key={act.id} className="relative flex gap-4 text-sm">
+                    {/* Timeline Node */}
+                    <div className="w-6 flex flex-col items-center shrink-0 py-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-white z-10" />
+                    </div>
+                    
+                    {/* Activity Content */}
+                    <div className="flex-1 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <p className="font-bold text-slate-900 text-[15px] leading-snug">{act.title}</p>
+                        {(act.startTime || act.endTime) && (
+                          <span className="shrink-0 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/80">
+                            <Icon icon="heroicons:clock" className="size-3.5 text-slate-400" />
+                            {act.startTime || "--:--"} {act.endTime ? `- ${act.endTime}` : ""}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Meta Tags */}
+                      <div className="flex flex-wrap gap-2 mt-3.5">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">
+                          <Icon icon={ACTIVITY_ICONS[String(act.activityType)] || ACTIVITY_ICONS["99"]} className="size-3 text-indigo-500" />
+                          Activity
+                        </span>
+                        
+                        {(act.activityType === "7" || act.activityType === "Transportation") && act.transportationName ? (
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/50 shadow-sm">
+                            <Icon icon={TRANSPORT_ICONS[String(act.transportationType)] || TRANSPORT_ICONS["99"]} className="size-3 text-amber-600" />
+                            {act.transportationName}
+                          </span>
+                        ) : null}
+                        
+                        {(act.activityType === "8" || act.activityType === "Accommodation") && (act.accommodation?.accommodationName || act.locationName) ? (
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200/50 shadow-sm">
+                            <Icon icon="heroicons:building-office-2" className="size-3 text-indigo-600" />
+                            {act.accommodation?.accommodationName || act.locationName}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {act.description && (
+                        <p className="text-[13.5px] text-slate-500 mt-3 leading-relaxed">{act.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 px-4 bg-slate-50/50 rounded-[1.5rem] border border-dashed border-slate-200">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                  <Icon icon="heroicons:inbox" className="size-6 text-slate-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-500">{t("tourDesigner.noActivities", "No activities yet")}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

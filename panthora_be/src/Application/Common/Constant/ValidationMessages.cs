@@ -176,6 +176,8 @@ public static class ValidationMessages
     public const string TourInstanceGuideIdsNotDuplicate = "Guide IDs không được trùng nhau.";
     public const string TourInstanceManagerIdsNotDuplicate = "Manager IDs không được trùng nhau.";
     public const string TourInstanceUserCannotBeBothGuideAndManager = "Một user không thể vừa là Guide vừa là Manager.";
+    public const string TourInstanceTransportAssignmentsRequired = "Cần danh sách Assignments hoặc cặp VehicleId + DriverId.";
+    public const string TourInstanceTransportDriverRequired = "Mỗi xe phải có tài xế (DriverId).";
 
     // ── Tour Detail ─────────────────────────────────────────────
     // Image

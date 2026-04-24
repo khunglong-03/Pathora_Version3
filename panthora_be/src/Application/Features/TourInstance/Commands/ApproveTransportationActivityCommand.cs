@@ -49,7 +49,7 @@ public sealed class ApproveTransportationActivityCommandValidator : AbstractVali
         RuleFor(x => x.ActivityId).NotEmpty();
         RuleFor(x => x)
             .Must(cmd => (cmd.Assignments is { Count: > 0 }) || (cmd.VehicleId.HasValue && cmd.DriverId.HasValue))
-            .WithMessage("Cần danh sách Assignments hoặc cặp VehicleId + DriverId.");
+            .WithMessage(ValidationMessages.TourInstanceTransportAssignmentsRequired);
         When(x => x.Assignments is { Count: > 0 }, () =>
         {
             RuleForEach(x => x.Assignments!)
@@ -57,7 +57,7 @@ public sealed class ApproveTransportationActivityCommandValidator : AbstractVali
                 {
                     a.RuleFor(r => r.VehicleId).NotEmpty();
                     a.RuleFor(r => r.DriverId).NotEmpty()
-                        .WithMessage("Mỗi xe phải có tài xế (DriverId).");
+                        .WithMessage(ValidationMessages.TourInstanceTransportDriverRequired);
                 });
         });
     }
@@ -71,50 +71,52 @@ public sealed class ApproveTransportationActivityCommandHandler(
     IVehicleBlockRepository vehicleBlockRepository,
     IResourceAvailabilityService availabilityService,
     IUnitOfWork unitOfWork,
-    IUser user
+    IUser user,
+    ILanguageContext? languageContext = null
 ) : ICommandHandler<ApproveTransportationActivityCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(ApproveTransportationActivityCommand request, CancellationToken cancellationToken)
     {
+        var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         if (!Guid.TryParse(user.Id, out var currentUserId))
-            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+            return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription.Resolve(lang));
 
         var roleCheck = TourInstanceRoleGuard.Require(user, TourInstanceRoleGuard.ProviderRoles);
         if (roleCheck.IsError) return roleCheck.Errors;
 
         var normalized = NormalizeAssignments(request);
         if (normalized.Count == 0)
-            return Error.Validation("TourInstanceActivity.NoAssignments", "Danh sách xe duyệt không được rỗng.");
+            return Error.Validation(ErrorConstants.TourInstanceActivity.NoAssignmentsCode, ErrorConstants.TourInstanceActivity.NoAssignmentsDescription.Resolve(lang));
 
         if (TourInstanceTransportAssignmentRules.HasDuplicateVehicleIds(normalized.Select(x => x.VehicleId)))
         {
             return Error.Validation(
                 TourInstanceTransportErrors.DuplicateVehicleInActivityCode,
-                TourInstanceTransportErrors.DuplicateVehicleInActivityDescription);
+                TourInstanceTransportErrors.DuplicateVehicleInActivityDescription.Resolve(lang));
         }
 
         var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
-            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription.Resolve(lang));
 
         var activity = instance.InstanceDays
             .SelectMany(d => d.Activities)
             .FirstOrDefault(a => a.Id == request.ActivityId);
 
         if (activity is null)
-            return Error.NotFound("TourInstanceActivity.NotFound", "Hoạt động vận chuyển không tìm thấy.");
+            return Error.NotFound(ErrorConstants.TourInstanceActivity.NotFoundCode, ErrorConstants.TourInstanceActivity.NotFoundDescription.Resolve(lang));
 
         if (activity.ActivityType != TourDayActivityType.Transportation)
-            return Error.Validation("TourInstanceActivity.InvalidType", "Hoạt động này không phải loại vận chuyển.");
+            return Error.Validation(ErrorConstants.TourInstanceActivity.InvalidTypeCode, ErrorConstants.TourInstanceActivity.InvalidTypeDescription.Resolve(lang));
 
         if (!activity.TransportSupplierId.HasValue)
-            return Error.Validation("TourInstanceActivity.NoSupplier", "Hoạt động chưa được gán nhà cung cấp vận chuyển.");
+            return Error.Validation(ErrorConstants.TourInstanceActivity.NoSupplierCode, ErrorConstants.TourInstanceActivity.NoSupplierDescription.Resolve(lang));
 
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
         if (suppliers.Count == 0 || !suppliers.Any(s => s.Id == activity.TransportSupplierId.Value))
             return Error.Validation(
                 TourInstanceTransportErrors.ProviderNotAssignedCode,
-                "Bạn không phải nhà cung cấp vận chuyển cho hoạt động này.");
+                TourInstanceTransportErrors.ProviderNotAssignedDescription.Resolve(lang));
 
         if (IsIdempotentApproved(activity, normalized))
             return Result.Success;
@@ -125,7 +127,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
         {
             return Error.Validation(
                 TourInstanceTransportErrors.VehicleCountMismatchCode,
-                TourInstanceTransportErrors.VehicleCountMismatchDescription);
+                TourInstanceTransportErrors.VehicleCountMismatchDescription.Resolve(lang));
         }
 
         var requiredSeats = activity.RequestedSeatCount ?? instance.MaxParticipation;
@@ -136,7 +138,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
         {
             var vehicle = await vehicleRepository.GetByIdAsync(row.VehicleId, cancellationToken);
             if (vehicle is null || vehicle.IsDeleted)
-                return Error.Validation("Vehicle.NotOwned", "Phương tiện không thuộc quyền sở hữu của bạn.");
+                return Error.Validation(ErrorConstants.Vehicle.NotOwnedCode, ErrorConstants.Vehicle.NotOwnedDescription.Resolve(lang));
 
             bool vehicleBelongsToSupplier = vehicle.SupplierId.HasValue
                 ? vehicle.SupplierId == activity.TransportSupplierId
@@ -145,22 +147,25 @@ public sealed class ApproveTransportationActivityCommandHandler(
             if (!vehicleBelongsToSupplier)
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleWrongSupplierCode,
-                    "Phương tiện không thuộc nhà cung cấp đã được gán cho hoạt động này.");
+                    TourInstanceTransportErrors.VehicleWrongSupplierDescription.Resolve(lang));
 
             if (!vehicle.IsActive)
-                return Error.Validation("Vehicle.Inactive", "Phương tiện đang ngừng hoạt động.");
+                return Error.Validation(ErrorConstants.Vehicle.InactiveCode, ErrorConstants.Vehicle.InactiveDescription.Resolve(lang));
 
             if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
-                return Error.Validation(
-                    TourInstanceTransportErrors.VehicleWrongTypeCode,
-                    $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType}).");
+            {
+                var vehicleWrongTypeMessage = lang == "vi" 
+                    ? $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType})."
+                    : $"Vehicle type ({vehicle.VehicleType}) does not match requested ({activity.RequestedVehicleType}).";
+                return Error.Validation(TourInstanceTransportErrors.VehicleWrongTypeCode, vehicleWrongTypeMessage);
+            }
 
             if (row.DriverId == Guid.Empty)
-                return Error.Validation("Driver.Required", "Mỗi xe phải có tài xế.");
+                return Error.Validation(ErrorConstants.Driver.RequiredCode, ErrorConstants.Driver.RequiredDescription.Resolve(lang));
 
             var driver = await driverRepository.GetByIdAsync(row.DriverId, cancellationToken);
             if (driver is null)
-                return Error.Validation("Driver.NotOwned", "Tài xế không thuộc quyền sở hữu của bạn.");
+                return Error.Validation(ErrorConstants.Driver.NotOwnedCode, ErrorConstants.Driver.NotOwnedDescription.Resolve(lang));
 
             bool driverBelongsToSupplier = driver.SupplierId.HasValue
                 ? driver.SupplierId == activity.TransportSupplierId
@@ -169,10 +174,10 @@ public sealed class ApproveTransportationActivityCommandHandler(
             if (!driverBelongsToSupplier)
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleWrongSupplierCode,
-                    "Tài xế không thuộc nhà cung cấp đã được gán cho hoạt động này.");
+                    TourInstanceTransportErrors.VehicleWrongSupplierDescription.Resolve(lang)); // Reusing vehicle supplier error code is legacy, but message now generic
 
             if (!driver.IsActive)
-                return Error.Validation("Driver.Inactive", "Tài xế đang ngừng hoạt động.");
+                return Error.Validation(ErrorConstants.Driver.InactiveCode, ErrorConstants.Driver.InactiveDescription.Resolve(lang));
 
             vehicleEntities.Add((vehicle.Id, vehicle));
         }
@@ -182,14 +187,15 @@ public sealed class ApproveTransportationActivityCommandHandler(
         {
             if (normalized.Count == 1)
             {
-                return Error.Validation(
-                    TourInstanceTransportErrors.VehicleInsufficientCapacityCode,
-                    $"Sức chứa của xe ({totalSeatCapacity}) không đủ cho số ghế yêu cầu ({requiredSeats}).");
+                var vehicleInsufficientMessage = lang == "vi"
+                    ? $"Sức chứa của xe ({totalSeatCapacity}) không đủ cho số ghế yêu cầu ({requiredSeats})."
+                    : $"Vehicle capacity ({totalSeatCapacity}) is insufficient for requested seats ({requiredSeats}).";
+                return Error.Validation(TourInstanceTransportErrors.VehicleInsufficientCapacityCode, vehicleInsufficientMessage);
             }
 
             return Error.Validation(
                 TourInstanceTransportErrors.TransportFleetInsufficientCapacityCode,
-                TourInstanceTransportErrors.TransportFleetInsufficientCapacityDescription);
+                TourInstanceTransportErrors.TransportFleetInsufficientCapacityDescription.Resolve(lang));
         }
 
         var activityDate = activity.TourInstanceDay.ActualDate;
@@ -202,7 +208,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
             if (!availabilityCheck.Value)
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleUnavailableCode,
-                    "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+                    TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
         }
 
         const int maxAttempts = 3;
@@ -220,14 +226,11 @@ public sealed class ApproveTransportationActivityCommandHandler(
                         {
                             throw new TransportApproveConflictException(
                                 TourInstanceTransportErrors.VehicleUnavailableCode,
-                                "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+                                TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
                         }
                     }
-
                     await vehicleBlockRepository.DeleteByActivityAsync(request.ActivityId, cancellationToken);
-
                     activity.TransportAssignments.Clear();
-
                     var performedBy = currentUserId.ToString();
                     foreach (var row in normalized)
                     {
@@ -240,7 +243,6 @@ public sealed class ApproveTransportationActivityCommandHandler(
                                 seatSnap,
                                 performedBy));
                     }
-
                     var primary = normalized[0];
                     activity.ApproveTransportation(primary.VehicleId, primary.DriverId, request.Note);
 
@@ -272,7 +274,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
             {
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleUnavailableCode,
-                    "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+                    TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
             }
             catch (DbUpdateException dbEx) when (IsPostgresSqlState(dbEx, "40001") && attempt < maxAttempts)
             {
@@ -282,8 +284,8 @@ public sealed class ApproveTransportationActivityCommandHandler(
             catch (DbUpdateException dbEx) when (IsPostgresSqlState(dbEx, "40001"))
             {
                 return Error.Conflict(
-                    TourInstanceTransportErrors.VehicleUnavailableCode,
-                    "Hệ thống đang bận; vui lòng thử lại.");
+                    ErrorConstants.Vehicle.UnavailableCode,
+                    ErrorConstants.Vehicle.UnavailableDescription.Resolve(lang));
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -304,12 +306,12 @@ public sealed class ApproveTransportationActivityCommandHandler(
                 }
 
                 return Error.Conflict(
-                    TourInstanceTransportErrors.VehicleUnavailableCode,
-                    "Hệ thống đang bận; vui lòng thử lại.");
+                    ErrorConstants.Vehicle.UnavailableCode,
+                    ErrorConstants.Vehicle.UnavailableDescription.Resolve(lang));
             }
         }
 
-        return Error.Failure("Vehicle.Unavailable", "Không thể duyệt phương tiện sau nhiều lần thử.");
+        return Error.Failure(ErrorConstants.Vehicle.ExhaustedCode, ErrorConstants.Vehicle.ExhaustedDescription.Resolve(lang));
     }
 
     private static List<(Guid VehicleId, Guid DriverId)> NormalizeAssignments(ApproveTransportationActivityCommand request)

@@ -17,6 +17,8 @@ namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateTransportDetailCommand(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,
     [property: JsonPropertyName("transportType")] TransportType TransportType,
     [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
@@ -48,6 +50,9 @@ public sealed class TransportDetailValidator : AbstractValidator<CreateTransport
         RuleFor(x => x.ArrivalAt)
             .GreaterThan(x => x.DepartureAt)
             .When(x => x.DepartureAt.HasValue && x.ArrivalAt.HasValue);
+        // Per-participant ticket: for external transport types, passengerName is recommended
+        RuleFor(x => x.PassengerName)
+            .MaximumLength(200);
     }
 }
 
@@ -103,6 +108,8 @@ public sealed class CreateTransportDetailCommandHandler(
             request.TransportType,
             performedBy: performedBy,
             request.SupplierId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.DepartureAt,
             request.ArrivalAt,
             request.TicketNumber,
@@ -127,6 +134,8 @@ public sealed class CreateTransportDetailCommandHandler(
 
 public sealed record UpdateTransportDetailCommand(
     [property: JsonPropertyName("bookingTransportDetailId")] Guid BookingTransportDetailId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,
     [property: JsonPropertyName("transportType")] TransportType TransportType,
     [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
@@ -222,6 +231,8 @@ public sealed class UpdateTransportDetailCommandHandler(
             request.TransportType,
             performedBy: performedBy,
             request.SupplierId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.DepartureAt,
             request.ArrivalAt,
             request.TicketNumber,
@@ -289,6 +300,8 @@ public sealed class GetBookingTransportDetailsQueryHandler(
         return new TransportDetailDto(
             entity.Id,
             entity.BookingActivityReservationId,
+            entity.BookingParticipantId,
+            entity.PassengerName,
             entity.SupplierId,
             entity.TransportType,
             entity.DepartureAt,

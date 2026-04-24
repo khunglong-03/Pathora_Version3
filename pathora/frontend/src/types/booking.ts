@@ -151,6 +151,8 @@ export interface BookingActivityReservationDto {
 export interface TransportDetailDto {
   bookingTransportDetailId: string;
   bookingActivityReservationId: string;
+  bookingParticipantId: string | null;
+  passengerName: string | null;
   supplierId: string | null;
   transportType: TransportTypeEnum;
   departureAt: string | null;

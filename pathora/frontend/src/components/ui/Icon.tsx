@@ -11,6 +11,7 @@ import {
   QrCodeIcon, ReceiptIcon, ShareNetworkIcon, ShieldCheckIcon, SignOutIcon, SparkleIcon, SquaresFourIcon, StarIcon, SunIcon,
   TagIcon, TicketIcon, TrashIcon, TruckIcon, UserIcon, UserCircleIcon, UserCircleGearIcon, UsersIcon, UsersThreeIcon,
   WalletIcon, WarningIcon, WarningCircleIcon, WrenchIcon, XIcon, XCircleIcon,
+  TrainIcon, BusIcon, CarIcon, TaxiIcon, BoatIcon, BicycleIcon, AirplaneTiltIcon, PersonSimpleWalkIcon, MotorcycleIcon
 } from "@phosphor-icons/react";
 
 type IconProps = {
@@ -156,6 +157,15 @@ const iconMap: Record<string, React.ElementType> = {
   "mdi:facebook": BuildingsIcon,
   "ri:facebook-fill": BuildingsIcon,
   "ph:question": QuestionIcon,
+  "mdi:train": TrainIcon,
+  "mdi:bus": BusIcon,
+  "mdi:car": CarIcon,
+  "mdi:taxi": TaxiIcon,
+  "mdi:sail-boat": BoatIcon,
+  "mdi:ferry": BoatIcon,
+  "mdi:motorbike": MotorcycleIcon,
+  "mdi:bicycle": BicycleIcon,
+  "mdi:walk": PersonSimpleWalkIcon,
 };
 
 export const Icon = ({

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 import Image from "next/image";
-import { MapPin } from "@phosphor-icons/react";
+import { MapPin, Star } from "@phosphor-icons/react";
 import { homeService } from "@/api/services/homeService";
 import type { TopReview } from "@/types/home";
 
@@ -63,7 +63,7 @@ export const BoldReviewsSection = () => {
     }
     intervalRef.current = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % reviews.length);
-    }, 5000);
+    }, 6000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -77,106 +77,105 @@ export const BoldReviewsSection = () => {
     if (reviews.length === 0) return;
     intervalRef.current = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % reviews.length);
-    }, 5000);
+    }, 6000);
   };
 
   return (
     <section
       ref={ref}
-      className={`py-20 md:py-28 bg-slate-50 border-t border-slate-100 transition-all duration-1000 ${
+      className={`py-24 md:py-32 bg-stone-950 text-white transition-all duration-1000 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
+      <div className="max-w-[60rem] mx-auto px-6 md:px-12">
         {/* Header */}
-        <div className="text-center mb-12">
-          <span suppressHydrationWarning className="text-sm font-medium text-slate-500 uppercase tracking-widest">
+        <div className="text-center mb-16">
+          <span suppressHydrationWarning className="inline-block px-4 py-1.5 rounded-full bg-white/5 text-[11px] font-bold text-stone-300 uppercase tracking-[0.2em] mb-6 border border-white/10 shadow-sm">
             {t("landing.reviews.eyebrow") || "Testimonials"}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900"
-            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+            className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]"
           >
             {t("landing.reviews.title") || "What Travelers Say"}
           </h2>
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-5 text-center text-sm text-red-200">
-            <p>{error}</p>
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center max-w-2xl mx-auto">
+            <p className="text-red-200 font-medium">{error}</p>
             <button
               type="button"
               onClick={fetchTopReviews}
-              className="mt-3 inline-flex items-center rounded-full border border-red-300/30 px-4 py-2 text-xs font-medium text-red-100 hover:bg-red-500/20 transition-colors"
+              className="mt-4 inline-flex items-center rounded-xl bg-red-500/20 px-6 py-2.5 text-sm font-bold text-red-100 hover:bg-red-500/30 transition-colors"
             >
               {t("landing.reviews.retry") || "Retry"}
             </button>
           </div>
         ) : isLoading ? (
-          <div className="animate-pulse p-8 md:p-10 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-            <div className="h-5 w-24 bg-slate-100 rounded mb-6" />
-            <div className="h-6 w-full bg-slate-100 rounded mb-3" />
-            <div className="h-6 w-4/5 bg-slate-100 rounded mb-8" />
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-100" />
+          <div className="animate-pulse p-10 md:p-14 rounded-[2rem] bg-stone-900 border border-white/5">
+            <div className="h-4 w-32 bg-stone-800 rounded mb-8" />
+            <div className="h-8 w-full bg-stone-800 rounded mb-4" />
+            <div className="h-8 w-4/5 bg-stone-800 rounded mb-12" />
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-full bg-stone-800" />
               <div>
-                <div className="h-4 w-28 bg-slate-100 rounded mb-2" />
-                <div className="h-3 w-20 bg-slate-100 rounded" />
+                <div className="h-5 w-32 bg-stone-800 rounded mb-2" />
+                <div className="h-4 w-24 bg-stone-800 rounded" />
               </div>
             </div>
           </div>
         ) : reviews.length === 0 ? (
-          <div className="rounded-xl border border-slate-100 bg-white/5 p-8 text-center text-slate-500">
+          <div className="rounded-[2rem] border border-white/5 bg-stone-900 p-12 text-center text-stone-500 font-medium">
             {t("landing.reviews.empty") || "No reviews available yet."}
           </div>
         ) : (
           <>
             {/* Review Cards */}
-            <div className="relative">
+            <div className="relative min-h-[350px]">
               {reviews.map((review, idx) => (
                 <div
                   key={`${review.name}-${idx}`}
-                  className={`transition-all duration-700 ${
+                  className={`absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
                     idx === activeIndex
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-4 absolute inset-0 pointer-events-none"
+                      ? "opacity-100 translate-y-0 scale-100 z-10"
+                      : "opacity-0 translate-y-8 scale-95 pointer-events-none z-0"
                   }`}
                 >
-                  <div className="p-8 md:p-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-slate-100">
+                  <div className="p-10 md:p-14 rounded-[2rem] bg-stone-900 border border-white/5 shadow-2xl">
                     {/* Stars */}
-                    <div className="flex gap-1 mb-6">
+                    <div className="flex gap-1.5 mb-8">
                       {Array.from({ length: review.rating }).map((_, i) => (
-                        <span key={i} className="text-[#fb8b02] text-lg">
-                          ★
-                        </span>
+                        <Star key={i} size={20} weight="fill" className="text-amber-500" />
                       ))}
                     </div>
 
                     {/* Quote */}
-                    <blockquote className="text-slate-700 text-lg md:text-xl leading-relaxed mb-8 italic">
-                      {`“${review.text}”`}
+                    <blockquote className="text-stone-300 text-2xl md:text-3xl leading-snug font-medium mb-12 tracking-tight">
+                      &quot;{review.text}&quot;
                     </blockquote>
 
                     {/* Author */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                       {review.avatar ? (
                         <Image
                           src={review.avatar}
                           alt={review.name}
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-slate-100"
+                          width={56}
+                          height={56}
+                          className="w-14 h-14 rounded-full object-cover border border-white/10"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full border-2 border-white/10 bg-[#fb8b02]/20 flex items-center justify-center text-[#fb8b02] font-bold text-lg leading-none">
+                        <div className="w-14 h-14 rounded-full border border-white/10 bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xl leading-none">
                           {review.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-slate-900">{review.name}</p>
-                        <p className="text-slate-500 text-sm flex items-center gap-1"><MapPin size={14} weight="fill" className="text-[#fb8b02]/60" /> {review.location}</p>
+                        <p className="font-bold text-[17px] text-white">{review.name}</p>
+                        <p className="text-stone-400 text-sm font-medium flex items-center gap-1.5 mt-0.5">
+                          <MapPin size={14} weight="fill" className="text-stone-500" /> {review.location}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -185,15 +184,15 @@ export const BoldReviewsSection = () => {
             </div>
 
             {/* Dots */}
-            <div className="flex justify-center gap-2 mt-8">
+            <div className="flex justify-center gap-3 mt-12">
               {reviews.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
                     idx === activeIndex
-                      ? "w-6 bg-[#fb8b02]"
-                      : "w-2 bg-slate-300 hover:bg-slate-400"
+                      ? "w-8 bg-white"
+                      : "w-2 bg-white/20 hover:bg-white/40"
                   }`}
                 />
               ))}

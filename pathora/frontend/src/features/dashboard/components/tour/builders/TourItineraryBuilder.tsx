@@ -225,13 +225,16 @@ export function TourItineraryBuilder({
           <h2 className="text-base font-semibold text-slate-900 dark:text-white">
             {t("tourAdmin.itineraries.itineraryForPackage", { number: ci + 1 })}
           </h2>
-          <button
-            type="button"
-            onClick={() => onAddDayPlan(ci)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-            <Icon icon="heroicons:plus" className="size-4" />
-            {t("tourAdmin.buttons.addDay")}
-          </button>
+          {/* Chỉ hiển thị nút Thêm ngày nếu số ngày hiện tại nhỏ hơn số ngày của gói */}
+          {(dayPlans[ci] ?? []).length < Number(classifications[ci]?.durationDays || 0) && (
+            <button
+              type="button"
+              onClick={() => onAddDayPlan(ci)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+              <Icon icon="heroicons:plus" className="size-4" />
+              {t("tourAdmin.buttons.addDay")}
+            </button>
+          )}
         </div>
 
         {(dayPlans[ci] ?? []).length === 0 ? (
@@ -410,6 +413,13 @@ export function TourItineraryBuilder({
                               type="time"
                               step={300}
                               value={act.startTime}
+                              onClick={(e) => {
+                                try {
+                                  if ('showPicker' in e.currentTarget) {
+                                    e.currentTarget.showPicker();
+                                  }
+                                } catch (err) {}
+                              }}
                               onChange={(e) =>
                                 onUpdateActivity(
                                   ci,
@@ -419,7 +429,7 @@ export function TourItineraryBuilder({
                                   e.target.value,
                                 )
                               }
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer"
                             />
                           </div>
 
@@ -432,6 +442,13 @@ export function TourItineraryBuilder({
                               type="time"
                               step={300}
                               value={act.endTime}
+                              onClick={(e) => {
+                                try {
+                                  if ('showPicker' in e.currentTarget) {
+                                    e.currentTarget.showPicker();
+                                  }
+                                } catch (err) {}
+                              }}
                               onChange={(e) =>
                                 onUpdateActivity(
                                   ci,
@@ -441,7 +458,7 @@ export function TourItineraryBuilder({
                                   e.target.value,
                                 )
                               }
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer"
                             />
                           </div>
 
@@ -753,8 +770,15 @@ export function TourItineraryBuilder({
                                 type="time"
                                 step={300}
                                 value={act.checkInTime}
+                                onClick={(e) => {
+                                  try {
+                                    if ('showPicker' in e.currentTarget) {
+                                      e.currentTarget.showPicker();
+                                    }
+                                  } catch (err) {}
+                                }}
                                 onChange={(e) => onUpdateActivity(ci, di, ai, "checkInTime", e.target.value)}
-                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer"
                               />
                             </div>
                             <div>
@@ -765,8 +789,15 @@ export function TourItineraryBuilder({
                                 type="time"
                                 step={300}
                                 value={act.checkOutTime}
+                                onClick={(e) => {
+                                  try {
+                                    if ('showPicker' in e.currentTarget) {
+                                      e.currentTarget.showPicker();
+                                    }
+                                  } catch (err) {}
+                                }}
                                 onChange={(e) => onUpdateActivity(ci, di, ai, "checkOutTime", e.target.value)}
-                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer"
                               />
                             </div>
                             <div>
