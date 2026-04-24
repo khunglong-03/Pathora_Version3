@@ -373,6 +373,5 @@ public sealed class ApproveTransportationActivityCommandHandler(
 internal sealed class TransportApproveConflictException(string code, string message)
     : Exception(message)
 {
-    [JsonPropertyName("string")]
-    public None stringCode = code;
+    public string Code { get; } = code;
 }

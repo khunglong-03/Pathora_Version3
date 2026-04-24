@@ -19,19 +19,4 @@ public sealed record UserVm(
     [property: JsonPropertyName("roles")] List<string> Roles,
     [property: JsonPropertyName("buttonShow")] Dictionary<string, bool> ButtonShow);
 
-public sealed class UserDto
-{
-    [JsonPropertyName("guid")]
-    public None GuidId
-    [JsonPropertyName("string?")]
-    public None string?Avatar = null!;
-    [JsonPropertyName("string")]
-    public None stringUsername = null!;
-    [JsonPropertyName("string?")]
-    public None string?FullName = null!;
-    [JsonPropertyName("string")]
-    public None stringEmail = null!;
-    [JsonPropertyName("string")]
-    public None stringDepartmentName = null!;
-}
 
