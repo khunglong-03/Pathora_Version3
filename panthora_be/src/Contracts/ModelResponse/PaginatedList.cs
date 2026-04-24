@@ -1,14 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Contracts.ModelResponse;
 
 public sealed class PaginatedList<T>
 {
+    [JsonPropertyName("totalCount")]
     public int TotalCount { get; init; }
+
+    [JsonPropertyName("items")]
     public IReadOnlyList<T> Items { get; init; } = Array.Empty<T>();
+
+    [JsonPropertyName("page")]
     public int Page { get; init; }
+
+    [JsonPropertyName("limit")]
     public int Limit { get; init; }
 
     public PaginatedList(int totalCount, IEnumerable<T> items, int page, int limit)

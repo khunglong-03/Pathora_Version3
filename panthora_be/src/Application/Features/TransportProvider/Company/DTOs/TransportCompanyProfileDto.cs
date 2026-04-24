@@ -1,16 +1,18 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.Company.DTOs;
 
 public sealed record TransportCompanyProfileDto(
-    Guid UserId,
-    string CompanyName,
-    string? Address,
-    string? Phone,
-    string? Email
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("companyName")] string CompanyName,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email
 );
 
 public sealed record UpdateTransportCompanyCommandDto(
-    string? CompanyName,
-    string? Address,
-    string? Phone,
-    string? Email
+    [property: JsonPropertyName("companyName")] string? CompanyName,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email
 );

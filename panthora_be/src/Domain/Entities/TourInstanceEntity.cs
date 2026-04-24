@@ -14,31 +14,15 @@ public class TourInstanceEntity : Aggregate<Guid>
     public virtual TourEntity Tour { get; set; } = null!;
     public Guid ClassificationId { get; set; }
     public virtual TourClassificationEntity Classification { get; set; } = null!;
-    // Provider Assignment & Approval
-    // NOTE: Hotel provider assignment has moved to TourInstancePlanAccommodationEntity (per-activity level).
-    // NOTE: Transport provider assignment has moved to TourInstanceDayActivityEntity.TransportSupplierId (per-activity level).
-
-
-    // Instance identity
-    /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
     public string TourInstanceCode { get; set; } = null!;
-    /// <summary>Tiêu đề instance (tên hiển thị).</summary>
     public string Title { get; set; } = null!;
 
-    // Denormalized from Tour
-    /// <summary>Tên tour (tảo bằng từ Tour cha — để truy vấn nhanh).</summary>
     public string TourName { get; set; } = null!;
-    /// <summary>Mã tour (tạo bằng từ Tour cha).</summary>
     public string TourCode { get; set; } = null!;
-    /// <summary>Tên phân loại (tạo bằng từ Classification cha).</summary>
     public string ClassificationName { get; set; } = null!;
 
-    // Status & Type
-    /// <summary>Loại tour: Public (mở bán) hoặc Private (riêng).</summary>
     public TourType InstanceType { get; set; } = TourType.Public;
-    /// <summary>Trạng thái instance: Available → Confirmed → InProgress → Completed, hoặc SoldOut/Cancelled.</summary>
     public TourInstanceStatus Status { get; set; } = TourInstanceStatus.Available;
-    /// <summary>Lý do hủy (nếu bị hủy).</summary>
     public string? CancellationReason { get; set; }
 
     // Schedule

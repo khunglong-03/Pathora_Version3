@@ -9,17 +9,18 @@ using Application.Services;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Payment;
 
 public sealed record CreatePaymentTransactionCommand(
-    Guid BookingId,
-    TransactionType Type,
-    decimal Amount,
-    PaymentMethod PaymentMethod,
-    string PaymentNote,
-    string CreatedBy,
-    int ExpirationMinutes = 30
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("type")] TransactionType Type,
+    [property: JsonPropertyName("amount")] decimal Amount,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("paymentNote")] string PaymentNote,
+    [property: JsonPropertyName("createdBy")] string CreatedBy,
+    [property: JsonPropertyName("expirationMinutes")] int ExpirationMinutes = 30
 ) : IRequest<ErrorOr<PaymentTransactionEntity>>;
 
 public class CreatePaymentTransactionCommandValidator : AbstractValidator<CreatePaymentTransactionCommand>
@@ -79,7 +80,7 @@ public sealed class CreatePaymentTransactionCommandHandler(
     }
 }
 
-public sealed record GetPaymentTransactionQuery(string TransactionCode) : IRequest<ErrorOr<PaymentTransactionEntity>>;
+public sealed record GetPaymentTransactionQuery([property: JsonPropertyName("transactionCode")] string TransactionCode) : IRequest<ErrorOr<PaymentTransactionEntity>>;
 
 public sealed class GetPaymentTransactionQueryHandler(IPaymentService paymentService)
     : IRequestHandler<GetPaymentTransactionQuery, ErrorOr<PaymentTransactionEntity>>
@@ -92,7 +93,7 @@ public sealed class GetPaymentTransactionQueryHandler(IPaymentService paymentSer
     }
 }
 
-public sealed record ExpirePaymentTransactionCommand(string TransactionCode) : IRequest<ErrorOr<PaymentTransactionEntity>>;
+public sealed record ExpirePaymentTransactionCommand([property: JsonPropertyName("transactionCode")] string TransactionCode) : IRequest<ErrorOr<PaymentTransactionEntity>>;
 
 public class ExpirePaymentTransactionCommandValidator : AbstractValidator<ExpirePaymentTransactionCommand>
 {
@@ -114,7 +115,7 @@ public sealed class ExpirePaymentTransactionCommandHandler(IPaymentService payme
     }
 }
 
-public sealed record GetNormalizedPaymentStatusQuery(string TransactionCode)
+public sealed record GetNormalizedPaymentStatusQuery([property: JsonPropertyName("transactionCode")] string TransactionCode)
     : IRequest<ErrorOr<PaymentStatusSnapshot>>;
 
 public class GetNormalizedPaymentStatusQueryValidator : AbstractValidator<GetNormalizedPaymentStatusQuery>
@@ -137,7 +138,7 @@ public sealed class GetNormalizedPaymentStatusQueryHandler(IPaymentReconciliatio
     }
 }
 
-public sealed record ReconcilePaymentReturnCommand(string TransactionCode)
+public sealed record ReconcilePaymentReturnCommand([property: JsonPropertyName("transactionCode")] string TransactionCode)
     : IRequest<ErrorOr<PaymentStatusSnapshot>>;
 
 public class ReconcilePaymentReturnCommandValidator : AbstractValidator<ReconcilePaymentReturnCommand>
@@ -160,7 +161,7 @@ public sealed class ReconcilePaymentReturnCommandHandler(IPaymentReconciliationS
     }
 }
 
-public sealed record ReconcilePaymentCancelCommand(string TransactionCode)
+public sealed record ReconcilePaymentCancelCommand([property: JsonPropertyName("transactionCode")] string TransactionCode)
     : IRequest<ErrorOr<PaymentStatusSnapshot>>;
 
 public class ReconcilePaymentCancelCommandValidator : AbstractValidator<ReconcilePaymentCancelCommand>
@@ -188,7 +189,7 @@ public sealed class ReconcilePaymentCancelCommandHandler(IPaymentReconciliationS
 /// Called when the user clicks "Kiểm tra giao dịch" button on the payment page.
 /// Uses FetchTransactionsInRangeAsync (last 10 minutes) for accurate matching.
 /// </summary>
-public sealed record CheckPaymentNowCommand(string TransactionCode)
+public sealed record CheckPaymentNowCommand([property: JsonPropertyName("transactionCode")] string TransactionCode)
     : IRequest<ErrorOr<PaymentStatusSnapshot>>;
 
 public class CheckPaymentNowCommandValidator : AbstractValidator<CheckPaymentNowCommand>

@@ -61,6 +61,7 @@ export interface CreateTourInstancePayload {
   endDate: string;
   maxParticipation: number;
   basePrice: number;
+  location?: string;
   includedServices?: string[];
   guideUserIds?: string[];
   thumbnailUrl?: string | null;
@@ -266,6 +267,7 @@ export const tourInstanceService = {
       endDate: data.endDate,
       maxParticipation: data.maxParticipation,
       basePrice: data.basePrice,
+      location: data.location?.trim() || undefined,
       includedServices: normalizeStringArray(data.includedServices),
       guideUserIds: data.guideUserIds,
       thumbnailUrl: data.thumbnailUrl || null,

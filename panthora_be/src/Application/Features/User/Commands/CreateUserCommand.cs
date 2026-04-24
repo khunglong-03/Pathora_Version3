@@ -6,16 +6,17 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
 
 public sealed record CreateUserCommand(
-    List<UserDepartmentInfo> Departments,
-    List<int> RoleIds,
-    string Email,
-    string FullName,
-    string Avatar,
-    string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
+    [property: JsonPropertyName("roleIds")] List<int> RoleIds,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("avatar")] string Avatar,
+    [property: JsonPropertyName("password")] string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
 }

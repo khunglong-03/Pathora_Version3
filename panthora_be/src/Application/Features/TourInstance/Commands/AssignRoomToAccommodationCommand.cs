@@ -9,6 +9,7 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
@@ -20,10 +21,10 @@ public sealed record AssignRoomToAccommodationCommand(
 ) : ICommand<ErrorOr<AssignRoomToAccommodationResponse>>;
 
 public sealed record AssignRoomToAccommodationResponse(
-    bool Success,
-    bool AvailabilityWarning,
-    int AvailableAfter,
-    int TotalRooms
+    [property: JsonPropertyName("success")] bool Success,
+    [property: JsonPropertyName("availabilityWarning")] bool AvailabilityWarning,
+    [property: JsonPropertyName("availableAfter")] int AvailableAfter,
+    [property: JsonPropertyName("totalRooms")] int TotalRooms
 );
 
 public sealed class AssignRoomToAccommodationCommandValidator : AbstractValidator<AssignRoomToAccommodationCommand>

@@ -1,12 +1,14 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
 /// <summary>
 /// Request to initiate password reset - user provides their email
 /// </summary>
-public record ForgotPasswordRequest(string Email);
+public record ForgotPasswordRequest(
+    [property: JsonPropertyName("email")] string Email);
 
 public class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRequest>
 {
@@ -21,7 +23,9 @@ public class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRe
 /// <summary>
 /// Request to reset password using the token from email
 /// </summary>
-public record ResetPasswordRequest(string Token, string NewPassword);
+public record ResetPasswordRequest(
+    [property: JsonPropertyName("token")] string Token,
+    [property: JsonPropertyName("newPassword")] string NewPassword);
 
 public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
 {

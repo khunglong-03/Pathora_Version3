@@ -1,10 +1,12 @@
-namespace Application.Features.HotelRoomInventory.DTOs;
-
+using System.Text.Json.Serialization;
 using Domain.Enums;
 
-public sealed record CreateHotelRoomInventoryRequestDto(
-    Guid SupplierId,
-    RoomType RoomType,
-    int TotalRooms);
+namespace Application.Features.HotelRoomInventory.DTOs;
 
-public sealed record UpdateHotelRoomInventoryRequestDto(int TotalRooms);
+public sealed record CreateHotelRoomInventoryRequestDto(
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("totalRooms")] int TotalRooms);
+
+public sealed record UpdateHotelRoomInventoryRequestDto(
+    [property: JsonPropertyName("totalRooms")] int TotalRooms);

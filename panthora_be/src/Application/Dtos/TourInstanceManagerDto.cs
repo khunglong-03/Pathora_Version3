@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Dtos;
 
 public sealed record TourInstanceManagerDto(
-    Guid Id,
-    Guid UserId,
-    string UserName,
-    string? UserAvatar,
-    string Role);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("userName")] string UserName,
+    [property: JsonPropertyName("userAvatar")] string? UserAvatar,
+    [property: JsonPropertyName("role")] string Role);

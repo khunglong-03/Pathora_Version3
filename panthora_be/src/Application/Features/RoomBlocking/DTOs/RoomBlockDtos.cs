@@ -1,25 +1,26 @@
-namespace Application.Features.RoomBlocking.DTOs;
-
+using System.Text.Json.Serialization;
 using Domain.Enums;
 
+namespace Application.Features.RoomBlocking.DTOs;
+
 public sealed record RoomBlockDto(
-    Guid Id,
-    Guid SupplierId,
-    string? SupplierName,
-    RoomType RoomType,
-    Guid? BookingAccommodationDetailId,
-    Guid? BookingId,
-    DateOnly BlockedDate,
-    int RoomCountBlocked,
-    DateTimeOffset CreatedOnUtc);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("supplierName")] string? SupplierName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid? BookingAccommodationDetailId,
+    [property: JsonPropertyName("bookingId")] Guid? BookingId,
+    [property: JsonPropertyName("blockedDate")] DateOnly BlockedDate,
+    [property: JsonPropertyName("roomCountBlocked")] int RoomCountBlocked,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc);
 
 public sealed record CreateRoomBlockRequestDto(
-    Guid SupplierId,
-    RoomType RoomType,
-    Guid? BookingAccommodationDetailId,
-    Guid? BookingId,
-    DateOnly BlockedDate,
-    int RoomCountBlocked);
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid? BookingAccommodationDetailId,
+    [property: JsonPropertyName("bookingId")] Guid? BookingId,
+    [property: JsonPropertyName("blockedDate")] DateOnly BlockedDate,
+    [property: JsonPropertyName("roomCountBlocked")] int RoomCountBlocked);
 
 public sealed record UpdateRoomBlockRequestDto(
-    int RoomCountBlocked);
+    [property: JsonPropertyName("roomCountBlocked")] int RoomCountBlocked);

@@ -4,10 +4,15 @@ using FluentValidation;
 using Application.Common.Constant;
 using Application.Contracts.Identity;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
-public sealed record RegisterCommand(string Username, string FullName, string Email, string Password) : ICommand<ErrorOr<Success>>;
+public sealed record RegisterCommand(
+    [property: JsonPropertyName("username")] string Username,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("password")] string Password) : ICommand<ErrorOr<Success>>;
 
 public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {

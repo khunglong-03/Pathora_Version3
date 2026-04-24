@@ -1,21 +1,22 @@
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
 public sealed record UserSettingVm(
-    string PreferredLanguage,
-    bool NotificationEmail,
-    bool NotificationSms,
-    bool NotificationPush,
-    string Theme
+    [property: JsonPropertyName("preferredLanguage")] string PreferredLanguage,
+    [property: JsonPropertyName("notificationEmail")] bool NotificationEmail,
+    [property: JsonPropertyName("notificationSms")] bool NotificationSms,
+    [property: JsonPropertyName("notificationPush")] bool NotificationPush,
+    [property: JsonPropertyName("theme")] string Theme
 );
 
 public sealed record UpdateUserSettingsRequest(
-    string? PreferredLanguage,
-    bool? NotificationEmail,
-    bool? NotificationSms,
-    bool? NotificationPush,
-    string? Theme
+    [property: JsonPropertyName("preferredLanguage")] string? PreferredLanguage,
+    [property: JsonPropertyName("notificationEmail")] bool? NotificationEmail,
+    [property: JsonPropertyName("notificationSms")] bool? NotificationSms,
+    [property: JsonPropertyName("notificationPush")] bool? NotificationPush,
+    [property: JsonPropertyName("theme")] string? Theme
 );
 
 public sealed class UpdateUserSettingsRequestValidator : AbstractValidator<UpdateUserSettingsRequest>

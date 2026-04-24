@@ -1,12 +1,13 @@
 namespace Application.Features.Admin.DTOs;
 
 using global::Contracts.ModelResponse;
+using System.Text.Json.Serialization;
 
 public sealed record AdminDashboardOverviewDto(
-    int TotalUsers,
-    int ActiveManagers,
-    int ActiveTransportProviders,
-    int ActiveHotelProviders,
-    int PendingTourRequests,
-    List<ActivityItemDto> RecentActivity
+    [property: JsonPropertyName("totalUsers")] int TotalUsers,
+    [property: JsonPropertyName("activeManagers")] int ActiveManagers,
+    [property: JsonPropertyName("activeTransportProviders")] int ActiveTransportProviders,
+    [property: JsonPropertyName("activeHotelProviders")] int ActiveHotelProviders,
+    [property: JsonPropertyName("pendingTourRequests")] int PendingTourRequests,
+    [property: JsonPropertyName("recentActivity")] List<ActivityItemDto> RecentActivity
 );

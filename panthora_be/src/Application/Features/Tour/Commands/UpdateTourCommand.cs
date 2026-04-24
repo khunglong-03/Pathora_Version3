@@ -6,32 +6,33 @@ using Domain.Entities.Translations;
 using Domain.Enums;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
 
 public sealed record UpdateTourCommand(
-    Guid Id,
-    string TourName,
-    string ShortDescription,
-    string LongDescription,
-    string? SEOTitle,
-    string? SEODescription,
-    TourStatus Status,
-    ImageInputDto? Thumbnail = null,
-    List<ImageInputDto>? Images = null,
-    Dictionary<string, TourTranslationData>? Translations = null,
-    List<ClassificationDto>? Classifications = null,
-    List<AccommodationDto>? Accommodations = null,
-    List<LocationDto>? Locations = null,
-    List<TransportationDto>? Transportations = null,
-    List<ServiceDto>? Services = null,
-    List<Guid>? DeletedClassificationIds = null,
-    List<Guid>? DeletedPlanIds = null,
-    List<Guid>? DeletedActivityIds = null,
-    TourScope TourScope = TourScope.Domestic,
-    Continent? Continent = null,
-    CustomerSegment CustomerSegment = CustomerSegment.Group,
-    DateTimeOffset? IfUnmodifiedSince = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("shortDescription")] string ShortDescription,
+    [property: JsonPropertyName("longDescription")] string LongDescription,
+    [property: JsonPropertyName("seoTitle")] string? SEOTitle,
+    [property: JsonPropertyName("seoDescription")] string? SEODescription,
+    [property: JsonPropertyName("status")] TourStatus Status,
+    [property: JsonPropertyName("thumbnail")] ImageInputDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageInputDto>? Images = null,
+    [property: JsonPropertyName("translations")] Dictionary<string, TourTranslationData>? Translations = null,
+    [property: JsonPropertyName("classifications")] List<ClassificationDto>? Classifications = null,
+    [property: JsonPropertyName("accommodations")] List<AccommodationDto>? Accommodations = null,
+    [property: JsonPropertyName("locations")] List<LocationDto>? Locations = null,
+    [property: JsonPropertyName("transportations")] List<TransportationDto>? Transportations = null,
+    [property: JsonPropertyName("services")] List<ServiceDto>? Services = null,
+    [property: JsonPropertyName("deletedClassificationIds")] List<Guid>? DeletedClassificationIds = null,
+    [property: JsonPropertyName("deletedPlanIds")] List<Guid>? DeletedPlanIds = null,
+    [property: JsonPropertyName("deletedActivityIds")] List<Guid>? DeletedActivityIds = null,
+    [property: JsonPropertyName("tourScope")] TourScope TourScope = TourScope.Domestic,
+    [property: JsonPropertyName("continent")] Continent? Continent = null,
+    [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group,
+    [property: JsonPropertyName("ifUnmodifiedSince")] DateTimeOffset? IfUnmodifiedSince = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }

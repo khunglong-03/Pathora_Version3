@@ -11,27 +11,28 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateTransportDetailCommand(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -125,24 +126,24 @@ public sealed class CreateTransportDetailCommandHandler(
 }
 
 public sealed record UpdateTransportDetailCommand(
-    Guid BookingTransportDetailId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int? SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal? BuyPrice,
-    decimal? TaxRate,
-    bool? IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus? Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingTransportDetailId")] Guid BookingTransportDetailId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int? SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal? BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal? TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool? IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus? Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -244,7 +245,8 @@ public sealed class UpdateTransportDetailCommandHandler(
     }
 }
 
-public sealed record GetBookingTransportDetailsQuery(Guid BookingId) : IQuery<ErrorOr<List<TransportDetailDto>>>, ICacheable
+public sealed record GetBookingTransportDetailsQuery(
+    [property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TransportDetailDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:transport-details:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

@@ -6,17 +6,18 @@ using BuildingBlocks.CORS;
 using FluentValidation;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record UpdateTourInstanceActivityCommand(
-    Guid InstanceId,
-    Guid DayId,
-    Guid ActivityId,
-    string? Note = null,
-    TimeOnly? StartTime = null,
-    TimeOnly? EndTime = null,
-    bool? IsOptional = null) : ICommand<ErrorOr<TourDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("dayId")] Guid DayId,
+    [property: JsonPropertyName("activityId")] Guid ActivityId,
+    [property: JsonPropertyName("note")] string? Note = null,
+    [property: JsonPropertyName("startTime")] TimeOnly? StartTime = null,
+    [property: JsonPropertyName("endTime")] TimeOnly? EndTime = null,
+    [property: JsonPropertyName("isOptional")] bool? IsOptional = null) : ICommand<ErrorOr<TourDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }

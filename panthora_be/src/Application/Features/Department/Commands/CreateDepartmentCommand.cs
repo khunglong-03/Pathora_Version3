@@ -6,10 +6,13 @@ using FluentValidation;
 using Application.Common.Constant;
 using Application.Contracts.Department;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
 
-public sealed record CreateDepartmentCommand(Guid? DepartmentParentId, string DepartmentName) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+public sealed record CreateDepartmentCommand(
+    [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,
+    [property: JsonPropertyName("departmentName")] string DepartmentName) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Department];
 }

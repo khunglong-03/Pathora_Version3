@@ -1,31 +1,33 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.Drivers.DTOs;
 
 public sealed record DriverResponseDto(
-    Guid Id,
-    string FullName,
-    string LicenseNumber,
-    string LicenseType,
-    string PhoneNumber,
-    string? AvatarUrl,
-    bool IsActive,
-    string? Notes,
-    DateTimeOffset CreatedOnUtc
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("licenseNumber")] string LicenseNumber,
+    [property: JsonPropertyName("licenseType")] string LicenseType,
+    [property: JsonPropertyName("phoneNumber")] string PhoneNumber,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("notes")] string? Notes,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc
 );
 
 public sealed record CreateDriverRequestDto(
-    string FullName,
-    string LicenseNumber,
-    int LicenseType,
-    string PhoneNumber,
-    string? AvatarUrl,
-    string? Notes
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("licenseNumber")] string LicenseNumber,
+    [property: JsonPropertyName("licenseType")] int LicenseType,
+    [property: JsonPropertyName("phoneNumber")] string PhoneNumber,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("notes")] string? Notes
 );
 
 public sealed record UpdateDriverRequestDto(
-    string? FullName,
-    string? LicenseNumber,
-    int? LicenseType,
-    string? PhoneNumber,
-    string? AvatarUrl,
-    string? Notes
+    [property: JsonPropertyName("fullName")] string? FullName,
+    [property: JsonPropertyName("licenseNumber")] string? LicenseNumber,
+    [property: JsonPropertyName("licenseType")] int? LicenseType,
+    [property: JsonPropertyName("phoneNumber")] string? PhoneNumber,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("notes")] string? Notes
 );

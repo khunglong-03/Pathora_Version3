@@ -7,14 +7,15 @@ using Contracts.Interfaces;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
 
 public sealed record UpdateRoleCommand(
-    int RoleId,
-    string Name,
-    string Description,
-    RoleStatus Status)
+    [property: JsonPropertyName("roleId")] int RoleId,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("status")] RoleStatus Status)
     : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>

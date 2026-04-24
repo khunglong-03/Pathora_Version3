@@ -8,6 +8,7 @@ using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 namespace Api.Controllers;
 
@@ -258,35 +259,43 @@ public class TourInstanceController : BaseApiController
 }
 
 public sealed record ProviderApproveRequest(
-    bool IsApproved,
-    string ProviderType,
-    string? Note,
-    List<Guid>? AccommodationActivityIds = null,
-    List<Guid>? TransportationActivityIds = null);
+    [property: JsonPropertyName("isApproved")] bool IsApproved,
+    [property: JsonPropertyName("providerType")] string ProviderType,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("accommodationActivityIds")] List<Guid>? AccommodationActivityIds = null,
+    [property: JsonPropertyName("transportationActivityIds")] List<Guid>? TransportationActivityIds = null);
 
-public sealed record AssignSupplierRequest(Guid SupplierId);
+public sealed record AssignSupplierRequest(
+    [property: JsonPropertyName("supplierId")] Guid SupplierId);
 
 public sealed record AssignTransportSupplierRequest(
-    Guid SupplierId,
-    VehicleType RequestedVehicleType,
-    int RequestedSeatCount,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("requestedVehicleType")] VehicleType RequestedVehicleType,
+    [property: JsonPropertyName("requestedSeatCount")] int RequestedSeatCount,
     // Scope addendum 2026-04-23 — manager-specified vehicle count (nullable).
-    int? RequestedVehicleCount = null);
+    [property: JsonPropertyName("requestedVehicleCount")] int? RequestedVehicleCount = null);
 
-public sealed record TransportAssignmentRequest(Guid VehicleId, Guid? DriverId);
+public sealed record TransportAssignmentRequest(
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid? DriverId);
 
 /// <summary>Approve with <see cref="Assignments"/> (preferred) or legacy <see cref="VehicleId"/> + <see cref="DriverId"/>.</summary>
 public sealed record ApproveTransportationRequest(
-    List<TransportAssignmentRequest>? Assignments = null,
-    Guid? VehicleId = null,
-    Guid? DriverId = null,
-    string? Note = null);
+    [property: JsonPropertyName("assignments")] List<TransportAssignmentRequest>? Assignments = null,
+    [property: JsonPropertyName("vehicleId")] Guid? VehicleId = null,
+    [property: JsonPropertyName("driverId")] Guid? DriverId = null,
+    [property: JsonPropertyName("note")] string? Note = null);
 
 public sealed record RejectTransportationRequest(
-    string? Note = null);
+    [property: JsonPropertyName("note")] string? Note = null);
 
-public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
+public sealed record AssignVehicleToRouteRequest(
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid DriverId);
 
-public sealed record AssignRoomRequest(string RoomType, int RoomCount);
+public sealed record AssignRoomRequest(
+    [property: JsonPropertyName("roomType")] string RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount);
 
-public sealed record ChangeTourInstanceStatusRequest(TourInstanceStatus Status);
+public sealed record ChangeTourInstanceStatusRequest(
+    [property: JsonPropertyName("status")] TourInstanceStatus Status);

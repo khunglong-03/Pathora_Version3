@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Dtos;
 
 public sealed record TourInstanceStatsDto(
-    int TotalInstances,
-    int Available,
-    int Confirmed,
-    int SoldOut,
-    int Completed);
+    [property: JsonPropertyName("totalInstances")] int TotalInstances,
+    [property: JsonPropertyName("available")] int Available,
+    [property: JsonPropertyName("confirmed")] int Confirmed,
+    [property: JsonPropertyName("soldOut")] int SoldOut,
+    [property: JsonPropertyName("completed")] int Completed);

@@ -1,13 +1,15 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.Revenue.DTOs;
 
 public sealed record TripHistoryItemDto(
-    Guid Id,
-    string BookingReference,
-    string RouteName,
-    DateTimeOffset CompletedDate,
-    string VehiclePlate,
-    string DriverName,
-    long Revenue
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("bookingReference")] string BookingReference,
+    [property: JsonPropertyName("routeName")] string RouteName,
+    [property: JsonPropertyName("completedDate")] DateTimeOffset CompletedDate,
+    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,
+    [property: JsonPropertyName("driverName")] string DriverName,
+    [property: JsonPropertyName("revenue")] long Revenue
 )
 {
     /// <summary>

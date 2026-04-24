@@ -8,24 +8,26 @@ using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record CreateTourInstanceCommand(
-    Guid TourId,
-    Guid ClassificationId,
-    string Title,
-    TourType InstanceType,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate,
-    int MaxParticipation,
-    decimal BasePrice,
-    List<string>? IncludedServices = null,
-    List<Guid>? GuideUserIds = null,
-    string? ThumbnailUrl = null,
-    Guid? TourRequestId = null,
-    List<string>? ImageUrls = null,
-    List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("tourId")] Guid TourId,
+    [property: JsonPropertyName("classificationId")] Guid ClassificationId,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("instanceType")] TourType InstanceType,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset EndDate,
+    [property: JsonPropertyName("maxParticipation")] int MaxParticipation,
+    [property: JsonPropertyName("basePrice")] decimal BasePrice,
+    [property: JsonPropertyName("includedServices")] List<string>? IncludedServices = null,
+    [property: JsonPropertyName("location")] string? Location = null,
+    [property: JsonPropertyName("guideUserIds")] List<Guid>? GuideUserIds = null,
+    [property: JsonPropertyName("thumbnailUrl")] string? ThumbnailUrl = null,
+    [property: JsonPropertyName("tourRequestId")] Guid? TourRequestId = null,
+    [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls = null,
+    [property: JsonPropertyName("activityAssignments")] List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }

@@ -178,6 +178,7 @@ public class TourInstanceService(
             maxParticipation: request.MaxParticipation,
             basePrice: request.BasePrice,
             performedBy: performedBy,
+            location: request.Location,
             thumbnail: thumbnail,
             images: request.ImageUrls?.Select(url => new ImageEntity { PublicURL = url }).ToList(),
             includedServices: request.IncludedServices,

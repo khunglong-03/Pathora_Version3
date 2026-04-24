@@ -4,10 +4,16 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Contracts.Position;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Commands;
 
-public sealed record UpdatePositionCommand(Guid Id, string Name, int Level, string? Note, int? Type) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record UpdatePositionCommand(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("level")] int Level,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("type")] int? Type) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Position];
 }

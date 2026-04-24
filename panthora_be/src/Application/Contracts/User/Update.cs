@@ -1,14 +1,15 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.User;
 
 public sealed record UpdateUserRequest(
-    Guid Id,
-    List<UserDepartmentInfo> Departments,
-    List<int> RoleIds,
-    string FullName,
-    string Avatar
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
+    [property: JsonPropertyName("roleIds")] List<int> RoleIds,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("avatar")] string Avatar
 );
 
 public sealed class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>

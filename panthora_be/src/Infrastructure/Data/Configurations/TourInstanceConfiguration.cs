@@ -57,40 +57,25 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
         builder.Property(t => t.CancellationReason)
             .HasMaxLength(1000);
 
-        // Schedule
         builder.Property(t => t.StartDate).IsRequired();
         builder.Property(t => t.EndDate).IsRequired();
         builder.Property(t => t.DurationDays).IsRequired();
-
-        // Participants
         builder.Property(t => t.MaxParticipation).IsRequired();
         builder.Property(t => t.CurrentParticipation).HasDefaultValue(0);
-
-        // BasePrice
         builder.Property(t => t.BasePrice)
             .HasColumnType("numeric(18,2)")
             .IsRequired();
 
-        // Soft delete
         builder.Property(t => t.IsDeleted)
             .HasDefaultValue(false);
-
-        // ER-2: optimistic concurrency token. Postgres maps this to `bytea` (xmin is handled
-        // by `UseXminAsConcurrencyToken` in AppDbContext-wide config when needed).
         builder.Property(t => t.RowVersion)
             .IsRowVersion()
             .IsRequired()
             .HasDefaultValue(Array.Empty<byte>());
-
-        // IncludedServices as JSONB column with value comparer for change tracking
         builder.Property(t => t.IncludedServices)
             .ConfigureCollectionJsonb();
-
-        // Translations as JSONB column
         builder.Property(t => t.Translations)
             .ConfigureTranslationsJsonb();
-
-        // Thumbnail as owned inline
         builder.OwnsOne(t => t.Thumbnail, thumb =>
         {
             thumb.Property(i => i.FileId).HasColumnName("Thumbnail_FileId").HasMaxLength(200);
@@ -120,10 +105,26 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
         builder.HasIndex(t => t.BasePrice);
         builder.HasIndex(t => t.IsDeleted)
             .HasFilter("\"IsDeleted\" = false");
-        // Note: GIN trigram index on LOWER(Location) is created via raw SQL in the migration
-        // because EF Core fluent API cannot express GIN ops with gin_trgm_ops.
-
-        // Relationships
+            builder.HasIndex(t => t.TourId);
+            builder.HasIndex(t => t.ClassificationId);
+            builder.HasIndex(t => t.InstanceType);
+            builder.HasIndex(t => t.Status);
+            builder.HasIndex(t => t.StartDate);
+            builder.HasIndex(t => t.EndDate);
+            builder.HasIndex(t => t.CurrentParticipation);
+            builder.HasIndex(t => t.BasePrice);
+            builder.HasIndex(t => t.TourCode);
+            builder.HasIndex(t => t.Title);
+            builder.HasIndex(t => t.Location);
+            builder.HasIndex(t => t.TourName);
+            builder.HasIndex(t => t.ClassificationName);
+            builder.HasIndex(t => t.DurationDays);
+            builder.HasIndex(t => t.ConfirmationDeadline);
+            builder.HasIndex(t => t.MaxParticipation);
+            builder.HasIndex(t => t.IncludedServices);
+            builder.HasIndex(t => t.Translations);
+            builder.HasIndex(t => t.IsDeleted);
+            builder.HasIndex(t => t.RowVersion);
         builder.HasOne(t => t.Tour)
             .WithMany()
             .HasForeignKey(t => t.TourId)
@@ -133,11 +134,6 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .WithMany()
             .HasForeignKey(t => t.ClassificationId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // NOTE: HotelProvider FK removed — hotel assignment is now per-accommodation activity
-
-
-        // Managers (TourInstanceManagers) — configured via separate configuration class
         builder.Navigation(t => t.Managers);
     }
 }

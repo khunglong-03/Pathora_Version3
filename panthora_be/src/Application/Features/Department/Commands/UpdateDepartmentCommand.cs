@@ -4,10 +4,14 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Contracts.Department;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
 
-public sealed record UpdateDepartmentCommand(Guid DepartmentId, Guid? DepartmentParentId, string DepartmentName) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record UpdateDepartmentCommand(
+    [property: JsonPropertyName("departmentId")] Guid DepartmentId,
+    [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,
+    [property: JsonPropertyName("departmentName")] string DepartmentName) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Department];
 }

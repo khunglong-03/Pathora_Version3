@@ -55,6 +55,7 @@ type FormState = {
   endDate: string;
   maxParticipation: string;
   basePrice: string;
+  location: string;
   includedServices: string[];
   guideUserIds: string[];
   thumbnailUrl: string;
@@ -124,6 +125,7 @@ const INITIAL_FORM: FormState = {
   endDate: "",
   maxParticipation: "",
   basePrice: "",
+  location: "",
   includedServices: [],
   guideUserIds: [],
   thumbnailUrl: "",
@@ -831,6 +833,18 @@ function InstanceDetailsStep({
             {errors.title && (
               <p className="text-xs text-red-600">{errors.title}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-stone-700">
+              {t("tourInstance.location", "Location")}
+            </label>
+            <input
+              className={inputClassName}
+              value={form.location}
+              onChange={(event) => updateField("location", event.target.value)}
+              placeholder={t("tourInstance.form.locationPlaceholder", "Ex: Ha Noi")}
+            />
           </div>
 
           <div className="space-y-2">
@@ -2843,6 +2857,7 @@ export function CreateTourInstancePage({
         endDate: form.endDate + "T00:00:00Z",
         maxParticipation: Number(form.maxParticipation),
         basePrice: Number(form.basePrice),
+        location: form.location.trim() || undefined,
         includedServices: form.includedServices
           .map((s) => s.trim())
           .filter(Boolean),

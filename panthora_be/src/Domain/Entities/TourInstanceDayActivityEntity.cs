@@ -8,28 +8,15 @@ namespace Domain.Entities;
 /// </summary>
 public class TourInstanceDayActivityEntity : Aggregate<Guid>
 {
-    /// <summary>ID của TourInstanceDay cha mà activity này thuộc về.</summary>
     public Guid TourInstanceDayId { get; set; }
-    /// <summary>TourInstanceDay cha.</summary>
     public virtual TourInstanceDayEntity TourInstanceDay { get; set; } = null!;
-
-    /// <summary>Thứ tự sắp xếp hoạt động trong ngày.</summary>
     public int Order { get; set; }
-    /// <summary>Loại hoạt động: Sightseeing, Meal, Transport, Accommodation, FreeTime, v.v.</summary>
     public TourDayActivityType ActivityType { get; set; }
-    /// <summary>Tiêu đề hoạt động.</summary>
     public string Title { get; set; } = null!;
-    /// <summary>Mô tả chi tiết hoạt động.</summary>
     public string? Description { get; set; }
-    /// <summary>Ghi chú bổ sung.</summary>
     public string? Note { get; set; }
-    /// <summary>True nếu hoạt động này là tùy chọn (không bắt buộc).</summary>
     public bool IsOptional { get; set; }
-
-    // Time
-    /// <summary>Thời gian bắt đầu hoạt động trong ngày.</summary>
     public TimeOnly? StartTime { get; set; }
-    /// <summary>Thời gian kết thúc hoạt động.</summary>
     public TimeOnly? EndTime { get; set; }
 
     // Tách nhánh thông tin lịch trình cho Accommodation

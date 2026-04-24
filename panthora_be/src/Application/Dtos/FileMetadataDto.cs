@@ -1,16 +1,18 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Dtos;
 
 public sealed record FileMetadataDto(
-    Guid Id,
-    Guid LinkedEntityId,
-    string OriginalFileName,
-    string StoredFileName,
-    string MimeType,
-    string Url,
-    long FileSize,
-    bool IsDeleted,
-    string? CreatedBy,
-    DateTimeOffset CreatedOnUtc,
-    string? LastModifiedBy,
-    DateTimeOffset? LastModifiedOnUtc
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("linkedEntityId")] Guid LinkedEntityId,
+    [property: JsonPropertyName("originalFileName")] string OriginalFileName,
+    [property: JsonPropertyName("storedFileName")] string StoredFileName,
+    [property: JsonPropertyName("mimeType")] string MimeType,
+    [property: JsonPropertyName("url")] string Url,
+    [property: JsonPropertyName("fileSize")] long FileSize,
+    [property: JsonPropertyName("isDeleted")] bool IsDeleted,
+    [property: JsonPropertyName("createdBy")] string? CreatedBy,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc,
+    [property: JsonPropertyName("lastModifiedBy")] string? LastModifiedBy,
+    [property: JsonPropertyName("lastModifiedOnUtc")] DateTimeOffset? LastModifiedOnUtc
 );

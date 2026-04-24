@@ -1,13 +1,14 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
 public sealed record UpdateMyProfileRequest(
-    string? FullName,
-    string? PhoneNumber,
-    string? Address,
-    string? Avatar
+    [property: JsonPropertyName("fullName")] string? FullName,
+    [property: JsonPropertyName("phoneNumber")] string? PhoneNumber,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("avatar")] string? Avatar
 );
 
 public sealed class UpdateMyProfileRequestValidator : AbstractValidator<UpdateMyProfileRequest>

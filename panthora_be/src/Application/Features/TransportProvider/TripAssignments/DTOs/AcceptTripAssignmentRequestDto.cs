@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.TripAssignments.DTOs;
 
 public sealed record AcceptTripAssignmentRequestDto(
-    string? Notes = null
+    [property: JsonPropertyName("notes")] string? Notes = null
 );

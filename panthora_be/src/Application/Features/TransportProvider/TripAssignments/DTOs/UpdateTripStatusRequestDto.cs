@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.TripAssignments.DTOs;
 
 public sealed record UpdateTripStatusRequestDto(
-    string Status
+    [property: JsonPropertyName("status")] string Status
 );

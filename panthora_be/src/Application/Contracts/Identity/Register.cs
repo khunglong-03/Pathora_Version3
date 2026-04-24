@@ -1,13 +1,14 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
 public sealed record RegisterRequest(
-    string Username,
-    string FullName,
-    string Email,
-    string Password
+    [property: JsonPropertyName("username")] string Username,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("password")] string Password
 );
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
