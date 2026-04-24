@@ -10,10 +10,11 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.ActivityStatus;
 
-public sealed record InitializeActivityStatusCommand(Guid BookingId) : ICommand<ErrorOr<int>>, ICacheInvalidator
+public sealed record InitializeActivityStatusCommand([property: JsonPropertyName("bookingId")] Guid BookingId) : ICommand<ErrorOr<int>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -80,7 +81,10 @@ public sealed class InitializeActivityStatusCommandHandler(
     }
 }
 
-public sealed record StartActivityCommand(Guid BookingId, Guid TourDayId, DateTimeOffset? ActualStartTime)
+public sealed record StartActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("actualStartTime")] DateTimeOffset? ActualStartTime)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -157,7 +161,10 @@ public sealed class StartActivityCommandHandler(
     }
 }
 
-public sealed record CompleteActivityCommand(Guid BookingId, Guid TourDayId, DateTimeOffset? ActualEndTime)
+public sealed record CompleteActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("actualEndTime")] DateTimeOffset? ActualEndTime)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -234,7 +241,10 @@ public sealed class CompleteActivityCommandHandler(
     }
 }
 
-public sealed record CancelActivityCommand(Guid BookingId, Guid TourDayId, string Reason)
+public sealed record CancelActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("reason")] string Reason)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -316,7 +326,7 @@ public sealed class CancelActivityCommandHandler(
     }
 }
 
-public sealed record GetActivityStatusesQuery(Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
+public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-statuses:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -388,7 +398,9 @@ public sealed class GetActivityStatusesQueryHandler(
     }
 }
 
-public sealed record GetActivityStatusByTourDayQuery(Guid BookingId, Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
+public sealed record GetActivityStatusByTourDayQuery(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-status:{BookingId}:{TourDayId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -463,13 +475,13 @@ public sealed class GetActivityStatusByTourDayQueryHandler(
 }
 
 public sealed record AssignGuideToActivityCommand(
-    Guid BookingId,
-    Guid TourDayId,
-    Guid UserId,
-    GuideRole Role,
-    DateTimeOffset? CheckInTime,
-    DateTimeOffset? CheckOutTime,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("role")] GuideRole Role,
+    [property: JsonPropertyName("checkInTime")] DateTimeOffset? CheckInTime,
+    [property: JsonPropertyName("checkOutTime")] DateTimeOffset? CheckOutTime,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }

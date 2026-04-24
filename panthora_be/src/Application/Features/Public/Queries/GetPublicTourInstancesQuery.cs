@@ -6,15 +6,16 @@ using Application.Dtos;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
 public sealed record GetPublicTourInstancesQuery(
-    string? Destination = null,
-    string? SortBy = null,
-    int Page = 1,
-    int PageSize = 10,
-    string? Language = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
+    [property: JsonPropertyName("destination")] string? Destination = null,
+    [property: JsonPropertyName("sortBy")] string? SortBy = null,
+    [property: JsonPropertyName("page")] int Page = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

@@ -12,15 +12,17 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 
+using System.Text.Json.Serialization;
+
 namespace Application.Features.BookingManagement.Participant;
 
 public sealed record CreateParticipantCommand(
-    Guid BookingId,
-    string ParticipantType,
-    string FullName,
-    DateTimeOffset? DateOfBirth,
-    GenderType? Gender,
-    string? Nationality) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("participantType")] string ParticipantType,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("dateOfBirth")] DateTimeOffset? DateOfBirth,
+    [property: JsonPropertyName("gender")] GenderType? Gender,
+    [property: JsonPropertyName("nationality")] string? Nationality) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -105,13 +107,13 @@ public sealed class CreateParticipantCommandHandler(
 }
 
 public sealed record UpdateParticipantCommand(
-    Guid ParticipantId,
-    string ParticipantType,
-    string FullName,
-    DateTimeOffset? DateOfBirth,
-    GenderType? Gender,
-    string? Nationality,
-    ReservationStatus? Status) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("participantId")] Guid ParticipantId,
+    [property: JsonPropertyName("participantType")] string ParticipantType,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("dateOfBirth")] DateTimeOffset? DateOfBirth,
+    [property: JsonPropertyName("gender")] GenderType? Gender,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("status")] ReservationStatus? Status) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -205,12 +207,12 @@ public sealed class UpdateParticipantCommandHandler(
 }
 
 public sealed record CreatePassportCommand(
-    Guid BookingParticipantId,
-    string PassportNumber,
-    string? Nationality,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -288,12 +290,12 @@ public sealed class CreatePassportCommandHandler(
 }
 
 public sealed record UpdatePassportCommand(
-    Guid PassportId,
-    string PassportNumber,
-    string? Nationality,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -370,11 +372,11 @@ public sealed class UpdatePassportCommandHandler(
 }
 
 public sealed record CreateVisaApplicationCommand(
-    Guid BookingParticipantId,
-    Guid PassportId,
-    string DestinationCountry,
-    DateTimeOffset? MinReturnDate,
-    string? VisaFileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -434,12 +436,12 @@ public sealed class CreateVisaApplicationCommandHandler(
 }
 
 public sealed record UpdateVisaApplicationCommand(
-    Guid VisaApplicationId,
-    string DestinationCountry,
-    VisaStatus? Status,
-    DateTimeOffset? MinReturnDate,
-    string? RefusalReason,
-    string? VisaFileUrl) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("status")] VisaStatus? Status,
+    [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
+    [property: JsonPropertyName("refusalReason")] string? RefusalReason,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -516,14 +518,14 @@ public sealed class UpdateVisaApplicationCommandHandler(
 }
 
 public sealed record CreateVisaCommand(
-    Guid VisaApplicationId,
-    string? VisaNumber,
-    string? Country,
-    VisaStatus Status,
-    VisaEntryType? EntryType,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
+    [property: JsonPropertyName("visaNumber")] string? VisaNumber,
+    [property: JsonPropertyName("country")] string? Country,
+    [property: JsonPropertyName("status")] VisaStatus Status,
+    [property: JsonPropertyName("entryType")] VisaEntryType? EntryType,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -614,7 +616,7 @@ public sealed class CreateVisaCommandHandler(
     }
 }
 
-public sealed record GetBookingParticipantsQuery(Guid BookingId) : IQuery<ErrorOr<List<ParticipantDto>>>, ICacheable
+public sealed record GetBookingParticipantsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<ParticipantDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:participants:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -712,7 +714,7 @@ public sealed class GetBookingParticipantsQueryHandler(
     }
 }
 
-public sealed record GetParticipantPassportQuery(Guid ParticipantId) : IQuery<ErrorOr<PassportDto>>, ICacheable
+public sealed record GetParticipantPassportQuery([property: JsonPropertyName("participantId")] Guid ParticipantId) : IQuery<ErrorOr<PassportDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:participant-passport:{ParticipantId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -745,7 +747,7 @@ public sealed class GetParticipantPassportQueryHandler(
     }
 }
 
-public sealed record GetParticipantVisasQuery(Guid ParticipantId) : IQuery<ErrorOr<List<VisaApplicationDto>>>, ICacheable
+public sealed record GetParticipantVisasQuery([property: JsonPropertyName("participantId")] Guid ParticipantId) : IQuery<ErrorOr<List<VisaApplicationDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:participant-visas:{ParticipantId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

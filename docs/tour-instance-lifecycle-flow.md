@@ -103,20 +103,45 @@ stateDiagram-v2
 | `StartTime` / `EndTime` | Giờ bắt đầu/kết thúc |
 | `IsOptional` | Hoạt động tùy chọn? |
 
-**Nếu ActivityType = Transportation:**
+**Nếu ActivityType = Transportation:** hệ thống phân hai nhóm (xem thêm `openspec/changes/split-ground-vs-external-transport` và `docs/explore-transport-ground-vs-external.md`):
+
+- **Ground (xe mặt đất trong app):** có nhà cung cấp xe nội bộ, duyệt xe/tài xế, `VehicleBlock` — đúng như các bước 2b / 3b / 4 bên dưới.
+- **External (vé máy bay, tàu, phà, … do Manager đặt ngoài):** **không** dùng nhà xe trong app; chỉ lưu thông tin tham chiếu trên activity. `TransportSupplierId` **giữ NULL**; không có luồng gán nhà xe / duyệt nhà xe; chặng này **không** chặn kích hoạt instance vì thiếu duyệt transport (chỉ các chặng Ground có supplier mới tính vào `AreAllTransportationApproved()`).
+
+##### Trường chung mọi Transportation
 
 | Thuộc tính | Mô tả |
 |---|---|
-| `FromLocationId` / `ToLocationId` | Điểm đi / đến |
-| `TransportationType` | Loại: Bus, Car, Flight, Train... |
-| `TransportationName` | Tên hãng/chuyến |
-| `TransportSupplierId` | FK → Nhà cung cấp xe (NULL lúc tạo) |
-| `RequestedVehicleType` | Loại xe yêu cầu (NULL lúc tạo) |
-| `RequestedSeatCount` | Số ghế yêu cầu (NULL lúc tạo) |
-| `RequestedVehicleCount` | Số xe yêu cầu (NULL lúc tạo) |
-| `VehicleId` / `DriverId` | Xe/tài xế cụ thể (NULL lúc tạo) |
-| `TransportationApprovalStatus` | **Pending** |
-| `TransportAssignments` | Danh sách xe gán (rỗng lúc tạo) |
+| `FromLocationId` / `ToLocationId` | Điểm đi / đến (nếu có) |
+| `TransportationType` | Phân loại: Bus, Car, **Flight**, **Train**, Ferry, … (dùng để biết Ground vs External) |
+| `TransportationName` | Tên hiển thị / hãng / số hiệu chuyến (vd. “VN123”, “SE1”) |
+
+##### Chỉ áp dụng **Ground** (xe + nhà xe trong hệ thống)
+
+| Thuộc tính | Mô tả |
+|---|---|
+| `TransportSupplierId` | FK → Nhà cung cấp xe (**NULL lúc tạo**, Manager gán ở BƯỚC 2b) |
+| `RequestedVehicleType` | Loại xe yêu cầu (**NULL lúc tạo**, điền khi gán nhà xe) |
+| `RequestedSeatCount` | Số ghế yêu cầu (áp cho Ground; so với `MaxParticipation` theo rule validator) |
+| `RequestedVehicleCount` | Số xe yêu cầu (tùy chọn) |
+| `VehicleId` / `DriverId` | Xe/tài xế cụ thể (**NULL** cho đến khi nhà xe duyệt — BƯỚC 3b) |
+| `TransportationApprovalStatus` | **Pending** → **Approved** sau khi nhà xe duyệt |
+| `TransportAssignments` | Danh sách xe gán (rỗng lúc tạo; multi-vehicle nếu dùng) |
+
+##### Chỉ áp dụng **External** (vé máy bay / tàu / phà — không nhà xe app)
+
+| Thuộc tính | Mô tả |
+|---|---|
+| `TransportSupplierId` | **Luôn NULL** — không có “nhà xe” nội bộ cho chặng này |
+| `RequestedVehicleType` / `RequestedSeatCount` / `RequestedVehicleCount` | **Không dùng** cho luồng External (hoặc NULL); không bắt buộc khi tạo instance |
+| `VehicleId` / `DriverId` | **NULL** — không gán xe/tài xế trong app |
+| `BookingReference` | Mã đặt chỗ / PNR / mã vé (nếu Manager nhập lúc lên kế hoạch) |
+| `Price` | Giá vé tham chiếu (nếu có) |
+| `DepartureTime` / `ArrivalTime` | Giờ cất cánh / ga / cảng (nếu dùng) |
+| `TransportationApprovalStatus` | Có thể **Pending** / không dùng cho cổng duyệt nhà xe — **quan trọng:** kích hoạt instance không đợi duyệt “transport” kiểu Ground cho chặng External |
+| `TransportAssignments` | **Rỗng** — không tạo `VehicleBlock` cho External |
+
+**Sau khi khách đã trả tiền (giai đoạn sản phẩm tiếp theo):** Manager có thể đính file/URL vé (vd. qua `BookingTransportDetailEntity.FileUrl`) và liên kết đúng chặng instance — chi tiết trong cùng initiative OpenSpec (phase 2). Trong tài liệu luồng này, BƯỚC 1 chỉ mô tả dữ liệu **trên instance activity**; vé khách cá nhân có thể bổ sung sau trên booking.
 
 **Nếu ActivityType = Accommodation → tạo thêm:**
 
@@ -141,7 +166,9 @@ Manager gọi `AssignSupplier(supplierId)` trên `TourInstancePlanAccommodationE
 - `SupplierId` ← ID khách sạn
 - `SupplierApprovalStatus` ← **Pending**
 
-#### 2b. Gán Nhà xe
+#### 2b. Gán Nhà xe (**chỉ chặng Ground**)
+
+Áp dụng khi activity là **Transportation kiểu Ground** (xe mặt đất, có nhà cung cấp xe trong hệ thống).
 
 Manager gọi `AssignTransportSupplier()` trên `TourInstanceDayActivityEntity`:
 - `TransportSupplierId` ← ID nhà xe
@@ -150,6 +177,8 @@ Manager gọi `AssignTransportSupplier()` trên `TourInstanceDayActivityEntity`:
 - `RequestedVehicleCount` ← số xe (tùy chọn)
 - `TransportationApprovalStatus` ← **Pending**
 - Reset: `VehicleId = null`, `DriverId = null`, xóa `TransportAssignments`
+
+**Không có bước “gán nhà xe” cho External:** vé máy bay / tàu / phà chỉ cần Manager nhập/sửa các trường tham chiếu trên activity (điểm đi/đến, loại, tên chuyến, PNR, giờ, giá…). UI tạo/sửa instance ẩn picker nhà xe + loại xe đối với các `TransportationType` được coi là External.
 
 ---
 
@@ -170,7 +199,9 @@ Khách sạn gọi `ApproveBySupplier(true, note)` trên `TourInstancePlanAccomm
 | `RoomCountBlocked` | Số phòng giữ |
 | `HoldStatus` | **Hard** (giữ chắc) |
 
-#### 3b. Nhà xe duyệt xe + tài xế
+#### 3b. Nhà xe duyệt xe + tài xế (**chỉ chặng Ground**)
+
+Chỉ áp dụng khi activity có `TransportSupplierId` (vận chuyển Ground). Chặng **External** không có nhà xe duyệt trong app.
 
 Nhà xe gọi `ApproveTransportation(vehicleId, driverId, note)` trên `TourInstanceDayActivityEntity`:
 - `VehicleId` ← xe cụ thể
@@ -205,8 +236,9 @@ Sau khi tất cả supplier duyệt xong, hệ thống gọi `CheckAndActivateTo
 if (Status != PendingApproval) return;
 
 transportOk = AreAllTransportationApproved()
-  → Lọc activity Transportation có TransportSupplierId
-  → Tất cả phải Approved
+  → Chỉ lọc activity Transportation **có TransportSupplierId** (tức chặng Ground đã gán nhà xe)
+  → Các chặng **External** (không có supplier) **không** đưa vào điều kiện này
+  → Mọi chặng Ground trong tập lọc phải Approved
 
 accommodationsOk = AreAllAccommodationsApproved()
   → Lọc activity Accommodation có SupplierId

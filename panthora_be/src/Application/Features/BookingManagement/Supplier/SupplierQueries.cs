@@ -7,10 +7,11 @@ using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Supplier;
 
-public sealed record GetSupplierByIdQuery(Guid SupplierId) : IQuery<ErrorOr<SupplierDto>>, ICacheable
+public sealed record GetSupplierByIdQuery([property: JsonPropertyName("supplierId")] Guid SupplierId) : IQuery<ErrorOr<SupplierDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Supplier}:detail:{SupplierId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
@@ -50,7 +51,9 @@ public sealed class GetSupplierByIdQueryHandler(
     }
 }
 
-public sealed record GetSuppliersQuery(SupplierType? SupplierType = null, Continent? Continent = null) : IQuery<ErrorOr<List<SupplierDto>>>, ICacheable
+public sealed record GetSuppliersQuery(
+    [property: JsonPropertyName("supplierType")] SupplierType? SupplierType = null,
+    [property: JsonPropertyName("continent")] Continent? Continent = null) : IQuery<ErrorOr<List<SupplierDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Supplier}:list:{SupplierType}:{Continent}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);

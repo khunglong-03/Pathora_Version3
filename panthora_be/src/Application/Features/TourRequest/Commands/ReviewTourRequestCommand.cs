@@ -11,13 +11,14 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Mails;
 using Domain.UnitOfWork;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
 
 public sealed record ReviewTourRequestCommand(
-    Guid Id,
-    TourRequestStatus Status,
-    string? AdminNote = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("status")] TourRequestStatus Status,
+    [property: JsonPropertyName("adminNote")] string? AdminNote = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourRequest];
 }

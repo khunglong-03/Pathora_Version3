@@ -2,5 +2,6 @@ namespace Application.Features.HotelRoomInventory.Commands.DeleteHotelRoomInvent
 
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
-public sealed record DeleteHotelRoomInventoryCommand(Guid Id) : ICommand<ErrorOr<Success>>;
+public sealed record DeleteHotelRoomInventoryCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;

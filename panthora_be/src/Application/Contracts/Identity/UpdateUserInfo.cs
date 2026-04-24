@@ -1,12 +1,12 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
 public sealed record UpdateUserInfoRequest(
-    string FullName,
-    string Avatar
-);
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("avatar")] string Avatar);
 
 public sealed class UpdateUserInfoRequestValidator : AbstractValidator<UpdateUserInfoRequest>
 {

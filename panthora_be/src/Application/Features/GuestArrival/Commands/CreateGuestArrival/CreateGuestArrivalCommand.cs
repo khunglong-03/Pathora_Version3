@@ -2,9 +2,9 @@ namespace Application.Features.GuestArrival.Commands.CreateGuestArrival;
 
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record CreateGuestArrivalCommand(
-    Guid BookingAccommodationDetailId,
-    Guid SubmittedByUserId,
-    List<Guid> ParticipantIds
-) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("submittedByUserId")] Guid SubmittedByUserId,
+    [property: JsonPropertyName("participantIds")] List<Guid> ParticipantIds) : ICommand<ErrorOr<Guid>>;

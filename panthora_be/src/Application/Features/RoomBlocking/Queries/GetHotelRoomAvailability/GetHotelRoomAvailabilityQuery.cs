@@ -4,9 +4,9 @@ using Application.Features.RoomBlocking.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record GetHotelRoomAvailabilityQuery(
-    Guid SupplierId,
-    DateOnly FromDate,
-    DateOnly ToDate
-) : IQuery<ErrorOr<List<HotelRoomAvailabilityDto>>>;
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("fromDate")] DateOnly FromDate,
+    [property: JsonPropertyName("toDate")] DateOnly ToDate) : IQuery<ErrorOr<List<HotelRoomAvailabilityDto>>>;

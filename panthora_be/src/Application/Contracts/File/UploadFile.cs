@@ -1,8 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.File;
 
 public sealed record UploadFileRequest(
-    Stream Stream,
-    string FileName,
-    string ContentType = "application/octet-stream",
-    long Length = 0
-);
+    [property: JsonPropertyName("stream")] Stream Stream,
+    [property: JsonPropertyName("fileName")] string FileName,
+    [property: JsonPropertyName("contentType")] string ContentType = "application/octet-stream",
+    [property: JsonPropertyName("length")] long Length = 0);

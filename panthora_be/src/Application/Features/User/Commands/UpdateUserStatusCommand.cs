@@ -8,12 +8,13 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
 
 public sealed record UpdateUserStatusCommand(
-    Guid UserId,
-    UserStatus NewStatus) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("newStatus")] UserStatus NewStatus) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User, CacheKey.Supplier];
 }

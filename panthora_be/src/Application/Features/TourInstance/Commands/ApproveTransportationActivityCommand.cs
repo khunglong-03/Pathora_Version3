@@ -13,11 +13,14 @@ using ErrorOr;
 using FluentValidation;
 using BuildingBlocks.CORS;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 /// <summary>One vehicle row in a multi-vehicle approve request (or single-row legacy body).</summary>
-public sealed record TransportApprovalAssignmentDto(Guid VehicleId, Guid? DriverId);
+public sealed record TransportApprovalAssignmentDto(
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid? DriverId);
 
 /// <summary>
 /// Approve transportation for a specific activity — the transport provider
@@ -27,14 +30,13 @@ public sealed record TransportApprovalAssignmentDto(Guid VehicleId, Guid? Driver
 /// insert Hard VehicleBlock per vehicle → CheckAndActivateTourInstance.
 /// </summary>
 public sealed record ApproveTransportationActivityCommand(
-    Guid InstanceId,
-    Guid ActivityId,
-    IReadOnlyList<TransportApprovalAssignmentDto>? Assignments,
-    /// <summary>Legacy single-pair shim when <see cref="Assignments"/> is null or empty.</summary>
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("activityId")] Guid ActivityId,
+    [property: JsonPropertyName("assignments")] IReadOnlyList<TransportApprovalAssignmentDto>? Assignments,
+    [property: JsonPropertyName("vehicleId")] /// <summary>Legacy single-pair shim when <see cref="Assignments"/> is null or empty.</summary>
     Guid? VehicleId = null,
-    Guid? DriverId = null,
-    string? Note = null
-) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("driverId")] Guid? DriverId = null,
+    [property: JsonPropertyName("note")] string? Note = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }
@@ -371,5 +373,6 @@ public sealed class ApproveTransportationActivityCommandHandler(
 internal sealed class TransportApproveConflictException(string code, string message)
     : Exception(message)
 {
-    public string Code { get; } = code;
+    [JsonPropertyName("string")]
+    public None stringCode = code;
 }

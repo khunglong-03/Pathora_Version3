@@ -1,10 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.Manager;
 
 public sealed record UpdateManagerBankAccountRequest(
-    string BankAccountNumber,
-    string BankCode,
-    string BankBin,
-    string? BankShortName,
-    string? BankAccountName,
-    bool IsDefault
-);
+    [property: JsonPropertyName("bankAccountNumber")] string BankAccountNumber,
+    [property: JsonPropertyName("bankCode")] string BankCode,
+    [property: JsonPropertyName("bankBin")] string BankBin,
+    [property: JsonPropertyName("bankShortName")] string? BankShortName,
+    [property: JsonPropertyName("bankAccountName")] string? BankAccountName,
+    [property: JsonPropertyName("isDefault")] bool IsDefault);

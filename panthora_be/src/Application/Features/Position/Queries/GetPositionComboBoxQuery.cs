@@ -4,6 +4,7 @@ using Contracts;
 using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Queries;
 

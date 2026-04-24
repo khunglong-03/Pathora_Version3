@@ -8,22 +8,23 @@ using ErrorOr;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Entities.Translations;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
 public sealed record SearchToursQuery(
-    string? Q,
-    string? Destination,
-    string? Classification,
-    DateOnly? Date,
-    int? People,
-    decimal? MinPrice,
-    decimal? MaxPrice,
-    int? MinDays,
-    int? MaxDays,
-    int Page = 1,
-    int PageSize = 10,
-    string? Language = null) : IQuery<ErrorOr<PaginatedList<SearchTourVm>>>, ICacheable
+    [property: JsonPropertyName("q")] string? Q,
+    [property: JsonPropertyName("destination")] string? Destination,
+    [property: JsonPropertyName("classification")] string? Classification,
+    [property: JsonPropertyName("date")] DateOnly? Date,
+    [property: JsonPropertyName("people")] int? People,
+    [property: JsonPropertyName("minPrice")] decimal? MinPrice,
+    [property: JsonPropertyName("maxPrice")] decimal? MaxPrice,
+    [property: JsonPropertyName("minDays")] int? MinDays,
+    [property: JsonPropertyName("maxDays")] int? MaxDays,
+    [property: JsonPropertyName("page")] int Page = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<PaginatedList<SearchTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

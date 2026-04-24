@@ -4,6 +4,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.Queries;
 
@@ -36,7 +37,7 @@ public sealed class GetAllVisaApplicationsQueryHandler(IVisaApplicationRepositor
 }
 
 // GetById
-public sealed record GetVisaApplicationByIdQuery(Guid Id) : IQuery<ErrorOr<VisaApplicationDto?>>;
+public sealed record GetVisaApplicationByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<VisaApplicationDto?>>;
 
 public sealed class GetVisaApplicationByIdQueryHandler(IVisaApplicationRepository repository)
     : IRequestHandler<GetVisaApplicationByIdQuery, ErrorOr<VisaApplicationDto?>>
@@ -65,7 +66,7 @@ public sealed class GetVisaApplicationByIdQueryHandler(IVisaApplicationRepositor
 }
 
 // GetByBookingParticipant
-public sealed record GetVisaApplicationsByParticipantQuery(Guid BookingParticipantId) : IQuery<ErrorOr<IReadOnlyList<VisaApplicationDto>>>;
+public sealed record GetVisaApplicationsByParticipantQuery([property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId) : IQuery<ErrorOr<IReadOnlyList<VisaApplicationDto>>>;
 
 public sealed class GetVisaApplicationsByParticipantQueryHandler(IVisaApplicationRepository repository)
     : IRequestHandler<GetVisaApplicationsByParticipantQuery, ErrorOr<IReadOnlyList<VisaApplicationDto>>>

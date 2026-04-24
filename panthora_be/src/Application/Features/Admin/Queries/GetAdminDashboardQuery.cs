@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Reports;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries;
 

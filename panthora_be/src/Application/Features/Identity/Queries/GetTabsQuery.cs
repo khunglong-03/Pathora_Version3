@@ -4,10 +4,11 @@ using Application.Services;
 using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Queries;
 
-public sealed record GetTabsQuery(string CurrentUserId) : IQuery<ErrorOr<List<TabVm>>>, ICacheable
+public sealed record GetTabsQuery([property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<List<TabVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:tabs:{CurrentUserId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);

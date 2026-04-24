@@ -5,8 +5,8 @@ using BuildingBlocks.CORS;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record GetTripAssignmentsQuery(
-    Guid CurrentUserId,
-    int? StatusFilter
-) : IQuery<ErrorOr<List<TripAssignmentListDto>>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("statusFilter")] int? StatusFilter) : IQuery<ErrorOr<List<TripAssignmentListDto>>>;

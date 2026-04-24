@@ -4,9 +4,9 @@ using BuildingBlocks.CORS;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record ReassignStaffCommand(
-    Guid ManagerId,
-    Guid StaffId,
-    Guid TargetManagerId
-) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("managerId")] Guid ManagerId,
+    [property: JsonPropertyName("staffId")] Guid StaffId,
+    [property: JsonPropertyName("targetManagerId")] Guid TargetManagerId) : ICommand<ErrorOr<Success>>;

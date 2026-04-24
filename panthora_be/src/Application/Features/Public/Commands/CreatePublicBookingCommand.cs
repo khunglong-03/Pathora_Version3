@@ -9,20 +9,20 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Commands;
 
 public sealed record CreatePublicBookingCommand(
-    Guid TourInstanceId,
-    string CustomerName,
-    string CustomerPhone,
-    string? CustomerEmail,
-    int NumberAdult,
-    int NumberChild,
-    int NumberInfant,
-    PaymentMethod PaymentMethod,
-    bool IsFullPay
-) : ICommand<ErrorOr<CheckoutPriceResponse>>;
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("customerPhone")] string CustomerPhone,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("isFullPay")] bool IsFullPay) : ICommand<ErrorOr<CheckoutPriceResponse>>;
 
 public sealed class CreatePublicBookingCommandValidator : AbstractValidator<CreatePublicBookingCommand>
 {

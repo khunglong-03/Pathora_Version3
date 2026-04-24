@@ -13,18 +13,19 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Supplier;
 
 public sealed record CreateSupplierCommand(
-    string SupplierCode,
-    SupplierType SupplierType,
-    string Name,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    Continent? PrimaryContinent) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier];
 }
@@ -91,15 +92,15 @@ public sealed class CreateSupplierCommandHandler(
 }
 
 public sealed record UpdateSupplierCommand(
-    Guid SupplierId,
-    string SupplierCode,
-    SupplierType SupplierType,
-    string Name,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    bool IsActive) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("isActive")] bool IsActive) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier];
 }
@@ -167,7 +168,7 @@ public sealed class UpdateSupplierCommandHandler(
     }
 }
 
-public sealed record DeleteSupplierCommand(Guid SupplierId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record DeleteSupplierCommand([property: JsonPropertyName("supplierId")] Guid SupplierId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier];
 }
@@ -204,16 +205,16 @@ public sealed class DeleteSupplierCommandHandler(
 // ──────────────────────────────────────────────────────────────────────────────
 
 public sealed record CreateSupplierWithOwnerCommand(
-    string OwnerEmail,
-    string OwnerFullName,
-    string SupplierCode,
-    SupplierType SupplierType,
-    string SupplierName,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    Continent? PrimaryContinent) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
+    [property: JsonPropertyName("ownerEmail")] string OwnerEmail,
+    [property: JsonPropertyName("ownerFullName")] string OwnerFullName,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("supplierName")] string SupplierName,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier, CacheKey.User];
 }

@@ -1,21 +1,21 @@
 namespace Application.Features.Admin.DTOs;
 
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 public sealed record HotelProviderListItemDto(
-    Guid Id,
-    string SupplierName,
-    string SupplierCode,
-    string Email,
-    string? PhoneNumber,
-    string? Address,
-    string? AvatarUrl,
-    UserStatus Status,
-    Guid OwnerUserId,
-    int AccommodationCount,
-    int PropertyCount,
-    int RoomCount,
-    DateTimeOffset? CreatedOnUtc,
-    string? PrimaryContinent,
-    List<string> Continents
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("supplierName")] string SupplierName,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("phoneNumber")] string? PhoneNumber,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("status")] UserStatus Status,
+    [property: JsonPropertyName("ownerUserId")] Guid OwnerUserId,
+    [property: JsonPropertyName("accommodationCount")] int AccommodationCount,
+    [property: JsonPropertyName("propertyCount")] int PropertyCount,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset? CreatedOnUtc,
+    [property: JsonPropertyName("primaryContinent")] string? PrimaryContinent,
+    [property: JsonPropertyName("continents")] List<string> Continents);

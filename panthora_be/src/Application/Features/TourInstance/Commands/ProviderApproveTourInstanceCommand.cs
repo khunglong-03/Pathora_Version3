@@ -8,16 +8,17 @@ using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record ProviderApproveTourInstanceCommand(
-    Guid InstanceId,
-    bool IsApproved,
-    string? Note,
-    string ProviderType,
-    List<Guid>? AccommodationActivityIds = null,
-    List<Guid>? TransportationActivityIds = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("isApproved")] bool IsApproved,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("providerType")] string ProviderType,
+    [property: JsonPropertyName("accommodationActivityIds")] List<Guid>? AccommodationActivityIds = null,
+    [property: JsonPropertyName("transportationActivityIds")] List<Guid>? TransportationActivityIds = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }

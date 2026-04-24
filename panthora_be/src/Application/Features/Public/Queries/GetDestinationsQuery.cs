@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Domain.Common.Repositories;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 

@@ -8,6 +8,7 @@ using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
 using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
@@ -19,11 +20,11 @@ namespace Application.Features.TourInstance.Commands;
 /// and sets the RequestedVehicleType + RequestedSeatCount plan.
 /// </summary>
 public sealed record AssignTransportSupplierCommand(
-    Guid InstanceId,
-    Guid TransportationActivityId,
-    Guid SupplierId,
-    VehicleType RequestedVehicleType,
-    int RequestedSeatCount,
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("transportationActivityId")] Guid TransportationActivityId,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("requestedVehicleType")] VehicleType RequestedVehicleType,
+    [property: JsonPropertyName("requestedSeatCount")] int RequestedSeatCount,
     // Scope addendum 2026-04-23 — manager-specified vehicle count (nullable).
     int? RequestedVehicleCount = null
 ) : ICommand<ErrorOr<Success>>, ICacheInvalidator

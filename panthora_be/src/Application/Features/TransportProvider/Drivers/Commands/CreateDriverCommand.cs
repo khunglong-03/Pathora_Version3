@@ -5,8 +5,8 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using Application.Features.TransportProvider.Drivers.DTOs;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record CreateDriverCommand(
-    Guid CurrentUserId,
-    CreateDriverRequestDto Request
-) : ICommand<ErrorOr<DriverResponseDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("request")] CreateDriverRequestDto Request) : ICommand<ErrorOr<DriverResponseDto>>;

@@ -5,9 +5,9 @@ using BuildingBlocks.CORS;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record GetRevenueSummaryQuery(
-    Guid CurrentUserId,
-    int Year,
-    int? Quarter
-) : IQuery<ErrorOr<RevenueSummaryDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("year")] int Year,
+    [property: JsonPropertyName("quarter")] int? Quarter) : IQuery<ErrorOr<RevenueSummaryDto>>;

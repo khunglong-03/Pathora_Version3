@@ -5,10 +5,13 @@ using Application.Contracts.Public;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Domain.Common.Repositories;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetTrendingDestinationsQuery(int Limit = 6, string? Language = null) : IQuery<ErrorOr<List<TrendingDestinationVm>>>, ICacheable
+public sealed record GetTrendingDestinationsQuery(
+    [property: JsonPropertyName("limit")] int Limit = 6,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<TrendingDestinationVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

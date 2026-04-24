@@ -11,29 +11,30 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using IHotelRoomInventoryRepository = Domain.Common.Repositories.IHotelRoomInventoryRepository;
 
 namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateAccommodationDetailCommand(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -183,24 +184,24 @@ public sealed class CreateAccommodationDetailCommandHandler(
 }
 
 public sealed record UpdateAccommodationDetailCommand(
-    Guid BookingAccommodationDetailId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int? RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal? BuyPrice,
-    decimal? TaxRate,
-    bool? IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus? Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int? RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal? BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal? TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool? IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus? Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -371,7 +372,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     }
 }
 
-public sealed record GetBookingAccommodationDetailsQuery(Guid BookingId) : IQuery<ErrorOr<List<AccommodationDetailDto>>>, ICacheable
+public sealed record GetBookingAccommodationDetailsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<AccommodationDetailDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:accommodation-details:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

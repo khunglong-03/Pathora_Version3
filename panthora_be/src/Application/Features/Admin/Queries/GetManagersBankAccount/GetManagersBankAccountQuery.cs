@@ -1,15 +1,15 @@
 using Application.Features.Admin.DTOs;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetManagersBankAccount;
 
 public sealed record GetManagersBankAccountQuery(
-    string? Role,
-    string? SearchQuery,
-    int Page = 1,
-    int Limit = 50
-) : IQuery<ErrorOr<PaginatedResult<UserBankAccountDto>>>
+    [property: JsonPropertyName("role")] string? Role,
+    [property: JsonPropertyName("searchQuery")] string? SearchQuery,
+    [property: JsonPropertyName("page")] int Page = 1,
+    [property: JsonPropertyName("limit")] int Limit = 50) : IQuery<ErrorOr<PaginatedResult<UserBankAccountDto>>>
 {
 }
 

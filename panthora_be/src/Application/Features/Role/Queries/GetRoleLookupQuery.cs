@@ -3,6 +3,7 @@ using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
 using Contracts;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Queries;
 

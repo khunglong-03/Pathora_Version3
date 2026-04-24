@@ -6,21 +6,22 @@ using Contracts.Interfaces;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
 public sealed record UploadAvatarCommand(
-    Stream FileStream,
-    string FileName,
-    string ContentType,
-    long FileSize,
-    string CurrentUserId)
+    [property: JsonPropertyName("fileStream")] Stream FileStream,
+    [property: JsonPropertyName("fileName")] string FileName,
+    [property: JsonPropertyName("contentType")] string ContentType,
+    [property: JsonPropertyName("fileSize")] long FileSize,
+    [property: JsonPropertyName("currentUserId")] string CurrentUserId)
     : ICommand<ErrorOr<AvatarUploadResponse>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [$"{Common.CacheKey.User}:info:{CurrentUserId}"];
 }
 
-public sealed record AvatarUploadResponse(string AvatarUrl);
+public sealed record AvatarUploadResponse([property: JsonPropertyName("avatarUrl")] string AvatarUrl);
 
 public sealed class UploadAvatarCommandHandler(
     IFileManager fileManager,

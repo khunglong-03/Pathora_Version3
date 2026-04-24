@@ -5,6 +5,7 @@ using Application.Contracts.Department;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Queries;
 

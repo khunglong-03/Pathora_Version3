@@ -5,11 +5,11 @@ using BuildingBlocks.CORS;
 using global::Contracts;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record GetAllUsersQuery(
-    int PageNumber = 1,
-    int PageSize = 10,
-    string? SearchText = null,
-    UserStatus? Status = null,
-    string? Role = null
-) : IQuery<ErrorOr<PaginatedList<UserListItemDto>>>;
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("searchText")] string? SearchText = null,
+    [property: JsonPropertyName("status")] UserStatus? Status = null,
+    [property: JsonPropertyName("role")] string? Role = null) : IQuery<ErrorOr<PaginatedList<UserListItemDto>>>;

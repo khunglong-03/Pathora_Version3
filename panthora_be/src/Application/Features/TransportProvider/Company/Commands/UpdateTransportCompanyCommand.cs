@@ -4,9 +4,9 @@ using Application.Features.TransportProvider.Company.DTOs;
 using BuildingBlocks.CORS;
 using global::Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 using global::Contracts.ModelResponse;
 
 public sealed record UpdateTransportCompanyCommand(
-    Guid CurrentUserId,
-    UpdateTransportCompanyCommandDto Request
-) : ICommand<ErrorOr<TransportCompanyProfileDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("request")] UpdateTransportCompanyCommandDto Request) : ICommand<ErrorOr<TransportCompanyProfileDto>>;

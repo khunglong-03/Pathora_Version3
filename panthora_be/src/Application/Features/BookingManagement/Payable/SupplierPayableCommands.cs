@@ -10,15 +10,16 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Payable;
 
 public sealed record CreateSupplierPayableCommand(
-    Guid BookingId,
-    Guid SupplierId,
-    decimal ExpectedAmount,
-    DateTimeOffset? DueAt,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("expectedAmount")] decimal ExpectedAmount,
+    [property: JsonPropertyName("dueAt")] DateTimeOffset? DueAt,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -86,11 +87,11 @@ public sealed class CreateSupplierPayableCommandHandler(
 }
 
 public sealed record UpdateSupplierPayableCommand(
-    Guid SupplierPayableId,
-    decimal ExpectedAmount,
-    decimal PaidAmount,
-    DateTimeOffset? DueAt,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("expectedAmount")] decimal ExpectedAmount,
+    [property: JsonPropertyName("paidAmount")] decimal PaidAmount,
+    [property: JsonPropertyName("dueAt")] DateTimeOffset? DueAt,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -152,12 +153,12 @@ public sealed class UpdateSupplierPayableCommandHandler(
 }
 
 public sealed record RecordSupplierPaymentCommand(
-    Guid SupplierPayableId,
-    decimal Amount,
-    DateTimeOffset PaidAt,
-    PaymentMethod PaymentMethod,
-    string? TransactionRef,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("amount")] decimal Amount,
+    [property: JsonPropertyName("paidAt")] DateTimeOffset PaidAt,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("transactionRef")] string? TransactionRef,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -220,7 +221,7 @@ public sealed class RecordSupplierPaymentCommandHandler(
     }
 }
 
-public sealed record GetSupplierPayablesQuery(Guid BookingId) : IQuery<ErrorOr<List<SupplierPayableDto>>>, ICacheable
+public sealed record GetSupplierPayablesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<SupplierPayableDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:supplier-payables:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

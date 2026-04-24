@@ -6,13 +6,14 @@ using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
 
 public sealed record CheckDuplicateTourInstanceQuery(
-    Guid TourId,
-    Guid ClassificationId,
-    DateTimeOffset StartDate) : IQuery<ErrorOr<CheckDuplicateTourInstanceResultDto>>;
+    [property: JsonPropertyName("tourId")] Guid TourId,
+    [property: JsonPropertyName("classificationId")] Guid ClassificationId,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate) : IQuery<ErrorOr<CheckDuplicateTourInstanceResultDto>>;
 
 public sealed class CheckDuplicateTourInstanceQueryValidator : AbstractValidator<CheckDuplicateTourInstanceQuery>
 {

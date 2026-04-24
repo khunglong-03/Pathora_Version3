@@ -7,10 +7,13 @@ using ErrorOr;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Entities.Translations;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetFeaturedToursQuery(int Limit = 8, string? Language = null) : IQuery<ErrorOr<List<FeaturedTourVm>>>, ICacheable
+public sealed record GetFeaturedToursQuery(
+    [property: JsonPropertyName("limit")] int Limit = 8,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<FeaturedTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

@@ -5,10 +5,13 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
-public sealed record LoginWithRolesCommand(string Email, string Password)
+public sealed record LoginWithRolesCommand(
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("password")] string Password)
     : ICommand<ErrorOr<LoginResponse>>;
 
 public sealed class LoginWithRolesCommandValidator : AbstractValidator<LoginWithRolesCommand>

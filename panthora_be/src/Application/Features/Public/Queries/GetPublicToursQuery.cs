@@ -8,14 +8,15 @@ using ErrorOr;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Entities.Translations;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
 public sealed record GetPublicToursQuery(
-    string? SearchText,
-    int PageNumber = 1,
-    int PageSize = 10,
-    string? Language = null)
+    [property: JsonPropertyName("searchText")] string? SearchText,
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("language")] string? Language = null)
     : IQuery<ErrorOr<PaginatedList<SearchTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);

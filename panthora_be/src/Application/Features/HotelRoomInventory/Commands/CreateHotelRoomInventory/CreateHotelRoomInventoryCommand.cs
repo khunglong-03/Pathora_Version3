@@ -4,9 +4,9 @@ using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record CreateHotelRoomInventoryCommand(
-    Guid SupplierId,
-    RoomType RoomType,
-    int TotalRooms
-) : ICommand<ErrorOr<HotelRoomInventoryDto>>;
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("totalRooms")] int TotalRooms) : ICommand<ErrorOr<HotelRoomInventoryDto>>;

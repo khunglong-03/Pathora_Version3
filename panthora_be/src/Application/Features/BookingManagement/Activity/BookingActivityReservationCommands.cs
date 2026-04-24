@@ -10,21 +10,22 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateBookingActivityReservationCommand(
-    Guid BookingId,
-    Guid? SupplierId,
-    int Order,
-    string ActivityType,
-    string Title,
-    string? Description,
-    DateTimeOffset? StartTime,
-    DateTimeOffset? EndTime,
-    decimal TotalServicePrice,
-    decimal TotalServicePriceAfterTax,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("order")] int Order,
+    [property: JsonPropertyName("activityType")] string ActivityType,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("startTime")] DateTimeOffset? StartTime,
+    [property: JsonPropertyName("endTime")] DateTimeOffset? EndTime,
+    [property: JsonPropertyName("totalServicePrice")] decimal TotalServicePrice,
+    [property: JsonPropertyName("totalServicePriceAfterTax")] decimal TotalServicePriceAfterTax,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -95,18 +96,18 @@ public sealed class CreateBookingActivityReservationCommandHandler(
 }
 
 public sealed record UpdateBookingActivityReservationCommand(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    int Order,
-    string ActivityType,
-    string Title,
-    string? Description,
-    DateTimeOffset? StartTime,
-    DateTimeOffset? EndTime,
-    decimal? TotalServicePrice,
-    decimal? TotalServicePriceAfterTax,
-    ReservationStatus? Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("order")] int Order,
+    [property: JsonPropertyName("activityType")] string ActivityType,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("startTime")] DateTimeOffset? StartTime,
+    [property: JsonPropertyName("endTime")] DateTimeOffset? EndTime,
+    [property: JsonPropertyName("totalServicePrice")] decimal? TotalServicePrice,
+    [property: JsonPropertyName("totalServicePriceAfterTax")] decimal? TotalServicePriceAfterTax,
+    [property: JsonPropertyName("status")] ReservationStatus? Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -177,7 +178,7 @@ public sealed class UpdateBookingActivityReservationCommandHandler(
     }
 }
 
-public sealed record GetBookingActivityReservationsQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingActivityReservationDto>>>, ICacheable
+public sealed record GetBookingActivityReservationsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingActivityReservationDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-reservations:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

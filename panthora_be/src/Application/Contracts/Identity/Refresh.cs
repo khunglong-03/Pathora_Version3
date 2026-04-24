@@ -1,9 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.Identity;
 
-public sealed record RefreshTokenRequest(string RefreshToken);
+public sealed record RefreshTokenRequest([property: JsonPropertyName("refreshToken")] string RefreshToken);
 
 public sealed record RefreshTokenResponse(
-    string AccessToken,
-    string RefreshToken,
-    string Portal,
-    string DefaultPath);
+    [property: JsonPropertyName("accessToken")] string AccessToken,
+    [property: JsonPropertyName("refreshToken")] string RefreshToken,
+    [property: JsonPropertyName("portal")] string Portal,
+    [property: JsonPropertyName("defaultPath")] string DefaultPath);

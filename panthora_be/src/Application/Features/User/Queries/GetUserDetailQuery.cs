@@ -4,10 +4,11 @@ using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Queries;
 
-public sealed record GetUserDetailQuery(Guid Id) : IQuery<ErrorOr<UserDetailVm>>, ICacheable
+public sealed record GetUserDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<UserDetailVm>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:detail:{Id}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);

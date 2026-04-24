@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using Application.Dtos;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
 

@@ -10,16 +10,17 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.TourGuide;
 
 public sealed record AssignTeamMemberCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    Guid? AssignedBy,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("assignedBy")] Guid? AssignedBy,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -87,10 +88,10 @@ public sealed class AssignTeamMemberCommandHandler(
 }
 
 public sealed record UpdateTeamMemberStatusCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignmentStatus Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("status")] AssignmentStatus Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -137,7 +138,7 @@ public sealed class UpdateTeamMemberStatusCommandHandler(
     }
 }
 
-public sealed record GetBookingTeamQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTeamQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -180,7 +181,7 @@ public sealed class GetBookingTeamQueryHandler(
     }
 }
 
-public sealed record GetBookingTourManagerQuery(Guid BookingId) : IQuery<ErrorOr<BookingTeamMemberDto>>, ICacheable
+public sealed record GetBookingTourManagerQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<BookingTeamMemberDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-manager:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -228,7 +229,7 @@ public sealed class GetBookingTourManagerQueryHandler(
     }
 }
 
-public sealed record GetBookingTourDesignersQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTourDesignersQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-designers:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -269,7 +270,7 @@ public sealed class GetBookingTourDesignersQueryHandler(
     }
 }
 
-public sealed record GetBookingAssignedTourGuidesQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingAssignedTourGuidesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-guides:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -311,11 +312,11 @@ public sealed class GetBookingAssignedTourGuidesQueryHandler(
 }
 
 public sealed record UpdateTeamMemberAssignmentCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -362,7 +363,9 @@ public sealed class UpdateTeamMemberAssignmentCommandHandler(
     }
 }
 
-public sealed record DeleteTeamMemberAssignmentCommand(Guid BookingId, Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record DeleteTeamMemberAssignmentCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -391,7 +394,9 @@ public sealed class DeleteTeamMemberAssignmentCommandHandler(
     }
 }
 
-public sealed record ConfirmTeamMemberAssignmentCommand(Guid BookingId, Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record ConfirmTeamMemberAssignmentCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }

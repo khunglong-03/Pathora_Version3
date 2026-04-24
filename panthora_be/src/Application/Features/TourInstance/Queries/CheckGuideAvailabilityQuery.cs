@@ -4,13 +4,14 @@ using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
 
 public sealed record CheckGuideAvailabilityQuery(
-    List<Guid> GuideUserIds,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate) : IQuery<ErrorOr<GuideAvailabilityResultDto>>;
+    [property: JsonPropertyName("guideUserIds")] List<Guid> GuideUserIds,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset EndDate) : IQuery<ErrorOr<GuideAvailabilityResultDto>>;
 
 public sealed class CheckGuideAvailabilityQueryValidator : AbstractValidator<CheckGuideAvailabilityQuery>
 {

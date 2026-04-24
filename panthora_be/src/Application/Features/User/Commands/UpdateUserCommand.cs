@@ -4,15 +4,16 @@ using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
 
 public sealed record UpdateUserCommand(
-    Guid Id,
-    List<UserDepartmentInfo> Departments,
-    List<int> RoleIds,
-    string FullName,
-    string Avatar) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
+    [property: JsonPropertyName("roleIds")] List<int> RoleIds,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("avatar")] string Avatar) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
 }

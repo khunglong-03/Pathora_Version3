@@ -4,10 +4,11 @@ using Application.Features.GuestArrival.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record GetGuestArrivalsByHotelQuery(
-    Guid SupplierId,
-    GuestStayStatus? Status = null,
-    DateOnly? DateFrom = null,
-    DateOnly? DateTo = null)
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("status")] GuestStayStatus? Status = null,
+    [property: JsonPropertyName("dateFrom")] DateOnly? DateFrom = null,
+    [property: JsonPropertyName("dateTo")] DateOnly? DateTo = null)
     : IQuery<ErrorOr<List<GuestArrivalListDto>>>;

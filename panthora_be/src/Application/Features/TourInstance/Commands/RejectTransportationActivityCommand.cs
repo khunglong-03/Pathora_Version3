@@ -7,6 +7,7 @@ using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
 using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
@@ -16,10 +17,9 @@ namespace Application.Features.TourInstance.Commands;
 /// the instance back to PendingApproval if it was Available.
 /// </summary>
 public sealed record RejectTransportationActivityCommand(
-    Guid InstanceId,
-    Guid ActivityId,
-    string? Note = null
-) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("activityId")] Guid ActivityId,
+    [property: JsonPropertyName("note")] string? Note = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }

@@ -7,13 +7,14 @@ using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
 
 public sealed record GetMyTourRequestsQuery(
-    string CurrentUserId,
-    int PageNumber = 1,
-    int PageSize = 10) : IQuery<ErrorOr<PaginatedList<TourRequestVm>>>, ICacheable
+    [property: JsonPropertyName("currentUserId")] string CurrentUserId,
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10) : IQuery<ErrorOr<PaginatedList<TourRequestVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourRequest}:my:{CurrentUserId}:{PageNumber}:{PageSize}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);

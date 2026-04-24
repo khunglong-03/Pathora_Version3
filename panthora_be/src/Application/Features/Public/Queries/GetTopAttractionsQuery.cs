@@ -6,10 +6,13 @@ using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Entities.Translations;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetTopAttractionsQuery(int Limit = 8, string? Language = null) : IQuery<ErrorOr<List<TopAttractionVm>>>, ICacheable
+public sealed record GetTopAttractionsQuery(
+    [property: JsonPropertyName("limit")] int Limit = 8,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<TopAttractionVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

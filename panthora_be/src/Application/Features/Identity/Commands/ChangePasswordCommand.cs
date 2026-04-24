@@ -4,10 +4,13 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
-public sealed record ChangePasswordCommand(string OldPassword, string NewPassword)
+public sealed record ChangePasswordCommand(
+    [property: JsonPropertyName("oldPassword")] string OldPassword,
+    [property: JsonPropertyName("newPassword")] string NewPassword)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];

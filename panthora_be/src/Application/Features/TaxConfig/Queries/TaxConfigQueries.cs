@@ -4,6 +4,7 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TaxConfig.Queries;
 
@@ -20,7 +21,7 @@ public sealed class GetAllTaxConfigsQueryHandler(ITaxConfigService taxConfigServ
     }
 }
 
-public sealed record GetTaxConfigByIdQuery(Guid Id) : IQuery<ErrorOr<TaxConfigResponse?>>;
+public sealed record GetTaxConfigByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<TaxConfigResponse?>>;
 
 public sealed class GetTaxConfigByIdQueryValidator : AbstractValidator<GetTaxConfigByIdQuery>
 {

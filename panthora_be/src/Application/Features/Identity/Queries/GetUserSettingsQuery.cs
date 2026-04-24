@@ -6,10 +6,11 @@ using Contracts.Interfaces;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Queries;
 
-public sealed record GetUserSettingsQuery(string CurrentUserId)
+public sealed record GetUserSettingsQuery([property: JsonPropertyName("currentUserId")] string CurrentUserId)
     : IQuery<ErrorOr<UserSettingVm>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:settings:{CurrentUserId}";

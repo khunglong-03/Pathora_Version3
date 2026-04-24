@@ -5,11 +5,11 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using Application.Features.TransportProvider.Drivers.DTOs;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
-public sealed record GetDriversQuery(Guid CurrentUserId)
+public sealed record GetDriversQuery([property: JsonPropertyName("currentUserId")] Guid CurrentUserId)
     : IQuery<ErrorOr<List<DriverResponseDto>>>;
 
 public sealed record GetDriverByIdQuery(
-    Guid CurrentUserId,
-    Guid DriverId
-) : IQuery<ErrorOr<DriverResponseDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("driverId")] Guid DriverId) : IQuery<ErrorOr<DriverResponseDto>>;

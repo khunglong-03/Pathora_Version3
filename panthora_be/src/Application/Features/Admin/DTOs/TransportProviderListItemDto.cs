@@ -1,17 +1,17 @@
 namespace Application.Features.Admin.DTOs;
 
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 public sealed record TransportProviderListItemDto(
-    Guid Id,
-    string FullName,
-    string Email,
-    string? PhoneNumber,
-    string? AvatarUrl,
-    UserStatus Status,
-    int VehicleCount,
-    List<string> Continents,
-    string? PrimaryContinent,
-    string? Address,
-    int BookingCount
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("phoneNumber")] string? PhoneNumber,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("status")] UserStatus Status,
+    [property: JsonPropertyName("vehicleCount")] int VehicleCount,
+    [property: JsonPropertyName("continents")] List<string> Continents,
+    [property: JsonPropertyName("primaryContinent")] string? PrimaryContinent,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("bookingCount")] int BookingCount);

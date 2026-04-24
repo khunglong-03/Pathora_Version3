@@ -6,21 +6,21 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Insurance.Commands;
 
 // Create
 public sealed record CreateInsuranceCommand(
-    string InsuranceName,
-    InsuranceType InsuranceType,
-    string InsuranceProvider,
-    string CoverageDescription,
-    decimal CoverageAmount,
-    decimal CoverageFee,
-    Guid TourClassificationId,
-    bool IsOptional = false,
-    string? Note = null
-) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("insuranceName")] string InsuranceName,
+    [property: JsonPropertyName("insuranceType")] InsuranceType InsuranceType,
+    [property: JsonPropertyName("insuranceProvider")] string InsuranceProvider,
+    [property: JsonPropertyName("coverageDescription")] string CoverageDescription,
+    [property: JsonPropertyName("coverageAmount")] decimal CoverageAmount,
+    [property: JsonPropertyName("coverageFee")] decimal CoverageFee,
+    [property: JsonPropertyName("tourClassificationId")] Guid TourClassificationId,
+    [property: JsonPropertyName("isOptional")] bool IsOptional = false,
+    [property: JsonPropertyName("note")] string? Note = null) : ICommand<ErrorOr<Guid>>;
 
 public sealed class CreateInsuranceCommandValidator : AbstractValidator<CreateInsuranceCommand>
 {
@@ -63,16 +63,15 @@ public sealed class CreateInsuranceCommandHandler(
 
 // Update
 public sealed record UpdateInsuranceCommand(
-    Guid Id,
-    string InsuranceName,
-    InsuranceType InsuranceType,
-    string InsuranceProvider,
-    string CoverageDescription,
-    decimal CoverageAmount,
-    decimal CoverageFee,
-    bool IsOptional = false,
-    string? Note = null
-) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("insuranceName")] string InsuranceName,
+    [property: JsonPropertyName("insuranceType")] InsuranceType InsuranceType,
+    [property: JsonPropertyName("insuranceProvider")] string InsuranceProvider,
+    [property: JsonPropertyName("coverageDescription")] string CoverageDescription,
+    [property: JsonPropertyName("coverageAmount")] decimal CoverageAmount,
+    [property: JsonPropertyName("coverageFee")] decimal CoverageFee,
+    [property: JsonPropertyName("isOptional")] bool IsOptional = false,
+    [property: JsonPropertyName("note")] string? Note = null) : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateInsuranceCommandValidator : AbstractValidator<UpdateInsuranceCommand>
 {
@@ -117,7 +116,7 @@ public sealed class UpdateInsuranceCommandHandler(
 }
 
 // Delete (soft delete)
-public sealed record DeleteInsuranceCommand(Guid Id) : ICommand<ErrorOr<Success>>;
+public sealed record DeleteInsuranceCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class DeleteInsuranceCommandValidator : AbstractValidator<DeleteInsuranceCommand>
 {

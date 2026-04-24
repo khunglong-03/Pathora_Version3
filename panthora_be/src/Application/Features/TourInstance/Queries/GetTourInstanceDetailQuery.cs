@@ -4,10 +4,11 @@ using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
 
-public sealed record GetTourInstanceDetailQuery(Guid Id) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable
+public sealed record GetTourInstanceDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourInstance}:detail:{Id}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);

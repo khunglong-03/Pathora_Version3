@@ -6,10 +6,11 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using Domain.Common.Repositories;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetHomeStatsQuery(string? Language = null) : IQuery<ErrorOr<HomeStatsVm>>, ICacheable
+public sealed record GetHomeStatsQuery([property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<HomeStatsVm>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

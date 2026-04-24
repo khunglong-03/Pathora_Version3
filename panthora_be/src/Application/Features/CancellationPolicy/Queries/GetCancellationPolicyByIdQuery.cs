@@ -4,10 +4,11 @@ using BuildingBlocks.CORS;
 using Application.Common.Constant;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.CancellationPolicy.Queries;
 
-public sealed record GetCancellationPolicyByIdQuery(Guid Id) : IQuery<ErrorOr<CancellationPolicyResponse>>;
+public sealed record GetCancellationPolicyByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<CancellationPolicyResponse>>;
 
 public sealed class GetCancellationPolicyByIdQueryValidator : AbstractValidator<GetCancellationPolicyByIdQuery>
 {

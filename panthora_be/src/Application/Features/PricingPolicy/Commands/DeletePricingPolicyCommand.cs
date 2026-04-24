@@ -4,10 +4,11 @@ using Contracts;
 using Application.Common.Constant;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
 
-public sealed record DeletePricingPolicyCommand(Guid Id) : ICommand<ErrorOr<Success>>;
+public sealed record DeletePricingPolicyCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class DeletePricingPolicyCommandValidator : AbstractValidator<DeletePricingPolicyCommand>
 {

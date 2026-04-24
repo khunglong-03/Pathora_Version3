@@ -5,8 +5,8 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using Application.Features.TransportProvider.Vehicles.DTOs;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record CreateVehicleCommand(
-    Guid CurrentUserId,
-    CreateVehicleRequestDto Request
-) : ICommand<ErrorOr<VehicleResponseDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("request")] CreateVehicleRequestDto Request) : ICommand<ErrorOr<VehicleResponseDto>>;

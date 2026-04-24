@@ -10,14 +10,15 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record AssignVehicleToRouteCommand(
-    Guid InstanceId,
-    Guid RouteId,
-    Guid VehicleId,
-    Guid DriverId) : ICommand<ErrorOr<AssignVehicleToRouteResponseDto>>;
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("routeId")] Guid RouteId,
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid DriverId) : ICommand<ErrorOr<AssignVehicleToRouteResponseDto>>;
 
 public sealed class AssignVehicleToRouteCommandValidator : AbstractValidator<AssignVehicleToRouteCommand>
 {

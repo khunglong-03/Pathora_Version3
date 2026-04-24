@@ -4,14 +4,15 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
 public sealed record ExternalLoginCommand(
-    string ProviderKey,
-    string ProviderEmail,
-    string FullName,
-    string? Picture = null) : ICommand<ErrorOr<ExternalLoginResponse>>;
+    [property: JsonPropertyName("providerKey")] string ProviderKey,
+    [property: JsonPropertyName("providerEmail")] string ProviderEmail,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("picture")] string? Picture = null) : ICommand<ErrorOr<ExternalLoginResponse>>;
 
 public sealed class ExternalLoginCommandValidator : AbstractValidator<ExternalLoginCommand>
 {

@@ -4,10 +4,11 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
-public sealed record UpdateMyProfileCommand(UpdateMyProfileRequest Request)
+public sealed record UpdateMyProfileCommand([property: JsonPropertyName("request")] UpdateMyProfileRequest Request)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];

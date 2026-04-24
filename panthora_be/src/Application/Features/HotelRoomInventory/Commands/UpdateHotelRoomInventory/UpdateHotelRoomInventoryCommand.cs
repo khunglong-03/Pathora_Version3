@@ -3,8 +3,8 @@ namespace Application.Features.HotelRoomInventory.Commands.UpdateHotelRoomInvent
 using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record UpdateHotelRoomInventoryCommand(
-    Guid Id,
-    int TotalRooms
-) : ICommand<ErrorOr<HotelRoomInventoryDto>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("totalRooms")] int TotalRooms) : ICommand<ErrorOr<HotelRoomInventoryDto>>;

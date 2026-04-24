@@ -1,16 +1,16 @@
 namespace Application.Features.Admin.DTOs;
 
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 public sealed record UserListItemDto(
-    Guid Id,
-    string Username,
-    string? FullName,
-    string Email,
-    string? PhoneNumber,
-    string? AvatarUrl,
-    UserStatus Status,
-    VerifyStatus VerifyStatus,
-    List<string> Roles,
-    string? Role = null
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("username")] string Username,
+    [property: JsonPropertyName("fullName")] string? FullName,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("phoneNumber")] string? PhoneNumber,
+    [property: JsonPropertyName("avatarUrl")] string? AvatarUrl,
+    [property: JsonPropertyName("status")] UserStatus Status,
+    [property: JsonPropertyName("verifyStatus")] VerifyStatus VerifyStatus,
+    [property: JsonPropertyName("roles")] List<string> Roles,
+    [property: JsonPropertyName("role")] string? Role = null);

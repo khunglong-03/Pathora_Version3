@@ -5,10 +5,13 @@ using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetPublicTourInstanceDetailQuery(Guid Id, string? Language = null) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable
+public sealed record GetPublicTourInstanceDetailQuery(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

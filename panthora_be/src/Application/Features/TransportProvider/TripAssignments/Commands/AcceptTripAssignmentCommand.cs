@@ -5,9 +5,9 @@ using BuildingBlocks.CORS;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 public sealed record AcceptTripAssignmentCommand(
-    Guid CurrentUserId,
-    Guid AssignmentId,
-    AcceptTripAssignmentRequestDto Request
-) : ICommand<ErrorOr<TripAssignmentDetailDto>>;
+    [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
+    [property: JsonPropertyName("assignmentId")] Guid AssignmentId,
+    [property: JsonPropertyName("request")] AcceptTripAssignmentRequestDto Request) : ICommand<ErrorOr<TripAssignmentDetailDto>>;

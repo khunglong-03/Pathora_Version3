@@ -9,10 +9,13 @@ using Domain.Entities.Translations;
 using BuildingBlocks.CORS;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetPublicTourDetailQuery(Guid Id, string? Language = null) : IQuery<ErrorOr<TourDto>>, ICacheable
+public sealed record GetPublicTourDetailQuery(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<TourDto>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 

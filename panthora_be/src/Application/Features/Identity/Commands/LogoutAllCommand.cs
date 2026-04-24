@@ -2,6 +2,7 @@ using Application.Contracts.Identity;
 using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 

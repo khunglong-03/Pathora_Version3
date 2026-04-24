@@ -1,7 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.Manager;
 
 public sealed record UpdateMyBankAccountRequest(
-    string BankAccountNumber,
-    string BankCode,
-    string? BankAccountName
-);
+    [property: JsonPropertyName("bankAccountNumber")] string BankAccountNumber,
+    [property: JsonPropertyName("bankCode")] string BankCode,
+    [property: JsonPropertyName("bankAccountName")] string? BankAccountName);

@@ -4,12 +4,13 @@ using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
 
 public sealed record UpdateTourStatusCommand(
-    Guid Id,
-    TourStatus Status) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("status")] TourStatus Status) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }

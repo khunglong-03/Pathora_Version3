@@ -6,16 +6,16 @@ using BuildingBlocks.CORS;
 using Domain.Entities.Translations;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.DepositPolicy.Commands;
 
 public sealed record CreateDepositPolicyCommand(
-    int TourScope,
-    int DepositType,
-    decimal DepositValue,
-    int MinDaysBeforeDeparture,
-    Dictionary<string, DepositPolicyTranslationData>? Translations = null
-) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("tourScope")] int TourScope,
+    [property: JsonPropertyName("depositType")] int DepositType,
+    [property: JsonPropertyName("depositValue")] decimal DepositValue,
+    [property: JsonPropertyName("minDaysBeforeDeparture")] int MinDaysBeforeDeparture,
+    [property: JsonPropertyName("translations")] Dictionary<string, DepositPolicyTranslationData>? Translations = null) : ICommand<ErrorOr<Guid>>;
 
 public sealed class CreateDepositPolicyCommandValidator : AbstractValidator<CreateDepositPolicyCommand>
 {
@@ -54,14 +54,13 @@ public sealed class CreateDepositPolicyCommandHandler(IDepositPolicyService depo
 }
 
 public sealed record UpdateDepositPolicyCommand(
-    Guid Id,
-    int TourScope,
-    int DepositType,
-    decimal DepositValue,
-    int MinDaysBeforeDeparture,
-    bool IsActive,
-    Dictionary<string, DepositPolicyTranslationData>? Translations = null
-) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("tourScope")] int TourScope,
+    [property: JsonPropertyName("depositType")] int DepositType,
+    [property: JsonPropertyName("depositValue")] decimal DepositValue,
+    [property: JsonPropertyName("minDaysBeforeDeparture")] int MinDaysBeforeDeparture,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("translations")] Dictionary<string, DepositPolicyTranslationData>? Translations = null) : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateDepositPolicyCommandValidator : AbstractValidator<UpdateDepositPolicyCommand>
 {
@@ -104,7 +103,7 @@ public sealed class UpdateDepositPolicyCommandHandler(IDepositPolicyService depo
     }
 }
 
-public sealed record DeleteDepositPolicyCommand(Guid Id) : ICommand<ErrorOr<Success>>;
+public sealed record DeleteDepositPolicyCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class DeleteDepositPolicyCommandValidator : AbstractValidator<DeleteDepositPolicyCommand>
 {
