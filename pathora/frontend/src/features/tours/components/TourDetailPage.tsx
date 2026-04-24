@@ -486,6 +486,13 @@ export function TourDetailPage() {
                     : t("landing.tourDetail.none", "None")
                 }
               />
+              {tour.isVisa && (
+                <InfoPill
+                  icon="heroicons:identification"
+                  label={t("tourAdmin.visa.label", "Visa")}
+                  value={t("landing.tourDetail.visaRequired", "Cần Visa")}
+                />
+              )}
             </div>
 
             {/* Tabs: Overview / Itinerary */}

@@ -10,4 +10,5 @@ public sealed record TourVm(
     [property: JsonPropertyName("shortDescription")] string ShortDescription,
     [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail,
-    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc);
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false);

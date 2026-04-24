@@ -32,6 +32,7 @@ public sealed record UpdateTourCommand(
     [property: JsonPropertyName("tourScope")] TourScope TourScope = TourScope.Domestic,
     [property: JsonPropertyName("continent")] Continent? Continent = null,
     [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false,
     [property: JsonPropertyName("ifUnmodifiedSince")] DateTimeOffset? IfUnmodifiedSince = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
@@ -45,6 +46,5 @@ public sealed class UpdateTourCommandHandler(ITourService tourService)
         return await tourService.Update(request, isManager: false);
     }
 }
-
 
 

@@ -26,6 +26,7 @@ export const basicInfoSchema = z.object({
     .optional(),
   status: z.string().min(1, "Status là bắt buộc"),
   tourScope: z.string().optional(),
+  isVisa: z.boolean().default(false),
   continent: z.string().optional(),
   customerSegment: z.string().optional(),
 });

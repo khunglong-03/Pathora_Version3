@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import Icon from "@/components/ui/Icon";
+import Checkbox from "@/components/ui/Checkbox";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import TourImageUpload from "@/components/ui/TourImageUpload";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
@@ -145,6 +146,7 @@ interface BasicInfoForm {
   seoDescription: string;
   status: string;
   tourScope: string;
+  isVisa: boolean;
   continent: string;
   customerSegment: string;
 }
@@ -463,6 +465,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     seoDescription: "",
     status: "3",
     tourScope: "1",
+    isVisa: false,
     continent: "",
     customerSegment: "2",
   });
@@ -577,7 +580,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         t("toast.draftRestoreConfirm", "A draft was found from your previous session. Do you want to restore it?"),
       );
       if (confirmed) {
-        setBasicInfo(draft.basicInfo);
+        setBasicInfo({ ...draft.basicInfo, isVisa: Boolean(draft.basicInfo.isVisa) });
         if (draft.selectedPricingPolicyId) setSelectedPricingPolicyId(draft.selectedPricingPolicyId);
         if (draft.selectedDepositPolicyId) setSelectedDepositPolicyId(draft.selectedDepositPolicyId);
         if (draft.selectedCancellationPolicyId) setSelectedCancellationPolicyId(draft.selectedCancellationPolicyId);
@@ -607,6 +610,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       seoDescription: tour.seoDescription ?? "",
       status: statusStr,
       tourScope: tour.tourScope != null ? String(tour.tourScope) : "1",
+      isVisa: tour.tourScope != null && String(tour.tourScope) === "2" ? Boolean(tour.isVisa) : false,
       continent: tour.continent != null ? String(tour.continent) : "",
       customerSegment: tour.customerSegment != null ? String(tour.customerSegment) : "2",
     });
@@ -652,7 +656,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             enDescription: act.translations?.en?.description ?? "",
             note: act.note ?? "",
             enNote: act.translations?.en?.note ?? "",
-            estimatedCost: String(act.estimatedCost ?? ""),
+            estimatedCost: String(act.estimatedCost ?? act.price ?? ""),
             isOptional: act.isOptional ?? false,
             startTime: act.startTime ?? "",
             endTime: act.endTime ?? "",
@@ -1498,7 +1502,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       {/* Top Bar */}
       <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between px-4 sm:px-6 h-16">
-          <div>
+          <div className="pl-12 lg:pl-0">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               {isEditMode
                 ? t("tourAdmin.editPage.title", "Edit Tour")
@@ -1508,7 +1512,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               {t("tourAdmin.createPage.stepOf", { current: currentStep + 1, total: WIZARD_STEPS.length })}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pr-16 lg:pr-20">
             <button
               onClick={() => onCancel?.()}
               disabled={saving}
@@ -1623,6 +1627,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         ...prev,
                         tourScope: e.target.value,
                         continent: e.target.value === "1" ? "" : prev.continent,
+                        isVisa: e.target.value === "1" ? false : prev.isVisa,
                       }))
                     }
                     className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
@@ -1671,6 +1676,22 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     <option value="5">{t("tourAdmin.continent.oceania")}</option>
                     <option value="6">{t("tourAdmin.continent.antarctica")}</option>
                   </select>
+                  <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50/70 px-3 py-2.5 dark:border-orange-500/30 dark:bg-orange-500/10">
+                    <Checkbox
+                      id="tour-is-visa"
+                      name="isVisa"
+                      value={basicInfo.isVisa}
+                      onChange={() =>
+                        setBasicInfo((prev) => ({ ...prev, isVisa: !prev.isVisa }))
+                      }
+                      activeClass="ring-orange-500 bg-orange-500 dark:bg-orange-500 dark:ring-orange-400"
+                      label={
+                        <span className="font-medium text-slate-700 dark:text-slate-200">
+                          {t("tourAdmin.visa.label")}
+                        </span>
+                      }
+                    />
+                  </div>
                 </div>
               )}
 
@@ -2802,18 +2823,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        Giá phương tiện ($)
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        value={act.price || ""}
-                                        onChange={(e) => updateActivity(ci, di, ai, "price", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
+
                                   </div>
                                 )}
 

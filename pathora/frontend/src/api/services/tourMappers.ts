@@ -36,6 +36,7 @@ export const normalizeTourListItem = (tour: Partial<TourVm>): TourVm => {
     status: normalizeTourStatus(tour.status),
     thumbnail: normalizeThumbnail(tour.thumbnail),
     createdOnUtc: tour.createdOnUtc ?? "",
+    isVisa: Boolean(tour.isVisa),
   };
 };
 
@@ -64,5 +65,6 @@ export const mapTourVmToSearchTour = (tour: TourVm): SearchTour => {
     basePrice: 0, // Not available in TourVm
     classificationName: null, // Not available in TourVm
     rating: null, // Not available in TourVm
+    isVisa: Boolean(tour.isVisa),
   };
 };

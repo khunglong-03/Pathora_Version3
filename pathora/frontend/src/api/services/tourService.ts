@@ -47,6 +47,7 @@ const normalizeTourDetail = (tour: TourDto): TourDto => {
   return {
     ...tour,
     status: normalizedStatus,
+    isVisa: Boolean(tour.isVisa),
     classifications: (tour.classifications ?? []).map(normalizeClassification),
   };
 };

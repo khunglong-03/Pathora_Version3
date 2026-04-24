@@ -12,6 +12,7 @@ interface BasicInfoPayload {
   seoDescription: string;
   status: string;
   tourScope?: string;
+  isVisa?: boolean;
   continent?: string;
   customerSegment?: string;
 }
@@ -372,7 +373,7 @@ const buildClassificationsPayload = (
           transportationName: activity.activityType === "7" ? (activity.transportationName || null) : null,
           enTransportationName: activity.activityType === "7" ? (activity.enTransportationName || null) : null,
           durationMinutes: activity.activityType === "7" ? parseIntValue(activity.durationMinutes, 0) : null,
-          price: activity.activityType === "7" ? parseDecimal(activity.price, 0) : null,
+          price: activity.activityType === "7" ? parseDecimal(activity.estimatedCost, 0) : null,
           accommodation: isAccommodation ? {
             accommodationName: activity.locationName || activity.title,
             address: activity.locationAddress || "",
@@ -496,6 +497,7 @@ export const buildTourFormData = ({
       seoDescription: basicInfo.seoDescription ?? "",
       status: basicInfo.status,
       tourScope: basicInfo.tourScope ?? "",
+      isVisa: basicInfo.tourScope === "2" ? Boolean(basicInfo.isVisa) : false,
       continent: basicInfo.continent ?? "",
       customerSegment: basicInfo.customerSegment ?? "",
     },
@@ -543,6 +545,7 @@ export const buildTourFormData = ({
   if (basicInfo.tourScope) {
     formData.append("tourScope", basicInfo.tourScope);
   }
+  formData.append("isVisa", basicInfo.tourScope === "2" && basicInfo.isVisa ? "true" : "false");
   if (basicInfo.continent) {
     formData.append("continent", basicInfo.continent);
   }

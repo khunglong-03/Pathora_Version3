@@ -53,6 +53,10 @@ public class TourConfiguration : IEntityTypeConfiguration<TourEntity>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(t => t.IsVisa)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(t => t.Continent)
             .HasConversion<string>()
             .HasMaxLength(50)

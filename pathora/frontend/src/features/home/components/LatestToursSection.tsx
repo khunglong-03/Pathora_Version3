@@ -81,6 +81,11 @@ const LatestToursSection = () => {
                       <div className="absolute top-3 left-3 bg-emerald-500/90 backdrop-blur-sm rounded-full px-3 py-1 text-[10px] font-bold text-white uppercase tracking-wider">
                         New
                       </div>
+                      {tour.isVisa && (
+                        <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#fa8b02] shadow-sm backdrop-blur-sm">
+                          {t("landing.tourDetail.visaRequired", "Cần Visa")}
+                        </div>
+                      )}
                     </div>
 
                     {/* Content */}

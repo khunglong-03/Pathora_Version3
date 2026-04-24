@@ -1558,6 +1558,9 @@
     "notFound": "Không tìm thấy tour",
     "required": "Bắt buộc",
     "invalidPrice": "Giá không hợp lệ",
+    "visa": {
+      "label": "Yêu cầu Visa"
+    },
     "validation": {
       "invalidBasePrice": "Giá gốc không hợp lệ",
       "atLeastOneImage": "Cần ít nhất một hình ảnh",
@@ -3379,6 +3382,7 @@
       "package": "Gói",
       "plans": "Kế hoạch",
       "insurance": "Bảo hiểm",
+      "visaRequired": "Cần Visa",
       "included": "đã bao gồm",
       "none": "Không có",
       "overview": "Tổng Quan",

@@ -163,6 +163,7 @@ interface BasicInfoForm {
   seoDescription: string;
   status: string;
   tourScope: string;
+  isVisa: boolean;
   continent: string;
   customerSegment: string;
 }
@@ -376,6 +377,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         seoDescription: "",
         status: "3",
         tourScope: "1",
+        isVisa: false,
         continent: "",
         customerSegment: "2",
       },
@@ -464,6 +466,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     seoDescription: "",
     status: "3",
     tourScope: "1",
+    isVisa: false,
     continent: "",
     customerSegment: "2",
   });
@@ -573,7 +576,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         t("toast.draftRestoreConfirm", "A draft was found from your previous session. Do you want to restore it?"),
       );
       if (confirmed) {
-        setBasicInfo(draft.basicInfo);
+        setBasicInfo({ ...draft.basicInfo, isVisa: Boolean(draft.basicInfo.isVisa) });
         if (draft.selectedPricingPolicyId) setSelectedPricingPolicyId(draft.selectedPricingPolicyId);
         if (draft.selectedDepositPolicyId) setSelectedDepositPolicyId(draft.selectedDepositPolicyId);
         if (draft.selectedCancellationPolicyId) setSelectedCancellationPolicyId(draft.selectedCancellationPolicyId);
@@ -603,6 +606,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       seoDescription: tour.seoDescription ?? "",
       status: statusStr,
       tourScope: tour.tourScope != null ? String(tour.tourScope) : "1",
+      isVisa: tour.tourScope != null && String(tour.tourScope) === "2" ? Boolean(tour.isVisa) : false,
       continent: tour.continent != null ? String(tour.continent) : "",
       customerSegment: tour.customerSegment != null ? String(tour.customerSegment) : "2",
     });

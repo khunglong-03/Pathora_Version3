@@ -13,6 +13,7 @@ type FeaturedTile = {
   price: string;
   rating: number;
   image: string;
+  isVisa: boolean;
   size: "large" | "medium" | "wide";
 };
 
@@ -26,6 +27,7 @@ const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
     price: `$${tour.basePrice.toLocaleString()}`,
     rating: Number((tour.rating ?? 4.8).toFixed(1)),
     image: tour.thumbnail || getFallbackImage(index),
+    isVisa: tour.isVisa,
     size: index === 0 ? "large" : index === 3 ? "wide" : "medium",
   }));
 
@@ -136,6 +138,8 @@ export const BoldFeaturedTrips = () => {
                     title={tour.name}
                     subtitle={tour.duration}
                     badge={`${tour.rating}★`}
+                    visaRequired={tour.isVisa}
+                    visaLabel={t("landing.tourDetail.visaRequired", "Cần Visa")}
                     price={tour.price}
                     href="/tours"
                     height={tour.size === "large" ? "h-full" : "h-[300px]"}

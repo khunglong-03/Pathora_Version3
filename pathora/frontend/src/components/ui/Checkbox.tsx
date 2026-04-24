@@ -33,7 +33,7 @@ const Checkbox = ({
     >
       <input
         type="checkbox"
-        className="sr-only"
+        className="peer sr-only"
         name={name}
         checked={value}
         onChange={onChange}
@@ -42,7 +42,7 @@ const Checkbox = ({
         aria-checked={value}
       />
       <span
-        className={`relative inline-flex h-4 w-4 mt-1 flex-none rounded border border-slate-100 transition-all duration-150 ltr:mr-3 rtl:ml-3 dark:border-slate-800 ${
+        className={`relative inline-flex h-4 w-4 mt-1 flex-none rounded border border-slate-100 transition-all duration-150 ltr:mr-3 rtl:ml-3 dark:border-slate-800 peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-white dark:peer-focus-visible:ring-offset-slate-800 ${
           value
             ? `${activeClass} ring-2 ring-offset-2 dark:ring-offset-slate-800`
             : "bg-slate-100 dark:border-slate-600 dark:bg-slate-600"

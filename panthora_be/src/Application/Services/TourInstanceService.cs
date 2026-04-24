@@ -239,7 +239,16 @@ public class TourInstanceService(
                     note: templateActivity.Note ?? "",
                     startTime: templateActivity.StartTime,
                     endTime: templateActivity.EndTime,
-                    isOptional: templateActivity.IsOptional
+                    isOptional: templateActivity.IsOptional,
+                    // Transport plan fields — copy from template
+                    fromLocationId: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.FromLocationId : null,
+                    toLocationId: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.ToLocationId : null,
+                    transportationType: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationType : null,
+                    transportationName: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationName : null,
+                    durationMinutes: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.DurationMinutes : null,
+                    distanceKm: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.DistanceKm : null,
+                    price: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.Price : null,
+                    bookingReference: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.BookingReference : null
                 );
 
                 switch (templateActivity.ActivityType)
@@ -254,14 +263,6 @@ public class TourInstanceService(
                         );
                         break;
                     case TourDayActivityType.Transportation:
-                        instanceActivity.FromLocationId = templateActivity.FromLocationId;
-                        instanceActivity.ToLocationId = templateActivity.ToLocationId;
-                        instanceActivity.TransportationType = templateActivity.TransportationType;
-                        instanceActivity.TransportationName = templateActivity.TransportationName;
-                        instanceActivity.DurationMinutes = templateActivity.DurationMinutes;
-                        instanceActivity.DistanceKm = templateActivity.DistanceKm;
-                        instanceActivity.Price = templateActivity.Price;
-                        instanceActivity.BookingReference = templateActivity.BookingReference;
                         instanceActivity.VehicleId = assignedData?.VehicleId;
                         // Per-activity transport plan fields
                         if (assignedData?.TransportSupplierId.HasValue == true)

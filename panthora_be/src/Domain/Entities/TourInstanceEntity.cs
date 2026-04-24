@@ -239,6 +239,23 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
+    /// True when every External transportation activity (no in-app supplier — flights, trains, ferries)
+    /// has been manually confirmed by Manager via <see cref="TourInstanceDayActivityEntity.ConfirmExternalTransport"/>.
+    /// External activities are identified by having <c>TransportSupplierId == null</c>.
+    /// Filters out soft-deleted days (ER-16).
+    /// </summary>
+    public bool AreAllExternalTransportConfirmed()
+    {
+        var externalTransportActivities = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation && !a.TransportSupplierId.HasValue)
+            .ToList();
+
+        return externalTransportActivities.Count == 0 || externalTransportActivities.All(a => a.ExternalTransportConfirmed);
+    }
+
+    /// <summary>
     /// Guards <see cref="MaxParticipation"/> increases: for every transportation activity that has
     /// already been Approved with a concrete vehicle, the resolved vehicle seat capacity must
     /// be at least <paramref name="newMaxParticipation"/> (ER-7).
@@ -289,17 +306,19 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
-    /// Check readiness: ALL transportation + ALL accommodation activities approved → Available.
+    /// Check readiness: ALL Ground transport approved + ALL External transport confirmed → Available.
+    /// Accommodation is NOT a gate — it uses lazy-assign model (BƯỚC 7 in lifecycle doc).
     /// Uses per-activity checks (no rollup). Replaces the old TransportProviderId-based check.
     /// </summary>
     public void CheckAndActivateTourInstance()
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool transportOk = AreAllTransportationApproved();
-        bool accommodationsOk = AreAllAccommodationsApproved();
+        bool transportGroundOk = AreAllTransportationApproved();
+        bool transportExternalOk = AreAllExternalTransportConfirmed();
 
-        if (transportOk && accommodationsOk)
+        // Accommodation is NOT checked here — lazy-assign per booking at BƯỚC 7.
+        if (transportGroundOk && transportExternalOk)
         {
             Status = TourInstanceStatus.Available;
             LastModifiedOnUtc = DateTimeOffset.UtcNow;

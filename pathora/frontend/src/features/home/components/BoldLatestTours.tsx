@@ -129,6 +129,11 @@ export const BoldLatestTours = () => {
                   <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-[#fb8b02]/90 text-white text-xs font-semibold">
                     {formatBadgeDate(tour.createdAt)}
                   </div>
+                  {tour.isVisa && (
+                    <div className="absolute top-3 left-3 rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#fb8b02] shadow-sm">
+                      {t("landing.tourDetail.visaRequired", "Cần Visa")}
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-slate-900 font-semibold text-sm mb-1 group-hover:text-[#fb8b02] transition-colors line-clamp-2">
                   {tour.tourName}

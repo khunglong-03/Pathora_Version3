@@ -92,7 +92,8 @@ public class TourController(
         [FromForm] string? services = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
-        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
+        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group,
+        [FromForm] bool isVisa = false)
     {
         // Validate JSON fields before processing
         var validationErrors = new Dictionary<string, string[]>();
@@ -162,7 +163,8 @@ public class TourController(
                 serviceData,
                 tourScope,
                 continent,
-                customerSegment);
+                customerSegment,
+                isVisa);
 
             var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
             var result = await tourService.Create(command, isManager);
@@ -210,7 +212,8 @@ public class TourController(
         [FromForm] string? deletedActivityIds = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
-        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
+        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group,
+        [FromForm] bool isVisa = false)
     {
         DateTimeOffset? parsedClientTimestamp = null;
         if (Request.Headers.TryGetValue("If-Unmodified-Since", out var unmodifiedSinceHeader)
@@ -315,7 +318,7 @@ public class TourController(
             seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
             classificationData, accommodationData, locationData, transportationData, serviceData,
             parsedDeletedClassificationIds, parsedDeletedPlanIds, parsedDeletedActivityIds,
-            tourScope, continent, customerSegment, parsedClientTimestamp);
+            tourScope, continent, customerSegment, isVisa, parsedClientTimestamp);
 
         var isManager = false;
         if (User.IsInRole("Admin") || User.IsInRole("Manager"))

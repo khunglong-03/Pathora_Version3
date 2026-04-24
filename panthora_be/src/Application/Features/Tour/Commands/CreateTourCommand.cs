@@ -30,7 +30,8 @@ public sealed record CreateTourCommand(
     [property: JsonPropertyName("services")] List<ServiceDto>? Services = null,
     [property: JsonPropertyName("tourScope")] TourScope TourScope = TourScope.Domestic,
     [property: JsonPropertyName("continent")] Continent? Continent = null,
-    [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }
@@ -151,6 +152,5 @@ public sealed class CreateTourCommandHandler(ITourService tourService)
         return await tourService.Create(request, isManager: false);
     }
 }
-
 
 

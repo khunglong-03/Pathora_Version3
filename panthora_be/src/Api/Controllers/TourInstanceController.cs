@@ -256,6 +256,23 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    /// <summary>
+    /// Manager confirms/unconfirms external transport (flights, trains, ferries).
+    /// External transport = Transportation activity WITHOUT a TransportSupplierId.
+    /// Required for instance activation per BƯỚC 4 in lifecycle doc.
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [HttpPost(TourInstanceEndpoint.ConfirmExternalTransport)]
+    public async Task<IActionResult> ConfirmExternalTransport(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] ConfirmExternalTransportRequest request)
+    {
+        var result = await Sender.Send(new ConfirmExternalTransportCommand(
+            instanceId, activityId, request.Confirm));
+        return HandleResult(result);
+    }
+
 }
 
 public sealed record ProviderApproveRequest(
@@ -299,3 +316,6 @@ public sealed record AssignRoomRequest(
 
 public sealed record ChangeTourInstanceStatusRequest(
     [property: JsonPropertyName("status")] TourInstanceStatus Status);
+
+public sealed record ConfirmExternalTransportRequest(
+    [property: JsonPropertyName("confirm")] bool Confirm = true);

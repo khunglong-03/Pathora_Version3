@@ -9,6 +9,8 @@ interface BoldTiltCardProps {
   title: string;
   subtitle?: string;
   badge?: string;
+  visaRequired?: boolean;
+  visaLabel?: string;
   price?: string;
   href: string;
   height?: string;
@@ -20,6 +22,8 @@ export const BoldTiltCard = ({
   title,
   subtitle,
   badge,
+  visaRequired = false,
+  visaLabel,
   price,
   href,
   height = "h-[360px]",
@@ -101,6 +105,12 @@ export const BoldTiltCard = ({
         {price && (
           <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-semibold">
             {price}
+          </div>
+        )}
+
+        {visaRequired && visaLabel && (
+          <div className="absolute left-4 top-14 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#fb8b02] shadow-sm backdrop-blur-sm">
+            {visaLabel}
           </div>
         )}
 

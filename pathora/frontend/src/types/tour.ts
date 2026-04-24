@@ -182,6 +182,7 @@ export interface TourDto {
   longDescription: string;
   status: number | string;
   tourScope?: number | string;
+  isVisa: boolean;
   continent?: string;
   customerSegment?: number;
   seoTitle: string | null;
@@ -217,6 +218,7 @@ export interface TourVm {
   status: string;
   thumbnail: ImageDto | null;
   createdOnUtc: string;
+  isVisa: boolean;
 }
 
 // Public tour list view model (used for By Tour view)
@@ -231,6 +233,7 @@ export interface SearchTourVm {
   salePrice: number;
   classificationName: string | null;
   rating: number | null;
+  isVisa: boolean;
   // Optional fields for admin page
   tourCode?: string;
   status?: string;

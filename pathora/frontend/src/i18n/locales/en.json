@@ -1558,6 +1558,9 @@
     "notFound": "Tour not found",
     "required": "Required",
     "invalidPrice": "Invalid price",
+    "visa": {
+      "label": "Visa Required"
+    },
     "validation": {
       "invalidBasePrice": "Invalid base price",
       "atLeastOneImage": "At least one image is required",
@@ -3346,6 +3349,7 @@
       "package": "Package",
       "plans": "Plans",
       "insurance": "Insurance",
+      "visaRequired": "Visa Required",
       "included": "included",
       "none": "None",
       "overview": "Overview",

@@ -67,6 +67,15 @@ export const TourCard = ({ tour }: TourCardProps) => {
                 </span>
               </div>
             )}
+
+            {tour.isVisa && (
+              <div className="absolute bottom-3 left-3 z-20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-[#fa8b02] shadow-sm backdrop-blur-md">
+                  <Icon icon="heroicons-outline:identification" className="size-3.5" />
+                  {t("tourDetail.visaRequired", "Cần Visa")}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

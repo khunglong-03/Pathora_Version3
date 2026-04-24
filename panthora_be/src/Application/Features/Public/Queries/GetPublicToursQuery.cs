@@ -57,7 +57,8 @@ public sealed class GetPublicToursQueryHandler(ITourRepository tourRepository)
                 classification?.NumberOfDay ?? 0,
                 classification?.BasePrice ?? 0,
                 classification?.Name,
-                0m);
+                0m,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<SearchTourVm>(totalCount, result, request.PageNumber, request.PageSize);

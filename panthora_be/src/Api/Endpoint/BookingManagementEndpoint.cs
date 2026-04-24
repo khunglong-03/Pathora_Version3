@@ -10,7 +10,9 @@ public static class BookingManagementEndpoint
     public const string Activities = "{id:guid}/activities";
     public const string ActivityDetail = "{id:guid}/activities/{activityId:guid}";
     public const string TransportDetails = "{id:guid}/transport-details";
+    public const string TransportDetailId = "{id:guid}/transport-details/{detailId:guid}";
     public const string AccommodationDetails = "{id:guid}/accommodation-details";
+    public const string AccommodationDetailId = "{id:guid}/accommodation-details/{detailId:guid}";
     public const string Participants = "{id:guid}/participants";
     public const string Payables = "{id:guid}/payables";
     public const string ActivityStatuses = "{id:guid}/activity-statuses";

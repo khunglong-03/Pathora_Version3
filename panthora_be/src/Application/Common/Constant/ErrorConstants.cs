@@ -75,6 +75,21 @@ public static class ErrorConstants
                 "This tour instance was modified by another user. Please refresh and try again.");
     }
 
+    public static class TourInstanceActivity
+    {
+        public const string NotFoundCode = "TourInstanceActivity.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Hoạt động không tồn tại trong tour instance này.", "Activity not found in this tour instance.");
+
+        public const string NotTransportationCode = "TourInstanceActivity.NotTransportation";
+        public static readonly LocalizedMessage NotTransportationDescription =
+            new("Chỉ có thể xác nhận vận chuyển External cho hoạt động loại Transportation.", "External transport confirmation is only allowed for Transportation activities.");
+
+        public const string NotExternalTransportCode = "TourInstanceActivity.NotExternalTransport";
+        public static readonly LocalizedMessage NotExternalTransportDescription =
+            new("Hoạt động này đã gán nhà xe trong app (Ground transport). Dùng flow approve thay vì confirm external.", "This activity is assigned to an in-app supplier (Ground transport). Use the approve flow instead of confirm external.");
+    }
+
     public static class TourRequest
     {
         public const string NotFoundCode = "TourRequest.NotFound";

@@ -51,7 +51,8 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
                 classification?.NumberOfDay ?? 0,
                 classification?.BasePrice ?? 0m,
                 null,
-                classification?.Name);
+                classification?.Name,
+                t.IsVisa);
         }).ToList();
 
         return result;
@@ -77,4 +78,3 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
         return location.City;
     }
 }
-

@@ -76,6 +76,18 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     /// </summary>
     public string? TransportationApprovalNote { get; set; }
 
+    // External transport confirmation (flights, trains, ferries — no in-app supplier)
+    /// <summary>
+    /// Manager manually confirms that external transport (flight/train/ferry) has been booked
+    /// outside the system. Required for activation gate (BƯỚC 4 in lifecycle doc).
+    /// Only meaningful when TransportSupplierId is NULL (External transport).
+    /// </summary>
+    public bool ExternalTransportConfirmed { get; set; } = false;
+    /// <summary>Timestamp when Manager confirmed external transport booking.</summary>
+    public DateTimeOffset? ExternalTransportConfirmedAt { get; set; }
+    /// <summary>UserId of Manager who confirmed external transport.</summary>
+    public string? ExternalTransportConfirmedBy { get; set; }
+
     public static TourInstanceDayActivityEntity Create(
         Guid tourInstanceDayId,
         int order,
@@ -86,7 +98,16 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         string? note = null,
         TimeOnly? startTime = null,
         TimeOnly? endTime = null,
-        bool isOptional = false)
+        bool isOptional = false,
+        // Transport plan fields — copied from TourDayActivity template
+        Guid? fromLocationId = null,
+        Guid? toLocationId = null,
+        TransportationType? transportationType = null,
+        string? transportationName = null,
+        int? durationMinutes = null,
+        decimal? distanceKm = null,
+        decimal? price = null,
+        string? bookingReference = null)
     {
         var entity = new TourInstanceDayActivityEntity
         {
@@ -100,6 +121,15 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
             IsOptional = isOptional,
             StartTime = startTime,
             EndTime = endTime,
+            // Transport plan data from template
+            FromLocationId = fromLocationId,
+            ToLocationId = toLocationId,
+            TransportationType = transportationType,
+            TransportationName = transportationName,
+            DurationMinutes = durationMinutes,
+            DistanceKm = distanceKm,
+            Price = price,
+            BookingReference = bookingReference,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
@@ -189,5 +219,43 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         TransportAssignments.Clear();
         TransportationApprovalStatus = ProviderApprovalStatus.Rejected;
         TransportationApprovalNote = note;
+    }
+
+    /// <summary>
+    /// Manager confirms that external transport (flight/train/ferry) has been booked outside the system.
+    /// Requires BookingReference and DepartureTime/ArrivalTime to be set.
+    /// After confirmation, caller should invoke <see cref="TourInstanceEntity.CheckAndActivateTourInstance"/>.
+    /// </summary>
+    public void ConfirmExternalTransport(string performedBy)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only confirm external transport on Transportation activities.");
+        if (TransportSupplierId.HasValue)
+            throw new InvalidOperationException("Cannot confirm as external — this activity has an in-app transport supplier (Ground). Use ApproveTransportation instead.");
+        if (string.IsNullOrWhiteSpace(BookingReference))
+            throw new InvalidOperationException("BookingReference is required before confirming external transport.");
+        if (!DepartureTime.HasValue || !ArrivalTime.HasValue)
+            throw new InvalidOperationException("DepartureTime and ArrivalTime are required before confirming external transport.");
+
+        ExternalTransportConfirmed = true;
+        ExternalTransportConfirmedAt = DateTimeOffset.UtcNow;
+        ExternalTransportConfirmedBy = performedBy;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Undo external transport confirmation (e.g., booking was cancelled externally).
+    /// </summary>
+    public void UnconfirmExternalTransport(string performedBy)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only unconfirm external transport on Transportation activities.");
+
+        ExternalTransportConfirmed = false;
+        ExternalTransportConfirmedAt = null;
+        ExternalTransportConfirmedBy = null;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 }

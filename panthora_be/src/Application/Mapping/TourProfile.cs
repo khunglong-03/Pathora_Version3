@@ -46,6 +46,7 @@ public sealed class TourProfile : Profile
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));
 
         CreateMap<TourEntity, TourDto>()
+            .ForMember(dest => dest.IsVisa, opt => opt.MapFrom(src => src.IsVisa))
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations))
             .ForMember(dest => dest.Services, opt => opt.MapFrom(src => src.Resources
                 .Where(r => r.Type == TourResourceType.Service)

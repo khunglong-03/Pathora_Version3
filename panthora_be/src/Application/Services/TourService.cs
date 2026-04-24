@@ -101,7 +101,8 @@ public class TourService(
             thumbnail: thumbnail,
             images: images,
             tourDesignerId: tourDesignerId,
-            continent: request.Continent);
+            continent: request.Continent,
+            isVisa: request.IsVisa);
 
             const int maxTourCodeGenerationAttempts = 10;
             var tourCodeGenerationAttempts = 0;
@@ -458,7 +459,8 @@ public class TourService(
             seoTitle: request.SEOTitle,
             seoDescription: request.SEODescription,
             tourDesignerId: tour.TourDesignerId,
-            continent: request.Continent);
+            continent: request.Continent,
+            isVisa: request.IsVisa);
 
         if (isResubmission)
         {
@@ -731,7 +733,8 @@ public class TourService(
                 translated.ShortDescription,
                 t.Status.ToString(),
                 ToImageDto(t.Thumbnail),
-                t.CreatedOnUtc);
+                t.CreatedOnUtc,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);
@@ -753,7 +756,8 @@ public class TourService(
                 translated.ShortDescription,
                 t.Status.ToString(),
                 ToImageDto(t.Thumbnail),
-                t.CreatedOnUtc);
+                t.CreatedOnUtc,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);

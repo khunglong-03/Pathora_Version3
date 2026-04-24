@@ -39,9 +39,9 @@ public sealed class GetLatestToursQueryHandler(ITourRepository tourRepository)
             t.TourName,
             t.Thumbnail?.PublicURL,
             t.ShortDescription,
-            t.CreatedOnUtc)).ToList();
+            t.CreatedOnUtc,
+            t.IsVisa)).ToList();
 
         return result;
     }
 }
-

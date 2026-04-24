@@ -75,11 +75,117 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpPost(BookingManagementEndpoint.TransportDetails)]
+    public async Task<IActionResult> CreateTransportDetail(Guid id, [FromBody] CreateTransportDetailRequest request)
+    {
+        var command = new CreateTransportDetailCommand(
+            request.BookingActivityReservationId,
+            request.SupplierId,
+            request.TransportType,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.TicketNumber,
+            request.ETicketNumber,
+            request.SeatNumber,
+            request.SeatCapacity,
+            request.SeatClass,
+            request.VehicleNumber,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
+    [HttpPut(BookingManagementEndpoint.TransportDetailId)]
+    public async Task<IActionResult> UpdateTransportDetail(Guid id, Guid detailId, [FromBody] UpdateTransportDetailRequest request)
+    {
+        var command = new UpdateTransportDetailCommand(
+            detailId,
+            request.SupplierId,
+            request.TransportType,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.TicketNumber,
+            request.ETicketNumber,
+            request.SeatNumber,
+            request.SeatCapacity,
+            request.SeatClass,
+            request.VehicleNumber,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Status,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleUpdated(result);
+    }
+
     [HttpGet(BookingManagementEndpoint.AccommodationDetails)]
     public async Task<IActionResult> GetAccommodationDetails(Guid id)
     {
         var result = await Sender.Send(new GetBookingAccommodationDetailsQuery(id));
         return HandleResult(result);
+    }
+
+    [HttpPost(BookingManagementEndpoint.AccommodationDetails)]
+    public async Task<IActionResult> CreateAccommodationDetail(Guid id, [FromBody] CreateAccommodationDetailRequest request)
+    {
+        var command = new CreateAccommodationDetailCommand(
+            request.BookingActivityReservationId,
+            request.SupplierId,
+            request.AccommodationName,
+            request.RoomType,
+            request.RoomCount,
+            request.BedType,
+            request.Address,
+            request.ContactPhone,
+            request.CheckInAt,
+            request.CheckOutAt,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.ConfirmationCode,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
+    [HttpPut(BookingManagementEndpoint.AccommodationDetailId)]
+    public async Task<IActionResult> UpdateAccommodationDetail(Guid id, Guid detailId, [FromBody] UpdateAccommodationDetailRequest request)
+    {
+        var command = new UpdateAccommodationDetailCommand(
+            detailId,
+            request.SupplierId,
+            request.AccommodationName,
+            request.RoomType,
+            request.RoomCount,
+            request.BedType,
+            request.Address,
+            request.ContactPhone,
+            request.CheckInAt,
+            request.CheckOutAt,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.ConfirmationCode,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Status,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleUpdated(result);
     }
 
     [HttpGet(BookingManagementEndpoint.Participants)]
@@ -296,4 +402,84 @@ public sealed record CreateSupplierPayableRequest(
 public sealed record UpdateTeamMemberRequest(
     AssignedRole AssignedRole,
     bool IsLead,
+    string? Note);
+
+// ---- BƯỚC 7a: Transport Detail (vé vận chuyển) ----
+
+public sealed record CreateTransportDetailRequest(
+    Guid BookingActivityReservationId,
+    Guid? SupplierId,
+    TransportType TransportType,
+    DateTimeOffset? DepartureAt,
+    DateTimeOffset? ArrivalAt,
+    string? TicketNumber,
+    string? ETicketNumber,
+    string? SeatNumber,
+    int SeatCapacity,
+    string? SeatClass,
+    string? VehicleNumber,
+    decimal BuyPrice,
+    decimal TaxRate,
+    bool IsTaxable,
+    string? FileUrl,
+    string? SpecialRequest,
+    string? Note);
+
+public sealed record UpdateTransportDetailRequest(
+    Guid? SupplierId,
+    TransportType TransportType,
+    DateTimeOffset? DepartureAt,
+    DateTimeOffset? ArrivalAt,
+    string? TicketNumber,
+    string? ETicketNumber,
+    string? SeatNumber,
+    int? SeatCapacity,
+    string? SeatClass,
+    string? VehicleNumber,
+    decimal? BuyPrice,
+    decimal? TaxRate,
+    bool? IsTaxable,
+    string? FileUrl,
+    string? SpecialRequest,
+    ReservationStatus? Status,
+    string? Note);
+
+// ---- BƯỚC 7b: Accommodation Detail (phòng lưu trú) ----
+
+public sealed record CreateAccommodationDetailRequest(
+    Guid BookingActivityReservationId,
+    Guid? SupplierId,
+    string AccommodationName,
+    RoomType RoomType,
+    int RoomCount,
+    string? BedType,
+    string? Address,
+    string? ContactPhone,
+    DateTimeOffset? CheckInAt,
+    DateTimeOffset? CheckOutAt,
+    decimal BuyPrice,
+    decimal TaxRate,
+    bool IsTaxable,
+    string? ConfirmationCode,
+    string? FileUrl,
+    string? SpecialRequest,
+    string? Note);
+
+public sealed record UpdateAccommodationDetailRequest(
+    Guid? SupplierId,
+    string AccommodationName,
+    RoomType RoomType,
+    int? RoomCount,
+    string? BedType,
+    string? Address,
+    string? ContactPhone,
+    DateTimeOffset? CheckInAt,
+    DateTimeOffset? CheckOutAt,
+    decimal? BuyPrice,
+    decimal? TaxRate,
+    bool? IsTaxable,
+    string? ConfirmationCode,
+    string? FileUrl,
+    string? SpecialRequest,
+    ReservationStatus? Status,
     string? Note);

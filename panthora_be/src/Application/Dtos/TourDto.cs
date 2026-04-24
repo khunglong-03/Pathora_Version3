@@ -28,6 +28,9 @@ public sealed record TourDto
     [JsonPropertyName("tourScope")]
     public TourScope TourScope { get; init; } = default;
 
+    [JsonPropertyName("isVisa")]
+    public bool IsVisa { get; init; }
+
     [JsonPropertyName("continent")]
     public Continent? Continent { get; init; }
 

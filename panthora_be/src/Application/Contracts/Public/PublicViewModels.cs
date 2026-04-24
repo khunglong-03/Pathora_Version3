@@ -11,14 +11,16 @@ public sealed record FeaturedTourVm(
     [property: JsonPropertyName("durationDays")] int DurationDays,
     [property: JsonPropertyName("basePrice")] decimal BasePrice,
     [property: JsonPropertyName("reviewRating")] decimal? ReviewRating,
-    [property: JsonPropertyName("classificationName")] string? ClassificationName);
+    [property: JsonPropertyName("classificationName")] string? ClassificationName,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false);
 
 public sealed record LatestTourVm(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("tourName")] string TourName,
     [property: JsonPropertyName("thumbnail")] string? Thumbnail,
     [property: JsonPropertyName("shortDescription")] string? ShortDescription,
-    [property: JsonPropertyName("createdAt")] DateTimeOffset CreatedAt);
+    [property: JsonPropertyName("createdAt")] DateTimeOffset CreatedAt,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false);
 
 public sealed record TrendingDestinationVm(
     [property: JsonPropertyName("city")] string City,
@@ -55,4 +57,5 @@ public sealed record SearchTourVm(
     [property: JsonPropertyName("durationDays")] int DurationDays,
     [property: JsonPropertyName("basePrice")] decimal BasePrice,
     [property: JsonPropertyName("classificationName")] string? ClassificationName,
-    [property: JsonPropertyName("rating")] decimal? Rating);
+    [property: JsonPropertyName("rating")] decimal? Rating,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false);
