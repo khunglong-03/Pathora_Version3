@@ -736,10 +736,10 @@ export function TourInstancePublicDetailPage() {
                                           <div
                                             className="rounded-lg px-3 py-2.5 text-[11px]"
                                             style={{ background: "var(--tour-surface-muted)", color: "var(--tour-body)" }}>
-                                            {activity.vehiclePlate ? (
+                                            {activity.vehicleType ? (
                                               <div className="flex flex-wrap items-center gap-2">
                                                 <Icon icon="heroicons:truck" className="size-3 shrink-0" style={{ color: "var(--tour-caption)" }} />
-                                                <span className="font-semibold font-mono">{activity.vehiclePlate}</span>
+                                                <span className="font-semibold font-mono">{activity.vehicleType}</span>
                                                 {activity.vehicleType && (
                                                   <span style={{ color: "var(--tour-caption)" }}>{activity.vehicleType}</span>
                                                 )}

@@ -118,9 +118,9 @@ describe("7.4: Non-manager blocked from /manager layout", () => {
  */
 describe("7.5: Unauthenticated redirect", () => {
   it("No auth cookies means unauthenticated", () => {
-    const authStatus = undefined;
     const accessToken = undefined;
-    const authenticated = Boolean(authStatus || accessToken);
+    const refreshToken = undefined;
+    const authenticated = Boolean(accessToken || refreshToken);
     expect(authenticated).toBe(false);
   });
 

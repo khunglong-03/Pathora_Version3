@@ -79,6 +79,7 @@ export interface TripAssignment {
   bookingReference: string;
   route: string;
   tripDate: string;
+  vehicleType: string;
   driverName: string;
   status: TripStatus;
   createdOnUtc: string;

@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { CreateTourInstancePage } from "../CreateTourInstancePage";
@@ -346,6 +346,10 @@ describe("CreateTourInstancePage", () => {
     vi.mocked(tourRequestService.getTourRequestDetail).mockResolvedValue(null as any);
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("shows the provider-first placeholder while no transport supplier is selected", async () => {
     await renderToInstanceDetailsStep();
 
@@ -354,6 +358,32 @@ describe("CreateTourInstancePage", () => {
     expect(getVehicleTypeOptionLabels()).toEqual([
       "Select a transport provider first",
     ]);
+  });
+
+  it("does not retry the admin tour endpoint after an auth failure", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      return;
+    });
+    vi.mocked(tourService.getMyTours).mockRejectedValueOnce({
+      isAxiosError: true,
+      response: {
+        status: 401,
+        data: {
+          code: "TOKEN_MISSING",
+          message: "Authentication required. Please provide a valid token.",
+          statusCode: 401,
+        },
+      },
+    });
+
+    render(<CreateTourInstancePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("error_response.UNAUTHORIZED")).toBeInTheDocument();
+    });
+
+    expect(tourService.getAdminTourManagement).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
   });
 
   it("filters to active supplier vehicle types and submits Bus as VehicleType 2", async () => {

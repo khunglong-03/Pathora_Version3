@@ -201,21 +201,32 @@ describe("middleware routing rules", () => {
 
   describe("unauthenticated access", () => {
     it("no auth cookies means unauthenticated", () => {
-      const authStatus = undefined;
       const accessToken = undefined;
-      const authenticated = Boolean(authStatus || accessToken);
+      const refreshToken = undefined;
+      const authenticated = Boolean(accessToken || refreshToken);
       expect(authenticated).toBe(false);
     });
 
-    it("only auth_status cookie means authenticated", () => {
+    it("only auth_status cookie means unauthenticated", () => {
       const authStatus = "1";
-      const authenticated = Boolean(authStatus);
-      expect(authenticated).toBe(true);
+      const accessToken = undefined;
+      const refreshToken = undefined;
+      const authenticated = Boolean(accessToken || refreshToken);
+      expect(authStatus).toBe("1");
+      expect(authenticated).toBe(false);
     });
 
     it("only access_token cookie means authenticated", () => {
       const accessToken = "some-jwt-token";
-      const authenticated = Boolean(accessToken);
+      const refreshToken = undefined;
+      const authenticated = Boolean(accessToken || refreshToken);
+      expect(authenticated).toBe(true);
+    });
+
+    it("only refresh_token cookie means authenticated", () => {
+      const accessToken = undefined;
+      const refreshToken = "some-refresh-token";
+      const authenticated = Boolean(accessToken || refreshToken);
       expect(authenticated).toBe(true);
     });
   });

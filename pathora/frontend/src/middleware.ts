@@ -80,7 +80,9 @@ const hasTourDesignerRole = (roles: string[]): boolean =>
   roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role));
 
 const hasTourGuideRole = (roles: string[]): boolean =>
-  roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));const isManagerRoutePath = (pathname: string): boolean => {
+  roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));
+
+const isManagerRoutePath = (pathname: string): boolean => {
   const MANAGER_ROUTE_PREFIXES = [
     "/manager",
     "/tour-management",
@@ -97,6 +99,13 @@ const hasTourGuideRole = (roles: string[]): boolean =>
 const PROVIDER_ROUTE_PREFIXES = ["/transport", "/hotel"];
 const TOUR_DESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
 const TOUR_GUIDE_ROUTE_PREFIXES = ["/tour-guide"];
+const AUTH_COOKIE_NAMES = [
+  "access_token",
+  "refresh_token",
+  "auth_status",
+  "auth_portal",
+  "auth_roles",
+] as const;
 
 const isProviderRoutePath = (pathname: string): boolean =>
   PROVIDER_ROUTE_PREFIXES.some(
@@ -116,6 +125,12 @@ const isTourGuideRoutePath = (pathname: string): boolean =>
 const isAdminRoutePath = (pathname: string): boolean =>
   pathname === "/admin" || pathname.startsWith("/admin/");
 
+const clearAuthCookies = (response: NextResponse): void => {
+  AUTH_COOKIE_NAMES.forEach((name) => {
+    response.cookies.delete(name);
+  });
+};
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -124,25 +139,34 @@ export function middleware(request: NextRequest) {
   }
 
   const existingLang = request.cookies.get("i18next")?.value;
-  if (!existingLang) {
-    const acceptLang = request.headers.get("accept-language");
-    const detectedLang = acceptLang ? normalizeLanguage(acceptLang) : DEFAULT_LANGUAGE;
-    const response = NextResponse.next();
-    response.cookies.set("i18next", detectedLang, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-    });
+  const acceptLang = request.headers.get("accept-language");
+  const detectedLang = existingLang
+    ? null
+    : acceptLang
+      ? normalizeLanguage(acceptLang)
+      : DEFAULT_LANGUAGE;
+  const finalizeResponse = (response: NextResponse): NextResponse => {
+    if (detectedLang) {
+      response.cookies.set("i18next", detectedLang, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      });
+    }
     return response;
-  }
+  };
+  const redirectTo = (path: string): NextResponse =>
+    finalizeResponse(NextResponse.redirect(new URL(path, request.url)));
 
   const authStatus = request.cookies.get("auth_status")?.value;
   const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
   const authPortal = request.cookies.get("auth_portal")?.value;
   const authRolesRaw = request.cookies.get("auth_roles")?.value;
   const { searchParams } = request.nextUrl;
 
-  const authenticated = Boolean(authStatus || accessToken);
+  const authenticated = Boolean(accessToken || refreshToken);
+  const hasStaleAuthMarker = Boolean(authStatus) && !authenticated;
   const adminPortal = isAdminPortal(authPortal);
   const authRoles = parseAuthRoles(authRolesRaw);
   const publicPath = isPublicPath(pathname);
@@ -161,24 +185,24 @@ export function middleware(request: NextRequest) {
 
   if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
-      return NextResponse.redirect(new URL("/admin/users", request.url));
+      return redirectTo("/admin/users");
     }
     if (hasManagerRole(authRoles)) {
-      return NextResponse.redirect(new URL("/manager", request.url));
+      return redirectTo("/manager");
     }
     if (hasHotelServiceProviderRole(authRoles)) {
-      return NextResponse.redirect(new URL("/hotel", request.url));
+      return redirectTo("/hotel");
     }
     if (hasTransportProviderRole(authRoles)) {
-      return NextResponse.redirect(new URL("/transport", request.url));
+      return redirectTo("/transport");
     }
     if (hasTourDesignerRole(authRoles)) {
-      return NextResponse.redirect(new URL("/tour-designer", request.url));
+      return redirectTo("/tour-designer");
     }
     if (hasTourGuideRole(authRoles)) {
-      return NextResponse.redirect(new URL("/tour-guide", request.url));
+      return redirectTo("/tour-guide");
     }
-    return NextResponse.redirect(new URL(USER_DEFAULT_PATH, request.url));
+    return redirectTo(USER_DEFAULT_PATH);
   }
 
   if (authenticated) {
@@ -186,17 +210,17 @@ export function middleware(request: NextRequest) {
     
     // Managers can't access admin routes
     if (hasManagerRole(authRoles) && pathname.startsWith("/admin/")) {
-      return NextResponse.redirect(new URL("/manager", request.url));
+      return redirectTo("/manager");
     }
 
     // Admins can't access manager routes
     if (hasAdminRole(authRoles) && isManagerRoutePath(pathname)) {
-      return NextResponse.redirect(new URL("/admin/users", request.url));
+      return redirectTo("/admin/users");
     }
 
     // Managers can't access customer routes
     if (hasManagerRole(authRoles) && pathname.startsWith("/manager/customers")) {
-      return NextResponse.redirect(new URL("/manager", request.url));
+      return redirectTo("/manager");
     }
 
     // Hotel providers must stay in hotel routes
@@ -206,7 +230,7 @@ export function middleware(request: NextRequest) {
       !isAdminRoutePath(pathname) &&
       !isManagerRoutePath(pathname)
     ) {
-      return NextResponse.redirect(new URL("/hotel", request.url));
+      return redirectTo("/hotel");
     }
 
     // Transport providers must stay in transport routes (except public paths)
@@ -217,41 +241,41 @@ export function middleware(request: NextRequest) {
       !isManagerRoutePath(pathname) &&
       !publicPath
     ) {
-      return NextResponse.redirect(new URL("/transport", request.url));
+      return redirectTo("/transport");
     }
 
     // Block non-transport-providers from accessing /transport routes
     if (pathname.startsWith("/transport/") && !hasTransportProviderRole(authRoles)) {
       if (hasAdminRole(authRoles)) {
-        return NextResponse.redirect(new URL("/admin/users", request.url));
+        return redirectTo("/admin/users");
       }
       if (hasManagerRole(authRoles)) {
-        return NextResponse.redirect(new URL("/manager", request.url));
+        return redirectTo("/manager");
       }
       if (hasHotelServiceProviderRole(authRoles)) {
-        return NextResponse.redirect(new URL("/hotel", request.url));
+        return redirectTo("/hotel");
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return redirectTo("/");
     }
 
     // Block non-hotel-providers from accessing /hotel routes
     if (pathname.startsWith("/hotel/") && !hasHotelServiceProviderRole(authRoles)) {
       if (hasAdminRole(authRoles)) {
-        return NextResponse.redirect(new URL("/admin/users", request.url));
+        return redirectTo("/admin/users");
       }
       if (hasManagerRole(authRoles)) {
-        return NextResponse.redirect(new URL("/manager", request.url));
+        return redirectTo("/manager");
       }
       if (hasTransportProviderRole(authRoles)) {
-        return NextResponse.redirect(new URL("/transport", request.url));
+        return redirectTo("/transport");
       }
       if (hasTourDesignerRole(authRoles)) {
-        return NextResponse.redirect(new URL("/tour-designer", request.url));
+        return redirectTo("/tour-designer");
       }
       if (hasTourGuideRole(authRoles)) {
-        return NextResponse.redirect(new URL("/tour-guide", request.url));
+        return redirectTo("/tour-guide");
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return redirectTo("/");
     }
 
     // Tour Designers must stay in tour-designer routes (except public paths)
@@ -260,7 +284,7 @@ export function middleware(request: NextRequest) {
       !isTourDesignerRoutePath(pathname) &&
       !publicPath
     ) {
-      return NextResponse.redirect(new URL("/tour-designer", request.url));
+      return redirectTo("/tour-designer");
     }
 
     // Tour Guides must stay in tour-guide routes (except public paths)
@@ -269,42 +293,42 @@ export function middleware(request: NextRequest) {
       !isTourGuideRoutePath(pathname) &&
       !publicPath
     ) {
-      return NextResponse.redirect(new URL("/tour-guide", request.url));
+      return redirectTo("/tour-guide");
     }
 
     // Block non-tour-designers from accessing /tour-designer routes
     if (pathname.startsWith("/tour-designer") && !hasTourDesignerRole(authRoles)) {
       if (hasManagerRole(authRoles)) {
-        return NextResponse.redirect(new URL("/manager", request.url));
+        return redirectTo("/manager");
       }
       if (hasAdminRole(authRoles)) {
-        return NextResponse.redirect(new URL("/admin/users", request.url));
+        return redirectTo("/admin/users");
       }
       if (hasHotelServiceProviderRole(authRoles)) {
-        return NextResponse.redirect(new URL("/hotel", request.url));
+        return redirectTo("/hotel");
       }
       if (hasTransportProviderRole(authRoles)) {
-        return NextResponse.redirect(new URL("/transport", request.url));
+        return redirectTo("/transport");
       }
       if (hasTourGuideRole(authRoles)) {
-        return NextResponse.redirect(new URL("/tour-guide", request.url));
+        return redirectTo("/tour-guide");
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return redirectTo("/");
     }
 
     // Block TourDesigner from accessing /manager/* and /admin/* routes
     if (hasTourDesignerRole(authRoles)) {
       if (pathname.startsWith("/manager/") || pathname === "/manager") {
-        return NextResponse.redirect(new URL("/tour-designer/tours", request.url));
+        return redirectTo("/tour-designer/tours");
       }
       if (pathname.startsWith("/admin/") || pathname === "/admin") {
-        return NextResponse.redirect(new URL("/tour-designer/tours", request.url));
+        return redirectTo("/tour-designer/tours");
       }
     }
 
     // Block non-tour-guides from accessing /tour-guide routes
     if (pathname.startsWith("/tour-guide") && !hasTourGuideRole(authRoles)) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return redirectTo("/");
     }
 
   }
@@ -314,10 +338,20 @@ export function middleware(request: NextRequest) {
     loginUrl.searchParams.set("login", "true");
     const nextDestination = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
     loginUrl.searchParams.set("next", nextDestination);
-    return NextResponse.redirect(loginUrl);
+    const response = finalizeResponse(NextResponse.redirect(loginUrl));
+    if (hasStaleAuthMarker) {
+      clearAuthCookies(response);
+    }
+    return response;
   }
 
-  return NextResponse.next();
+  if (hasStaleAuthMarker) {
+    const response = finalizeResponse(NextResponse.next());
+    clearAuthCookies(response);
+    return response;
+  }
+
+  return finalizeResponse(NextResponse.next());
 }
 
 export const config = {

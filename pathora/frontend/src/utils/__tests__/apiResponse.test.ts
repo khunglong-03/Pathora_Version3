@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   extractData,
@@ -6,12 +6,17 @@ import {
   extractResult,
   handleApiError,
   TOUR_INSTANCE_TRANSPORT_ERROR_CODES,
-  mapToTranslationKey
+  mapToTranslationKey,
 } from "../apiResponse";
 import viLocale from "../../i18n/locales/vi.json";
 import enLocale from "../../i18n/locales/en.json";
 
 describe("apiResponse helpers", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
+
   it("extracts items from nested result.items", () => {
     const items = extractItems<{ id: number }>({
       result: {
@@ -53,6 +58,32 @@ describe("apiResponse helpers", () => {
       message: "BAD_REQUEST",
       details: "invalid payload",
     });
+  });
+
+  it("normalizes top-level auth challenge payloads without unmapped-code noise", () => {
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {
+      return;
+    });
+    vi.stubEnv("NODE_ENV", "development");
+
+    const normalized = handleApiError({
+      isAxiosError: true,
+      response: {
+        status: 401,
+        data: {
+          code: "TOKEN_MISSING",
+          message: "Authentication required. Please provide a valid token.",
+          statusCode: 401,
+        },
+      },
+    });
+
+    expect(normalized).toEqual({
+      code: "TOKEN_MISSING",
+      message: "error_response.UNAUTHORIZED",
+      details: undefined,
+    });
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
   it("keeps extractResult backward-compatible", () => {

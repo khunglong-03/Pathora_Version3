@@ -14,6 +14,7 @@ const toAxiosError = (partial: Partial<AxiosError>): AxiosError => {
 describe("errorHandling", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("prefers API error message for 4xx responses", () => {
@@ -29,6 +30,23 @@ describe("errorHandling", () => {
     const result = resolveErrorToast(error);
 
     expect(result).toEqual({ key: "BAD_REQUEST", details: undefined });
+  });
+
+  it("maps top-level auth challenge codes before backend message text", () => {
+    const error = toAxiosError({
+      response: {
+        status: 401,
+        data: {
+          code: "TOKEN_MISSING",
+          message: "Authentication required. Please provide a valid token.",
+          statusCode: 401,
+        },
+      } as never,
+    });
+
+    const result = resolveErrorToast(error);
+
+    expect(result).toEqual({ key: "UNAUTHORIZED", details: undefined });
   });
 
   it("maps 5xx responses to generic server error key", () => {

@@ -78,7 +78,11 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Ensure numeric fields are stored as numbers
+    const finalValue = name === "licenseType" ? Number(value) : value;
+    
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
     if (errors[name]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -197,7 +201,7 @@ export default function DriverForm({ driver, onSave, onCancel }: DriverFormProps
             <select
               id="licenseType"
               name="licenseType"
-              value={formData.licenseType}
+              value={String(formData.licenseType)}
               onChange={handleChange}
               className="w-full px-3 py-2.5 rounded-xl text-sm border border-gray-200 transition-colors duration-150 outline-none focus:border-indigo-400 appearance-none bg-white"
             >

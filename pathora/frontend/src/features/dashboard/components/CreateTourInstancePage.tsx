@@ -2203,6 +2203,14 @@ export function CreateTourInstancePage({
           100,
         );
       } catch (err) {
+        const handledFallbackError = handleApiError(err);
+        if (
+          handledFallbackError.message === "error_response.UNAUTHORIZED" ||
+          handledFallbackError.message === "error_response.ACCESS_DENIED"
+        ) {
+          throw err;
+        }
+
         // Fallback for admins/managers if getMyTours fails
         result = await tourService.getAdminTourManagement(
           undefined,
@@ -2359,7 +2367,7 @@ export function CreateTourInstancePage({
         if (staffData?.staff) {
           // Filter only TourGuides and convert to UserInfo-like structure
           const mappedGuides: UserInfo[] = staffData.staff
-            .filter((s) => s.role === "TourGuide")
+            .filter((s) => s.role === "Tour Guide")
             .map((g) => ({
               id: g.id,
               fullName: g.fullName,
@@ -2454,11 +2462,7 @@ export function CreateTourInstancePage({
         const detail = await tourService.getTourDetail(form.tourId);
         setTourDetail(detail);
 
-        const defaults = ["Shuttle bus", "Meals", "Insurance"];
-        const mergedServices = Array.from(
-          new Set([...(detail?.includedServices ?? []), ...defaults]),
-        );
-        setAvailableServices(mergedServices);
+        setAvailableServices(detail?.includedServices ?? []);
 
         setForm((current) => {
           const next = { ...current, classificationId: "" };

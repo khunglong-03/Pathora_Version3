@@ -218,7 +218,7 @@ export const DriverActivityDrawer = ({
                             <div className="min-w-0">
                               <p className="text-[10px] text-slate-400 font-bold uppercase">Vehicle</p>
                               <p className="text-xs font-semibold text-slate-700 truncate">
-                                {activity.vehiclePlate ? `${activity.vehiclePlate} (${activity.vehicleType})` : "No vehicle assigned"}
+                                {activity.vehicleType ?? "No vehicle assigned"}
                               </p>
                             </div>
                           </div>

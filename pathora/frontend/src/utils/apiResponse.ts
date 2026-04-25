@@ -93,6 +93,7 @@ interface BackendErrorItem {
 }
 
 interface BackendErrorPayload {
+  code?: string;
   message?: string;
   errors?: BackendErrorItem[];
 }
@@ -145,6 +146,21 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.NotFound": "tourInstance.errors.notFound",
 };
 
+const AUTH_ERROR_CODE_MAP: Record<string, string> = {
+  TOKEN_MISSING: "error_response.UNAUTHORIZED",
+  TOKEN_INVALID: "error_response.UNAUTHORIZED",
+  TOKEN_EXPIRED: "error_response.UNAUTHORIZED",
+  ACCESS_DENIED: "error_response.ACCESS_DENIED",
+};
+
+/**
+ * Accept any dotted `Domain.Code` token (no spaces, at least one dot, all
+ * chars are word/dot). This lets handlers prefer the structured `details`
+ * field over the raw English `errorMessage` so the user sees a translated
+ * toast for codes like `TourInstance.CreateFailed`.
+ */
+const DOTTED_ERROR_CODE_PATTERN = /^[\w]+(\.[\w]+)+$/;
+
 /**
  * Structured error metadata for API error codes.
  * `remediation` is undefined today but the signature lets future PRs
@@ -171,6 +187,11 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   const transportKey = TRANSPORT_ERROR_CODE_MAP[errorMessage];
   if (transportKey) {
     return transportKey;
+  }
+
+  const authKey = AUTH_ERROR_CODE_MAP[errorMessage];
+  if (authKey) {
+    return authKey;
   }
 
   // Map backend error codes to translation keys for login-specific errors
@@ -207,21 +228,13 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   }
 
   // Dev-mode drift warning for unmapped backend codes
-  if (process.env.NODE_ENV === "development" && errorMessage.includes(".")) {
+  if (process.env.NODE_ENV === "development" && DOTTED_ERROR_CODE_PATTERN.test(errorMessage)) {
     console.warn(`[handleApiError] Unmapped backend code: ${errorMessage}`);
   }
 
   // Return original to allow fallback to error_response lookup
   return errorMessage;
 };
-
-/**
- * Accept any dotted `Domain.Code` token (no spaces, at least one dot, all
- * chars are word/dot). This lets handlers prefer the structured `details`
- * field over the raw English `errorMessage` so the user sees a translated
- * toast for codes like `TourInstance.CreateFailed`.
- */
-const DOTTED_ERROR_CODE_PATTERN = /^[\w]+(\.[\w]+)+$/;
 
 const shouldUseDetailsAsErrorCode = (details: string | undefined): boolean => {
   if (!details) {
@@ -243,6 +256,7 @@ const extractBackendErrorPayload = (
 
   const body = payload as BackendErrorPayload;
   const firstError = body.errors?.[0];
+  const topLevelCode = typeof body.code === "string" ? body.code : undefined;
 
   return {
     rawMessage:
@@ -250,17 +264,31 @@ const extractBackendErrorPayload = (
       firstError?.message ??
       body.message ??
       "DEFAULT_ERROR",
-    rawCode: firstError?.code ?? "UNKNOWN_ERROR",
+    rawCode: firstError?.code ?? topLevelCode ?? "UNKNOWN_ERROR",
     rawDetails: firstError?.details,
   };
+};
+
+const resolveErrorMappingCandidate = (
+  rawMessage: string,
+  rawCode: string,
+  rawDetails: string | undefined,
+): string => {
+  if (shouldUseDetailsAsErrorCode(rawDetails)) {
+    return rawDetails;
+  }
+
+  if (AUTH_ERROR_CODE_MAP[rawCode]) {
+    return rawCode;
+  }
+
+  return rawMessage;
 };
 
 export const handleApiError = (error: unknown): ApiError => {
   if (isAxiosError(error)) {
     const { rawMessage, rawCode, rawDetails } = extractBackendErrorPayload(error.response?.data);
-    const rawMappingCandidate = shouldUseDetailsAsErrorCode(rawDetails)
-      ? rawDetails
-      : rawMessage;
+    const rawMappingCandidate = resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails);
 
     // Map to translation key for specific error types
     const translationKey = mapToTranslationKey(rawMappingCandidate);
@@ -279,10 +307,9 @@ export const handleApiError = (error: unknown): ApiError => {
       error?: string;
     };
     const { rawMessage, rawCode, rawDetails } = extractBackendErrorPayload(rtkError.data);
-    const rawMappingCandidate = shouldUseDetailsAsErrorCode(rawDetails)
-      ? rawDetails
-      : rawMessage !== "DEFAULT_ERROR"
-        ? rawMessage
+    const rawMappingCandidate =
+      rawMessage !== "DEFAULT_ERROR"
+        ? resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails)
         : (rtkError.error ?? rawMessage);
 
     if (process.env.NODE_ENV === "development") {

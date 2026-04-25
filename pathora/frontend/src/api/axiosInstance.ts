@@ -11,6 +11,7 @@ import { showErrorToast } from "./showErrorToast";
 import { getCurrentApiLanguage } from "./languageHeader";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
 import { getCookie } from "@/utils/cookie";
+import { clearAuthSession } from "@/utils/authSession";
 
 const API_BASE_URL: string = API_GATEWAY_BASE_URL;
 
@@ -59,12 +60,7 @@ const axiosInstance: AxiosInstance = axios.create({
 
 const onUnauthorized = (): void => {
   if (typeof document !== "undefined") {
-    // Clear all auth-related cookies
-    const cookies = ["access_token", "auth_status", "refresh_token"];
-    cookies.forEach((name) => {
-      document.cookie =
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-    });
+    clearAuthSession();
   }
   if (typeof window !== "undefined") {
     window.location.href = "/";
