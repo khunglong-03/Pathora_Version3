@@ -139,12 +139,14 @@ describe("TransportTourAssignmentPage", () => {
     vi.mocked(tourInstanceService.rejectTransportation).mockResolvedValue(
       undefined as never,
     );
-    vi.mocked(transportProviderService.getVehicles).mockResolvedValue(
-      mockVehicles as never,
-    );
-    vi.mocked(transportProviderService.getDrivers).mockResolvedValue(
-      mockDrivers as never,
-    );
+    vi.mocked(transportProviderService.getVehicles).mockResolvedValue({
+      items: mockVehicles,
+      total: mockVehicles.length,
+    } as never);
+    vi.mocked(transportProviderService.getDrivers).mockResolvedValue({
+      items: mockDrivers,
+      total: mockDrivers.length,
+    } as never);
   });
 
   it("renders the assigned transport activity with request details", async () => {
@@ -215,15 +217,18 @@ describe("TransportTourAssignmentPage", () => {
   });
 
   it("disables submit and renders error when vehicle type mismatches", async () => {
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      {
-        id: "v2",
-        vehiclePlate: "29A-99999",
-        vehicleType: "Sedan", // Mismatch with requested "Coach"
-        seatCapacity: 20, // Sufficient capacity
-        vehicleStatus: "Available",
-      },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        {
+          id: "v2",
+          vehiclePlate: "29A-99999",
+          vehicleType: "Sedan", // Mismatch with requested "Coach"
+          seatCapacity: 20, // Sufficient capacity
+          vehicleStatus: "Available",
+        },
+      ],
+      total: 1,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");
@@ -246,15 +251,18 @@ describe("TransportTourAssignmentPage", () => {
   });
 
   it("disables submit and renders error when seat capacity falls short", async () => {
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      {
-        id: "v3",
-        vehiclePlate: "29B-11111",
-        vehicleType: "Coach", // Matches requested
-        seatCapacity: 10, // Shortfall (requested 18)
-        vehicleStatus: "Available",
-      },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        {
+          id: "v3",
+          vehiclePlate: "29B-11111",
+          vehicleType: "Coach", // Matches requested
+          seatCapacity: 10, // Shortfall (requested 18)
+          vehicleStatus: "Available",
+        },
+      ],
+      total: 1,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");
@@ -277,15 +285,18 @@ describe("TransportTourAssignmentPage", () => {
   });
 
   it("renders both messages when both conditions fail", async () => {
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      {
-        id: "v4",
-        vehiclePlate: "29C-22222",
-        vehicleType: "Sedan", // Mismatch
-        seatCapacity: 4, // Shortfall
-        vehicleStatus: "Available",
-      },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        {
+          id: "v4",
+          vehiclePlate: "29C-22222",
+          vehicleType: "Sedan", // Mismatch
+          seatCapacity: 4, // Shortfall
+          vehicleStatus: "Available",
+        },
+      ],
+      total: 1,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");
@@ -304,15 +315,18 @@ describe("TransportTourAssignmentPage", () => {
 
   it("enables submit when matching type and sufficient capacity", async () => {
     // Restore default mock
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      {
-        id: "v1",
-        vehiclePlate: "29A-12345",
-        vehicleType: "Coach",
-        seatCapacity: 20,
-        vehicleStatus: "Available",
-      },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        {
+          id: "v1",
+          vehiclePlate: "29A-12345",
+          vehicleType: "Coach",
+          seatCapacity: 20,
+          vehicleStatus: "Available",
+        },
+      ],
+      total: 1,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");
@@ -333,10 +347,13 @@ describe("TransportTourAssignmentPage", () => {
   });
 
   it("adds and removes assignment rows in the approve modal", async () => {
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 10 },
-      { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 10 },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 10 },
+        { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 10 },
+      ],
+      total: 2,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");
@@ -371,10 +388,13 @@ describe("TransportTourAssignmentPage", () => {
         },
       ],
     } as never);
-    transportProviderService.getVehicles = vi.fn().mockResolvedValue([
-      { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 25 },
-      { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 25 },
-    ]);
+    transportProviderService.getVehicles = vi.fn().mockResolvedValue({
+      items: [
+        { id: "v1", vehiclePlate: "30A-1", vehicleType: "Coach", seatCapacity: 25 },
+        { id: "v2", vehiclePlate: "30A-2", vehicleType: "Coach", seatCapacity: 25 },
+      ],
+      total: 2,
+    });
 
     render(<TransportTourAssignmentPage />);
     await screen.findByText("Bus to Ha Long");

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
-import { Icon } from "@/components/ui";
+import { Icon, Pagination } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";
 import dayjs from "dayjs";
@@ -22,19 +22,23 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalStatus, setApprovalStatus] = useState<number | undefined>(undefined);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 50;
 
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await tourInstanceService.getProviderAssigned(1, 50, approvalStatus);
+      const result = await tourInstanceService.getProviderAssigned(page, pageSize, approvalStatus);
       setInstances(result?.data ?? []);
+      setTotal(result?.total ?? 0);
     } catch (error) {
       handleApiError(error);
       toast.error(t("common.errorFetch", "Gặp lỗi khi tải dữ liệu"));
     } finally {
       setLoading(false);
     }
-  }, [t, approvalStatus]);
+  }, [t, page, approvalStatus]);
 
   useEffect(() => {
     void fetchAssignments();
@@ -52,7 +56,10 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             <select
               className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
               value={approvalStatus ?? ""}
-              onChange={(e) => setApprovalStatus(e.target.value ? Number(e.target.value) : undefined)}
+              onChange={(e) => {
+                setApprovalStatus(e.target.value ? Number(e.target.value) : undefined);
+                setPage(1);
+              }}
             >
               <option value="">Tất cả trạng thái</option>
               <option value="0">Đang chờ duyệt</option>
@@ -138,6 +145,16 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                 </div>
               );
             })}
+          </div>
+        )}
+        
+        {!loading && total > pageSize && (
+          <div className="mt-8 flex justify-center">
+            <Pagination
+              currentPage={page}
+              totalPages={Math.ceil(total / pageSize)}
+              handlePageChange={setPage}
+            />
           </div>
         )}
       </div>

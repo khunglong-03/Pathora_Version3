@@ -14,11 +14,11 @@ using Microsoft.AspNetCore.Mvc;
 public class VehicleController : BaseApiController
 {
     [HttpGet(VehicleEndpoint.Base)]
-    public async Task<IActionResult> GetVehicles([FromQuery] int? locationArea = null)
+    public async Task<IActionResult> GetVehicles([FromQuery] int? locationArea = null, [FromQuery] bool? isActive = null, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new GetVehiclesQuery(userId, locationArea.HasValue ? (Continent)locationArea.Value : null));
-        return HandleResult(result);
+        var result = await Sender.Send(new GetVehiclesQuery(userId, locationArea.HasValue ? (Continent)locationArea.Value : null, isActive, pageNumber, pageSize));
+        return HandlePaginatedResult(result);
     }
 
     [HttpGet($"{VehicleEndpoint.Base}/{{plate}}")]

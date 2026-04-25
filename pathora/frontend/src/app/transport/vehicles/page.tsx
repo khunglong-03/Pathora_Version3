@@ -14,6 +14,7 @@ import {
   AdminEmptyState,
   AdminErrorCard,
 } from "@/features/dashboard/components";
+import { Pagination } from "@/components/ui";
 import VehicleForm from "@/components/transport/VehicleForm";
 import { toast } from "react-toastify";
 
@@ -42,6 +43,9 @@ const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }>
 
 export default function TransportVehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -53,14 +57,16 @@ export default function TransportVehiclesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await transportProviderService.getVehicles();
-      setVehicles(data);
+      const isActiveFilter = filter === "all" ? undefined : filter === "active";
+      const data = await transportProviderService.getVehicles(page, pageSize, isActiveFilter);
+      setVehicles(data?.items || []);
+      setTotalVehicles(data?.total || 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách xe");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, filter]);
 
   useEffect(() => {
     void loadVehicles();
@@ -70,12 +76,7 @@ export default function TransportVehiclesPage() {
     return v.isActive ? "Hoạt động" : "Ngưng hoạt động";
   };
 
-  const filteredVehicles = vehicles.filter((v) => {
-    if (filter === "all") return true;
-    if (filter === "active") return v.isActive;
-    if (filter === "inactive") return !v.isActive;
-    return true;
-  });
+  const filteredVehicles = vehicles;
 
   const handleAdd = () => {
     setEditingVehicle(null);
@@ -129,7 +130,7 @@ export default function TransportVehiclesPage() {
     <div className="p-6">
       <AdminPageHeader
         title="Quản lý xe"
-        subtitle={`${vehicles.length} phương tiện`}
+        subtitle={`${totalVehicles} phương tiện`}
         onRefresh={() => void loadVehicles()}
         actionButtons={
           <button
@@ -148,7 +149,7 @@ export default function TransportVehiclesPage() {
         {(["all", "active", "inactive"] as StatusFilter[]).map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => { setFilter(f); setPage(1); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
               filter === f
                 ? "text-white"
@@ -162,15 +163,6 @@ export default function TransportVehiclesPage() {
             aria-pressed={filter === f}
           >
             {f === "all" ? "Tất cả" : f === "active" ? "Hoạt động" : "Ngưng hoạt động"}
-            {f !== "all" && (
-              <span
-                className="ml-1.5 text-xs opacity-75"
-              >
-                ({f === "active"
-                  ? vehicles.filter((v) => v.isActive).length
-                  : vehicles.filter((v) => !v.isActive).length})
-              </span>
-            )}
           </button>
         ))}
       </div>
@@ -271,6 +263,15 @@ export default function TransportVehiclesPage() {
               })}
             </tbody>
           </table>
+          {totalVehicles > pageSize && (
+            <div className="p-4 border-t flex justify-center bg-white" style={{ borderColor: "var(--border)" }}>
+              <Pagination
+                currentPage={page}
+                totalPages={Math.ceil(totalVehicles / pageSize)}
+                handlePageChange={setPage}
+              />
+            </div>
+          )}
         </div>
       )}
 

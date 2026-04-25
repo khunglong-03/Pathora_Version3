@@ -6,6 +6,8 @@ public interface IDriverRepository : IRepository<DriverEntity>
 {
     Task<List<DriverEntity>> FindAllByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<List<DriverEntity>> FindActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<DriverEntity>> FindByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, CancellationToken cancellationToken = default);
+    Task<int> CountByOwnerIdAsync(Guid ownerId, bool? isActive, CancellationToken cancellationToken = default);
     Task<DriverEntity?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<DriverEntity?> FindByIdAndUserIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
     Task<bool> ExistsByLicenseNumberAsync(string licenseNumber, CancellationToken cancellationToken = default);

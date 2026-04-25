@@ -1,12 +1,63 @@
 namespace Application.Features.TourTransportAssignment.Queries;
 
+using Application.Common.Constant;
+using Application.Features.TourTransportAssignment.DTOs;
 using BuildingBlocks.CORS;
+using Domain.Common.Repositories;
+using ErrorOr;
+using MediatR;
+using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
-using Application.Features.TourTransportAssignment.DTOs;
-using ErrorOr;
-using System.Text.Json.Serialization;
+
 
 public sealed record GetBookingTransportInfoQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<BookingTransportInfoDto>>;
+
+
+public sealed class GetBookingTransportInfoQueryHandler(
+        ITourDayActivityRouteTransportRepository routeTransportRepository,
+        IBookingRepository bookingRepository,
+        IBookingTourGuideRepository bookingTourGuideRepository)
+    : IRequestHandler<GetBookingTransportInfoQuery, ErrorOr<BookingTransportInfoDto>>
+{
+    public async Task<ErrorOr<BookingTransportInfoDto>> Handle(
+        GetBookingTransportInfoQuery request,
+        CancellationToken cancellationToken)
+    {
+        var booking = await bookingRepository.GetByIdAsync(request.BookingId);
+        if (booking == null)
+            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+
+        // IDOR check: verify the current user is the booking owner or a team member
+        var isOwner = booking.UserId == request.CurrentUserId;
+        var isTeamMember = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(
+            request.BookingId, request.CurrentUserId) is not null;
+
+        if (!isOwner && !isTeamMember)
+            return Error.Forbidden("You do not have permission to access this booking.");
+
+        var routeTransports = await routeTransportRepository.FindByBookingIdAsync(request.BookingId, cancellationToken);
+
+        var routes = routeTransports.Select(rt => new TransportInfoDto(
+            rt.TourDayActivityId,
+            rt.TourDayActivity?.Order ?? 0,
+            rt.Driver != null
+                ? new DriverInfoDto(rt.Driver.FullName, rt.Driver.PhoneNumber, MaskLicense(rt.Driver.LicenseNumber))
+                : null,
+            rt.Vehicle != null
+                ? new VehicleInfoDto(rt.Vehicle.VehiclePlate, rt.Vehicle.VehicleType.ToString(),
+                    rt.Vehicle.Brand, rt.Vehicle.Model, rt.Vehicle.SeatCapacity)
+                : null)).ToList();
+
+        return new BookingTransportInfoDto(request.BookingId, routes);
+    }
+
+    private static string MaskLicense(string? license)
+    {
+        if (string.IsNullOrEmpty(license) || license.Length < 4)
+            return "****";
+        return new string('*', Math.Max(0, license.Length - 4)) + license[^4..];
+    }
+}

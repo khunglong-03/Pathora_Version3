@@ -142,14 +142,21 @@ export interface UpdateCompanyProfileDto {
 
 class TransportProviderService {
   // Vehicles
-  async getVehicles(locationArea?: number): Promise<Vehicle[]> {
+  async getVehicles(
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    isActive?: boolean,
+    locationArea?: number
+  ): Promise<PaginatedResponse<Vehicle> | null> {
     try {
-      const params = locationArea !== undefined ? { locationArea } : {};
-      const response = await axiosInstance.get<Vehicle[]>("/transport-provider/vehicles", { params });
-      return extractItems(response.data);
+      const params: any = { pageNumber, pageSize };
+      if (locationArea !== undefined) params.locationArea = locationArea;
+      if (isActive !== undefined) params.isActive = isActive;
+      const response = await axiosInstance.get<PaginatedResponse<Vehicle>>("/transport-provider/vehicles", { params });
+      return extractResult(response.data);
     } catch (error) {
       handleApiError(error);
-      return [];
+      return null;
     }
   }
 
@@ -194,13 +201,19 @@ class TransportProviderService {
   }
 
   // Drivers
-  async getDrivers(): Promise<Driver[]> {
+  async getDrivers(
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    isActive?: boolean
+  ): Promise<PaginatedResponse<Driver> | null> {
     try {
-      const response = await axiosInstance.get<Driver[]>("/transport-provider/drivers");
-      return extractItems(response.data);
+      const params: any = { pageNumber, pageSize };
+      if (isActive !== undefined) params.isActive = isActive;
+      const response = await axiosInstance.get<PaginatedResponse<Driver>>("/transport-provider/drivers", { params });
+      return extractResult(response.data);
     } catch (error) {
       handleApiError(error);
-      return [];
+      return null;
     }
   }
 

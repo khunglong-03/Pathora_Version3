@@ -32,6 +32,40 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<VehicleEntity>> FindAllByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, Continent? locationArea, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.OwnerId == ownerId && !v.IsDeleted);
+
+        if (isActive.HasValue)
+            query = query.Where(v => v.IsActive == isActive.Value);
+            
+        if (locationArea.HasValue)
+            query = query.Where(v => v.LocationArea == locationArea.Value);
+
+        return await query
+            .OrderByDescending(v => v.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAllByOwnerIdAsync(Guid ownerId, bool? isActive, Continent? locationArea, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.OwnerId == ownerId && !v.IsDeleted);
+
+        if (isActive.HasValue)
+            query = query.Where(v => v.IsActive == isActive.Value);
+
+        if (locationArea.HasValue)
+            query = query.Where(v => v.LocationArea == locationArea.Value);
+
+        return await query.CountAsync(cancellationToken);
+    }
+
     public async Task<VehicleEntity?> FindByPlateAsync(string plate, CancellationToken cancellationToken = default)
     {
         return await _context.Vehicles

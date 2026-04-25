@@ -225,7 +225,8 @@ function FleetHeroCard({ total, active }: { total: number; active: number }) {
 
 // --- Main Page ---
 export default function TransportDashboardPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [activeVehicles, setActiveVehicles] = useState(0);
   const [trips, setTrips] = useState<TripAssignment[]>([]);
   const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
   const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
@@ -237,12 +238,14 @@ export default function TransportDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [vehiclesData, tripsData, revenueData] = await Promise.all([
-        transportProviderService.getVehicles(),
+      const [vehiclesData, activeVehiclesData, tripsData, revenueData] = await Promise.all([
+        transportProviderService.getVehicles(1, 1),
+        transportProviderService.getVehicles(1, 1, true),
         transportProviderService.getTripAssignments(),
         transportProviderService.getRevenueSummary(new Date().getFullYear()),
       ]);
-      setVehicles(vehiclesData || []);
+      setTotalVehicles(vehiclesData?.total || 0);
+      setActiveVehicles(activeVehiclesData?.total || 0);
       setTrips((tripsData || []).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime()));
       setRevenue(revenueData);
 
@@ -273,8 +276,6 @@ export default function TransportDashboardPage() {
   }, [loadData]);
 
   // Derived Stats
-  const activeVehicles = vehicles.filter(v => v.isActive).length;
-  
   const todayStr = new Date().toISOString().split("T")[0];
   const tripsToday = trips.filter(t => t.tripDate.startsWith(todayStr)).length;
   const tripsInProgress = trips.filter(t => t.status === "InProgress").length;

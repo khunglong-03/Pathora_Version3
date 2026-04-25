@@ -13,11 +13,11 @@ using Microsoft.AspNetCore.Mvc;
 public class DriverController : BaseApiController
 {
     [HttpGet(DriverEndpoint.Base)]
-    public async Task<IActionResult> GetDrivers()
+    public async Task<IActionResult> GetDrivers([FromQuery] bool? isActive = null, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new GetDriversQuery(userId));
-        return HandleResult(result);
+        var result = await Sender.Send(new GetDriversQuery(userId, isActive, pageNumber, pageSize));
+        return HandlePaginatedResult(result);
     }
 
     [HttpGet($"{DriverEndpoint.Base}/{{id:guid}}")]

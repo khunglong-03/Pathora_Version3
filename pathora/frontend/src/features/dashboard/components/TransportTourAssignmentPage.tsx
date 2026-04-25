@@ -207,8 +207,8 @@ export default function TransportTourAssignmentPage() {
       ]);
 
       setTour(tourDetail);
-      setVehicles(vehiclesList);
-      setDrivers(driversList);
+      setVehicles(vehiclesList?.items || []);
+      setDrivers(driversList?.items || []);
 
       if (tourDetail?.days) {
         const nextDrafts: Record<string, ApprovalDraft> = {};

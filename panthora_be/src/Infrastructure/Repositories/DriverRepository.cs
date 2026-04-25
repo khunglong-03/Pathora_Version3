@@ -84,6 +84,34 @@ public class DriverRepository(AppDbContext context) : Repository<DriverEntity>(c
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<DriverEntity>> FindByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Drivers
+            .AsNoTracking()
+            .Where(d => d.UserId == ownerId);
+
+        if (isActive.HasValue)
+            query = query.Where(d => d.IsActive == isActive.Value);
+
+        return await query
+            .OrderBy(d => d.FullName)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountByOwnerIdAsync(Guid ownerId, bool? isActive, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Drivers
+            .AsNoTracking()
+            .Where(d => d.UserId == ownerId);
+
+        if (isActive.HasValue)
+            query = query.Where(d => d.IsActive == isActive.Value);
+
+        return await query.CountAsync(cancellationToken);
+    }
+
     public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)
     {
         await _context.Drivers

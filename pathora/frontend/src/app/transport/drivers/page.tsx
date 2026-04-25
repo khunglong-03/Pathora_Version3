@@ -15,6 +15,7 @@ import {
   AdminEmptyState,
   AdminErrorCard,
 } from "@/features/dashboard/components";
+import { Pagination } from "@/components/ui";
 import DriverForm from "@/components/transport/DriverForm";
 import { toast } from "react-toastify";
 
@@ -53,6 +54,9 @@ const FILTER_TABS: { key: StatusFilter; label: string }[] = [
 
 export default function TransportDriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [totalDrivers, setTotalDrivers] = useState(0);
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -64,31 +68,25 @@ export default function TransportDriversPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await transportProviderService.getDrivers();
-      setDrivers(data);
+      let isActiveFilter: boolean | undefined = undefined;
+      if (filter === "ready" || filter === "driving" || filter === "leave") isActiveFilter = true;
+      if (filter === "inactive") isActiveFilter = false;
+
+      const data = await transportProviderService.getDrivers(page, pageSize, isActiveFilter);
+      setDrivers(data?.items || []);
+      setTotalDrivers(data?.total || 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách tài xế");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, filter]);
 
   useEffect(() => {
     void loadDrivers();
   }, [loadDrivers]);
 
-  // NOTE: Backend doesn't have driver status (ready/driving/leave) yet.
-  // The "Đang lái" and "Nghỉ phép" tabs currently behave identically to "Sẵn sàng"
-  // because only isActive is available as a filter. This is a known limitation
-  // until the backend adds a dedicated Status field to the Driver entity.
-  const filteredDrivers = drivers.filter((d) => {
-    if (filter === "all") return true;
-    if (filter === "ready") return d.isActive;
-    if (filter === "inactive") return !d.isActive;
-    // driving/leave: backend limitation — same as "ready" (isActive)
-    if (filter === "driving" || filter === "leave") return d.isActive;
-    return true;
-  });
+  const filteredDrivers = drivers;
 
   const getStatusLabel = (d: Driver): string => {
     return d.isActive ? "Sẵn sàng" : "Không hoạt động";
@@ -142,13 +140,11 @@ export default function TransportDriversPage() {
     }
   };
 
-  const activeCount = drivers.filter((d) => d.isActive).length;
-
   return (
     <div className="p-6">
       <AdminPageHeader
         title="Quản lý tài xế"
-        subtitle={`${drivers.length} tài xế · ${activeCount} đang hoạt động`}
+        subtitle={`${totalDrivers} tài xế`}
         onRefresh={() => void loadDrivers()}
         actionButtons={
           <button
@@ -165,17 +161,10 @@ export default function TransportDriversPage() {
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-6">
         {FILTER_TABS.map((tab) => {
-          const count = tab.key === "all"
-            ? drivers.length
-            : tab.key === "ready"
-            ? drivers.filter((d) => d.isActive).length
-            : tab.key === "inactive"
-            ? drivers.filter((d) => !d.isActive).length
-            : drivers.filter((d) => d.isActive).length; // driving/leave: same as ready (backend limitation)
           return (
             <button
               key={tab.key}
-              onClick={() => setFilter(tab.key)}
+              onClick={() => { setFilter(tab.key); setPage(1); }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                 filter === tab.key ? "text-white" : "border"
               }`}
@@ -187,7 +176,6 @@ export default function TransportDriversPage() {
               aria-pressed={filter === tab.key}
             >
               {tab.label}
-              <span className="ml-1.5 text-xs opacity-75">({count})</span>
             </button>
           );
         })}
@@ -291,6 +279,15 @@ export default function TransportDriversPage() {
               })}
             </tbody>
           </table>
+          {totalDrivers > pageSize && (
+            <div className="p-4 border-t flex justify-center bg-white" style={{ borderColor: "var(--border)" }}>
+              <Pagination
+                currentPage={page}
+                totalPages={Math.ceil(totalDrivers / pageSize)}
+                handlePageChange={setPage}
+              />
+            </div>
+          )}
         </div>
       )}
 
