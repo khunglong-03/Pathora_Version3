@@ -6,7 +6,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
-
 public sealed record DeleteRoleCommand([property: JsonPropertyName("roleId")] int RoleId)
     : ICommand<ErrorOr<Success>>;
 

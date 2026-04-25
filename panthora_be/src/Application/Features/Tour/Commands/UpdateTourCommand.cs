@@ -1,15 +1,14 @@
 using Application.Common;
-using Contracts.Interfaces;
 using Application.Dtos;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Entities.Translations;
 using Domain.Enums;
 using ErrorOr;
-using Application.Services;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
-
 public sealed record UpdateTourCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("tourName")] string TourName,

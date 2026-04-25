@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.DTOs;
-
 public sealed record UserBankAccountDto(
     [property: JsonPropertyName("userId")] Guid UserId,
     [property: JsonPropertyName("username")] string Username,

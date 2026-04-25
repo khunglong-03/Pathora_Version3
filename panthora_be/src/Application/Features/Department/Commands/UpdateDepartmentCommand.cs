@@ -1,13 +1,12 @@
 using Application.Common;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Contracts.Department;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
-
 public sealed record UpdateDepartmentCommand(
     [property: JsonPropertyName("departmentId")] Guid DepartmentId,
     [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,

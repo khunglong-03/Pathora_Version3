@@ -1,5 +1,3 @@
-namespace Application.Features.RoomBlocking.Commands.UpdateRoomBlock;
-
 using Application.Common.Constant;
 using Application.Features.RoomBlocking.DTOs;
 using BuildingBlocks.CORS;
@@ -12,8 +10,7 @@ using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.RoomBlocking.Commands.UpdateRoomBlock;
 public sealed record UpdateRoomBlockCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("roomCountBlocked")] int RoomCountBlocked) : ICommand<ErrorOr<RoomBlockDto>>;

@@ -1,5 +1,3 @@
-namespace Application.Features.RoomBlocking.Queries.GetRoomBlocks;
-
 using Application.Common.Constant;
 using Application.Features.RoomBlocking.DTOs;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using ErrorOr;
 using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.RoomBlocking.Queries.GetRoomBlocks;
 public sealed record GetRoomBlocksQuery(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("roomType")] RoomType? RoomType = null,

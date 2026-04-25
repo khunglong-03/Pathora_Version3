@@ -1,13 +1,12 @@
-namespace Application.Features.TransportProvider.Drivers.Commands;
-
+using Application.Features.TransportProvider.Drivers.DTOs;
 using BuildingBlocks.CORS;
+using ErrorOr;
+using FluentValidation;
+using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
-using Application.Features.TransportProvider.Drivers.DTOs;
-using ErrorOr;
-using System.Text.Json.Serialization;
-using FluentValidation;
 
+namespace Application.Features.TransportProvider.Drivers.Commands;
 public sealed record CreateDriverCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("request")] CreateDriverRequestDto Request) : ICommand<ErrorOr<DriverResponseDto>>;

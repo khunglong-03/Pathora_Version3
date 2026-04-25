@@ -1,5 +1,3 @@
-namespace Application.Features.GuestArrival.Commands.CreateGuestArrival;
-
 using Application.Common.Constant;
 using Application.Features.GuestArrival.DTOs;
 using BuildingBlocks.CORS;
@@ -11,8 +9,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.GuestArrival.Commands.CreateGuestArrival;
 public sealed record CreateGuestArrivalCommand(
     [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
     [property: JsonPropertyName("submittedByUserId")] Guid SubmittedByUserId,

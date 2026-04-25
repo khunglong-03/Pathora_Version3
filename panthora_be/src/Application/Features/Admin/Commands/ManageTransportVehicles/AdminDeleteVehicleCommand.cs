@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Commands.ManageTransportVehicles;
-
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.UnitOfWork;
@@ -10,8 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.Admin.Commands.ManageTransportVehicles;
 public sealed record AdminDeleteVehicleCommand(
     [property: JsonPropertyName("adminId")] Guid AdminId,
     [property: JsonPropertyName("providerUserId")] Guid ProviderUserId,

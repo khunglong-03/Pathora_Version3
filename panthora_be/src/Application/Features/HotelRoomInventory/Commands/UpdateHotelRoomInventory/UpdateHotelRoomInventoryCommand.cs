@@ -1,5 +1,3 @@
-namespace Application.Features.HotelRoomInventory.Commands.UpdateHotelRoomInventory;
-
 using Application.Common.Constant;
 using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
@@ -10,8 +8,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.HotelRoomInventory.Commands.UpdateHotelRoomInventory;
 public sealed record UpdateHotelRoomInventoryCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("totalRooms")] int TotalRooms) : ICommand<ErrorOr<HotelRoomInventoryDto>>;

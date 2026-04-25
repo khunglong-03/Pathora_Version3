@@ -1,16 +1,15 @@
-using Application.Common;
 using Application.Common.Authorization;
 using Application.Common.Constant;
+using Application.Common;
+using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using BuildingBlocks.CORS;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 /// <summary>
 /// Reject transportation for a specific activity — the transport provider
 /// declines the assignment. Deletes any existing VehicleBlock and resets

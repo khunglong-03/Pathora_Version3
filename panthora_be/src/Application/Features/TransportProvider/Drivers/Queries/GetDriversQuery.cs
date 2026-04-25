@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Drivers.Queries;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.Drivers.DTOs;
 using BuildingBlocks.CORS;
@@ -11,7 +9,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using global::Contracts;
 
-
+namespace Application.Features.TransportProvider.Drivers.Queries;
 public sealed record GetDriversQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("isActive")] bool? IsActive = null,

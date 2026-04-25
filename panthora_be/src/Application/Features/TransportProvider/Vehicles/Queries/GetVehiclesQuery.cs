@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Vehicles.Queries;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.Vehicles.DTOs;
 using BuildingBlocks.CORS;
@@ -12,7 +10,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 using global::Contracts;
 
-
+namespace Application.Features.TransportProvider.Vehicles.Queries;
 public sealed record GetVehiclesQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("locationArea")] Continent? LocationArea = null,

@@ -1,15 +1,14 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.User;
-using Contracts.Interfaces;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
-
 public sealed record CreateUserCommand(
     [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
     [property: JsonPropertyName("roleIds")] List<int> RoleIds,

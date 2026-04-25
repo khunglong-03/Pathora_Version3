@@ -1,13 +1,12 @@
 using Application.Common;
 using Application.Contracts.User;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Queries;
-
 public sealed record GetUserDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<UserDetailVm>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:detail:{Id}";

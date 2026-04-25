@@ -1,13 +1,12 @@
 using Application.Common;
 using Application.Contracts.Public;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetDestinationsQuery : IQuery<ErrorOr<List<string>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Tour}:destinations";

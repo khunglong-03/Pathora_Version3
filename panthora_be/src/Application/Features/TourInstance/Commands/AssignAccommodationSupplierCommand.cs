@@ -1,17 +1,16 @@
-using Application.Common;
 using Application.Common.Authorization;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Services;
+using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using BuildingBlocks.CORS;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 /// <summary>
 /// Assign (or change) the hotel supplier for a specific accommodation activity.
 /// Sets SupplierApprovalStatus to Pending and clears any previous approval note.

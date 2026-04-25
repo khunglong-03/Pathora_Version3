@@ -7,7 +7,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record ChangePasswordCommand(
     [property: JsonPropertyName("oldPassword")] string OldPassword,
     [property: JsonPropertyName("newPassword")] string NewPassword)

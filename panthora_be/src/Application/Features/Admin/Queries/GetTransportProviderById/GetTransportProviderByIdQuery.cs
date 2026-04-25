@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Queries.GetTransportProviderById;
-
 using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using ErrorOr;
 using MediatR;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Admin.Queries.GetTransportProviderById;
 public sealed record GetTransportProviderByIdQuery([property: JsonPropertyName("id")] Guid Id)
     : IQuery<ErrorOr<TransportProviderDetailDto>>;
 

@@ -1,14 +1,13 @@
 using Application.Common;
-using Contracts;
-using Contracts.Interfaces;
 using Application.Contracts.Position;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Queries;
-
 public sealed record GetAllPositionsQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

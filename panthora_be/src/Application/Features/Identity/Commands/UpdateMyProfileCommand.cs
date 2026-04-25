@@ -7,7 +7,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record UpdateMyProfileCommand([property: JsonPropertyName("request")] UpdateMyProfileRequest Request)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {

@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.DTOs;
-
 public sealed record ManagerBankAccountItemDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("userId")] Guid UserId,

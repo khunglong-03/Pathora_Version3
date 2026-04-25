@@ -1,5 +1,3 @@
-namespace Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
-
 using Application.Common.Constant;
 using Application.Common;
 using Application.Contracts.TourManagerAssignment;
@@ -13,8 +11,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
 public sealed record AssignTourManagerTeamCommand(
     [property: JsonPropertyName("tourManagerUserId")] string TourManagerUserId,
     [property: JsonPropertyName("assignments")] List<AssignmentItem> Assignments) : ICommand<ErrorOr<Success>>, ICacheInvalidator

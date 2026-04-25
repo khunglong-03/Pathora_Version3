@@ -6,7 +6,6 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Insurance.Queries;
-
 // GetAll
 public sealed record GetAllInsurancesQuery : IQuery<ErrorOr<IReadOnlyList<InsuranceDto>>>;
 

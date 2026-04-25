@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.DepositPolicy;
 using Application.Services;
 using BuildingBlocks.CORS;
@@ -9,7 +9,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.DepositPolicy.Commands;
-
 public sealed record CreateDepositPolicyCommand(
     [property: JsonPropertyName("tourScope")] int TourScope,
     [property: JsonPropertyName("depositType")] int DepositType,

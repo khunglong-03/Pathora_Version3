@@ -1,14 +1,13 @@
 using Application.Common;
-using Contracts;
-using Contracts.Interfaces;
 using Application.Contracts.Department;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Queries;
-
 public sealed record GetAllDepartmentsQuery() : IQuery<ErrorOr<PaginatedListWithPermissions<DepartmentVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Department}:all";

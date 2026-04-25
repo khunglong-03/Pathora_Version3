@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization;
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.GuestArrival.DTOs;
-
 public sealed record GuestArrivalDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,

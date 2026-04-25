@@ -1,19 +1,18 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
+using Application.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.CORS;
-using Domain.Entities;
+using Contracts.Interfaces;
 using Domain.Entities.Translations;
+using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 public sealed record CreateTourInstanceCommand(
     [property: JsonPropertyName("tourId")] Guid TourId,
     [property: JsonPropertyName("classificationId")] Guid ClassificationId,

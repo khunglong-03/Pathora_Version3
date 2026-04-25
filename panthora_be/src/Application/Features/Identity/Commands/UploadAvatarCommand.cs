@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Interfaces;
+using Application.Common;
 using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record UploadAvatarCommand(
     [property: JsonPropertyName("fileStream")] Stream FileStream,
     [property: JsonPropertyName("fileName")] string FileName,

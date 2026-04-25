@@ -9,7 +9,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 /// <summary>
 /// Manager manually confirms that external transport (flight/train/ferry) has been booked
 /// outside the system. This is required for activation — see BƯỚC 4 in lifecycle doc.

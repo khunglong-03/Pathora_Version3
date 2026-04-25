@@ -1,8 +1,7 @@
-namespace Application.Features.VisaApplication.DTOs;
-
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
+namespace Application.Features.VisaApplication.DTOs;
 public sealed record VisaApplicationDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,

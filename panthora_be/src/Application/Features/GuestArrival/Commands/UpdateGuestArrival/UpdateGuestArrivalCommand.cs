@@ -1,5 +1,3 @@
-namespace Application.Features.GuestArrival.Commands.UpdateGuestArrival;
-
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -9,8 +7,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.GuestArrival.Commands.UpdateGuestArrival;
 public sealed record UpdateGuestArrivalCommand(
     [property: JsonPropertyName("guestArrivalId")] Guid GuestArrivalId,
     [property: JsonPropertyName("checkedInByUserId")] Guid? CheckedInByUserId,

@@ -6,7 +6,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record ResetPasswordCommand([property: JsonPropertyName("request")] ResetPasswordRequest Request) : ICommand<ErrorOr<Success>>;
 
 public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>

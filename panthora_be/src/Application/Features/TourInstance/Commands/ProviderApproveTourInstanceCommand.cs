@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using Application.Services;
 using BuildingBlocks.CORS;
@@ -11,7 +11,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 public sealed record ProviderApproveTourInstanceCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("isApproved")] bool IsApproved,

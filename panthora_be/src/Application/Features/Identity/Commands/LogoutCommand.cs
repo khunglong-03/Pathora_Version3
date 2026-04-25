@@ -1,11 +1,10 @@
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Contracts.Identity;
 using Application.Services;
+using BuildingBlocks.CORS;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record LogoutCommand([property: JsonPropertyName("refreshToken")] string RefreshToken) : ICommand<ErrorOr<Success>>;
 
 public sealed class LogoutCommandHandler(IIdentityService identityService)

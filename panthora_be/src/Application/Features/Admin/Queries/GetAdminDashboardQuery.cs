@@ -7,7 +7,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries;
-
 public sealed record GetAdminDashboardQuery : IQuery<ErrorOr<AdminDashboardReport>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Admin}:dashboard";

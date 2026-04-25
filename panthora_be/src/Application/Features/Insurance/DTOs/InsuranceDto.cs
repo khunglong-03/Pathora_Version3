@@ -1,8 +1,7 @@
-namespace Application.Features.Insurance.DTOs;
-
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
+namespace Application.Features.Insurance.DTOs;
 public sealed record InsuranceDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("insuranceName")] string InsuranceName,

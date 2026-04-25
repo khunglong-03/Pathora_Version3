@@ -9,7 +9,6 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Insurance.Commands;
-
 // Create
 public sealed record CreateInsuranceCommand(
     [property: JsonPropertyName("insuranceName")] string InsuranceName,

@@ -1,9 +1,5 @@
-using System.Globalization;
-using Microsoft.Extensions.Logging;
-using ErrorOr;
-using FluentValidation;
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -11,10 +7,13 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Mails;
 using Domain.UnitOfWork;
+using ErrorOr;
+using FluentValidation;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
-
 public sealed record ReviewTourRequestCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("status")] TourRequestStatus Status,

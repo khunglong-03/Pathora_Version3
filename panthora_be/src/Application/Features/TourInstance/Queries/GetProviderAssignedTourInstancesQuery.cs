@@ -1,15 +1,14 @@
 using Application.Common;
-using Contracts;
-using Contracts.Interfaces;
 using Application.Dtos;
-using ErrorOr;
 using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
 using Domain.Enums;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
-
 public sealed record GetProviderAssignedTourInstancesQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

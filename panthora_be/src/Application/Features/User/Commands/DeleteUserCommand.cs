@@ -1,12 +1,11 @@
 using Application.Common;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
-
 public sealed record DeleteUserCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User, CacheKey.TourManagerAssignment];

@@ -2,7 +2,6 @@ using Application.Dtos;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Queries;
-
 public sealed record TourVm(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("tourCode")] string TourCode,

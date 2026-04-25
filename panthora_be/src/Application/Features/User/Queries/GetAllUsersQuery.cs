@@ -1,14 +1,13 @@
 using Application.Common;
-using Contracts;
-using Contracts.Interfaces;
 using Application.Contracts.User;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Queries;
-
 public sealed record GetAllUsersQuery(
     [property: JsonPropertyName("departmentId")] Guid DepartmentId,
     [property: JsonPropertyName("textSearch")] string? TextSearch,

@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Contracts.User;
 using Application.Services;
@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Supplier;
-
 public sealed record CreateSupplierCommand(
     [property: JsonPropertyName("supplierCode")] string SupplierCode,
     [property: JsonPropertyName("supplierType")] SupplierType SupplierType,

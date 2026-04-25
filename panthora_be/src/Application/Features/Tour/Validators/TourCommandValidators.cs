@@ -1,12 +1,11 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
 using Domain.Enums;
 using FluentValidation;
 
 namespace Application.Features.Tour.Validators;
-
 public sealed class ImageInputDtoValidator : AbstractValidator<ImageInputDto>
 {
     public ImageInputDtoValidator()

@@ -1,6 +1,5 @@
-using System.Linq;
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -8,10 +7,10 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
-
 public sealed record UpdateUserStatusCommand(
     [property: JsonPropertyName("userId")] Guid UserId,
     [property: JsonPropertyName("newStatus")] UserStatus NewStatus) : ICommand<ErrorOr<Success>>, ICacheInvalidator

@@ -1,15 +1,14 @@
-using Application.Common;
 using Application.Common.Localization;
-using Contracts;
-using Contracts.Interfaces;
+using Application.Common;
 using Application.Dtos;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetPublicTourInstancesQuery(
     [property: JsonPropertyName("destination")] string? Destination = null,
     [property: JsonPropertyName("sortBy")] string? SortBy = null,

@@ -1,5 +1,3 @@
-namespace Application.Features.TourTransportAssignment.Queries;
-
 using Application.Common.Constant;
 using Application.Features.TourTransportAssignment.DTOs;
 using BuildingBlocks.CORS;
@@ -10,7 +8,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TourTransportAssignment.Queries;
 public sealed record GetBookingTransportInfoQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<BookingTransportInfoDto>>;

@@ -7,7 +7,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TaxConfig.Queries;
-
 public sealed record GetAllTaxConfigsQuery : IQuery<ErrorOr<IReadOnlyList<TaxConfigResponse>>>;
 
 public sealed class GetAllTaxConfigsQueryHandler(ITaxConfigService taxConfigService)

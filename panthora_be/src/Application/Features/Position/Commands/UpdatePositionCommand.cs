@@ -1,13 +1,12 @@
 using Application.Common;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Contracts.Position;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Commands;
-
 public sealed record UpdatePositionCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("name")] string Name,

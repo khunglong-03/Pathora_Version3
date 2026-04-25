@@ -1,14 +1,13 @@
-using Application.Common;
 using Application.Common.Localization;
-using Contracts.Interfaces;
+using Application.Common;
 using Application.Contracts.Public;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetTrendingDestinationsQuery(
     [property: JsonPropertyName("limit")] int Limit = 6,
     [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<TrendingDestinationVm>>>, ICacheable

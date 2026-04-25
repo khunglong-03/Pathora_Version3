@@ -1,5 +1,3 @@
-namespace Application.Features.Tour.Commands;
-
 using Application.Common.Constant;
 using Application.Common;
 using Application.Services;
@@ -10,7 +8,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Tour.Commands;
 public sealed record UpdateTourStatusCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("status")] TourStatus Status) : ICommand<ErrorOr<Success>>, ICacheInvalidator

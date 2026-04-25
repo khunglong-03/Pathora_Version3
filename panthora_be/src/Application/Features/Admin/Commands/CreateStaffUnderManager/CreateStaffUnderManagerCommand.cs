@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Commands.CreateStaffUnderManager;
-
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using Application.Contracts.Admin;
@@ -15,8 +13,7 @@ using System.Text.Json.Serialization;
 using global::Common.Generators;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.Admin.Commands.CreateStaffUnderManager;
 public sealed record CreateStaffUnderManagerCommand(
     [property: JsonPropertyName("managerId")] Guid ManagerId,
     [property: JsonPropertyName("request")] CreateStaffUnderManagerRequest Request) : ICommand<ErrorOr<StaffMemberDto>>;

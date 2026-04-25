@@ -1,8 +1,7 @@
-namespace Application.Features.Admin.DTOs;
-
-using global::Contracts.ModelResponse;
 using System.Text.Json.Serialization;
+using global::Contracts.ModelResponse;
 
+namespace Application.Features.Admin.DTOs;
 public sealed record AdminDashboardOverviewDto(
     [property: JsonPropertyName("totalUsers")] int TotalUsers,
     [property: JsonPropertyName("activeManagers")] int ActiveManagers,

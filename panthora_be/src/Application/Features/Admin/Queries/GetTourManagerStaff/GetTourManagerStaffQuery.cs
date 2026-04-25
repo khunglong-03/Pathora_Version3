@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Queries.GetTourManagerStaff;
-
 using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
@@ -12,8 +10,7 @@ using FluentValidation;
 using MediatR;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.Admin.Queries.GetTourManagerStaff;
 public sealed record GetTourManagerStaffQuery([property: JsonPropertyName("managerId")] Guid ManagerId)
     : IQuery<ErrorOr<TourManagerStaffDto>>;
 

@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TransportProvider.Drivers.DTOs;
-
 public record DriverActivityResponseDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,

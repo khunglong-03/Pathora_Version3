@@ -6,7 +6,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.Queries;
-
 public sealed record GetTourManagementStatsQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("tourScope")] TourScope? TourScope = null,

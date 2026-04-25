@@ -1,16 +1,15 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using BuildingBlocks.CORS;
-using Contracts;
 using Contracts.Interfaces;
+using Contracts;
 using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
-
 public sealed record GetMyTourRequestsQuery(
     [property: JsonPropertyName("currentUserId")] string CurrentUserId,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,

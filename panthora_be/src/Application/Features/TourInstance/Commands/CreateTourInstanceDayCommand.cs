@@ -1,15 +1,14 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using FluentValidation;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
+using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 public sealed record CreateTourInstanceDayCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("title")] string Title,

@@ -1,5 +1,3 @@
-namespace Application.Features.RoomBlocking.Commands.CreateRoomBlock;
-
 using Application.Common.Constant;
 using Application.Features.RoomBlocking.DTOs;
 using BuildingBlocks.CORS;
@@ -14,8 +12,7 @@ using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.RoomBlocking.Commands.CreateRoomBlock;
 public sealed record CreateRoomBlockCommand(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("roomType")] RoomType RoomType,

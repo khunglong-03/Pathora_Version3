@@ -1,5 +1,3 @@
-namespace Application.Features.HotelServiceProvider.Accommodations.Queries;
-
 using Application.Common.Constant;
 using Application.Features.HotelServiceProvider.Accommodations.DTOs;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using Domain.Enums;
 using ErrorOr;
 using global::Contracts.Interfaces;
 
-
+namespace Application.Features.HotelServiceProvider.Accommodations.Queries;
 public sealed record GetAccommodationsQuery : IQuery<ErrorOr<List<AccommodationDto>>>;
 
 

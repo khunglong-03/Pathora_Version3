@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Drivers.Queries;
-
 using Application.Features.TransportProvider.Drivers.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -8,7 +6,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 using global::Contracts;
 
-
+namespace Application.Features.TransportProvider.Drivers.Queries;
 public sealed record GetDriverActivitiesQuery(
     [property: JsonPropertyName("providerId")] Guid ProviderId,
     [property: JsonPropertyName("driverId")] Guid DriverId,

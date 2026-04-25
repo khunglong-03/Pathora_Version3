@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Vehicles.Commands;
-
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -9,7 +7,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.Vehicles.Commands;
 public sealed record DeleteVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("vehiclePlate")] string VehiclePlate) : ICommand<ErrorOr<Success>>;

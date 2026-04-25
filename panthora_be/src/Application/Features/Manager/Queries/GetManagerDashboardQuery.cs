@@ -7,7 +7,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.Queries;
-
 public sealed record GetManagerDashboardQuery([property: JsonPropertyName("managerId")] Guid ManagerId) : IQuery<ErrorOr<ManagerDashboardReport>>, ICacheable
 {
     public string CacheKey => $"manager:dashboard:{ManagerId}";

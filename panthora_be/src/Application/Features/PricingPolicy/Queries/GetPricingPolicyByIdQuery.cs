@@ -5,7 +5,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Queries;
-
 public sealed record GetPricingPolicyByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<PricingPolicyResponse>>;
 
 public sealed class GetPricingPolicyByIdQueryHandler(IPricingPolicyService pricingPolicyService)

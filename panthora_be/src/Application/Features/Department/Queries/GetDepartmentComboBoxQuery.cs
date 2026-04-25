@@ -1,13 +1,12 @@
 using Application.Common;
 using Application.Contracts.Department;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Queries;
-
 public sealed record GetDepartmentComboBoxQuery() : IQuery<ErrorOr<List<DepartmentComboBoxVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Department}:combobox";

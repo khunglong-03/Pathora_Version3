@@ -1,5 +1,3 @@
-namespace Application.Features.GuestArrival.Queries.GetGuestArrival;
-
 using Application.Common.Constant;
 using Application.Features.GuestArrival.DTOs;
 using BuildingBlocks.CORS;
@@ -7,7 +5,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.GuestArrival.Queries.GetGuestArrival;
 public sealed record GetGuestArrivalQuery([property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId)
     : IQuery<ErrorOr<GuestArrivalDto>>;
 

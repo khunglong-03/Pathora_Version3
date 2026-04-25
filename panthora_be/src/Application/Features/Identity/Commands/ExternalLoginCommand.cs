@@ -1,5 +1,5 @@
-using Application.Contracts.Identity;
 using Application.Common.Constant;
+using Application.Contracts.Identity;
 using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
@@ -7,7 +7,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record ExternalLoginCommand(
     [property: JsonPropertyName("providerKey")] string ProviderKey,
     [property: JsonPropertyName("providerEmail")] string ProviderEmail,

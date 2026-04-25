@@ -1,9 +1,9 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using BuildingBlocks.CORS;
-using Contracts;
 using Contracts.Interfaces;
+using Contracts;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
@@ -11,7 +11,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
-
 public sealed record GetAllTourRequestsQuery(
     [property: JsonPropertyName("currentUserId")] string CurrentUserId,
     [property: JsonPropertyName("status")] TourRequestStatus? Status = null,

@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Revenue.Queries;
-
 using Application.Features.TransportProvider.Revenue.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -8,7 +6,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.Revenue.Queries;
 public sealed record GetRevenueSummaryQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("year")] int Year,

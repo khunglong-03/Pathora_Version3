@@ -1,5 +1,3 @@
-namespace Application.Features.Manager.Commands.DeleteManagerBankAccount;
-
 using Application.Common.Interfaces;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -7,7 +5,7 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Manager.Commands.DeleteManagerBankAccount;
 public sealed record DeleteManagerBankAccountCommand([property: JsonPropertyName("accountId")] Guid AccountId)
     : ICommand<ErrorOr<Deleted>>;
 

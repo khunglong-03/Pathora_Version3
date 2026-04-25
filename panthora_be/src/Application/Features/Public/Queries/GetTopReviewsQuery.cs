@@ -1,13 +1,12 @@
 using Application.Common;
 using Application.Contracts.Public;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetTopReviewsQuery([property: JsonPropertyName("limit")] int Limit = 6) : IQuery<ErrorOr<List<TopReviewVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Tour}:top-reviews:{Limit}";

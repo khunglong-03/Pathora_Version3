@@ -2,14 +2,13 @@ using Application.Common;
 using Application.Dtos;
 using Application.Services;
 using BuildingBlocks.CORS;
-using Contracts;
 using Contracts.Interfaces;
+using Contracts;
 using Domain.Enums;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Queries;
-
 public sealed record GetMyToursQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("status")] TourStatus? Status = null,

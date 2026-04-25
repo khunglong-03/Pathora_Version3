@@ -1,13 +1,12 @@
 using Application.Common;
-using Application.Services;
-using Contracts.Interfaces;
 using Application.Dtos;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
-
 public sealed record GetTourInstanceStatsQuery() : IQuery<ErrorOr<TourInstanceStatsDto>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourInstance}:stats";

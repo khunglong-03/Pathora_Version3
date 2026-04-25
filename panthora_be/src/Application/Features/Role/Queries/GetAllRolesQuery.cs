@@ -1,5 +1,3 @@
-namespace Application.Features.Role.Queries;
-
 using Application.Contracts.Role;
 using Application.Services;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Role.Queries;
 public sealed record GetAllRolesQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

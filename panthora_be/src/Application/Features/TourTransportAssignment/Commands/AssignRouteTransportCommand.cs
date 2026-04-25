@@ -1,5 +1,3 @@
-namespace Application.Features.TourTransportAssignment.Commands;
-
 using Application.Common.Constant;
 using Application.Features.TourTransportAssignment.DTOs;
 using BuildingBlocks.CORS;
@@ -11,7 +9,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TourTransportAssignment.Commands;
 public sealed record AssignRouteTransportCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("request")] RouteTransportAssignmentRequestDto Request) : ICommand<ErrorOr<Success>>;

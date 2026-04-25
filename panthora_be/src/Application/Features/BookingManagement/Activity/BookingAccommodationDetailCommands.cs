@@ -1,22 +1,21 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Common;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
-using System.Text.Json.Serialization;
-using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using IHotelRoomInventoryRepository = Domain.Common.Repositories.IHotelRoomInventoryRepository;
+using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
-
 public sealed record CreateAccommodationDetailCommand(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,

@@ -1,7 +1,8 @@
-using Application.Common;
 using Application.Common.Constant;
 using Application.Common.Interfaces;
+using Application.Common;
 using Application.Dtos;
+using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -9,11 +10,9 @@ using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
-using BuildingBlocks.CORS;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 public sealed record AssignVehicleToRouteCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("routeId")] Guid RouteId,

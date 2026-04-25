@@ -1,14 +1,13 @@
-using Application.Common;
 using Application.Common.Localization;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetPublicTourInstanceDetailQuery(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable

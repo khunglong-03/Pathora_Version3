@@ -1,9 +1,8 @@
-namespace Application.Features.TourTransportAssignment.Validators;
-
 using Application.Features.TourTransportAssignment.DTOs;
 using Domain.Common.Repositories;
 using FluentValidation;
 
+namespace Application.Features.TourTransportAssignment.Validators;
 public sealed class RouteTransportAssignmentRequestDtoValidator
     : AbstractValidator<RouteTransportAssignmentRequestDto>
 {

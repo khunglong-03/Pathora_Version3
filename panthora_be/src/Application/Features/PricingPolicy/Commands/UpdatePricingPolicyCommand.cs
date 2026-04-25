@@ -1,16 +1,15 @@
+using Application.Common.Constant;
 using Application.Contracts.PricingPolicy;
 using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts;
 using Domain.Entities.Translations;
 using Domain.ValueObjects;
-using Contracts;
-using Application.Common.Constant;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
-
 public sealed record UpdatePricingPolicyCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("name")] string Name,

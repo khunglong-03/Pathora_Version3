@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Commands.VerifyBankAccount;
-
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using BuildingBlocks.CORS;
@@ -9,8 +7,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.Admin.Commands.VerifyBankAccount;
 public sealed record VerifyBankAccountCommand([property: JsonPropertyName("managerId")] Guid ManagerId)
     : ICommand<ErrorOr<Success>>;
 

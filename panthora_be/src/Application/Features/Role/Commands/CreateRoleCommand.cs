@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Role;
 using Application.Services;
 using BuildingBlocks.CORS;
@@ -9,7 +9,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
-
 public sealed record CreateRoleCommand(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("description")] string Description)

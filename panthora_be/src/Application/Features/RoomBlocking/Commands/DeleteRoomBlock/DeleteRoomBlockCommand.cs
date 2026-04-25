@@ -1,5 +1,3 @@
-namespace Application.Features.RoomBlocking.Commands.DeleteRoomBlock;
-
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -9,8 +7,7 @@ using FluentValidation;
 using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.RoomBlocking.Commands.DeleteRoomBlock;
 public sealed record DeleteRoomBlockCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 

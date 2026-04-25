@@ -1,5 +1,3 @@
-namespace Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
-
 using Application.Common.Constant;
 using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
@@ -12,8 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
 public sealed record CreateHotelRoomInventoryCommand(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("roomType")] RoomType RoomType,

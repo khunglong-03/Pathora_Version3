@@ -1,6 +1,3 @@
-using System.Globalization;
-using ErrorOr;
-using FluentValidation;
 using Application.Common.Constant;
 using Application.Contracts.Booking;
 using BuildingBlocks.CORS;
@@ -9,10 +6,12 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using Domain.ValueObjects;
+using ErrorOr;
+using FluentValidation;
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Commands;
-
 public sealed record CreatePublicBookingCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("customerName")] string CustomerName,

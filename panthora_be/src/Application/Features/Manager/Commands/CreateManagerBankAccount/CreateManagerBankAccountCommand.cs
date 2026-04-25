@@ -1,5 +1,3 @@
-namespace Application.Features.Manager.Commands.CreateManagerBankAccount;
-
 using Application.Common.Interfaces;
 using Application.Contracts.Manager;
 using Application.Features.Manager.DTOs;
@@ -11,8 +9,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.Manager.Commands.CreateManagerBankAccount;
 public sealed record CreateManagerBankAccountCommand([property: JsonPropertyName("request")] CreateManagerBankAccountRequest Request)
     : ICommand<ErrorOr<ManagerBankAccountItemDto>>;
 

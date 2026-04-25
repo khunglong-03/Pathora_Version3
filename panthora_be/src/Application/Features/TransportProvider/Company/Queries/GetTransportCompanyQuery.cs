@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Company.Queries;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.Company.DTOs;
 using BuildingBlocks.CORS;
@@ -10,7 +8,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.Company.Queries;
 public sealed record GetTransportCompanyQuery([property: JsonPropertyName("currentUserId")] Guid CurrentUserId)
     : IQuery<ErrorOr<TransportCompanyProfileDto>>;
 

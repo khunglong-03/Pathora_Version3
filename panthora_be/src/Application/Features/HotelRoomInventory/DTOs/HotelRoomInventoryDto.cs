@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization;
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.HotelRoomInventory.DTOs;
-
 public sealed record HotelRoomInventoryDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("supplierId")] Guid SupplierId,

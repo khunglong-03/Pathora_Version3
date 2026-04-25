@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TransportProvider.Revenue.DTOs;
-
 public sealed record TripHistoryItemDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("bookingReference")] string BookingReference,

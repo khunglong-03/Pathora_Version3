@@ -1,5 +1,3 @@
-namespace Application.Features.Tour.Commands.PurgeTour;
-
 using Application.Common.Constant;
 using Application.Common;
 using BuildingBlocks.CORS;
@@ -9,8 +7,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.Tour.Commands.PurgeTour;
 public sealed record PurgeTourCommand([property: JsonPropertyName("tourId")] Guid TourId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];

@@ -1,5 +1,3 @@
-namespace Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventoryById;
-
 using Application.Common.Constant;
 using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
@@ -7,7 +5,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventoryById;
 public sealed record GetHotelRoomInventoryByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<HotelRoomInventoryDto>>;
 
 

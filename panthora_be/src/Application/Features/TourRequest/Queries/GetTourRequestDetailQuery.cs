@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
@@ -9,7 +9,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
-
 public sealed record GetTourRequestDetailQuery(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<TourRequestDetailDto>>, ICacheable

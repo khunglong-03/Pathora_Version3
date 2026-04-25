@@ -17,7 +17,7 @@ public class DriverController : BaseApiController
     {
         var userId = GetCurrentUserId();
         var result = await Sender.Send(new GetDriversQuery(userId, isActive, pageNumber, pageSize));
-        return HandlePaginatedResult(result);
+        return HandleResult(result);
     }
 
     [HttpGet($"{DriverEndpoint.Base}/{{id:guid}}")]

@@ -18,7 +18,7 @@ public class VehicleController : BaseApiController
     {
         var userId = GetCurrentUserId();
         var result = await Sender.Send(new GetVehiclesQuery(userId, locationArea.HasValue ? (Continent)locationArea.Value : null, isActive, pageNumber, pageSize));
-        return HandlePaginatedResult(result);
+        return HandleResult(result);
     }
 
     [HttpGet($"{VehicleEndpoint.Base}/{{plate}}")]

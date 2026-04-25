@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Queries.GetAllUsers;
-
 using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using BuildingBlocks.CORS;
@@ -11,7 +9,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 using global::Contracts;
 
-
+namespace Application.Features.Admin.Queries.GetAllUsers;
 public sealed record GetAllUsersQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

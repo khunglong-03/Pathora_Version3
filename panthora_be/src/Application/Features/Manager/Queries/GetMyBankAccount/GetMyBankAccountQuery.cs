@@ -1,5 +1,3 @@
-namespace Application.Features.Manager.Queries.GetMyBankAccount;
-
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using Application.Features.Manager.DTOs;
@@ -8,7 +6,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Manager.Queries.GetMyBankAccount;
 public sealed record GetMyBankAccountQuery()
     : IQuery<ErrorOr<ManagerBankAccountDto>>;
 

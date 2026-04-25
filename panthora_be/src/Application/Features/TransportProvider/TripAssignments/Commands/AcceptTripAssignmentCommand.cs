@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.TripAssignments.Commands;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.TripAssignments.DTOs;
 using BuildingBlocks.CORS;
@@ -10,7 +8,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.TripAssignments.Commands;
 public sealed record AcceptTripAssignmentCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("assignmentId")] Guid AssignmentId,

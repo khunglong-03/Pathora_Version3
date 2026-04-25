@@ -1,5 +1,3 @@
-namespace Application.Features.Manager.Commands.UpdateMyBankAccount;
-
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using Application.Contracts.Manager;
@@ -12,8 +10,7 @@ using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
 
-
-
+namespace Application.Features.Manager.Commands.UpdateMyBankAccount;
 public sealed record UpdateMyBankAccountCommand([property: JsonPropertyName("request")] UpdateMyBankAccountRequest Request)
     : ICommand<ErrorOr<ManagerBankAccountDto>>;
 

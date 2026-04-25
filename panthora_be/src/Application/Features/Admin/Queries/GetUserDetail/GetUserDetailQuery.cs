@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Queries.GetUserDetail;
-
 using Application.Common.Constant;
 using Application.Features.Admin.DTOs;
 using BuildingBlocks.CORS;
@@ -10,7 +8,7 @@ using ErrorOr;
 using MediatR;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.Admin.Queries.GetUserDetail;
 public sealed record GetUserDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<UserDetailDto>>;
 
 

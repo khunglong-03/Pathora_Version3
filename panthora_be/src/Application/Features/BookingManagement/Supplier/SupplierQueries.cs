@@ -1,8 +1,8 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -10,7 +10,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Supplier;
-
 public sealed record GetSupplierByIdQuery([property: JsonPropertyName("supplierId")] Guid SupplierId) : IQuery<ErrorOr<SupplierDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Supplier}:detail:{SupplierId}";

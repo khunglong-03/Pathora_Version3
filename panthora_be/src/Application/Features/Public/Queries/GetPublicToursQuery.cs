@@ -1,17 +1,16 @@
-using Application.Common;
 using Application.Common.Localization;
+using Application.Common;
 using Application.Contracts.Public;
-using Contracts;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
+using Contracts;
 using Domain.Common.Repositories;
-using Domain.Entities;
 using Domain.Entities.Translations;
+using Domain.Entities;
+using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
-
 public sealed record GetPublicToursQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,

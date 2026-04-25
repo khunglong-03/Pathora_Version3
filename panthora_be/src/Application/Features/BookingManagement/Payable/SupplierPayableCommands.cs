@@ -1,9 +1,9 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -13,7 +13,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Payable;
-
 public sealed record CreateSupplierPayableCommand(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
     [property: JsonPropertyName("supplierId")] Guid SupplierId,

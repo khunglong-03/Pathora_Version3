@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record UpdateUserSettingsCommand(
     [property: JsonPropertyName("request")] UpdateUserSettingsRequest Request,
     [property: JsonPropertyName("currentUserId")] string CurrentUserId)

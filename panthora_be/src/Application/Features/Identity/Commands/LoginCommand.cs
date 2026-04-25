@@ -1,14 +1,13 @@
 using Application.Common.Constant;
 using Application.Contracts.Identity;
+using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
-using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record LoginCommand(
     [property: JsonPropertyName("email")] string Email,
     [property: JsonPropertyName("password")] string Password) : ICommand<ErrorOr<LoginResponse>>;

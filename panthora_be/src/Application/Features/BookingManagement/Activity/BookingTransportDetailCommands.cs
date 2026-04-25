@@ -1,10 +1,10 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Common;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -14,7 +14,6 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
-
 public sealed record CreateTransportDetailCommand(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
     [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,

@@ -1,5 +1,3 @@
-namespace Application.Features.AdminHotelBookings.Queries;
-
 using Application.Common;
 using Application.Features.AdminHotelBookings.DTOs;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 using global::Contracts;
 
-
+namespace Application.Features.AdminHotelBookings.Queries;
 public sealed record GetHotelBookingsForAdminQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 20,

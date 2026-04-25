@@ -1,5 +1,3 @@
-namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
-
 using Application.Common.Constant;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -7,7 +5,7 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using global::Contracts.Interfaces;
 
-
+namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
 public sealed record DeleteAccommodationCommand(Guid Id) : ICommand<ErrorOr<Success>>;
 
 

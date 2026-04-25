@@ -1,21 +1,19 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Common;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
-
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Participant;
-
 public sealed record CreateParticipantCommand(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
     [property: JsonPropertyName("participantType")] string ParticipantType,

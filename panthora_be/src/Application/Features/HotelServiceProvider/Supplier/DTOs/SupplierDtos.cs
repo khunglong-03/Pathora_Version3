@@ -1,5 +1,5 @@
-namespace Application.Features.HotelServiceProvider.Supplier.DTOs;
 
+namespace Application.Features.HotelServiceProvider.Supplier.DTOs;
 public sealed record HotelSupplierListItemDto(
     Guid Id,
     string SupplierCode,

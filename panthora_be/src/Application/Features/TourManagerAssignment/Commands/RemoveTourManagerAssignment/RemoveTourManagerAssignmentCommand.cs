@@ -1,5 +1,3 @@
-namespace Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
-
 using Application.Common;
 using Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using Domain.Enums;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-
+namespace Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
 public sealed record RemoveTourManagerAssignmentCommand(
     [property: JsonPropertyName("managerId")] Guid ManagerId,
     [property: JsonPropertyName("assignedUserId")] Guid? AssignedUserId,

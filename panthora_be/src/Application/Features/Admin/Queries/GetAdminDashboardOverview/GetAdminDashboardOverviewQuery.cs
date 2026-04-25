@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Queries.GetAdminDashboardOverview;
-
 using Application.Features.Admin.DTOs;
 using Application.Features.Admin.Queries.GetAdminDashboardOverview;
 using BuildingBlocks.CORS;
@@ -10,8 +8,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 using global::Contracts.ModelResponse;
 
-
-
+namespace Application.Features.Admin.Queries.GetAdminDashboardOverview;
 public sealed record GetAdminDashboardOverviewQuery
     : IQuery<ErrorOr<AdminDashboardOverviewDto>>;
 

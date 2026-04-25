@@ -1,5 +1,3 @@
-namespace Application.Features.HotelServiceProvider.Supplier;
-
 using Application.Common.Constant;
 using Application.Features.HotelServiceProvider.Supplier.DTOs;
 using BuildingBlocks.CORS;
@@ -10,6 +8,7 @@ using ErrorOr;
 using FluentValidation;
 using global::Contracts.Interfaces;
 
+namespace Application.Features.HotelServiceProvider.Supplier;
 public sealed record CreateSupplierInfoCommand(
     CreateSupplierInfoRequestDto Request
 ) : ICommand<ErrorOr<HotelSupplierInfoDto>>;

@@ -9,7 +9,6 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.Commands;
-
 // Create
 public sealed record CreateVisaApplicationCommand(
     [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,

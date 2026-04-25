@@ -1,22 +1,21 @@
-using System.Data;
-using Application.Common;
 using Application.Common.Authorization;
 using Application.Common.Constant;
 using Application.Common.Interfaces;
+using Application.Common;
+using BuildingBlocks.CORS;
 using Contracts.Interfaces;
-using Domain;
 using Domain.Common.Repositories;
-using Domain.Enums;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.UnitOfWork;
+using Domain;
 using ErrorOr;
 using FluentValidation;
-using BuildingBlocks.CORS;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
-
 /// <summary>One vehicle row in a multi-vehicle approve request (or single-row legacy body).</summary>
 public sealed record TransportApprovalAssignmentDto(
     [property: JsonPropertyName("vehicleId")] Guid VehicleId,

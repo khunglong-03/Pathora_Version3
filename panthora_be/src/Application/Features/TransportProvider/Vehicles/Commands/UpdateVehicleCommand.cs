@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.Vehicles.Commands;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.Vehicles.DTOs;
 using BuildingBlocks.CORS;
@@ -12,7 +10,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.Vehicles.Commands;
 public sealed record UpdateVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,

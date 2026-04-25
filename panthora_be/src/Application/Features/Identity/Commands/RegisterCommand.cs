@@ -1,13 +1,12 @@
-using BuildingBlocks.CORS;
-using ErrorOr;
-using FluentValidation;
 using Application.Common.Constant;
 using Application.Contracts.Identity;
 using Application.Services;
+using BuildingBlocks.CORS;
+using ErrorOr;
+using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
-
 public sealed record RegisterCommand(
     [property: JsonPropertyName("username")] string Username,
     [property: JsonPropertyName("fullName")] string FullName,

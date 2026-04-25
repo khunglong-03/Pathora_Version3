@@ -1,5 +1,3 @@
-namespace Application.Features.TransportProvider.TripAssignments.Queries;
-
 using Application.Common.Constant;
 using Application.Features.TransportProvider.TripAssignments.DTOs;
 using BuildingBlocks.CORS;
@@ -9,7 +7,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
-
+namespace Application.Features.TransportProvider.TripAssignments.Queries;
 public sealed record GetTripAssignmentDetailQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("assignmentId")] Guid AssignmentId) : IQuery<ErrorOr<TripAssignmentDetailDto>>;

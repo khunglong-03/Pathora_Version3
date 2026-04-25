@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.Queries;
-
 // GetAll
 public sealed record GetAllVisaApplicationsQuery : IQuery<ErrorOr<IReadOnlyList<VisaApplicationDto>>>;
 

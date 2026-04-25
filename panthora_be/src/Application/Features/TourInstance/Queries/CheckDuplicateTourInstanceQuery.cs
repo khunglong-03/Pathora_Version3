@@ -1,15 +1,14 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
+using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
-
 public sealed record CheckDuplicateTourInstanceQuery(
     [property: JsonPropertyName("tourId")] Guid TourId,
     [property: JsonPropertyName("classificationId")] Guid ClassificationId,

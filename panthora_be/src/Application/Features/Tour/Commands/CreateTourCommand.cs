@@ -1,18 +1,17 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using Application.Features.Tour.Validators;
+using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Entities.Translations;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
-
 public sealed record CreateTourCommand(
     [property: JsonPropertyName("tourName")] string TourName,
     [property: JsonPropertyName("shortDescription")] string ShortDescription,

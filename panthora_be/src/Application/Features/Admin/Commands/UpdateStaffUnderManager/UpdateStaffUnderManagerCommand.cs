@@ -1,5 +1,3 @@
-namespace Application.Features.Admin.Commands.UpdateStaffUnderManager;
-
 using Application.Common.Constant;
 using Application.Common.Interfaces;
 using Application.Contracts.Admin;
@@ -15,8 +13,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
-
-
+namespace Application.Features.Admin.Commands.UpdateStaffUnderManager;
 public sealed record UpdateStaffUnderManagerCommand(
     [property: JsonPropertyName("managerId")] Guid ManagerId,
     [property: JsonPropertyName("staffId")] Guid StaffId,

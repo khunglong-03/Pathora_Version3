@@ -6,7 +6,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries;
-
 public sealed record GetAdminTourManagementQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("status")] TourStatus? Status,

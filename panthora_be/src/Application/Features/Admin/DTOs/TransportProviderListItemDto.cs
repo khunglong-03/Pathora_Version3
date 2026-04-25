@@ -1,8 +1,7 @@
-namespace Application.Features.Admin.DTOs;
-
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
+namespace Application.Features.Admin.DTOs;
 public sealed record TransportProviderListItemDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("fullName")] string FullName,

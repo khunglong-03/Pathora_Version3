@@ -1,5 +1,3 @@
-namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
-
 using Application.Common.Constant;
 using Application.Features.HotelServiceProvider.Accommodations.DTOs;
 using BuildingBlocks.CORS;
@@ -10,7 +8,7 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using global::Contracts.Interfaces;
 
-
+namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
 public sealed record CreateAccommodationCommand(
     CreateAccommodationRequestDto Request
 ) : ICommand<ErrorOr<AccommodationDto>>;

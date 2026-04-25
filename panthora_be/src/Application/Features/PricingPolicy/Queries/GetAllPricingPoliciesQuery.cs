@@ -5,7 +5,6 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Queries;
-
 public sealed record GetAllPricingPoliciesQuery : IQuery<ErrorOr<List<PricingPolicyResponse>>>;
 
 public sealed class GetAllPricingPoliciesQueryHandler(IPricingPolicyService pricingPolicyService)

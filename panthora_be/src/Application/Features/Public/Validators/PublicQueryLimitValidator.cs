@@ -3,7 +3,6 @@ using Application.Features.Public.Queries;
 using FluentValidation;
 
 namespace Application.Features.Public.Validators;
-
 public sealed class GetTopReviewsQueryValidator : AbstractValidator<GetTopReviewsQuery>
 {
     public GetTopReviewsQueryValidator()
