@@ -68,6 +68,10 @@ export interface CreateTourInstancePayload {
   imageUrls?: string[];
   tourRequestId?: string | null;
   activityAssignments?: CreateTourInstanceActivityAssignment[];
+  translations?: Record<string, {
+    title: string;
+    location?: string;
+  }>;
 }
 
 export interface UpdateInstanceDayPayload {
@@ -273,6 +277,7 @@ export const tourInstanceService = {
       thumbnailUrl: data.thumbnailUrl || null,
       imageUrls: normalizeStringArray(data.imageUrls),
       tourRequestId: data.tourRequestId || null,
+      translations: data.translations,
       activityAssignments: data.activityAssignments?.length
         ? data.activityAssignments.map((assignment) => ({
             originalActivityId: assignment.originalActivityId,

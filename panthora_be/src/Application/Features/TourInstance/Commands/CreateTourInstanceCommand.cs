@@ -2,8 +2,10 @@ using Application.Common;
 using Application.Common.Constant;
 using Application.Dtos;
 using Contracts.Interfaces;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.CORS;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
@@ -27,6 +29,7 @@ public sealed record CreateTourInstanceCommand(
     [property: JsonPropertyName("thumbnailUrl")] string? ThumbnailUrl = null,
     [property: JsonPropertyName("tourRequestId")] Guid? TourRequestId = null,
     [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls = null,
+    [property: JsonPropertyName("translations")] Dictionary<string, TourInstanceTranslationData>? Translations = null,
     [property: JsonPropertyName("activityAssignments")] List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];

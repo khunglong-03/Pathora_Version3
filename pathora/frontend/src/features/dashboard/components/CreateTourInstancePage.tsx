@@ -51,12 +51,14 @@ type FormState = {
   tourId: string;
   classificationId: string;
   title: string;
+  titleEn: string;
   instanceType: string;
   startDate: string;
   endDate: string;
   maxParticipation: string;
   basePrice: string;
   location: string;
+  locationEn: string;
   includedServices: string[];
   guideUserIds: string[];
   thumbnailUrl: string;
@@ -121,12 +123,14 @@ const INITIAL_FORM: FormState = {
   tourId: "",
   classificationId: "",
   title: "",
+  titleEn: "",
   instanceType: "2",
   startDate: "",
   endDate: "",
   maxParticipation: "",
   basePrice: "",
   location: "",
+  locationEn: "",
   includedServices: [],
   guideUserIds: [],
   thumbnailUrl: "",
@@ -160,12 +164,12 @@ function StepIndicator({ currentStep, t }: StepIndicatorProps) {
         return (
           <div key={step.num} className={`relative z-10 flex items-center gap-6 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isActive || isCompleted ? "opacity-100" : "opacity-40"}`}>
             <div className={`flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-              isCompleted ? "bg-stone-900 text-stone-50" : isActive ? "bg-orange-500 text-white shadow-[0_0_24px_rgba(249,115,22,0.4)] ring-4 ring-orange-500/10 scale-110" : "bg-stone-50 border border-stone-200 text-stone-400"
+              isCompleted ? "bg-stone-900 text-stone-50" : isActive ? "bg-yellow-600 text-white shadow-[0_0_24px_rgba(202,138,4,0.4)] ring-4 ring-yellow-600/10 scale-110" : "bg-white/50 backdrop-blur-sm border border-stone-200/50 text-stone-400"
             }`}>
               {isCompleted ? <Icon icon="heroicons:check" className="size-3.5" /> : step.num}
             </div>
             <div className="flex flex-col">
-              <span className={`text-[10px] tracking-[0.2em] uppercase font-bold transition-colors ${isActive ? "text-orange-600" : "text-stone-400"}`}>
+              <span className={`text-[10px] tracking-[0.2em] uppercase font-bold transition-colors ${isActive ? "text-yellow-600" : "text-stone-400"}`}>
                 Step 0{step.num}
               </span>
               <span className={`text-sm font-medium transition-colors ${isActive ? "text-stone-900" : "text-stone-500"}`}>
@@ -182,13 +186,15 @@ function StepIndicator({ currentStep, t }: StepIndicatorProps) {
 // ─── Double Bezel Card ───────────────────────────────────────────────────────
 function DoubleBezelCard({ title, eyebrow, stepNumber, children, className = "" }: { title?: React.ReactNode; eyebrow?: string; stepNumber?: number; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-[2.5rem] bg-black/[0.02] p-2 ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] fill-mode-both ${className}`}>
-      <div className="rounded-[calc(2.5rem-0.5rem)] bg-white p-8 md:p-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] ring-1 ring-black/[0.03]">
+    <div className={`relative rounded-[2.5rem] bg-white/40 p-2 ring-1 ring-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-8 duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] fill-mode-both overflow-hidden ${className}`}>
+      {/* Iridescent/Fluid background blur layer */}
+      <div className="absolute inset-0 bg-gradient-to-br from-stone-100/50 via-white/20 to-stone-200/50 mix-blend-overlay pointer-events-none" />
+      <div className="relative rounded-[calc(2.5rem-0.5rem)] bg-white/70 backdrop-blur-xl p-8 md:p-10 shadow-[inset_0_1px_1px_rgba(255,255,255,1)] ring-1 ring-black/[0.03]">
         {(title || eyebrow) && (
           <div className="mb-10">
-            {eyebrow && <div className="inline-block rounded-full bg-stone-100/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-4">{eyebrow}</div>}
+            {eyebrow && <div className="inline-block rounded-full bg-stone-900/5 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-4">{eyebrow}</div>}
             <h2 className="text-2xl font-bold tracking-tight text-stone-900 flex items-center gap-4 font-serif">
-               {stepNumber && <span className="flex size-8 rounded-full bg-orange-100 text-orange-600 items-center justify-center text-sm font-black tracking-tighter shrink-0">{stepNumber}</span>}
+               {stepNumber && <span className="flex size-8 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-50 text-yellow-700 items-center justify-center text-sm font-black tracking-tighter shrink-0 ring-1 ring-yellow-600/20 shadow-inner">{stepNumber}</span>}
                {title}
             </h2>
           </div>
@@ -254,8 +260,8 @@ function SelectTourStep({
 
         <div className="space-y-8">
           <div className="space-y-3 relative group">
-            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-orange-600 ml-1">
-              {t("tourInstance.packageTour", "Package Tour")} <span className="text-orange-500">*</span>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-yellow-700 ml-1">
+              {t("tourInstance.packageTour", "Package Tour")} <span className="text-yellow-600">*</span>
             </label>
             {loading && !loadError ? (
               <div className="space-y-3">
@@ -300,8 +306,8 @@ function SelectTourStep({
           </div>
 
           <div className="space-y-3 relative group">
-            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-orange-600 ml-1">
-              {t("tourInstance.packageClassification", "Package Classification")} <span className="text-orange-500">*</span>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-yellow-700 ml-1">
+              {t("tourInstance.packageClassification", "Package Classification")} <span className="text-yellow-600">*</span>
             </label>
             <div className="relative">
               <select
@@ -364,7 +370,7 @@ interface ManagerChipProps {
 
 function ManagerChip({ user, onRemove }: ManagerChipProps) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-700">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-100/50 px-2.5 py-1 text-xs font-medium text-yellow-800">
       {user.avatar ? (
         <img
           src={user.avatar}
@@ -383,7 +389,7 @@ function ManagerChip({ user, onRemove }: ManagerChipProps) {
       <button
         type="button"
         onClick={onRemove}
-        className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-orange-500 hover:text-orange-700">
+        className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-yellow-600 hover:text-yellow-800">
         <Icon icon="heroicons:x-mark" className="size-3" />
       </button>
     </span>
@@ -720,6 +726,8 @@ interface InstanceDetailsStepProps {
   onDeleteActivity: (dayId: string, activityId: string) => void;
   onAddActivity: (dayId: string) => void;
   onToggleEditActivity: (dayId: string, activityId: string) => void;
+  activeLang: "vi" | "en";
+  setActiveLang: (lang: "vi" | "en") => void;
 }
 
 function InstanceDetailsStep({
@@ -760,6 +768,8 @@ function InstanceDetailsStep({
   onDeleteActivity,
   onAddActivity,
   onToggleEditActivity,
+  activeLang,
+  setActiveLang,
 }: InstanceDetailsStepProps) {
   const selectedGuide = useMemo(
     () => guides.find((u) => form.guideUserIds.includes(u.id)) ?? null,
@@ -826,37 +836,82 @@ function InstanceDetailsStep({
       <DoubleBezelCard
         title={t("tourInstance.wizard.section.basicInfo", "Basic Information")}>
         <div className="space-y-4">
+          {/* Language Tabs */}
+          <div className="flex items-center gap-1 border-b border-stone-100 mb-6">
+            <button
+              type="button"
+              onClick={() => setActiveLang("vi")}
+              className={`px-4 py-2 text-sm font-semibold transition-all border-b-2 ${
+                activeLang === "vi"
+                  ? "border-amber-500 text-amber-600"
+                  : "border-transparent text-stone-400 hover:text-stone-600"
+              }`}>
+              {t("tourAdmin.langTabs.vi", "Tiếng Việt")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveLang("en")}
+              className={`px-4 py-2 text-sm font-semibold transition-all border-b-2 ${
+                activeLang === "en"
+                  ? "border-amber-500 text-amber-600"
+                  : "border-transparent text-stone-400 hover:text-stone-600"
+              }`}>
+              {t("tourAdmin.langTabs.en", "English")}
+            </button>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-semibold text-stone-700">
-              {t("tourInstance.form.title", "Title")} *
+              {t("tourInstance.form.title", "Title")} ({activeLang.toUpperCase()}) *
             </label>
-            <input
-              className={inputClassName}
-              value={form.title}
-              onChange={(event) => updateField("title", event.target.value)}
-              placeholder={t(
-                "tourInstance.form.titlePlaceholder",
-                "Ex: Ha Long 3N2D - June Departure",
-              )}
-            />
-            {errors.title && (
+            {activeLang === "vi" ? (
+              <input
+                className={inputClassName}
+                value={form.title}
+                onChange={(event) => updateField("title", event.target.value)}
+                placeholder={t(
+                  "tourInstance.form.titlePlaceholder",
+                  "Ex: Ha Long 3N2D - June Departure",
+                )}
+              />
+            ) : (
+              <input
+                className={inputClassName}
+                value={form.titleEn}
+                onChange={(event) => updateField("titleEn", event.target.value)}
+                placeholder={t(
+                  "tourInstance.form.titlePlaceholderEn",
+                  "Ex: Ha Long 3D2N - June Departure",
+                )}
+              />
+            )}
+            {errors.title && activeLang === "vi" && (
               <p className="text-xs text-red-600">{errors.title}</p>
             )}
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-stone-700">
-              {t("tourInstance.location", "Location")}
+              {t("tourInstance.location", "Location")} ({activeLang.toUpperCase()})
             </label>
-            <input
-              className={inputClassName}
-              value={form.location}
-              onChange={(event) => updateField("location", event.target.value)}
-              placeholder={t("tourInstance.form.locationPlaceholder", "Ex: Ha Noi")}
-            />
+            {activeLang === "vi" ? (
+              <input
+                className={inputClassName}
+                value={form.location}
+                onChange={(event) => updateField("location", event.target.value)}
+                placeholder={t("tourInstance.form.locationPlaceholder", "Ex: Ha Noi")}
+              />
+            ) : (
+              <input
+                className={inputClassName}
+                value={form.locationEn}
+                onChange={(event) => updateField("locationEn", event.target.value)}
+                placeholder={t("tourInstance.form.locationPlaceholderEn", "Ex: Hanoi")}
+              />
+            )}
           </div>
 
-          <div className="space-y-2">
+          <div className="pt-4 border-t border-stone-50">
             <label className="text-sm font-semibold text-stone-700">
               {t("tourInstance.instanceType", "Tour Instance Type")} *
             </label>
@@ -1085,7 +1140,7 @@ function InstanceDetailsStep({
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleService(service)}
-                      className="size-4 rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                      className="size-4 rounded border-stone-300 text-yellow-600 focus:ring-yellow-600"
                     />
                     <span>{service}</span>
                   </label>
@@ -1141,7 +1196,7 @@ function InstanceDetailsStep({
                   {uploadingThumbnail ? (
                     <Icon
                       icon="heroicons:arrow-path"
-                      className="size-6 text-orange-500 animate-spin"
+                      className="size-6 text-yellow-600 animate-spin"
                     />
                   ) : (
                     <>
@@ -1220,7 +1275,7 @@ function InstanceDetailsStep({
             )}
 
             {/* Upload button */}
-            <label className="inline-flex items-center gap-2 rounded-xl border border-dashed border-orange-300 px-4 py-3 text-sm font-medium text-orange-600 cursor-pointer hover:bg-orange-50 transition-colors">
+            <label className="inline-flex items-center gap-2 rounded-xl border border-dashed border-yellow-400 px-4 py-3 text-sm font-medium text-yellow-700 cursor-pointer hover:bg-yellow-50 transition-colors">
               <input
                 type="file"
                 accept="image/*"
@@ -1268,7 +1323,7 @@ function InstanceDetailsStep({
                 key={day.id}
                 className="rounded-xl border border-stone-200 bg-stone-50 p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center justify-center size-6 rounded-full bg-orange-100 text-xs font-bold text-orange-700">
+                  <span className="inline-flex items-center justify-center size-6 rounded-full bg-yellow-100/50 text-xs font-bold text-yellow-800">
                     {day.dayNumber}
                   </span>
                   <h4 className="text-sm font-semibold text-stone-900">
@@ -1293,7 +1348,7 @@ function InstanceDetailsStep({
                                   {t("tourInstance.wizard.activity.title", "Title")}
                                 </label>
                                 <input
-                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                   value={activity.title}
                                   onChange={(e) =>
                                     onUpdateActivity(day.id, activity.id, {
@@ -1307,7 +1362,7 @@ function InstanceDetailsStep({
                                   {t("tourInstance.wizard.activity.type", "Type")}
                                 </label>
                                 <select
-                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                   value={activity.activityType}
                                   onChange={(e) => {
                                     const newType = e.target.value;
@@ -1344,7 +1399,7 @@ function InstanceDetailsStep({
                                       {t("tourInstance.wizard.hotelSupplier", "Hotel")}
                                     </label>
                                     <select
-                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                       value={
                                         form.activityAssignments[activity.id]
                                           ?.supplierId ?? ""
@@ -1398,7 +1453,7 @@ function InstanceDetailsStep({
 
                                         return (
                                           <select
-                                            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                             value={
                                               form.activityAssignments[activity.id]
                                                 ?.roomType ?? ""
@@ -1446,7 +1501,7 @@ function InstanceDetailsStep({
                                       {t("tourInstance.wizard.transportProvider", "Transport Provider")}
                                     </label>
                                     <select
-                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                       value={form.activityAssignments[activity.id]?.supplierId ?? ""}
                                       onChange={(e) => {
                                         updateActivityAssignment(activity.id, {
@@ -1515,7 +1570,7 @@ function InstanceDetailsStep({
                                             : undefined
                                         }
                                         invalid={invalidVehicleActivityIds.has(activity.id)}
-                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                         onChange={(next) =>
                                           updateActivityAssignment(activity.id, {
                                             requestedVehicleType: next,
@@ -1537,7 +1592,7 @@ function InstanceDetailsStep({
                                         className={`w-full rounded border px-2 py-1 text-xs outline-none ${
                                           invalidSeatCountActivityIds.has(activity.id)
                                             ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                                            : "border-stone-300 focus:ring-orange-500 focus:border-orange-500"
+                                            : "border-stone-300 focus:ring-yellow-600 focus:border-yellow-600"
                                         }`}
                                         value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
                                         onChange={(e) => {
@@ -1563,7 +1618,7 @@ function InstanceDetailsStep({
                                       <input
                                         type="number"
                                         min={1}
-                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                         value={form.activityAssignments[activity.id]?.requestedVehicleCount ?? ""}
                                         onChange={(e) => {
                                           updateActivityAssignment(activity.id, {
@@ -1585,7 +1640,7 @@ function InstanceDetailsStep({
                                 </label>
                                 <input
                                   type="time"
-                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                   value={activity.startTime?.slice(0, 5) ?? ""}
                                   onChange={(e) =>
                                     onUpdateActivity(day.id, activity.id, {
@@ -1602,7 +1657,7 @@ function InstanceDetailsStep({
                                 </label>
                                 <input
                                   type="time"
-                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                  className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                   value={activity.endTime?.slice(0, 5) ?? ""}
                                   onChange={(e) =>
                                     onUpdateActivity(day.id, activity.id, {
@@ -1619,7 +1674,7 @@ function InstanceDetailsStep({
                                 {t("tourInstance.wizard.activity.description", "Description")}
                               </label>
                               <input
-                                className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                 value={activity.description ?? ""}
                                 onChange={(e) =>
                                   onUpdateActivity(day.id, activity.id, {
@@ -1638,7 +1693,7 @@ function InstanceDetailsStep({
                                       isOptional: e.target.checked,
                                     })
                                   }
-                                  className="rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                                  className="rounded border-stone-300 text-yellow-600 focus:ring-yellow-600"
                                 />
                                 {t("tourInstance.optional", "Optional")}
                               </label>
@@ -1648,7 +1703,7 @@ function InstanceDetailsStep({
                                 onClick={() =>
                                   onToggleEditActivity(day.id, activity.id)
                                 }
-                                className="rounded-lg bg-orange-500 px-3 py-1 text-xs font-medium text-white hover:bg-orange-600">
+                                className="rounded-lg bg-yellow-600 px-3 py-1 text-xs font-medium text-white hover:bg-orange-600">
                                 {t("common.done", "Done")}
                               </button>
                             </div>
@@ -1687,7 +1742,7 @@ function InstanceDetailsStep({
                                   onClick={() =>
                                     onToggleEditActivity(day.id, activity.id)
                                   }
-                                  className="rounded p-1 text-stone-400 hover:text-orange-600 hover:bg-orange-50"
+                                  className="rounded p-1 text-stone-400 hover:text-yellow-700 hover:bg-yellow-50"
                                   title={t("common.edit", "Edit")}>
                                   <Icon
                                     icon="heroicons:pencil"
@@ -1721,7 +1776,7 @@ function InstanceDetailsStep({
                                       {t("tourInstance.wizard.hotelSupplier", "Hotel")}
                                     </label>
                                     <select
-                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                       value={
                                         form.activityAssignments[activity.id]
                                           ?.supplierId ?? ""
@@ -1776,7 +1831,7 @@ function InstanceDetailsStep({
 
                                           return (
                                             <select
-                                              className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                              className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                               value={
                                                 form.activityAssignments[activity.id]
                                                   ?.roomType ?? ""
@@ -1812,7 +1867,7 @@ function InstanceDetailsStep({
                                         <input
                                           type="number"
                                           min={1}
-                                          className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                          className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                           value={
                                             form.activityAssignments[activity.id]
                                               ?.accommodationQuantity ?? ""
@@ -1845,7 +1900,7 @@ function InstanceDetailsStep({
                                       {t("tourInstance.wizard.transportProvider", "Transport Provider")}
                                     </label>
                                     <select
-                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                       value={form.activityAssignments[activity.id]?.supplierId ?? ""}
                                       onChange={(e) => {
                                         updateActivityAssignment(activity.id, {
@@ -1914,7 +1969,7 @@ function InstanceDetailsStep({
                                             : undefined
                                         }
                                         invalid={invalidVehicleActivityIds.has(activity.id)}
-                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                         onChange={(next) =>
                                           updateActivityAssignment(activity.id, {
                                             requestedVehicleType: next,
@@ -1936,7 +1991,7 @@ function InstanceDetailsStep({
                                         className={`w-full rounded border bg-white px-2 py-1 text-xs outline-none ${
                                           invalidSeatCountActivityIds.has(activity.id)
                                             ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                                            : "border-stone-300 focus:ring-orange-500 focus:border-orange-500"
+                                            : "border-stone-300 focus:ring-yellow-600 focus:border-yellow-600"
                                         }`}
                                         value={form.activityAssignments[activity.id]?.requestedSeatCount ?? ""}
                                         onChange={(e) => {
@@ -1962,7 +2017,7 @@ function InstanceDetailsStep({
                                       <input
                                         type="number"
                                         min={1}
-                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-orange-500 focus:border-orange-500 outline-none"
+                                        className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
                                         value={form.activityAssignments[activity.id]?.requestedVehicleCount ?? ""}
                                         onChange={(e) => {
                                           updateActivityAssignment(activity.id, {
@@ -1987,7 +2042,7 @@ function InstanceDetailsStep({
                 <button
                   type="button"
                   onClick={() => onAddActivity(day.id)}
-                  className="mt-3 ml-8 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 transition-colors">
+                  className="mt-3 ml-8 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-yellow-400 px-3 py-1.5 text-xs font-medium text-yellow-700 hover:bg-yellow-50 transition-colors">
                   <Icon icon="heroicons:plus" className="size-3.5" />
                   {t("tourInstance.wizard.addActivity", "Add activity")}
                 </button>
@@ -2052,6 +2107,7 @@ export function CreateTourInstancePage({
   const urlTourRequestId = searchParams.get("tourRequestId");
 
   const [currentStep, setCurrentStep] = useState(SELECT_TOUR_STEP);
+  const [activeLang, setActiveLang] = useState<"vi" | "en">("vi");
   const [tours, setTours] = useState<SearchTourVm[]>([]);
   const [tourDetail, setTourDetail] = useState<TourDto | null>(null);
   const [loadingTour, setLoadingTour] = useState(false);
@@ -2904,6 +2960,16 @@ export function CreateTourInstancePage({
         thumbnailUrl: form.thumbnailUrl.trim() || undefined,
         imageUrls: form.imageUrls.map((url) => url.trim()).filter(Boolean),
         tourRequestId: effectiveTourRequestId ?? undefined,
+        translations: {
+          vi: {
+            title: form.title.trim(),
+            location: form.location.trim() || undefined,
+          },
+          en: {
+            title: (form.titleEn || form.title).trim(),
+            location: (form.locationEn || form.location).trim() || undefined,
+          },
+        },
         activityAssignments:
           mappedActivityAssignments.length > 0
             ? mappedActivityAssignments
@@ -2941,7 +3007,7 @@ export function CreateTourInstancePage({
   };
 
   const inputClassName =
-    "w-full appearance-none rounded-[1.25rem] border-0 bg-stone-50 px-5 py-4 text-sm font-medium text-stone-900 ring-1 ring-inset ring-stone-200/60 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-stone-100/50 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-orange-500 focus:shadow-[0_8px_16px_-6px_rgba(249,115,22,0.15)]";
+    "w-full appearance-none rounded-[1.25rem] border-0 bg-stone-50 px-5 py-4 text-sm font-medium text-stone-900 ring-1 ring-inset ring-stone-200/60 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-stone-100/50 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-yellow-600 focus:shadow-[0_8px_16px_-6px_rgba(249,115,22,0.15)]";
 
   // ── Upload handlers ─────────────────────────────────────────────────
   const handleUploadThumbnail = useCallback(
@@ -2989,7 +3055,7 @@ export function CreateTourInstancePage({
   );
 
   return (
-    <main className="min-h-[100dvh] bg-[#FDFBF7] selection:bg-orange-500/20 text-stone-900 relative">
+    <main className="min-h-[100dvh] bg-[#FDFBF7] selection:bg-yellow-600/20 text-stone-900 relative">
       {/* CSS Noise Overlay */}
       <div className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
       
@@ -2998,7 +3064,7 @@ export function CreateTourInstancePage({
         {/* Left Editorial Pane (Sticky) */}
         <div className="w-full md:w-[40%] md:sticky top-0 md:h-[100dvh] flex flex-col justify-between px-6 py-12 md:px-12 md:py-16 border-b md:border-b-0 md:border-r border-stone-200/50">
           <div className="animate-in fade-in slide-in-from-left-8 duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]">
-             <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-orange-100/50 text-[10px] uppercase tracking-[0.2em] font-bold text-orange-800 mb-8 ring-1 ring-inset ring-orange-200/50">
+             <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-yellow-100/50 text-[10px] uppercase tracking-[0.2em] font-bold text-yellow-800 mb-8 ring-1 ring-inset ring-yellow-500/50">
                Tour Builder
              </div>
              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-stone-900 mb-6 font-serif leading-[1.1]">
@@ -3100,6 +3166,8 @@ export function CreateTourInstancePage({
                 onDeleteActivity={handleDeleteActivity}
                 onAddActivity={handleAddActivity}
                 onToggleEditActivity={handleToggleEditActivity}
+                activeLang={activeLang}
+                setActiveLang={setActiveLang}
                 inputClassName={inputClassName}
                 t={safeT}
               />

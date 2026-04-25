@@ -214,7 +214,8 @@ public sealed record CreateSupplierWithOwnerCommand(
     [property: JsonPropertyName("email")] string? Email,
     [property: JsonPropertyName("address")] string? Address,
     [property: JsonPropertyName("note")] string? Note,
-    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent,
+    [property: JsonPropertyName("password")] string? Password = null) : ICommand<ErrorOr<(Guid UserId, Guid SupplierId, string OwnerEmail)>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Supplier, CacheKey.User];
 }
@@ -305,9 +306,11 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
 
         var roleId = roleResult.Value.Id;
 
-        // 4. Create user with temp password — owner must reset via email link
-        var tempPassword = Guid.NewGuid().ToString("N")[..8] + "A1!";
-        var hashedPassword = passwordHasher.HashPassword(tempPassword);
+        // 4. Create user with provided password or default
+        var password = !string.IsNullOrEmpty(request.Password)
+            ? request.Password
+            : "password123";
+        var hashedPassword = passwordHasher.HashPassword(password);
 
         var userEntity = UserEntity.Create(
             request.OwnerEmail,
@@ -316,7 +319,7 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
             hashedPassword,
             performedBy: performedBy,
             avatar: null,
-            forcePasswordChange: true);
+            forcePasswordChange: string.IsNullOrEmpty(request.Password));
 
         Guid supplierId = default;
 

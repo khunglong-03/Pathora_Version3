@@ -1997,6 +1997,59 @@
       "policies": "Policies",
       "settings": "Settings",
       "admin": "Administrator"
+    },
+    "createTitle": "Deploy Tour Instance",
+    "createSubtitle": "Schedule a new occurrence from your package templates. Precision capacity and pricing.",
+    "creating": "Creating...",
+    "createAction": "Create instance",
+    "created": "Tour instance created successfully!",
+    "validationFailed": "Please fill in all required fields",
+    "prefillFromRequest": "Creating from Request",
+    "wizard": {
+      "previous": "Previous",
+      "section": {
+        "services": "Optional Services",
+        "media": "Media",
+        "itineraryPreview": "Itinerary Preview",
+        "itineraryEditHint": "You can add, edit, or remove activities for each day."
+      },
+      "activity": {
+        "title": "Activity Title",
+        "type": "Activity Type"
+      },
+      "supplierAssignment": "Supplier Assignment",
+      "hotelSupplier": "Hotel",
+      "roomType": "Room Type",
+      "selectHotelSupplier": "-- Select hotel --",
+      "selectRoomType": "-- Select room --",
+      "transportPlan": "Transport Plan",
+      "transportProvider": "Transport Provider",
+      "selectSupplierOptional": "-- Select Supplier (Optional) --",
+      "vehicleTypeLabel": "Vehicle Type"
+    },
+    "form": {
+      "selectGuideOptional": "Select guide (optional)",
+      "noServicesAvailable": "No services available for this tour.",
+      "thumbnail": "Thumbnail",
+      "uploadThumbnail": "Upload",
+      "changeThumbnail": "Change",
+      "images": "Gallery Images",
+      "imagesHint": "Upload images from your computer for this tour instance.",
+      "uploading": "Uploading...",
+      "uploadImages": "Upload images"
+    },
+    "guideConflict": {
+      "title": "Guide has scheduling conflicts!"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "startDateRequired": "Start date is required",
+      "endDateRequired": "End date is required",
+      "endDateAfterStart": "End date must be on or after start date",
+      "maxParticipantsRequired": "Maximum participants must be greater than 0",
+      "basePriceRequired": "Base price is required",
+      "basePriceNonNegative": "Base price must be 0 or greater",
+      "startDatePast": "Start date cannot be in the past"
     }
   },
   "tourInstance": {
@@ -3422,7 +3475,8 @@
       "address": "Address",
       "note": "Note",
       "primaryContinent": "Primary continent",
-      "primaryContinentHint": "Used as the supplier's default geography until accommodation inventory provides operational regions."
+      "primaryContinentHint": "Used as the supplier's default geography until accommodation inventory provides operational regions.",
+      "password": "Password"
     },
     "placeholders": {
       "ownerFullName": "Enter owner full name",
@@ -3433,7 +3487,8 @@
       "phone": "Enter phone number",
       "address": "Enter address",
       "note": "Add an internal note",
-      "primaryContinent": "Select primary continent"
+      "primaryContinent": "Select primary continent",
+      "password": "Enter password"
     },
     "validation": {
       "ownerEmailRequired": "Owner email is required",
@@ -3444,7 +3499,9 @@
       "supplierNameRequired": "Supplier name is required",
       "supplierNameTooLong": "Supplier name must be 200 characters or fewer",
       "supplierEmailInvalid": "Supplier email must be a valid email address",
-      "primaryContinentRequired": "Primary continent is required for hotel suppliers"
+      "primaryContinentRequired": "Primary continent is required for hotel suppliers",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 6 characters"
     },
     "actions": {
       "create": "Create supplier",

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
 import type { HotelProviderListItem, PaginatedList } from "@/types/admin";
@@ -12,6 +13,7 @@ import {
   AdminErrorCard,
 } from "@/features/dashboard/components";
 import { HotelProviderCard } from "@/features/dashboard/components/HotelProviderCard";
+import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
@@ -39,6 +41,7 @@ export default function HotelProvidersPage() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
   const [selectedContinents, setSelectedContinents] = useState<string[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const loadProviders = useCallback(async () => {
     setIsLoading(true);
@@ -109,6 +112,16 @@ export default function HotelProvidersPage() {
         title="Nhà cung cấp Khách sạn"
         subtitle="Quản lý các đối tác lưu trú"
         onRefresh={handleRefresh}
+        actionButtons={
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#EA580C" }}
+          >
+            <PlusIcon size={16} weight="bold" />
+            Tạo nhà cung cấp
+          </button>
+        }
       />
 
       {/* KPI Strip */}
@@ -173,6 +186,19 @@ export default function HotelProvidersPage() {
       )}
 
       {isLoading && <SkeletonTable rows={6} columns={3} />}
+
+      <CreateSupplierModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          void loadProviders();
+        }}
+        supplierType="Accommodation"
+        supplierTypeLabel="Khách sạn"
+        iconBg="#FFEDD5"
+        iconColor="#EA580C"
+      />
     </div>
   );
 }

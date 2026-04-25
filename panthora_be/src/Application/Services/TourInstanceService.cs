@@ -184,6 +184,11 @@ public class TourInstanceService(
             includedServices: request.IncludedServices,
             requiresApproval: request.ActivityAssignments?.Any(a => a.TransportSupplierId.HasValue || a.SupplierId.HasValue) == true);
 
+        if (request.Translations is not null)
+        {
+            entity.Translations = request.Translations;
+        }
+
         if (request.GuideUserIds?.Count > 0)
         {
             var conflictingInstances = await _tourInstanceRepository.FindConflictingInstancesForManagers(

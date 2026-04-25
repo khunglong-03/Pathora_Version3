@@ -1525,9 +1525,61 @@
       "code": "Mã",
       "status": "Trạng Thái",
       "updated": "Cập Nhật",
-      "actions": "Thao Tác"
-    },
-    "stat": {
+      "actions": "Thao Tác",
+      "createTitle": "Triển Khai Lịch Khởi Hành",
+      "createSubtitle": "Lên lịch trình cụ thể từ các mẫu tour có sẵn. Thiết lập chính xác số lượng khách và giá bán.",
+      "creating": "Đang tạo...",
+      "createAction": "Tạo lịch khởi hành",
+      "created": "Đã tạo lịch khởi hành thành công!",
+      "validationFailed": "Vui lòng điền đầy đủ các thông tin bắt buộc",
+      "prefillFromRequest": "Tạo từ yêu cầu của khách",
+      "wizard": {
+        "previous": "Quay lại",
+        "section": {
+          "services": "Dịch vụ đi kèm",
+          "media": "Hình ảnh truyền thông",
+          "itineraryPreview": "Xem trước lịch trình",
+          "itineraryEditHint": "Bạn có thể thêm, sửa hoặc xóa các hoạt động cho từng ngày của lịch trình này."
+        },
+        "activity": {
+          "title": "Tiêu đề hoạt động",
+          "type": "Loại hoạt động"
+        },
+        "supplierAssignment": "Gán nhà cung cấp",
+        "hotelSupplier": "Khách sạn",
+        "roomType": "Loại phòng",
+        "selectHotelSupplier": "-- Chọn khách sạn --",
+        "selectRoomType": "-- Chọn loại phòng --",
+        "transportPlan": "Kế hoạch vận chuyển",
+        "transportProvider": "Nhà cung cấp xe",
+        "selectSupplierOptional": "-- Chọn nhà cung cấp (Không bắt buộc) --",
+        "vehicleTypeLabel": "Loại xe"
+      },
+      "form": {
+        "selectGuideOptional": "Chọn hướng dẫn viên (không bắt buộc)",
+        "noServicesAvailable": "Không có dịch vụ nào khả dụng cho tour này.",
+        "thumbnail": "Ảnh đại diện",
+        "uploadThumbnail": "Tải ảnh lên",
+        "changeThumbnail": "Thay đổi",
+        "images": "Bộ sưu tập ảnh",
+        "imagesHint": "Tải các hình ảnh thực tế cho chuyến đi này từ máy tính của bạn.",
+        "uploading": "Đang tải lên...",
+        "uploadImages": "Tải ảnh lên"
+      },
+      "guideConflict": {
+        "title": "Hướng dẫn viên đang bị trùng lịch!"
+      },
+      "validation": {
+        "titleRequired": "Tiêu đề không được để trống",
+        "startDateRequired": "Ngày bắt đầu là bắt buộc",
+        "endDateRequired": "Ngày kết thúc là bắt buộc",
+        "endDateAfterStart": "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu",
+        "maxParticipantsRequired": "Số lượng khách tối đa phải lớn hơn 0",
+        "basePriceRequired": "Giá cơ bản là bắt buộc",
+        "basePriceNonNegative": "Giá cơ bản không được nhỏ hơn 0",
+        "startDatePast": "Ngày bắt đầu không được nằm trong quá khứ"
+      }
+      },    "stat": {
       "totalTours": "Tổng Tours",
       "active": "Hoạt Động",
       "inactive": "Không Hoạt Động",
@@ -3472,7 +3524,8 @@
       "address": "Địa chỉ",
       "note": "Ghi chú",
       "primaryContinent": "Châu lục chính",
-      "primaryContinentHint": "Được dùng làm khu vực mặc định của nhà cung cấp cho đến khi dữ liệu cơ sở lưu trú xác định phạm vi hoạt động."
+      "primaryContinentHint": "Được dùng làm khu vực mặc định của nhà cung cấp cho đến khi dữ liệu cơ sở lưu trú xác định phạm vi hoạt động.",
+      "password": "Mật khẩu"
     },
     "placeholders": {
       "ownerFullName": "Nhập họ và tên chủ sở hữu",
@@ -3483,7 +3536,8 @@
       "phone": "Nhập số điện thoại",
       "address": "Nhập địa chỉ",
       "note": "Thêm ghi chú nội bộ",
-      "primaryContinent": "Chọn châu lục chính"
+      "primaryContinent": "Chọn châu lục chính",
+      "password": "Nhập mật khẩu"
     },
     "validation": {
       "ownerEmailRequired": "Email chủ sở hữu là bắt buộc",
@@ -3494,7 +3548,9 @@
       "supplierNameRequired": "Tên nhà cung cấp là bắt buộc",
       "supplierNameTooLong": "Tên nhà cung cấp không được vượt quá 200 ký tự",
       "supplierEmailInvalid": "Email nhà cung cấp không hợp lệ",
-      "primaryContinentRequired": "Châu lục chính là bắt buộc đối với nhà cung cấp khách sạn"
+      "primaryContinentRequired": "Châu lục chính là bắt buộc đối với nhà cung cấp khách sạn",
+      "passwordRequired": "Mật khẩu là bắt buộc",
+      "passwordTooShort": "Mật khẩu phải có ít nhất 6 ký tự"
     },
     "actions": {
       "create": "Tạo nhà cung cấp",
