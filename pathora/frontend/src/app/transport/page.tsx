@@ -361,7 +361,7 @@ export default function TransportDashboardPage() {
             
             {/* Upper Grid (4 Columns) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
-              <FleetHeroCard total={vehicles.length} active={activeVehicles} />
+              <FleetHeroCard total={totalVehicles} active={activeVehicles} />
               
               <StatCard
                 label="Số chuyến chạy tiếp"

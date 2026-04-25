@@ -246,7 +246,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
                 && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available);
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
         {
@@ -274,7 +274,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         var query = _context.TourInstances
             .Where(t => !t.IsDeleted
                 && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available);
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
         {
@@ -299,7 +299,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(t => t.Id == id
                 && !t.IsDeleted
                 && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available, cancellationToken);
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut), cancellationToken);
     }
 
     public async Task<TourInstanceDayEntity?> FindInstanceDayById(Guid instanceId, Guid dayId, CancellationToken cancellationToken = default)

@@ -375,7 +375,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             i.TourId == t.Id
             && !i.IsDeleted
             && i.InstanceType == TourType.Public
-            && i.Status == TourInstanceStatus.Available));
+            && (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)));
 
     public async Task<List<TourEntity>> SearchTours(
         string? q,
