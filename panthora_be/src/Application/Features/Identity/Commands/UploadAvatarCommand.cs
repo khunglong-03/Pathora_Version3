@@ -145,13 +145,18 @@ public sealed class UploadAvatarCommandHandler(
                 cancellationToken);
             uploadedPublicId = uploadResult.PublicId;
 
-            // 7. Update UserEntity.AvatarUrl in the same transaction
+            string? oldPublicId = null;
+
+            // 7. Update UserEntity.AvatarUrl and capture oldPublicId in the same transaction
             await unitOfWork.ExecuteTransactionAsync(async () =>
             {
                 var userRepo = unitOfWork.GenericRepository<Domain.Entities.UserEntity>();
                 var userEntity = (await userRepo.GetListAsync(u => u.Id == userId)).FirstOrDefault();
                 if (userEntity is not null)
                 {
+                    // Extract old publicId before updating URL
+                    oldPublicId = CloudinaryUtils.ExtractPublicIdFromUrl(userEntity.AvatarUrl);
+
                     userEntity.UpdateProfile(
                         userEntity.FullName,
                         userEntity.PhoneNumber,
@@ -160,6 +165,19 @@ public sealed class UploadAvatarCommandHandler(
                     userRepo.Update(userEntity);
                 }
             });
+
+            // 8. Physical deletion of OLD avatar from Cloudinary after DB success
+            if (!string.IsNullOrEmpty(oldPublicId))
+            {
+                try
+                {
+                    await fileManager.DeleteUploadedFilesAsync([oldPublicId], cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogWarning(ex, "UploadAvatar: failed to delete old avatar {PublicId}", oldPublicId);
+                }
+            }
 
             sw.Stop();
             logger?.LogInformation(

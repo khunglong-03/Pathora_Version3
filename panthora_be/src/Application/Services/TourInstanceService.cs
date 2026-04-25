@@ -1,5 +1,6 @@
 using Contracts;
 using Contracts.Interfaces;
+using Application.Common.Interfaces;
 using Application.Common.Constant;
 using Application.Common.Localization;
 using Application.Dtos;
@@ -58,6 +59,7 @@ public class TourInstanceService(
     IUser user,
     IMapper mapper,
     ILogger<TourInstanceService> logger,
+    ICloudinaryService cloudinaryService,
     ITourInstanceNotificationBroadcaster? notificationBroadcaster = null,
     IVehicleBlockRepository? vehicleBlockRepository = null,
     IUnitOfWork? unitOfWork = null) : ITourInstanceService
@@ -73,6 +75,7 @@ public class TourInstanceService(
     private readonly IUser _user = user;
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
+    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
     private readonly IUnitOfWork? _unitOfWork = unitOfWork;
     private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
     private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
@@ -766,6 +769,25 @@ public class TourInstanceService(
             }
         }
 
+        var publicIdsToDelete = new List<string>();
+
+        // Collect old thumbnail if changed
+        if (request.Thumbnail is not null && !string.IsNullOrEmpty(entity.Thumbnail?.FileId) && entity.Thumbnail.FileId != request.Thumbnail.FileId)
+        {
+            publicIdsToDelete.Add(entity.Thumbnail.FileId);
+        }
+
+        // Collect old gallery images if removed
+        if (request.Images is not null)
+        {
+            var newFileIds = request.Images.Where(i => i.FileId is not null).Select(i => i.FileId!).ToHashSet();
+            var removedImages = entity.Images
+                .Where(i => !string.IsNullOrEmpty(i.FileId) && !newFileIds.Contains(i.FileId))
+                .ToList();
+            
+            publicIdsToDelete.AddRange(removedImages.Select(i => i.FileId!));
+        }
+
         entity.Update(
             title: request.Title,
             startDate: request.StartDate,
@@ -780,6 +802,24 @@ public class TourInstanceService(
             includedServices: request.IncludedServices);
 
         await _tourInstanceRepository.Update(entity);
+        
+        if (_unitOfWork != null)
+        {
+            await _unitOfWork.SaveChangeAsync();
+            
+            // Physical deletion from Cloudinary after DB success
+            if (publicIdsToDelete.Count > 0)
+            {
+                try
+                {
+                    await _cloudinaryService.DeleteFilesAsync(publicIdsToDelete);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to delete old images from Cloudinary for TourInstance {InstanceId}", entity.Id);
+                }
+            }
+        }
 
         return Result.Success;
     }

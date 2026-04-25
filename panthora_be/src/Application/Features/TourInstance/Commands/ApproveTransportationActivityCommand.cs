@@ -129,7 +129,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
                 TourInstanceTransportErrors.VehicleCountMismatchDescription.Resolve(lang));
         }
 
-        var requiredSeats = activity.RequestedSeatCount ?? instance.MaxParticipation;
+        var requiredSeats = (activity.RequestedSeatCount * (activity.RequestedVehicleCount ?? 1)) ?? instance.MaxParticipation;
 
         // Pre-load and validate all vehicles & drivers (outside transaction; repeated inside tx for races).
         var vehicleEntities = new List<(Guid Id, VehicleEntity Entity)>();

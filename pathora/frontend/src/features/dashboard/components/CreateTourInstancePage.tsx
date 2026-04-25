@@ -28,7 +28,6 @@ import { adminService } from "@/api/services/adminService";
 import { fileService } from "@/api/services/fileService";
 import type { TourRequestDetailDto } from "@/types/tourRequest";
 import { handleApiError } from "@/utils/apiResponse";
-import { getProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   buildActivityTypeByActivityId,
@@ -90,6 +89,12 @@ type EditableActivity = {
   id: string;
   order: number;
   activityType: string;
+  /**
+   * Mode of transport (Flight/Train/Boat/Bus/Car/...) — only meaningful when
+   * activityType === "Transportation". Drives whether the create wizard
+   * pre-books a vehicle/supplier or defers assignment to post-payment.
+   */
+  transportationType?: string | null;
   title: string;
   description: string | null;
   startTime: string | null;
@@ -98,6 +103,20 @@ type EditableActivity = {
   /** When true, show inline edit form instead of read-only */
   _editing?: boolean;
 };
+
+/**
+ * Tickets booked per-passenger after the customer pays — manager assigns these
+ * (along with hotels) during fulfilment, not at instance creation. Anything
+ * else (Bus, Car, Motorbike, Taxi, Bicycle, Walking, Other) is ground transport
+ * that the manager pre-books here.
+ */
+const POST_PAYMENT_TRANSPORT_MODES = new Set(["Flight", "Train", "Boat"]);
+
+function isPostPaymentTransportation(
+  transportationType?: string | null,
+): boolean {
+  return !!transportationType && POST_PAYMENT_TRANSPORT_MODES.has(transportationType);
+}
 
 type Translate = (
   key: string,
@@ -451,13 +470,31 @@ export function validateTransportSeatCounts(
   assignments: FormState["activityAssignments"],
   _classification: TourClassificationDto | null,
   maxParticipation: number,
+  seatCapacityMap?: Record<string, Record<number, number>>,
 ): string[] {
   if (!Number.isFinite(maxParticipation) || maxParticipation <= 0) return [];
   const invalid: string[] = [];
   for (const [activityId, assignment] of Object.entries(assignments)) {
-    const seat = assignment?.requestedSeatCount;
-    if (typeof seat === "number" && seat > 0 && seat < maxParticipation) {
-      invalid.push(activityId);
+    if (!assignment) continue;
+    const seat = assignment.requestedSeatCount;
+    const count = assignment.requestedVehicleCount ?? 1;
+
+    // Resolve actual vehicle seat capacity from supplier data
+    let actualCap: number | undefined;
+    if (seatCapacityMap && assignment.supplierId && assignment.requestedVehicleType !== undefined) {
+      actualCap = seatCapacityMap[assignment.supplierId]?.[assignment.requestedVehicleType];
+    }
+
+    // Determine effective seats-per-vehicle: user input > actual vehicle capacity > skip
+    const effectiveSeat = (typeof seat === "number" && seat > 0)
+      ? seat
+      : (typeof actualCap === "number" && actualCap > 0 ? actualCap : undefined);
+
+    // If we have an effective seat count, validate total capacity
+    if (effectiveSeat !== undefined) {
+      if ((effectiveSeat * count) < maxParticipation) {
+        invalid.push(activityId);
+      }
     }
   }
   return invalid;
@@ -496,6 +533,31 @@ export function buildVehicleCountsBySupplierId(
       counts[key] = (counts[key] ?? 0) + 1;
     }
     out[supplierId] = counts;
+  }
+  return out;
+}
+
+/**
+ * For each supplier + vehicle-type combination, find the **typical seat capacity**
+ * of active vehicles. When a supplier has several vehicles of the same type with
+ * different capacities, the *minimum* is used (conservative estimate).
+ * Returns `Record<supplierId, Record<vehicleTypeKey, seatCapacity>>`.
+ */
+export function buildSeatCapacityBySupplierAndType(
+  transportDetailsBySupplierId: Record<string, TransportProviderDetail>,
+): Record<string, Record<number, number>> {
+  const out: Record<string, Record<number, number>> = {};
+  for (const [supplierId, detail] of Object.entries(transportDetailsBySupplierId)) {
+    const caps: Record<number, number> = {};
+    for (const vehicle of detail.vehicles ?? []) {
+      if (!vehicle.isActive) continue;
+      const key = vehicleTypeNameToKey(vehicle.vehicleType);
+      if (key === undefined) continue;
+      if (caps[key] === undefined || vehicle.seatCapacity < caps[key]) {
+        caps[key] = vehicle.seatCapacity;
+      }
+    }
+    out[supplierId] = caps;
   }
   return out;
 }
@@ -713,6 +775,7 @@ interface InstanceDetailsStepProps {
   vehicleCountsBySupplierId: Record<string, Record<number, number>>;
   invalidVehicleActivityIds: Set<string>;
   invalidSeatCountActivityIds: Set<string>;
+  seatCapacityBySupplierAndType: Record<string, Record<number, number>>;
   updateActivityAssignment: (
     activityId: string,
     updates: { supplierId?: string; roomType?: string; accommodationQuantity?: number; vehicleId?: string; requestedVehicleType?: number; requestedSeatCount?: number; requestedVehicleCount?: number },
@@ -762,6 +825,7 @@ function InstanceDetailsStep({
   vehicleCountsBySupplierId,
   invalidVehicleActivityIds,
   invalidSeatCountActivityIds,
+  seatCapacityBySupplierAndType,
   updateActivityAssignment,
   editableItinerary,
   onUpdateActivity,
@@ -892,7 +956,7 @@ function InstanceDetailsStep({
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-stone-700">
-              {t("tourInstance.location", "Location")} ({activeLang.toUpperCase()})
+              {t("tourInstance.departureLocation", "Địa điểm xuất phát")} ({activeLang.toUpperCase()})
             </label>
             {activeLang === "vi" ? (
               <input
@@ -1389,107 +1453,43 @@ function InstanceDetailsStep({
 
                             {/* ── Dynamic Activity Resource Assignment (integrated 1.2) ── */}
                             {activity.activityType === "Accommodation" && (
-                              <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
-                                <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
-                                  {t("tourInstance.wizard.supplierAssignment", "Supplier Assignment")}
-                                </p>
-                                <div className="flex flex-col gap-2"> {/* 1.3 Stack layout */}
-                                  <div className="space-y-1">
-                                    <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                      {t("tourInstance.wizard.hotelSupplier", "Hotel")}
-                                    </label>
-                                    <select
-                                      className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                      value={
-                                        form.activityAssignments[activity.id]
-                                          ?.supplierId ?? ""
-                                      }
-                                      onChange={(e) => {
-                                        const nextSupplierId = e.target.value || undefined;
-                                        const currentSupplierId =
-                                          form.activityAssignments[activity.id]
-                                            ?.supplierId;
-
-                                        updateActivityAssignment(activity.id, {
-                                          supplierId: nextSupplierId,
-                                          roomType:
-                                            currentSupplierId !== nextSupplierId
-                                              ? undefined
-                                              : form.activityAssignments[activity.id]
-                                                  ?.roomType,
-                                        });
-                                      }}>
-                                      <option value="">
-                                        {t(
-                                          "tourInstance.wizard.selectHotelSupplier",
-                                          "-- Select hotel --",
-                                        )}
-                                      </option>
-                                      {hotelProviders.map((hotel) => (
-                                        <option key={hotel.id} value={hotel.id}>
-                                          {hotel.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-
-                                  {getProviderRoomOptions(
-                                    hotelDetailsBySupplierId[
-                                      form.activityAssignments[activity.id]
-                                        ?.supplierId ?? ""
-                                    ],
-                                  ).length > 0 && (
-                                    <div className="space-y-1">
-                                      <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                        {t("tourInstance.wizard.roomType", "Room")}
-                                      </label>
-                                      {(() => {
-                                        const roomOptions = getProviderRoomOptions(
-                                          hotelDetailsBySupplierId[
-                                            form.activityAssignments[activity.id]
-                                              ?.supplierId ?? ""
-                                          ],
-                                        );
-
-                                        return (
-                                          <select
-                                            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                            value={
-                                              form.activityAssignments[activity.id]
-                                                ?.roomType ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              const val = e.target.value || undefined;
-                                              updateActivityAssignment(activity.id, {
-                                                roomType: val,
-                                              });
-                                            }}>
-                                            <option value="">
-                                              {t(
-                                                "tourInstance.wizard.selectRoomType",
-                                                "-- Select room --",
-                                              )}
-                                            </option>
-                                            {roomOptions.map((roomOption) => {
-                                              return (
-                                                <option
-                                                  key={roomOption.roomType}
-                                                  value={roomOption.roomType}>
-                                                  {roomOption.label} (
-                                                  {roomOption.totalRooms})
-                                                </option>
-                                              );
-                                            })}
-                                          </select>
-                                        );
-                                      })()}
-                                    </div>
+                              <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-800">
+                                <p className="font-semibold uppercase tracking-wider">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.title",
+                                    "Hotel will be assigned after payment",
                                   )}
-                                </div>
+                                </p>
+                                <p className="text-amber-700">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.hotelDescription",
+                                    "Manager assigns the hotel and room after the customer completes payment.",
+                                  )}
+                                </p>
                               </div>
                             )}
 
-                            {activity.activityType === "Transportation" && (
+                            {activity.activityType === "Transportation" &&
+                              isPostPaymentTransportation(activity.transportationType) && (
+                              <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-800">
+                                <p className="font-semibold uppercase tracking-wider">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.title",
+                                    "Tickets will be assigned after payment",
+                                  )}
+                                </p>
+                                <p className="text-amber-700">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.ticketDescription",
+                                    "{{mode}} tickets are issued per passenger and assigned by the manager after payment.",
+                                    { mode: activity.transportationType ?? "" },
+                                  )}
+                                </p>
+                              </div>
+                            )}
+
+                            {activity.activityType === "Transportation" &&
+                              !isPostPaymentTransportation(activity.transportationType) && (
                               <div className="space-y-2 rounded-lg border border-cyan-200 bg-cyan-50/60 p-2.5">
                                 <p className="text-[10px] font-semibold text-cyan-700 uppercase tracking-wider">
                                   {t("tourInstance.wizard.transportPlan", "Transport Plan")}
@@ -1571,20 +1571,41 @@ function InstanceDetailsStep({
                                         }
                                         invalid={invalidVehicleActivityIds.has(activity.id)}
                                         className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                        onChange={(next) =>
-                                          updateActivityAssignment(activity.id, {
-                                            requestedVehicleType: next,
-                                          })
-                                        }
+                                        onChange={(next) => {
+                                          const updates: Record<string, unknown> = { requestedVehicleType: next };
+                                          // Auto-fill seat count from actual vehicle capacity
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          if (next !== undefined && supId) {
+                                            const cap = seatCapacityBySupplierAndType[supId]?.[next];
+                                            if (typeof cap === "number" && cap > 0) {
+                                              updates.requestedSeatCount = cap;
+                                            }
+                                          }
+                                          updateActivityAssignment(activity.id, updates as Parameters<typeof updateActivityAssignment>[1]);
+                                        }}
                                         t={t}
                                       />
                                     </div>
                                     <div>
-                                      <label
-                                        htmlFor={`seatCount-${activity.id}`}
-                                        className="text-[10px] font-medium text-stone-500 uppercase">
-                                        {t("tourInstance.wizard.seatCount", "Seat Count")}
-                                      </label>
+                                      <div className="flex items-center justify-between">
+                                        <label
+                                          htmlFor={`seatCount-${activity.id}`}
+                                          className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.seatCount", "Seat Count")}
+                                        </label>
+                                        {(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                          if (!supId || vType === undefined) return null;
+                                          const cap = seatCapacityBySupplierAndType[supId]?.[vType];
+                                          if (typeof cap !== "number" || cap <= 0) return null;
+                                          return (
+                                            <span className="text-[10px] font-medium text-emerald-600">
+                                              {activeLang === "vi" ? `${cap} ghế/xe` : `${cap} seats/vehicle`}
+                                            </span>
+                                          );
+                                        })()}
+                                      </div>
                                       <input
                                         id={`seatCount-${activity.id}`}
                                         type="number"
@@ -1600,16 +1621,46 @@ function InstanceDetailsStep({
                                             requestedSeatCount: e.target.value ? Number(e.target.value) : undefined,
                                           });
                                         }}
-                                        placeholder={t("common.optional", "Optional")}
+                                        placeholder={(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                          if (supId && vType !== undefined) {
+                                            const cap = seatCapacityBySupplierAndType[supId]?.[vType];
+                                            if (typeof cap === "number" && cap > 0) return String(cap);
+                                          }
+                                          return t("common.optional", "Optional");
+                                        })()}
                                       />
-                                      {invalidSeatCountActivityIds.has(activity.id) && (
-                                        <p className="mt-1 text-[10px] text-red-600">
-                                          {t(
-                                            "tourInstance.transport.errors.seatCountBelowCapacity",
-                                            "Requested seat count cannot be less than the tour's max participation.",
-                                          )}
-                                        </p>
-                                      )}
+                                      {invalidSeatCountActivityIds.has(activity.id) && (() => {
+                                        const rsc = form.activityAssignments[activity.id]?.requestedSeatCount;
+                                        const rvc = form.activityAssignments[activity.id]?.requestedVehicleCount || 1;
+                                        const maxP = Number(form.maxParticipation) || 0;
+                                        const supId = form.activityAssignments[activity.id]?.supplierId;
+                                        const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                        const actualCap = (supId && vType !== undefined) ? seatCapacityBySupplierAndType[supId]?.[vType] : undefined;
+                                        const effectiveSeat = (typeof rsc === "number" && rsc > 0) ? rsc : (typeof actualCap === "number" ? actualCap : 0);
+                                        const totalCap = effectiveSeat * rvc;
+                                        const minVehicles = effectiveSeat > 0 ? Math.ceil(maxP / effectiveSeat) : 1;
+                                        return (
+                                          <p className="mt-1 text-[10px] text-red-600">
+                                            {activeLang === "vi" ? (
+                                              <>
+                                                Tổng sức chứa ({effectiveSeat} × {rvc} = {totalCap}) nhỏ hơn số khách tối đa ({maxP}).
+                                                {typeof actualCap === "number" && actualCap > 0 && (
+                                                  <><br />Xe loại này có <b>{actualCap} ghế</b>. Cần tối thiểu <b>{minVehicles} xe</b>.</>
+                                                )}
+                                              </>
+                                            ) : (
+                                              <>
+                                                Total capacity ({effectiveSeat} × {rvc} = {totalCap}) is below max participation ({maxP}).
+                                                {typeof actualCap === "number" && actualCap > 0 && (
+                                                  <><br />This vehicle type has <b>{actualCap} seats</b>. Need at least <b>{minVehicles} vehicles</b>.</>
+                                                )}
+                                              </>
+                                            )}
+                                          </p>
+                                        );
+                                      })()}
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -1764,132 +1815,47 @@ function InstanceDetailsStep({
                               </span>
                             </div>
 
-                            {/* Always-visible supplier picker for Accommodation */}
+                            {/* Accommodation hotel is assigned post-payment (no picker here) */}
                             {activity.activityType === "Accommodation" && (
-                              <div className="ml-6 space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
-                                <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
-                                  {t("tourInstance.wizard.supplierAssignment", "Supplier Assignment")}
-                                </p>
-                                <div className="flex flex-col gap-2">
-                                  <div className="space-y-1">
-                                    <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                      {t("tourInstance.wizard.hotelSupplier", "Hotel")}
-                                    </label>
-                                    <select
-                                      className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                      value={
-                                        form.activityAssignments[activity.id]
-                                          ?.supplierId ?? ""
-                                      }
-                                      onChange={(e) => {
-                                        const nextSupplierId = e.target.value || undefined;
-                                        const currentSupplierId =
-                                          form.activityAssignments[activity.id]
-                                            ?.supplierId;
-
-                                        updateActivityAssignment(activity.id, {
-                                          supplierId: nextSupplierId,
-                                          roomType:
-                                            currentSupplierId !== nextSupplierId
-                                              ? undefined
-                                              : form.activityAssignments[activity.id]
-                                                  ?.roomType,
-                                        });
-                                      }}>
-                                      <option value="">
-                                        {t(
-                                          "tourInstance.wizard.selectHotelSupplier",
-                                          "-- Select hotel --",
-                                        )}
-                                      </option>
-                                      {hotelProviders.map((hotel) => (
-                                        <option key={hotel.id} value={hotel.id}>
-                                          {hotel.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-
-                                  {getProviderRoomOptions(
-                                    hotelDetailsBySupplierId[
-                                      form.activityAssignments[activity.id]
-                                        ?.supplierId ?? ""
-                                    ],
-                                  ).length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div className="space-y-1">
-                                        <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                          {t("tourInstance.wizard.roomType", "Room")}
-                                        </label>
-                                        {(() => {
-                                          const roomOptions = getProviderRoomOptions(
-                                            hotelDetailsBySupplierId[
-                                              form.activityAssignments[activity.id]
-                                                ?.supplierId ?? ""
-                                            ],
-                                          );
-
-                                          return (
-                                            <select
-                                              className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                              value={
-                                                form.activityAssignments[activity.id]
-                                                  ?.roomType ?? ""
-                                              }
-                                              onChange={(e) => {
-                                                const val = e.target.value || undefined;
-                                                updateActivityAssignment(activity.id, {
-                                                  roomType: val,
-                                                });
-                                              }}>
-                                              <option value="">
-                                                {t(
-                                                  "tourInstance.wizard.selectRoomType",
-                                                  "-- Select room --",
-                                                )}
-                                              </option>
-                                              {roomOptions.map((roomOption) => (
-                                                <option
-                                                  key={roomOption.roomType}
-                                                  value={roomOption.roomType}>
-                                                  {roomOption.label} (
-                                                  {roomOption.totalRooms})
-                                                </option>
-                                              ))}
-                                            </select>
-                                          );
-                                        })()}
-                                      </div>
-                                      <div className="space-y-1">
-                                        <label className="text-[10px] font-medium text-stone-500 uppercase">
-                                          {t("tourInstance.wizard.roomQuantity", "Số phòng")}
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min={1}
-                                          className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                          value={
-                                            form.activityAssignments[activity.id]
-                                              ?.accommodationQuantity ?? ""
-                                          }
-                                          onChange={(e) => {
-                                            updateActivityAssignment(activity.id, {
-                                              accommodationQuantity: e.target.value
-                                                ? Number(e.target.value)
-                                                : undefined,
-                                            });
-                                          }}
-                                          placeholder={t("common.optional", "Optional")}
-                                        />
-                                      </div>
-                                    </div>
+                              <div className="ml-6 space-y-1 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-800">
+                                <p className="font-semibold uppercase tracking-wider">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.title",
+                                    "Hotel will be assigned after payment",
                                   )}
-                                </div>
+                                </p>
+                                <p className="text-amber-700">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.hotelDescription",
+                                    "Manager assigns the hotel and room after the customer completes payment.",
+                                  )}
+                                </p>
                               </div>
                             )}
 
-                            {/* Always-visible supplier picker for Transportation */}
-                            {activity.activityType === "Transportation" && (
+                            {/* Transportation: ticket modes (Flight/Train/Boat) are post-payment */}
+                            {activity.activityType === "Transportation" &&
+                              isPostPaymentTransportation(activity.transportationType) && (
+                              <div className="ml-6 space-y-1 rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-[11px] text-amber-800">
+                                <p className="font-semibold uppercase tracking-wider">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.title",
+                                    "Tickets will be assigned after payment",
+                                  )}
+                                </p>
+                                <p className="text-amber-700">
+                                  {t(
+                                    "tourInstance.wizard.postPaymentAssignment.ticketDescription",
+                                    "{{mode}} tickets are issued per passenger and assigned by the manager after payment.",
+                                    { mode: activity.transportationType ?? "" },
+                                  )}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Always-visible supplier picker for ground Transportation */}
+                            {activity.activityType === "Transportation" &&
+                              !isPostPaymentTransportation(activity.transportationType) && (
                               <div className="ml-6 space-y-2 rounded-lg border border-cyan-200 bg-cyan-50/60 p-2.5">
                                 <p className="text-[10px] font-semibold text-cyan-700 uppercase tracking-wider">
                                   {t("tourInstance.wizard.transportPlan", "Transport Plan")}
@@ -1970,20 +1936,40 @@ function InstanceDetailsStep({
                                         }
                                         invalid={invalidVehicleActivityIds.has(activity.id)}
                                         className="w-full rounded border border-stone-300 bg-white px-2 py-1 text-xs focus:ring-yellow-600 focus:border-yellow-600 outline-none"
-                                        onChange={(next) =>
-                                          updateActivityAssignment(activity.id, {
-                                            requestedVehicleType: next,
-                                          })
-                                        }
+                                        onChange={(next) => {
+                                          const updates: Record<string, unknown> = { requestedVehicleType: next };
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          if (next !== undefined && supId) {
+                                            const cap = seatCapacityBySupplierAndType[supId]?.[next];
+                                            if (typeof cap === "number" && cap > 0) {
+                                              updates.requestedSeatCount = cap;
+                                            }
+                                          }
+                                          updateActivityAssignment(activity.id, updates as Parameters<typeof updateActivityAssignment>[1]);
+                                        }}
                                         t={t}
                                       />
                                     </div>
                                     <div>
-                                      <label
-                                        htmlFor={`seatCount-${activity.id}`}
-                                        className="text-[10px] font-medium text-stone-500 uppercase">
-                                        {t("tourInstance.wizard.seatCount", "Seat Count")}
-                                      </label>
+                                      <div className="flex items-center justify-between">
+                                        <label
+                                          htmlFor={`seatCount-${activity.id}`}
+                                          className="text-[10px] font-medium text-stone-500 uppercase">
+                                          {t("tourInstance.wizard.seatCount", "Seat Count")}
+                                        </label>
+                                        {(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                          if (!supId || vType === undefined) return null;
+                                          const cap = seatCapacityBySupplierAndType[supId]?.[vType];
+                                          if (typeof cap !== "number" || cap <= 0) return null;
+                                          return (
+                                            <span className="text-[10px] font-medium text-emerald-600">
+                                              {activeLang === "vi" ? `${cap} ghế/xe` : `${cap} seats/vehicle`}
+                                            </span>
+                                          );
+                                        })()}
+                                      </div>
                                       <input
                                         id={`seatCount-${activity.id}`}
                                         type="number"
@@ -1999,16 +1985,46 @@ function InstanceDetailsStep({
                                             requestedSeatCount: e.target.value ? Number(e.target.value) : undefined,
                                           });
                                         }}
-                                        placeholder={t("common.optional", "Optional")}
+                                        placeholder={(() => {
+                                          const supId = form.activityAssignments[activity.id]?.supplierId;
+                                          const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                          if (supId && vType !== undefined) {
+                                            const cap = seatCapacityBySupplierAndType[supId]?.[vType];
+                                            if (typeof cap === "number" && cap > 0) return String(cap);
+                                          }
+                                          return t("common.optional", "Optional");
+                                        })()}
                                       />
-                                      {invalidSeatCountActivityIds.has(activity.id) && (
-                                        <p className="mt-1 text-[10px] text-red-600">
-                                          {t(
-                                            "tourInstance.transport.errors.seatCountBelowCapacity",
-                                            "Requested seat count cannot be less than the tour's max participation.",
-                                          )}
-                                        </p>
-                                      )}
+                                      {invalidSeatCountActivityIds.has(activity.id) && (() => {
+                                        const rsc = form.activityAssignments[activity.id]?.requestedSeatCount;
+                                        const rvc = form.activityAssignments[activity.id]?.requestedVehicleCount || 1;
+                                        const maxP = Number(form.maxParticipation) || 0;
+                                        const supId = form.activityAssignments[activity.id]?.supplierId;
+                                        const vType = form.activityAssignments[activity.id]?.requestedVehicleType;
+                                        const actualCap = (supId && vType !== undefined) ? seatCapacityBySupplierAndType[supId]?.[vType] : undefined;
+                                        const effectiveSeat = (typeof rsc === "number" && rsc > 0) ? rsc : (typeof actualCap === "number" ? actualCap : 0);
+                                        const totalCap = effectiveSeat * rvc;
+                                        const minVehicles = effectiveSeat > 0 ? Math.ceil(maxP / effectiveSeat) : 1;
+                                        return (
+                                          <p className="mt-1 text-[10px] text-red-600">
+                                            {activeLang === "vi" ? (
+                                              <>
+                                                Tổng sức chứa ({effectiveSeat} × {rvc} = {totalCap}) nhỏ hơn số khách tối đa ({maxP}).
+                                                {typeof actualCap === "number" && actualCap > 0 && (
+                                                  <><br />Xe loại này có <b>{actualCap} ghế</b>. Cần tối thiểu <b>{minVehicles} xe</b>.</>
+                                                )}
+                                              </>
+                                            ) : (
+                                              <>
+                                                Total capacity ({effectiveSeat} × {rvc} = {totalCap}) is below max participation ({maxP}).
+                                                {typeof actualCap === "number" && actualCap > 0 && (
+                                                  <><br />This vehicle type has <b>{actualCap} seats</b>. Need at least <b>{minVehicles} vehicles</b>.</>
+                                                )}
+                                              </>
+                                            )}
+                                          </p>
+                                        );
+                                      })()}
                                     </div>
                                     <div>
                                       <label className="text-[10px] font-medium text-stone-500 uppercase">
@@ -2123,6 +2139,7 @@ export function CreateTourInstancePage({
   const [duplicateWarning, setDuplicateWarning] =
     useState<CheckDuplicateResult | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const lastAutoFilledClassificationIdRef = useRef<string | null>(null);
 
   // Providers
   const [hotelProviders, setHotelProviders] = useState<SupplierItem[]>([]);
@@ -2206,7 +2223,9 @@ export function CreateTourInstancePage({
         const handledFallbackError = handleApiError(err);
         if (
           handledFallbackError.message === "error_response.UNAUTHORIZED" ||
-          handledFallbackError.message === "error_response.ACCESS_DENIED"
+          handledFallbackError.message === "error_response.ACCESS_DENIED" ||
+          handledFallbackError.message === "error_response.NETWORK_ERROR" ||
+          handledFallbackError.message === "error_response.TIMEOUT_ERROR"
         ) {
           throw err;
         }
@@ -2341,6 +2360,11 @@ export function CreateTourInstancePage({
     ],
   );
 
+  const seatCapacityBySupplierAndType = useMemo(
+    () => buildSeatCapacityBySupplierAndType(transportDetailsBySupplierId),
+    [transportDetailsBySupplierId],
+  );
+
   const invalidSeatCountActivityIds = useMemo(
     () =>
       new Set(
@@ -2348,12 +2372,14 @@ export function CreateTourInstancePage({
           form.activityAssignments,
           selectedClassification,
           Number(form.maxParticipation),
+          seatCapacityBySupplierAndType,
         ),
       ),
     [
       form.activityAssignments,
       selectedClassification,
       form.maxParticipation,
+      seatCapacityBySupplierAndType,
     ],
   );
 
@@ -2392,7 +2418,7 @@ export function CreateTourInstancePage({
       console.error("Failed to fetch guides:", error);
       setGuides([]);
     }
-  }, [user]);
+  }, [user?.id, user?.roles]);
 
   useEffect(() => {
     fetchTours();
@@ -2505,7 +2531,14 @@ export function CreateTourInstancePage({
 
   // Auto-fill basePrice and title when classification selected
   useEffect(() => {
-    if (!selectedClassification) return;
+    if (!selectedClassification) {
+      lastAutoFilledClassificationIdRef.current = null;
+      return;
+    }
+
+    if (lastAutoFilledClassificationIdRef.current === selectedClassification.id) {
+      return;
+    }
 
     setForm((current) => {
       const next = { ...current };
@@ -2518,12 +2551,13 @@ export function CreateTourInstancePage({
         }`;
       }
 
-      if (next.basePrice === "" || next.basePrice === "0") {
-        next.basePrice = fallbackPrice > 0 ? String(fallbackPrice) : "";
-      }
+      // Automatically apply the base price of the newly selected classification
+      next.basePrice = fallbackPrice > 0 ? String(fallbackPrice) : "";
 
       return next;
     });
+
+    lastAutoFilledClassificationIdRef.current = selectedClassification.id;
   }, [selectedClassification, selectedTour?.tourName]);
 
   // Auto-calculate endDate from startDate + classification's numberOfDay
@@ -2720,6 +2754,7 @@ export function CreateTourInstancePage({
           id: a.id,
           order: a.order,
           activityType: a.activityType,
+          transportationType: a.transportationType ?? null,
           title: a.title,
           description: a.description,
           startTime: a.startTime,
@@ -2886,6 +2921,7 @@ export function CreateTourInstancePage({
       form.activityAssignments,
       selectedClassification,
       Number(form.maxParticipation),
+      seatCapacityBySupplierAndType,
     );
     if (invalidSeatCountIds.length > 0) {
       newErrors.transportSeatCount = t(
@@ -2992,7 +3028,10 @@ export function CreateTourInstancePage({
       }
     } catch (error: unknown) {
       const handledError = handleApiError(error);
-      console.error("Failed to create tour instance:", handledError);
+      console.warn(`Failed to create tour instance: ${handledError.message}`, {
+        code: handledError.code,
+        details: handledError.details,
+      });
       // Prefer translated message; fall back to the backend's raw text so the
       // user never sees a silent failure or a raw i18n key.
       const translated = t(handledError.message);
@@ -3164,6 +3203,7 @@ export function CreateTourInstancePage({
                 vehicleCountsBySupplierId={vehicleCountsBySupplierId}
                 invalidVehicleActivityIds={invalidVehicleActivityIds}
                 invalidSeatCountActivityIds={invalidSeatCountActivityIds}
+                seatCapacityBySupplierAndType={seatCapacityBySupplierAndType}
                 updateActivityAssignment={updateActivityAssignment}
                 editableItinerary={editableItinerary}
                 onUpdateActivity={handleUpdateActivity}

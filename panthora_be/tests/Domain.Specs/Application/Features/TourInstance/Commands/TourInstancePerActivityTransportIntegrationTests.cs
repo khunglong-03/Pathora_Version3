@@ -339,6 +339,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
             user,
             mapper,
             NullLogger<TourInstanceService>.Instance,
+            Substitute.For<ICloudinaryService>(),
             notificationBroadcaster: null);
 
         var reject = await service.ProviderApprove(

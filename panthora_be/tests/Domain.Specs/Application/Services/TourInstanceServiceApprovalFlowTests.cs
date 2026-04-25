@@ -1,3 +1,4 @@
+using global::Application.Common.Interfaces;
 using global::Application.Features.TourInstance.Commands;
 using global::Application.Services;
 using AutoMapper;
@@ -71,6 +72,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _user,
             _mapper,
             NullLogger<TourInstanceService>.Instance,
+            Substitute.For<ICloudinaryService>(),
             _notificationBroadcaster);
 
         var assignResult = await assignHandler.Handle(
@@ -175,6 +177,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _user,
             _mapper,
             NullLogger<TourInstanceService>.Instance,
+            Substitute.For<ICloudinaryService>(),
             _notificationBroadcaster);
 
         var result = await service.ProviderApprove(

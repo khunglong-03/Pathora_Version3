@@ -26,6 +26,7 @@ public class TourInstanceServiceProviderAssignedTests
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IMapper _mapper = Substitute.For<IMapper>();
     private readonly ILogger<TourInstanceService> _logger = Substitute.For<ILogger<TourInstanceService>>();
+    private readonly ICloudinaryService _cloudinaryService = Substitute.For<ICloudinaryService>();
 
     private readonly TourInstanceService _sut;
 
@@ -42,7 +43,8 @@ public class TourInstanceServiceProviderAssignedTests
             _hotelRoomInventoryRepository,
             _user,
             _mapper,
-            _logger);
+            _logger,
+            _cloudinaryService);
     }
 
     [Fact]

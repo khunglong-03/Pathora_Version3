@@ -1,6 +1,7 @@
 using Contracts;
 using Contracts.Interfaces;
 using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Constant;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
@@ -38,6 +39,7 @@ public class TourService(
     IUser user,
     IUnitOfWork unitOfWork,
     IMapper mapper,
+    ICloudinaryService cloudinaryService,
     ILogger<TourService>? logger = null,
     ILanguageContext? languageContext = null) : ITourService
 {
@@ -45,6 +47,7 @@ public class TourService(
     private readonly IUser _user = user;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
+    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
     private readonly ILogger<TourService>? _logger = logger;
     private readonly ILanguageContext _languageContext = languageContext ?? new FallbackLanguageContext();
 
@@ -406,10 +409,16 @@ public class TourService(
             isResubmission ? TourStatus.Pending :
             tour.Status;
 
+        var publicIdsToDelete = new List<string>();
+
         // Update thumbnail in-place if provided (avoids shared-type EF Core issue)
-        // Update images in-place — EF Core can track owned entities this way
         if (request.Thumbnail is not null)
         {
+            if (!string.IsNullOrEmpty(tour.Thumbnail?.FileId) && tour.Thumbnail.FileId != request.Thumbnail.FileId)
+            {
+                publicIdsToDelete.Add(tour.Thumbnail.FileId);
+            }
+
             tour.Thumbnail ??= new ImageEntity();
             tour.Thumbnail.FileId = request.Thumbnail.FileId;
             tour.Thumbnail.OriginalFileName = request.Thumbnail.OriginalFileName;
@@ -421,9 +430,19 @@ public class TourService(
         if (request.Images is not null)
         {
             var newFileIds = request.Images.Where(i => i.FileId is not null).Select(i => i.FileId!).ToHashSet();
+            
+            // Collect FileIds to delete from Cloudinary
+            var removedImages = tour.Images
+                .Where(i => !string.IsNullOrEmpty(i.FileId) && !newFileIds.Contains(i.FileId))
+                .ToList();
+            
+            publicIdsToDelete.AddRange(removedImages.Select(i => i.FileId!));
+
             // Remove images not in the new list
-            var toRemove = tour.Images.Where(i => i.FileId is null || !newFileIds.Contains(i.FileId)).ToList();
-            foreach (var img in toRemove) tour.Images.Remove(img);
+            foreach (var img in removedImages) 
+            {
+                tour.Images.Remove(img);
+            }
 
             // Update or add images
             foreach (var dto in request.Images)
@@ -605,6 +624,20 @@ public class TourService(
         try
         {
             await _unitOfWork.SaveChangeAsync();
+            
+            // Physical deletion from Cloudinary after DB success
+            if (publicIdsToDelete.Count > 0)
+            {
+                try
+                {
+                    await _cloudinaryService.DeleteFilesAsync(publicIdsToDelete);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to delete old images from Cloudinary for Tour {TourId}", tour.Id);
+                }
+            }
+
             return Result.Success;
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)

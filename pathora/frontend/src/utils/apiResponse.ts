@@ -287,6 +287,20 @@ const resolveErrorMappingCandidate = (
 
 export const handleApiError = (error: unknown): ApiError => {
   if (isAxiosError(error)) {
+    if (error.code === "ECONNABORTED") {
+      return {
+        code: error.code,
+        message: "error_response.TIMEOUT_ERROR",
+      };
+    }
+
+    if (!error.response) {
+      return {
+        code: error.code ?? "NETWORK_ERROR",
+        message: "error_response.NETWORK_ERROR",
+      };
+    }
+
     const { rawMessage, rawCode, rawDetails } = extractBackendErrorPayload(error.response?.data);
     const rawMappingCandidate = resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails);
 

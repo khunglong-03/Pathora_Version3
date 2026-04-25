@@ -490,7 +490,7 @@ function DashboardSkeleton() {
   } as React.CSSProperties;
 
   return (
-    <>
+    <div suppressHydrationWarning>
       <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
         {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -502,7 +502,7 @@ function DashboardSkeleton() {
           <div key={n} style={{ ...shimmer, height: 260, borderRadius: T.radius }} />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 

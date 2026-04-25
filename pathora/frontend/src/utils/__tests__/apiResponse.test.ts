@@ -86,6 +86,32 @@ describe("apiResponse helpers", () => {
     expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
+  it("normalizes axios network failures to NETWORK_ERROR", () => {
+    const normalized = handleApiError({
+      isAxiosError: true,
+      code: "ERR_NETWORK",
+      request: {},
+    });
+
+    expect(normalized).toEqual({
+      code: "ERR_NETWORK",
+      message: "error_response.NETWORK_ERROR",
+    });
+  });
+
+  it("normalizes axios timeouts to TIMEOUT_ERROR", () => {
+    const normalized = handleApiError({
+      isAxiosError: true,
+      code: "ECONNABORTED",
+      request: {},
+    });
+
+    expect(normalized).toEqual({
+      code: "ECONNABORTED",
+      message: "error_response.TIMEOUT_ERROR",
+    });
+  });
+
   it("keeps extractResult backward-compatible", () => {
     const result = extractResult<string>({ result: "ok" });
     expect(result).toBe("ok");

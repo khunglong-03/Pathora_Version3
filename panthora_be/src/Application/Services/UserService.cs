@@ -1,6 +1,8 @@
 using Common.Generators;
 using Contracts;
 using Contracts.Interfaces;
+using Application.Common;
+using Application.Common.Interfaces;
 using Application.Contracts.User;
 using Application.Common.Constant;
 using Domain.Common.Repositories;
@@ -29,6 +31,7 @@ public class UserService(
     IPasswordHasher passwordHasher,
     IUserRepository userRepository,
     IRoleRepository roleRepository,
+    ICloudinaryService cloudinaryService,
     HotelServiceProviderSupplierMapper? hotelServiceProviderMapper = null)
     : IUserService
 {
@@ -37,6 +40,7 @@ public class UserService(
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
     private readonly HotelServiceProviderSupplierMapper? _hotelServiceProviderMapper = hotelServiceProviderMapper;
 
     public async Task<ErrorOr<PaginatedListWithPermissions<UserVm>>> GetAll(GetAllUserRequest request)
@@ -170,6 +174,12 @@ public class UserService(
         if (userEntity is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
 
+        string? oldPublicId = null;
+        if (!string.IsNullOrEmpty(userEntity.AvatarUrl) && userEntity.AvatarUrl != request.Avatar)
+        {
+            oldPublicId = CloudinaryUtils.ExtractPublicIdFromUrl(userEntity.AvatarUrl);
+        }
+
         userEntity.Update(request.FullName, request.Avatar, _user.Id ?? string.Empty);
 
         await _unitOfWork.ExecuteTransactionAsync(async () =>
@@ -179,6 +189,19 @@ public class UserService(
             if (request.RoleIds.Count > 0)
                 await _roleRepository.AddUser(request.Id, request.RoleIds);
         });
+
+        // Delete old avatar from Cloudinary if successfully updated in DB
+        if (!string.IsNullOrEmpty(oldPublicId))
+        {
+            try
+            {
+                await _cloudinaryService.DeleteFilesAsync([oldPublicId]);
+            }
+            catch
+            {
+                // Non-critical, just log or ignore
+            }
+        }
 
         return Result.Success;
     }

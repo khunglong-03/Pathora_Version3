@@ -73,12 +73,14 @@ public sealed class CreateDriverCommandHandlerTests
 public sealed class UpdateDriverCommandHandlerTests
 {
     private readonly IDriverRepository _driverRepository;
+    private readonly global::Application.Common.Interfaces.ICloudinaryService _cloudinaryService;
     private readonly UpdateDriverCommandHandler _handler;
 
     public UpdateDriverCommandHandlerTests()
     {
         _driverRepository = Substitute.For<IDriverRepository>();
-        _handler = new UpdateDriverCommandHandler(_driverRepository);
+        _cloudinaryService = Substitute.For<global::Application.Common.Interfaces.ICloudinaryService>();
+        _handler = new UpdateDriverCommandHandler(_driverRepository, _cloudinaryService);
     }
 
     private static UpdateDriverCommand ValidCommand(Guid driverId) => new(

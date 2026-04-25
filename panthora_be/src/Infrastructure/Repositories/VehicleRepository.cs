@@ -186,9 +186,8 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
     {
         return _context.Vehicles
             .AsNoTracking()
-            .CountAsync(
-                v => v.OwnerId == ownerId && v.VehicleType == vehicleType && v.IsActive && !v.IsDeleted,
-                cancellationToken);
+            .Where(v => v.OwnerId == ownerId && v.VehicleType == vehicleType && v.IsActive && !v.IsDeleted)
+            .SumAsync(v => (int)v.Quantity, cancellationToken);
     }
 
     public Task<int> CountActiveByTransportSupplierFleetAsync(
@@ -199,14 +198,13 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
     {
         return _context.Vehicles
             .AsNoTracking()
-            .CountAsync(
-                v => !v.IsDeleted
+            .Where(v => !v.IsDeleted
                      && v.IsActive
                      && v.VehicleType == vehicleType
                      && (
                          v.SupplierId == transportSupplierId
-                         || (v.SupplierId == null && fleetOwnerUserId.HasValue && v.OwnerId == fleetOwnerUserId.Value)),
-                cancellationToken);
+                         || (v.SupplierId == null && fleetOwnerUserId.HasValue && v.OwnerId == fleetOwnerUserId.Value)))
+            .SumAsync(v => (int)v.Quantity, cancellationToken);
     }
 
     public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)

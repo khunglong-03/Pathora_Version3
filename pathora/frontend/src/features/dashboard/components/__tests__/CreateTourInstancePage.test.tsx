@@ -386,6 +386,26 @@ describe("CreateTourInstancePage", () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it("does not retry the admin tour endpoint after a network failure", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      return;
+    });
+    vi.mocked(tourService.getMyTours).mockRejectedValueOnce({
+      isAxiosError: true,
+      code: "ERR_NETWORK",
+      request: {},
+    });
+
+    render(<CreateTourInstancePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("error_response.NETWORK_ERROR")).toBeInTheDocument();
+    });
+
+    expect(tourService.getAdminTourManagement).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
   it("filters to active supplier vehicle types and submits Bus as VehicleType 2", async () => {
     transportDetailResponses = {
       "trans-1": buildTransportDetail("trans-1", [

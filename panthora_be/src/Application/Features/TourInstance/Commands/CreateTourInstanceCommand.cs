@@ -74,8 +74,8 @@ public sealed class CreateTourInstanceCommandValidator : AbstractValidator<Creat
             .Must(cmd => cmd.ActivityAssignments is null
                 || !cmd.ActivityAssignments.Any(a =>
                     a.RequestedSeatCount.HasValue
-                    && a.RequestedSeatCount.Value < cmd.MaxParticipation))
-            .WithMessage("Số ghế yêu cầu (RequestedSeatCount) phải lớn hơn hoặc bằng MaxParticipation khi được chỉ định.");
+                    && (a.RequestedSeatCount.Value * (a.RequestedVehicleCount ?? 1)) < cmd.MaxParticipation))
+            .WithMessage("Tổng số ghế yêu cầu (RequestedSeatCount * RequestedVehicleCount) phải lớn hơn hoặc bằng MaxParticipation khi được chỉ định.");
     }
 }
 

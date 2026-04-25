@@ -81,7 +81,7 @@ public sealed class AssignTransportSupplierCommandHandler(
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        if (request.RequestedSeatCount < instance.MaxParticipation)
+        if (request.RequestedSeatCount * (request.RequestedVehicleCount ?? 1) < instance.MaxParticipation)
         {
             return Error.Validation(
                 TourInstanceTransportErrors.SeatCountBelowCapacityCode,

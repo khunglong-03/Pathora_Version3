@@ -42,7 +42,8 @@ public sealed class UpdateDriverCommandValidator : AbstractValidator<UpdateDrive
 }
 
 public sealed class UpdateDriverCommandHandler(
-        Domain.Common.Repositories.IDriverRepository driverRepository)
+        Domain.Common.Repositories.IDriverRepository driverRepository,
+        Application.Common.Interfaces.ICloudinaryService cloudinaryService)
     : MediatR.IRequestHandler<UpdateDriverCommand, ErrorOr<DriverResponseDto>>
 {
     public async Task<ErrorOr<DriverResponseDto>> Handle(
@@ -55,6 +56,12 @@ public sealed class UpdateDriverCommandHandler(
         if (driver is null)
             return Error.NotFound(Application.Common.Constant.ErrorConstants.User.NotFoundCode, "Resource not found.");
 
+        string? oldPublicId = null;
+        if (!string.IsNullOrEmpty(driver.AvatarUrl) && driver.AvatarUrl != request.Request.AvatarUrl)
+        {
+            oldPublicId = Application.Common.CloudinaryUtils.ExtractPublicIdFromUrl(driver.AvatarUrl);
+        }
+
         driver.Update(
             request.Request.FullName,
             request.Request.LicenseNumber,
@@ -65,6 +72,13 @@ public sealed class UpdateDriverCommandHandler(
             request.CurrentUserId.ToString());
 
         await driverRepository.UpdateAsync(driver, cancellationToken);
+
+        if (!string.IsNullOrEmpty(oldPublicId))
+        {
+            try { await cloudinaryService.DeleteFilesAsync([oldPublicId], cancellationToken); }
+            catch { /* ignore */ }
+        }
+
         return MapToDto(driver);
     }
 
