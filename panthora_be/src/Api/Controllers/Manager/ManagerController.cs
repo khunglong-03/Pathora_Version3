@@ -102,18 +102,18 @@ public sealed class ManagerController : BaseApiController
     }
 
     [HttpPut(ManagerEndpoint.AdminTransportVehicleByPlate)]
-    public async Task<IActionResult> UpdateAdminTransportVehicle(Guid id, string plate, [FromBody] UpdateVehicleRequestDto request)
+    public async Task<IActionResult> UpdateAdminTransportVehicle(Guid id, Guid vehicleId, [FromBody] UpdateVehicleRequestDto request)
     {
         var adminId = Guid.Parse(CurrentUserId);
-        var result = await Sender.Send(new AdminUpdateVehicleCommand(adminId, id, plate, request));
+        var result = await Sender.Send(new AdminUpdateVehicleCommand(adminId, id, vehicleId, request));
         return HandleResult(result);
     }
 
     [HttpDelete(ManagerEndpoint.AdminTransportVehicleByPlate)]
-    public async Task<IActionResult> DeleteAdminTransportVehicle(Guid id, string plate)
+    public async Task<IActionResult> DeleteAdminTransportVehicle(Guid id, Guid vehicleId)
     {
         var adminId = Guid.Parse(CurrentUserId);
-        var result = await Sender.Send(new AdminDeleteVehicleCommand(adminId, id, plate));
+        var result = await Sender.Send(new AdminDeleteVehicleCommand(adminId, id, vehicleId));
         return HandleResult(result);
     }
 

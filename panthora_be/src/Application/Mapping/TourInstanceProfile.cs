@@ -74,7 +74,6 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalNote), opt => opt.MapFrom(src => src.TransportationApprovalNote))
             // Instance-specific Vehicle Assignment info
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleId), opt => opt.MapFrom(src => src.VehicleId))
-            .ForCtorParam(nameof(TourInstanceDayActivityDto.VehiclePlate), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehiclePlate : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleType), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehicleType.ToString() : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleBrand), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Brand : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleModel), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Model : null))
@@ -94,7 +93,6 @@ public sealed class TourInstanceProfile : Profile
                         t.VehicleId,
                         t.DriverId,
                         t.SeatCountSnapshot,
-                        t.Vehicle != null ? t.Vehicle.VehiclePlate : null,
                         t.Vehicle != null ? t.Vehicle.VehicleType.ToString() : null,
                         t.Vehicle != null ? t.Vehicle.Brand : null,
                         t.Vehicle != null ? t.Vehicle.Model : null,

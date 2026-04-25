@@ -6,7 +6,7 @@ public sealed record TripHistoryItemDto(
     [property: JsonPropertyName("bookingReference")] string BookingReference,
     [property: JsonPropertyName("routeName")] string RouteName,
     [property: JsonPropertyName("completedDate")] DateTimeOffset CompletedDate,
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,
+    [property: JsonPropertyName("vehicleType")] string VehicleType,
     [property: JsonPropertyName("driverName")] string DriverName,
     [property: JsonPropertyName("revenue")] long Revenue
 )

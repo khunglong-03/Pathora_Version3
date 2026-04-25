@@ -172,7 +172,6 @@ export interface TransportProviderStats {
 // ─── Transport Provider Detail ──────────────────────────────────
 export interface VehicleSummary {
   id: string;
-  vehiclePlate: string;
   vehicleType: string;
   brand?: string;
   model?: string;
@@ -206,7 +205,6 @@ export interface DriverActivity {
   status?: number;
   rejectionReason?: string;
   updatedAt: string;
-  vehiclePlate?: string;
   vehicleType?: string;
 }
 

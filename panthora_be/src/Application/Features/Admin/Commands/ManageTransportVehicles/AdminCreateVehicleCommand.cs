@@ -52,20 +52,12 @@ public sealed class AdminCreateVehicleCommandHandler(
             return Error.Validation("Admin.NoSupplierOwnership", "Target transport provider does not own any transport supplier profile.");
         }
 
-        // 2.5 Check for plate collision
-        var existingVehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(request.Request.VehiclePlate, request.ProviderUserId, cancellationToken);
-        if (existingVehicle != null)
-        {
-            return Error.Conflict("Admin.VehiclePlateCollision", $"Vehicle with plate '{request.Request.VehiclePlate}' already exists for this provider.");
-        }
-
         // 2.9 Structured logging for admin-on-behalf mutation
         logger.LogInformation(
-            "Admin {AdminId} is creating vehicle {Plate} for Provider {ProviderId}",
-            request.AdminId, request.Request.VehiclePlate, request.ProviderUserId);
+            "Admin {AdminId} is creating vehicle for Provider {ProviderId}",
+            request.AdminId, request.ProviderUserId);
 
         var vehicle = VehicleEntity.Create(
-            request.Request.VehiclePlate,
             (VehicleType)request.Request.VehicleType,
             request.Request.SeatCapacity,
             request.ProviderUserId, // Owner
@@ -77,7 +69,8 @@ public sealed class AdminCreateVehicleCommandHandler(
             request.Request.VehicleImageUrls is { Count: > 0 }
                 ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
                 : null,
-            request.Request.Notes);
+            request.Request.Notes,
+            request.Request.Quantity);
 
         await vehicleRepository.AddAsync(vehicle);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -99,15 +92,16 @@ public sealed class AdminCreateVehicleCommandHandler(
 
         return new VehicleResponseDto(
             v.Id,
-            v.VehiclePlate,
             v.VehicleType.ToString(),
             v.Brand,
             v.Model,
             v.SeatCapacity,
+            v.Quantity,
             v.LocationArea?.ToString(),
             v.OperatingCountries,
             imageUrls,
             v.IsActive,
+            v.IsDeleted,
             v.Notes,
             v.CreatedOnUtc);
     }

@@ -45,7 +45,7 @@ public sealed class GetBookingTransportInfoQueryHandler(
                 ? new DriverInfoDto(rt.Driver.FullName, rt.Driver.PhoneNumber, MaskLicense(rt.Driver.LicenseNumber))
                 : null,
             rt.Vehicle != null
-                ? new VehicleInfoDto(rt.Vehicle.VehiclePlate, rt.Vehicle.VehicleType.ToString(),
+                ? new VehicleInfoDto(rt.Vehicle.VehicleType.ToString(),
                     rt.Vehicle.Brand, rt.Vehicle.Model, rt.Vehicle.SeatCapacity)
                 : null)).ToList();
 

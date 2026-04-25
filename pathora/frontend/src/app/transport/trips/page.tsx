@@ -231,7 +231,7 @@ export default function TransportTripsPage() {
                   <td className="px-4 py-3 font-mono text-xs">{trip.id.slice(0, 8)}</td>
                   <td className="px-4 py-3 font-medium">{trip.route ?? "-"}</td>
                   <td className="px-4 py-3">{formatDate(trip.tripDate)}</td>
-                  <td className="px-4 py-3">{trip.vehiclePlate ?? "-"}</td>
+                  <td className="px-4 py-3">{trip.vehicleType ?? "-"}</td>
                   <td className="px-4 py-3">{trip.driverName ?? "-"}</td>
                   <td className="px-4 py-3">
                     <span
@@ -380,7 +380,7 @@ export default function TransportTripsPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium" style={{ color: "#9CA3AF" }}>Xe</p>
-                  <p className="font-medium">{selectedTrip.vehiclePlate ?? "-"}</p>
+                  <p className="font-medium">{selectedTrip.vehicleType ?? "-"}</p>
                   <p className="text-xs" style={{ color: "#9CA3AF" }}>
                     {selectedTrip.vehicleType ?? ""} · {selectedTrip.vehicleCapacity ? `${selectedTrip.vehicleCapacity} chỗ` : ""}
                   </p>

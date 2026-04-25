@@ -291,4 +291,19 @@ public static class ValidationMessages
     public const string PublicBookingChildNonNegative = "Số trẻ em không được âm.";
     public const string PublicBookingInfantNonNegative = "Số em bé không được âm.";
     public const string PublicBookingPaymentMethodInvalid = "Phương thức thanh toán không hợp lệ.";
+
+    // ── Vehicle Management ─────────────────────────────────────
+    public const string VehiclePlateRequired = "Vehicle plate is required.";
+    public const string VehiclePlateMaxLength20 = "Vehicle plate must not exceed 20 characters.";
+    public const string VehiclePlateInvalidFormat = "Invalid vehicle plate format (e.g. 51A-12345).";
+    public const string VehiclePlateAlreadyExists = "Vehicle plate already exists.";
+    public const string VehicleTypeInvalid = "Invalid vehicle type.";
+    public const string VehicleTypeGroundOnly = "Only ground transport vehicle types are allowed (Car, Bus, Minibus, Van, Coach, Motorbike).";
+    public const string VehicleSeatCapacityGreaterThanZero = "Seat capacity must be greater than 0.";
+    public const string VehicleSeatCapacityMax100 = "Seat capacity must not exceed 100.";
+    public const string VehicleQuantityGreaterThanZero = "Quantity must be greater than 0.";
+    public const string VehicleQuantityMax1000 = "Quantity must not exceed 1000.";
+    public const string VehicleOperatingCountriesMaxLength500 = "Operating countries must not exceed 500 characters.";
+    public const string VehicleOperatingCountriesInvalidFormat = "Operating countries must be comma-separated 2-letter uppercase ISO codes (e.g. VN,TH,MY).";
+    public const string VehicleLocationAreaInvalid = "Invalid location area.";
 }

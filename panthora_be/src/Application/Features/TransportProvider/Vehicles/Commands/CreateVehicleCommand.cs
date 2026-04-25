@@ -27,7 +27,6 @@ public sealed class CreateVehicleCommandHandler(
         CancellationToken cancellationToken)
     {
         var vehicle = VehicleEntity.Create(
-            request.Request.VehiclePlate,
             (VehicleType)request.Request.VehicleType,
             request.Request.SeatCapacity,
             request.CurrentUserId,
@@ -41,7 +40,8 @@ public sealed class CreateVehicleCommandHandler(
             request.Request.VehicleImageUrls is { Count: > 0 }
                 ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
                 : null,
-            request.Request.Notes);
+            request.Request.Notes,
+            request.Request.Quantity);
 
         await vehicleRepository.AddAsync(vehicle);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -63,15 +63,16 @@ public sealed class CreateVehicleCommandHandler(
 
         return new VehicleResponseDto(
             v.Id,
-            v.VehiclePlate,
             v.VehicleType.ToString(),
             v.Brand,
             v.Model,
             v.SeatCapacity,
+            v.Quantity,
             v.LocationArea?.ToString(),
             v.OperatingCountries,
             imageUrls,
             v.IsActive,
+            v.IsDeleted,
             v.Notes,
             v.CreatedOnUtc);
     }

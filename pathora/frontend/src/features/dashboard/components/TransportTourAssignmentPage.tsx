@@ -278,7 +278,7 @@ export default function TransportTourAssignmentPage() {
     () =>
       vehicles.map((vehicle) => ({
         value: vehicle.id,
-        label: `${vehicle.vehiclePlate} - ${vehicle.vehicleType} - ${vehicle.seatCapacity} cho`,
+        label: `${vehicle.vehicleType} - ${vehicle.seatCapacity} cho`,
       })),
     [vehicles],
   );
@@ -845,8 +845,8 @@ export default function TransportTourAssignmentPage() {
                             className="rounded-xl border border-cyan-100/80 bg-white/70 px-3 py-2 text-sm"
                           >
                             <p className="font-semibold text-slate-900">
-                              {ta.vehiclePlate
-                                ? `${ta.vehiclePlate}${ta.vehicleType ? ` • ${ta.vehicleType}` : ""}`
+                              {ta.vehicleType
+                                ? `${ta.vehicleType}`
                                 : t("tourInstance.transport.noVehicle", "Chua chon xe")}
                             </p>
                             <p className="mt-0.5 text-slate-600">
@@ -866,8 +866,8 @@ export default function TransportTourAssignmentPage() {
                             {t("tourInstance.transport.vehicle", "Xe")}
                           </p>
                           <p className="mt-1 text-sm font-semibold text-slate-900">
-                            {item.activity.vehiclePlate
-                              ? `${item.activity.vehiclePlate} • ${item.activity.vehicleType ?? ""}`.trim()
+                            {item.activity.vehicleType
+                              ? `${item.activity.vehicleType}`
                               : t(
                                 "tourInstance.transport.noVehicle",
                                 "Chua chon xe",

@@ -15,12 +15,13 @@ public sealed record GetVehiclesQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("locationArea")] Continent? LocationArea = null,
     [property: JsonPropertyName("isActive")] bool? IsActive = null,
+    [property: JsonPropertyName("isDeleted")] bool? IsDeleted = false,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 50) : IQuery<ErrorOr<PaginatedList<VehicleResponseDto>>>;
 
-public sealed record GetVehicleByPlateQuery(
+public sealed record GetVehicleByIdQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate) : IQuery<ErrorOr<VehicleResponseDto>>;
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId) : IQuery<ErrorOr<VehicleResponseDto>>;
 
 public sealed record GetAllVehiclesQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
@@ -37,9 +38,9 @@ public sealed class GetVehiclesQueryHandler(
         GetVehiclesQuery request,
         CancellationToken cancellationToken)
     {
-        var total = await vehicleRepository.CountAllByOwnerIdAsync(request.CurrentUserId, request.IsActive, request.LocationArea, cancellationToken);
+        var total = await vehicleRepository.CountAllByOwnerIdAsync(request.CurrentUserId, request.IsActive, request.LocationArea, request.IsDeleted, cancellationToken);
         var vehicles = await vehicleRepository.FindAllByOwnerIdPaginatedAsync(
-            request.CurrentUserId, request.PageNumber, request.PageSize, request.IsActive, request.LocationArea, cancellationToken);
+            request.CurrentUserId, request.PageNumber, request.PageSize, request.IsActive, request.LocationArea, request.IsDeleted, cancellationToken);
 
         var items = vehicles.Select(MapToDto).ToList();
         return new PaginatedList<VehicleResponseDto>(total, items, request.PageNumber, request.PageSize);
@@ -56,35 +57,33 @@ public sealed class GetVehiclesQueryHandler(
             }
             catch { /* ignore */ }
         }
-
-        return new VehicleResponseDto(
-            v.Id,
-            v.VehiclePlate,
-            v.VehicleType.ToString(),
-            v.Brand,
-            v.Model,
-            v.SeatCapacity,
-            v.LocationArea?.ToString(),
-            v.OperatingCountries,
-            imageUrls,
-            v.IsActive,
-            v.Notes,
-            v.CreatedOnUtc);
+return new VehicleResponseDto(
+    v.Id,
+    v.VehicleType.ToString(),
+    v.Brand,
+    v.Model,
+    v.SeatCapacity,
+    v.Quantity,
+    v.LocationArea?.ToString(),
+    v.OperatingCountries,
+    imageUrls,
+    v.IsActive,
+    v.IsDeleted,
+    v.Notes,
+    v.CreatedOnUtc);
     }
 }
-
-public sealed class GetVehicleByPlateQueryHandler(
+public sealed class GetVehicleByIdQueryHandler(
         IVehicleRepository vehicleRepository)
-    : IRequestHandler<GetVehicleByPlateQuery, ErrorOr<VehicleResponseDto>>
+    : IRequestHandler<GetVehicleByIdQuery, ErrorOr<VehicleResponseDto>>
 {
     public async Task<ErrorOr<VehicleResponseDto>> Handle(
-        GetVehicleByPlateQuery request,
+        GetVehicleByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var vehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(
-            request.VehiclePlate, request.CurrentUserId, cancellationToken);
+        var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
 
-        if (vehicle is null)
+        if (vehicle is null || vehicle.OwnerId != request.CurrentUserId)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         return MapToDto(vehicle);
@@ -101,20 +100,20 @@ public sealed class GetVehicleByPlateQueryHandler(
             }
             catch { /* ignore */ }
         }
-
-        return new VehicleResponseDto(
-            v.Id,
-            v.VehiclePlate,
-            v.VehicleType.ToString(),
-            v.Brand,
-            v.Model,
-            v.SeatCapacity,
-            v.LocationArea?.ToString(),
-            v.OperatingCountries,
-            imageUrls,
-            v.IsActive,
-            v.Notes,
-            v.CreatedOnUtc);
+return new VehicleResponseDto(
+    v.Id,
+    v.VehicleType.ToString(),
+    v.Brand,
+    v.Model,
+    v.SeatCapacity,
+    v.Quantity,
+    v.LocationArea?.ToString(),
+    v.OperatingCountries,
+    imageUrls,
+    v.IsActive,
+    v.IsDeleted,
+    v.Notes,
+    v.CreatedOnUtc);
     }
 }
 
@@ -143,19 +142,19 @@ public sealed class GetAllVehiclesQueryHandler(
             }
             catch { /* ignore */ }
         }
-
-        return new VehicleResponseDto(
-            v.Id,
-            v.VehiclePlate,
-            v.VehicleType.ToString(),
-            v.Brand,
-            v.Model,
-            v.SeatCapacity,
-            v.LocationArea?.ToString(),
-            v.OperatingCountries,
-            imageUrls,
-            v.IsActive,
-            v.Notes,
-            v.CreatedOnUtc);
+return new VehicleResponseDto(
+    v.Id,
+    v.VehicleType.ToString(),
+    v.Brand,
+    v.Model,
+    v.SeatCapacity,
+    v.Quantity,
+    v.LocationArea?.ToString(),
+    v.OperatingCountries,
+    imageUrls,
+    v.IsActive,
+    v.IsDeleted,
+    v.Notes,
+    v.CreatedOnUtc);
     }
 }

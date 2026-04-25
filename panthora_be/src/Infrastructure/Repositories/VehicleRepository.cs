@@ -32,11 +32,14 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<VehicleEntity>> FindAllByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, Continent? locationArea, CancellationToken cancellationToken = default)
+    public async Task<List<VehicleEntity>> FindAllByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, Continent? locationArea, bool? isDeleted = false, CancellationToken cancellationToken = default)
     {
         var query = _context.Vehicles
             .AsNoTracking()
-            .Where(v => v.OwnerId == ownerId && !v.IsDeleted);
+            .Where(v => v.OwnerId == ownerId);
+
+        if (isDeleted.HasValue)
+            query = query.Where(v => v.IsDeleted == isDeleted.Value);
 
         if (isActive.HasValue)
             query = query.Where(v => v.IsActive == isActive.Value);
@@ -51,11 +54,14 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAllByOwnerIdAsync(Guid ownerId, bool? isActive, Continent? locationArea, CancellationToken cancellationToken = default)
+    public async Task<int> CountAllByOwnerIdAsync(Guid ownerId, bool? isActive, Continent? locationArea, bool? isDeleted = false, CancellationToken cancellationToken = default)
     {
         var query = _context.Vehicles
             .AsNoTracking()
-            .Where(v => v.OwnerId == ownerId && !v.IsDeleted);
+            .Where(v => v.OwnerId == ownerId);
+
+        if (isDeleted.HasValue)
+            query = query.Where(v => v.IsDeleted == isDeleted.Value);
 
         if (isActive.HasValue)
             query = query.Where(v => v.IsActive == isActive.Value);
@@ -64,33 +70,6 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             query = query.Where(v => v.LocationArea == locationArea.Value);
 
         return await query.CountAsync(cancellationToken);
-    }
-
-    public async Task<VehicleEntity?> FindByPlateAsync(string plate, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AsNoTracking()
-            .Include(v => v.Owner)
-            .FirstOrDefaultAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && !v.IsDeleted, cancellationToken);
-    }
-
-    public async Task<VehicleEntity?> FindByPlateAndOwnerIdAsync(string plate, Guid ownerId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && v.OwnerId == ownerId && !v.IsDeleted, cancellationToken);
-    }
-
-    public async Task<bool> ExistsByPlateAsync(string plate, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AnyAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && !v.IsDeleted, cancellationToken);
-    }
-
-    public async Task<bool> ExistsByPlateAndOwnerIdAsync(string plate, Guid ownerId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AnyAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && v.OwnerId == ownerId && !v.IsDeleted, cancellationToken);
     }
 
     public async Task<List<VehicleEntity>> FindAllAsync(string? searchText, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
@@ -104,7 +83,6 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         {
             var search = searchText.ToLower();
             query = query.Where(v =>
-                v.VehiclePlate.ToLower().Contains(search) ||
                 (v.Brand != null && v.Brand.ToLower().Contains(search)) ||
                 (v.Model != null && v.Model.ToLower().Contains(search)));
         }
@@ -125,7 +103,6 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         {
             var search = searchText.ToLower();
             query = query.Where(v =>
-                v.VehiclePlate.ToLower().Contains(search) ||
                 (v.Brand != null && v.Brand.ToLower().Contains(search)) ||
                 (v.Model != null && v.Model.ToLower().Contains(search)));
         }

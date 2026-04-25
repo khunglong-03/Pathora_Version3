@@ -45,7 +45,7 @@ public sealed class GetTripHistoryQueryHandler(
             rt.BookingActivityReservation?.BookingId.ToString() ?? string.Empty,
             rt.TourDayActivity?.TransportationName ?? rt.TourDayActivity?.TransportationType?.ToString() ?? string.Empty,
             rt.UpdatedAt,
-            rt.Vehicle?.VehiclePlate ?? string.Empty,
+            rt.Vehicle?.VehicleType.ToString() ?? string.Empty,
             rt.Driver?.FullName ?? string.Empty,
             RevenuePerTrip)).ToList();
 

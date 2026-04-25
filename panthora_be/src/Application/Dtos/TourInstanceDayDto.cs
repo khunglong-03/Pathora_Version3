@@ -19,7 +19,6 @@ public sealed record TourInstanceTransportAssignmentDto(
     [property: JsonPropertyName("vehicleId")] Guid VehicleId,
     [property: JsonPropertyName("driverId")] Guid? DriverId,
     [property: JsonPropertyName("seatCountSnapshot")] int? SeatCountSnapshot,
-    [property: JsonPropertyName("vehiclePlate")] string? VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string? VehicleType,
     [property: JsonPropertyName("vehicleBrand")] string? VehicleBrand,
     [property: JsonPropertyName("vehicleModel")] string? VehicleModel,
@@ -61,7 +60,6 @@ public sealed record TourInstanceDayActivityDto(
 
     // Instance-specific Vehicle Assignment info
     [property: JsonPropertyName("vehicleId")] Guid? VehicleId,
-    [property: JsonPropertyName("vehiclePlate")] string? VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string? VehicleType,
     [property: JsonPropertyName("vehicleBrand")] string? VehicleBrand,
     [property: JsonPropertyName("vehicleModel")] string? VehicleModel,

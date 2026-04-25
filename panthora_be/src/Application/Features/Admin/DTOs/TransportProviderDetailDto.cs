@@ -23,7 +23,6 @@ public sealed record TransportProviderDetailDto(
 
 public sealed record VehicleSummaryDto(
     [property: JsonPropertyName("id")] Guid Id,
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string VehicleType,
     [property: JsonPropertyName("brand")] string? Brand,
     [property: JsonPropertyName("model")] string? Model,

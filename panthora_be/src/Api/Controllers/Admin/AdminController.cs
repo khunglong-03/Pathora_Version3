@@ -142,17 +142,17 @@ public class AdminController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPut("transport-providers/{providerId}/vehicles/{plate}")]
-    public async Task<IActionResult> UpdateVehicleForProvider(Guid providerId, string plate, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
+    [HttpPut("transport-providers/{providerId}/vehicles/{vehicleId:guid}")]
+    public async Task<IActionResult> UpdateVehicleForProvider(Guid providerId, Guid vehicleId, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
     {
-        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.UpdateVehicleCommand(providerId, plate, request));
+        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.UpdateVehicleCommand(providerId, vehicleId, request));
         return HandleResult(result);
     }
 
-    [HttpDelete("transport-providers/{providerId}/vehicles/{plate}")]
-    public async Task<IActionResult> DeleteVehicleForProvider(Guid providerId, string plate)
+    [HttpDelete("transport-providers/{providerId}/vehicles/{vehicleId:guid}")]
+    public async Task<IActionResult> DeleteVehicleForProvider(Guid providerId, Guid vehicleId)
     {
-        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.DeleteVehicleCommand(providerId, plate));
+        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.DeleteVehicleCommand(providerId, vehicleId));
         return HandleResult(result);
     }
 

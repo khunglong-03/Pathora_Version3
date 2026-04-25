@@ -54,7 +54,6 @@ public sealed class GetTransportProviderByIdQueryHandler(
 
         var vehicleSummaries = vehicles.Select(v => new VehicleSummaryDto(
             v.Id,
-            v.VehiclePlate,
             v.VehicleType.ToString(),
             v.Brand,
             v.Model,

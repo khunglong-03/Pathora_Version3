@@ -13,7 +13,7 @@ using global::Contracts.ModelResponse;
 namespace Application.Features.TransportProvider.Vehicles.Commands;
 public sealed record UpdateVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
     [property: JsonPropertyName("request")] UpdateVehicleRequestDto Request) : ICommand<ErrorOr<VehicleResponseDto>>;
 
 
@@ -26,10 +26,9 @@ public sealed class UpdateVehicleCommandHandler(
         UpdateVehicleCommand request,
         CancellationToken cancellationToken)
     {
-        var vehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(
-            request.VehiclePlate, request.CurrentUserId, cancellationToken);
+        var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
 
-        if (vehicle is null)
+        if (vehicle is null || vehicle.OwnerId != request.CurrentUserId)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         vehicle.Update(
@@ -45,7 +44,8 @@ public sealed class UpdateVehicleCommandHandler(
                 ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
                 : vehicle.VehicleImageUrls,
             request.Request.Notes,
-            request.CurrentUserId.ToString());
+            request.CurrentUserId.ToString(),
+            request.Request.Quantity);
 
         vehicleRepository.Update(vehicle);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -67,15 +67,16 @@ public sealed class UpdateVehicleCommandHandler(
 
         return new VehicleResponseDto(
             v.Id,
-            v.VehiclePlate,
             v.VehicleType.ToString(),
             v.Brand,
             v.Model,
             v.SeatCapacity,
+            v.Quantity,
             v.LocationArea?.ToString(),
             v.OperatingCountries,
             imageUrls,
             v.IsActive,
+            v.IsDeleted,
             v.Notes,
             v.CreatedOnUtc);
     }

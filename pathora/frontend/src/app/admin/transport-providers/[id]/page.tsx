@@ -91,11 +91,11 @@ export default function TransportProviderDetailPage() {
     setIsVehicleFormOpen(true);
   };
 
-  const handleDeleteVehicle = async (plate: string) => {
-    if (!window.confirm(`Xóa phương tiện "${plate}"?`)) return;
-    setIsDeletingVehicle(plate);
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!window.confirm(`Xóa phương tiện này?`)) return;
+    setIsDeletingVehicle(vehicleId);
     try {
-      await adminService.deleteAdminTransportVehicle(id, plate);
+      await adminService.deleteAdminTransportVehicle(id, vehicleId);
       toast.success("Xóa phương tiện thành công");
       handleRefresh();
     } catch (err) {
@@ -108,7 +108,7 @@ export default function TransportProviderDetailPage() {
   const handleVehicleFormSave = async (data: CreateVehicleDto | UpdateVehicleDto) => {
     try {
       if (editingVehicle) {
-        await adminService.updateAdminTransportVehicle(id, editingVehicle.vehiclePlate, data);
+        await adminService.updateAdminTransportVehicle(id, editingVehicle.id, data);
         toast.success("Cập nhật phương tiện thành công");
       } else {
         await adminService.createAdminTransportVehicle(id, data as CreateVehicleDto);
@@ -313,7 +313,6 @@ export default function TransportProviderDetailPage() {
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Biển số</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Loại xe</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Số ghế</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Khu vực</th>
@@ -324,7 +323,6 @@ export default function TransportProviderDetailPage() {
                 <tbody className="divide-y">
                   {entity.vehicles.map((v) => (
                     <tr key={v.id}>
-                      <td className="px-4 py-3 font-mono text-sm">{v.vehiclePlate}</td>
                       <td className="px-4 py-3 text-sm">{v.vehicleType}</td>
                       <td className="px-4 py-3 text-sm">{v.seatCapacity}</td>
                       <td className="px-4 py-3 text-sm">{v.locationArea ?? "-"}</td>
@@ -349,8 +347,8 @@ export default function TransportProviderDetailPage() {
                             <PencilSimpleIcon size={16} />
                           </button>
                           <button
-                            onClick={() => handleDeleteVehicle(v.vehiclePlate)}
-                            disabled={isDeletingVehicle === v.vehiclePlate}
+                            onClick={() => handleDeleteVehicle(v.id)}
+                            disabled={isDeletingVehicle === v.id}
                             className="p-1.5 rounded-lg transition-colors hover:bg-red-50 text-red-500 disabled:opacity-50"
                             title="Xóa"
                           >

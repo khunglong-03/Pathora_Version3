@@ -195,8 +195,13 @@ export function AdminSidebar({
   providerPortal,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navItems =
     variant === "admin"
@@ -358,349 +363,353 @@ export function AdminSidebar({
   return (
     <>
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col lg:translate-x-0"
-        style={{
-          backgroundColor: "var(--sidebar-bg)",
-          borderRight: "1px solid var(--sidebar-border)",
-        }}>
-        {/* Logo */}
-        <div
-          className="flex items-center justify-between px-5 h-16 shrink-0"
-          style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
-          <Link
-            href={
-              variant === "admin"
-                ? "/admin/users"
-                : variant === "provider"
-                  ? providerPortal === "transport"
-                    ? "/transport"
-                    : "/hotel"
-                  : variant === "tour-designer"
-                    ? "/tour-designer"
-                    : variant === "tour-guide"
-                      ? "/tour-guide"
-                      : "/manager/dashboard"
-            }
-            className="flex items-center gap-3 group">
-            {/* Logo mark */}
-            <div
-              className="relative w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm text-white transition-transform duration-200 group-hover:scale-105"
-              style={{
-                backgroundColor: "var(--accent)",
-              }}>
-              <BuildingsIcon
-                weight="fill"
-                size={18}
-                className="text-stone-900"
-              />
-              {/* Subtle shine */}
-              <div
-                className="absolute inset-0 rounded-xl pointer-events-none"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
-                }}
-              />
-            </div>
-            <div className="flex flex-col">
-              <span
-                className="text-sm font-semibold leading-none tracking-tight"
-                style={{ color: "var(--sidebar-text)" }}>
-                Pathora
-              </span>
-              <span
-                className="text-[10px] font-medium tracking-widest uppercase mt-0.5"
-                style={{ color: "var(--sidebar-text-muted)" }}>
-                {providerPortal === "transport"
-                  ? "Transport Provider"
-                  : providerPortal === "hotel"
-                    ? "Hotel Provider"
-                    : providerPortal === "tour-designer"
-                      ? "Tour Designer"
-                      : providerPortal === "tour-guide"
-                        ? "Tour Guide"
-                        : "Admin"}
-              </span>
-            </div>
-          </Link>
-          <button
-            onClick={onClose}
-            aria-label="Close sidebar"
-            className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
-            style={{ color: "var(--sidebar-text-muted)" }}>
-            <XIcon size={18} weight="bold" />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {variant === "admin" ? (
-            renderAdminNav()
-          ) : variant === "provider" ? (
-            <div className="space-y-0.5">
-              {navItems.map((item) => {
-                const active = isActive(item.href);
-                const IconComp = item.icon;
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                    onClick={onClose}
-                    style={
-                      active
-                        ? {
-                            backgroundColor: "var(--sidebar-active-bg)",
-                            color: "var(--sidebar-active-text)",
-                          }
-                        : {
-                            color: "var(--sidebar-text-muted)",
-                          }
-                    }>
-                    <span
-                      className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
-                      style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
-                    />
-                    <span className="relative z-10 transition-colors duration-200">
-                      <IconComp
-                        size={20}
-                        weight={active ? "fill" : "regular"}
-                      />
-                    </span>
-                    <span className="relative z-10 transition-colors duration-200">
-                      {item.label}
-                    </span>
-                    <AnimatePresence>
-                      {active && (
-                        <motion.span
-                          layoutId="sidebar-active-indicator"
-                          initial={{ opacity: 0, scaleY: 0 }}
-                          animate={{ opacity: 1, scaleY: 1 }}
-                          exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 100,
-                            damping: 20,
-                          }}
-                          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{
-                            backgroundColor: "var(--sidebar-active-border)",
-                          }}
-                        />
-                      )}
-                    </AnimatePresence>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : variant === "tour-designer" || variant === "tour-guide" ? (
-            <div className="space-y-0.5">
-              {navItems.map((item) => {
-                const active = isActive(item.href);
-                const IconComp = item.icon;
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                    onClick={onClose}
-                    style={
-                      active
-                        ? {
-                            backgroundColor: "var(--sidebar-active-bg)",
-                            color: "var(--sidebar-active-text)",
-                          }
-                        : {
-                            color: "var(--sidebar-text-muted)",
-                          }
-                    }>
-                    <span
-                      className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
-                      style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
-                    />
-                    <span className="relative z-10 transition-colors duration-200">
-                      <IconComp
-                        size={20}
-                        weight={active ? "fill" : "regular"}
-                      />
-                    </span>
-                    <span className="relative z-10 transition-colors duration-200">
-                      {item.label}
-                    </span>
-                    <AnimatePresence>
-                      {active && (
-                        <motion.span
-                          layoutId="sidebar-active-indicator"
-                          initial={{ opacity: 0, scaleY: 0 }}
-                          animate={{ opacity: 1, scaleY: 1 }}
-                          exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 100,
-                            damping: 20,
-                          }}
-                          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{
-                            backgroundColor: "var(--sidebar-active-border)",
-                          }}
-                        />
-                      )}
-                    </AnimatePresence>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="space-y-0.5">
-              {navItems.map((item) => {
-                const active = isActive(item.href);
-                const IconComp = item.icon;
-
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                    onClick={onClose}
-                    style={
-                      active
-                        ? {
-                            backgroundColor: "var(--sidebar-active-bg)",
-                            color: "var(--sidebar-active-text)",
-                          }
-                        : {
-                            color: "var(--sidebar-text-muted)",
-                          }
-                    }>
-                    {/* Hover fill */}
-                    <span
-                      className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
-                      style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
-                    />
-
-                    {/* Icon */}
-                    <span className="relative z-10 transition-colors duration-200">
-                      <IconComp
-                        size={20}
-                        weight={active ? "fill" : "regular"}
-                      />
-                    </span>
-
-                    {/* Label */}
-                    <span className="relative z-10 transition-colors duration-200">
-                      {item.label}
-                    </span>
-
-                    {/* Pending count badge for Tour Requests */}
-                    {item.label === "Tour Requests" && pendingCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 200,
-                          damping: 15,
-                        }}
-                        className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white ml-auto">
-                        {pendingCount > 99 ? "99+" : pendingCount}
-                      </motion.span>
-                    )}
-
-                    {/* Active indicator — amber pill bar on the left */}
-                    <AnimatePresence>
-                      {active && (
-                        <motion.span
-                          layoutId="sidebar-active-indicator"
-                          initial={{ opacity: 0, scaleY: 0 }}
-                          animate={{ opacity: 1, scaleY: 1 }}
-                          exit={{ opacity: 0, scaleY: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 100,
-                            damping: 20,
-                          }}
-                          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
-                          style={{
-                            backgroundColor: "var(--sidebar-active-border)",
-                          }}
-                        />
-                      )}
-                    </AnimatePresence>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </nav>
-
-        {/* User */}
-        <div
-          className="shrink-0 p-3"
-          style={{ borderTop: "1px solid var(--sidebar-border)" }}>
-          {/* Admin card */}
+      {mounted ? (
+        <motion.aside
+          initial={false}
+          animate={{ x: 0 }}
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col lg:translate-x-0"
+          style={{
+            backgroundColor: "var(--sidebar-bg)",
+            borderRight: "1px solid var(--sidebar-border)",
+          }}>
+          {/* Logo */}
           <div
-            className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
-            style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
-            <div
-              className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
-              style={{
-                backgroundColor: "var(--accent)",
-              }}>
-              {providerPortal === "transport" && companyName
-                ? companyName
-                    .split(" ")
-                    .slice(0, 2)
-                    .map((w) => w[0] ?? "")
-                    .join("")
-                    .toUpperCase()
-                : providerPortal === "tour-designer"
-                  ? "TD"
-                  : providerPortal === "tour-guide"
-                    ? "TG"
-                    : "AD"}
-              {/* Online dot */}
-              <span
-                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+            className="flex items-center justify-between px-5 h-16 shrink-0"
+            style={{ borderBottom: "1px solid var(--sidebar-border)" }}>
+            <Link
+              href={
+                variant === "admin"
+                  ? "/admin/users"
+                  : variant === "provider"
+                    ? providerPortal === "transport"
+                      ? "/transport"
+                      : "/hotel"
+                    : variant === "tour-designer"
+                      ? "/tour-designer"
+                      : variant === "tour-guide"
+                        ? "/tour-guide"
+                        : "/manager/dashboard"
+              }
+              className="flex items-center gap-3 group">
+              {/* Logo mark */}
+              <div
+                className="relative w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm text-white transition-transform duration-200 group-hover:scale-105"
                 style={{
-                  backgroundColor: "#22c55e",
-                  borderColor: "var(--sidebar-bg)",
-                }}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p
-                className="text-sm font-medium truncate leading-none"
-                style={{ color: "var(--sidebar-text)" }}>
+                  backgroundColor: "var(--accent)",
+                }}>
+                <BuildingsIcon
+                  weight="fill"
+                  size={18}
+                  className="text-stone-900"
+                />
+                {/* Subtle shine */}
+                <div
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
+                  }}
+                />
+              </div>
+              <div className="flex flex-col">
+                <span
+                  className="text-sm font-semibold leading-none tracking-tight"
+                  style={{ color: "var(--sidebar-text)" }}>
+                  Pathora
+                </span>
+                <span
+                  className="text-[10px] font-medium tracking-widest uppercase mt-0.5"
+                  style={{ color: "var(--sidebar-text-muted)" }}>
+                  {providerPortal === "transport"
+                    ? "Transport Provider"
+                    : providerPortal === "hotel"
+                      ? "Hotel Provider"
+                      : providerPortal === "tour-designer"
+                        ? "Tour Designer"
+                        : providerPortal === "tour-guide"
+                          ? "Tour Guide"
+                          : "Admin"}
+                </span>
+              </div>
+            </Link>
+            <button
+              onClick={onClose}
+              aria-label="Close sidebar"
+              className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
+              style={{ color: "var(--sidebar-text-muted)" }}>
+              <XIcon size={18} weight="bold" />
+            </button>
+          </div>
+
+          {/* Nav */}
+          <nav className="flex-1 overflow-y-auto px-3 py-4">
+            {variant === "admin" ? (
+              renderAdminNav()
+            ) : variant === "provider" ? (
+              <div className="space-y-0.5">
+                {navItems.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "var(--sidebar-active-bg)",
+                              color: "var(--sidebar-active-text)",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                      />
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp
+                          size={20}
+                          weight={active ? "fill" : "regular"}
+                        />
+                      </span>
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId="sidebar-active-indicator"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 100,
+                              damping: 20,
+                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                            style={{
+                              backgroundColor: "var(--sidebar-active-border)",
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : variant === "tour-designer" || variant === "tour-guide" ? (
+              <div className="space-y-0.5">
+                {navItems.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "var(--sidebar-active-bg)",
+                              color: "var(--sidebar-active-text)",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                      />
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp
+                          size={20}
+                          weight={active ? "fill" : "regular"}
+                        />
+                      </span>
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId="sidebar-active-indicator"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 100,
+                              damping: 20,
+                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                            style={{
+                              backgroundColor: "var(--sidebar-active-border)",
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {navItems.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "var(--sidebar-active-bg)",
+                              color: "var(--sidebar-active-text)",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      {/* Hover fill */}
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                      />
+
+                      {/* Icon */}
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp
+                          size={20}
+                          weight={active ? "fill" : "regular"}
+                        />
+                      </span>
+
+                      {/* Label */}
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+
+                      {/* Pending count badge for Tour Requests */}
+                      {item.label === "Tour Requests" && pendingCount > 0 && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 15,
+                          }}
+                          className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white ml-auto">
+                          {pendingCount > 99 ? "99+" : pendingCount}
+                        </motion.span>
+                      )}
+
+                      {/* Active indicator — amber pill bar on the left */}
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId="sidebar-active-indicator"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 100,
+                              damping: 20,
+                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                            style={{
+                              backgroundColor: "var(--sidebar-active-border)",
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </nav>
+
+          {/* User */}
+          <div
+            className="shrink-0 p-3"
+            style={{ borderTop: "1px solid var(--sidebar-border)" }}>
+            {/* Admin card */}
+            <div
+              className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
+              style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
+              <div
+                className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+                style={{
+                  backgroundColor: "var(--accent)",
+                }}>
                 {providerPortal === "transport" && companyName
                   ? companyName
+                      .split(" ")
+                      .slice(0, 2)
+                      .map((w) => w[0] ?? "")
+                      .join("")
+                      .toUpperCase()
                   : providerPortal === "tour-designer"
-                    ? "TourDesigner"
+                    ? "TD"
                     : providerPortal === "tour-guide"
-                      ? "TourGuide"
-                      : "Admin"}
-              </p>
-              <p
-                className="text-xs truncate mt-0.5"
-                style={{ color: "var(--sidebar-text-muted)" }}>
-                {providerPortal === "transport" && companyName
-                  ? "TransportProvider"
-                  : providerPortal === "hotel"
-                    ? "HotelServiceProvider"
+                      ? "TG"
+                      : "AD"}
+                {/* Online dot */}
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+                  style={{
+                    backgroundColor: "#22c55e",
+                    borderColor: "var(--sidebar-bg)",
+                  }}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-sm font-medium truncate leading-none"
+                  style={{ color: "var(--sidebar-text)" }}>
+                  {providerPortal === "transport" && companyName
+                    ? companyName
                     : providerPortal === "tour-designer"
                       ? "TourDesigner"
                       : providerPortal === "tour-guide"
                         ? "TourGuide"
-                        : "Administrator"}
-              </p>
+                        : "Admin"}
+                </p>
+                <p
+                  className="text-xs truncate mt-0.5"
+                  style={{ color: "var(--sidebar-text-muted)" }}>
+                  {providerPortal === "transport" && companyName
+                    ? "TransportProvider"
+                    : providerPortal === "hotel"
+                      ? "HotelServiceProvider"
+                      : providerPortal === "tour-designer"
+                        ? "TourDesigner"
+                        : providerPortal === "tour-guide"
+                          ? "TourGuide"
+                          : "Administrator"}
+                </p>
+              </div>
             </div>
+            <AdminLogoutButton />
           </div>
-          <AdminLogoutButton />
-        </div>
-      </motion.aside>
+        </motion.aside>
+      ) : (
+        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] lg:translate-x-0" />
+      )}
 
       {/* Backdrop for mobile */}
       <AnimatePresence>
@@ -738,6 +747,12 @@ interface TopBarProps {
 
 export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
   const { i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const currentLang = (i18n.resolvedLanguage || i18n.language || "en")
     .toLowerCase()
     .split("-")[0];
@@ -757,25 +772,27 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
           className="lg:hidden pointer-events-auto text-stone-500 hover:text-stone-700 bg-white/80 backdrop-blur rounded-lg p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
           <ListIcon size={22} weight="bold" />
         </button>
-        <div className="pointer-events-auto ml-auto flex items-center gap-1">
-          <button
-            onClick={toggleLanguage}
-            aria-label="Toggle Language"
-            title="Change language"
-            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
-            <GlobeHemisphereWestIcon size={20} weight="regular" />
-            {currentLang}
-          </button>
-          <button
-            aria-label="Notifications"
-            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-            <BellIcon size={20} weight="regular" />
-            <span
-              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-              style={{ backgroundColor: "var(--accent)" }}
-            />
-          </button>
-        </div>
+        {mounted && (
+          <div className="pointer-events-auto ml-auto flex items-center gap-1">
+            <button
+              onClick={toggleLanguage}
+              aria-label="Toggle Language"
+              title="Change language"
+              className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
+              <GlobeHemisphereWestIcon size={20} weight="regular" />
+              {currentLang}
+            </button>
+            <button
+              aria-label="Notifications"
+              className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+              <BellIcon size={20} weight="regular" />
+              <span
+                className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+                style={{ backgroundColor: "var(--accent)" }}
+              />
+            </button>
+          </div>
+        )}
       </header>
     );
   }
@@ -810,26 +827,28 @@ export function TopBar({ onMenuClick, title, subtitle }: TopBarProps) {
           )}
         </div>
       )}
-      <div className="ml-auto flex items-center gap-1">
-        <button
-          onClick={toggleLanguage}
-          aria-label="Toggle Language"
-          title="Change language"
-          className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
-          <GlobeHemisphereWestIcon size={20} weight="regular" />
-          {currentLang}
-        </button>
-        <button
-          aria-label="Notifications"
-          className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-          <BellIcon size={20} weight="regular" />
-          {/* Notification dot */}
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-            style={{ backgroundColor: "var(--accent)" }}
-          />
-        </button>
-      </div>
+      {mounted && (
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={toggleLanguage}
+            aria-label="Toggle Language"
+            title="Change language"
+            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 font-semibold text-xs flex items-center gap-1 uppercase">
+            <GlobeHemisphereWestIcon size={20} weight="regular" />
+            {currentLang}
+          </button>
+          <button
+            aria-label="Notifications"
+            className="relative p-2 text-stone-400 hover:text-stone-600 rounded-lg transition-all duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+            <BellIcon size={20} weight="regular" />
+            {/* Notification dot */}
+            <span
+              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+              style={{ backgroundColor: "var(--accent)" }}
+            />
+          </button>
+        </div>
+      )}
     </header>
   );
 }

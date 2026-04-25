@@ -6,7 +6,6 @@ public sealed record TripAssignmentDetailDto(
     [property: JsonPropertyName("bookingReference")] string BookingReference,
     [property: JsonPropertyName("route")] string Route,
     [property: JsonPropertyName("tripDate")] DateTimeOffset? TripDate,
-    [property: JsonPropertyName("vehiclePlate")] string? VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string? VehicleType,
     [property: JsonPropertyName("vehicleCapacity")] int? VehicleCapacity,
     [property: JsonPropertyName("driverName")] string? DriverName,

@@ -58,7 +58,6 @@ public sealed class GetDriverActivitiesQueryHandler(
             a.Status,
             a.RejectionReason,
             a.UpdatedAt,
-            a.Vehicle?.VehiclePlate,
             a.Vehicle?.VehicleType.ToString()
         )).ToList();
 

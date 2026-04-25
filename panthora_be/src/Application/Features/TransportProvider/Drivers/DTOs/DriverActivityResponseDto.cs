@@ -16,6 +16,5 @@ public record DriverActivityResponseDto(
     [property: JsonPropertyName("status")] int? Status,
     [property: JsonPropertyName("rejectionReason")] string? RejectionReason,
     [property: JsonPropertyName("updatedAt")] DateTimeOffset UpdatedAt,
-    [property: JsonPropertyName("vehiclePlate")] string? VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string? VehicleType
 );

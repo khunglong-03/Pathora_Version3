@@ -64,7 +64,6 @@ public sealed class UpdateTripStatusCommandHandler(
             booking.BookingId.ToString(),
             route.TransportationName ?? route.TransportationType?.ToString() ?? string.Empty,
             booking.StartTime,
-            entity.Vehicle?.VehiclePlate,
             entity.Vehicle?.VehicleType.ToString(),
             entity.Vehicle?.SeatCapacity,
             entity.Driver?.FullName,

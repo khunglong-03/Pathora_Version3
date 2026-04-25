@@ -18,7 +18,7 @@ interface BulkApproveConfirmationModalProps {
   onClose: () => void;
   items: BulkApproveItem[];
   drafts: Record<string, ApprovalDraft>;
-  vehicles: { id: string; vehiclePlate: string }[];
+  vehicles: { id: string; vehicleType: string }[];
   drivers: { id: string; fullName: string }[];
   onConfirm: (note: string | undefined) => Promise<void>;
   failedState?: {
@@ -51,8 +51,8 @@ export default function BulkApproveConfirmationModal({
     }
   };
 
-  const getVehiclePlate = (vehicleId?: string) =>
-    vehicles.find((v) => v.id === vehicleId)?.vehiclePlate ?? "—";
+  const getVehicleType = (vehicleId?: string) =>
+    vehicles.find((v) => v.id === vehicleId)?.vehicleType ?? "—";
   const getDriverName = (driverId?: string) =>
     drivers.find((d) => d.id === driverId)?.fullName ?? "—";
 
@@ -65,13 +65,13 @@ export default function BulkApproveConfirmationModal({
       return filled
         .map(
           (r) =>
-            `${getVehiclePlate(r.vehicleId)} / ${getDriverName(r.driverId)}`,
+            `${getVehicleType(r.vehicleId)} / ${getDriverName(r.driverId)}`,
         )
         .join(" · ");
     }
     const legacy = draft as { vehicleId?: string; driverId?: string } | undefined;
     if (legacy?.vehicleId && legacy?.driverId) {
-      return `${getVehiclePlate(legacy.vehicleId)} / ${getDriverName(legacy.driverId)}`;
+      return `${getVehicleType(legacy.vehicleId)} / ${getDriverName(legacy.driverId)}`;
     }
     return "—";
   };

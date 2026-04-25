@@ -21,11 +21,11 @@ const VEHICLE_TYPES = [
 
 export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormProps) {
   const [formData, setFormData] = useState<CreateVehicleDto>({
-    vehiclePlate: vehicle?.vehiclePlate ?? "",
     vehicleType: vehicle ? (VEHICLE_TYPES.find((t) => t.value === Number(vehicle.vehicleType))?.value ?? 1) : 1,
     brand: vehicle?.brand,
     model: vehicle?.model,
     seatCapacity: vehicle?.seatCapacity ?? 4,
+    quantity: vehicle?.quantity ?? 1,
     notes: vehicle?.notes,
     locationArea: undefined,
     operatingCountries: vehicle?.operatingCountries,
@@ -36,18 +36,14 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.vehiclePlate || formData.vehiclePlate.trim().length === 0) {
-      newErrors.vehiclePlate = "Biển số không được để trống";
-    }
-    if (!vehicle && formData.vehiclePlate) {
-      // Basic plate format: at least 4 characters, alphanumeric with spaces/hyphens
-      const plateRegex = /^[A-Z0-9\s-.]{4,20}$/i;
-      if (!plateRegex.test(formData.vehiclePlate.trim())) {
-        newErrors.vehiclePlate = "Biển số không hợp lệ (ví dụ: 51A-12345)";
-      }
-    }
     if (!formData.seatCapacity || formData.seatCapacity < 1) {
       newErrors.seatCapacity = "Sức chứa phải lớn hơn 0";
+    }
+    if (!formData.quantity || formData.quantity < 1) {
+      newErrors.quantity = "Số lượng phải lớn hơn 0";
+    }
+    if (formData.quantity && formData.quantity > 1000) {
+      newErrors.quantity = "Số lượng không được vượt quá 1000";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -101,7 +97,7 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
               {vehicle ? "Sửa phương tiện" : "Thêm phương tiện"}
             </h2>
             <p className="text-xs" style={{ color: "#9CA3AF" }}>
-              {vehicle ? `Biển số: ${vehicle.vehiclePlate}` : "Thông tin phương tiện mới"}
+              {vehicle ? `ID: ${vehicle.id}` : "Thông tin phương tiện mới"}
             </p>
           </div>
         </div>
@@ -117,30 +113,6 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
         <div className="px-6 py-6 space-y-5">
-          {/* Biển số */}
-          <div>
-            <label htmlFor="vehiclePlate" className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
-              Biển số <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="vehiclePlate"
-              name="vehiclePlate"
-              type="text"
-              value={formData.vehiclePlate}
-              onChange={handleChange}
-              disabled={!!vehicle}
-              placeholder="VD: 51A-12345"
-              className={`w-full px-3 py-2.5 rounded-xl text-sm border transition-colors duration-150 outline-none ${
-                errors.vehiclePlate ? "border-red-300" : "border-gray-200"
-              } ${vehicle ? "bg-gray-100 cursor-not-allowed" : "focus:border-indigo-400"}`}
-              aria-invalid={!!errors.vehiclePlate}
-              aria-describedby={errors.vehiclePlate ? "vehiclePlate-error" : undefined}
-            />
-            {errors.vehiclePlate && (
-              <p id="vehiclePlate-error" className="text-xs text-red-500 mt-1">{errors.vehiclePlate}</p>
-            )}
-          </div>
-
           {/* Loại xe */}
           <div>
             <label htmlFor="vehicleType" className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
@@ -212,6 +184,30 @@ export default function VehicleForm({ vehicle, onSave, onCancel }: VehicleFormPr
             />
             {errors.seatCapacity && (
               <p className="text-xs text-red-500 mt-1">{errors.seatCapacity}</p>
+            )}
+          </div>
+
+          {/* Số lượng */}
+          <div>
+            <label htmlFor="quantity" className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
+              Số lượng xe <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min={1}
+              max={1000}
+              value={formData.quantity ?? ""}
+              onChange={handleChange}
+              placeholder="VD: 5"
+              className={`w-full px-3 py-2.5 rounded-xl text-sm border transition-colors duration-150 outline-none ${
+                errors.quantity ? "border-red-300" : "border-gray-200"
+              } focus:border-indigo-400`}
+              aria-invalid={!!errors.quantity}
+            />
+            {errors.quantity && (
+              <p className="text-xs text-red-500 mt-1">{errors.quantity}</p>
             )}
           </div>
 

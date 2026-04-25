@@ -445,7 +445,7 @@ export default function TransportDashboardPage() {
                                 {formatDate(trip.tripDate)}
                               </td>
                               <td style={{ padding: "16px", borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`}}>
-                                <div style={{ fontSize: "14px", color: T.text, fontWeight: 500 }}>{trip.vehiclePlate}</div>
+                                <div style={{ fontSize: "14px", color: T.text, fontWeight: 500 }}>{trip.vehicleType}</div>
                                 <div style={{ fontSize: "12px", color: T.textMuted }}>{trip.driverName}</div>
                               </td>
                               <td style={{ padding: "16px", borderRadius: "0 12px 12px 0", border: `1px solid ${T.border}`, borderLeft: "none", textAlign: "right" }}>

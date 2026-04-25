@@ -12,14 +12,6 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.VehiclePlate)
-            .HasMaxLength(20)
-            .IsRequired();
-
-        builder.HasIndex(x => x.VehiclePlate)
-            .IsUnique()
-            .HasFilter(null);
-
         builder.Property(x => x.VehicleType)
             .HasConversion<string>()
             .HasMaxLength(30)

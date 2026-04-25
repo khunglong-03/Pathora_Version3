@@ -1,3 +1,4 @@
+using Application.Common.Constant;
 using Application.Features.TransportProvider.Vehicles.DTOs;
 using Domain.Common.Repositories;
 using Domain.Enums;
@@ -8,32 +9,28 @@ public sealed class CreateVehicleRequestDtoValidator : AbstractValidator<CreateV
 {
     public CreateVehicleRequestDtoValidator(IVehicleRepository vehicleRepository)
     {
-        RuleFor(x => x.VehiclePlate)
-            .NotEmpty().WithMessage("Vehicle plate is required.")
-            .MaximumLength(20).WithMessage("Vehicle plate must not exceed 20 characters.")
-            .Matches(@"^[A-Z0-9\s-.]{4,20}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
-            .WithMessage("Invalid vehicle plate format (e.g. 51A-12345).")
-            .MustAsync(async (plate, ct) => !await vehicleRepository.ExistsByPlateAsync(plate, ct))
-            .WithMessage("Vehicle plate already exists.");
-
         RuleFor(x => x.VehicleType)
-            .IsInEnum().WithMessage("Invalid vehicle type.")
+            .IsInEnum().WithMessage(ValidationMessages.VehicleTypeInvalid)
             .Must(type => (Domain.Enums.VehicleType)type is Domain.Enums.VehicleType.Car or Domain.Enums.VehicleType.Bus or Domain.Enums.VehicleType.Minibus
                 or Domain.Enums.VehicleType.Van or Domain.Enums.VehicleType.Coach or Domain.Enums.VehicleType.Motorbike)
-            .WithMessage("Only ground transport vehicle types are allowed (Car, Bus, Minibus, Van, Coach, Motorbike).");
+            .WithMessage(ValidationMessages.VehicleTypeGroundOnly);
 
         RuleFor(x => x.SeatCapacity)
-            .GreaterThan(0).WithMessage("Seat capacity must be greater than 0.")
-            .LessThanOrEqualTo(100).WithMessage("Seat capacity must not exceed 100.");
+            .GreaterThan(0).WithMessage(ValidationMessages.VehicleSeatCapacityGreaterThanZero)
+            .LessThanOrEqualTo(100).WithMessage(ValidationMessages.VehicleSeatCapacityMax100);
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0).WithMessage(ValidationMessages.VehicleQuantityGreaterThanZero)
+            .LessThanOrEqualTo(1000).WithMessage(ValidationMessages.VehicleQuantityMax1000);
 
         RuleFor(x => x.OperatingCountries)
-            .MaximumLength(500).WithMessage("Operating countries must not exceed 500 characters.")
+            .MaximumLength(500).WithMessage(ValidationMessages.VehicleOperatingCountriesMaxLength500)
             .Must(BeValidOperatingCountriesFormat).When(x => !string.IsNullOrEmpty(x.OperatingCountries))
-            .WithMessage("Operating countries must be comma-separated 2-letter uppercase ISO codes (e.g. VN,TH,MY).");
+            .WithMessage(ValidationMessages.VehicleOperatingCountriesInvalidFormat);
 
         RuleFor(x => x.LocationArea)
             .IsInEnum().When(x => x.LocationArea.HasValue)
-            .WithMessage("Invalid location area.");
+            .WithMessage(ValidationMessages.VehicleLocationAreaInvalid);
     }
 
     private static bool BeValidOperatingCountriesFormat(string? operatingCountries)

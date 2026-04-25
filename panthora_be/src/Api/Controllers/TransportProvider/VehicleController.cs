@@ -14,18 +14,18 @@ using Microsoft.AspNetCore.Mvc;
 public class VehicleController : BaseApiController
 {
     [HttpGet(VehicleEndpoint.Base)]
-    public async Task<IActionResult> GetVehicles([FromQuery] int? locationArea = null, [FromQuery] bool? isActive = null, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
+    public async Task<IActionResult> GetVehicles([FromQuery] int? locationArea = null, [FromQuery] bool? isActive = null, [FromQuery] bool? isDeleted = false, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new GetVehiclesQuery(userId, locationArea.HasValue ? (Continent)locationArea.Value : null, isActive, pageNumber, pageSize));
+        var result = await Sender.Send(new GetVehiclesQuery(userId, locationArea.HasValue ? (Continent)locationArea.Value : null, isActive, isDeleted, pageNumber, pageSize));
         return HandleResult(result);
     }
 
-    [HttpGet($"{VehicleEndpoint.Base}/{{plate}}")]
-    public async Task<IActionResult> GetVehicleByPlate(string plate)
+    [HttpGet($"{VehicleEndpoint.Base}/{{id:guid}}")]
+    public async Task<IActionResult> GetVehicleById(Guid id)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new GetVehicleByPlateQuery(userId, plate));
+        var result = await Sender.Send(new GetVehicleByIdQuery(userId, id));
         return HandleResult(result);
     }
 
@@ -37,19 +37,19 @@ public class VehicleController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpPut($"{VehicleEndpoint.Base}/{{plate}}")]
-    public async Task<IActionResult> UpdateVehicle(string plate, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
+    [HttpPut($"{VehicleEndpoint.Base}/{{id:guid}}")]
+    public async Task<IActionResult> UpdateVehicle(Guid id, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new UpdateVehicleCommand(userId, plate, request));
+        var result = await Sender.Send(new UpdateVehicleCommand(userId, id, request));
         return HandleResult(result);
     }
 
-    [HttpDelete($"{VehicleEndpoint.Base}/{{plate}}")]
-    public async Task<IActionResult> DeleteVehicle(string plate)
+    [HttpDelete($"{VehicleEndpoint.Base}/{{id:guid}}")]
+    public async Task<IActionResult> DeleteVehicle(Guid id)
     {
         var userId = GetCurrentUserId();
-        var result = await Sender.Send(new DeleteVehicleCommand(userId, plate));
+        var result = await Sender.Send(new DeleteVehicleCommand(userId, id));
         return HandleResult(result);
     }
 

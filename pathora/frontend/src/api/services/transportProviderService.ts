@@ -3,15 +3,16 @@ import { extractData, extractItems, extractResult, handleApiError } from "@/util
 
 export interface Vehicle {
   id: string;
-  vehiclePlate: string;
   vehicleType: string;
   brand?: string;
   model?: string;
   seatCapacity: number;
+  quantity: number;
   locationArea?: string;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
   isActive: boolean;
+  isDeleted: boolean;
   notes?: string;
   createdOnUtc: string;
 }
@@ -29,11 +30,11 @@ export interface Driver {
 }
 
 export interface CreateVehicleDto {
-  vehiclePlate: string;
   vehicleType: number;
   brand?: string;
   model?: string;
   seatCapacity: number;
+  quantity?: number;
   locationArea?: number;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
@@ -45,6 +46,7 @@ export interface UpdateVehicleDto {
   brand?: string;
   model?: string;
   seatCapacity?: number;
+  quantity?: number;
   locationArea?: number;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
@@ -77,7 +79,6 @@ export interface TripAssignment {
   bookingReference: string;
   route: string;
   tripDate: string;
-  vehiclePlate: string;
   driverName: string;
   status: TripStatus;
   createdOnUtc: string;
@@ -119,7 +120,6 @@ export interface TripHistoryItem {
   bookingReference: string;
   route: string;
   completedDate: string;
-  vehiclePlate: string;
   driverName: string;
   revenue: number;
 }
@@ -146,10 +146,11 @@ class TransportProviderService {
     pageNumber: number = 1,
     pageSize: number = 50,
     isActive?: boolean,
-    locationArea?: number
+    locationArea?: number,
+    isDeleted: boolean = false
   ): Promise<PaginatedResponse<Vehicle> | null> {
     try {
-      const params: any = { pageNumber, pageSize };
+      const params: any = { pageNumber, pageSize, isDeleted };
       if (locationArea !== undefined) params.locationArea = locationArea;
       if (isActive !== undefined) params.isActive = isActive;
       const response = await axiosInstance.get<PaginatedResponse<Vehicle>>("/transport-provider/vehicles", { params });
@@ -160,9 +161,9 @@ class TransportProviderService {
     }
   }
 
-  async getVehicleByPlate(plate: string): Promise<Vehicle | null> {
+  async getVehicleById(id: string): Promise<Vehicle | null> {
     try {
-      const response = await axiosInstance.get<Vehicle>(`/transport-provider/vehicles/${plate}`);
+      const response = await axiosInstance.get<Vehicle>(`/transport-provider/vehicles/${id}`);
       return extractData(response.data);
     } catch (error) {
       handleApiError(error);
@@ -180,9 +181,9 @@ class TransportProviderService {
     }
   }
 
-  async updateVehicle(plate: string, data: UpdateVehicleDto): Promise<Vehicle | null> {
+  async updateVehicle(id: string, data: UpdateVehicleDto): Promise<Vehicle | null> {
     try {
-      const response = await axiosInstance.put<Vehicle>(`/transport-provider/vehicles/${plate}`, data);
+      const response = await axiosInstance.put<Vehicle>(`/transport-provider/vehicles/${id}`, data);
       return extractData(response.data);
     } catch (error) {
       handleApiError(error);
@@ -190,9 +191,9 @@ class TransportProviderService {
     }
   }
 
-  async deleteVehicle(plate: string): Promise<boolean> {
+  async deleteVehicle(id: string): Promise<boolean> {
     try {
-      await axiosInstance.delete(`/transport-provider/vehicles/${plate}`);
+      await axiosInstance.delete(`/transport-provider/vehicles/${id}`);
       return true;
     } catch (error) {
       handleApiError(error);

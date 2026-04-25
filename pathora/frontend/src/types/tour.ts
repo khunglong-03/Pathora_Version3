@@ -447,7 +447,6 @@ export interface TourInstanceTransportAssignmentDto {
   vehicleId: string;
   driverId?: string | null;
   seatCountSnapshot?: number | null;
-  vehiclePlate?: string | null;
   vehicleType?: string | null;
   vehicleBrand?: string | null;
   vehicleModel?: string | null;
@@ -490,7 +489,6 @@ export interface TourInstanceDayActivityDto {
 
   // Instance-specific vehicle assignment (flattened)
   vehicleId?: string | null;
-  vehiclePlate?: string | null;
   vehicleType?: string | null;
   vehicleBrand?: string | null;
   vehicleModel?: string | null;

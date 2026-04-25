@@ -38,7 +38,7 @@ public sealed class GetTripAssignmentsQueryHandler(
             booking.BookingId.ToString(),
             route.TransportationName ?? route.TransportationType?.ToString() ?? string.Empty,
             booking.StartTime,
-            entity.Vehicle?.VehiclePlate,
+            entity.Vehicle?.VehicleType.ToString(),
             entity.Driver?.FullName,
             StatusToText(entity.Status ?? 0),
             StatusToText(entity.Status ?? 0)

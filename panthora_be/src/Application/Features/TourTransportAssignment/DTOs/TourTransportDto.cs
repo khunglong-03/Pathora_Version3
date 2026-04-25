@@ -19,7 +19,6 @@ public sealed record DriverInfoDto(
     [property: JsonPropertyName("maskedLicenseNumber")] string MaskedLicenseNumber);
 
 public sealed record VehicleInfoDto(
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate,
     [property: JsonPropertyName("vehicleType")] string VehicleType,
     [property: JsonPropertyName("brand")] string? Brand,
     [property: JsonPropertyName("model")] string? Model,

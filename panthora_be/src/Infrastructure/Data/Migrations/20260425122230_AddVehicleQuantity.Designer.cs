@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425122230_AddVehicleQuantity")]
+    partial class AddVehicleQuantity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4256,6 +4259,11 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("VehicleImageUrls")
                         .HasColumnType("jsonb");
 
+                    b.Property<string>("VehiclePlate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("VehicleType")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -4272,6 +4280,9 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("SupplierId");
+
+                    b.HasIndex("VehiclePlate")
+                        .IsUnique();
 
                     b.ToTable("Vehicles", (string)null);
                 });

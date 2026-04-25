@@ -10,7 +10,7 @@ using global::Contracts.ModelResponse;
 namespace Application.Features.TransportProvider.Vehicles.Commands;
 public sealed record DeleteVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
-    [property: JsonPropertyName("vehiclePlate")] string VehiclePlate) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId) : ICommand<ErrorOr<Success>>;
 
 
 public sealed class DeleteVehicleCommandHandler(
@@ -21,10 +21,9 @@ public sealed class DeleteVehicleCommandHandler(
         DeleteVehicleCommand request,
         CancellationToken cancellationToken)
     {
-        var vehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(
-            request.VehiclePlate, request.CurrentUserId, cancellationToken);
+        var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
 
-        if (vehicle is null)
+        if (vehicle is null || vehicle.OwnerId != request.CurrentUserId)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, "Resource not found.");
 
         await vehicleRepository.SoftDeleteAsync(vehicle.Id, request.CurrentUserId.ToString(), cancellationToken);

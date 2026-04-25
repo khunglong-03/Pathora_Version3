@@ -16,7 +16,7 @@ namespace Application.Features.Admin.Commands.ManageTransportVehicles;
 public sealed record AdminUpdateVehicleCommand(
     [property: JsonPropertyName("adminId")] Guid AdminId,
     [property: JsonPropertyName("providerUserId")] Guid ProviderUserId,
-    [property: JsonPropertyName("plate")] string Plate,
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
     [property: JsonPropertyName("request")] UpdateVehicleRequestDto Request) : ICommand<ErrorOr<VehicleResponseDto>>;
 
 
@@ -38,16 +38,16 @@ public sealed class AdminUpdateVehicleCommandHandler(
             return Error.NotFound("Admin.ProviderNotFound", "Target transport provider not found or deleted.");
         }
 
-        var vehicle = await vehicleRepository.FindByPlateAndOwnerIdAsync(request.Plate, request.ProviderUserId, cancellationToken);
-        if (vehicle == null)
+        var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
+        if (vehicle == null || vehicle.OwnerId != request.ProviderUserId)
         {
-            return Error.NotFound("Admin.VehicleNotFound", $"Vehicle with plate '{request.Plate}' not found for this provider.");
+            return Error.NotFound("Admin.VehicleNotFound", $"Vehicle with ID '{request.VehicleId}' not found for this provider.");
         }
 
         // 2.9 Structured logging
         logger.LogInformation(
-            "Admin {AdminId} is updating vehicle {Plate} for Provider {ProviderId}",
-            request.AdminId, request.Plate, request.ProviderUserId);
+            "Admin {AdminId} is updating vehicle {VehicleId} for Provider {ProviderId}",
+            request.AdminId, request.VehicleId, request.ProviderUserId);
 
         vehicle.Update(
             (VehicleType)request.Request.VehicleType,
@@ -60,7 +60,8 @@ public sealed class AdminUpdateVehicleCommandHandler(
                 ? System.Text.Json.JsonSerializer.Serialize(request.Request.VehicleImageUrls)
                 : null,
             request.Request.Notes,
-            request.AdminId.ToString());
+            request.AdminId.ToString(),
+            request.Request.Quantity);
 
         vehicleRepository.Update(vehicle);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -82,15 +83,16 @@ public sealed class AdminUpdateVehicleCommandHandler(
 
         return new VehicleResponseDto(
             v.Id,
-            v.VehiclePlate,
             v.VehicleType.ToString(),
             v.Brand,
             v.Model,
             v.SeatCapacity,
+            v.Quantity,
             v.LocationArea?.ToString(),
             v.OperatingCountries,
             imageUrls,
             v.IsActive,
+            v.IsDeleted,
             v.Notes,
             v.CreatedOnUtc);
     }
@@ -103,7 +105,7 @@ public sealed class AdminUpdateVehicleCommandValidator : AbstractValidator<Admin
     {
         RuleFor(x => x.AdminId).NotEmpty();
         RuleFor(x => x.ProviderUserId).NotEmpty();
-        RuleFor(x => x.Plate).NotEmpty();
+        RuleFor(x => x.VehicleId).NotEmpty();
         RuleFor(x => x.Request).SetValidator(new UpdateVehicleRequestDtoValidator());
     }
 }
