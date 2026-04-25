@@ -1,4 +1,4 @@
-using Api.Middleware;
+using global::Api.Middleware;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Http;
 

@@ -1,18 +1,18 @@
-using AdminDTOs = Application.Features.Admin.DTOs;
-using AdminContracts = Application.Contracts.Admin;
-using Api.Controllers.Admin;
-using Api.Controllers.Manager;
-using Api.Endpoint;
-using Application.Features.Admin.Commands.CreateStaffUnderManager;
-using Application.Features.Admin.Commands.UpdateBankAccount;
-using Application.Features.Admin.Commands.VerifyBankAccount;
-using Application.Features.Admin.Queries;
-using Application.Features.Admin.Queries.GetAllManagerUsers;
-using Application.Features.Admin.Queries.GetManagersBankAccount;
-using Application.Features.Tour.Queries;
+using AdminDTOs = global::Application.Features.Admin.DTOs;
+using AdminContracts = global::Application.Contracts.Admin;
+using global::Api.Controllers.Admin;
+using global::Api.Controllers.Manager;
+using global::Api.Endpoint;
+using global::Application.Features.Admin.Commands.CreateStaffUnderManager;
+using global::Application.Features.Admin.Commands.UpdateBankAccount;
+using global::Application.Features.Admin.Commands.VerifyBankAccount;
+using global::Application.Features.Admin.Queries;
+using global::Application.Features.Admin.Queries.GetAllManagerUsers;
+using global::Application.Features.Admin.Queries.GetManagersBankAccount;
+using global::Application.Features.Tour.Queries;
 using Contracts;
-using Domain.Common.Repositories;
-using Domain.Reports;
+using global::Domain.Common.Repositories;
+using global::Domain.Reports;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -148,10 +148,10 @@ public sealed class AdminApiCompleteTests
                 emptyResponse,
                 "/" + ManagerEndpoint.TourManagement);
 
-        var actionResult = await controller.GetTourManagement(null, Domain.Enums.TourStatus.Active, null, null, 1, 10);
+        var actionResult = await controller.GetTourManagement(null, global::Domain.Enums.TourStatus.Active, null, null, 1, 10);
 
         var captured = Assert.IsType<GetAdminTourManagementQuery>(probe.CapturedRequest);
-        Assert.Equal(Domain.Enums.TourStatus.Active, captured.Status);
+        Assert.Equal(global::Domain.Enums.TourStatus.Active, captured.Status);
     }
 
     [Fact]

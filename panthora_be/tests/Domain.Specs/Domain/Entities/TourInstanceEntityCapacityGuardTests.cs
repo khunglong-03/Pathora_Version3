@@ -1,5 +1,5 @@
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Entities;
+using global::Domain.Enums;
 
 namespace Domain.Specs.Entities;
 

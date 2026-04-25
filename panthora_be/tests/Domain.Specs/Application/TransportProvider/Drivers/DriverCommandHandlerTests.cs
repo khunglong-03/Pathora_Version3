@@ -1,9 +1,9 @@
-using Application.Features.TransportProvider.Drivers.Commands;
-using Application.Features.TransportProvider.Drivers.DTOs;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Application.Features.TransportProvider.Drivers.Commands;
+using global::Application.Features.TransportProvider.Drivers.DTOs;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using ErrorOr;
 using NSubstitute;
 using Xunit;

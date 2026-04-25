@@ -126,19 +126,24 @@ public class UserService(
 
     public async Task<ErrorOr<Guid>> Create(CreateUserRequest request)
     {
-        var isUnique = await _userRepository.IsEmailUnique(request.Email);
+        var email = request.Email.Trim().ToLower();
+        var isUnique = await _userRepository.IsEmailUnique(email);
         if (!isUnique)
             return Error.Conflict(ErrorConstants.User.DuplicateEmailCode, ErrorConstants.User.DuplicateEmailDescription);
 
-        var generatedPassword = string.IsNullOrEmpty(request.Password) ? "thehieu03" : request.Password;
+        var isAutoPassword = string.IsNullOrEmpty(request.Password);
+        var passwordToHash = isAutoPassword ? "thehieu03" : request.Password!;
+        
         var userEntity = UserEntity.Create(
-            request.Email,
-            request.FullName,
-            request.Email,
-            _passwordHasher.HashPassword(generatedPassword),
+            email,
+            request.FullName.Trim(),
+            email,
+            _passwordHasher.HashPassword(passwordToHash),
             _user.Id ?? string.Empty,
             request.Avatar,
-            forcePasswordChange: true);
+            forcePasswordChange: isAutoPassword);
+
+        userEntity.VerifyStatus = VerifyStatus.Verified;
 
         await _unitOfWork.ExecuteTransactionAsync(async () =>
         {

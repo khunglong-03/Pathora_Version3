@@ -1,10 +1,10 @@
-using Api;
-using Api.Bosttraping;
-using Api.Hubs;
-using Api.Middleware;
-using Application;
+using global::Api;
+using global::Api.Bosttraping;
+using global::Api.Hubs;
+using global::Api.Middleware;
+using global::Application;
 using FluentAssertions;
-using Infrastructure;
+using global::Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

@@ -172,6 +172,10 @@ public static class ValidationMessages
     public const string PricingPolicyTierPricePercentageRange = "Price percentage must be between 0 and 100.";
     public const string PricingPolicyTierAgeToGreaterThanOrEqualAgeFrom = "Age to must be greater than or equal to age from.";
 
+    // ── Staff Management ─────────────────────────────────────────
+    public const string StaffTypeInvalid = "StaffType must be 1 (TourDesigner) or 2 (TourGuide).";
+    public const string PasswordMinLength = "Password must be at least 6 characters.";
+
     // ── TourInstance ────────────────────────────────────────────
     public const string TourInstanceGuideIdsNotDuplicate = "Guide IDs không được trùng nhau.";
     public const string TourInstanceManagerIdsNotDuplicate = "Manager IDs không được trùng nhau.";

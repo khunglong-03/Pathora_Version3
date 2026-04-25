@@ -58,6 +58,13 @@ export function AdminUserTable({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!openDropdown) return;
+    const handleClickOutside = () => setOpenDropdown(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openDropdown]);
+
   const handlePageChange = (page: number) => {
     onPageChange?.(page);
   };

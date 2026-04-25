@@ -1,7 +1,7 @@
 namespace Domain.Specs.Application.Validators;
 
-using Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
-using Domain.Enums;
+using global::Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
+using global::Domain.Enums;
 using FluentValidation.TestHelper;
 using Xunit;
 

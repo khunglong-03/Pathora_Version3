@@ -1,9 +1,9 @@
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
+using global::Infrastructure.Data;
+using global::Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Specs.Infrastructure.Repositories;

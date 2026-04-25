@@ -1,9 +1,9 @@
-using Api.Controllers;
-using Application.Dtos;
-using Application.Features.TourRequest.Commands;
-using Application.Features.TourRequest.Queries;
+using global::Api.Controllers;
+using global::Application.Dtos;
+using global::Application.Features.TourRequest.Commands;
+using global::Application.Features.TourRequest.Queries;
 using Contracts;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 

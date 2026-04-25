@@ -1,8 +1,8 @@
-using Application.Contracts.TourManagerAssignment;
-using Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Contracts.TourManagerAssignment;
+using global::Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 

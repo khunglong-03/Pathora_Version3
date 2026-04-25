@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Icon, CollapsibleSection } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   CreateTourInstancePayload,
   CheckDuplicateResult,
@@ -138,6 +139,7 @@ const SELECT_TOUR_STEP = 0;
 const INSTANCE_DETAILS_STEP = 1;
 
 // ─── Step Indicator ────────────────────────────────────────────────────────────
+// ─── Step Indicator ────────────────────────────────────────────────────────────
 interface StepIndicatorProps {
   currentStep: number;
   t: Translate;
@@ -145,53 +147,54 @@ interface StepIndicatorProps {
 
 function StepIndicator({ currentStep, t }: StepIndicatorProps) {
   const steps = [
-    { num: 1, label: t("tourInstance.wizard.step1", "Select Tour") },
-    { num: 2, label: t("tourInstance.wizard.step2", "Instance Details") },
+    { num: 1, label: t("tourInstance.wizard.step1", "Select Template") },
+    { num: 2, label: t("tourInstance.wizard.step2", "Configuration") },
   ];
 
   return (
-    <div className="flex items-center justify-center gap-3">
-      {steps.map((step, idx) => {
+    <div className="flex flex-col gap-8 relative mt-8">
+      <div className="absolute left-3.5 top-2 bottom-2 w-px bg-stone-200/50 z-0"></div>
+      {steps.map((step) => {
         const isActive = currentStep === step.num - 1;
         const isCompleted = currentStep > step.num - 1;
         return (
-          <React.Fragment key={step.num}>
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex size-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  isCompleted
-                    ? "bg-emerald-500 text-white"
-                    : isActive
-                      ? "bg-orange-500 text-white"
-                      : "bg-stone-200 text-stone-500"
-                }`}>
-                {isCompleted ? (
-                  <Icon icon="heroicons:check" className="size-4" />
-                ) : (
-                  step.num
-                )}
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  isActive
-                    ? "text-orange-600"
-                    : isCompleted
-                      ? "text-emerald-600"
-                      : "text-stone-400"
-                }`}>
-                {t("tourInstance.wizard.step", "Step")} {step.num}: {step.label}
+          <div key={step.num} className={`relative z-10 flex items-center gap-6 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isActive || isCompleted ? "opacity-100" : "opacity-40"}`}>
+            <div className={`flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              isCompleted ? "bg-stone-900 text-stone-50" : isActive ? "bg-orange-500 text-white shadow-[0_0_24px_rgba(249,115,22,0.4)] ring-4 ring-orange-500/10 scale-110" : "bg-stone-50 border border-stone-200 text-stone-400"
+            }`}>
+              {isCompleted ? <Icon icon="heroicons:check" className="size-3.5" /> : step.num}
+            </div>
+            <div className="flex flex-col">
+              <span className={`text-[10px] tracking-[0.2em] uppercase font-bold transition-colors ${isActive ? "text-orange-600" : "text-stone-400"}`}>
+                Step 0{step.num}
+              </span>
+              <span className={`text-sm font-medium transition-colors ${isActive ? "text-stone-900" : "text-stone-500"}`}>
+                {step.label}
               </span>
             </div>
-            {idx < steps.length - 1 && (
-              <div
-                className={`h-px w-8 transition-colors ${
-                  isCompleted ? "bg-emerald-500" : "bg-stone-200"
-                }`}
-              />
-            )}
-          </React.Fragment>
+          </div>
         );
       })}
+    </div>
+  );
+}
+
+// ─── Double Bezel Card ───────────────────────────────────────────────────────
+function DoubleBezelCard({ title, eyebrow, stepNumber, children, className = "" }: { title?: React.ReactNode; eyebrow?: string; stepNumber?: number; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-[2.5rem] bg-black/[0.02] p-2 ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] fill-mode-both ${className}`}>
+      <div className="rounded-[calc(2.5rem-0.5rem)] bg-white p-8 md:p-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] ring-1 ring-black/[0.03]">
+        {(title || eyebrow) && (
+          <div className="mb-10">
+            {eyebrow && <div className="inline-block rounded-full bg-stone-100/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-4">{eyebrow}</div>}
+            <h2 className="text-2xl font-bold tracking-tight text-stone-900 flex items-center gap-4 font-serif">
+               {stepNumber && <span className="flex size-8 rounded-full bg-orange-100 text-orange-600 items-center justify-center text-sm font-black tracking-tighter shrink-0">{stepNumber}</span>}
+               {title}
+            </h2>
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }
@@ -234,112 +237,119 @@ function SelectTourStep({
   const canProceed = Boolean(form.tourId && form.classificationId);
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-6 rounded-[2.5rem] border border-stone-200 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-        <h2 className="text-base font-bold text-stone-900">
-          {t("tourInstance.wizard.step1", "Step 1: Select Tour")}
-        </h2>
-
+    <div className="space-y-12">
+      <DoubleBezelCard title={t("tourInstance.wizard.step1", "Select Template")} eyebrow="Foundation" stepNumber={1} className="delay-100">
         {loadError && (
-          <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="mb-8 flex items-start justify-between gap-4 rounded-[1.5rem] border border-red-200/60 bg-red-50/50 p-6 backdrop-blur-sm">
             <div>
               <p className="text-sm font-semibold text-red-800">{loadError}</p>
             </div>
             <button
               onClick={() => setReloadToken((v) => v + 1)}
-              className="rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 active:scale-98 whitespace-nowrap">
+              className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-700 active:scale-98 transition-transform whitespace-nowrap">
               {t("common.retry", "Retry")}
             </button>
           </div>
         )}
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-stone-700">
-            {t("tourInstance.packageTour", "Package Tour")} *
-          </label>
-          {loading && !loadError ? (
-            <div className="space-y-2">
-              <div className="skeleton h-10 w-full rounded-xl" />
-              <div className="skeleton h-10 w-full rounded-xl" />
-            </div>
-          ) : (
-            <>
+        <div className="space-y-8">
+          <div className="space-y-3 relative group">
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-orange-600 ml-1">
+              {t("tourInstance.packageTour", "Package Tour")} <span className="text-orange-500">*</span>
+            </label>
+            {loading && !loadError ? (
+              <div className="space-y-3">
+                <div className="skeleton h-14 w-full rounded-[1.25rem] bg-stone-100" />
+                <div className="skeleton h-14 w-full rounded-[1.25rem] bg-stone-100" />
+              </div>
+            ) : (
+              <div className="relative">
+                <select
+                  className={`${inputClassName} ${errors.tourId ? 'ring-red-300 focus:ring-red-500' : ''}`}
+                  value={form.tourId}
+                  disabled={!!loadError}
+                  onChange={(event) => updateField("tourId", event.target.value)}>
+                  <option value="">
+                    {t(
+                      "tourInstance.selectPackageTour",
+                      "Select a package tour...",
+                    )}
+                  </option>
+                  {tours.map((tour) => (
+                    <option key={tour.id} value={tour.id}>
+                      {tour.tourName}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-stone-400">
+                   <Icon icon="heroicons:chevron-down" className="size-4" />
+                </div>
+                {tours.length === 0 && !loading && !loadError && (
+                  <p className="mt-3 text-xs text-stone-400 font-medium ml-1">
+                    {t(
+                      "tourInstance.noActiveTours",
+                      "No active tours available.",
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
+            {errors.tourId && (
+              <p className="text-xs font-semibold text-red-500 ml-1 mt-2">{errors.tourId}</p>
+            )}
+          </div>
+
+          <div className="space-y-3 relative group">
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-stone-500 transition-colors group-focus-within:text-orange-600 ml-1">
+              {t("tourInstance.packageClassification", "Package Classification")} <span className="text-orange-500">*</span>
+            </label>
+            <div className="relative">
               <select
-                className={inputClassName}
-                value={form.tourId}
-                disabled={!!loadError}
-                onChange={(event) => updateField("tourId", event.target.value)}>
+                className={`${inputClassName} ${errors.classificationId ? 'ring-red-300 focus:ring-red-500' : ''}`}
+                value={form.classificationId}
+                disabled={!tourDetail || loadingTour}
+                onChange={(event) =>
+                  updateField("classificationId", event.target.value)
+                }>
                 <option value="">
                   {t(
-                    "tourInstance.selectPackageTour",
-                    "Select a package tour...",
+                    "tourInstance.selectClassification",
+                    "Select a classification...",
                   )}
                 </option>
-                {tours.map((tour) => (
-                  <option key={tour.id} value={tour.id}>
-                    {tour.tourName}
+                {(tourDetail?.classifications ?? []).map((classification) => (
+                  <option key={classification.id} value={classification.id}>
+                    {classification.name}
                   </option>
                 ))}
               </select>
-              {tours.length === 0 && !loading && !loadError && (
-                <p className="mt-2 text-sm text-stone-500 italic">
-                  {t(
-                    "tourInstance.noActiveTours",
-                    "No active tours available.",
-                  )}
-                </p>
-              )}
-            </>
-          )}
-          {errors.tourId && (
-            <p className="text-xs text-red-600">{errors.tourId}</p>
-          )}
+              <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-stone-400">
+                 <Icon icon="heroicons:chevron-down" className="size-4" />
+              </div>
+            </div>
+            {errors.classificationId && (
+              <p className="text-xs font-semibold text-red-500 ml-1 mt-2">{errors.classificationId}</p>
+            )}
+          </div>
         </div>
+      </DoubleBezelCard>
 
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-stone-700">
-            {t("tourInstance.packageClassification", "Package Classification")}{" "}
-            *
-          </label>
-          <select
-            className={inputClassName}
-            value={form.classificationId}
-            disabled={!tourDetail || loadingTour}
-            onChange={(event) =>
-              updateField("classificationId", event.target.value)
-            }>
-            <option value="">
-              {t(
-                "tourInstance.selectClassification",
-                "Select a classification...",
-              )}
-            </option>
-            {(tourDetail?.classifications ?? []).map((classification) => (
-              <option key={classification.id} value={classification.id}>
-                {classification.name}
-              </option>
-            ))}
-          </select>
-          {errors.classificationId && (
-            <p className="text-xs text-red-600">{errors.classificationId}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center justify-end gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 ease-[cubic-bezier(0.32,0.72,0,1)] fill-mode-both">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-stone-200 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-98">
+          className="rounded-full px-6 py-3 text-sm font-bold text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors active:scale-[0.98]">
           {t("tourInstance.cancel", "Cancel")}
         </button>
         <button
           type="button"
           onClick={onNext}
           disabled={!canProceed}
-          className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled-opacity-50 active:scale-98">
-          {t("tourInstance.wizard.next", "Next")}
-          <Icon icon="heroicons:arrow-right" className="size-4" />
+          className="group relative inline-flex items-center justify-center gap-3 rounded-full bg-stone-900 py-3 pl-7 pr-2 text-sm font-bold text-white transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-black hover:shadow-xl hover:shadow-stone-900/20 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none">
+          {t("tourInstance.wizard.next", "Configure Details")}
+          <div className="flex size-8 items-center justify-center rounded-full bg-white/10 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:scale-105">
+             <Icon icon="heroicons:arrow-right" className="size-4" />
+          </div>
         </button>
       </div>
     </div>
@@ -813,9 +823,8 @@ function InstanceDetailsStep({
       )}
 
       {/* Basic Info */}
-      <CollapsibleSection
-        title={t("tourInstance.wizard.section.basicInfo", "Basic Information")}
-        defaultOpen>
+      <DoubleBezelCard
+        title={t("tourInstance.wizard.section.basicInfo", "Basic Information")}>
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-stone-700">
@@ -880,15 +889,14 @@ function InstanceDetailsStep({
             )}
           </div>
         </div>
-      </CollapsibleSection>
+      </DoubleBezelCard>
 
       {/* Schedule & Pricing */}
-      <CollapsibleSection
+      <DoubleBezelCard
         title={t(
           "tourInstance.wizard.section.scheduleAndPricing",
           "Schedule & Pricing",
-        )}
-        defaultOpen>
+        )}>
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -975,12 +983,11 @@ function InstanceDetailsStep({
             </div>
           </div>
         </div>
-      </CollapsibleSection>
+      </DoubleBezelCard>
 
       {/* Guide */}
-      <CollapsibleSection
-        title={t("tourInstance.wizard.section.guide", "Guide")}
-        defaultOpen={false}>
+      <DoubleBezelCard
+        title={t("tourInstance.wizard.section.guide", "Guide")}>
         <div className="space-y-3">
           {selectedGuide && (
             <div className="flex flex-wrap gap-2">
@@ -1053,12 +1060,11 @@ function InstanceDetailsStep({
             })}
           </select>
         </div>
-      </CollapsibleSection>
+      </DoubleBezelCard>
 
       {/* Optional Services */}
-      <CollapsibleSection
-        title={t("tourInstance.wizard.section.services", "Optional Services")}
-        defaultOpen={false}>
+      <DoubleBezelCard
+        title={t("tourInstance.wizard.section.services", "Optional Services")}>
         <div className="space-y-3">
           {availableServices.length === 0 ? (
             <p className="text-xs text-stone-500">
@@ -1088,12 +1094,11 @@ function InstanceDetailsStep({
             </div>
           )}
         </div>
-      </CollapsibleSection>
+      </DoubleBezelCard>
 
       {/* Media */}
-      <CollapsibleSection
-        title={t("tourInstance.wizard.section.media", "Media")}
-        defaultOpen={form.thumbnailUrl.length > 0 || form.imageUrls.length > 0}>
+      <DoubleBezelCard
+        title={t("tourInstance.wizard.section.media", "Media")}>
         <div className="space-y-4">
           {/* Thumbnail */}
           <div className="space-y-2">
@@ -1242,16 +1247,15 @@ function InstanceDetailsStep({
             </label>
           </div>
         </div>
-      </CollapsibleSection>
+      </DoubleBezelCard>
 
       {/* Itinerary Preview — Editable */}
       {editableItinerary.length > 0 && (
-        <CollapsibleSection
+        <DoubleBezelCard
           title={t(
             "tourInstance.wizard.section.itineraryPreview",
             "Itinerary Preview",
-          )}
-          defaultOpen={false}>
+          )}>
           <div className="space-y-4">
             <p className="text-xs text-stone-500">
               {t(
@@ -1990,27 +1994,35 @@ function InstanceDetailsStep({
               </div>
             ))}
           </div>
-        </CollapsibleSection>
+        </DoubleBezelCard>
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="mt-12 flex items-center justify-between border-t border-stone-100 pt-8">
         <button
           type="button"
           onClick={onPrevious}
-          className="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-100">
-          <Icon icon="heroicons:arrow-left" className="size-4" />
-          {t("tourInstance.wizard.previous", "Previous")}
+          className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full border border-stone-200 bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-stone-700 transition-all hover:bg-stone-50 active:scale-[0.98]">
+          <span className="relative z-10 flex items-center gap-2">
+            <Icon icon="heroicons:arrow-left" className="size-4 transition-transform group-hover:-translate-x-1" />
+            {t("tourInstance.wizard.previous", "Previous")}
+          </span>
         </button>
         <button
           type="button"
           onClick={onSubmit}
           disabled={submitting}
-          className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled-opacity-60">
-          <Icon icon="heroicons:check" className="size-4" />
-          {submitting
-            ? t("tourInstance.creating", "Creating...")
-            : t("tourInstance.createAction", "Create instance")}
+          className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-black px-8 py-3.5 text-sm font-semibold tracking-wide text-white transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
+          <span className="relative z-10 flex items-center gap-2">
+            {submitting ? (
+              <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
+            ) : (
+              <Icon icon="heroicons:check" className="size-4" />
+            )}
+            {submitting
+              ? t("tourInstance.creating", "Creating...")
+              : t("tourInstance.createAction", "Create instance")}
+          </span>
         </button>
       </div>
     </div>
@@ -2035,6 +2047,7 @@ export function CreateTourInstancePage({
     [mounted, t],
   );
   const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const urlTourRequestId = searchParams.get("tourRequestId");
 
@@ -2283,13 +2296,39 @@ export function CreateTourInstancePage({
   // Fetch guides for optional guide selection
   const fetchGuides = useCallback(async () => {
     try {
+      const isManager = user?.roles.some((r) => r.name === "Manager");
+      
+      if (isManager && user?.id) {
+        const staffData = await adminService.getTourManagerStaff(user.id);
+        if (staffData?.staff) {
+          // Filter only TourGuides and convert to UserInfo-like structure
+          const mappedGuides: UserInfo[] = staffData.staff
+            .filter((s) => s.role === "TourGuide")
+            .map((g) => ({
+              id: g.id,
+              fullName: g.fullName,
+              username: g.fullName,
+              email: g.email,
+              avatar: g.avatarUrl ?? null,
+              forcePasswordChange: false,
+              roles: [],
+              departments: [],
+              portal: null,
+              defaultPath: null,
+            }));
+          setGuides(mappedGuides);
+          return;
+        }
+      }
+
+      // Fallback for Admins or if staff fetching fails: get all guides
       const guides = await userService.getGuides();
       setGuides(guides ?? []);
     } catch (error: unknown) {
       console.error("Failed to fetch guides:", error);
       setGuides([]);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchTours();
@@ -2902,7 +2941,7 @@ export function CreateTourInstancePage({
   };
 
   const inputClassName =
-    "w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20";
+    "w-full appearance-none rounded-[1.25rem] border-0 bg-stone-50 px-5 py-4 text-sm font-medium text-stone-900 ring-1 ring-inset ring-stone-200/60 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-stone-100/50 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-orange-500 focus:shadow-[0_8px_16px_-6px_rgba(249,115,22,0.15)]";
 
   // ── Upload handlers ─────────────────────────────────────────────────
   const handleUploadThumbnail = useCallback(
@@ -2950,134 +2989,123 @@ export function CreateTourInstancePage({
   );
 
   return (
-    <main className="min-h-screen bg-stone-50 p-6 md:p-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        {/* Header */}
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-[2.5rem] border border-stone-200 bg-white p-4 md:p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-          <div>
-            <h1 className="text-xl font-bold text-stone-900">
-              {safeT("tourInstance.createTitle", "Create Tour Instance")}
-            </h1>
-            <p className="text-sm text-stone-500">
-              {safeT(
-                "tourInstance.createSubtitle",
-                "Create a scheduled tour from a package template",
-              )}
-            </p>
+    <main className="min-h-[100dvh] bg-[#FDFBF7] selection:bg-orange-500/20 text-stone-900 relative">
+      {/* CSS Noise Overlay */}
+      <div className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+      
+      <div className="mx-auto flex w-full max-w-7xl flex-col md:flex-row min-h-[100dvh]">
+        
+        {/* Left Editorial Pane (Sticky) */}
+        <div className="w-full md:w-[40%] md:sticky top-0 md:h-[100dvh] flex flex-col justify-between px-6 py-12 md:px-12 md:py-16 border-b md:border-b-0 md:border-r border-stone-200/50">
+          <div className="animate-in fade-in slide-in-from-left-8 duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]">
+             <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-orange-100/50 text-[10px] uppercase tracking-[0.2em] font-bold text-orange-800 mb-8 ring-1 ring-inset ring-orange-200/50">
+               Tour Builder
+             </div>
+             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-stone-900 mb-6 font-serif leading-[1.1]">
+               {safeT("tourInstance.createTitle", "Deploy Tour Instance.")}
+             </h1>
+             <p className="text-base text-stone-500 leading-relaxed max-w-sm">
+               {safeT("tourInstance.createSubtitle", "Schedule a new occurrence from your package templates. Precision capacity and pricing.")}
+             </p>
+             
+             <div className="mt-12 hidden md:block">
+                <StepIndicator currentStep={currentStep} t={safeT} />
+             </div>
           </div>
-          <StepIndicator currentStep={currentStep} t={safeT} />
-        </header>
 
-        {/* Info banner */}
-        <section className="rounded-[2.5rem] border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-          {safeT(
-            "tourInstance.createInfo",
-            "A Tour Instance is a scheduled occurrence with specific dates, capacity, and pricing.",
-          )}
-        </section>
-
-        {/* Tour Request prefill banner */}
-        {prefillTourRequest && (
-          <section className="rounded-[2.5rem] border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-            <div className="flex items-start gap-3">
-              <Icon
-                icon="heroicons:document-text"
-                className="size-5 mt-0.5 shrink-0"
-              />
-              <div>
-                <p className="font-semibold">
-                  {safeT(
-                    "tourInstance.prefillFromRequest",
-                    "Creating from Tour Request",
-                  )}
-                </p>
-                <p className="mt-1">
-                  {prefillTourRequest.customerName && (
-                    <span>
-                      {safeT("tourRequest.common.customer", "Customer")}:{" "}
-                      <strong>{prefillTourRequest.customerName}</strong>
-                      {" · "}
-                    </span>
-                  )}
-                  {prefillTourRequest.destination && (
-                    <span>
-                      {safeT(
-                        "tourRequest.admin.detail.destination",
-                        "Destination",
+          <div className="mt-12 md:mt-0 animate-in fade-in duration-1000 delay-300">
+            {prefillTourRequest && (
+              <div className="rounded-[2rem] bg-blue-50/50 p-6 ring-1 ring-blue-100/50 backdrop-blur-sm">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600 shrink-0">
+                    <Icon icon="heroicons:document-text" className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-blue-900">
+                      {safeT("tourInstance.prefillFromRequest", "Creating from Request")}
+                    </p>
+                    <p className="mt-1 text-xs text-blue-800">
+                      {prefillTourRequest.customerName && (
+                        <span className="font-medium">{prefillTourRequest.customerName} · </span>
                       )}
-                      : <strong>{prefillTourRequest.destination}</strong>
-                    </span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-blue-700">
-                  {safeT(
-                    "tourInstance.prefillHint",
-                    "Some fields have been pre-filled based on the tour request. You can adjust them before submitting.",
-                  )}
-                </p>
+                      {prefillTourRequest.destination && (
+                        <span>{prefillTourRequest.destination}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            )}
+            {!prefillTourRequest && (
+              <p className="text-[10px] uppercase tracking-[0.1em] font-bold text-stone-400">
+                Pathora Platform • Tour Operations
+              </p>
+            )}
+          </div>
+        </div>
 
-        {/* Step Content */}
-        {currentStep === SELECT_TOUR_STEP ? (
-          <SelectTourStep
-            form={form}
-            errors={errors}
-            tours={tours}
-            tourDetail={tourDetail}
-            loadingTour={loadingTour}
-            loading={loading}
-            loadError={loadError}
-            updateField={updateField}
-            setReloadToken={setReloadToken}
-            onNext={() => setCurrentStep(INSTANCE_DETAILS_STEP)}
-            onCancel={() => router.push("/manager/tour-instances")}
-            inputClassName={inputClassName}
-            t={safeT}
-          />
-        ) : (
-          <InstanceDetailsStep
-            form={form}
-            errors={errors}
-            guides={guides}
-            guideConflicts={guideConflicts}
-            hotelProviders={hotelProviders}
-            transportProviders={transportProviders}
-            submitting={submitting}
-            selectedClassification={selectedClassification}
-            duplicateWarning={duplicateWarning}
-            availableServices={availableServices}
-            onSubmit={handleSubmit}
-            onPrevious={() => setCurrentStep(SELECT_TOUR_STEP)}
-            toggleService={toggleService}
-            updateField={updateField}
-            updateImageUrl={updateImageUrl}
-            appendImageUrl={appendImageUrl}
-            removeImageUrl={removeImageUrl}
-            onUploadThumbnail={handleUploadThumbnail}
-            onUploadImages={handleUploadImages}
-            uploadingThumbnail={uploadingThumbnail}
-            uploadingImages={uploadingImages}
-            hotelDetailsBySupplierId={hotelDetailsBySupplierId}
-            transportDetailsBySupplierId={transportDetailsBySupplierId}
-            transportDetailsError={transportDetailsError}
-            transportDetailsLoading={transportDetailsLoading}
-            allowedVehicleKeysBySupplierId={allowedVehicleKeysBySupplierId}
-            vehicleCountsBySupplierId={vehicleCountsBySupplierId}
-            invalidVehicleActivityIds={invalidVehicleActivityIds}
-            invalidSeatCountActivityIds={invalidSeatCountActivityIds}
-            updateActivityAssignment={updateActivityAssignment}
-            editableItinerary={editableItinerary}
-            onUpdateActivity={handleUpdateActivity}
-            onDeleteActivity={handleDeleteActivity}
-            onAddActivity={handleAddActivity}
-            onToggleEditActivity={handleToggleEditActivity}
-            inputClassName={inputClassName}
-            t={safeT}
-          />
-        )}
+        {/* Right Interactive Pane (Scrollable) */}
+        <div className="w-full md:w-[60%] px-6 py-12 md:p-16 md:py-24 max-h-[100dvh] overflow-y-auto no-scrollbar scroll-smooth">
+          {currentStep === SELECT_TOUR_STEP ? (
+            <SelectTourStep
+              form={form}
+              errors={errors}
+              tours={tours}
+              tourDetail={tourDetail}
+              loadingTour={loadingTour}
+              loading={loading}
+              loadError={loadError}
+              updateField={updateField}
+              setReloadToken={setReloadToken}
+              onNext={() => setCurrentStep(INSTANCE_DETAILS_STEP)}
+              onCancel={() => router.push("/manager/tour-instances")}
+              inputClassName={inputClassName}
+              t={safeT}
+            />
+          ) : (
+            <div className="animate-in fade-in slide-in-from-right-8 duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
+              <InstanceDetailsStep
+                form={form}
+                errors={errors}
+                guides={guides}
+                guideConflicts={guideConflicts}
+                hotelProviders={hotelProviders}
+                transportProviders={transportProviders}
+                submitting={submitting}
+                selectedClassification={selectedClassification}
+                duplicateWarning={duplicateWarning}
+                availableServices={availableServices}
+                onSubmit={handleSubmit}
+                onPrevious={() => setCurrentStep(SELECT_TOUR_STEP)}
+                toggleService={toggleService}
+                updateField={updateField}
+                updateImageUrl={updateImageUrl}
+                appendImageUrl={appendImageUrl}
+                removeImageUrl={removeImageUrl}
+                onUploadThumbnail={handleUploadThumbnail}
+                onUploadImages={handleUploadImages}
+                uploadingThumbnail={uploadingThumbnail}
+                uploadingImages={uploadingImages}
+                hotelDetailsBySupplierId={hotelDetailsBySupplierId}
+                transportDetailsBySupplierId={transportDetailsBySupplierId}
+                transportDetailsError={transportDetailsError}
+                transportDetailsLoading={transportDetailsLoading}
+                allowedVehicleKeysBySupplierId={allowedVehicleKeysBySupplierId}
+                vehicleCountsBySupplierId={vehicleCountsBySupplierId}
+                invalidVehicleActivityIds={invalidVehicleActivityIds}
+                invalidSeatCountActivityIds={invalidSeatCountActivityIds}
+                updateActivityAssignment={updateActivityAssignment}
+                editableItinerary={editableItinerary}
+                onUpdateActivity={handleUpdateActivity}
+                onDeleteActivity={handleDeleteActivity}
+                onAddActivity={handleAddActivity}
+                onToggleEditActivity={handleToggleEditActivity}
+                inputClassName={inputClassName}
+                t={safeT}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-using Application.Features.TourInstance.Commands;
+using global::Application.Features.TourInstance.Commands;
 using FluentValidation.TestHelper;
 
 namespace Domain.Specs.Application.Features.TourInstance.Commands;

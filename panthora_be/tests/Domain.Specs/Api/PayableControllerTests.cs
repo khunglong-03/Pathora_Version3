@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Api.Controllers;
-using Application.Features.BookingManagement.Payable;
-using Domain.Entities;
-using Domain.Enums;
+using global::Api.Controllers;
+using global::Application.Features.BookingManagement.Payable;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

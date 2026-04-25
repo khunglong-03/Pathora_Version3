@@ -18,7 +18,18 @@ public sealed record CreateUserCommand(
     [property: JsonPropertyName("avatar")] string Avatar,
     [property: JsonPropertyName("password")] string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
+    public IReadOnlyList<string> CacheKeysToInvalidate
+    {
+        get
+        {
+            var keys = new List<string> { CacheKey.User };
+            if (RoleIds.Any(id => id is DefaultRoleIds.Admin or DefaultRoleIds.Manager))
+            {
+                keys.Add(CacheKey.TourManagerAssignment);
+            }
+            return keys;
+        }
+    }
 }
 
 public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>

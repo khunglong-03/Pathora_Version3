@@ -18,13 +18,13 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
         Assert.NotEqual(Guid.Empty, entity.Id);
         Assert.Equal(supplierId, entity.SupplierId);
-        Assert.Equal(Domain.Enums.RoomType.Standard, entity.RoomType);
+        Assert.Equal(global::Domain.Enums.RoomType.Standard, entity.RoomType);
         Assert.Equal(10, entity.TotalRooms);
         Assert.Equal("admin", entity.CreatedBy);
         Assert.Equal("admin", entity.LastModifiedBy);
@@ -39,7 +39,7 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Deluxe,
+            roomType: global::Domain.Enums.RoomType.Deluxe,
             totalRooms: 5,
             performedBy: "system",
             name: "  Grand Hotel  ",
@@ -60,12 +60,12 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Family,
+            roomType: global::Domain.Enums.RoomType.Family,
             totalRooms: 20,
             performedBy: "admin",
-            locationArea: Domain.Enums.Continent.Asia);
+            locationArea: global::Domain.Enums.Continent.Asia);
 
-        Assert.Equal(Domain.Enums.Continent.Asia, entity.LocationArea);
+        Assert.Equal(global::Domain.Enums.Continent.Asia, entity.LocationArea);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Single,
+            roomType: global::Domain.Enums.RoomType.Single,
             totalRooms: 1,
             performedBy: "admin");
 
@@ -90,7 +90,7 @@ public sealed class HotelRoomInventoryEntityTests
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
             HotelRoomInventoryEntity.Create(
                 supplierId: supplierId,
-                roomType: Domain.Enums.RoomType.Standard,
+                roomType: global::Domain.Enums.RoomType.Standard,
                 totalRooms: 0,
                 performedBy: "admin"));
 
@@ -105,7 +105,7 @@ public sealed class HotelRoomInventoryEntityTests
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
             HotelRoomInventoryEntity.Create(
                 supplierId: supplierId,
-                roomType: Domain.Enums.RoomType.Standard,
+                roomType: global::Domain.Enums.RoomType.Standard,
                 totalRooms: -1,
                 performedBy: "admin"));
 
@@ -118,13 +118,13 @@ public sealed class HotelRoomInventoryEntityTests
         var supplierId = Guid.NewGuid();
         var roomTypes = new[]
         {
-            Domain.Enums.RoomType.Single,
-            Domain.Enums.RoomType.Double,
-            Domain.Enums.RoomType.Twin,
-            Domain.Enums.RoomType.Triple,
-            Domain.Enums.RoomType.Family,
-            Domain.Enums.RoomType.Suite,
-            Domain.Enums.RoomType.Dormitory,
+            global::Domain.Enums.RoomType.Single,
+            global::Domain.Enums.RoomType.Double,
+            global::Domain.Enums.RoomType.Twin,
+            global::Domain.Enums.RoomType.Triple,
+            global::Domain.Enums.RoomType.Family,
+            global::Domain.Enums.RoomType.Suite,
+            global::Domain.Enums.RoomType.Dormitory,
         };
 
         foreach (var roomType in roomTypes)
@@ -147,7 +147,7 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 3,
             performedBy: "admin",
             imageUrls: imageUrl);
@@ -162,7 +162,7 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -181,7 +181,7 @@ public sealed class HotelRoomInventoryEntityTests
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "system");
 
@@ -201,27 +201,27 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin",
             name: "Hotel A");
 
         entity.Update(
             totalRooms: 20,
-            roomType: Domain.Enums.RoomType.Deluxe,
+            roomType: global::Domain.Enums.RoomType.Deluxe,
             name: "Hotel B",
             address: "New Address",
-            locationArea: Domain.Enums.Continent.Europe,
+            locationArea: global::Domain.Enums.Continent.Europe,
             operatingCountries: "DE",
             imageUrls: "https://img.com/hotel.jpg",
             notes: "Updated notes",
             performedBy: "superadmin");
 
         Assert.Equal(20, entity.TotalRooms);
-        Assert.Equal(Domain.Enums.RoomType.Deluxe, entity.RoomType);
+        Assert.Equal(global::Domain.Enums.RoomType.Deluxe, entity.RoomType);
         Assert.Equal("Hotel B", entity.Name);
         Assert.Equal("New Address", entity.Address);
-        Assert.Equal(Domain.Enums.Continent.Europe, entity.LocationArea);
+        Assert.Equal(global::Domain.Enums.Continent.Europe, entity.LocationArea);
         Assert.Equal("DE", entity.OperatingCountries);
         Assert.Equal("https://img.com/hotel.jpg", entity.ImageUrls);
         Assert.Equal("Updated notes", entity.Notes);
@@ -233,7 +233,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -256,7 +256,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -280,7 +280,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -304,7 +304,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin",
             name: "Hotel A",
@@ -330,7 +330,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -353,7 +353,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin");
 
@@ -381,7 +381,7 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin",
             name: "Hotel Name",
@@ -408,14 +408,14 @@ public sealed class HotelRoomInventoryEntityTests
     {
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 10,
             performedBy: "admin",
             name: "Hotel Name");
 
         entity.Update(
             totalRooms: entity.TotalRooms,
-            roomType: Domain.Enums.RoomType.Suite,
+            roomType: global::Domain.Enums.RoomType.Suite,
             name: entity.Name,
             address: entity.Address,
             locationArea: entity.LocationArea,
@@ -424,7 +424,7 @@ public sealed class HotelRoomInventoryEntityTests
             notes: entity.Notes,
             performedBy: "admin");
 
-        Assert.Equal(Domain.Enums.RoomType.Suite, entity.RoomType);
+        Assert.Equal(global::Domain.Enums.RoomType.Suite, entity.RoomType);
         Assert.Equal(10, entity.TotalRooms);
         Assert.Equal("Hotel Name", entity.Name);
     }

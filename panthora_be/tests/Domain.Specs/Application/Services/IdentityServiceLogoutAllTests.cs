@@ -1,10 +1,10 @@
-using Application.Common.Constant;
-using Application.Common.Interfaces;
-using Application.Options;
-using Application.Services;
+using global::Application.Common.Constant;
+using global::Application.Common.Interfaces;
+using global::Application.Options;
+using global::Application.Services;
 using Contracts.Interfaces;
-using Domain.Common.Repositories;
-using Domain.UnitOfWork;
+using global::Domain.Common.Repositories;
+using global::Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;

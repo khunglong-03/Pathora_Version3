@@ -1,9 +1,9 @@
-using Api.Controllers;
-using Application.Contracts.PricingPolicy;
-using Application.Features.PricingPolicy.Commands;
-using Application.Features.PricingPolicy.Queries;
-using Domain.Enums;
-using Domain.ValueObjects;
+using global::Api.Controllers;
+using global::Application.Contracts.PricingPolicy;
+using global::Application.Features.PricingPolicy.Commands;
+using global::Application.Features.PricingPolicy.Queries;
+using global::Domain.Enums;
+using global::Domain.ValueObjects;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Contracts;

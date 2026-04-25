@@ -61,25 +61,25 @@ public sealed class ContinentMigrationTests
     [Fact]
     public void Continent_Enum_ShouldHaveSixValues()
     {
-        var values = Enum.GetValues<Domain.Enums.Continent>();
+        var values = Enum.GetValues<global::Domain.Enums.Continent>();
         Assert.Equal(6, values.Length);
-        Assert.Contains(Domain.Enums.Continent.Asia, values);
-        Assert.Contains(Domain.Enums.Continent.Europe, values);
-        Assert.Contains(Domain.Enums.Continent.Africa, values);
-        Assert.Contains(Domain.Enums.Continent.Americas, values);
-        Assert.Contains(Domain.Enums.Continent.Oceania, values);
-        Assert.Contains(Domain.Enums.Continent.Antarctica, values);
+        Assert.Contains(global::Domain.Enums.Continent.Asia, values);
+        Assert.Contains(global::Domain.Enums.Continent.Europe, values);
+        Assert.Contains(global::Domain.Enums.Continent.Africa, values);
+        Assert.Contains(global::Domain.Enums.Continent.Americas, values);
+        Assert.Contains(global::Domain.Enums.Continent.Oceania, values);
+        Assert.Contains(global::Domain.Enums.Continent.Antarctica, values);
     }
 
     [Fact]
     public void Continent_Enum_Values_ShouldHaveCorrectIntegerValues()
     {
-        Assert.Equal(1, (int)Domain.Enums.Continent.Asia);
-        Assert.Equal(2, (int)Domain.Enums.Continent.Europe);
-        Assert.Equal(3, (int)Domain.Enums.Continent.Africa);
-        Assert.Equal(4, (int)Domain.Enums.Continent.Americas);
-        Assert.Equal(5, (int)Domain.Enums.Continent.Oceania);
-        Assert.Equal(6, (int)Domain.Enums.Continent.Antarctica);
+        Assert.Equal(1, (int)global::Domain.Enums.Continent.Asia);
+        Assert.Equal(2, (int)global::Domain.Enums.Continent.Europe);
+        Assert.Equal(3, (int)global::Domain.Enums.Continent.Africa);
+        Assert.Equal(4, (int)global::Domain.Enums.Continent.Americas);
+        Assert.Equal(5, (int)global::Domain.Enums.Continent.Oceania);
+        Assert.Equal(6, (int)global::Domain.Enums.Continent.Antarctica);
     }
 
     [Fact]

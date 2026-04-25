@@ -1,8 +1,8 @@
-using Api.Controllers;
+using global::Api.Controllers;
 using Contracts;
-using Application.Contracts.Position;
-using Application.Features.Position.Commands;
-using Application.Features.Position.Queries;
+using global::Application.Contracts.Position;
+using global::Application.Features.Position.Commands;
+using global::Application.Features.Position.Queries;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 

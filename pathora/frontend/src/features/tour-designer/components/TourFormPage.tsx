@@ -62,6 +62,8 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
         await tourService.updateTour(formData, lastModifiedOnUtc);
         toast.success(t("tourDesigner.messages.updated", "Tour updated successfully"));
       }
+      
+      router.refresh();
       router.push("/tour-designer/tours");
     } catch (err) {
       const message = handleApiError(err).message;

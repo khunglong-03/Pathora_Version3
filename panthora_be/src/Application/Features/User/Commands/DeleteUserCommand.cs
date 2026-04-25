@@ -9,7 +9,7 @@ namespace Application.Features.User.Commands;
 
 public sealed record DeleteUserCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User, CacheKey.TourManagerAssignment];
 }
 
 public sealed class DeleteUserCommandHandler(IUserService userService)

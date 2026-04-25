@@ -1,6 +1,6 @@
-using Api.Controllers;
-using Application.Contracts.File;
-using Application.Services;
+using global::Api.Controllers;
+using global::Application.Contracts.File;
+using global::Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

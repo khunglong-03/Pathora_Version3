@@ -1,4 +1,4 @@
-using Api.Infrastructure;
+using global::Api.Infrastructure;
 using Microsoft.AspNetCore.Http;
 
 namespace Domain.Specs.Api;

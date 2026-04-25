@@ -1,5 +1,5 @@
 using System.Reflection;
-using Api.Controllers;
+using global::Api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Domain.Specs.Api;

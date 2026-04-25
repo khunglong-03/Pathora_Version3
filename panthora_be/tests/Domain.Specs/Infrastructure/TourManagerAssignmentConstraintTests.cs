@@ -1,6 +1,6 @@
-using Domain.Entities;
-using Domain.Enums;
-using Infrastructure.Data;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Specs.Infrastructure;

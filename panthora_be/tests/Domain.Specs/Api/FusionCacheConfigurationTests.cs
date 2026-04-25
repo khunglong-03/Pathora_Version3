@@ -1,6 +1,6 @@
 using System.Linq;
 
-using Infrastructure;
+using global::Infrastructure;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

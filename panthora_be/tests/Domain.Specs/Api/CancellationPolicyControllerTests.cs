@@ -1,5 +1,5 @@
-using Api.Controllers;
-using Application.Features.CancellationPolicy.Commands;
+using global::Api.Controllers;
+using global::Application.Features.CancellationPolicy.Commands;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 

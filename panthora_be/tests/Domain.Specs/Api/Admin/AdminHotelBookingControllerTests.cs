@@ -1,8 +1,8 @@
-using Api.Controllers.Admin;
-using Application.Features.AdminHotelBookings.DTOs;
-using Application.Features.AdminHotelBookings.Queries;
+using global::Api.Controllers.Admin;
+using global::Application.Features.AdminHotelBookings.DTOs;
+using global::Application.Features.AdminHotelBookings.Queries;
 using Contracts;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

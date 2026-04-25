@@ -1,8 +1,8 @@
-using Api.Controllers.Public;
-using Application.Dtos;
-using Application.Features.Public.Queries;
+using global::Api.Controllers.Public;
+using global::Application.Dtos;
+using global::Application.Features.Public.Queries;
 using Contracts.Interfaces;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 

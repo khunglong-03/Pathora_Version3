@@ -1,4 +1,4 @@
-using Domain;
+using global::Domain;
 using Xunit;
 
 namespace Domain.Specs.Entities;

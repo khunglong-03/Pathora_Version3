@@ -1,11 +1,11 @@
-using Application.Features.TourInstance.Commands;
-using Application.Services;
+using global::Application.Features.TourInstance.Commands;
+using global::Application.Services;
 using AutoMapper;
 using Contracts.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.Mails;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.Mails;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 

@@ -1,15 +1,15 @@
 using System.Threading;
-using Application.Common.Constant;
-using Application.Services;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Application.Common.Constant;
+using global::Application.Services;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using OutboxMessage = Domain.Entities.OutboxMessage;
+using OutboxMessage = global::Domain.Entities.OutboxMessage;
 
 namespace Domain.Specs.Application.Services;
 

@@ -1,10 +1,10 @@
-using Application.Contracts.CancellationPolicy;
-using Application.Services;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
-using Domain.ValueObjects;
+using global::Application.Contracts.CancellationPolicy;
+using global::Application.Services;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
+using global::Domain.ValueObjects;
 using NSubstitute;
 
 namespace Domain.Specs.Application.Services;

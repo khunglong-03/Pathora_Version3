@@ -1,6 +1,6 @@
-using Application.Contracts.Admin;
-using Application.Features.Admin.Commands.CreateStaffUnderManager;
-using Application.Features.Admin.Validators;
+using global::Application.Contracts.Admin;
+using global::Application.Features.Admin.Commands.CreateStaffUnderManager;
+using global::Application.Features.Admin.Validators;
 using FluentValidation.TestHelper;
 using Xunit;
 

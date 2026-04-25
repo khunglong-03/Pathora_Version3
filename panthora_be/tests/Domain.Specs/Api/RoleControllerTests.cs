@@ -1,9 +1,9 @@
-using Api.Controllers.Admin;
-using Application.Contracts.Role;
-using Application.Features.Role.Commands;
-using Application.Features.Role.Queries;
+using global::Api.Controllers.Admin;
+using global::Application.Contracts.Role;
+using global::Application.Features.Role.Commands;
+using global::Application.Features.Role.Queries;
 using Contracts;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 

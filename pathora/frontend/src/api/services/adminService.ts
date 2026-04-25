@@ -67,6 +67,7 @@ export interface CreateStaffRequest {
   staffType: 1 | 2;
   email: string;
   fullName: string;
+  password?: string;
 }
 
 export interface UpdateStaffRequest {
@@ -190,7 +191,7 @@ export const adminService = {
 
   getTourManagerStaff: async (managerId: string) => {
     const response = await api.get<ApiResponse<TourManagerStaffDto>>(
-      API_ENDPOINTS.ADMIN.GET_TOUR_MANAGER_STAFF(managerId),
+      API_ENDPOINTS.MANAGER.GET_TOUR_MANAGER_STAFF(managerId),
     );
     return extractResult<TourManagerStaffDto>(response.data);
   },

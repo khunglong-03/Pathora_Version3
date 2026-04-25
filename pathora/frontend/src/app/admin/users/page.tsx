@@ -45,6 +45,10 @@ export default function AdminUsersPage() {
 
   const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -156,7 +160,7 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-7xl mx-auto">
       <AdminPageHeader
         title="Quản lý người dùng"
         subtitle="Danh sách người dùng hệ thống"

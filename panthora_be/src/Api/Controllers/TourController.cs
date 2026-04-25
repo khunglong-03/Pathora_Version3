@@ -61,7 +61,8 @@ public class TourController(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await Sender.Send(new GetMyToursQuery(searchText, status, tourScope, continent, pageNumber, pageSize));
+        Guid? userId = Guid.TryParse(CurrentUserId, out var guid) ? guid : null;
+        var result = await Sender.Send(new GetMyToursQuery(searchText, status, tourScope, continent, pageNumber, pageSize, userId));
         return HandleResult(result);
     }
 

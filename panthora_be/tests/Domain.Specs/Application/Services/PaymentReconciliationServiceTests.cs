@@ -1,12 +1,12 @@
 using System.Net;
 using System.Text.Json;
 
-using Application.Services;
+using global::Application.Services;
 using Contracts.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;

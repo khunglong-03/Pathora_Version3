@@ -1,8 +1,8 @@
-using Application.Contracts.TourManagerAssignment;
-using Application.Features.TourManagerAssignment.Queries;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Contracts.TourManagerAssignment;
+using global::Application.Features.TourManagerAssignment.Queries;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 
@@ -137,7 +137,7 @@ public sealed class GetTourManagerAssignmentsQueryHandlerTests
     {
         var assignment = TourManagerAssignmentEntity.Create(
             managerId, entityType, userId, tourId, role, "system");
-        assignment.TourManager = new Domain.Entities.UserEntity
+        assignment.TourManager = new global::Domain.Entities.UserEntity
         {
             Id = managerId,
             Username = "manager",

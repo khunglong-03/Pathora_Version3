@@ -1,5 +1,5 @@
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using global::Infrastructure.Data;
 using global::Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;

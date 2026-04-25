@@ -1,6 +1,6 @@
-using Application.Features.BookingManagement.Supplier;
-using Domain.Common.Repositories;
-using Domain.UnitOfWork;
+using global::Application.Features.BookingManagement.Supplier;
+using global::Domain.Common.Repositories;
+using global::Domain.UnitOfWork;
 using Xunit;
 
 namespace Domain.Specs.Application.Features.BookingManagement.Supplier;

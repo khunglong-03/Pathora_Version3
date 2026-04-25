@@ -1,9 +1,9 @@
-using Api.Controllers;
-using Application.Contracts.Identity;
-using Application.Features.Identity.Commands;
+using global::Api.Controllers;
+using global::Application.Contracts.Identity;
+using global::Application.Features.Identity.Commands;
 using Contracts.ModelResponse;
 using ErrorOr;
-using Infrastructure.Identity;
+using global::Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

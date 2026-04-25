@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text.Json;
 
-using Api.Controllers;
-using Application.Contracts.Payment;
-using Application.Options;
-using Application.Services;
+using global::Api.Controllers;
+using global::Application.Contracts.Payment;
+using global::Application.Options;
+using global::Application.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

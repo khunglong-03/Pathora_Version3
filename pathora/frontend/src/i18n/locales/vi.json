@@ -1390,6 +1390,30 @@
       "hideDetails": "Ẩn chi tiết"
     },
     "admin": {
+    "staff": {
+      "title": "Tạo mới nhân viên",
+      "type": "Loại nhân viên",
+      "designer": "Tour Designer",
+      "designerDesc": "Thiết kế và lên kế hoạch tour",
+      "guide": "Tour Guide",
+      "guideDesc": "Hướng dẫn và điều hành tour",
+      "email": "Email",
+      "fullName": "Họ và tên",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "passwordHint": "* Để trống mật khẩu nếu muốn sử dụng mật khẩu mặc định \"password123\"",
+      "submit": "Tạo nhân viên",
+      "submitting": "Đang tạo...",
+      "cancel": "Hủy",
+      "validation": {
+        "required": "Vui lòng nhập đầy đủ thông tin",
+        "invalidEmail": "Định dạng email không hợp lệ",
+        "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
+        "passwordMismatch": "Mật khẩu xác nhận không khớp"
+      },
+      "createSuccess": "Tạo nhân viên thành công",
+      "createError": "Không thể thêm nhân viên. Vui lòng thử lại."
+    },
       "table": {
         "index": "#",
         "destination": "Điểm đến",

@@ -19,14 +19,14 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: blockedDate,
             roomCountBlocked: 5,
             performedBy: "admin");
 
         Assert.NotEqual(Guid.Empty, entity.Id);
         Assert.Equal(supplierId, entity.SupplierId);
-        Assert.Equal(Domain.Enums.RoomType.Standard, entity.RoomType);
+        Assert.Equal(global::Domain.Enums.RoomType.Standard, entity.RoomType);
         Assert.Equal(blockedDate, entity.BlockedDate);
         Assert.Equal(5, entity.RoomCountBlocked);
         Assert.Equal("admin", entity.CreatedBy);
@@ -45,7 +45,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Double,
+            roomType: global::Domain.Enums.RoomType.Double,
             blockedDate: blockedDate,
             roomCountBlocked: 2,
             performedBy: "system",
@@ -63,13 +63,13 @@ public sealed class RoomBlockEntityTests
         var blockedDate = new DateOnly(2026, 4, 15);
         var roomTypes = new[]
         {
-            Domain.Enums.RoomType.Single,
-            Domain.Enums.RoomType.Double,
-            Domain.Enums.RoomType.Twin,
-            Domain.Enums.RoomType.Triple,
-            Domain.Enums.RoomType.Family,
-            Domain.Enums.RoomType.Suite,
-            Domain.Enums.RoomType.Dormitory,
+            global::Domain.Enums.RoomType.Single,
+            global::Domain.Enums.RoomType.Double,
+            global::Domain.Enums.RoomType.Twin,
+            global::Domain.Enums.RoomType.Triple,
+            global::Domain.Enums.RoomType.Family,
+            global::Domain.Enums.RoomType.Suite,
+            global::Domain.Enums.RoomType.Dormitory,
         };
 
         foreach (var roomType in roomTypes)
@@ -93,7 +93,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: blockedDate,
             roomCountBlocked: 1,
             performedBy: "admin");
@@ -110,7 +110,7 @@ public sealed class RoomBlockEntityTests
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
             RoomBlockEntity.Create(
                 supplierId: supplierId,
-                roomType: Domain.Enums.RoomType.Standard,
+                roomType: global::Domain.Enums.RoomType.Standard,
                 blockedDate: blockedDate,
                 roomCountBlocked: 0,
                 performedBy: "admin"));
@@ -127,7 +127,7 @@ public sealed class RoomBlockEntityTests
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
             RoomBlockEntity.Create(
                 supplierId: supplierId,
-                roomType: Domain.Enums.RoomType.Standard,
+                roomType: global::Domain.Enums.RoomType.Standard,
                 blockedDate: blockedDate,
                 roomCountBlocked: -3,
                 performedBy: "admin"));
@@ -143,7 +143,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Dormitory,
+            roomType: global::Domain.Enums.RoomType.Dormitory,
             blockedDate: blockedDate,
             roomCountBlocked: 100,
             performedBy: "admin");
@@ -158,7 +158,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "system");
@@ -178,7 +178,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: blockedDate,
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -195,14 +195,14 @@ public sealed class RoomBlockEntityTests
 
         var block1 = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: blockedDate,
             roomCountBlocked: 3,
             performedBy: "system");
 
         var block2 = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: blockedDate,
             roomCountBlocked: 2,
             performedBy: "system");
@@ -221,7 +221,7 @@ public sealed class RoomBlockEntityTests
     {
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -237,7 +237,7 @@ public sealed class RoomBlockEntityTests
     {
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -252,7 +252,7 @@ public sealed class RoomBlockEntityTests
     {
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -268,7 +268,7 @@ public sealed class RoomBlockEntityTests
     {
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -284,7 +284,7 @@ public sealed class RoomBlockEntityTests
     {
         var entity = RoomBlockEntity.Create(
             supplierId: Guid.NewGuid(),
-            roomType: Domain.Enums.RoomType.Standard,
+            roomType: global::Domain.Enums.RoomType.Standard,
             blockedDate: new DateOnly(2026, 4, 15),
             roomCountBlocked: 5,
             performedBy: "admin");
@@ -307,7 +307,7 @@ public sealed class RoomBlockEntityTests
 
         var entity = RoomBlockEntity.Create(
             supplierId: supplierId,
-            roomType: Domain.Enums.RoomType.Double,
+            roomType: global::Domain.Enums.RoomType.Double,
             blockedDate: blockedDate,
             roomCountBlocked: 3,
             performedBy: "admin",
@@ -337,9 +337,9 @@ public sealed class RoomBlockEntityTests
 
         var blocks = new[]
         {
-            RoomBlockEntity.Create(supplierId, Domain.Enums.RoomType.Standard, blockedDate, 3, "sys"),
-            RoomBlockEntity.Create(supplierId, Domain.Enums.RoomType.Standard, blockedDate, 2, "sys"),
-            RoomBlockEntity.Create(supplierId, Domain.Enums.RoomType.Standard, blockedDate, 1, "sys"),
+            RoomBlockEntity.Create(supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 3, "sys"),
+            RoomBlockEntity.Create(supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 2, "sys"),
+            RoomBlockEntity.Create(supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 1, "sys"),
         };
 
         var totalBlocked = blocks.Sum(b => b.RoomCountBlocked);
@@ -356,8 +356,8 @@ public sealed class RoomBlockEntityTests
 
         var existingBlocks = new[]
         {
-            RoomBlockEntity.Create(supplierId, Domain.Enums.RoomType.Standard, blockedDate, 5, "sys"),
-            RoomBlockEntity.Create(supplierId, Domain.Enums.RoomType.Standard, blockedDate, 3, "sys"),
+            RoomBlockEntity.Create(supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 5, "sys"),
+            RoomBlockEntity.Create(supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 3, "sys"),
         };
 
         var totalBlocked = existingBlocks.Sum(b => b.RoomCountBlocked);
@@ -385,9 +385,9 @@ public sealed class RoomBlockEntityTests
         var blockedDate = new DateOnly(2026, 4, 15);
 
         var standardBlock = RoomBlockEntity.Create(
-            supplierId, Domain.Enums.RoomType.Standard, blockedDate, 5, "sys");
+            supplierId, global::Domain.Enums.RoomType.Standard, blockedDate, 5, "sys");
         var deluxeBlock = RoomBlockEntity.Create(
-            supplierId, Domain.Enums.RoomType.Deluxe, blockedDate, 3, "sys");
+            supplierId, global::Domain.Enums.RoomType.Deluxe, blockedDate, 3, "sys");
 
         Assert.NotEqual(standardBlock.RoomType, deluxeBlock.RoomType);
         Assert.Equal(5, standardBlock.RoomCountBlocked);

@@ -1,5 +1,5 @@
-using Application.Features.TourInstance.Commands;
-using Domain.Enums;
+using global::Application.Features.TourInstance.Commands;
+using global::Domain.Enums;
 using FluentValidation.TestHelper;
 
 namespace Domain.Specs.Application.Features.TourInstance.Commands;

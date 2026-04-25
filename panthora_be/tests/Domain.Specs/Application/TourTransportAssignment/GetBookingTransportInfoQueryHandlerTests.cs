@@ -1,8 +1,8 @@
-using Application.Features.TourTransportAssignment.DTOs;
-using Application.Features.TourTransportAssignment.Queries;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.TourTransportAssignment.DTOs;
+using global::Application.Features.TourTransportAssignment.Queries;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using NSubstitute;
 using Xunit;
 

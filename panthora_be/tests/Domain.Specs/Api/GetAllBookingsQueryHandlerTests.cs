@@ -1,8 +1,8 @@
-using Application.Contracts.Booking;
-using Application.Features.BookingManagement.Queries;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Contracts.Booking;
+using global::Application.Features.BookingManagement.Queries;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 

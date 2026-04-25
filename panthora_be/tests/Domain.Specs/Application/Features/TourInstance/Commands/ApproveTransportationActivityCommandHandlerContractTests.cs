@@ -1,10 +1,10 @@
-using Application.Common.Interfaces;
-using Application.Features.TourInstance.Commands;
+using global::Application.Common.Interfaces;
+using global::Application.Features.TourInstance.Commands;
 using Contracts.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using NSubstitute;
 
 namespace Domain.Specs.Application.Features.TourInstance.Commands;

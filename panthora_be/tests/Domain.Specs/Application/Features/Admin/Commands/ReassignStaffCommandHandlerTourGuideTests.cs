@@ -1,8 +1,8 @@
-using Application.Features.Admin.Commands.ReassignStaff;
-using Application.Common.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.Admin.Commands.ReassignStaff;
+using global::Application.Common.Interfaces;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 using Xunit;

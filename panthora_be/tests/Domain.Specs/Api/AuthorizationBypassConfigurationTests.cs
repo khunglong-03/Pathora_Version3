@@ -1,4 +1,4 @@
-using Api.Configuration;
+using global::Api.Configuration;
 using Microsoft.Extensions.Configuration;
 
 namespace Domain.Specs.Api;

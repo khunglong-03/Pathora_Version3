@@ -55,21 +55,27 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             return Error.NotFound("Role.NotFound", $"Role '{roleName}' not found.");
         var roleId = roleResult.Value.Id;
 
-        var isUnique = await userRepository.IsEmailUnique(request.Request.Email);
+        var email = request.Request.Email.Trim().ToLower();
+        var isUnique = await userRepository.IsEmailUnique(email);
         if (!isUnique)
             return Error.Conflict(
                 ErrorConstants.User.DuplicateEmailCode,
                 ErrorConstants.User.DuplicateEmailDescription);
 
-        var tempPassword = "password123";
+        var password = !string.IsNullOrEmpty(request.Request.Password) 
+            ? request.Request.Password 
+            : "password123";
+
         var userEntity = UserEntity.Create(
-            request.Request.Email,
-            request.Request.FullName,
-            request.Request.Email,
-            passwordHasher.HashPassword(tempPassword),
+            email,
+            request.Request.FullName.Trim(),
+            email,
+            passwordHasher.HashPassword(password),
             "admin",
             null,
-            forcePasswordChange: true);
+            forcePasswordChange: string.IsNullOrEmpty(request.Request.Password));
+
+        userEntity.VerifyStatus = VerifyStatus.Verified;
 
         // Use ExecuteTransactionAsync to be compatible with NpgsqlRetryingExecutionStrategy.
         // All operations use AddAsync (no internal SaveChangesAsync) — the single SaveChanges

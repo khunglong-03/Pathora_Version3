@@ -1,7 +1,7 @@
-using Api.Controllers.Customer;
-using Application.Dtos;
-using Application.Features.TourRequest.Commands;
-using Application.Features.TourRequest.Queries;
+using global::Api.Controllers.Customer;
+using global::Application.Dtos;
+using global::Application.Features.TourRequest.Commands;
+using global::Application.Features.TourRequest.Queries;
 using Contracts;
 using Contracts.ModelResponse;
 using ErrorOr;

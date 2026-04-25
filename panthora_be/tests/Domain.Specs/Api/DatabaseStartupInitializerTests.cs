@@ -1,4 +1,4 @@
-using Api.Configuration;
+using global::Api.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NSubstitute;

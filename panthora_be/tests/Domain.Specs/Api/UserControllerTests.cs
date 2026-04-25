@@ -1,9 +1,9 @@
-using Api.Controllers.User;
+using global::Api.Controllers.User;
 using Contracts;
 using Contracts.ModelResponse;
-using Application.Contracts.User;
-using Application.Features.User.Commands;
-using Application.Features.User.Queries;
+using global::Application.Contracts.User;
+using global::Application.Features.User.Commands;
+using global::Application.Features.User.Queries;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

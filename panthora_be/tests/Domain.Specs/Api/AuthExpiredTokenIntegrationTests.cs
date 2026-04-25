@@ -1,6 +1,6 @@
-using Api;
-using Api.Middleware;
-using Infrastructure;
+using global::Api;
+using global::Api.Middleware;
+using global::Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

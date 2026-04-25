@@ -1,8 +1,8 @@
-using Api.Controllers;
-using Application.Features.Identity.Commands;
+using global::Api.Controllers;
+using global::Application.Features.Identity.Commands;
 using Contracts.ModelResponse;
 using ErrorOr;
-using Infrastructure.Identity;
+using global::Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

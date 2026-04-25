@@ -1,4 +1,4 @@
-using Infrastructure.Data;
+using global::Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Specs.Infrastructure;

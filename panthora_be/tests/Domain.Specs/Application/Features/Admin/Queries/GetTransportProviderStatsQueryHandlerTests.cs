@@ -2,7 +2,7 @@ namespace Domain.Specs.Application.Features.Admin.Queries;
 
 using global::Application.Features.Admin.Queries.GetTransportProviders;
 using global::Domain.Common.Repositories;
-using Domain.Enums;
+using global::Domain.Enums;
 using NSubstitute;
 using Xunit;
 

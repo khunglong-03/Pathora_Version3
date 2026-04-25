@@ -1,4 +1,4 @@
-using Application.Features.BookingManagement.Queries;
+using global::Application.Features.BookingManagement.Queries;
 using ErrorOr;
 
 namespace Domain.Specs.Api;

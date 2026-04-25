@@ -1,4 +1,4 @@
-using Api.Middleware;
+using global::Api.Middleware;
 using Microsoft.AspNetCore.Http;
 
 namespace Domain.Specs.Api;

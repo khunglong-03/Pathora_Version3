@@ -1,8 +1,8 @@
-using Application.Features.Admin.DTOs;
-using Application.Features.Admin.Queries.GetTourManagerStaff;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.Admin.DTOs;
+using global::Application.Features.Admin.Queries.GetTourManagerStaff;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 using Xunit;

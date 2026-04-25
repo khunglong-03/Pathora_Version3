@@ -1,8 +1,8 @@
-using Application.Features.TourTransportAssignment.DTOs;
-using Application.Features.TourTransportAssignment.Validators;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.TourTransportAssignment.DTOs;
+using global::Application.Features.TourTransportAssignment.Validators;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using FluentValidation.TestHelper;
 using NSubstitute;
 using Xunit;

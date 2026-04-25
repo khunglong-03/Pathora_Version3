@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.Common.Constant;
 using Application.Contracts.User;
 using Contracts.Interfaces;
 using BuildingBlocks.CORS;
@@ -15,7 +16,18 @@ public sealed record UpdateUserCommand(
     [property: JsonPropertyName("fullName")] string FullName,
     [property: JsonPropertyName("avatar")] string Avatar) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
+    public IReadOnlyList<string> CacheKeysToInvalidate
+    {
+        get
+        {
+            var keys = new List<string> { CacheKey.User };
+            if (RoleIds.Any(id => id is DefaultRoleIds.Admin or DefaultRoleIds.Manager))
+            {
+                keys.Add(CacheKey.TourManagerAssignment);
+            }
+            return keys;
+        }
+    }
 }
 
 public sealed class UpdateUserCommandHandler(IUserService userService)
