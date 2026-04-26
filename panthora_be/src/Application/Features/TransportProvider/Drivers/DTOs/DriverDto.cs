@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TransportProvider.Drivers.DTOs;
+
 public sealed record DriverResponseDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("fullName")] string FullName,

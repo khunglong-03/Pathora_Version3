@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Queries;
+
 public sealed record GetDepartmentComboBoxQuery() : IQuery<ErrorOr<List<DepartmentComboBoxVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Department}:combobox";

@@ -36,7 +36,7 @@ public sealed class VehicleBlockRepositoryRangeTests
 
         var v1 = VehicleEntity.Create(VehicleType.Car, 4, ownerUserId, "test", brand: "S1 Car");
         v1.SupplierId = supplierId1;
-        
+
         var v2 = VehicleEntity.Create(VehicleType.Car, 4, ownerUserId, "test", brand: "S2 Car");
         v2.SupplierId = supplierId2;
 

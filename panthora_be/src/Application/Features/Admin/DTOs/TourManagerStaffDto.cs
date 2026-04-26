@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.DTOs;
+
 public sealed record TourManagerStaffDto(
     [property: JsonPropertyName("manager")] UserSummaryDto Manager,
     [property: JsonPropertyName("staff")] List<StaffMemberDto> Staff);

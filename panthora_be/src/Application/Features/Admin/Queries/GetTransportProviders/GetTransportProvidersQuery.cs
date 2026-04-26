@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using global::Contracts;
 
 namespace Application.Features.Admin.Queries.GetTransportProviders;
+
 public sealed record GetTransportProvidersQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

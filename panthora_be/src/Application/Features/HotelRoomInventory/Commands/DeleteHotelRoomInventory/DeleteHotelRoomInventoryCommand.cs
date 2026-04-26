@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.HotelRoomInventory.Commands.DeleteHotelRoomInventory;
+
 public sealed record DeleteHotelRoomInventoryCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class DeleteHotelRoomInventoryCommandHandler(

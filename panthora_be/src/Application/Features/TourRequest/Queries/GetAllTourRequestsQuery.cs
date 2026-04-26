@@ -11,6 +11,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
+
 public sealed record GetAllTourRequestsQuery(
     [property: JsonPropertyName("currentUserId")] string CurrentUserId,
     [property: JsonPropertyName("status")] TourRequestStatus? Status = null,

@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourTransportAssignment.DTOs;
+
 public sealed record RouteTransportAssignmentRequestDto(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
     [property: JsonPropertyName("tourDayActivityId")] Guid TourDayActivityId,

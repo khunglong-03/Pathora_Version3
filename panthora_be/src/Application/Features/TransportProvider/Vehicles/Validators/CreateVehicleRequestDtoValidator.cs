@@ -5,6 +5,7 @@ using Domain.Enums;
 using FluentValidation;
 
 namespace Application.Features.TransportProvider.Vehicles.Validators;
+
 public sealed class CreateVehicleRequestDtoValidator : AbstractValidator<CreateVehicleRequestDto>
 {
     public CreateVehicleRequestDtoValidator(IVehicleRepository vehicleRepository)

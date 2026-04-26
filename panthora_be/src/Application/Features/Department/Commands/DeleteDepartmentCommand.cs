@@ -6,6 +6,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
+
 public sealed record DeleteDepartmentCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Department];

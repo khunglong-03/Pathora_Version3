@@ -68,14 +68,16 @@ public class VehicleBlockRepository(AppDbContext context)
             .Where(b => b.BlockedDate >= fromDate && b.BlockedDate <= toDate)
             // Scope to owner's vehicles (same logic as availability query)
             .Where(b => b.Vehicle != null
-                     && ((b.Vehicle.SupplierId != null && ownedSupplierIds.Contains(b.Vehicle.SupplierId ?? Guid.Empty))
+                     && ((b.Vehicle.SupplierId != null && ownedSupplierIds.Contains(b.Vehicle.SupplierId.Value))
                       || (b.Vehicle.SupplierId == null && b.Vehicle.OwnerId == ownerUserId)));
 
         if (vehicleId.HasValue)
             query = query.Where(b => b.VehicleId == vehicleId.Value);
 
-        // Project to DTO — null-safe for orphaned Day→TourInstance navigations
+        // Order on entities before Select — EF cannot translate OrderBy after projecting to a record type.
         return await query
+            .OrderBy(b => b.BlockedDate)
+            .ThenBy(b => b.Vehicle!.Brand)
             .Select(b => new VehicleScheduleProjection(
                 b.Id,
                 b.VehicleId,
@@ -100,8 +102,6 @@ public class VehicleBlockRepository(AppDbContext context)
                 b.TourInstanceDayActivity != null && b.TourInstanceDayActivity.ToLocation != null
                     ? b.TourInstanceDayActivity.ToLocation.LocationName
                     : null))
-            .OrderBy(s => s.BlockedDate)
-            .ThenBy(s => s.VehicleBrand)
             .ToListAsync(cancellationToken);
     }
 }

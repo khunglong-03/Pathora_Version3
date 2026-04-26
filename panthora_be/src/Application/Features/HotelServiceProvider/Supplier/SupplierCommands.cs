@@ -9,6 +9,7 @@ using FluentValidation;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Supplier;
+
 public sealed record CreateSupplierInfoCommand(
     CreateSupplierInfoRequestDto Request
 ) : ICommand<ErrorOr<HotelSupplierInfoDto>>;

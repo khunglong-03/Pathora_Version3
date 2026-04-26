@@ -8,6 +8,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.GuestArrival.Commands.UpdateGuestArrival;
+
 public sealed record UpdateGuestArrivalCommand(
     [property: JsonPropertyName("guestArrivalId")] Guid GuestArrivalId,
     [property: JsonPropertyName("checkedInByUserId")] Guid? CheckedInByUserId,

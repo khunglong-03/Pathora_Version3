@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
+
 public sealed record CreateUserCommand(
     [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
     [property: JsonPropertyName("roleIds")] List<int> RoleIds,

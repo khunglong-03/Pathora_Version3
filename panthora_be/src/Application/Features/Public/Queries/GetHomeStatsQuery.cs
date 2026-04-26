@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
+
 public sealed record GetHomeStatsQuery([property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<HomeStatsVm>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);

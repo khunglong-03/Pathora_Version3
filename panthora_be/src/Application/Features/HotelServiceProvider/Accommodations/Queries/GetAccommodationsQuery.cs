@@ -8,6 +8,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.Queries;
+
 public sealed record GetAccommodationsQuery : IQuery<ErrorOr<List<AccommodationDto>>>;
 
 

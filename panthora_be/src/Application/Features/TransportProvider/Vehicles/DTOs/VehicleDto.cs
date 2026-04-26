@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TransportProvider.Vehicles.DTOs;
+
 public sealed record VehicleResponseDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("vehicleType")] string VehicleType,

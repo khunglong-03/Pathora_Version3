@@ -5,6 +5,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
+
 public sealed record SetDefaultPricingPolicyCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class SetDefaultPricingPolicyCommandHandler(IPricingPolicyService pricingPolicyService)

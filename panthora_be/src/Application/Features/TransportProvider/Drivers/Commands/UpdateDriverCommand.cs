@@ -7,6 +7,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Drivers.Commands;
+
 public sealed record UpdateDriverCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("driverId")] Guid DriverId,
@@ -34,7 +35,7 @@ public sealed class UpdateDriverCommandValidator : AbstractValidator<UpdateDrive
         RuleFor(x => x.Request.LicenseType)
             .InclusiveBetween(1, 6).WithMessage(DriverValidationMessages.LicenseTypeInvalid)
             .When(x => x.Request.LicenseType.HasValue);
-            
+
         RuleFor(x => x.Request.Notes)
             .MaximumLength(1000).WithMessage(DriverValidationMessages.NotesMaxLength)
             .When(x => x.Request.Notes != null);

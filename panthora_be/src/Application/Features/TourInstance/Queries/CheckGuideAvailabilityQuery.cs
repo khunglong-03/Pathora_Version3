@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
+
 public sealed record CheckGuideAvailabilityQuery(
     [property: JsonPropertyName("guideUserIds")] List<Guid> GuideUserIds,
     [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,

@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.DepositPolicy.Queries;
+
 public sealed record GetAllDepositPoliciesQuery : IQuery<ErrorOr<IReadOnlyList<DepositPolicyResponse>>>;
 
 public sealed class GetAllDepositPoliciesQueryHandler(IDepositPolicyService depositPolicyService)

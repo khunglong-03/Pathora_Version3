@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
+
 public sealed record ReviewTourRequestCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("status")] TourRequestStatus Status,

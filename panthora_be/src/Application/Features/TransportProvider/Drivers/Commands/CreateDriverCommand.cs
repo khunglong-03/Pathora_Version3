@@ -7,6 +7,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Drivers.Commands;
+
 public sealed record CreateDriverCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("request")] CreateDriverRequestDto Request) : ICommand<ErrorOr<DriverResponseDto>>;
@@ -42,7 +43,7 @@ public sealed class CreateDriverCommandValidator : AbstractValidator<CreateDrive
 
         RuleFor(x => x.Request.LicenseType)
             .InclusiveBetween(1, 6).WithMessage(DriverValidationMessages.LicenseTypeInvalid);
-            
+
         RuleFor(x => x.Request.Notes)
             .MaximumLength(1000).WithMessage(DriverValidationMessages.NotesMaxLength);
     }

@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.CancellationPolicy.Queries;
+
 public sealed record GetCancellationPolicyByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<CancellationPolicyResponse>>;
 
 public sealed class GetCancellationPolicyByIdQueryValidator : AbstractValidator<GetCancellationPolicyByIdQuery>

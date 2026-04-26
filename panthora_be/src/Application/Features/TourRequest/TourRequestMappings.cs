@@ -2,6 +2,7 @@ using Application.Dtos;
 using Domain.Entities;
 
 namespace Application.Features.TourRequest;
+
 internal static class TourRequestMappings
 {
     internal static TourRequestVm ToVm(this TourRequestEntity entity)

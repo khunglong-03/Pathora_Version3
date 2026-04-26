@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
+
 public sealed record UpdateDepartmentCommand(
     [property: JsonPropertyName("departmentId")] Guid DepartmentId,
     [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,

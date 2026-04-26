@@ -2,6 +2,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.GuestArrival.DTOs;
+
 public sealed record CreateGuestArrivalRequestDto(
     [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
     [property: JsonPropertyName("participantIds")] List<Guid> ParticipantIds);

@@ -10,6 +10,7 @@ using global::Contracts.ModelResponse;
 using global::Contracts;
 
 namespace Application.Features.TransportProvider.Drivers.Queries;
+
 public sealed record GetDriversQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("isActive")] bool? IsActive = null,

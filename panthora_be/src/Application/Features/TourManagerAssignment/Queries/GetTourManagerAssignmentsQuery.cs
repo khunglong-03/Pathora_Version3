@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourManagerAssignment.Queries;
+
 public sealed record GetTourManagerAssignmentsQuery([property: JsonPropertyName("managerId")] Guid? ManagerId = null)
     : IQuery<ErrorOr<List<TourManagerSummaryVm>>>, ICacheable
 {

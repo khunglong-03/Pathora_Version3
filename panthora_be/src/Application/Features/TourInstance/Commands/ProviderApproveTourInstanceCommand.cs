@@ -11,6 +11,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public sealed record ProviderApproveTourInstanceCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("isApproved")] bool IsApproved,

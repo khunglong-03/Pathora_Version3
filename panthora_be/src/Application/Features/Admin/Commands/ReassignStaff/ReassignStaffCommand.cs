@@ -14,6 +14,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.Admin.Commands.ReassignStaff;
+
 public sealed record ReassignStaffCommand(
     [property: JsonPropertyName("managerId")] Guid ManagerId,
     [property: JsonPropertyName("staffId")] Guid StaffId,

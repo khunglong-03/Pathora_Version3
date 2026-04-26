@@ -9,6 +9,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetUserDetail;
+
 public sealed record GetUserDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<UserDetailDto>>;
 
 

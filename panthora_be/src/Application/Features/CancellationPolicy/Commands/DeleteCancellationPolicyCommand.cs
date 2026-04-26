@@ -6,6 +6,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.CancellationPolicy.Commands;
+
 public sealed record DeleteCancellationPolicyCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Guid>>;
 
 public sealed class DeleteCancellationPolicyCommandValidator : AbstractValidator<DeleteCancellationPolicyCommand>

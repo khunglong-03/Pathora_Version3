@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using global::Contracts;
 
 namespace Application.Features.AdminHotelBookings.Queries;
+
 public sealed record GetHotelBookingsForAdminQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 20,

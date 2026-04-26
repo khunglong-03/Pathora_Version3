@@ -8,6 +8,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Queries;
+
 public sealed record GetAllUsersQuery(
     [property: JsonPropertyName("departmentId")] Guid DepartmentId,
     [property: JsonPropertyName("textSearch")] string? TextSearch,

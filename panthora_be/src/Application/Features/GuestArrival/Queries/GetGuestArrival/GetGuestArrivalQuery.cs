@@ -6,6 +6,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.GuestArrival.Queries.GetGuestArrival;
+
 public sealed record GetGuestArrivalQuery([property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId)
     : IQuery<ErrorOr<GuestArrivalDto>>;
 

@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record LoginCommand(
     [property: JsonPropertyName("email")] string Email,
     [property: JsonPropertyName("password")] string Password) : ICommand<ErrorOr<LoginResponse>>;

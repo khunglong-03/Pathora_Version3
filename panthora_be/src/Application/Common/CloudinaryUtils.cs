@@ -17,7 +17,7 @@ public static class CloudinaryUtils
         {
             // Regex tìm phần sau image/upload/v.../ và trước extension .jpg, .png...
             var match = Regex.Match(url, @"/upload/(?:v\d+/)?(.+?)\.[a-z]+$", RegexOptions.IgnoreCase);
-            
+
             if (match.Success)
             {
                 return match.Groups[1].Value;

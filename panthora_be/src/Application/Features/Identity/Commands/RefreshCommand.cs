@@ -5,6 +5,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record RefreshCommand([property: JsonPropertyName("refreshToken")] string RefreshToken) : ICommand<ErrorOr<RefreshTokenResponse>>;
 
 public sealed class RefreshCommandHandler(IIdentityService identityService)

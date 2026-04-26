@@ -34,4 +34,10 @@ public interface IResourceAvailabilityService
         DateOnly date,
         Guid? excludeTourInstanceDayActivityId = null,
         CancellationToken cancellationToken = default);
+
+    Task<ErrorOr<bool>> CheckDriverAvailabilityAsync(
+        Guid driverId,
+        DateOnly date,
+        Guid? excludeTourInstanceDayActivityId = null,
+        CancellationToken cancellationToken = default);
 }

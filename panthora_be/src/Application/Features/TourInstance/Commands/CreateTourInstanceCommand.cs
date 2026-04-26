@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public sealed record CreateTourInstanceCommand(
     [property: JsonPropertyName("tourId")] Guid TourId,
     [property: JsonPropertyName("classificationId")] Guid ClassificationId,

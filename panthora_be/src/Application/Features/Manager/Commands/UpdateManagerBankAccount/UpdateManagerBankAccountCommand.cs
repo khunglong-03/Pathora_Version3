@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.Commands.UpdateManagerBankAccount;
+
 public sealed record UpdateManagerBankAccountCommand(
     [property: JsonPropertyName("accountId")] Guid AccountId,
     [property: JsonPropertyName("request")] UpdateManagerBankAccountRequest Request)

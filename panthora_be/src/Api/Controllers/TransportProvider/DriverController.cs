@@ -20,6 +20,16 @@ public class DriverController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpGet($"{DriverEndpoint.Base}/available")]
+    public async Task<IActionResult> GetAvailableDrivers(
+        [FromQuery] DateOnly date,
+        [FromQuery] Guid? excludeActivityId = null)
+    {
+        var userId = GetCurrentUserId();
+        var result = await Sender.Send(new GetAvailableDriversQuery(userId, date, excludeActivityId));
+        return HandleResult(result);
+    }
+
     [HttpGet($"{DriverEndpoint.Base}/{{id:guid}}")]
     public async Task<IActionResult> GetDriverById(Guid id)
     {

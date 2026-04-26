@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
+
 public sealed record GetTourRequestDetailQuery(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<TourRequestDetailDto>>, ICacheable

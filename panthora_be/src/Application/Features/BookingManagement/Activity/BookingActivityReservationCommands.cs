@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
+
 public sealed record CreateBookingActivityReservationCommand(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,

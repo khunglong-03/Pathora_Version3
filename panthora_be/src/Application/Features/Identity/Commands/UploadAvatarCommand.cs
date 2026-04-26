@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record UploadAvatarCommand(
     [property: JsonPropertyName("fileStream")] Stream FileStream,
     [property: JsonPropertyName("fileName")] string FileName,

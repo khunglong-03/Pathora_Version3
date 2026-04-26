@@ -3,6 +3,7 @@ using Domain.Common.Repositories;
 using FluentValidation;
 
 namespace Application.Features.TourTransportAssignment.Validators;
+
 public sealed class RouteTransportAssignmentRequestDtoValidator
     : AbstractValidator<RouteTransportAssignmentRequestDto>
 {

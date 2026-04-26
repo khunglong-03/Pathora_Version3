@@ -14,6 +14,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
+
 public sealed record CreateTransportDetailCommand(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
     [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,

@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Payable;
+
 public sealed record CreateSupplierPayableCommand(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
     [property: JsonPropertyName("supplierId")] Guid SupplierId,

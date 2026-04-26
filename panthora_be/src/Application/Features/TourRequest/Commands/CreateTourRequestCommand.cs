@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
+
 public sealed record CreateTourRequestCommand(
     [property: JsonPropertyName("destination")] string Destination,
     [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,

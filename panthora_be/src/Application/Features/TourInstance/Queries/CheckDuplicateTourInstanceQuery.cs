@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
+
 public sealed record CheckDuplicateTourInstanceQuery(
     [property: JsonPropertyName("tourId")] Guid TourId,
     [property: JsonPropertyName("classificationId")] Guid ClassificationId,

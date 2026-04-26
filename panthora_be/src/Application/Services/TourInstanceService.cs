@@ -784,7 +784,7 @@ public class TourInstanceService(
             var removedImages = entity.Images
                 .Where(i => !string.IsNullOrEmpty(i.FileId) && !newFileIds.Contains(i.FileId))
                 .ToList();
-            
+
             publicIdsToDelete.AddRange(removedImages.Select(i => i.FileId!));
         }
 
@@ -802,11 +802,11 @@ public class TourInstanceService(
             includedServices: request.IncludedServices);
 
         await _tourInstanceRepository.Update(entity);
-        
+
         if (_unitOfWork != null)
         {
             await _unitOfWork.SaveChangeAsync();
-            
+
             // Physical deletion from Cloudinary after DB success
             if (publicIdsToDelete.Count > 0)
             {

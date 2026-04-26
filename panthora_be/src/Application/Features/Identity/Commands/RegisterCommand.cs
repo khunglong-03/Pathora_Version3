@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record RegisterCommand(
     [property: JsonPropertyName("username")] string Username,
     [property: JsonPropertyName("fullName")] string FullName,

@@ -153,7 +153,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
 
             if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
             {
-                var vehicleWrongTypeMessage = lang == "vi" 
+                var vehicleWrongTypeMessage = lang == "vi"
                     ? $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType})."
                     : $"Vehicle type ({vehicle.VehicleType}) does not match requested ({activity.RequestedVehicleType}).";
                 return Error.Validation(TourInstanceTransportErrors.VehicleWrongTypeCode, vehicleWrongTypeMessage);
@@ -208,6 +208,14 @@ public sealed class ApproveTransportationActivityCommandHandler(
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleUnavailableCode,
                     TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
+
+            var driverCheck = await availabilityService.CheckDriverAvailabilityAsync(
+                row.DriverId, activityDate, request.ActivityId, cancellationToken);
+            if (driverCheck.IsError) return driverCheck.Errors;
+            if (!driverCheck.Value)
+                return Error.Validation(
+                    ErrorConstants.Vehicle.UnavailableCode, // Re-use conflict error code
+                    lang == "vi" ? "Tài xế hiện đang được phân công cho một hoạt động khác vào ngày này." : "Driver is currently assigned to another activity on this date.");
         }
 
         const int maxAttempts = 3;
@@ -226,6 +234,15 @@ public sealed class ApproveTransportationActivityCommandHandler(
                             throw new TransportApproveConflictException(
                                 TourInstanceTransportErrors.VehicleUnavailableCode,
                                 TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
+                        }
+
+                        var txDriverCheck = await availabilityService.CheckDriverAvailabilityAsync(
+                            row.DriverId, activityDate, request.ActivityId, cancellationToken);
+                        if (txDriverCheck.IsError || !txDriverCheck.Value)
+                        {
+                            throw new TransportApproveConflictException(
+                                ErrorConstants.Vehicle.UnavailableCode,
+                                lang == "vi" ? "Tài xế hiện đang được phân công cho một hoạt động khác vào ngày này." : "Driver is currently assigned to another activity on this date.");
                         }
                     }
                     await vehicleBlockRepository.DeleteByActivityAsync(request.ActivityId, cancellationToken);

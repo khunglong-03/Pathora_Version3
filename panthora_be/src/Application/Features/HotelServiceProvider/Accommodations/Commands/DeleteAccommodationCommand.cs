@@ -6,6 +6,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
+
 public sealed record DeleteAccommodationCommand(Guid Id) : ICommand<ErrorOr<Success>>;
 
 

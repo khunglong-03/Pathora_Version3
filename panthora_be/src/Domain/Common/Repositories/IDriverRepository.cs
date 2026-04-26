@@ -17,4 +17,10 @@ public interface IDriverRepository : IRepository<DriverEntity>
     Task DeactivateAsync(Guid id, string performedBy, CancellationToken cancellationToken = default);
     Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default);
     Task<List<DriverEntity>> FindByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
+    Task<List<DriverEntity>> GetAvailableBySupplierAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        DateOnly date,
+        Guid? excludeActivityId,
+        CancellationToken cancellationToken = default);
 }

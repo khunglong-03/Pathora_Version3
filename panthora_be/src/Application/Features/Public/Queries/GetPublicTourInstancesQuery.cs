@@ -9,6 +9,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
+
 public sealed record GetPublicTourInstancesQuery(
     [property: JsonPropertyName("destination")] string? Destination = null,
     [property: JsonPropertyName("sortBy")] string? SortBy = null,

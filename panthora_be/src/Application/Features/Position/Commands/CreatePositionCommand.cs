@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Commands;
+
 public sealed record CreatePositionCommand(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("level")] int Level,

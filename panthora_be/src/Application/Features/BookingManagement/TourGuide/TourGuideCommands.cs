@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.TourGuide;
+
 public sealed record AssignTeamMemberCommand(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
     [property: JsonPropertyName("userId")] Guid UserId,

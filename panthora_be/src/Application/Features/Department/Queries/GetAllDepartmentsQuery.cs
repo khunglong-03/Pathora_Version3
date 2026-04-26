@@ -8,6 +8,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Queries;
+
 public sealed record GetAllDepartmentsQuery() : IQuery<ErrorOr<PaginatedListWithPermissions<DepartmentVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.Department}:all";

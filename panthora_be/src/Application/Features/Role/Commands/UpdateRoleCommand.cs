@@ -10,6 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
+
 public sealed record UpdateRoleCommand(
     [property: JsonPropertyName("roleId")] int RoleId,
     [property: JsonPropertyName("name")] string Name,

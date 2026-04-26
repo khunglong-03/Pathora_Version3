@@ -25,7 +25,7 @@ public sealed class VehicleRepositoryAvailabilityTests
         var supplierId = Guid.NewGuid();
         var date = new DateOnly(2026, 5, 1);
         await using var context = CreateContext(Guid.NewGuid().ToString());
-        
+
         var owner = UserEntity.Create("testuser", "Test User", "test@test.com", "hash", "tester");
         owner.Id = ownerUserId;
         owner.Status = UserStatus.Active;

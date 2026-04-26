@@ -13,6 +13,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.Admin.Commands.ManageTransportVehicles;
+
 public sealed record AdminCreateVehicleCommand(
     [property: JsonPropertyName("adminId")] Guid AdminId,
     [property: JsonPropertyName("providerUserId")] Guid ProviderUserId,

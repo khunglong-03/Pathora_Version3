@@ -8,6 +8,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetTransportProviderById;
+
 public sealed record GetTransportProviderByIdQuery([property: JsonPropertyName("id")] Guid Id)
     : IQuery<ErrorOr<TransportProviderDetailDto>>;
 

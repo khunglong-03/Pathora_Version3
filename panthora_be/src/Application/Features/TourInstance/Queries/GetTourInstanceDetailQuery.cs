@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
+
 public sealed record GetTourInstanceDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<TourInstanceDto>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourInstance}:detail:{Id}";

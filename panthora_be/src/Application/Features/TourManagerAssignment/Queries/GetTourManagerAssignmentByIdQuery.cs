@@ -5,6 +5,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourManagerAssignment.Queries;
+
 public sealed record GetTourManagerAssignmentByIdQuery([property: JsonPropertyName("managerId")] Guid ManagerId)
     : IQuery<ErrorOr<TourManagerAssignmentDetailVm>>;
 

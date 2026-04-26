@@ -6,6 +6,7 @@ using Contracts;
 using ErrorOr;
 
 namespace Application.Features.TourInstance.Handlers;
+
 public sealed class GetMyAssignedTourInstancesQueryHandler(ITourInstanceService tourInstanceService)
     : IQueryHandler<GetMyAssignedTourInstancesQuery, ErrorOr<PaginatedList<TourInstanceVm>>>
 {

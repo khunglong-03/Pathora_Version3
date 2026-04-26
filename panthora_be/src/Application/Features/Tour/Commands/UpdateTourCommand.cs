@@ -9,6 +9,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
+
 public sealed record UpdateTourCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("tourName")] string TourName,

@@ -122,4 +122,32 @@ public class DriverRepository(AppDbContext context) : Repository<DriverEntity>(c
                 .SetProperty(d => d.LastModifiedOnUtc, DateTimeOffset.UtcNow),
                 cancellationToken);
     }
+
+    public async Task<List<DriverEntity>> GetAvailableBySupplierAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        DateOnly date,
+        Guid? excludeActivityId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Drivers
+            .AsNoTracking()
+            .Where(d => d.IsActive)
+            .Where(d => (d.SupplierId != null && ownedSupplierIds.Contains(d.SupplierId ?? Guid.Empty))
+                     || (d.SupplierId == null && d.UserId == ownerUserId));
+
+        // A driver is busy if they have a transport assignment on an activity on this date.
+        // We exclude the current activity so re-approval doesn't block the same driver.
+        var availableDrivers = await query
+            .Where(d => !_context.TourInstanceTransportAssignments
+                .Any(a => a.DriverId == d.Id
+                       && a.TourInstanceDayActivity.TourInstanceDay.ActualDate == date
+                       && (!excludeActivityId.HasValue || a.TourInstanceDayActivityId != excludeActivityId.Value)
+                       // Optionally only consider Approved/Pending activities
+                       && a.TourInstanceDayActivity.TransportationApprovalStatus != Domain.Enums.ProviderApprovalStatus.Rejected
+                ))
+            .ToListAsync(cancellationToken);
+
+        return availableDrivers;
+    }
 }

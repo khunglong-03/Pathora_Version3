@@ -2,6 +2,8 @@ using Application.Common.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
@@ -10,6 +12,7 @@ public class ResourceAvailabilityService(
     IRoomBlockRepository roomBlockRepository,
     IVehicleBlockRepository vehicleBlockRepository,
     IHotelRoomInventoryRepository inventoryRepository,
+    AppDbContext context,
     ILogger<ResourceAvailabilityService> logger)
     : IResourceAvailabilityService
 {
@@ -84,6 +87,30 @@ public class ResourceAvailabilityService(
         {
             logger.LogWarning("Vehicle availability check failed for {VehicleId} on {Date}. Vehicle has {Count} active hold(s).",
                 vehicleId, date, otherActiveBlocks.Count);
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<ErrorOr<bool>> CheckDriverAvailabilityAsync(
+        Guid driverId,
+        DateOnly date,
+        Guid? excludeTourInstanceDayActivityId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var isBusy = await context.TourInstanceTransportAssignments
+            .AsNoTracking()
+            .AnyAsync(a => a.DriverId == driverId
+                        && a.TourInstanceDayActivity.TourInstanceDay.ActualDate == date
+                        && (!excludeTourInstanceDayActivityId.HasValue || a.TourInstanceDayActivityId != excludeTourInstanceDayActivityId.Value)
+                        && a.TourInstanceDayActivity.TransportationApprovalStatus != ProviderApprovalStatus.Rejected,
+                cancellationToken);
+
+        if (isBusy)
+        {
+            logger.LogWarning("Driver availability check failed for {DriverId} on {Date}. Driver is already assigned to another activity.",
+                driverId, date);
             return false;
         }
 

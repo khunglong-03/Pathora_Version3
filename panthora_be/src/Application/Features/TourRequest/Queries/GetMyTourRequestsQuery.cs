@@ -10,6 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
+
 public sealed record GetMyTourRequestsQuery(
     [property: JsonPropertyName("currentUserId")] string CurrentUserId,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,

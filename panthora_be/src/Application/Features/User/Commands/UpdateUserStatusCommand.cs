@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
+
 public sealed record UpdateUserStatusCommand(
     [property: JsonPropertyName("userId")] Guid UserId,
     [property: JsonPropertyName("newStatus")] UserStatus NewStatus) : ICommand<ErrorOr<Success>>, ICacheInvalidator

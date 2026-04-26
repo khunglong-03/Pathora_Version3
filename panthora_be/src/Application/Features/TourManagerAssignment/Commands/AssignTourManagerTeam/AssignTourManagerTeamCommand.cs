@@ -12,6 +12,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
+
 public sealed record AssignTourManagerTeamCommand(
     [property: JsonPropertyName("tourManagerUserId")] string TourManagerUserId,
     [property: JsonPropertyName("assignments")] List<AssignmentItem> Assignments) : ICommand<ErrorOr<Success>>, ICacheInvalidator

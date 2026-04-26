@@ -8,6 +8,7 @@ using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.RoomBlocking.Commands.DeleteRoomBlock;
+
 public sealed record DeleteRoomBlockCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 

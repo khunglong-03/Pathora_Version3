@@ -8,6 +8,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
+
 public sealed record CreatePricingPolicyCommand(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("tourType")] Domain.Enums.TourType TourType,

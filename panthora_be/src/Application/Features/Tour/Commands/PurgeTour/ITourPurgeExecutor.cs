@@ -1,5 +1,6 @@
 
 namespace Application.Features.Tour.Commands.PurgeTour;
+
 public enum PurgeResult
 {
     Success,

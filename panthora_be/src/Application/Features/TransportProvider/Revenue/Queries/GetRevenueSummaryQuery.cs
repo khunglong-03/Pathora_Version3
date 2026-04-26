@@ -7,6 +7,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Revenue.Queries;
+
 public sealed record GetRevenueSummaryQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("year")] int Year,

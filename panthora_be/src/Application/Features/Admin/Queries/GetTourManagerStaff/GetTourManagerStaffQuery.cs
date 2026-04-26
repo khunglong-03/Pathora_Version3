@@ -11,6 +11,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetTourManagerStaff;
+
 public sealed record GetTourManagerStaffQuery([property: JsonPropertyName("managerId")] Guid ManagerId)
     : IQuery<ErrorOr<TourManagerStaffDto>>;
 

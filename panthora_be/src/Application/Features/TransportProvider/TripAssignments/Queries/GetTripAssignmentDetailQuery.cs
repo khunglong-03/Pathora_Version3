@@ -8,6 +8,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.TripAssignments.Queries;
+
 public sealed record GetTripAssignmentDetailQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("assignmentId")] Guid AssignmentId) : IQuery<ErrorOr<TripAssignmentDetailDto>>;

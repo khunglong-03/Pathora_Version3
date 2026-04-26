@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Queries;
+
 public sealed record GetUserSettingsQuery([property: JsonPropertyName("currentUserId")] string CurrentUserId)
     : IQuery<ErrorOr<UserSettingVm>>, ICacheable
 {

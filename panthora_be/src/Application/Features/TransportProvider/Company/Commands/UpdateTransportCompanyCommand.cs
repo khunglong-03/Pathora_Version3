@@ -10,6 +10,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Company.Commands;
+
 public sealed record UpdateTransportCompanyCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("request")] UpdateTransportCompanyCommandDto Request) : ICommand<ErrorOr<TransportCompanyProfileDto>>;

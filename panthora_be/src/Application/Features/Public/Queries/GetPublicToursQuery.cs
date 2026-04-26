@@ -11,6 +11,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
+
 public sealed record GetPublicToursQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,

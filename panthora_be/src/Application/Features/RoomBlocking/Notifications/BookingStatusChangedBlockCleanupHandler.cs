@@ -5,6 +5,7 @@ using Domain.UnitOfWork;
 using MediatR;
 
 namespace Application.Features.RoomBlocking.Notifications;
+
 public sealed class BookingStatusChangedBlockCleanupHandler(
     IRoomBlockRepository roomBlockRepository,
     IBookingRepository bookingRepository,

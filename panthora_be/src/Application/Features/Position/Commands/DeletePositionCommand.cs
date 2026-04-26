@@ -6,6 +6,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Commands;
+
 public sealed record DeletePositionCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Position];

@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.Admin.Queries.GetAdminDashboardOverview;
+
 public sealed record GetAdminDashboardOverviewQuery
     : IQuery<ErrorOr<AdminDashboardOverviewDto>>;
 

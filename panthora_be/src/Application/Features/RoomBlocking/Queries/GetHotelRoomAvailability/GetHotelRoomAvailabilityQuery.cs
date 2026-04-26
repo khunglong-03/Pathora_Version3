@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.RoomBlocking.Queries.GetHotelRoomAvailability;
+
 public sealed record GetHotelRoomAvailabilityQuery(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("fromDate")] DateOnly FromDate,

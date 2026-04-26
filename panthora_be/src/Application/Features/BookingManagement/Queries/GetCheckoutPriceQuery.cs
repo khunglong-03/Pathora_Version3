@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Queries;
+
 public sealed record GetCheckoutPriceQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<CheckoutPriceResponse>>;
 
 public sealed class GetCheckoutPriceQueryHandler(

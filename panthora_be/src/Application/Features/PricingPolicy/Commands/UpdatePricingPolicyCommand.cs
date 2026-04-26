@@ -10,6 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
+
 public sealed record UpdatePricingPolicyCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("name")] string Name,

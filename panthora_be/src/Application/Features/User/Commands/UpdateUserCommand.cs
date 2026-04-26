@@ -8,6 +8,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
+
 public sealed record UpdateUserCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,

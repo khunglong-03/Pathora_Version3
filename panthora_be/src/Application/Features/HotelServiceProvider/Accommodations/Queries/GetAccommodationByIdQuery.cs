@@ -8,6 +8,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.Queries;
+
 public sealed record GetAccommodationByIdQuery(Guid Id) : IQuery<ErrorOr<AccommodationDto>>;
 
 

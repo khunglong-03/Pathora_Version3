@@ -6,6 +6,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetManagersBankAccount;
+
 public sealed record GetManagersBankAccountQuery(
     [property: JsonPropertyName("role")] string? Role,
     [property: JsonPropertyName("searchQuery")] string? SearchQuery,

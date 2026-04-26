@@ -14,6 +14,7 @@ using global::Common.Generators;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.Admin.Commands.CreateStaffUnderManager;
+
 public sealed record CreateStaffUnderManagerCommand(
     [property: JsonPropertyName("managerId")] Guid ManagerId,
     [property: JsonPropertyName("request")] CreateStaffUnderManagerRequest Request) : ICommand<ErrorOr<StaffMemberDto>>;
@@ -69,8 +70,8 @@ public sealed class CreateStaffUnderManagerCommandHandler(
                 ErrorConstants.User.DuplicateEmailCode,
                 ErrorConstants.User.DuplicateEmailDescription);
 
-        var password = !string.IsNullOrEmpty(request.Request.Password) 
-            ? request.Request.Password 
+        var password = !string.IsNullOrEmpty(request.Request.Password)
+            ? request.Request.Password
             : "password123";
 
         var userEntity = UserEntity.Create(

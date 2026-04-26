@@ -11,6 +11,7 @@ using global::Contracts.ModelResponse;
 using global::Contracts;
 
 namespace Application.Features.TransportProvider.Vehicles.Queries;
+
 public sealed record GetVehiclesQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("locationArea")] Continent? LocationArea = null,
@@ -57,20 +58,20 @@ public sealed class GetVehiclesQueryHandler(
             }
             catch { /* ignore */ }
         }
-return new VehicleResponseDto(
-    v.Id,
-    v.VehicleType.ToString(),
-    v.Brand,
-    v.Model,
-    v.SeatCapacity,
-    v.Quantity,
-    v.LocationArea?.ToString(),
-    v.OperatingCountries,
-    imageUrls,
-    v.IsActive,
-    v.IsDeleted,
-    v.Notes,
-    v.CreatedOnUtc);
+        return new VehicleResponseDto(
+            v.Id,
+            v.VehicleType.ToString(),
+            v.Brand,
+            v.Model,
+            v.SeatCapacity,
+            v.Quantity,
+            v.LocationArea?.ToString(),
+            v.OperatingCountries,
+            imageUrls,
+            v.IsActive,
+            v.IsDeleted,
+            v.Notes,
+            v.CreatedOnUtc);
     }
 }
 public sealed class GetVehicleByIdQueryHandler(
@@ -100,20 +101,20 @@ public sealed class GetVehicleByIdQueryHandler(
             }
             catch { /* ignore */ }
         }
-return new VehicleResponseDto(
-    v.Id,
-    v.VehicleType.ToString(),
-    v.Brand,
-    v.Model,
-    v.SeatCapacity,
-    v.Quantity,
-    v.LocationArea?.ToString(),
-    v.OperatingCountries,
-    imageUrls,
-    v.IsActive,
-    v.IsDeleted,
-    v.Notes,
-    v.CreatedOnUtc);
+        return new VehicleResponseDto(
+            v.Id,
+            v.VehicleType.ToString(),
+            v.Brand,
+            v.Model,
+            v.SeatCapacity,
+            v.Quantity,
+            v.LocationArea?.ToString(),
+            v.OperatingCountries,
+            imageUrls,
+            v.IsActive,
+            v.IsDeleted,
+            v.Notes,
+            v.CreatedOnUtc);
     }
 }
 
@@ -142,19 +143,19 @@ public sealed class GetAllVehiclesQueryHandler(
             }
             catch { /* ignore */ }
         }
-return new VehicleResponseDto(
-    v.Id,
-    v.VehicleType.ToString(),
-    v.Brand,
-    v.Model,
-    v.SeatCapacity,
-    v.Quantity,
-    v.LocationArea?.ToString(),
-    v.OperatingCountries,
-    imageUrls,
-    v.IsActive,
-    v.IsDeleted,
-    v.Notes,
-    v.CreatedOnUtc);
+        return new VehicleResponseDto(
+            v.Id,
+            v.VehicleType.ToString(),
+            v.Brand,
+            v.Model,
+            v.SeatCapacity,
+            v.Quantity,
+            v.LocationArea?.ToString(),
+            v.OperatingCountries,
+            imageUrls,
+            v.IsActive,
+            v.IsDeleted,
+            v.Notes,
+            v.CreatedOnUtc);
     }
 }

@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Queries;
+
 public sealed record GetUserInfoQuery([property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<UserInfoVm>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:info:{CurrentUserId}";

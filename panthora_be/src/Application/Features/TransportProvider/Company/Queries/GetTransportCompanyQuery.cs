@@ -9,6 +9,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Company.Queries;
+
 public sealed record GetTransportCompanyQuery([property: JsonPropertyName("currentUserId")] Guid CurrentUserId)
     : IQuery<ErrorOr<TransportCompanyProfileDto>>;
 

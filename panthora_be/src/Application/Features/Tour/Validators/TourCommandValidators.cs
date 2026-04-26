@@ -6,6 +6,7 @@ using Domain.Enums;
 using FluentValidation;
 
 namespace Application.Features.Tour.Validators;
+
 public sealed class ImageInputDtoValidator : AbstractValidator<ImageInputDto>
 {
     public ImageInputDtoValidator()

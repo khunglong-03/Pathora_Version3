@@ -9,6 +9,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
+
 public sealed record GetTopAttractionsQuery(
     [property: JsonPropertyName("limit")] int Limit = 8,
     [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<TopAttractionVm>>>, ICacheable

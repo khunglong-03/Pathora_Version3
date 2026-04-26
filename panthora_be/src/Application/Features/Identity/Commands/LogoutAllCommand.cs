@@ -5,6 +5,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record LogoutAllCommand : ICommand<ErrorOr<Success>>;
 
 public sealed class LogoutAllCommandHandler(IIdentityService identityService)

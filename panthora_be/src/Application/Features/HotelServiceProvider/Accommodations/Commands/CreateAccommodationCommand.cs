@@ -9,6 +9,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
+
 public sealed record CreateAccommodationCommand(
     CreateAccommodationRequestDto Request
 ) : ICommand<ErrorOr<AccommodationDto>>;

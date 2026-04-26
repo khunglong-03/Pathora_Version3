@@ -3,6 +3,7 @@ using Domain.Common.Repositories;
 using FluentValidation;
 
 namespace Application.Features.TransportProvider.Drivers.Validators;
+
 public sealed class UpdateDriverRequestDtoValidator : AbstractValidator<UpdateDriverRequestDto>
 {
     public UpdateDriverRequestDtoValidator(IDriverRepository driverRepository)

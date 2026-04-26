@@ -137,7 +137,7 @@ public class UserService(
 
         var isAutoPassword = string.IsNullOrEmpty(request.Password);
         var passwordToHash = isAutoPassword ? "thehieu03" : request.Password!;
-        
+
         var userEntity = UserEntity.Create(
             email,
             request.FullName.Trim(),

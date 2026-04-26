@@ -43,7 +43,7 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
 
         if (isActive.HasValue)
             query = query.Where(v => v.IsActive == isActive.Value);
-            
+
         if (locationArea.HasValue)
             query = query.Where(v => v.LocationArea == locationArea.Value);
 

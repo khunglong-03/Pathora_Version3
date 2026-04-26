@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
+
 public sealed record CreateDepartmentCommand(
     [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,
     [property: JsonPropertyName("departmentName")] string DepartmentName) : ICommand<ErrorOr<Guid>>, ICacheInvalidator

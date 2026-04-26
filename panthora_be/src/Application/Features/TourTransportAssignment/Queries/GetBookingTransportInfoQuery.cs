@@ -9,6 +9,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TourTransportAssignment.Queries;
+
 public sealed record GetBookingTransportInfoQuery(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<BookingTransportInfoDto>>;

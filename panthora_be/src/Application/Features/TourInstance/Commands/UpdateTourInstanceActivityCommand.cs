@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public sealed record UpdateTourInstanceActivityCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("dayId")] Guid DayId,

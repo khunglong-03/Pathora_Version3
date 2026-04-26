@@ -7,6 +7,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
+
 public sealed record ExternalLoginCommand(
     [property: JsonPropertyName("providerKey")] string ProviderKey,
     [property: JsonPropertyName("providerEmail")] string ProviderEmail,

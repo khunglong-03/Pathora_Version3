@@ -3,6 +3,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
+
 public sealed record ClassificationDto(
     [property: JsonPropertyName("id")] Guid? Id,
     [property: JsonPropertyName("name")] string Name,

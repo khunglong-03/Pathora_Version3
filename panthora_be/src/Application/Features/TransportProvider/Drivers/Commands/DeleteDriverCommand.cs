@@ -5,6 +5,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Drivers.Commands;
+
 public sealed record DeleteDriverCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("driverId")] Guid DriverId) : ICommand<ErrorOr<Success>>;

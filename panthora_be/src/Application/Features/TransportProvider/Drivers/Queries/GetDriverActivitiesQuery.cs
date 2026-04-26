@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using global::Contracts;
 
 namespace Application.Features.TransportProvider.Drivers.Queries;
+
 public sealed record GetDriverActivitiesQuery(
     [property: JsonPropertyName("providerId")] Guid ProviderId,
     [property: JsonPropertyName("driverId")] Guid DriverId,

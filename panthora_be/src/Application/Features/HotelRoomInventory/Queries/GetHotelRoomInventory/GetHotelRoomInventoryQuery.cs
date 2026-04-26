@@ -8,6 +8,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.HotelRoomInventory.Queries.GetHotelRoomInventory;
+
 public sealed record GetHotelRoomInventoryQuery([property: JsonPropertyName("supplierId")] Guid SupplierId) : IQuery<ErrorOr<List<HotelRoomInventoryDto>>>;
 
 public sealed class GetHotelRoomInventoryQueryHandler(

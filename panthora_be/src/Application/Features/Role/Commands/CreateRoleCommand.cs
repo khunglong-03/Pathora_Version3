@@ -9,6 +9,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
+
 public sealed record CreateRoleCommand(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("description")] string Description)

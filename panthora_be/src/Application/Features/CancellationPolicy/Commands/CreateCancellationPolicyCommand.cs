@@ -10,6 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.CancellationPolicy.Commands;
+
 public sealed record CreateCancellationPolicyCommand(
     TourScope TourScope,
     List<CancellationPolicyTier> Tiers,

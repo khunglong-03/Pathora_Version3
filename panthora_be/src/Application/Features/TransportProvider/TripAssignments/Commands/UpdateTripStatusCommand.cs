@@ -9,6 +9,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.TripAssignments.Commands;
+
 public sealed record UpdateTripStatusCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("assignmentId")] Guid AssignmentId,

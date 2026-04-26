@@ -16,6 +16,7 @@ using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
+
 public sealed record CreateAccommodationDetailCommand(
     [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,

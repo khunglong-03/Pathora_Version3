@@ -2,6 +2,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.DTOs;
+
 public sealed record TransportProviderDetailDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("supplierName")] string SupplierName,

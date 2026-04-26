@@ -13,6 +13,7 @@ using System.Text.Json.Serialization;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.RoomBlocking.Commands.CreateRoomBlock;
+
 public sealed record CreateRoomBlockCommand(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("roomType")] RoomType RoomType,

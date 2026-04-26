@@ -2,6 +2,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.DTOs;
+
 public sealed record AccommodationDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("supplierId")] Guid SupplierId,

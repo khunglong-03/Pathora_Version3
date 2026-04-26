@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using global::Contracts;
 
 namespace Application.Features.Admin.Queries.GetAllUsers;
+
 public sealed record GetAllUsersQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

@@ -8,6 +8,7 @@ using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.RoomBlocking.Queries.GetRoomBlocks;
+
 public sealed record GetRoomBlocksQuery(
     [property: JsonPropertyName("supplierId")] Guid SupplierId,
     [property: JsonPropertyName("roomType")] RoomType? RoomType = null,

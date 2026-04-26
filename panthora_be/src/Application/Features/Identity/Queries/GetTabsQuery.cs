@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Queries;
+
 public sealed record GetTabsQuery([property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<List<TabVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:tabs:{CurrentUserId}";

@@ -8,6 +8,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Accommodations.Commands;
+
 public sealed record UpdateAccommodationCommand(
     Guid Id,
     UpdateAccommodationRequestDto Request

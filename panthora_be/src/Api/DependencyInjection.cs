@@ -1,3 +1,4 @@
+using Api.Infrastructure;
 using Contracts.Interfaces;
 using Serilog;
 
@@ -13,7 +14,11 @@ public static class DependencyInjection
         services.AddSwaggerServices(configuration);
 
         // Add case-insensitive JSON deserialization
-        services.AddControllers()
+        services.AddControllers(options =>
+            {
+                // Accept yyyy-MM-dd and ISO-8601 (e.g. 2026-05-28T00:00:00.000Z) for [FromQuery] DateOnly — default binder often yields 0001-01-01.
+                options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;

@@ -430,16 +430,16 @@ public class TourService(
         if (request.Images is not null)
         {
             var newFileIds = request.Images.Where(i => i.FileId is not null).Select(i => i.FileId!).ToHashSet();
-            
+
             // Collect FileIds to delete from Cloudinary
             var removedImages = tour.Images
                 .Where(i => !string.IsNullOrEmpty(i.FileId) && !newFileIds.Contains(i.FileId))
                 .ToList();
-            
+
             publicIdsToDelete.AddRange(removedImages.Select(i => i.FileId!));
 
             // Remove images not in the new list
-            foreach (var img in removedImages) 
+            foreach (var img in removedImages)
             {
                 tour.Images.Remove(img);
             }
@@ -624,7 +624,7 @@ public class TourService(
         try
         {
             await _unitOfWork.SaveChangeAsync();
-            
+
             // Physical deletion from Cloudinary after DB success
             if (publicIdsToDelete.Count > 0)
             {

@@ -12,6 +12,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
+
 public sealed record CreateTourCommand(
     [property: JsonPropertyName("tourName")] string TourName,
     [property: JsonPropertyName("shortDescription")] string ShortDescription,

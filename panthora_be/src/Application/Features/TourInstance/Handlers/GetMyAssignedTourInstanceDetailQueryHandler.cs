@@ -5,6 +5,7 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 
 namespace Application.Features.TourInstance.Handlers;
+
 public sealed class GetMyAssignedTourInstanceDetailQueryHandler(ITourInstanceService tourInstanceService)
     : IQueryHandler<GetMyAssignedTourInstanceDetailQuery, ErrorOr<TourInstanceDto>>
 {

@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Enums;
 
 namespace Application.Features.BookingManagement.Common;
+
 public static class BookingCapacityValidation
 {
     public static int CountActiveParticipants(IEnumerable<BookingParticipantEntity> participants)

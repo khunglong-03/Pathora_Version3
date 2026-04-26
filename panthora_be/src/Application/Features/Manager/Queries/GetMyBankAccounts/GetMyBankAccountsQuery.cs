@@ -6,6 +6,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.Queries.GetMyBankAccounts;
+
 public sealed record GetMyBankAccountsQuery()
     : IQuery<ErrorOr<List<ManagerBankAccountItemDto>>>;
 

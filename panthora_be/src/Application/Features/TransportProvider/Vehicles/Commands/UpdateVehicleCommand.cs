@@ -11,6 +11,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Vehicles.Commands;
+
 public sealed record UpdateVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("vehicleId")] Guid VehicleId,

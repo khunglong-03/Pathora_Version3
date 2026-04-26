@@ -7,6 +7,7 @@ using ErrorOr;
 using global::Contracts.Interfaces;
 
 namespace Application.Features.HotelServiceProvider.Supplier.Queries;
+
 public sealed record GetHotelSupplierForProviderQuery : IQuery<ErrorOr<List<HotelSupplierListItemDto>>>;
 
 

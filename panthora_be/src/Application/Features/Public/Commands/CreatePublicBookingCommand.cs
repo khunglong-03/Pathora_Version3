@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Commands;
+
 public sealed record CreatePublicBookingCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("customerName")] string CustomerName,

@@ -7,6 +7,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Queries;
+
 public sealed record GetUserDetailQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<UserDetailVm>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.User}:detail:{Id}";

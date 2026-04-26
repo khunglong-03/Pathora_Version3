@@ -8,6 +8,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetHotelProviderById;
+
 public sealed record GetHotelProviderByIdQuery([property: JsonPropertyName("id")] Guid Id)
     : IQuery<ErrorOr<HotelProviderDetailDto>>;
 

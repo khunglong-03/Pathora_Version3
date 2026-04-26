@@ -305,7 +305,6 @@ class TransportProviderService {
     }
   }
 
-  // Drivers
   async getDrivers(
     pageNumber: number = 1,
     pageSize: number = 50,
@@ -316,6 +315,24 @@ class TransportProviderService {
       if (isActive !== undefined) params.isActive = isActive;
       const response = await axiosInstance.get<PaginatedResponse<Driver>>("/transport-provider/drivers", { params });
       return extractResult(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
+    }
+  }
+
+  async getAvailableDrivers(
+    date: string,
+    excludeActivityId?: string
+  ): Promise<Driver[] | null> {
+    try {
+      const params: Record<string, string | number> = { date };
+      if (excludeActivityId) params.excludeActivityId = excludeActivityId;
+      const response = await axiosInstance.get<Driver[]>(
+        "/transport-provider/drivers/available",
+        { params }
+      );
+      return extractItems<Driver>(response.data);
     } catch (error) {
       handleApiError(error);
       return null;

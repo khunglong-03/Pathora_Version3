@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using global::Contracts;
 
 namespace Application.Features.Admin.Queries.GetHotelProviders;
+
 public sealed record GetHotelProvidersQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,

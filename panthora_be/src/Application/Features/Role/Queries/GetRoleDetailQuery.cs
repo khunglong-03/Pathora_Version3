@@ -6,6 +6,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Queries;
+
 public sealed record GetRoleDetailQuery([property: JsonPropertyName("roleId")] int RoleId)
     : IQuery<ErrorOr<RoleDetailResponse?>>;
 

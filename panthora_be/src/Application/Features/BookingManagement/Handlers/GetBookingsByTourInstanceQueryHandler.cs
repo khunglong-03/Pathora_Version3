@@ -7,6 +7,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 
 namespace Application.Features.BookingManagement.Handlers;
+
 public sealed class GetBookingsByTourInstanceQueryHandler(
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,

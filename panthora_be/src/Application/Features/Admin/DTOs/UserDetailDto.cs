@@ -2,6 +2,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.DTOs;
+
 public sealed record UserDetailDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("username")] string Username,

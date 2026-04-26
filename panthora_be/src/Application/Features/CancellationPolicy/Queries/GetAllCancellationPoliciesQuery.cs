@@ -5,6 +5,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.CancellationPolicy.Queries;
+
 public sealed record GetAllCancellationPoliciesQuery : IQuery<ErrorOr<IReadOnlyList<CancellationPolicyResponse>>>;
 
 public sealed class GetAllCancellationPoliciesQueryHandler(ICancellationPolicyService service)

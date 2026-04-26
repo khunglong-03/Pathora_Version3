@@ -10,6 +10,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Supplier;
+
 public sealed record GetSupplierByIdQuery([property: JsonPropertyName("supplierId")] Guid SupplierId) : IQuery<ErrorOr<SupplierDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Supplier}:detail:{SupplierId}";

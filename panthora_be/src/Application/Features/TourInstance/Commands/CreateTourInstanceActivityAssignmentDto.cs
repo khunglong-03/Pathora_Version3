@@ -2,6 +2,7 @@ using Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public record CreateTourInstanceActivityAssignmentDto(
     [property: JsonPropertyName("originalActivityId")] Guid OriginalActivityId,
     [property: JsonPropertyName("supplierId")] Guid? SupplierId,

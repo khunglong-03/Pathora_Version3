@@ -2,6 +2,7 @@ using Application.Features.Admin.Queries.GetAllUsers;
 using FluentValidation;
 
 namespace Application.Features.Admin.Validators;
+
 public sealed class GetAllUsersQueryValidator : AbstractValidator<GetAllUsersQuery>
 {
     public GetAllUsersQueryValidator()

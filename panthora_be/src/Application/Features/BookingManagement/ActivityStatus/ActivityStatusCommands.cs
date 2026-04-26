@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.ActivityStatus;
+
 public sealed record InitializeActivityStatusCommand([property: JsonPropertyName("bookingId")] Guid BookingId) : ICommand<ErrorOr<int>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];

@@ -8,6 +8,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Commands.VerifyBankAccount;
+
 public sealed record VerifyBankAccountCommand([property: JsonPropertyName("managerId")] Guid ManagerId)
     : ICommand<ErrorOr<Success>>;
 

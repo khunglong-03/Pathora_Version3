@@ -9,6 +9,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
+
 public sealed record GetAllTourInstancesQuery(
     [property: JsonPropertyName("searchText")] string? SearchText,
     [property: JsonPropertyName("status")] TourInstanceStatus? Status = null,

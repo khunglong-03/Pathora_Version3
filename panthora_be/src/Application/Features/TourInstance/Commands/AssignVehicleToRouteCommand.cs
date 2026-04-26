@@ -13,6 +13,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public sealed record AssignVehicleToRouteCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("routeId")] Guid RouteId,

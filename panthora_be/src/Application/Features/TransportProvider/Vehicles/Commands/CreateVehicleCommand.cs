@@ -12,6 +12,7 @@ using global::Contracts.Interfaces;
 using global::Contracts.ModelResponse;
 
 namespace Application.Features.TransportProvider.Vehicles.Commands;
+
 public sealed record CreateVehicleCommand(
     [property: JsonPropertyName("currentUserId")] Guid CurrentUserId,
     [property: JsonPropertyName("request")] CreateVehicleRequestDto Request) : ICommand<ErrorOr<VehicleResponseDto>>;

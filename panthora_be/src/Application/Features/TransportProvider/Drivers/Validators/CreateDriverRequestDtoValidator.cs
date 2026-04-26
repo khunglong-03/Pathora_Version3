@@ -3,6 +3,7 @@ using Domain.Common.Repositories;
 using FluentValidation;
 
 namespace Application.Features.TransportProvider.Drivers.Validators;
+
 public static class DriverRequestValidationMessages
 {
     public const string FullNameRequired = "Full name is required.";

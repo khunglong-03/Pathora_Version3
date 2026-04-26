@@ -12,6 +12,7 @@ using ErrorOr;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
+
 public sealed record GetPublicTourDetailQuery(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<TourDto>>, ICacheable

@@ -10,6 +10,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Manager.Commands.CreateManagerBankAccount;
+
 public sealed record CreateManagerBankAccountCommand([property: JsonPropertyName("request")] CreateManagerBankAccountRequest Request)
     : ICommand<ErrorOr<ManagerBankAccountItemDto>>;
 

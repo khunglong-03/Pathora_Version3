@@ -6,6 +6,7 @@ using MediatR;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.Admin.Queries.GetTransportProviders;
+
 public sealed record GetTransportProviderStatsQuery(
     [property: JsonPropertyName("search")] string? Search = null,
     [property: JsonPropertyName("continents")] List<string>? Continents = null)

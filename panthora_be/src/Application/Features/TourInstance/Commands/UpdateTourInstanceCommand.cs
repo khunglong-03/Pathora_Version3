@@ -11,6 +11,7 @@ using FluentValidation;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
+
 public sealed record UpdateTourInstanceCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("title")] string Title,
