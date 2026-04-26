@@ -1,0 +1,148 @@
+name: pathora-stack
+
+x-frontend-remote-image-hosts: &frontend-remote-image-hosts "https://www.figma.com,https://cdn3.ivivu.com,https://images.unsplash.com,https://example.com,https://wowcher.vn,https://tourdatviet.vn,https://statics.vinpearl.com,https://travelhalong.com.vn,https://encrypted-tbn0.gstatic.com,https://res.cloudinary.com,http://34.143.220.132:9001,https://34.143.220.132:9001,https://play.min.io:9443"
+
+services:
+  backend:
+    container_name: pathora-backend
+    build:
+      context: ./panthora_be
+      dockerfile: src/Api/Dockerfile
+    environment:
+      # Port/CORS values are adjusted for this root compose stack.
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_HTTP_PORTS: "8080"
+
+      Auth__DisableAuthorization: "true"
+
+      Dev__EnableDevEndpoints: "true"
+      Dev__DevApiKey: "dev-key-123"
+      Dev__ResetAndReseedOnStartup: "false"
+
+      Serilog__MinimumLevel__Default: "Information"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Mvc: "Warning"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Routing: "Warning"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Hosting: "Warning"
+      Serilog__MinimumLevel__Override__ZiggyCreatures.Caching.Fusion: "Warning"
+      Serilog__MinimumLevel__Override__System.Net.Http: "Warning"
+
+      Cors__AllowedOrigins__0: "http://localhost:3003"
+      Cors__AllowedOrigins__1: "https://pathora-fe.duckdns.org"
+      Cors__AllowedOrigins__2: "https://pathora-api.duckdns.org"
+      Cors__AllowedOrigins__3: "http://127.0.0.1:3003"
+      Cors__AllowedOrigins__4: "https://pathora-git-main-thehieu03s-projects.vercel.app"
+      Cors__AllowedOrigins__5: "https://*.vercel.app"
+      Cors__AllowedOrigins__6: "https://thehieu03.vercel.app"
+
+      ConnectionStrings__Default: "Host=34.143.220.132;Port=5432;Database=PPPPathora;Username=postgres;Password=123abc@A;SSL Mode=Disable;Pooling=true;MinPoolSize=5;MaxPoolSize=50;ConnectionIdleLifetime=300"
+
+      AppConfig__ServiceName: "Panthora API"
+      AppConfig__FrontendBaseUrl: "http://localhost:3003"
+      AppConfig__IncludeInnerException: "true"
+      AppConfig__IncludeExceptionStackTrace: "true"
+
+      SwaggerGen__Title: "Panthora Backend API"
+      SwaggerGen__Version: "v1"
+      SwaggerGen__Description: "API documentation for Panthora backend services"
+      SwaggerGen__ContactName: "Panthora Team"
+      SwaggerGen__ContactEmail: "hieunthe171211@gmail.com"
+      SwaggerGen__dev: "Nguyen The Hieu"
+      SwaggerGen__ContactUrl: "https://www.facebook.com/the.hieu.5074"
+
+      Redis__ConnectionString: "34.143.220.132:6379,ssl=True,abortConnect=False"
+
+      Cloudinary__CloudName: "dwa0kngte"
+      Cloudinary__ApiKey: "429192662926867"
+      Cloudinary__ApiSecret: "stqLCwt8yfuxf3WpAaPRUWWG8ec"
+      Cloudinary__DefaultFolder: "panthora"
+
+      Jwt__Secret: "QWERTYUIOP12349876AASDFGHJKLMNBVCXZQWERTYUIOP12349876AASDFGHJKLMNBVCXZ"
+      Jwt__Issuer: "http://localhost:8080"
+      Jwt__ValidIssuers__0: "http://localhost:5812"
+      Jwt__ValidIssuers__1: "http://localhost:8080"
+      Jwt__Audience: "http://localhost:8080"
+      Jwt__ValidAudiences__0: "http://localhost:5812"
+      Jwt__ValidAudiences__1: "http://localhost:8080"
+      Jwt__ValidAudiences__2: "http://localhost:3003"
+      Jwt__ValidAudiences__3: "https://thehieu03.vercel.app"
+      Jwt__ExpireInMinutes: "60"
+
+      Mail__Host: "smtp.gmail.com"
+      Mail__Port: "587"
+      Mail__UseAuthentication: "true"
+      Mail__UserName: "hieunthe171211@gmail.com"
+      Mail__Password: "xwmj elxv bcis yuje"
+
+      Authentication__Google__ClientId: "934060499582-iojvtgtu45khpti9gisab34e3g140m0f.apps.googleusercontent.com"
+      Authentication__Google__ClientSecret: "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"
+
+      OpenTelemetry__Endpoint: "http://localhost:4318"
+
+      VietQR__ApiUrl: "https://api.vietqr.io/image/"
+      VietQR__BankBin: "970422"
+      VietQR__AccountNo: "0868430273"
+      VietQR__AccountName: "GORNER ROBIN"
+      VietQR__TemplateId: "U4NCcYH"
+
+      SePay__ApiUrl: "https://my.sepay.vn"
+      SePay__AccountNumber: ""
+      SePay__ApiKey: "Pathora_SePay_SecretKey_2026_xYz987"
+      SePay__WebhookSecret: "$${SEPAY_WEBHOOK_SECRET}"
+      SePay__AllowedIps: ""
+      SePay__WebhookPath: "/api/payment/sepay/webhook"
+      SePay__CallbackBaseUrl: "https://your-ngrok-domain.ngrok-free.app"
+      SePay__CallbackUrl: ""
+      SePay__NgrokAuthtoken: "37WWYIUfghFKGc2dONe48VoGFgb_3v7poD4yCJmZYTFwtxL6G"
+
+      Payment__AuthenticationKey: ""
+      Payment__Account: ""
+      Payment__ApiBaseUrl: "https://my.sepay.vn"
+      Payment__Bank: "MB"
+      Payment__QrBaseUrl: "https://qr.sepay.vn/img"
+      Payment__PollingLimit: "20"
+      Payment__PollingIntervalSeconds: "30"
+      Payment__SepayWebhookSecret: "$${SEPAY_WEBHOOK_SECRET}"
+      Payment__RateLimitSeconds: "5"
+
+      OutboxWorker__PollingIntervalMs: "30000"
+      OutboxWorker__BatchSize: "10"
+      OutboxWorker__MaxRetries: "10"
+
+      ProviderAssignment__SoftHoldHours: "48"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    container_name: pathora-frontend
+    build:
+      context: ./pathora/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_GATEWAY: "http://localhost:8080"
+        NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
+        NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "false"
+    environment:
+      NODE_ENV: "production"
+      NEXT_PUBLIC_API_GATEWAY: "http://localhost:8080"
+      NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
+      NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "false"
+    ports:
+      - "3003:3003"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

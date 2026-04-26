@@ -3193,6 +3193,22 @@
       "tourPackages": "Tour Packages",
       "ourPolicies": "Our Policies"
     },
+    "policies": {
+      "transparencyFirst": "TRANSPARENCY FIRST",
+      "our": "Our",
+      "policy": "Policies",
+      "heroSubtitle": "Everything you need to know for a safe, secure, and perfect journey.",
+      "lastUpdated": "Last updated:",
+      "lastUpdatedDate": "April 12, 2026",
+      "introPrefix": "By booking a tour, you agree to the complete terms and conditions of",
+      "introSuffix": "Pathora.",
+      "noContentTitle": "No policies available",
+      "noContentDesc": "Policy content will appear here once added.",
+      "errorTitle": "Failed to load policies",
+      "ctaTitle": "Need further assistance?",
+      "ctaDescription": "Our customer support team is available 24/7.",
+      "contactSupport": "Contact Support"
+    },
     "latest": {
       "eyebrow": "LATEST TOURS",
       "title": "Freshly Added Tours",

@@ -3225,6 +3225,22 @@
       "tourPackages": "Tour du lịch",
       "ourPolicies": "Chính sách"
     },
+    "policies": {
+      "transparencyFirst": "ƯU TIÊN SỰ MINH BẠCH",
+      "our": "Chính sách",
+      "policy": "của chúng tôi",
+      "heroSubtitle": "Mọi quy định và điều khoản bạn cần biết để có một chuyến đi an toàn và hoàn hảo.",
+      "lastUpdated": "Cập nhật lần cuối:",
+      "lastUpdatedDate": "12 Tháng 4, 2026",
+      "introPrefix": "Bằng việc đặt tour, bạn đồng ý với toàn bộ điều khoản và điều kiện của",
+      "introSuffix": "Pathora.",
+      "noContentTitle": "Chưa có chính sách nào",
+      "noContentDesc": "Nội dung chính sách sẽ xuất hiện tại đây khi được thêm vào.",
+      "errorTitle": "Không thể tải chính sách",
+      "ctaTitle": "Bạn cần hỗ trợ thêm?",
+      "ctaDescription": "Đội ngũ chăm sóc khách hàng của chúng tôi luôn sẵn sàng 24/7.",
+      "contactSupport": "Liên hệ hỗ trợ"
+    },
     "latest": {
       "eyebrow": "MỚI NHẤT",
       "title": "Tour Mới Thêm",
