@@ -10,6 +10,7 @@ import BulkApproveConfirmationModal, { type BulkApproveItem } from "./BulkApprov
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import {
   transportProviderService,
+  type AvailableVehicle,
   type Driver,
   type Vehicle,
 } from "@/api/services/transportProviderService";
@@ -182,6 +183,10 @@ export default function TransportTourAssignmentPage() {
     failedActivityId?: string;
   } | null>(null);
   const [activityErrors, setActivityErrors] = useState<Record<string, string>>({});
+  const [availableVehiclesByActivity, setAvailableVehiclesByActivity] = useState<
+    Record<string, AvailableVehicle[]>
+  >({});
+  const [availableVehiclesLoading, setAvailableVehiclesLoading] = useState(false);
 
   const setActivityError = useCallback((activityId: string, message: string | null) => {
     setActivityErrors((current) => {
@@ -282,6 +287,17 @@ export default function TransportTourAssignmentPage() {
       })),
     [vehicles],
   );
+
+  /** Availability-aware options for the approve modal — shows "Còn trống X/Y". */
+  const approveVehicleOptions = useMemo(() => {
+    if (!approveActivityId) return vehicleOptions;
+    const available = availableVehiclesByActivity[approveActivityId];
+    if (!available || available.length === 0) return vehicleOptions;
+    return available.map((v) => ({
+      value: v.id,
+      label: `${v.brand ?? ""} ${v.model ?? ""} – ${v.seatCapacity} chỗ (Còn trống ${v.availableQuantity}/${v.quantity})`.trim(),
+    }));
+  }, [approveActivityId, availableVehiclesByActivity, vehicleOptions]);
 
   const driverOptions = useMemo(
     () =>
@@ -454,12 +470,42 @@ export default function TransportTourAssignmentPage() {
     });
   }, []);
 
-  const openApproveModal = (activity: TourInstanceDayActivityDto) => {
+  const openApproveModal = async (activity: TourInstanceDayActivityDto) => {
     setApprovalDrafts((current) => ({
       ...current,
       [activity.id]: activityDraftFromActivity(activity),
     }));
     setApproveActivityId(activity.id);
+
+    // Fetch available vehicles for this activity's date
+    const activityDate = tour?.days?.find((d) =>
+      d.activities.some((a) => a.id === activity.id)
+    )?.actualDate;
+
+    if (activityDate) {
+      setAvailableVehiclesLoading(true);
+      try {
+        const isReApproval =
+          normalizeApprovalStatus(activity.transportationApprovalStatus) === "approved";
+        const available = await transportProviderService.getAvailableVehicles(
+          activityDate,
+          undefined,
+          isReApproval ? activity.id : undefined,
+        );
+        setAvailableVehiclesByActivity((prev) => ({
+          ...prev,
+          [activity.id]: available ?? [],
+        }));
+      } catch {
+        // Fallback: keep using global vehicles list
+        setAvailableVehiclesByActivity((prev) => ({
+          ...prev,
+          [activity.id]: [],
+        }));
+      } finally {
+        setAvailableVehiclesLoading(false);
+      }
+    }
   };
 
   const openRejectModal = (activity: TourInstanceDayActivityDto) => {
@@ -1027,6 +1073,21 @@ export default function TransportTourAssignmentPage() {
             </div>
 
             <div className="space-y-3">
+              {/* No vehicles available for this date */}
+              {approveActivityId
+                && !availableVehiclesLoading
+                && availableVehiclesByActivity[approveActivityId]
+                && availableVehiclesByActivity[approveActivityId].length === 0 && (
+                <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <Icon icon="heroicons:exclamation-triangle" className="mt-0.5 size-5 shrink-0 text-amber-500" />
+                  <p>
+                    {t(
+                      "tourInstance.transport.noAvailableVehicles",
+                      "Không có xe nào khả dụng vào ngày này. Tất cả xe đã được đặt hết.",
+                    )}
+                  </p>
+                </div>
+              )}
               {approveDraft.rows.map((row, rowIndex) => (
                 <div
                   key={rowIndex}
@@ -1040,8 +1101,13 @@ export default function TransportTourAssignmentPage() {
                         vehicleId: event.target.value,
                       })
                     }
-                    options={vehicleOptions}
-                    placeholder={t("tourInstance.transport.selectVehicle", "Chon xe")}
+                    options={approveVehicleOptions}
+                    placeholder={
+                      availableVehiclesLoading
+                        ? t("tourInstance.wizard.vehicleType.loadingVehicles", "Đang tải xe…")
+                        : t("tourInstance.transport.selectVehicle", "Chon xe")
+                    }
+                    disabled={availableVehiclesLoading}
                   />
                   <Select
                     label={t("tourInstance.transport.driver", "Tai xe")}

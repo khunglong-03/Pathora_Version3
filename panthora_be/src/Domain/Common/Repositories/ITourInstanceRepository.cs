@@ -35,4 +35,10 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> FindByGuideUserId(Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<bool> HasGuideAssignmentAsync(Guid tourInstanceId, Guid userId, CancellationToken cancellationToken = default);
     Task<UserEntity?> FindUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lightweight lookup for a TourInstanceDayActivity by ID. Used for IDOR validation
+    /// in vehicle availability queries (excludeActivityId ownership check).
+    /// </summary>
+    Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default);
 }

@@ -53,6 +53,40 @@ public class VehicleController : BaseApiController
         return HandleResult(result);
     }
 
+    /// <summary>
+    /// GET transport-provider/vehicles/available?date=2026-05-01&amp;vehicleType=0&amp;excludeActivityId=...
+    /// Returns vehicles with real-time available quantity for a specific date.
+    /// </summary>
+    [HttpGet(VehicleEndpoint.Available)]
+    public async Task<IActionResult> GetAvailableVehicles(
+        [FromQuery] DateOnly date,
+        [FromQuery] int? vehicleType = null,
+        [FromQuery] Guid? excludeActivityId = null)
+    {
+        var userId = GetCurrentUserId();
+        var result = await Sender.Send(new GetAvailableVehiclesQuery(
+            userId,
+            date,
+            vehicleType.HasValue ? (Domain.Enums.VehicleType)vehicleType.Value : null,
+            excludeActivityId));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// GET transport-provider/vehicles/schedule?from=2026-05-01&amp;to=2026-05-31&amp;vehicleId=...
+    /// Returns vehicle block schedule for the calendar dashboard.
+    /// </summary>
+    [HttpGet(VehicleEndpoint.Schedule)]
+    public async Task<IActionResult> GetVehicleSchedule(
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        [FromQuery] Guid? vehicleId = null)
+    {
+        var userId = GetCurrentUserId();
+        var result = await Sender.Send(new GetVehicleScheduleQuery(userId, from, to, vehicleId));
+        return HandleResult(result);
+    }
+
     private Guid GetCurrentUserId()
     {
         var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)

@@ -17,6 +17,40 @@ export interface Vehicle {
   createdOnUtc: string;
 }
 
+/**
+ * Vehicle with real-time availability for a specific date.
+ * Uses `Pick<Vehicle, ...>` plus the computed `availableQuantity` field.
+ *
+ * @example
+ * ```ts
+ * const available = await transportProviderService.getAvailableVehicles("2026-05-01");
+ * available?.forEach(v => console.log(`${v.brand} ${v.model}: ${v.availableQuantity}/${v.quantity} free`));
+ * ```
+ */
+export type AvailableVehicle = Pick<Vehicle, "id" | "vehicleType" | "brand" | "model" | "seatCapacity" | "quantity" | "notes"> & {
+  /** How many units are currently free on the queried date. */
+  availableQuantity: number;
+};
+
+/**
+ * A single vehicle-block entry for the schedule dashboard calendar.
+ */
+export interface VehicleScheduleItem {
+  blockId: string;
+  vehicleId: string;
+  vehicleType: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  seatCapacity: number;
+  blockedDate: string;
+  holdStatus: string;
+  tourInstanceName?: string;
+  tourInstanceCode?: string;
+  activityTitle?: string;
+  fromLocationName?: string;
+  toLocationName?: string;
+}
+
 export interface Driver {
   id: string;
   fullName: string;
@@ -199,6 +233,75 @@ class TransportProviderService {
     } catch (error) {
       handleApiError(error);
       return false;
+    }
+  }
+
+  /**
+   * Returns vehicles with real-time available quantity for a specific date.
+   * Use this for the approve form to show "Còn trống X/Y" per vehicle.
+   *
+   * **Note:** `getVehicles` returns the full paginated fleet inventory;
+   * this endpoint only returns vehicles with `availableQuantity > 0`.
+   *
+   * @param date      ISO date string, e.g. "2026-05-01"
+   * @param vehicleType  Numeric enum value (0=Bus, 1=Coach, etc.)
+   * @param excludeActivityId  Pass during re-approval so the current vehicle still shows as available
+   *
+   * @example
+   * ```ts
+   * const available = await transportProviderService.getAvailableVehicles("2026-05-01", 0);
+   * // → [{ id: "...", brand: "Hyundai", availableQuantity: 3, quantity: 5, ... }]
+   * ```
+   */
+  async getAvailableVehicles(
+    date: string,
+    vehicleType?: number,
+    excludeActivityId?: string
+  ): Promise<AvailableVehicle[] | null> {
+    try {
+      const params: Record<string, string | number> = { date };
+      if (vehicleType !== undefined) params.vehicleType = vehicleType;
+      if (excludeActivityId) params.excludeActivityId = excludeActivityId;
+      const response = await axiosInstance.get<AvailableVehicle[]>(
+        "/transport-provider/vehicles/available",
+        { params }
+      );
+      return extractItems<AvailableVehicle>(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
+    }
+  }
+
+  /**
+   * Returns vehicle block schedule for the calendar dashboard.
+   *
+   * @param fromDate  ISO date string, e.g. "2026-05-01"
+   * @param toDate    ISO date string, e.g. "2026-05-31"
+   * @param vehicleId Filter to a single vehicle (optional)
+   *
+   * @example
+   * ```ts
+   * const schedule = await transportProviderService.getVehicleSchedule("2026-05-01", "2026-05-31");
+   * // → [{ blockId: "...", blockedDate: "2026-05-03", holdStatus: "Hard", ... }]
+   * ```
+   */
+  async getVehicleSchedule(
+    fromDate: string,
+    toDate: string,
+    vehicleId?: string
+  ): Promise<VehicleScheduleItem[] | null> {
+    try {
+      const params: Record<string, string> = { from: fromDate, to: toDate };
+      if (vehicleId) params.vehicleId = vehicleId;
+      const response = await axiosInstance.get<VehicleScheduleItem[]>(
+        "/transport-provider/vehicles/schedule",
+        { params }
+      );
+      return extractItems<VehicleScheduleItem>(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
     }
   }
 

@@ -121,6 +121,17 @@ public static class ErrorConstants
             new("Không thể duyệt phương tiện sau nhiều lần thử.", "Failed to approve vehicle after multiple attempts.");
     }
 
+    public static class VehicleAvailability
+    {
+        public const string NoSupplierCode = "VehicleAvailability.NoSupplier";
+        public static readonly LocalizedMessage NoSupplierDescription =
+            new("Bạn chưa có nhà cung cấp vận chuyển nào.", "You do not have any transport supplier.");
+
+        public const string ActivityNotOwnedCode = "VehicleAvailability.ActivityNotOwned";
+        public static readonly LocalizedMessage ActivityNotOwnedDescription =
+            new("Hoạt động không thuộc nhà cung cấp của bạn.", "Activity does not belong to your supplier.");
+    }
+
     public static class Driver
     {
         public const string RequiredCode = "Driver.Required";

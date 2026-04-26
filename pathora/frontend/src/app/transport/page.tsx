@@ -21,6 +21,7 @@ import { transportProviderService } from "@/api/services/transportProviderServic
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import type { NormalizedTourInstanceVm } from "@/types/tour";
 import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
+import VehicleScheduleSection from "@/features/dashboard/components/VehicleScheduleSection";
 import dayjs from "dayjs";
 import type {
   Vehicle,
@@ -230,6 +231,7 @@ export default function TransportDashboardPage() {
   const [trips, setTrips] = useState<TripAssignment[]>([]);
   const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
   const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
+  const [vehiclesList, setVehiclesList] = useState<Vehicle[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -238,15 +240,17 @@ export default function TransportDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [vehiclesData, activeVehiclesData, tripsData, revenueData] = await Promise.all([
+      const [vehiclesData, activeVehiclesData, tripsData, revenueData, allVehiclesData] = await Promise.all([
         transportProviderService.getVehicles(1, 1),
         transportProviderService.getVehicles(1, 1, true),
         transportProviderService.getTripAssignments(),
         transportProviderService.getRevenueSummary(new Date().getFullYear()),
+        transportProviderService.getVehicles(1, 100),
       ]);
       setTotalVehicles(vehiclesData?.total || 0);
       setActiveVehicles(activeVehiclesData?.total || 0);
       setTrips((tripsData || []).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime()));
+      setVehiclesList(allVehiclesData?.items || []);
       setRevenue(revenueData);
 
       // Fetch upcoming tours separately to avoid cascading failures
@@ -379,6 +383,12 @@ export default function TransportDashboardPage() {
                 bg={T.accentSoft}
               />
             </div>
+
+            {/* Vehicle Schedule Calendar (6.3) */}
+            <VehicleScheduleSection
+              vehicles={vehiclesList}
+              itemVariants={variants.item}
+            />
 
             {/* Lower Grid (Trips Table) */}
             <motion.div

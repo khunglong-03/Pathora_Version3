@@ -85,7 +85,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return await _context.Suppliers
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && s.SupplierType == SupplierType.Accommodation)
-            .Where(s => _context.HotelRoomInventories.Any(h => h.SupplierId == s.Id && h.LocationArea.HasValue && continents.Contains(h.LocationArea.Value)))
+            .Where(s => _context.HotelRoomInventories.Any(h => h.SupplierId == s.Id && h.LocationArea.HasValue && continents.Contains(h.LocationArea ?? default)))
             .Select(s => s.OwnerUserId!.Value)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -197,7 +197,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var supplierIds = await _context.Suppliers
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId.Value))
+            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new { s.OwnerUserId, s.Id })
             .ToListAsync(cancellationToken);
 
@@ -235,7 +235,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
             .Where(s => !s.IsDeleted
                 && s.SupplierType == SupplierType.Accommodation
                 && s.OwnerUserId.HasValue
-                && ownerUserIds.Contains(s.OwnerUserId.Value))
+                && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new
             {
                 SupplierId = s.Id,
@@ -310,7 +310,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var suppliers = await _context.Suppliers
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Transport && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId.Value))
+            .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Transport && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new { s.OwnerUserId, s.Address, s.Continent })
             .ToListAsync(cancellationToken);
 
@@ -338,7 +338,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var details = await _context.BookingTransportDetails
             .AsNoTracking()
-            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId.Value))
+            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId ?? Guid.Empty))
             .GroupBy(_ => 1)
             .Select(g => new
             {
@@ -367,7 +367,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var details = await _context.BookingAccommodationDetails
             .AsNoTracking()
-            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId.Value))
+            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId ?? Guid.Empty))
             .GroupBy(_ => 1)
             .Select(g => new
             {

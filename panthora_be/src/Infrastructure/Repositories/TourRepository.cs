@@ -115,7 +115,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
         }
 
         return await query
@@ -171,7 +171,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -217,7 +217,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
         }
 
         return await query
@@ -270,7 +270,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);

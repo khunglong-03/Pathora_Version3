@@ -2428,6 +2428,7 @@
       "rejectModal": "Reject transport request",
       "rejectReasonPlaceholder": "Enter the reason for rejection",
       "empty": "No transport activities are assigned to this provider.",
+      "noAvailableVehicles": "No vehicles are available on this date. All vehicles have been booked.",
       "missingAssignment": "Select at least one vehicle and driver pair.",
       "duplicateVehicle": "The same vehicle cannot be used twice on this activity.",
       "duplicateVehicleHint": "Do not pick the same vehicle on more than one row.",
@@ -2450,7 +2451,9 @@
         "capacityExceeded": "The new max participation exceeds the seat capacity of vehicles already approved for this tour.",
         "vehicleCountMismatch": "The number of approved vehicles does not match the count requested by the manager.",
         "vehicleCountExceedsFleet": "Requested vehicle count exceeds the active fleet of the supplier.",
-        "roomCountExceedsInventory": "Requested room count exceeds the active inventory of the supplier."
+        "roomCountExceedsInventory": "Requested room count exceeds the active inventory of the supplier.",
+        "vehicleAvailabilityNoSupplier": "You do not have any transport supplier configured.",
+        "vehicleAvailabilityActivityNotOwned": "This activity does not belong to your supplier."
       },
       "bulkApproveSuccess": "Successfully approved {{count}} transport activities."
     }

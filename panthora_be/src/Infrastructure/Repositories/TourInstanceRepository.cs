@@ -84,7 +84,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             // Subquery: tour IDs where TourDesignerId is in designerIds
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             // Subquery: instance IDs directly assigned to principal
@@ -144,7 +144,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             var allowedInstanceIds = _context.Set<TourInstanceManagerEntity>()
@@ -495,5 +495,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+    }
+
+    public async Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstanceDayActivities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == activityId, cancellationToken);
     }
 }

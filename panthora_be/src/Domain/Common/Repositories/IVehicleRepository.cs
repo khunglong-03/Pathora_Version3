@@ -41,4 +41,24 @@ public interface IVehicleRepository : IRepository<VehicleEntity>
         CancellationToken cancellationToken = default);
 
     Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns vehicles owned by the supplier(s) that still have available capacity
+    /// (<c>Quantity - activeBlockCount &gt; 0</c>) on <paramref name="date"/>.
+    /// Each result carries <see cref="VehicleAvailabilityResult.AvailableQuantity"/>.
+    /// </summary>
+    Task<List<VehicleAvailabilityResult>> GetAvailableBySupplierAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        Domain.Enums.VehicleType? vehicleType,
+        DateOnly date,
+        Guid? excludeActivityId,
+        CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Projection result for capacity-aware availability queries.
+/// </summary>
+public sealed record VehicleAvailabilityResult(
+    Domain.Entities.VehicleEntity Vehicle,
+    int AvailableQuantity);

@@ -72,24 +72,18 @@ public class ResourceAvailabilityService(
     {
         var activeBlocks = await vehicleBlockRepository.FindActiveBlocksAsync(vehicleId, date, cancellationToken);
 
-        var otherBlocks = excludeTourInstanceDayActivityId.HasValue
-            ? activeBlocks.Where(b => b.TourInstanceDayActivityId != excludeTourInstanceDayActivityId.Value)
-            : activeBlocks;
+        // Use shared predicate for active-hold logic (task 0.1/0.2)
+        var nowUtc = DateTimeOffset.UtcNow;
+        var otherActiveBlocks = activeBlocks
+            .Where(b => Domain.Common.VehicleHoldPredicates.IsActiveHoldFunc(b, nowUtc))
+            .Where(b => !excludeTourInstanceDayActivityId.HasValue
+                     || b.TourInstanceDayActivityId != excludeTourInstanceDayActivityId.Value)
+            .ToList();
 
-        if (otherBlocks.Any(b => b.HoldStatus == HoldStatus.Hard))
+        if (otherActiveBlocks.Count > 0)
         {
-            logger.LogWarning("Vehicle availability check failed for {VehicleId} on {Date}. Vehicle has a hard hold.", vehicleId, date);
-            return false;
-        }
-
-        // Note: For now, if there is ANY soft hold by others, we might want to warn or block.
-        // The design says "Vehicle has a hard hold" -> fail. 
-        // If there's a soft hold, we might still allow another soft hold or wait.
-        // For hardening, let's treat any active hold (Soft or Hard) as "Occupied" to be safe.
-
-        if (otherBlocks.Any())
-        {
-            logger.LogWarning("Vehicle availability check failed for {VehicleId} on {Date}. Vehicle has active holds.", vehicleId, date);
+            logger.LogWarning("Vehicle availability check failed for {VehicleId} on {Date}. Vehicle has {Count} active hold(s).",
+                vehicleId, date, otherActiveBlocks.Count);
             return false;
         }
 

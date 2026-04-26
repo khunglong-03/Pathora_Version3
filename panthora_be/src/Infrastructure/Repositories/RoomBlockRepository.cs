@@ -111,7 +111,7 @@ public class RoomBlockRepository(AppDbContext context)
     {
         var ids = tourInstanceDayActivityIds.ToList();
         return await _dbSet
-            .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId.Value))
+            .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId ?? Guid.Empty))
             .ToListAsync(cancellationToken);
     }
 

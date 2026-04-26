@@ -47,7 +47,7 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
         // Step 2: Get all Tour IDs owned by those designers
         var tourIds = await _context.Tours
             .AsNoTracking()
-            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value))
+            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
@@ -261,7 +261,7 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
         // Count tours per designer
         var tourCounts = await _context.Tours
             .AsNoTracking()
-            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value))
+            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
             .GroupBy(t => t.TourDesignerId!.Value)
             .Select(g => new { DesignerId = g.Key, Count = g.Count() })
             .ToListAsync(ct);

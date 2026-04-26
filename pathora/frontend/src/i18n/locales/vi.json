@@ -2760,6 +2760,7 @@
       "rejectModal": "Từ chối yêu cầu vận chuyển",
       "rejectReasonPlaceholder": "Nhập lý do từ chối",
       "empty": "Không có hoạt động vận chuyển nào được giao cho nhà cung cấp này.",
+      "noAvailableVehicles": "Không có xe nào khả dụng vào ngày này. Tất cả xe đã được đặt hết.",
       "missingAssignment": "Vui lòng chọn đủ cặp xe và tài xế cho ít nhất một dòng.",
       "duplicateVehicle": "Không được trùng xe trong cùng một hoạt động.",
       "duplicateVehicleHint": "Không chọn cùng một xe trên nhiều dòng.",
@@ -2782,7 +2783,9 @@
         "capacityExceeded": "Số khách tối đa mới vượt sức chứa của xe đã được duyệt cho tour này.",
         "vehicleCountMismatch": "Số xe được duyệt không khớp với số xe Manager yêu cầu cho hoạt động này.",
         "vehicleCountExceedsFleet": "Số xe yêu cầu vượt quá số xe đang hoạt động của nhà cung cấp.",
-        "roomCountExceedsInventory": "Số phòng yêu cầu vượt quá số phòng đang hoạt động của nhà cung cấp."
+        "roomCountExceedsInventory": "Số phòng yêu cầu vượt quá số phòng đang hoạt động của nhà cung cấp.",
+        "vehicleAvailabilityNoSupplier": "Bạn chưa có nhà cung cấp vận chuyển nào.",
+        "vehicleAvailabilityActivityNotOwned": "Hoạt động này không thuộc nhà cung cấp của bạn."
       },
       "bulkApproveSuccess": "Đã duyệt thành công {{count}} hoạt động vận chuyển."
     }

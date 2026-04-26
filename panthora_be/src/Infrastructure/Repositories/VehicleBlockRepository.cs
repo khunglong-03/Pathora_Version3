@@ -54,4 +54,54 @@ public class VehicleBlockRepository(AppDbContext context)
 
         _dbSet.RemoveRange(blocks);
     }
+
+    public async Task<List<VehicleScheduleProjection>> GetByOwnerAndDateRangeAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        DateOnly fromDate,
+        DateOnly toDate,
+        Guid? vehicleId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(b => b.BlockedDate >= fromDate && b.BlockedDate <= toDate)
+            // Scope to owner's vehicles (same logic as availability query)
+            .Where(b => b.Vehicle != null
+                     && ((b.Vehicle.SupplierId != null && ownedSupplierIds.Contains(b.Vehicle.SupplierId ?? Guid.Empty))
+                      || (b.Vehicle.SupplierId == null && b.Vehicle.OwnerId == ownerUserId)));
+
+        if (vehicleId.HasValue)
+            query = query.Where(b => b.VehicleId == vehicleId.Value);
+
+        // Project to DTO — null-safe for orphaned Day→TourInstance navigations
+        return await query
+            .Select(b => new VehicleScheduleProjection(
+                b.Id,
+                b.VehicleId,
+                b.Vehicle!.VehicleType,
+                b.Vehicle.Brand,
+                b.Vehicle.Model,
+                b.Vehicle.SeatCapacity,
+                b.BlockedDate,
+                b.HoldStatus,
+                b.TourInstanceDayActivity != null
+                    ? b.TourInstanceDayActivity.TourInstanceDay.TourInstance.TourName
+                    : null,
+                b.TourInstanceDayActivity != null
+                    ? b.TourInstanceDayActivity.TourInstanceDay.TourInstance.TourInstanceCode
+                    : null,
+                b.TourInstanceDayActivity != null
+                    ? b.TourInstanceDayActivity.Title
+                    : null,
+                b.TourInstanceDayActivity != null && b.TourInstanceDayActivity.FromLocation != null
+                    ? b.TourInstanceDayActivity.FromLocation.LocationName
+                    : null,
+                b.TourInstanceDayActivity != null && b.TourInstanceDayActivity.ToLocation != null
+                    ? b.TourInstanceDayActivity.ToLocation.LocationName
+                    : null))
+            .OrderBy(s => s.BlockedDate)
+            .ThenBy(s => s.VehicleBrand)
+            .ToListAsync(cancellationToken);
+    }
 }

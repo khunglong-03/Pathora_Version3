@@ -287,7 +287,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
             if (continentEnums.Count > 0)
             {
-                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent ?? default)),
                     u => u.Id,
                     s => s.OwnerUserId,
                     (u, s) => u);
@@ -347,7 +347,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
             if (continentEnums.Count > 0)
             {
-                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent ?? default)),
                     u => u.Id,
                     s => s.OwnerUserId,
                     (u, s) => u);
@@ -432,7 +432,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
             if (continentEnums.Count > 0)
             {
-                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent ?? default)),
                     u => u.Id,
                     s => s.OwnerUserId,
                     (u, s) => u);
@@ -493,7 +493,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
 
             if (continentEnums.Count > 0)
             {
-                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent.Value)),
+                query = query.Join(_context.Suppliers.Where(s => !s.IsDeleted && s.Continent.HasValue && continentEnums.Contains(s.Continent ?? default)),
                     u => u.Id,
                     s => s.OwnerUserId,
                     (u, s) => u);

@@ -136,7 +136,7 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
     {
         return await _context.Vehicles
             .AsNoTracking()
-            .Where(v => v.LocationArea.HasValue && continents.Contains(v.LocationArea.Value) && !v.IsDeleted)
+            .Where(v => v.LocationArea.HasValue && continents.Contains(v.LocationArea ?? default) && !v.IsDeleted)
             .Select(v => v.OwnerId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -216,5 +216,48 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
                 .SetProperty(v => v.LastModifiedBy, performedBy)
                 .SetProperty(v => v.LastModifiedOnUtc, DateTimeOffset.UtcNow),
                 cancellationToken);
+    }
+
+    public async Task<List<VehicleAvailabilityResult>> GetAvailableBySupplierAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        VehicleType? vehicleType,
+        DateOnly date,
+        Guid? excludeActivityId,
+        CancellationToken cancellationToken = default)
+    {
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        var query = _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.IsActive && !v.IsDeleted)
+            // Scoping: matches approve-time ownership check (Choice 5)
+            .Where(v => (v.SupplierId != null && ownedSupplierIds.Contains(v.SupplierId ?? Guid.Empty))
+                     || (v.SupplierId == null && v.OwnerId == ownerUserId));
+
+        if (vehicleType.HasValue)
+            query = query.Where(v => v.VehicleType == vehicleType.Value);
+
+        // Subquery: count active holds per vehicle on the target date,
+        // excluding the caller's own activity block (for re-approval flow)
+        var results = await query
+            .Select(v => new
+            {
+                Vehicle = v,
+                ActiveBlockCount = _context.VehicleBlocks
+                    .Count(b => b.VehicleId == v.Id
+                             && b.BlockedDate == date
+                             && (b.HoldStatus == HoldStatus.Hard
+                                 || (b.HoldStatus == HoldStatus.Soft && b.ExpiresAt > nowUtc))
+                             && (!excludeActivityId.HasValue
+                                 || b.TourInstanceDayActivityId != excludeActivityId.Value))
+            })
+            .Where(r => r.Vehicle.Quantity - r.ActiveBlockCount > 0)
+            .Select(r => new VehicleAvailabilityResult(
+                r.Vehicle,
+                r.Vehicle.Quantity - r.ActiveBlockCount))
+            .ToListAsync(cancellationToken);
+
+        return results;
     }
 }

@@ -118,6 +118,9 @@ export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
   "TourInstance.ProviderNotAssigned",
   "TourInstance.BulkApproveFailed",
   "TourInstance.CapacityExceeded",
+  // Vehicle availability & schedule
+  "VehicleAvailability.NoSupplier",
+  "VehicleAvailability.ActivityNotOwned",
 ] as const;
 
 /**
@@ -144,6 +147,9 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.UpdateFailed": "tourInstance.errors.updateFailed",
   "TourInstance.DeleteFailed": "tourInstance.errors.deleteFailed",
   "TourInstance.NotFound": "tourInstance.errors.notFound",
+  // Vehicle availability & schedule
+  "VehicleAvailability.NoSupplier": "tourInstance.transport.errors.vehicleAvailabilityNoSupplier",
+  "VehicleAvailability.ActivityNotOwned": "tourInstance.transport.errors.vehicleAvailabilityActivityNotOwned",
 };
 
 const AUTH_ERROR_CODE_MAP: Record<string, string> = {
