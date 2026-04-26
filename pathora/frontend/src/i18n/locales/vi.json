@@ -1868,6 +1868,7 @@
       "durationDays": "Thời gian (ngày)",
       "description": "Mô tả",
       "basePrice": "Giá gốc",
+      "basePriceAutoCalculated": "Tự động tính từ các hoạt động",
       "removePackage": "Xóa gói",
       "placeholderPackageType": "VD: Tiêu chuẩn, Cao cấp, VIP",
       "placeholderDuration": "VD: 5",

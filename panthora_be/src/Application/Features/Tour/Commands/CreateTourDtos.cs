@@ -8,6 +8,9 @@ public sealed record ClassificationDto(
     [property: JsonPropertyName("id")] Guid? Id,
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("description")] string Description,
+    // BasePrice is auto-derived server-side from the sum of activity costs in
+    // TourService.Create / UpdateClassificationsAsync (RecalculateBasePrice).
+    // The value sent by the client is accepted for backward-compat but ignored on persist.
     [property: JsonPropertyName("basePrice")] decimal BasePrice,
     [property: JsonPropertyName("numberOfDay")] int NumberOfDay,
     [property: JsonPropertyName("numberOfNight")] int NumberOfNight,

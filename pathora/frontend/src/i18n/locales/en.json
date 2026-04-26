@@ -1816,6 +1816,7 @@
       "durationDays": "Duration (Days)",
       "description": "Description",
       "basePrice": "Base Price",
+      "basePriceAutoCalculated": "Auto-calculated from activities",
       "removePackage": "Remove package",
       "placeholderPackageType": "e.g. Standard, Luxury, Premium",
       "placeholderDuration": "e.g. 5",

@@ -1,6 +1,7 @@
 namespace Domain.Entities;
 
 using Domain.Entities.Translations;
+using Domain.Enums;
 
 /// <summary>
 /// Một phân loại (variant) của tour — ví dụ: "3 ngày 2 đêm Tiêu chuẩn", "4 ngày 3 đêm Cao cấp".
@@ -70,5 +71,33 @@ public class TourClassificationEntity : Aggregate<Guid>
         IsDeleted = true;
         DeletedOnUtc = DateTimeOffset.UtcNow;
         DeletedBy = performedBy;
+    }
+
+    /// <summary>
+    /// Recomputes <see cref="BasePrice"/> as the sum of all non-deleted activity costs across non-deleted plans.
+    /// Formula per activity type:
+    ///  - Transportation: Price ?? EstimatedCost ?? 0
+    ///  - Accommodation:  Accommodation.RoomPrice ?? EstimatedCost ?? 0 (one room, no multiplication)
+    ///  - All others:     EstimatedCost ?? 0
+    /// Optional activities are included; soft-deleted plans/activities are excluded.
+    /// </summary>
+    public void RecalculateBasePrice()
+    {
+        decimal total = 0m;
+        foreach (var plan in Plans)
+        {
+            if (plan.IsDeleted) continue;
+            foreach (var activity in plan.Activities)
+            {
+                if (activity.IsDeleted) continue;
+                total += activity.ActivityType switch
+                {
+                    TourDayActivityType.Transportation => activity.Price ?? activity.EstimatedCost ?? 0m,
+                    TourDayActivityType.Accommodation => activity.Accommodation?.RoomPrice ?? activity.EstimatedCost ?? 0m,
+                    _ => activity.EstimatedCost ?? 0m,
+                };
+            }
+        }
+        BasePrice = total;
     }
 }

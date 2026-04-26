@@ -23,6 +23,7 @@ import type { CancellationPolicy } from "@/types/cancellationPolicy";
 import type { TourDto, ImageDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import { formatCurrency } from "@/utils/format";
 
 /* ── TourForm Props ─────────────────────────────────────────── */
 export interface TourFormProps {
@@ -367,6 +368,36 @@ const emptyService = (): ServiceForm => ({
    TourForm — Shell Component
    All state, handlers, validation, and wizard logic live here.
    ══════════════════════════════════════════════════════════════ */
+
+const parseOptionalNumber = (value: string): number | null => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
+};
+
+/**
+ * Mirrors backend TourClassificationEntity.RecalculateBasePrice:
+ *  - Transportation (type "7"): price ?? estimatedCost ?? 0
+ *  - Accommodation (type "8") and others: estimatedCost ?? 0
+ *  - Optional activities are included; this form does not track soft-deleted
+ *    activities (they are removed from the array on delete).
+ */
+const computeClassificationBasePrice = (plans: DayPlanForm[]): number => {
+  let total = 0;
+  for (const plan of plans) {
+    for (const act of plan.activities) {
+      const estimated = parseOptionalNumber(act.estimatedCost) ?? 0;
+      if (act.activityType === "7") {
+        const price = parseOptionalNumber(act.price);
+        total += price ?? parseOptionalNumber(act.estimatedCost) ?? 0;
+      } else {
+        total += estimated;
+      }
+    }
+  }
+  return total;
+};
 
 const mapActivityType = (type: string | number): string => {
   if (typeof type === "number") return String(type);
@@ -764,12 +795,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             "tourAdmin.invalidDuration",
             "Invalid duration",
           );
-        const basePrice = Number(cls.basePrice);
-        if (!cls.basePrice.trim() || isNaN(basePrice) || basePrice < 0)
-          newErrors[`cls_${i}_basePrice`] = t(
-            "tourAdmin.validation.invalidBasePrice",
-            "Invalid base price",
-          );
+        // basePrice is auto-derived from activity costs — no manual-input validation.
       });
     }
 
@@ -936,26 +962,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     }
   };
 
-  const validateFieldPositiveNumber = (field: string, value: string, isOptional = false) => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      if (!isOptional) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.required", "Required") }));
-      }
-    } else {
-      const num = Number(trimmed);
-      if (isNaN(num) || num < 0) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.invalidPrice", "Invalid price") }));
-      } else {
-        setErrors((prev) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { [field]: _removed, ...rest } = prev;
-          return rest;
-        });
-      }
-    }
-  };
-
   const goNext = () => {
     if (validateStep(currentStep)) {
       setThumbnailError(undefined);
@@ -1017,6 +1023,21 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       ),
     );
   }, [classifications]);
+
+  // Auto-derive each classification's basePrice from the sum of its activity costs.
+  // Mirrors the authoritative server-side calculation in RecalculateBasePrice.
+  useEffect(() => {
+    setClassifications((prev) => {
+      let changed = false;
+      const next = prev.map((cls, i) => {
+        const computed = String(computeClassificationBasePrice(dayPlans[i] ?? []));
+        if (cls.basePrice === computed) return cls;
+        changed = true;
+        return { ...cls, basePrice: computed };
+      });
+      return changed ? next : prev;
+    });
+  }, [dayPlans]);
 
   const updateClassificationPackageTypeVi = (index: number, value: string) => {
     const option = findPackageTypeOption(value);
@@ -2091,38 +2112,18 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                          {t("tourAdmin.packages.basePrice")} <span className="text-red-500">*</span>
+                          {t("tourAdmin.packages.basePrice")}
                         </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            min="0"
-                            value={cls.basePrice}
-                            onChange={(e) =>
-                              updateClassification(clsI, "basePrice", e.target.value)
-                            }
-                            onBlur={(e) =>
-                              validateFieldPositiveNumber(`cls_${clsI}_basePrice`, e.target.value)
-                            }
-                            placeholder={t("tourAdmin.packages.placeholderBasePrice")}
-                            className={`w-full px-3 py-2 pr-8 text-sm rounded-xl border bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                              errors[`cls_${clsI}_basePrice`]
-                                ? "border-red-400 dark:border-red-500"
-                                : "border-stone-300 dark:border-stone-600"
-                            }`}
-                          />
-                          {errors[`cls_${clsI}_basePrice`] && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                              <Icon icon="heroicons:x-circle" className="size-4" />
-                            </span>
-                          )}
+                        <div
+                          aria-readonly="true"
+                          className="w-full px-3 py-2 text-sm rounded-xl border border-stone-300 dark:border-stone-600 bg-stone-100 dark:bg-slate-700/50 text-stone-900 dark:text-white"
+                        >
+                          {formatCurrency(Number(cls.basePrice) || 0)}
                         </div>
-                        {errors[`cls_${clsI}_basePrice`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                            <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                            {errors[`cls_${clsI}_basePrice`]}
-                          </p>
-                        )}
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 flex items-center gap-1">
+                          <Icon icon="heroicons:calculator" className="size-3" />
+                          {t("tourAdmin.packages.basePriceAutoCalculated", "Auto-calculated from activities")}
+                        </p>
                       </div>
                     </div>
 

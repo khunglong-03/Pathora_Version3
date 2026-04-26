@@ -275,6 +275,8 @@ public class TourService(
                         classification.Insurances.Add(insurance);
                     }
 
+                    // BasePrice is auto-derived from activity costs — DTO value is ignored.
+                    classification.RecalculateBasePrice();
                     tour.Classifications.Add(classification);
                 }
             }
@@ -1075,6 +1077,9 @@ public class TourService(
 
                 classification.Insurances.Add(insurance);
             }
+
+            // BasePrice is auto-derived from activity costs — DTO value is ignored.
+            classification.RecalculateBasePrice();
         }
     }
 
@@ -1317,10 +1322,12 @@ public class TourService(
         foreach (var classification in tour.Classifications)
         {
             var toDelete = classification.Plans.Where(p => deletedSet.Contains(p.Id)).ToList();
+            if (toDelete.Count == 0) continue;
             foreach (var plan in toDelete)
             {
                 CascadeSoftDeletePlan(plan, _user.Id ?? string.Empty);
             }
+            classification.RecalculateBasePrice();
         }
         await Task.CompletedTask;
     }
@@ -1334,13 +1341,20 @@ public class TourService(
         var deletedSet = new HashSet<Guid>(deletedActivityIds);
         foreach (var classification in tour.Classifications)
         {
+            var anyDeleted = false;
             foreach (var plan in classification.Plans)
             {
                 var toDelete = plan.Activities.Where(a => deletedSet.Contains(a.Id)).ToList();
+                if (toDelete.Count == 0) continue;
                 foreach (var activity in toDelete)
                 {
                     CascadeSoftDeleteActivity(activity, _user.Id ?? string.Empty);
                 }
+                anyDeleted = true;
+            }
+            if (anyDeleted)
+            {
+                classification.RecalculateBasePrice();
             }
         }
         await Task.CompletedTask;
