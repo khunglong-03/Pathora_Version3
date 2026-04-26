@@ -12,6 +12,8 @@ import {
   ImageLightbox,
   GuestRow,
 } from "@/features/shared/components";
+import { TourPoliciesCard } from "./TourPoliciesCard";
+import { calculateTourEstimate } from "@/utils/pricingUtils";
 import { homeService } from "@/api/services/homeService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,6 +139,19 @@ export function TourInstancePublicDetailPage() {
   const totalGuests = adults + children + infants;
   const isPublicInstance =
     (data?.instanceType || "").toLowerCase() === "public" || data?.instanceType === "Public";
+
+  const estimateBreakdown = useMemo(() => {
+    if (!data) return null;
+    return calculateTourEstimate(
+      data.basePrice,
+      adults,
+      children,
+      infants,
+      data.pricingPolicy
+    );
+  }, [data, adults, children, infants]);
+
+  const estimate = estimateBreakdown?.totalPrice ?? 0;
 
   /* ── Loading State ───────────────────────────────────────── */
   if (loading) {
@@ -322,7 +337,7 @@ export function TourInstancePublicDetailPage() {
                     <div 
                       key={i} 
                       onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
-                      className={`relative rounded-2xl overflow-hidden cursor-pointer group ${i === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto" : "aspect-square"}`}
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer group ${i === 0 ? "col-span-2 row-span-2 aspect-[4/3] md:aspect-square" : "aspect-square"}`}
                     >
                       <Image 
                         src={img} 
@@ -497,6 +512,18 @@ export function TourInstancePublicDetailPage() {
               </div>
             </motion.div>
 
+            {/* Tour Policies */}
+            {data && (data.pricingPolicy || data.cancellationPolicy || data.depositPolicy) && (
+              <motion.div variants={itemVariants} className="mt-8">
+                <TourPoliciesCard
+                  pricingPolicy={data.pricingPolicy}
+                  cancellationPolicy={data.cancellationPolicy}
+                  depositPolicy={data.depositPolicy}
+                  className="rounded-[2.5rem] border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                />
+              </motion.div>
+            )}
+
           </motion.div>
 
           {/* Sticky Booking Column (Right, 4 cols) */}
@@ -544,7 +571,7 @@ export function TourInstancePublicDetailPage() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 z-10">Total Estimate</span>
                 <span className="text-3xl font-bold tracking-tighter tabular-nums z-10">
-                  {formatCurrency(data.basePrice * totalGuests, formatterLocale)}
+                  {formatCurrency(estimate, formatterLocale)}
                 </span>
                 <span className="text-[10px] text-slate-500 mt-2 z-10">* Price may vary at final confirmation</span>
               </div>
@@ -568,6 +595,9 @@ export function TourInstancePublicDetailPage() {
                     endDate: data.endDate || "",
                     location: data.location || "",
                     basePrice: String(data.basePrice),
+                    adultPrice: String(estimateBreakdown?.adultPrice ?? data.basePrice),
+                    childPrice: String(estimateBreakdown?.childPrice ?? data.basePrice),
+                    infantPrice: String(estimateBreakdown?.infantPrice ?? 0),
                     adults: String(adults),
                     children: String(children),
                     infants: String(infants),

@@ -344,7 +344,7 @@ export function TourDetailPage() {
                     <div 
                       key={i} 
                       onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
-                      className={`relative rounded-2xl overflow-hidden cursor-pointer group ${i === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto" : "aspect-square"}`}
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer group ${i === 0 ? "col-span-2 row-span-2 aspect-[4/3] md:aspect-square" : "aspect-square"}`}
                     >
                       <Image 
                         src={img} 

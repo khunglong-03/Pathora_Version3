@@ -517,6 +517,38 @@ export interface TourInstancePlanAccommodationDto {
 
 // TourInstancePlanRouteDto removed — vehicle/driver data is now flattened onto TourInstanceDayActivityDto
 
+export interface PricingPolicyTierDto {
+  minParticipants: number;
+  maxParticipants: number;
+  markupPercentage: number;
+}
+
+export interface PricingPolicyDto {
+  id: string;
+  policyCode: string;
+  name: string;
+  tiers: PricingPolicyTierDto[];
+}
+
+export interface CancellationPolicyTierDto {
+  minDaysBeforeDeparture: number;
+  maxDaysBeforeDeparture: number;
+  penaltyPercentage: number;
+}
+
+export interface CancellationPolicyDto {
+  id: string;
+  policyCode: string;
+  tiers: CancellationPolicyTierDto[];
+}
+
+export interface DepositPolicyDto {
+  id: string;
+  depositType: string | number;
+  depositValue: number;
+  minDaysBeforeDeparture: number;
+}
+
 export interface TourInstanceDto {
   id: string;
   tourId: string;
@@ -549,6 +581,9 @@ export interface TourInstanceDto {
   /** @deprecated Instance-level approval note is a transition artifact. Per-activity note on days[].activities[].transportationApprovalNote is authoritative. */
   transportApprovalNote?: string | null;
   days?: TourInstanceDayDto[];
+  pricingPolicy?: PricingPolicyDto | null;
+  cancellationPolicy?: CancellationPolicyDto | null;
+  depositPolicy?: DepositPolicyDto | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {

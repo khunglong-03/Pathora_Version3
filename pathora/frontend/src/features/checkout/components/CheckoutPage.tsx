@@ -187,14 +187,18 @@ export function CheckoutPage() {
   const numberChild = parseInt(childrenParam, 10) || 0;
   const numberInfant = parseInt(infantsParam, 10) || 0;
 
+  const adultPriceParam = searchParams.get("adultPrice");
+  const childPriceParam = searchParams.get("childPrice");
+  const infantPriceParam = searchParams.get("infantPrice");
+
   // Build a CheckoutPriceResponse from URL params when there's no API response (tour instance direct checkout)
   const computedCheckoutPrice: CheckoutPriceResponse | null = React.useMemo(() => {
     if (tourInstanceIdParam && tourNameParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPct = Number(depositPercentageParam) || 0.3;
-      const adultPrice = basePrice;
-      const childPrice = 0;
-      const infantPrice = 0;
+      const adultPrice = adultPriceParam ? Number(adultPriceParam) : basePrice;
+      const childPrice = childPriceParam ? Number(childPriceParam) : 0;
+      const infantPrice = infantPriceParam ? Number(infantPriceParam) : 0;
       const adultSubtotal = adultPrice * numberAdult;
       const childSubtotal = childPrice * numberChild;
       const infantSubtotal = infantPrice * numberInfant;
@@ -231,7 +235,12 @@ export function CheckoutPage() {
       };
     }
     return null;
-  }, [tourInstanceIdParam, tourNameParam, basePriceParam, depositPercentageParam, startDateParam, endDateParam, locationParam, numberAdult, numberChild, numberInfant]);
+  }, [
+    tourInstanceIdParam, tourNameParam, basePriceParam, depositPercentageParam, 
+    startDateParam, endDateParam, locationParam, 
+    numberAdult, numberChild, numberInfant,
+    adultPriceParam, childPriceParam, infantPriceParam
+  ]);
 
   const effectivePrice = checkoutPrice ?? computedCheckoutPrice;
   const bookingId = effectivePrice?.bookingId ?? "";

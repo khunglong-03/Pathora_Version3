@@ -29,4 +29,7 @@ public sealed record TourInstanceDto(
     [property: JsonPropertyName("confirmationDeadline")] DateTimeOffset? ConfirmationDeadline,
     [property: JsonPropertyName("managers")] List<TourInstanceManagerDto> Managers,
     [property: JsonPropertyName("includedServices")] List<string> IncludedServices,
+    [property: JsonPropertyName("pricingPolicy")] PricingPolicyDto? PricingPolicy = null,
+    [property: JsonPropertyName("cancellationPolicy")] CancellationPolicyDto? CancellationPolicy = null,
+    [property: JsonPropertyName("depositPolicy")] DepositPolicyDto? DepositPolicy = null,
     [property: JsonPropertyName("days")] List<TourInstanceDayDto>? Days = null);

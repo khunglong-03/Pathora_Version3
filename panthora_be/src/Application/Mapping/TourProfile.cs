@@ -11,6 +11,10 @@ public sealed class TourProfile : Profile
     {
         CreateMap<ImageEntity, ImageDto>();
 
+        CreateMap<PricingPolicy, PricingPolicyDto>();
+        CreateMap<CancellationPolicyEntity, CancellationPolicyDto>();
+        CreateMap<DepositPolicyEntity, DepositPolicyDto>();
+
         CreateMap<TourClassificationEntity, TourClassificationDto>()
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));
 
