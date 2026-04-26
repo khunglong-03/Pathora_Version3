@@ -15,7 +15,9 @@ public class TourInstanceTransportAssignmentEntityConfiguration : IEntityTypeCon
         builder.HasIndex(x => x.TourInstanceDayActivityId);
         builder.HasIndex(x => x.VehicleId);
 
-        builder.HasIndex(x => new { x.TourInstanceDayActivityId, x.VehicleId })
+        // Manager-driven mode: 1 vehicle record with quantity>1 = multiple physical vehicles.
+        // Multiple assignment rows can share vehicleId but MUST have different driverIds.
+        builder.HasIndex(x => new { x.TourInstanceDayActivityId, x.VehicleId, x.DriverId })
             .IsUnique();
 
         builder.HasOne(x => x.TourInstanceDayActivity)

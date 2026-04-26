@@ -15,6 +15,21 @@ public static class TourInstanceTransportAssignmentRules
         return false;
     }
 
+    /// <summary>True when the same non-empty driver id appears more than once (e.g. two vehicle rows).</summary>
+    public static bool HasDuplicateDriverIds(IEnumerable<Guid> driverIds)
+    {
+        var set = new HashSet<Guid>();
+        foreach (var id in driverIds)
+        {
+            if (id == Guid.Empty)
+                continue;
+            if (!set.Add(id))
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Returns whether total effective seats cover the requested minimum.
     /// When <paramref name="requestedSeatCount"/> is null, treated as satisfied (caller may enforce stricter product rules).

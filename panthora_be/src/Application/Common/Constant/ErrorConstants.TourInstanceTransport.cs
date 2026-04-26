@@ -73,6 +73,12 @@ public static class TourInstanceTransportErrors
             "Không được gán trùng cùng một xe cho một hoạt động.",
             "The same vehicle cannot be assigned twice to one activity.");
 
+    public const string DuplicateDriverInActivityCode = "TourInstanceActivity.DuplicateDriver";
+    public static readonly LocalizedMessage DuplicateDriverInActivityDescription =
+        new(
+            "Không được gán cùng một tài xế cho nhiều xe trong cùng một hoạt động.",
+            "The same driver cannot be assigned to more than one vehicle in the same activity.");
+
     public const string TransportFleetInsufficientCapacityCode = "TourInstanceActivity.TransportFleetInsufficientCapacity";
     public static readonly LocalizedMessage TransportFleetInsufficientCapacityDescription =
         new(

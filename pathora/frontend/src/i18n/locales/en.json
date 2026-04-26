@@ -1390,6 +1390,32 @@
       "hideDetails": "Hide details"
     },
     "admin": {
+    "staff": {
+      "title": "Create New Staff",
+      "type": "Staff Type",
+      "designer": "Tour Designer",
+      "designerDesc": "Design and plan tours",
+      "guide": "Tour Guide",
+      "guideDesc": "Guide and operate tours",
+      "username": "Username",
+      "email": "Email",
+      "fullName": "Full Name",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "passwordHint": "* Leave blank to use default password \"password123\"",
+      "submit": "Create Staff",
+      "submitting": "Creating...",
+      "cancel": "Cancel",
+      "validation": {
+        "required": "Please enter all required information",
+        "invalidUsername": "Invalid username (only letters, numbers, dots, and underscores allowed)",
+        "invalidEmail": "Invalid email format",
+        "passwordMin": "Password must be at least 6 characters",
+        "passwordMismatch": "Passwords do not match"
+      },
+      "createSuccess": "Staff created successfully",
+      "createError": "Could not add staff. Please try again."
+    },
       "table": {
         "index": "#",
         "destination": "Destination",

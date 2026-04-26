@@ -18,6 +18,7 @@ type StaffType = "TourDesigner" | "TourGuide";
 export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaffModalProps) {
   const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<StaffType>("TourDesigner");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -25,11 +26,27 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEmail(val);
+    
+    // Auto-suggest username if empty
+    if (!username && val.includes("@")) {
+      setUsername(val.split("@")[0].replace(/[^a-zA-Z0-9._]/g, ""));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !fullName) {
       setError(t("admin.staff.validation.required"));
+      return;
+    }
+
+    // Username validation
+    if (username && !/^[a-zA-Z0-9._]+$/.test(username)) {
+      setError(t("admin.staff.validation.invalidUsername"));
       return;
     }
 
@@ -57,6 +74,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
     try {
       await adminService.createStaffUnderManager(managerId, {
         staffType: selectedType === "TourDesigner" ? 1 : 2,
+        username: username.trim() || undefined,
         email: email.trim(),
         fullName: fullName.trim(),
         password: password || undefined,
@@ -74,6 +92,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
   const handleClose = () => {
     if (!isSubmitting) {
       setSelectedType("TourDesigner");
+      setUsername("");
       setEmail("");
       setFullName("");
       setPassword("");
@@ -87,6 +106,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
     <Modal isOpen={isOpen} onClose={handleClose} title={t("admin.staff.title")}>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Staff Type Selection */}
+        {/* ... (phần radio selection giữ nguyên) */}
         <div>
           <label className="block text-sm font-semibold mb-3" style={{ color: "#374151" }}>
             {t("admin.staff.type")}
@@ -156,12 +176,27 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
+              {t("admin.staff.username")}
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username_example"
+              disabled={isSubmitting}
+              className="w-full px-4 py-2 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-[#C9873A]/20"
+              style={{ borderColor: "#D1D5DB" }}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: "#374151" }}>
               {t("admin.staff.email")}
             </label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               placeholder="nhanvien@example.com"
               disabled={isSubmitting}
               className="w-full px-4 py-2 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-[#C9873A]/20"

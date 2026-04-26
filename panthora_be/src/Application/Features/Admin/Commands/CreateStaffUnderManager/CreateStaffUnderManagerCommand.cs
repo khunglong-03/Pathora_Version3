@@ -51,6 +51,25 @@ public sealed class CreateStaffUnderManagerCommandHandler(
         if (manager is null)
             return Error.NotFound(ErrorConstants.User.NotFoundCode, ErrorConstants.User.NotFoundDescription);
 
+        var email = request.Request.Email.Trim().ToLower();
+        var username = !string.IsNullOrWhiteSpace(request.Request.Username)
+            ? request.Request.Username.Trim().ToLower()
+            : email;
+
+        // Check Email Uniqueness
+        var isEmailUnique = await userRepository.IsEmailUnique(email);
+        if (!isEmailUnique)
+            return Error.Conflict(
+                ErrorConstants.User.DuplicateEmailCode,
+                ErrorConstants.User.DuplicateEmailDescription);
+
+        // Check Username Uniqueness
+        var isUsernameUnique = await userRepository.IsUsernameUnique(username);
+        if (!isUsernameUnique)
+            return Error.Conflict(
+                "User.DuplicateUsername",
+                "Username already exists.");
+
         var roleName = request.Request.StaffType switch
         {
             1 => "TourDesigner",
@@ -63,19 +82,12 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             return Error.NotFound("Role.NotFound", $"Role '{roleName}' not found.");
         var roleId = roleResult.Value.Id;
 
-        var email = request.Request.Email.Trim().ToLower();
-        var isUnique = await userRepository.IsEmailUnique(email);
-        if (!isUnique)
-            return Error.Conflict(
-                ErrorConstants.User.DuplicateEmailCode,
-                ErrorConstants.User.DuplicateEmailDescription);
-
-        var password = !string.IsNullOrEmpty(request.Request.Password)
-            ? request.Request.Password
+        var password = !string.IsNullOrEmpty(request.Request.Password) 
+            ? request.Request.Password 
             : "password123";
 
         var userEntity = UserEntity.Create(
-            email,
+            username,
             request.Request.FullName.Trim(),
             email,
             passwordHasher.HashPassword(password),
@@ -84,7 +96,6 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             forcePasswordChange: string.IsNullOrEmpty(request.Request.Password));
 
         userEntity.VerifyStatus = VerifyStatus.Verified;
-
         // Use ExecuteTransactionAsync to be compatible with NpgsqlRetryingExecutionStrategy.
         // All operations use AddAsync (no internal SaveChangesAsync) — the single SaveChanges
         // is called by ExecuteTransactionAsync at the end of the lambda.
@@ -144,6 +155,13 @@ public sealed class CreateStaffUnderManagerCommandValidator : AbstractValidator<
         RuleFor(x => x.ManagerId)
             .NotEmpty()
             .WithMessage(ValidationMessages.CommonIdRequired);
+
+        RuleFor(x => x.Request.Username)
+            .MinimumLength(3)
+            .MaximumLength(50)
+            .Matches(@"^[a-zA-Z0-9._]+$")
+            .WithMessage("Username must be between 3 and 50 characters and contain only letters, numbers, dots, or underscores.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Request.Username));
 
         RuleFor(x => x.Request.Email)
             .NotEmpty()

@@ -1,6 +1,37 @@
 import axiosInstance from "@/api/axiosInstance";
 import { extractData, extractItems, extractResult, handleApiError } from "@/utils/apiResponse";
 
+/**
+ * Produces a stable `yyyy-MM-dd` for GET query params. Axios drops keys whose value is `undefined`;
+ * long ISO strings can also be mishandled by some proxies. Accepts ISO strings, `Date`, and dayjs-like inputs.
+ */
+function toDateOnlyQueryParam(value: unknown, paramName: string): string {
+  if (value == null) {
+    throw new TypeError(`${paramName} is required`);
+  }
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new TypeError(`${paramName} is an invalid Date`);
+    }
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (!s) {
+      throw new TypeError(`${paramName} is required`);
+    }
+    const day = /^(\d{4}-\d{2}-\d{2})/.exec(s);
+    if (day) {
+      return day[1]!;
+    }
+  }
+  const d = new Date(value as string | number | Date);
+  if (Number.isNaN(d.getTime())) {
+    throw new TypeError(`${paramName} is not a valid date`);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 export interface Vehicle {
   id: string;
   vehicleType: string;
@@ -259,7 +290,7 @@ class TransportProviderService {
     excludeActivityId?: string
   ): Promise<AvailableVehicle[] | null> {
     try {
-      const params: Record<string, string | number> = { date };
+      const params: Record<string, string | number> = { date: toDateOnlyQueryParam(date, "date") };
       if (vehicleType !== undefined) params.vehicleType = vehicleType;
       if (excludeActivityId) params.excludeActivityId = excludeActivityId;
       const response = await axiosInstance.get<AvailableVehicle[]>(
@@ -292,7 +323,10 @@ class TransportProviderService {
     vehicleId?: string
   ): Promise<VehicleScheduleItem[] | null> {
     try {
-      const params: Record<string, string> = { from: fromDate, to: toDate };
+      const params: Record<string, string> = {
+        from: toDateOnlyQueryParam(fromDate, "from"),
+        to: toDateOnlyQueryParam(toDate, "to"),
+      };
       if (vehicleId) params.vehicleId = vehicleId;
       const response = await axiosInstance.get<VehicleScheduleItem[]>(
         "/transport-provider/vehicles/schedule",
@@ -326,7 +360,7 @@ class TransportProviderService {
     excludeActivityId?: string
   ): Promise<Driver[] | null> {
     try {
-      const params: Record<string, string | number> = { date };
+      const params: Record<string, string | number> = { date: toDateOnlyQueryParam(date, "date") };
       if (excludeActivityId) params.excludeActivityId = excludeActivityId;
       const response = await axiosInstance.get<Driver[]>(
         "/transport-provider/drivers/available",

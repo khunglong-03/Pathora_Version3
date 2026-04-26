@@ -260,6 +260,12 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         return !await _context.Users.AnyAsync(u => u.Email != null && u.Email.Trim().ToLower() == normalizedEmail && !u.IsDeleted, cancellationToken);
     }
 
+    public async Task<bool> IsUsernameUnique(string username, CancellationToken cancellationToken = default)
+    {
+        var normalizedUsername = username.Trim().ToLowerInvariant();
+        return !await _context.Users.AnyAsync(u => u.Username != null && u.Username.Trim().ToLower() == normalizedUsername && !u.IsDeleted, cancellationToken);
+    }
+
     public async Task<List<UserEntity>> FindProvidersByRoleAsync(
         int roleId,
         string? search,

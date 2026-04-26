@@ -34,6 +34,17 @@ describe("transportProviderService — availability methods", () => {
       );
     });
 
+    it("normalizes ISO date-time strings to yyyy-MM-dd for the date param", async () => {
+      mockGet.mockResolvedValue({ data: { data: [] } });
+
+      await transportProviderService.getAvailableVehicles("2026-05-28T00:00:00.000Z");
+
+      expect(mockGet).toHaveBeenCalledWith(
+        "/transport-provider/vehicles/available",
+        { params: { date: "2026-05-28" } },
+      );
+    });
+
     it("sends vehicleType as number", async () => {
       mockGet.mockResolvedValue({ data: { data: [] } });
 
@@ -88,7 +99,7 @@ describe("transportProviderService — availability methods", () => {
 
       expect(mockGet).toHaveBeenCalledWith(
         "/transport-provider/vehicles/schedule",
-        { params: { fromDate: "2026-05-01", toDate: "2026-05-31" } },
+        { params: { from: "2026-05-01", to: "2026-05-31" } },
       );
     });
 
@@ -105,8 +116,8 @@ describe("transportProviderService — availability methods", () => {
         "/transport-provider/vehicles/schedule",
         {
           params: {
-            fromDate: "2026-05-01",
-            toDate: "2026-05-31",
+            from: "2026-05-01",
+            to: "2026-05-31",
             vehicleId: "v-abc",
           },
         },

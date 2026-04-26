@@ -1,7 +1,9 @@
 using global::Domain.Common.Repositories;
 using global::Domain.Entities;
 using global::Domain.Enums;
+using global::Infrastructure.Data;
 using global::Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
@@ -17,10 +19,14 @@ public sealed class ResourceAvailabilityServiceVehicleTests
 
     public ResourceAvailabilityServiceVehicleTests()
     {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
         _sut = new ResourceAvailabilityService(
             Substitute.For<IRoomBlockRepository>(),
             _vehicleBlocks,
             Substitute.For<IHotelRoomInventoryRepository>(),
+            new AppDbContext(options),
             NullLogger<ResourceAvailabilityService>.Instance);
     }
 

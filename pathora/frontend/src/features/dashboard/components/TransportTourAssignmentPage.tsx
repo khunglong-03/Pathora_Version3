@@ -21,6 +21,10 @@ import {
   type TourInstanceDto,
 } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import {
+  filterVehiclesByRequestedType,
+  mapVehiclesToSelectOptions,
+} from "./transportApprovalVehicleOptions";
 
 type TransportActivityItem = {
   dayNumber: number;
@@ -163,6 +167,35 @@ function sumSeatCapacityForRows(
   return sum;
 }
 
+/**
+ * Picks vehicle IDs from the availability API, reusing the same vehicle ID
+ * when its `availableQuantity` allows multiple physical units.
+ * A single vehicle record with quantity=14 means 14 physical vehicles under one DB ID.
+ */
+function fillEmptyVehicleIdsFromAvailable(
+  rows: TransportAssignmentRowDraft[],
+  available: AvailableVehicle[],
+): TransportAssignmentRowDraft[] {
+  if (available.length === 0) return rows;
+  // Build a pool that respects each vehicle's available quantity
+  let ai = 0;
+  let usedFromCurrent = 0;
+  return rows.map((row) => {
+    if (row.vehicleId) return row;
+    // Find the next vehicle with remaining available quantity
+    while (ai < available.length) {
+      const v = available[ai];
+      if (usedFromCurrent < (v.availableQuantity ?? v.quantity ?? 1)) {
+        usedFromCurrent += 1;
+        return { ...row, vehicleId: v.id };
+      }
+      ai += 1;
+      usedFromCurrent = 0;
+    }
+    return row;
+  });
+}
+
 export default function TransportTourAssignmentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -286,24 +319,39 @@ export default function TransportTourAssignmentPage() {
   }, [transportActivities]);
 
   const vehicleOptions = useMemo(
-    () =>
-      vehicles.map((vehicle) => ({
-        value: vehicle.id,
-        label: `${vehicle.vehicleType} - ${vehicle.seatCapacity} cho`,
-      })),
+    () => mapVehiclesToSelectOptions(vehicles),
     [vehicles],
   );
+
+  /** `activeApproveItem` is declared later; use the same source for the requested type. */
+  const requestedVehicleTypeForApproveModal = useMemo(() => {
+    if (!approveActivityId) return undefined;
+    return (
+      transportActivities.find((item) => item.activity.id === approveActivityId)?.activity
+        .requestedVehicleType
+    );
+  }, [approveActivityId, transportActivities]);
 
   /** Availability-aware options for the approve modal — shows "Còn trống X/Y". */
   const approveVehicleOptions = useMemo(() => {
     if (!approveActivityId) return vehicleOptions;
     const available = availableVehiclesByActivity[approveActivityId];
-    if (!available || available.length === 0) return vehicleOptions;
-    return available.map((v) => ({
-      value: v.id,
-      label: `${v.brand ?? ""} ${v.model ?? ""} – ${v.seatCapacity} chỗ (Còn trống ${v.availableQuantity}/${v.quantity})`.trim(),
-    }));
-  }, [approveActivityId, availableVehiclesByActivity, vehicleOptions]);
+    if (available && available.length > 0) {
+      return available.map((v) => ({
+        value: v.id,
+        label: `${v.brand ?? ""} ${v.model ?? ""} – ${v.seatCapacity} chỗ (Còn trống ${v.availableQuantity}/${v.quantity})`.trim(),
+      }));
+    }
+    return mapVehiclesToSelectOptions(
+      filterVehiclesByRequestedType(vehicles, requestedVehicleTypeForApproveModal),
+    );
+  }, [
+    approveActivityId,
+    availableVehiclesByActivity,
+    requestedVehicleTypeForApproveModal,
+    vehicleOptions,
+    vehicles,
+  ]);
 
   const driverOptions = useMemo(
     () =>
@@ -324,6 +372,23 @@ export default function TransportTourAssignmentPage() {
       label: `${d.fullName} (${d.licenseNumber})`,
     }));
   }, [approveActivityId, availableDriversByActivity, driverOptions]);
+
+  /** Each row excludes drivers already picked on other rows (prevents 3 lines → same tài xế). */
+  const getApproveDriverOptionsForRow = useCallback(
+    (rowIndex: number) => {
+      if (!approveActivityId) return approveDriverOptions;
+      const draft = approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT;
+      const taken = new Set(
+        draft.rows
+          .map((r, i) => (i === rowIndex ? null : r.driverId))
+          .filter((id): id is string => Boolean(id)),
+      );
+      return approveDriverOptions.filter(
+        (o) => !taken.has(o.value) || o.value === draft.rows[rowIndex]?.driverId,
+      );
+    },
+    [approveActivityId, approvalDrafts, approveDriverOptions],
+  );
 
   const activeApproveItem = useMemo(
     () =>
@@ -349,21 +414,25 @@ export default function TransportTourAssignmentPage() {
     return bulkEligibleActivities
       .filter((item) => {
         const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
-        const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+        const managerDriven = Boolean(item.activity.requestedVehicleType);
+        const filled = managerDriven
+          ? draft.rows.filter((r) => r.driverId)
+          : draft.rows.filter((r) => r.vehicleId && r.driverId);
         if (filled.length === 0) return true;
-        if (filled.length !== new Set(filled.map((r) => r.vehicleId)).size) return true;
-        const required =
-          item.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
-        const sum = sumSeatCapacityForRows(filled, vehicles);
-        if (sum < required) return true;
-        const requestedType = item.activity.requestedVehicleType;
-        if (requestedType) {
-          const badType = filled.some((r) => {
-            const v = vehicles.find((x) => x.id === r.vehicleId);
-            return v && v.vehicleType !== requestedType;
-          });
-          if (badType) return true;
+        const driverPicks = draft.rows.map((r) => r.driverId).filter((id) => id) as string[];
+        if (driverPicks.length !== new Set(driverPicks).size) return true;
+        // Skip duplicate vehicle check in manager-driven mode
+        if (!managerDriven) {
+          const filledWithVehicle = filled.filter((r) => r.vehicleId);
+          if (filledWithVehicle.length !== new Set(filledWithVehicle.map((r) => r.vehicleId)).size) return true;
+          const required =
+            item.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
+          const sum = sumSeatCapacityForRows(filledWithVehicle, vehicles);
+          if (sum < required) return true;
         }
+        // requestedVehicleCount check
+        const requestedCount = item.activity.requestedVehicleCount;
+        if (requestedCount && filled.length !== requestedCount) return true;
         return false;
       })
       .map((item) => item.activity.title);
@@ -383,6 +452,7 @@ export default function TransportTourAssignmentPage() {
         typeMismatch: false,
         seatShortfall: false,
         duplicateVehicle: false,
+        duplicateDriver: false,
         hasFilledRow: false,
         totalSeats: 0,
         countMismatch: false,
@@ -391,28 +461,41 @@ export default function TransportTourAssignmentPage() {
       };
     }
     const draft = approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT;
-    const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+    const managerDriven = Boolean(activeApproveItem.activity.requestedVehicleType);
+    // In manager-driven mode: a row is "filled" if it has a driverId (vehicleId is auto-filled)
+    // In normal mode: a row is "filled" if it has both vehicleId and driverId
+    const filled = managerDriven
+      ? draft.rows.filter((r) => r.driverId)
+      : draft.rows.filter((r) => r.vehicleId && r.driverId);
     const requestedType = activeApproveItem.activity.requestedVehicleType;
     const required =
       activeApproveItem.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
     let typeMismatch = false;
     for (const r of filled) {
+      if (!r.vehicleId) continue; // skip type check if vehicle not yet auto-filled
       const v = vehicles.find((x) => x.id === r.vehicleId);
       if (v && requestedType && v.vehicleType !== requestedType) {
         typeMismatch = true;
         break;
       }
     }
-    const duplicateVehicle =
-      filled.length > 0
-      && filled.map((r) => r.vehicleId).length
-        !== new Set(filled.map((r) => r.vehicleId)).size;
+    // In manager-driven mode: duplicate vehicleIds are expected (1 record = N physical vehicles)
+    const filledWithVehicle = filled.filter((r) => r.vehicleId);
+    const duplicateVehicle = managerDriven
+      ? false
+      : filledWithVehicle.length > 0
+        && filledWithVehicle.map((r) => r.vehicleId).length
+          !== new Set(filledWithVehicle.map((r) => r.vehicleId)).size;
+    const driverIdsChosen = draft.rows
+      .map((r) => r.driverId)
+      .filter((id): id is string => Boolean(id));
     const duplicateDriver =
-      filled.length > 0
-      && filled.map((r) => r.driverId).length
-        !== new Set(filled.map((r) => r.driverId)).size;
-    const totalSeats = sumSeatCapacityForRows(filled, vehicles);
-    const seatShortfall = filled.length > 0 && totalSeats < required;
+      driverIdsChosen.length > 0
+      && driverIdsChosen.length !== new Set(driverIdsChosen).size;
+    const totalSeats = managerDriven
+      ? (activeApproveItem.activity.requestedSeatCount ?? 0) * filled.length
+      : sumSeatCapacityForRows(filledWithVehicle, vehicles);
+    const seatShortfall = !managerDriven && filledWithVehicle.length > 0 && totalSeats < required;
     // Scope addendum 2026-04-23: strict vehicle count match when manager set one.
     const requestedCount = activeApproveItem.activity.requestedVehicleCount ?? undefined;
     const countMismatch =
@@ -436,6 +519,83 @@ export default function TransportTourAssignmentPage() {
     vehicles,
   ]);
 
+  /** Nút phê duyệt + tooltip (giải thích khi bị vô hiệu). */
+  const { approvePrimaryDisabled, approvePrimaryHint } = useMemo(() => {
+    if (!activeApproveItem || !approveActivityId) {
+      return { approvePrimaryDisabled: true, approvePrimaryHint: undefined as string | undefined };
+    }
+    const processing = actionKey === `approve:${approveActivityId}`;
+    const v = approveModalValidation;
+    const disabled =
+      processing
+      || !v.hasFilledRow
+      || v.duplicateVehicle
+      || v.duplicateDriver
+      || v.typeMismatch
+      || v.seatShortfall
+      || v.countMismatch;
+    if (!disabled) {
+      return { approvePrimaryDisabled: false, approvePrimaryHint: undefined };
+    }
+    if (processing) {
+      return { approvePrimaryDisabled: true, approvePrimaryHint: undefined };
+    }
+    if (v.duplicateDriver) {
+      return {
+        approvePrimaryDisabled: true,
+        approvePrimaryHint: t(
+          "tourInstance.transport.approveButtonHint.duplicateDriver",
+          "Một tài xế không thể dùng cho nhiều dòng. Đổi tài xế trùng lặp.",
+        ),
+      };
+    }
+    if (v.countMismatch) {
+      return {
+        approvePrimaryDisabled: true,
+        approvePrimaryHint: t(
+          "tourInstance.transport.approveButtonHint.countMismatch",
+          "Mới phân công đủ {{filled}}/{{required}} tài xế.",
+          { filled: v.filledCount, required: v.requestedCount ?? "?" },
+        ),
+      };
+    }
+    if (!v.hasFilledRow) {
+      return {
+        approvePrimaryDisabled: true,
+        approvePrimaryHint: t(
+          "tourInstance.transport.approveButtonHint.noRow",
+          "Chưa chọn tài xế nào.",
+        ),
+      };
+    }
+    if (v.duplicateVehicle) {
+      return {
+        approvePrimaryDisabled: true,
+        approvePrimaryHint: t(
+          "tourInstance.transport.approveButtonHint.duplicateVehicle",
+          "Không dùng cùng một xe ở hai dòng.",
+        ),
+      };
+    }
+    if (v.typeMismatch || v.seatShortfall) {
+      return {
+        approvePrimaryDisabled: true,
+        approvePrimaryHint: t(
+          "tourInstance.transport.approveButtonHint.capacityOrType",
+          "Loại xe hoặc tổng số ghế chưa đúng yêu cầu.",
+        ),
+      };
+    }
+    return { approvePrimaryDisabled: true, approvePrimaryHint: undefined };
+  }, [
+    activeApproveItem,
+    approveActivityId,
+    actionKey,
+    approveModalValidation,
+    approveDraft.rows,
+    t,
+  ]);
+
   const updateDraft = useCallback(
     (activityId: string, updates: Partial<ApprovalDraft>) => {
       setApprovalDrafts((current) => {
@@ -456,6 +616,21 @@ export default function TransportTourAssignmentPage() {
     (activityId: string, rowIndex: number, partial: Partial<TransportAssignmentRowDraft>) => {
       setApprovalDrafts((current) => {
         const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+        if (partial.driverId !== undefined) {
+          const newDriver = partial.driverId;
+          if (newDriver) {
+            const nextRows = prev.rows.map((r, i) => {
+              if (i === rowIndex) {
+                return { ...r, ...partial };
+              }
+              if (r.driverId === newDriver) {
+                return { ...r, driverId: "" };
+              }
+              return r;
+            });
+            return { ...current, [activityId]: { ...prev, rows: nextRows } };
+          }
+        }
         const nextRows = prev.rows.map((r, i) =>
           i === rowIndex ? { ...r, ...partial } : r,
         );
@@ -534,6 +709,16 @@ export default function TransportTourAssignmentPage() {
           ...prev,
           [activity.id]: availableDrivers ?? [],
         }));
+
+        setApprovalDrafts((current) => {
+          const base = current[activity.id] ?? activityDraftFromActivity(activity);
+          const nextRows = fillEmptyVehicleIdsFromAvailable(
+            base.rows,
+            availableVehicles ?? [],
+          );
+          if (nextRows === base.rows) return current;
+          return { ...current, [activity.id]: { ...base, rows: nextRows } };
+        });
       } catch {
         // Fallback: keep using global lists
         setAvailableVehiclesByActivity((prev) => ({
@@ -561,12 +746,16 @@ export default function TransportTourAssignmentPage() {
   const handleApproveActivity = async () => {
     if (!id || !approveActivityId) return;
 
-    const filled = approveDraft.rows.filter((r) => r.vehicleId && r.driverId);
+    const isManagerDriven = Boolean(activeApproveItem?.activity.requestedVehicleType);
+    // In manager-driven mode: row is filled if it has driverId (vehicleId auto-filled from kho)
+    const filled = isManagerDriven
+      ? approveDraft.rows.filter((r) => r.driverId)
+      : approveDraft.rows.filter((r) => r.vehicleId && r.driverId);
     if (filled.length === 0) {
       toast.error(
         t(
           "tourInstance.transport.missingAssignment",
-          "Vui long chon ca xe va tai xe.",
+          isManagerDriven ? "Vui lòng chọn tài xế." : "Vui long chon ca xe va tai xe.",
         ),
       );
       return;
@@ -576,6 +765,15 @@ export default function TransportTourAssignmentPage() {
         t(
           "tourInstance.transport.duplicateVehicle",
           "Khong duoc trung xe trong cung mot hoat dong.",
+        ),
+      );
+      return;
+    }
+    if (approveModalValidation.duplicateDriver) {
+      toast.error(
+        t(
+          "tourInstance.transport.duplicateDriver",
+          "Lỗi: Không thể gán một tài xế cho nhiều xe trong cùng một hoạt động.",
         ),
       );
       return;
@@ -978,7 +1176,14 @@ export default function TransportTourAssignmentPage() {
       <Modal
         isOpen={Boolean(activeApproveItem)}
         onClose={() => setApproveActivityId(null)}
-        title={t("tourInstance.transport.approveModal", "Gan xe va duyet")}
+        title={
+          activeApproveItem?.activity.requestedVehicleType
+            ? t(
+                "tourInstance.transport.approveModalDriversOnly",
+                "Phan cong tai xe (theo yeu cau)",
+              )
+            : t("tourInstance.transport.approveModal", "Gan xe va duyet")
+        }
         footerContent={(
           <div className="flex gap-3 w-full sm:w-auto">
             <button
@@ -988,24 +1193,23 @@ export default function TransportTourAssignmentPage() {
             >
               {t("common.cancel", "Huy")}
             </button>
-            <button
-              type="button"
-              onClick={handleApproveActivity}
-              disabled={
-                !approveModalValidation.hasFilledRow
-                || approveModalValidation.duplicateVehicle
-                || approveModalValidation.duplicateDriver
-                || approveModalValidation.typeMismatch
-                || approveModalValidation.seatShortfall
-                || approveModalValidation.countMismatch
-                || actionKey === `approve:${approveActivityId}`
-              }
-              className="flex-1 sm:flex-none rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            <div
+              title={approvePrimaryHint}
+              className={approvePrimaryDisabled ? "cursor-not-allowed flex-1 sm:flex-none" : "flex-1 sm:flex-none"}
             >
-              {actionKey === `approve:${approveActivityId}`
-                ? t("common.processing", "Dang xu ly...")
-                : t("tourInstance.transport.approveAction", "Gan xe va duyet")}
-            </button>
+              <button
+                type="button"
+                onClick={handleApproveActivity}
+                disabled={approvePrimaryDisabled}
+                className="w-full h-full rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 disabled:pointer-events-none disabled:bg-slate-300"
+              >
+                {actionKey === `approve:${approveActivityId}`
+                  ? t("common.processing", "Dang xu ly...")
+                  : activeApproveItem?.activity.requestedVehicleType
+                    ? t("tourInstance.transport.approveActionDrivers", "Xac nhan phan cong")
+                    : t("tourInstance.transport.approveAction", "Gan xe va duyet")}
+              </button>
+            </div>
           </div>
         )}
       >
@@ -1022,6 +1226,18 @@ export default function TransportTourAssignmentPage() {
                 {formatDateLabel(activeApproveItem.date)}
               </p>
             </div>
+
+            {activeApproveItem.activity.requestedVehicleType && (
+              <div className="flex items-start gap-3 rounded-[1.5rem] border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                <Icon icon="heroicons:information-circle" className="mt-0.5 size-5 shrink-0 text-sky-600" />
+                <p className="font-medium leading-relaxed">
+                  {t(
+                    "tourInstance.transport.managerDriversOnlyHint",
+                    "Quan ly da chon loai va so luong xe. Ban chi can chon tai xe cho tung vi tri — khong chon lai loai/ xe; xe duoc he thong gan ngam tu kho.",
+                  )}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-4">
               {approveActivityId && !availableVehiclesLoading && availableVehiclesByActivity[approveActivityId] && availableVehiclesByActivity[approveActivityId].length === 0 && (
@@ -1042,8 +1258,60 @@ export default function TransportTourAssignmentPage() {
                 </div>
               )}
 
+              {Boolean(activeApproveItem.activity.requestedVehicleType)
+                && !availableVehiclesLoading
+                && approveDraft.rows.some((r) => !r.vehicleId) && (
+                <div className="flex items-start gap-3 rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+                  <Icon icon="heroicons:exclamation-triangle" className="mt-0.5 size-5 shrink-0 text-rose-500" />
+                  <p className="font-medium leading-relaxed">
+                    {t(
+                      "tourInstance.transport.insufficientDistinctFleetVehicles",
+                      "Kho hien khong co du {{need}} ban ghi xe rieng cung loai cho ngay nay. He thong can mot ban ghi xe tren he thong cho moi xe thuc te (giong nhau van la khac ban ghi). Them xe o Quan ly doi xe (cung loai) hoac doi ngay, roi thu lai.",
+                      {
+                        need: approveDraft.rows.length,
+                      },
+                    )}
+                  </p>
+                </div>
+              )}
+
               <AnimatePresence>
-                {approveDraft.rows.map((row, rowIndex) => (
+                {approveDraft.rows.map((row, rowIndex) => {
+                  const managerPickDriversOnly = Boolean(
+                    activeApproveItem.activity.requestedVehicleType,
+                  );
+                  if (managerPickDriversOnly) {
+                    return (
+                  <motion.div
+                    key={rowIndex}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="grid gap-4 overflow-hidden rounded-[1.5rem] border border-slate-200/60 bg-white p-5 shadow-sm md:grid-cols-[1fr_auto] md:items-start"
+                  >
+                    <Select
+                      label={t("tourInstance.transport.driverNumbered", "Tai xe thu {{n}}", { n: rowIndex + 1 })}
+                      value={row.driverId}
+                      onChange={(event) => patchRow(activeApproveItem.activity.id, rowIndex, { driverId: event.target.value })}
+                      options={getApproveDriverOptionsForRow(rowIndex)}
+                      placeholder={availableDriversLoading ? "Đang tải tài xế…" : "Chọn tài xế"}
+                      disabled={availableDriversLoading}
+                    />
+                    <div className="flex justify-end md:pt-6">
+                      {approveDraft.rows.length > 1 && (!approveModalValidation.requestedCount || approveDraft.rows.length > approveModalValidation.requestedCount) && (
+                        <button
+                          type="button"
+                          onClick={() => removeAssignmentRow(activeApproveItem.activity.id, rowIndex)}
+                          className="flex size-10 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                        >
+                          <Icon icon="heroicons:trash" className="size-5" />
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                    );
+                  }
+                  return (
                   <motion.div
                     key={rowIndex}
                     initial={{ opacity: 0, height: 0 }}
@@ -1057,13 +1325,13 @@ export default function TransportTourAssignmentPage() {
                       onChange={(event) => patchRow(activeApproveItem.activity.id, rowIndex, { vehicleId: event.target.value })}
                       options={approveVehicleOptions}
                       placeholder={availableVehiclesLoading ? "Đang tải xe…" : "Chọn xe trống"}
-                      disabled={availableVehiclesLoading || Boolean(activeApproveItem.activity.transportAssignments?.[rowIndex]?.vehicleId || (rowIndex === 0 && activeApproveItem.activity.vehicleId))}
+                      disabled={availableVehiclesLoading}
                     />
                     <Select
                       label={t("tourInstance.transport.driver", "Tai xe")}
                       value={row.driverId}
                       onChange={(event) => patchRow(activeApproveItem.activity.id, rowIndex, { driverId: event.target.value })}
-                      options={approveDriverOptions}
+                      options={getApproveDriverOptionsForRow(rowIndex)}
                       placeholder={availableDriversLoading ? "Đang tải tài xế…" : "Chọn tài xế"}
                       disabled={availableDriversLoading}
                     />
@@ -1079,10 +1347,12 @@ export default function TransportTourAssignmentPage() {
                       )}
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </AnimatePresence>
 
-              {(!approveModalValidation.requestedCount || approveDraft.rows.length < approveModalValidation.requestedCount) && (
+              {!activeApproveItem.activity.requestedVehicleType
+                && (!approveModalValidation.requestedCount || approveDraft.rows.length < approveModalValidation.requestedCount) && (
                 <button
                   type="button"
                   onClick={() => addAssignmentRow(activeApproveItem.activity.id)}
@@ -1097,8 +1367,17 @@ export default function TransportTourAssignmentPage() {
               )}
 
               {approveModalValidation.requestedCount !== undefined && (
-                <p className={`text-xs font-semibold px-2 ${approveModalValidation.countMismatch ? "text-rose-600" : "text-slate-500"}`}>
-                  {t("tourInstance.transport.vehicleCountStatus", "{{filled}}/{{required}} xe", { filled: approveModalValidation.filledCount, required: approveModalValidation.requestedCount })}
+                <p className={`text-xs font-semibold px-2 ${approveModalValidation.countMismatch ? "text-rose-600" : "text-emerald-600"}`}>
+                  {activeApproveItem.activity.requestedVehicleType
+                    ? t(
+                        "tourInstance.transport.driverAssignmentCountStatus",
+                        "{{filled}}/{{required}} tài xế đã phân công",
+                        {
+                          filled: approveModalValidation.filledCount,
+                          required: approveModalValidation.requestedCount,
+                        },
+                      )
+                    : t("tourInstance.transport.vehicleCountStatus", "{{filled}}/{{required}} xe", { filled: approveModalValidation.filledCount, required: approveModalValidation.requestedCount })}
                 </p>
               )}
             </div>

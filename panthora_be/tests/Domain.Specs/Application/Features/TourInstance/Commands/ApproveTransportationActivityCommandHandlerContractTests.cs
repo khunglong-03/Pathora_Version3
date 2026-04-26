@@ -139,6 +139,53 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
     }
 
     [Fact]
+    public async Task Handle_WhenAssignmentsContainDuplicateDriver_ReturnsDuplicateDriverInActivity()
+    {
+        var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        var supplierRepository = Substitute.For<ISupplierRepository>();
+        var vehicleRepository = Substitute.For<IVehicleRepository>();
+        var driverRepository = Substitute.For<IDriverRepository>();
+        var vehicleBlockRepository = Substitute.For<IVehicleBlockRepository>();
+        var availabilityService = Substitute.For<IResourceAvailabilityService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var user = Substitute.For<IUser>();
+
+        var userId = Guid.NewGuid();
+        user.Id.Returns(userId.ToString());
+
+        var instanceId = Guid.NewGuid();
+        var activityId = Guid.NewGuid();
+        var vehicleId1 = Guid.NewGuid();
+        var vehicleId2 = Guid.NewGuid();
+        var driverId = Guid.NewGuid();
+
+        var handler = new ApproveTransportationActivityCommandHandler(
+            tourInstanceRepository,
+            supplierRepository,
+            vehicleRepository,
+            driverRepository,
+            vehicleBlockRepository,
+            availabilityService,
+            unitOfWork,
+            user);
+
+        var assignments = new List<TransportApprovalAssignmentDto>
+        {
+            new(vehicleId1, driverId),
+            new(vehicleId2, driverId),
+        };
+
+        var result = await handler.Handle(
+            new ApproveTransportationActivityCommand(instanceId, activityId, assignments),
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.DuplicateDriver");
+        await tourInstanceRepository.DidNotReceive()
+            .FindByIdWithInstanceDaysForUpdate(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_WhenVehicleCountDoesNotMatchRequested_ReturnsVehicleCountMismatch()
     {
         var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();

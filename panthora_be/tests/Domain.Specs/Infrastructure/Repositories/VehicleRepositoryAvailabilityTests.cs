@@ -143,4 +143,69 @@ public sealed class VehicleRepositoryAvailabilityTests
         Assert.Single(results);
         Assert.Equal(1, results[0].AvailableQuantity);
     }
+
+    /// <summary>
+    /// Availability is one row per <see cref="VehicleEntity"/> in the database, with
+    /// <see cref="VehicleAvailabilityResult.AvailableQuantity"/> = units still free.
+    /// A single fleet row with Quantity=6 still produces <b>one</b> result (id + availableQuantity 6),
+    /// not six separate ids. UI that auto-fills N assignment rows from the list length
+    /// only gets one vehicle id unless there are N separate vehicle records.
+    /// </summary>
+    [Fact]
+    public async Task GetAvailableBySupplierAsync_OneCatalogRowWithQuantitySix_YieldsOneResultNotSix()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var date = new DateOnly(2026, 6, 1);
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+
+        var owner = UserEntity.Create("testuser", "Test User", "test@test.com", "hash", "tester");
+        owner.Id = ownerUserId;
+        owner.Status = UserStatus.Active;
+        context.Users.Add(owner);
+
+        var bulk = VehicleEntity.Create(VehicleType.Car, 4, ownerUserId, "test", "Bulk", quantity: 6);
+        bulk.SupplierId = supplierId;
+        context.Vehicles.Add(bulk);
+
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context);
+
+        var carOnly = await repository.GetAvailableBySupplierAsync(
+            new List<Guid> { supplierId }, ownerUserId, VehicleType.Car, date, null);
+
+        Assert.Single(carOnly);
+        Assert.Equal(6, carOnly[0].AvailableQuantity);
+    }
+
+    [Fact]
+    public async Task GetAvailableBySupplierAsync_SixSeparateVehicleRows_YieldsSixResults()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var date = new DateOnly(2026, 6, 2);
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+
+        var owner = UserEntity.Create("testuser", "Test User", "test@test.com", "hash", "tester");
+        owner.Id = ownerUserId;
+        owner.Status = UserStatus.Active;
+        context.Users.Add(owner);
+
+        for (var i = 0; i < 6; i++)
+        {
+            var v = VehicleEntity.Create(VehicleType.Car, 4, ownerUserId, "test", $"Car{i}", quantity: 1);
+            v.SupplierId = supplierId;
+            context.Vehicles.Add(v);
+        }
+
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context);
+
+        var carOnly = await repository.GetAvailableBySupplierAsync(
+            new List<Guid> { supplierId }, ownerUserId, VehicleType.Car, date, null);
+
+        Assert.Equal(6, carOnly.Count);
+    }
 }

@@ -1397,6 +1397,7 @@
       "designerDesc": "Thiết kế và lên kế hoạch tour",
       "guide": "Tour Guide",
       "guideDesc": "Hướng dẫn và điều hành tour",
+      "username": "Tên đăng nhập (Username)",
       "email": "Email",
       "fullName": "Họ và tên",
       "password": "Mật khẩu",
@@ -1407,6 +1408,7 @@
       "cancel": "Hủy",
       "validation": {
         "required": "Vui lòng nhập đầy đủ thông tin",
+        "invalidUsername": "Tên đăng nhập không hợp lệ (chỉ cho phép chữ, số, dấu chấm, gạch dưới)",
         "invalidEmail": "Định dạng email không hợp lệ",
         "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
         "passwordMismatch": "Mật khẩu xác nhận không khớp"

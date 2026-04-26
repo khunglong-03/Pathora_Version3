@@ -87,11 +87,11 @@ public sealed class ApproveTransportationActivityCommandHandler(
         if (normalized.Count == 0)
             return Error.Validation(ErrorConstants.TourInstanceActivity.NoAssignmentsCode, ErrorConstants.TourInstanceActivity.NoAssignmentsDescription.Resolve(lang));
 
-        if (TourInstanceTransportAssignmentRules.HasDuplicateVehicleIds(normalized.Select(x => x.VehicleId)))
+        if (TourInstanceTransportAssignmentRules.HasDuplicateDriverIds(normalized.Select(x => x.DriverId)))
         {
             return Error.Validation(
-                TourInstanceTransportErrors.DuplicateVehicleInActivityCode,
-                TourInstanceTransportErrors.DuplicateVehicleInActivityDescription.Resolve(lang));
+                TourInstanceTransportErrors.DuplicateDriverInActivityCode,
+                TourInstanceTransportErrors.DuplicateDriverInActivityDescription.Resolve(lang));
         }
 
         var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
@@ -110,6 +110,15 @@ public sealed class ApproveTransportationActivityCommandHandler(
 
         if (!activity.TransportSupplierId.HasValue)
             return Error.Validation(ErrorConstants.TourInstanceActivity.NoSupplierCode, ErrorConstants.TourInstanceActivity.NoSupplierDescription.Resolve(lang));
+
+        // In manager-driven mode (requestedVehicleType set): one vehicle record with quantity>1
+        // represents multiple physical vehicles under the same DB ID, so duplicate IDs are valid.
+        if (!activity.RequestedVehicleType.HasValue && TourInstanceTransportAssignmentRules.HasDuplicateVehicleIds(normalized.Select(x => x.VehicleId)))
+        {
+            return Error.Validation(
+                TourInstanceTransportErrors.DuplicateVehicleInActivityCode,
+                TourInstanceTransportErrors.DuplicateVehicleInActivityDescription.Resolve(lang));
+        }
 
         var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
         if (suppliers.Count == 0 || !suppliers.Any(s => s.Id == activity.TransportSupplierId.Value))
@@ -133,30 +142,38 @@ public sealed class ApproveTransportationActivityCommandHandler(
 
         // Pre-load and validate all vehicles & drivers (outside transaction; repeated inside tx for races).
         var vehicleEntities = new List<(Guid Id, VehicleEntity Entity)>();
+        var loadedVehicleIds = new HashSet<Guid>();
         foreach (var row in normalized)
         {
-            var vehicle = await vehicleRepository.GetByIdAsync(row.VehicleId, cancellationToken);
-            if (vehicle is null || vehicle.IsDeleted)
-                return Error.Validation(ErrorConstants.Vehicle.NotOwnedCode, ErrorConstants.Vehicle.NotOwnedDescription.Resolve(lang));
-
-            bool vehicleBelongsToSupplier = vehicle.SupplierId.HasValue
-                ? vehicle.SupplierId == activity.TransportSupplierId
-                : vehicle.OwnerId == currentUserId;
-
-            if (!vehicleBelongsToSupplier)
-                return Error.Validation(
-                    TourInstanceTransportErrors.VehicleWrongSupplierCode,
-                    TourInstanceTransportErrors.VehicleWrongSupplierDescription.Resolve(lang));
-
-            if (!vehicle.IsActive)
-                return Error.Validation(ErrorConstants.Vehicle.InactiveCode, ErrorConstants.Vehicle.InactiveDescription.Resolve(lang));
-
-            if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
+            // Only load+validate each vehicle once (manager-driven mode may have duplicate IDs)
+            if (!loadedVehicleIds.Contains(row.VehicleId))
             {
-                var vehicleWrongTypeMessage = lang == "vi"
-                    ? $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType})."
-                    : $"Vehicle type ({vehicle.VehicleType}) does not match requested ({activity.RequestedVehicleType}).";
-                return Error.Validation(TourInstanceTransportErrors.VehicleWrongTypeCode, vehicleWrongTypeMessage);
+                var vehicle = await vehicleRepository.GetByIdAsync(row.VehicleId, cancellationToken);
+                if (vehicle is null || vehicle.IsDeleted)
+                    return Error.Validation(ErrorConstants.Vehicle.NotOwnedCode, ErrorConstants.Vehicle.NotOwnedDescription.Resolve(lang));
+
+                bool vehicleBelongsToSupplier = vehicle.SupplierId.HasValue
+                    ? vehicle.SupplierId == activity.TransportSupplierId
+                    : vehicle.OwnerId == currentUserId;
+
+                if (!vehicleBelongsToSupplier)
+                    return Error.Validation(
+                        TourInstanceTransportErrors.VehicleWrongSupplierCode,
+                        TourInstanceTransportErrors.VehicleWrongSupplierDescription.Resolve(lang));
+
+                if (!vehicle.IsActive)
+                    return Error.Validation(ErrorConstants.Vehicle.InactiveCode, ErrorConstants.Vehicle.InactiveDescription.Resolve(lang));
+
+                if (activity.RequestedVehicleType.HasValue && vehicle.VehicleType != activity.RequestedVehicleType.Value)
+                {
+                    var vehicleWrongTypeMessage = lang == "vi"
+                        ? $"Loại xe ({vehicle.VehicleType}) không khớp với yêu cầu ({activity.RequestedVehicleType})."
+                        : $"Vehicle type ({vehicle.VehicleType}) does not match requested ({activity.RequestedVehicleType}).";
+                    return Error.Validation(TourInstanceTransportErrors.VehicleWrongTypeCode, vehicleWrongTypeMessage);
+                }
+
+                vehicleEntities.Add((vehicle.Id, vehicle));
+                loadedVehicleIds.Add(row.VehicleId);
             }
 
             if (row.DriverId == Guid.Empty)
@@ -177,11 +194,11 @@ public sealed class ApproveTransportationActivityCommandHandler(
 
             if (!driver.IsActive)
                 return Error.Validation(ErrorConstants.Driver.InactiveCode, ErrorConstants.Driver.InactiveDescription.Resolve(lang));
-
-            vehicleEntities.Add((vehicle.Id, vehicle));
         }
 
-        var totalSeatCapacity = vehicleEntities.Sum(v => v.Entity.SeatCapacity);
+        // For seat capacity: when manager-driven, each row represents a physical vehicle instance,
+        // so multiply distinct vehicle capacity by the number of rows using it.
+        var totalSeatCapacity = normalized.Sum(r => vehicleEntities.First(v => v.Id == r.VehicleId).Entity.SeatCapacity);
         if (!TourInstanceTransportAssignmentRules.SeatCapacityCoversRequest(totalSeatCapacity, requiredSeats))
         {
             if (normalized.Count == 1)
@@ -198,17 +215,22 @@ public sealed class ApproveTransportationActivityCommandHandler(
         }
 
         var activityDate = activity.TourInstanceDay.ActualDate;
-        foreach (var row in normalized)
+        // Deduplicate checks: in manager-driven mode, multiple rows share the same vehicleId
+        var uniqueVehicleIds = normalized.Select(r => r.VehicleId).Distinct().ToList();
+        foreach (var vid in uniqueVehicleIds)
         {
             var availabilityCheck = await availabilityService.CheckVehicleAvailabilityAsync(
-                row.VehicleId, activityDate, request.ActivityId, cancellationToken);
+                vid, activityDate, request.ActivityId, cancellationToken);
 
             if (availabilityCheck.IsError) return availabilityCheck.Errors;
             if (!availabilityCheck.Value)
                 return Error.Validation(
                     TourInstanceTransportErrors.VehicleUnavailableCode,
                     TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
+        }
 
+        foreach (var row in normalized)
+        {
             var driverCheck = await availabilityService.CheckDriverAvailabilityAsync(
                 row.DriverId, activityDate, request.ActivityId, cancellationToken);
             if (driverCheck.IsError) return driverCheck.Errors;
@@ -225,17 +247,21 @@ public sealed class ApproveTransportationActivityCommandHandler(
             {
                 await unitOfWork.ExecuteTransactionAsync(IsolationLevel.RepeatableRead, async () =>
                 {
-                    foreach (var row in normalized)
+                    // Deduplicate: check each unique vehicleId only once
+                    foreach (var vid in uniqueVehicleIds)
                     {
                         var txCheck = await availabilityService.CheckVehicleAvailabilityAsync(
-                            row.VehicleId, activityDate, request.ActivityId, cancellationToken);
+                            vid, activityDate, request.ActivityId, cancellationToken);
                         if (txCheck.IsError || !txCheck.Value)
                         {
                             throw new TransportApproveConflictException(
                                 TourInstanceTransportErrors.VehicleUnavailableCode,
                                 TourInstanceTransportErrors.VehicleUnavailableDescription.Resolve(lang));
                         }
+                    }
 
+                    foreach (var row in normalized)
+                    {
                         var txDriverCheck = await availabilityService.CheckDriverAvailabilityAsync(
                             row.DriverId, activityDate, request.ActivityId, cancellationToken);
                         if (txDriverCheck.IsError || !txDriverCheck.Value)
@@ -262,10 +288,11 @@ public sealed class ApproveTransportationActivityCommandHandler(
                     var primary = normalized[0];
                     activity.ApproveTransportation(primary.VehicleId, primary.DriverId, request.Note);
 
-                    foreach (var row in normalized)
+                    // Create one VehicleBlock per unique vehicleId (unique index prevents duplicates)
+                    foreach (var vid in uniqueVehicleIds)
                     {
                         var block = VehicleBlockEntity.Create(
-                            row.VehicleId,
+                            vid,
                             activityDate,
                             performedBy,
                             tourInstanceDayActivityId: request.ActivityId,

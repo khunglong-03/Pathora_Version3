@@ -22,6 +22,29 @@ public sealed class TourInstanceTransportAssignmentRulesTests
     }
 
     [Fact]
+    public void HasDuplicateDriverIds_TrueWhenRepeated()
+    {
+        var d1 = Guid.NewGuid();
+        var d2 = Guid.NewGuid();
+        Assert.True(TourInstanceTransportAssignmentRules.HasDuplicateDriverIds([d1, d2, d1]));
+    }
+
+    [Fact]
+    public void HasDuplicateDriverIds_FalseWhenUnique()
+    {
+        var d1 = Guid.NewGuid();
+        var d2 = Guid.NewGuid();
+        Assert.False(TourInstanceTransportAssignmentRules.HasDuplicateDriverIds([d1, d2]));
+    }
+
+    [Fact]
+    public void HasDuplicateDriverIds_IgnoresEmptyGuid()
+    {
+        var d1 = Guid.NewGuid();
+        Assert.False(TourInstanceTransportAssignmentRules.HasDuplicateDriverIds([Guid.Empty, d1, Guid.Empty]));
+    }
+
+    [Fact]
     public void SeatCapacityCoversRequest_WhenRequestedNull_AlwaysTrue()
     {
         Assert.True(TourInstanceTransportAssignmentRules.SeatCapacityCoversRequest(0, null));
