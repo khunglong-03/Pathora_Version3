@@ -40,26 +40,26 @@ function StepIndicator() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-center gap-0 mb-8">
+    <div className="flex items-center justify-center gap-2 mb-10 mt-4">
       {STEP_KEYS.map((step, i) => (
         <React.Fragment key={step.key}>
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             {step.status === "completed" ? (
-              <div className="size-8 rounded-full bg-orange-500 flex items-center justify-center">
-                <Icon icon="heroicons:check" className="size-4 text-white" />
+              <div className="size-10 rounded-full bg-zinc-900 flex items-center justify-center shadow-md">
+                <Icon icon="heroicons:check" className="size-5 text-white" />
               </div>
             ) : step.status === "active" ? (
-              <div className="size-8 rounded-full bg-orange-500 flex items-center justify-center">
-                <span className="text-sm font-bold text-white">{i + 1}</span>
+              <div className="size-10 rounded-full bg-zinc-900 flex items-center justify-center shadow-md shadow-zinc-900/20 ring-4 ring-zinc-900/10">
+                <span className="text-base font-semibold text-white">{i + 1}</span>
               </div>
             ) : (
-              <div className="size-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-sm font-bold text-gray-400">{i + 1}</span>
+              <div className="size-10 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                <span className="text-base font-semibold text-slate-400">{i + 1}</span>
               </div>
             )}
             <span
-              className={`text-xs font-medium whitespace-nowrap ${
-                step.status === "upcoming" ? "text-gray-400" : "text-gray-700"
+              className={`text-[11px] uppercase tracking-wider font-semibold whitespace-nowrap ${
+                step.status === "upcoming" ? "text-slate-400" : "text-zinc-900"
               }`}>
               {t(step.key)}
             </span>
@@ -67,8 +67,8 @@ function StepIndicator() {
 
           {i < STEP_KEYS.length - 1 && (
             <div
-              className={`h-0.5 w-8 md:w-15 mx-1 md:mx-2 -mt-5 ${
-                i === 0 ? "bg-orange-500" : "bg-gray-200"
+              className={`h-0.5 w-12 md:w-20 mx-2 -mt-6 rounded-full ${
+                i === 0 ? "bg-zinc-900" : "bg-slate-200"
               }`}
             />
           )}
@@ -424,13 +424,13 @@ export function CheckoutPage() {
     <>
       
 
-      <main className="bg-gray-50 h-screen overflow-y-auto">
-        <div className="max-w-330 mx-auto px-4 md:px-3.75 py-6 md:py-10">
+      <main className="bg-[#f9fafb] min-h-screen overflow-y-auto">
+        <div className="max-w-[1320px] mx-auto px-4 md:px-6 py-8 md:py-12">
           {/* ── Back to Tour ──────────────────────────────── */}
           <Link
             href="/tours"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500 transition-colors mb-6">
-            <Icon icon="heroicons:arrow-left" className="size-4" />
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-zinc-900 transition-colors mb-6 group">
+            <Icon icon="heroicons:arrow-left" className="size-4 transition-transform group-hover:-translate-x-1" />
             {t("landing.checkout.backToTour")}
           </Link>
 
@@ -438,9 +438,9 @@ export function CheckoutPage() {
           <StepIndicator />
 
           {/* ── Two-column layout ─────────────────────────── */}
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col xl:flex-row gap-8 lg:gap-10">
             {/* ════════ LEFT COLUMN ════════════════════════ */}
-            <div className="flex-1 flex flex-col gap-4">
+            <div className="flex-1 flex flex-col gap-6 lg:gap-8">
               {showTourInstanceCard && (
                 <TourInstanceInfoCard tourInstanceBooking={tourInstanceBooking} />
               )}
@@ -486,7 +486,7 @@ export function CheckoutPage() {
             </div>
 
             {/* ════════ RIGHT COLUMN (sidebar) ════════════ */}
-            <div className="w-full lg:w-96 shrink-0 lg:sticky lg:top-6 flex flex-col gap-4">
+            <div className="w-full xl:w-[420px] shrink-0 xl:sticky xl:top-8 flex flex-col gap-6 lg:gap-8 self-start">
               <PaymentSidebar
                 transaction={transaction}
                 normalizedStatus={normalizedStatus}

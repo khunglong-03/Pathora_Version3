@@ -24,60 +24,76 @@ export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCa
   const isPublic = tourInstanceBooking.instanceType === "public" || tourInstanceBooking.instanceType === "Public";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="bg-linear-to-b from-orange-500 to-orange-600 h-1 w-full rounded-t-2xl" />
-      <div className="p-5">
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          {isPublic ? (
-            <>
-              <Icon icon="heroicons:check-circle" className="size-12 text-green-500 mb-2" />
-              <p className="text-lg font-semibold text-green-600 mb-2">
-                {t("landing.checkout.bookingConfirmed")}
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                {t("landing.checkout.publicInstanceMessage")}
-              </p>
-            </>
-          ) : (
-            <>
-              <Icon icon="heroicons:clock" className="size-12 text-blue-500 mb-2" />
-              <p className="text-lg font-semibold text-blue-600 mb-2">
-                {t("landing.checkout.bookingPending")}
-              </p>
-              <p className="text-sm text-gray-600 mb-4">
-                {t("landing.checkout.privateInstanceMessage")}
-              </p>
-            </>
-          )}
+    <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-8 md:p-10 flex flex-col items-center text-center">
+        {isPublic ? (
+          <div className="flex flex-col items-center mb-8">
+            <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+              <Icon icon="heroicons:check" className="size-8 text-emerald-600" />
+            </div>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">
+              {t("landing.checkout.bookingConfirmed")}
+            </h2>
+            <p className="text-sm text-slate-500 max-w-sm">
+              {t("landing.checkout.publicInstanceMessage")}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center mb-8">
+            <div className="size-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+              <Icon icon="heroicons:clock" className="size-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">
+              {t("landing.checkout.bookingPending")}
+            </h2>
+            <p className="text-sm text-slate-500 max-w-sm">
+              {t("landing.checkout.privateInstanceMessage")}
+            </p>
+          </div>
+        )}
 
-          <div className="bg-gray-50 rounded-xl p-4 text-left w-full max-w-md">
-            <h4 className="font-semibold text-slate-900 mb-2">{tourInstanceBooking.tourName}</h4>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Icon icon="heroicons:map-pin" className="size-3.5 text-gray-400 shrink-0" />
-              {tourInstanceBooking.location || "N/A"}
+        <div className="w-full bg-slate-50 rounded-3xl p-6 border border-slate-100 text-left relative overflow-hidden group">
+          {/* subtle liquid glass effect line */}
+          <div className="absolute inset-0 border border-white/50 rounded-3xl pointer-events-none" />
+          
+          <h4 className="font-semibold text-lg tracking-tight text-slate-900 mb-4 pr-8">{tourInstanceBooking.tourName}</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Location</span>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <Icon icon="heroicons:map-pin" className="size-4 text-slate-400" />
+                <span className="font-medium">{tourInstanceBooking.location || "N/A"}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
-              <Icon icon="heroicons:calendar" className="size-3.5 text-gray-400 shrink-0" />
-              {tourInstanceBooking.startDate} - {tourInstanceBooking.endDate}
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-500 mt-2">
-              <Icon icon="heroicons:banknotes" className="size-3.5 text-orange-500 shrink-0" />
-              {t("landing.checkout.deposit")}: {fmtCurrency(tourInstanceBooking.depositPerPerson)}
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
-              <Icon icon="heroicons:information-circle" className="size-3.5 text-gray-400 shrink-0" />
-              {tourInstanceBooking.bookingType === "InstanceJoin"
-                ? t("landing.checkout.instanceJoin")
-                : t("landing.checkout.tourBooking")}
-              {" | "}
-              {isPublic ? t("landing.checkout.public") : t("landing.checkout.private")}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Dates</span>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <Icon icon="heroicons:calendar" className="size-4 text-slate-400" />
+                <span className="font-medium font-mono">{tourInstanceBooking.startDate} — {tourInstanceBooking.endDate}</span>
+              </div>
             </div>
           </div>
 
-          <Link href="/bookings" className="text-sm text-orange-500 hover:underline mt-4">
-            {t("landing.checkout.viewMyBookings")}
-          </Link>
+          <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
+                {tourInstanceBooking.bookingType === "InstanceJoin" ? t("landing.checkout.instanceJoin") : t("landing.checkout.tourBooking")}
+              </div>
+              <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
+                {isPublic ? t("landing.checkout.public") : t("landing.checkout.private")}
+              </div>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Deposit Required</span>
+              <span className="text-lg font-bold text-zinc-900">{fmtCurrency(tourInstanceBooking.depositPerPerson)}</span>
+            </div>
+          </div>
         </div>
+
+        <Link href="/bookings" className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all">
+          {t("landing.checkout.viewMyBookings")}
+        </Link>
       </div>
     </div>
   );

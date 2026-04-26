@@ -23,13 +23,18 @@ export function CustomerInfoCard({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="bg-linear-to-b from-orange-500 to-orange-600 h-1 w-full rounded-t-2xl" />
-      <div className="p-5">
-        <h3 className="text-base font-bold text-slate-900 mb-4">
-          {t("landing.checkout.customerInfo")}
-        </h3>
-        <div className="flex flex-col gap-4">
+    <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-8 md:p-10">
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold tracking-tight text-slate-900">
+            {t("landing.checkout.customerInfo")}
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">
+            Please provide your contact details for this booking.
+          </p>
+        </div>
+        
+        <div className="flex flex-col gap-6">
           <InputGroup
             type="text"
             label={t("landing.checkout.fullName")}
@@ -38,22 +43,24 @@ export function CustomerInfoCard({
             onChange={(e) => setCustomerName(e.target.value)}
             id="customer-name"
           />
-          <InputGroup
-            type="tel"
-            label={t("landing.checkout.phone")}
-            placeholder={t("landing.checkout.phonePlaceholder")}
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            id="customer-phone"
-          />
-          <InputGroup
-            type="email"
-            label={t("landing.checkout.email")}
-            placeholder={t("landing.checkout.emailPlaceholder")}
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-            id="customer-email"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputGroup
+              type="tel"
+              label={t("landing.checkout.phone")}
+              placeholder={t("landing.checkout.phonePlaceholder")}
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              id="customer-phone"
+            />
+            <InputGroup
+              type="email"
+              label={t("landing.checkout.email")}
+              placeholder={t("landing.checkout.emailPlaceholder")}
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              id="customer-email"
+            />
+          </div>
         </div>
       </div>
     </div>

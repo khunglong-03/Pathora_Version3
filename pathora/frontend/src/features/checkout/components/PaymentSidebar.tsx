@@ -290,70 +290,67 @@ export function PaymentSidebar({
   t,
 }: PaymentSidebarProps) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden">
-      <div className="bg-linear-to-b from-orange-500 to-orange-600 h-1 w-full rounded-t-2xl" />
-      <div className="p-5">
-        <h3 className="text-base font-bold text-slate-900 mb-4">
+    <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-8 md:p-10">
+        <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-6">
           {transaction ? t("landing.checkout.paymentMethod") : t("landing.checkout.confirmBooking")}
         </h3>
 
         {transaction ? (
           <PaymentStatusPanel transaction={transaction} normalizedStatus={normalizedStatus} onStatusChange={onStatusChange} t={t} />
         ) : (
-          <>
+          <div className="flex flex-col gap-6">
             {/* Price breakdown */}
-            <div
-              className="rounded-xl p-4 flex flex-col gap-2 mb-5"
-              style={{
-                backgroundImage: "linear-gradient(158deg, rgb(255,247,237) 0%, rgb(255,251,235) 100%)",
-                border: "1px solid #ffedd4",
-              }}>
+            <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-3">
               {paymentOption === "deposit" ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm font-medium text-slate-600">
                       {t("landing.checkout.deposit")} ({Math.round((checkoutPrice?.depositPercentage ?? 0.3) * 100)}%)
                     </span>
-                    <span className="text-lg font-bold text-slate-900">{fmtCurrency(depositAmount)}</span>
+                    <span className="text-lg font-semibold tracking-tight text-slate-900">{fmtCurrency(depositAmount)}</span>
                   </div>
-                  <div className="flex items-center justify-between border-b border-orange-200 pb-2">
-                    <span className="text-xs text-gray-500">{t("landing.checkout.remainingBalance")}</span>
-                    <span className="text-xs text-gray-500">{fmtCurrency(remainingBalance)}</span>
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                    <span className="text-xs text-slate-500">{t("landing.checkout.remainingBalance")}</span>
+                    <span className="text-xs text-slate-500">{fmtCurrency(remainingBalance)}</span>
                   </div>
                 </>
               ) : null}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900">{t("landing.checkout.total")}</span>
-                <span className="text-2xl font-bold text-orange-500">{fmtCurrency(totalPrice)}</span>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-sm font-semibold tracking-tight text-slate-900">{t("landing.checkout.total")}</span>
+                <span className="text-2xl font-bold tracking-tight text-slate-900">{fmtCurrency(totalPrice)}</span>
               </div>
             </div>
 
             {/* Confirm Button */}
-            <Button
-              type="button"
-              disabled={!canConfirm}
-              onClick={onConfirmBooking}
-              className={`w-full h-12 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all ${
-                canConfirm
-                  ? "bg-orange-500 hover:bg-orange-600 shadow-[0_4px_6px_0_#ffd6a8,0_2px_4px_0_#ffd6a8] cursor-pointer"
-                  : "bg-orange-500 opacity-50 cursor-not-allowed shadow-[0_4px_6px_0_#ffd6a8,0_2px_4px_0_#ffd6a8]"
-              }`}>
-              {loading ? (
-                <>
-                  <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
-                  {t("landing.checkout.processing")}
-                </>
-              ) : (
-                <>
-                  {t("landing.checkout.confirmBooking")}
-                  <Icon icon="heroicons:chevron-right" className="size-4" />
-                </>
-              )}
-            </Button>
-            <p className="text-center text-[10px] text-gray-400 mt-3">
-              {t("landing.checkout.secureBookingNote")}
-            </p>
-          </>
+            <div className="flex flex-col gap-3">
+              <Button
+                type="button"
+                disabled={!canConfirm}
+                onClick={onConfirmBooking}
+                className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
+                  canConfirm
+                    ? "bg-zinc-950 text-white hover:bg-zinc-900 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-900/20 cursor-pointer"
+                    : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                }`}>
+                {loading ? (
+                  <>
+                    <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+                    <span>{t("landing.checkout.processing")}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{t("landing.checkout.confirmBooking")}</span>
+                    <Icon icon="heroicons:arrow-right" className="size-5 ml-1 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </Button>
+              <p className="text-center text-[11px] font-medium text-slate-400 mt-2 flex items-center justify-center gap-1.5">
+                <Icon icon="heroicons:lock-closed" className="size-3" />
+                {t("landing.checkout.secureBookingNote")}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>
