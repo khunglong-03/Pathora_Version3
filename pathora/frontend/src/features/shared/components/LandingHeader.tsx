@@ -952,10 +952,7 @@ export const LandingHeader = () => {
         </div>
       </header>
 
-      {/* Spacer to prevent content overlap */}
-      <div
-        className={`${scrolled ? "h-16" : "h-20"} transition-all duration-300`}
-      />
+      {/* Spacer removed (duplicate) */}
 
       <MobileSidebar
         open={mobileMenuOpen}

@@ -194,7 +194,7 @@ export function TourInstancePublicDetailPage() {
   return (
     <div className="min-h-[100dvh] bg-[#f9fafb] text-slate-900 font-sans pb-24 selection:bg-slate-900 selection:text-white">
       {/* ── Breadcrumbs Navbar (Floating) ── */}
-      <div className="fixed top-6 left-6 z-40 hidden md:block">
+      <div className="fixed top-[110px] left-6 z-40 hidden xl:block">
         <Link
           href={`/tours/${data.tourId}`}
           className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-full px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all shadow-[0_8px_16px_-8px_rgba(0,0,0,0.05)]"
