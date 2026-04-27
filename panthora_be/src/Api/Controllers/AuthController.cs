@@ -65,7 +65,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
                 IsEssential = true,
                 MaxAge = TimeSpan.FromHours(jwtOptions.Value.AccessTokenCookieExpirationHours),
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                 Secure = Request.IsHttps
             });
             Response.Cookies.Append("refresh_token", result.Value.RefreshToken, new CookieOptions
@@ -74,7 +74,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
                 IsEssential = true,
                 MaxAge = TimeSpan.FromHours(jwtOptions.Value.RefreshTokenExpirationHours),
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                 Secure = Request.IsHttps
             });
             AuthCookieWriter.WriteAuthStatusCookie(Response, Request.IsHttps);

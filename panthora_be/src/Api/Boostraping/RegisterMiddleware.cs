@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 namespace Api.Bosttraping;
@@ -11,6 +12,14 @@ public static class RegisterMiddleware
 
     public static WebApplication UseAppMiddleware(this WebApplication app)
     {
+        var forwardedOptions = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+        };
+        forwardedOptions.KnownNetworks.Clear();
+        forwardedOptions.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedOptions);
+
         app.UseMiddleware<StartupCacheClearMiddleware>();
         app.UseMiddleware<SwaggerAuthBypassMiddleware>();
         app.UseMiddleware<ExceptionHandlingMiddleware>();

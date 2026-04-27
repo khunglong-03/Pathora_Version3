@@ -3,6 +3,7 @@ import { setUser, setToken, logOut } from "../../infrastructure/authSlice";
 import type { UserInfo } from "../../domain/auth";
 import type { ApiSharedResponse } from "@/types";
 import { isAdminPortal } from "@/utils/authRouting";
+import { persistAuthSession } from "@/utils/authSession";
 import i18next from "i18next";
 
 // ─── Cookie helpers ────────────────────────────────────────────────────────
@@ -112,9 +113,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const tokens = data.data;
           if (!tokens) return;
 
-          // Cookies (access_token, refresh_token, auth_status, auth_portal) 
-          // are automatically set by the browser via backend's Set-Cookie headers.
-          // Redundant JS setting removed to prevent HttpOnly conflicts.
+          persistAuthSession(
+            tokens.accessToken,
+            tokens.refreshToken,
+            tokens.portal,
+            tokens.defaultPath,
+          );
           dispatch(setToken(tokens.accessToken));
 
           // Fetch user info right after login to populate Redux
@@ -212,9 +216,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const tokens = data.data;
           if (!tokens) return;
 
-          // Cookies (access_token, refresh_token, auth_status, auth_portal) 
-          // are automatically set by the browser via backend's Set-Cookie headers.
-          // Redundant JS setting removed to prevent HttpOnly conflicts.
+          persistAuthSession(
+            tokens.accessToken,
+            tokens.refreshToken,
+            tokens.portal,
+            tokens.defaultPath,
+          );
           dispatch(setToken(tokens.accessToken));
 
           // Re-fetch user info to sync roles cookie after token refresh

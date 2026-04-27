@@ -1351,7 +1351,7 @@ export default function TourInstanceDetailPage() {
                                                     >
                                                       <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-xs font-semibold text-stone-800 font-mono">
-                                                          {ta.vehicleType || "—"}
+                                                          {[ta.vehicleBrand, ta.vehicleModel].filter(Boolean).join(" ") || "—"}
                                                         </span>
                                                         {ta.vehicleType && (
                                                           <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
@@ -1379,7 +1379,9 @@ export default function TourInstanceDetailPage() {
                                                 </ul>
                                               ) : activity.vehicleType ? (
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                  <span className="text-xs font-semibold text-stone-800 font-mono">{activity.vehicleType}</span>
+                                                  <span className="text-xs font-semibold text-stone-800 font-mono">
+                                                    {[activity.vehicleBrand, activity.vehicleModel].filter(Boolean).join(" ") || "—"}
+                                                  </span>
                                                   {activity.vehicleType && (
                                                     <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
                                                       {activity.vehicleType}

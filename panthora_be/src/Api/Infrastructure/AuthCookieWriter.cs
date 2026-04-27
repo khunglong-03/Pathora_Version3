@@ -80,7 +80,7 @@ public static class AuthCookieWriter
             IsEssential = true,
             MaxAge = maxAge,
             Path = "/",
-            SameSite = SameSiteMode.Lax,
+            SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
             Secure = secure
         };
     }
@@ -103,7 +103,7 @@ public static class AuthCookieWriter
             IsEssential = true,
             MaxAge = maxAge,
             Path = "/",
-            SameSite = SameSiteMode.Lax,
+            SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
             Secure = secure
         };
     }
