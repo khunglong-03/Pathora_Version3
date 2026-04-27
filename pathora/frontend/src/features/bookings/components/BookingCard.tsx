@@ -146,10 +146,10 @@ export function BookingCard({
                     </button>
                   )}
                   {showAddParticipants && (
-                    <button type="button" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors">
+                    <Link href={`/bookings/${booking.id}/participants`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors">
                       <UserPlus weight="bold" className="size-4" />
                       {t("landing.bookings.addParticipants")}
-                    </button>
+                    </Link>
                   )}
                   {showVisaStatus && (
                     <Link href="/visa" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors">
