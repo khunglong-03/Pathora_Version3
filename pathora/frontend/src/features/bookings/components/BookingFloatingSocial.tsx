@@ -1,29 +1,33 @@
 "use client";
 import React from "react";
-import Button from "@/components/ui/Button";
-import { Icon } from "@/components/ui";
+import { FacebookLogo, ChatTeardropDots } from "@phosphor-icons/react";
 import { SOCIAL_MEDIA } from "@/configs/urls";
+import { motion } from "framer-motion";
 
 export function BookingFloatingSocial() {
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col gap-3">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 1 }}
+      className="fixed right-6 bottom-6 z-50 hidden md:flex flex-col gap-4"
+    >
       <a
         href={SOCIAL_MEDIA.facebook}
         target="_blank"
         rel="noopener noreferrer"
-        className="size-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+        aria-label="Facebook"
+        className="size-14 rounded-full bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
       >
-        <Icon icon="mdi:facebook" className="size-5 text-blue-600" />
+        <FacebookLogo weight="fill" className="size-6 text-blue-600" />
       </a>
-      <Button
+      <button
         type="button"
-        className="size-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+        aria-label="Chat with us"
+        className="size-14 rounded-full bg-slate-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] border border-slate-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
       >
-        <Icon
-          icon="heroicons:chat-bubble-oval-left-ellipsis"
-          className="size-5 text-gray-600"
-        />
-      </Button>
-    </div>
+        <ChatTeardropDots weight="fill" className="size-6 text-white" />
+      </button>
+    </motion.div>
   );
 }
