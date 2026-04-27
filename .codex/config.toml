@@ -1,6 +1,7 @@
 [mcp_servers.gitnexus]
-command = "npx"
-args = ["--no-install", "gitnexus", "mcp"]
+command = "gitnexus"
+args = ["mcp"]
+startup_timeout_sec = 60
 
 [mcp_servers.gitnexus.tools.impact]
 approval_mode = "approve"

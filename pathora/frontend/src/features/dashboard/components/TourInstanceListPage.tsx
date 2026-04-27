@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useSyncExternalStore } from "react";
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon, TourStatusBadge } from "@/components/ui";
 
-import { tourInstanceService } from "@/api/services/tourInstanceService";
+import {
+  getTourInstanceRequestStatus,
+  tourInstanceService,
+} from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/utils/format";
@@ -27,6 +35,8 @@ const itemVariants = {
     transition: { type: "spring" as const, stiffness: 100, damping: 20 },
   },
 };
+
+const AUTH_FAILURE_STATUSES = new Set([401, 403]);
 
 /* ══════════════════════════════════════════════════════════════
    Stat Card
@@ -138,8 +148,10 @@ export function TourInstanceListPage({
     () => true,
     () => false,
   );
-  const safeT = (key: string, fallback: string) =>
-    mounted ? t(key, fallback) : fallback;
+  const safeT = useCallback(
+    (key: string, fallback: string) => (mounted ? t(key, fallback) : fallback),
+    [mounted, t],
+  );
   const router = useRouter();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -199,11 +211,19 @@ export function TourInstanceListPage({
         }
       } catch (error: unknown) {
         if (!active) return;
+        const status = getTourInstanceRequestStatus(error);
         const handledError = handleApiError(error);
         console.error("Failed to fetch tour instances:", handledError.message);
         setInstances([]);
         setDataState("error");
-        setErrorMessage(handledError.message);
+        setErrorMessage(
+          AUTH_FAILURE_STATUSES.has(status ?? 0)
+            ? safeT(
+                "tourInstance.form.error.authFailure",
+                "Your session does not have access to these tour instances. Please sign in again.",
+              )
+            : handledError.message,
+        );
       }
     };
     void doFetchInstances();
@@ -217,6 +237,7 @@ export function TourInstanceListPage({
     excludePast,
     pageSize,
     reloadToken,
+    safeT,
   ]);
 
   /* ── Fetch stats ──────────────────────────────────────────── */

@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { ApiResponse } from "@/types/home";
@@ -145,6 +146,37 @@ export interface UpdateTourInstancePayload {
   imageUrls?: string[];
 }
 
+export interface TourInstanceRequestError {
+  status?: number;
+  response?: {
+    status?: number;
+  };
+}
+
+export const getTourInstanceRequestStatus = (
+  error: unknown,
+): number | undefined => {
+  if (isAxiosError(error)) {
+    return error.response?.status ?? error.status;
+  }
+
+  if (error && typeof error === "object") {
+    const possibleError = error as TourInstanceRequestError;
+    return possibleError.response?.status ?? possibleError.status;
+  }
+
+  return undefined;
+};
+
+const attachTourInstanceRequestStatus = (error: unknown): unknown => {
+  const status = getTourInstanceRequestStatus(error);
+  if (status && error && typeof error === "object") {
+    (error as TourInstanceRequestError).status = status;
+  }
+
+  return error;
+};
+
 const normalizeStatus = (status: string): string =>
   status.trim().toLowerCase().replace(/[\s_]+/g, "");
 
@@ -193,20 +225,24 @@ export const tourInstanceService = {
     // Backend returns PaginatedList<T> mapped as { items: [], totalCount: 0 }
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
 
-    const response = await api.get<ApiResponse<TourInstancePage>>(
-      `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}?${params.toString()}`,
-    );
+    try {
+      const response = await api.get<ApiResponse<TourInstancePage>>(
+        `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}?${params.toString()}`,
+      );
 
-    const result = extractResult<TourInstancePage>(response.data);
-    if (!result) return null;
+      const result = extractResult<TourInstancePage>(response.data);
+      if (!result) return null;
 
-    const items = result.items ?? result.data ?? [];
-    const total = result.totalCount ?? result.total ?? 0;
+      const items = result.items ?? result.data ?? [];
+      const total = result.totalCount ?? result.total ?? 0;
 
-    return {
-      total,
-      data: items.map(normalizeInstanceVm),
-    } as PaginatedResponse<NormalizedTourInstanceVm>;
+      return {
+        total,
+        data: items.map(normalizeInstanceVm),
+      } as PaginatedResponse<NormalizedTourInstanceVm>;
+    } catch (error) {
+      throw attachTourInstanceRequestStatus(error);
+    }
   },
 
   getInstanceDetail: async (id: string) => {

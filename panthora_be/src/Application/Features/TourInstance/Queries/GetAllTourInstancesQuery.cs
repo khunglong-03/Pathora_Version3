@@ -15,9 +15,13 @@ public sealed record GetAllTourInstancesQuery(
     [property: JsonPropertyName("status")] TourInstanceStatus? Status = null,
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,
-    [property: JsonPropertyName("excludePast")] bool ExcludePast = false) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
+    [property: JsonPropertyName("excludePast")] bool ExcludePast = false,
+    [property: JsonPropertyName("currentUserId")] string? CurrentUserId = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
 {
-    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{SearchText}";
+    private string PrincipalCacheKey =>
+        Guid.TryParse(CurrentUserId, out var principalId) ? principalId.ToString("D") : "anon";
+
+    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PrincipalCacheKey}:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{SearchText}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
 }
 
@@ -29,4 +33,3 @@ public sealed class GetAllTourInstancesQueryHandler(ITourInstanceService tourIns
         return await tourInstanceService.GetAll(request);
     }
 }
-

@@ -19,6 +19,8 @@ Commands tailored for the Pathora workspace (Next.js 16 frontend + .NET 10 backe
 
 Structured change management: propose → explore → apply → archive.
 
+> **Language rule (bắt buộc):** Trước khi chạy bất kỳ lệnh `/opsx-*` nào hoặc khi chạm vào file trong `openspec/`, đọc và tuân theo `openspec/AGENTS.md`. File đó yêu cầu mọi artifact OpenSpec (proposal, design, specs, tasks, ...) viết bằng **tiếng Việt**, ngoại trừ schema headers, identifier kỹ thuật, code block và các phần liệt kê trong file.
+
 | Command | Description |
 |---------|-------------|
 | `/opsx-explore` | Think through ideas, investigate problems, clarify requirements (no code) |

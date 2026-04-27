@@ -2,6 +2,8 @@
 
 Hướng dẫn vận hành cho Claude khi làm việc với workspace `D:\DoAn`.
 
+> **OpenSpec language rule:** Khi thực hiện bất kỳ lệnh OpenSpec nào (`/opsx:explore`, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`) hoặc khi tạo / chỉnh sửa file trong `openspec/`, **bắt buộc** đọc và tuân thủ `openspec/AGENTS.md`. File đó quy định ngôn ngữ artifact (tiếng Việt) và các phần được giữ nguyên tiếng Anh.
+
 ---
 
 ## Cấu Trúc Workspace

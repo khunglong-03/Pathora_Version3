@@ -15,7 +15,7 @@ namespace Api.Controllers;
 [Route(TourInstanceEndpoint.Base)]
 public class TourInstanceController : BaseApiController
 {
-    [AllowAnonymous]
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? searchText,
@@ -24,7 +24,7 @@ public class TourInstanceController : BaseApiController
         [FromQuery] int pageSize = 10,
         [FromQuery] bool excludePast = false)
     {
-        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast));
+        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, CurrentUserId));
         return HandleResult(result);
     }
 

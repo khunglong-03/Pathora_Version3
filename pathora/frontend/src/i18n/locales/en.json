@@ -2276,7 +2276,12 @@
       "remove": "Remove",
       "title": "Title",
       "imageUrl": "Image URL",
-      "currentParticipation": "Current participants"
+      "currentParticipation": "Current participants",
+      "error": {
+        "title": "Could not load tour instances",
+        "fallback": "Unable to load tour instance data. Please try again.",
+        "authFailure": "Your session does not have access to these tour instances. Please sign in again."
+      }
     },
     "includedServicesPlaceholder": "Ex: Shuttle bus",
     "addService": "Add service",

@@ -1182,8 +1182,11 @@ public class TourInstanceService(
     public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request)
     {
         // Scope results to the current user's managed tours/instances.
-        // If the user ID is missing (e.g. anonymous), principalId stays null → no filter applied.
-        Guid? principalId = Guid.TryParse(_user.Id, out var uid) ? uid : null;
+        if (!Guid.TryParse(_user.Id, out var principalId))
+        {
+            _logger.LogInformation("Tour instance list request skipped because the current user id is missing or invalid.");
+            return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
+        }
 
         var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, principalId);
         var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, principalId);

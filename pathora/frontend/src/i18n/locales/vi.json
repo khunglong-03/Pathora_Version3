@@ -2271,7 +2271,8 @@
       },
       "error": {
         "title": "Không thể tải danh sách lịch khởi hành",
-        "fallback": "Không thể tải dữ liệu lịch khởi hành. Vui lòng thử lại."
+        "fallback": "Không thể tải dữ liệu lịch khởi hành. Vui lòng thử lại.",
+        "authFailure": "Phiên đăng nhập của bạn không có quyền xem các lịch khởi hành này. Vui lòng đăng nhập lại."
       },
       "includedServicesPlaceholder": "Ví dụ: Xe đưa đón",
       "addService": "Thêm dịch vụ",

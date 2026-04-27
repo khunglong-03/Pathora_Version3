@@ -1,5 +1,7 @@
 # Workspace Agent Guide
 
+> **OpenSpec language rule (mọi agent: Claude, Gemini, Codex, Cursor, ...):** Khi phân tích yêu cầu hoặc tạo / chỉnh sửa artifact trong `openspec/` (proposal, design, specs, tasks, ...), **bắt buộc** đọc và tuân theo `openspec/AGENTS.md`. File đó yêu cầu nội dung viết bằng **tiếng Việt**, đồng thời liệt kê các phần phải giữ nguyên tiếng Anh (OpenSpec schema headers, identifier, code, route, ...).
+
 - Actual source trees are `pathora/frontend` and `panthora_be`. Do not assume the root-level `backend/` folder is the active backend.
 - `pathora/package.json` is effectively empty. Real frontend commands live in `pathora/frontend/package.json`.
 - Checked-in docs and scripts still often say `D:\DoAn`; this harness runs the workspace at `D:\Doan2`.

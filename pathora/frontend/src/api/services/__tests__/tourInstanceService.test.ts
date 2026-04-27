@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const getMock = vi.fn();
 const postMock = vi.fn();
 
 vi.mock("@/api/axiosInstance", () => ({
   api: {
-    get: vi.fn(),
+    get: getMock,
     post: postMock,
     put: vi.fn(),
     patch: vi.fn(),
@@ -21,6 +22,29 @@ import {
   UpdateTourInstancePayload,
   tourInstanceService,
 } from "../tourInstanceService";
+
+describe("tourInstanceService.getAllInstances", () => {
+  beforeEach(() => {
+    getMock.mockReset();
+  });
+
+  it("rethrows 401 failures with the HTTP status attached", async () => {
+    const error = {
+      isAxiosError: true,
+      response: {
+        status: 401,
+      },
+    };
+    getMock.mockRejectedValue(error);
+
+    await expect(tourInstanceService.getAllInstances()).rejects.toMatchObject({
+      status: 401,
+      response: {
+        status: 401,
+      },
+    });
+  });
+});
 
 describe("CreateTourInstancePayload", () => {
   it("uses Public (2) for default creation flow", () => {
