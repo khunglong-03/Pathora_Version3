@@ -1,0 +1,41 @@
+@startuml Sign in with Email
+skinparam classAttributeIconSize 0
+
+class AuthController {
+    +Login(command: LoginCommand): Task<IActionResult>
+}
+
+class LoginCommand {
+    +Email: string
+    +Password: string
+}
+
+class LoginCommandHandler {
+    -identityService: IIdentityService
+    +Handle(request: LoginCommand): Task<ErrorOr<LoginResponse>>
+}
+
+interface IIdentityService {
+    +Login(request: LoginRequest): Task<ErrorOr<LoginResponse>>
+}
+
+class IdentityService {
+    -userRepository: IUserRepository
+    -passwordHasher: IPasswordHasher
+    -tokenManager: ITokenManager
+    +Login(request: LoginRequest): Task<ErrorOr<LoginResponse>>
+}
+
+class UserEntity {
+    +Id: Guid
+    +Email: string
+    +Password: string
+    +Status: UserStatus
+}
+
+AuthController ..> LoginCommand : uses
+LoginCommand ..> LoginCommandHandler : handled by
+LoginCommandHandler --> IIdentityService : calls
+IIdentityService <|.. IdentityService : implements
+IdentityService --> UserEntity : retrieves
+@enduml

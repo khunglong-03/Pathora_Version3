@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { CurrencyCircleDollar, AirplaneTilt, XCircle, Receipt } from "@phosphor-icons/react";
 import { BookingDetail, PAYMENT_STATUS_COLOR } from "./BookingDetailData";
 import { formatCurrency, getPaymentStatusLabel } from "./BookingDetailHelpers";
@@ -113,13 +114,13 @@ export function BookingPaymentSummary({
         )}
 
         {showCancelBooking && (
-          <button
-            type="button"
+          <Link
+            href={`/bookings/${booking.id}/cancellation`}
             className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-red-200 bg-red-50/30 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors mt-2"
           >
             <XCircle weight="bold" className="size-5" />
             Cancel Booking
-          </button>
+          </Link>
         )}
       </div>
     </motion.div>
