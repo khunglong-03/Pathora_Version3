@@ -15,4 +15,7 @@ public static class TourInstanceEndpoint
     public const string Approve = "{id:guid}/approve";
     public const string CheckGuideAvailability = "check-guide-availability";
     public const string ConfirmExternalTransport = "{instanceId:guid}/transportation/{activityId:guid}/confirm-external";
+
+    public const string TicketImages = "{instanceId:guid}/activities/{activityId:guid}/ticket-images";
+    public const string TicketImageById = "{instanceId:guid}/activities/{activityId:guid}/ticket-images/{imageId:guid}";
 }

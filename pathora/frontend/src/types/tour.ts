@@ -312,6 +312,26 @@ export const TransportationTypeMap: Record<number, string> = {
   99: "Other",
 };
 
+// Phương tiện đặc thù không có in-app supplier (vé máy bay/tàu/du thuyền/khác) —
+// Manager phải tự book bên ngoài và confirm sau khi khách thanh toán
+// (xem TourInstanceDayActivityEntity.IsExternalOnlyTransportationType).
+const EXTERNAL_ONLY_TRANSPORTATION_NAMES = new Set(["Flight", "Train", "Boat", "Other"]);
+const EXTERNAL_ONLY_TRANSPORTATION_KEYS = new Set([2, 3, 4, 99]); // Train, Flight, Boat, Other
+
+export const isExternalOnlyTransportation = (
+  transportationType: string | number | null | undefined,
+): boolean => {
+  if (transportationType === null || transportationType === undefined) return false;
+  if (typeof transportationType === "number") {
+    return EXTERNAL_ONLY_TRANSPORTATION_KEYS.has(transportationType);
+  }
+  const numeric = Number(transportationType);
+  if (Number.isInteger(numeric) && EXTERNAL_ONLY_TRANSPORTATION_KEYS.has(numeric)) {
+    return true;
+  }
+  return EXTERNAL_ONLY_TRANSPORTATION_NAMES.has(transportationType);
+};
+
 // Boundary map between the Vehicle Type picker and the backend payload
 // (`TourInstanceDayActivityEntity.RequestedVehicleType : VehicleType`).
 // Keys MUST stay 1:1 with `panthora_be/src/Domain/Enums/VehicleType.cs`.
@@ -502,6 +522,30 @@ export interface TourInstanceDayActivityDto {
   arrivalTime?: string | null;
   /** Multi-vehicle rows when present; legacy flattened `vehicleId` / `driverId` may still reflect the primary row. */
   transportAssignments?: TourInstanceTransportAssignmentDto[];
+
+  // External transport confirmation (Flight/Train/Boat) — Manager confirms manually post-payment
+  externalTransportConfirmed?: boolean | null;
+  externalTransportConfirmedAt?: string | null;
+  externalTransportConfirmedBy?: string | null;
+}
+
+export interface TicketImageDto {
+  id: string;
+  tourInstanceDayActivityId: string;
+  imageUrl?: string | null;
+  originalFileName?: string | null;
+  uploadedBy: string;
+  uploadedAt: string;
+  bookingId?: string | null;
+  bookingReference?: string | null;
+  note?: string | null;
+}
+
+export interface UploadTicketImagePayload {
+  file: File;
+  bookingId?: string | null;
+  bookingReference?: string | null;
+  note?: string | null;
 }
 
 export interface TourInstancePlanAccommodationDto {

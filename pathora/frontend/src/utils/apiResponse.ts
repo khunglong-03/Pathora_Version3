@@ -110,6 +110,7 @@ export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
   "TourInstanceActivity.VehicleCountMismatch",
   "TourInstanceActivity.VehicleCountExceedsFleet",
   "TourInstanceActivity.RoomCountExceedsInventory",
+  "TourInstanceActivity.SupplierNotApplicable",
   "Vehicle.WrongType",
   "Vehicle.InsufficientCapacity",
   "Vehicle.WrongSupplier",
@@ -121,6 +122,17 @@ export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
   // Vehicle availability & schedule
   "VehicleAvailability.NoSupplier",
   "VehicleAvailability.ActivityNotOwned",
+] as const;
+
+export const TICKET_IMAGE_ERROR_CODES = [
+  "TicketImage.NotFound",
+  "TicketImage.ActivityNotExternal",
+  "TicketImage.NoBookings",
+  "TicketImage.InvalidFileType",
+  "TicketImage.FileTooLarge",
+  "TicketImage.EmptyFile",
+  "TicketImage.CrossActivityDelete",
+  "TicketImage.DeleteForbidden",
 ] as const;
 
 /**
@@ -143,6 +155,7 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstanceActivity.VehicleCountMismatch": "tourInstance.transport.errors.vehicleCountMismatch",
   "TourInstanceActivity.VehicleCountExceedsFleet": "tourInstance.transport.errors.vehicleCountExceedsFleet",
   "TourInstanceActivity.RoomCountExceedsInventory": "tourInstance.transport.errors.roomCountExceedsInventory",
+  "TourInstanceActivity.SupplierNotApplicable": "tourInstance.transport.errors.supplierNotApplicable",
   "TourInstance.CreateFailed": "tourInstance.errors.createFailed",
   "TourInstance.UpdateFailed": "tourInstance.errors.updateFailed",
   "TourInstance.DeleteFailed": "tourInstance.errors.deleteFailed",
@@ -150,6 +163,14 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   // Vehicle availability & schedule
   "VehicleAvailability.NoSupplier": "tourInstance.transport.errors.vehicleAvailabilityNoSupplier",
   "VehicleAvailability.ActivityNotOwned": "tourInstance.transport.errors.vehicleAvailabilityActivityNotOwned",
+  "TicketImage.NotFound": "tourInstance.transport.ticketImages.errors.notFound",
+  "TicketImage.ActivityNotExternal": "tourInstance.transport.ticketImages.errors.activityNotExternal",
+  "TicketImage.NoBookings": "tourInstance.transport.ticketImages.errors.noBookings",
+  "TicketImage.InvalidFileType": "tourInstance.transport.ticketImages.errors.invalidFileType",
+  "TicketImage.FileTooLarge": "tourInstance.transport.ticketImages.errors.fileTooLarge",
+  "TicketImage.EmptyFile": "tourInstance.transport.ticketImages.errors.emptyFile",
+  "TicketImage.CrossActivityDelete": "tourInstance.transport.ticketImages.errors.crossActivityDelete",
+  "TicketImage.DeleteForbidden": "tourInstance.transport.ticketImages.errors.deleteForbidden",
 };
 
 const AUTH_ERROR_CODE_MAP: Record<string, string> = {

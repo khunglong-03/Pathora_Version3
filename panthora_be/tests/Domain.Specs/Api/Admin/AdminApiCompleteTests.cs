@@ -376,6 +376,7 @@ public sealed class AdminApiCompleteTests
     {
         var managerId = Guid.NewGuid();
         var request = new AdminContracts.CreateStaffUnderManagerRequest(
+            Username: null,
             Email: "staff@example.com",
             FullName: "Staff Member",
             StaffType: 1
@@ -403,6 +404,7 @@ public sealed class AdminApiCompleteTests
     {
         var managerId = Guid.NewGuid();
         var request = new AdminContracts.CreateStaffUnderManagerRequest(
+            Username: null,
             Email: "invalid-email",
             FullName: "Staff",
             StaffType: 1

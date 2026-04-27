@@ -10,6 +10,7 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { handleApiError } from "@/utils/apiResponse";
 import {
   VehicleTypeMap,
+  isExternalOnlyTransportation,
   vehicleTypeNameToKey,
   type TourInstanceDayActivityDto,
 } from "@/types/tour";
@@ -91,6 +92,16 @@ export default function SupplierReassignmentModal({
       ? normalizeApprovalStatus(activity.transportationApprovalStatus) === "approved"
       : normalizeApprovalStatus(activity.accommodation?.supplierApprovalStatus) === "approved";
 
+  const isExternalOnly =
+    activityType === "Transportation"
+    && isExternalOnlyTransportation(activity.transportationType);
+
+  const isExternalConfirmed = Boolean(activity.externalTransportConfirmed);
+  const canConfirmExternal =
+    !!activity.bookingReference
+    && !!activity.departureTime
+    && !!activity.arrivalTime;
+
   // Fetch suppliers on open
   const fetchSuppliers = useCallback(async () => {
     setFetchState("loading");
@@ -110,7 +121,9 @@ export default function SupplierReassignmentModal({
 
   useEffect(() => {
     if (open) {
-      void fetchSuppliers();
+      if (!isExternalOnly) {
+        void fetchSuppliers();
+      }
       // Reset form
       setSelectedSupplierId("");
       setRequestedVehicleType(
@@ -123,7 +136,7 @@ export default function SupplierReassignmentModal({
         seatCount: activity.requestedSeatCount ?? 0,
       };
     }
-  }, [open, fetchSuppliers, activity]);
+  }, [open, fetchSuppliers, activity, isExternalOnly]);
 
   // Focus management after load
   useEffect(() => {
@@ -149,7 +162,28 @@ export default function SupplierReassignmentModal({
     onClose();
   }, [isDirty, onClose]);
 
+  const handleConfirmExternal = async (confirm: boolean) => {
+    if (!canConfirmExternal && confirm) return;
+    setSubmitting(true);
+    try {
+      await tourInstanceService.confirmExternalTransport(tourInstanceId, activity.id, confirm);
+      toast.success(
+        confirm
+          ? t("tourInstance.transport.externalOnly.confirmedToast", "Đã xác nhận vé bên ngoài.")
+          : t("tourInstance.transport.externalOnly.unconfirmedToast", "Đã huỷ xác nhận vé bên ngoài."),
+      );
+      onSuccess();
+      onClose();
+    } catch (error) {
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (isExternalOnly) return;
     if (
       !selectedSupplierId
       || (activityType === "Transportation" && !requestedVehicleType)
@@ -209,8 +243,84 @@ export default function SupplierReassignmentModal({
       centered
     >
       <div className="space-y-4">
+        {/* External-only transport panel — flight/train/ferry can't be assigned to in-app supplier */}
+        {isExternalOnly && (
+          <div className="space-y-3">
+            <div
+              role="alert"
+              className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex gap-2 items-start"
+            >
+              <Icon icon="heroicons:information-circle" className="size-5 shrink-0 text-amber-600" />
+              <div>
+                <p className="font-semibold">
+                  {t("tourInstance.transport.externalOnly.title", "Phương tiện đặc thù — không gán nhà cung cấp")}
+                </p>
+                <p className="mt-1">
+                  {t(
+                    "tourInstance.transport.externalOnly.description",
+                    "Vé máy bay, tàu hoả và du thuyền phải do người thiết kế tour tự đặt bên ngoài sau khi khách thanh toán.",
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+              <h4 className="mb-2 font-semibold text-slate-700">
+                {t("tourInstance.transport.externalOnly.bookingDetails", "Thông tin đặt vé")}
+              </h4>
+              <dl className="grid gap-2 text-xs sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">
+                    {t("tourInstance.transport.externalOnly.bookingReference", "Mã đặt chỗ")}
+                  </dt>
+                  <dd className="text-slate-900">
+                    {activity.bookingReference
+                      ?? t("tourInstance.transport.externalOnly.notSet", "(chưa nhập)")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">
+                    {t("tourInstance.transport.externalOnly.departureTime", "Khởi hành")}
+                  </dt>
+                  <dd className="text-slate-900">
+                    {activity.departureTime
+                      ?? t("tourInstance.transport.externalOnly.notSet", "(chưa nhập)")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">
+                    {t("tourInstance.transport.externalOnly.arrivalTime", "Đến nơi")}
+                  </dt>
+                  <dd className="text-slate-900">
+                    {activity.arrivalTime
+                      ?? t("tourInstance.transport.externalOnly.notSet", "(chưa nhập)")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">
+                    {t("tourInstance.transport.externalOnly.statusLabel", "Trạng thái")}
+                  </dt>
+                  <dd className={isExternalConfirmed ? "font-semibold text-emerald-700" : "text-slate-700"}>
+                    {isExternalConfirmed
+                      ? t("tourInstance.transport.externalOnly.statusConfirmed", "Đã xác nhận")
+                      : t("tourInstance.transport.externalOnly.statusPending", "Chưa xác nhận")}
+                  </dd>
+                </div>
+              </dl>
+              {!canConfirmExternal && !isExternalConfirmed && (
+                <p className="mt-3 text-xs text-rose-600">
+                  {t(
+                    "tourInstance.transport.externalOnly.missingFields",
+                    "Cần nhập đủ Mã đặt chỗ, giờ khởi hành và giờ đến trước khi xác nhận.",
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Warning banner for Approved activities */}
-        {isApproved && (
+        {!isExternalOnly && isApproved && (
           <div
             role="alert"
             className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 flex gap-2 items-start"
@@ -226,7 +336,7 @@ export default function SupplierReassignmentModal({
         )}
 
         {/* Loading state */}
-        {fetchState === "loading" && (
+        {!isExternalOnly && fetchState === "loading" && (
           <div className="animate-pulse space-y-3">
             <div className="h-10 rounded-lg bg-slate-100" />
             <div className="h-4 w-3/4 rounded bg-slate-100" />
@@ -234,7 +344,7 @@ export default function SupplierReassignmentModal({
         )}
 
         {/* Empty state */}
-        {fetchState === "empty" && (
+        {!isExternalOnly && fetchState === "empty" && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
             <p>Chưa có nhà cung cấp phù hợp</p>
             <button
@@ -248,7 +358,7 @@ export default function SupplierReassignmentModal({
         )}
 
         {/* Error state */}
-        {fetchState === "error" && (
+        {!isExternalOnly && fetchState === "error" && (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 flex items-center justify-between">
             <span>Không tải được danh sách nhà cung cấp</span>
             <button
@@ -262,7 +372,7 @@ export default function SupplierReassignmentModal({
         )}
 
         {/* Ready state — the form */}
-        {fetchState === "ready" && (
+        {!isExternalOnly && fetchState === "ready" && (
           <div className="space-y-4">
             <div>
               <label htmlFor="supplier-select" className="mb-1 block text-sm font-medium text-slate-700">
@@ -334,7 +444,7 @@ export default function SupplierReassignmentModal({
           >
             {t("common.cancel", "Huỷ")}
           </button>
-          {fetchState === "ready" && (
+          {!isExternalOnly && fetchState === "ready" && (
             <button
               type="button"
               onClick={() => void handleSubmit()}
@@ -351,6 +461,32 @@ export default function SupplierReassignmentModal({
             >
               {submitting ? t("common.processing", "Đang xử lý...") : actionLabel}
             </button>
+          )}
+
+          {isExternalOnly && (
+            isExternalConfirmed ? (
+              <button
+                type="button"
+                onClick={() => void handleConfirmExternal(false)}
+                disabled={submitting}
+                className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting
+                  ? t("common.processing", "Đang xử lý...")
+                  : t("tourInstance.transport.externalOnly.unconfirm", "Huỷ xác nhận")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void handleConfirmExternal(true)}
+                disabled={submitting || !canConfirmExternal}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting
+                  ? t("common.processing", "Đang xử lý...")
+                  : t("tourInstance.transport.externalOnly.confirm", "Xác nhận vé bên ngoài")}
+              </button>
+            )
           )}
         </div>
       </div>

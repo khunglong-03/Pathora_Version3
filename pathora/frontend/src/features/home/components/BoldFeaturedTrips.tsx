@@ -19,6 +19,13 @@ type FeaturedTile = {
 
 import { getFallbackImage } from "@/utils/imageFallback";
 
+const getValidImageUrl = (thumbnail: any, fallbackIndex: string | number) => {
+  if (!thumbnail || thumbnail === "undefined") return getFallbackImage(fallbackIndex);
+  if (typeof thumbnail === "string") return thumbnail;
+  if (typeof thumbnail === "object" && thumbnail.publicURL) return thumbnail.publicURL;
+  return getFallbackImage(fallbackIndex);
+};
+
 const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
   tours.map((tour, index) => ({
     id: tour.id,
@@ -26,7 +33,7 @@ const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
     duration: `${tour.durationDays} ${tour.durationDays > 1 ? "days" : "day"}`,
     price: `${tour.basePrice.toLocaleString()} VND`,
     rating: Number((tour.rating ?? 4.8).toFixed(1)),
-    image: tour.thumbnail || getFallbackImage(index),
+    image: getValidImageUrl(tour.thumbnail, index),
     isVisa: tour.isVisa,
     size: index === 0 ? "large" : index === 3 ? "wide" : "medium",
   }));

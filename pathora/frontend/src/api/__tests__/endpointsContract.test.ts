@@ -51,6 +51,12 @@ describe("api endpoint contracts", () => {
     expect(API_ENDPOINTS.TOUR_INSTANCE.RESOLVE_PRICING("instance-id", 4)).toBe(
       "/api/tour-instance/instance-id/pricing/resolve?participants=4",
     );
+    expect(API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGES("instance-id", "activity-id")).toBe(
+      "/api/tour-instance/instance-id/activities/activity-id/ticket-images",
+    );
+    expect(API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGE_BY_ID("instance-id", "activity-id", "image-id")).toBe(
+      "/api/tour-instance/instance-id/activities/activity-id/ticket-images/image-id",
+    );
   });
 
   it("matches public tour and tour-request backend routes", () => {

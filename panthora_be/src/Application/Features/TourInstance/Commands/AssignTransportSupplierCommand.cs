@@ -116,6 +116,13 @@ public sealed class AssignTransportSupplierCommandHandler(
         if (activity.ActivityType != TourDayActivityType.Transportation)
             return Error.Validation("TourInstanceActivity.InvalidType", "Hoạt động này không phải loại vận chuyển.");
 
+        if (Domain.Entities.TourInstanceDayActivityEntity.IsExternalOnlyTransportationType(activity.TransportationType))
+        {
+            return Error.Validation(
+                TourInstanceTransportErrors.SupplierNotApplicableCode,
+                TourInstanceTransportErrors.SupplierNotApplicableDescription);
+        }
+
         // Remove any hard holds tied to this activity (single or multi-vehicle) before resetting supplier/plan.
         await vehicleBlockRepository.DeleteByActivityAsync(activity.Id, cancellationToken);
 

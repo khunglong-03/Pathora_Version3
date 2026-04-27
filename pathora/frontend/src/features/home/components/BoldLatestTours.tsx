@@ -21,6 +21,13 @@ const formatBadgeDate = (createdAt: string): string => {
   });
 };
 
+const getValidImageUrl = (thumbnail: any, fallbackIndex: string | number) => {
+  if (!thumbnail || thumbnail === "undefined") return getFallbackImage(fallbackIndex);
+  if (typeof thumbnail === "string") return thumbnail;
+  if (typeof thumbnail === "object" && thumbnail.publicURL) return thumbnail.publicURL;
+  return getFallbackImage(fallbackIndex);
+};
+
 export const BoldLatestTours = () => {
   const { t, i18n } = useTranslation();
   const [ref, isVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 });
@@ -122,7 +129,7 @@ export const BoldLatestTours = () => {
               >
                 <div className="relative h-[200px] md:h-[240px] rounded-[1.5rem] overflow-hidden mb-5 bg-stone-100 shadow-sm border border-stone-200/50">
                   <Image
-                    src={tour.thumbnail || getFallbackImage(tour.id)}
+                    src={getValidImageUrl(tour.thumbnail, tour.id)}
                     alt={tour.tourName}
                     fill
                     sizes="(max-width: 768px) 280px, 320px"

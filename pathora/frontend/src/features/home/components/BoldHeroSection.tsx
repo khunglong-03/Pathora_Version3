@@ -29,12 +29,20 @@ export const BoldHeroSection = () => {
     let cancelled = false;
     homeService.getFeaturedTours(3, i18n.resolvedLanguage).then((data) => {
       if (cancelled) return;
-      const mapped = (data || []).slice(0, 3).map((t, i) => ({
-        id: t.id,
-        name: t.tourName,
-        location: `${t.durationDays} Days`,
-        image: t.thumbnail || getFallbackImage(t.id + i),
-      }));
+      const mapped = (data || []).slice(0, 3).map((t, i) => {
+        let imageUrl = null;
+        if (typeof t.thumbnail === "string" && t.thumbnail !== "undefined") {
+          imageUrl = t.thumbnail;
+        } else if (t.thumbnail && typeof t.thumbnail === "object" && (t.thumbnail as any).publicURL) {
+          imageUrl = (t.thumbnail as any).publicURL;
+        }
+        return {
+          id: t.id,
+          name: t.tourName,
+          location: `${t.durationDays} Days`,
+          image: imageUrl || getFallbackImage(t.id + i),
+        };
+      });
       // Mock if < 3
       if (mapped.length < 3) {
         setTours([

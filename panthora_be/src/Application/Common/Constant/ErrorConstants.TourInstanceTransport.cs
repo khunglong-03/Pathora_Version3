@@ -139,4 +139,20 @@ public static class TourInstanceTransportErrors
         new(
             "Số phòng yêu cầu vượt quá số phòng đang hoạt động của nhà cung cấp.",
             "Requested room count exceeds the active inventory of the supplier.");
+
+    public const string SupplierNotApplicableCode = "TourInstanceActivity.SupplierNotApplicable";
+    public static readonly LocalizedMessage SupplierNotApplicableDescription =
+        new(
+            "Hoạt động này dùng phương tiện đặc thù (máy bay/tàu/du thuyền) nên phải do người thiết kế tour tự đặt vé bên ngoài, không gán nhà cung cấp trong hệ thống.",
+            "This activity uses external-only transport (flight/train/ferry) — the tour planner must book it externally instead of assigning an in-app supplier.");
+
+    /// <summary>
+    /// Provider attempts to approve an activity that is not classified as
+    /// <see cref="Domain.Enums.TransportApprovalCategory.Ground"/> (e.g., Flight/Train/Boat/Other/Walking).
+    /// </summary>
+    public const string ActivityNotProviderManagedCode = "TourInstanceActivity.NotProviderManaged";
+    public static readonly LocalizedMessage ActivityNotProviderManagedDescription =
+        new(
+            "Hoạt động vận chuyển này không thuộc phạm vi duyệt của nhà cung cấp vận tải (chỉ duyệt phương tiện đường bộ).",
+            "This transportation activity is not managed by Transport Providers (only ground vehicles are approved here).");
 }

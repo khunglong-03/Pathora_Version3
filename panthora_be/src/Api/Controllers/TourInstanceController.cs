@@ -273,6 +273,53 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    /// <summary>
+    /// TourDesigner/Manager upload ticket image cho hoạt động vận chuyển ngoài (Flight/Train/Boat/Other).
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [HttpPost(TourInstanceEndpoint.TicketImages)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadTicketImage(
+        Guid instanceId,
+        Guid activityId,
+        [FromForm] IFormFile file,
+        [FromForm] Guid? bookingId = null,
+        [FromForm] string? bookingReference = null,
+        [FromForm] string? note = null)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("File is empty");
+
+        await using var stream = file.OpenReadStream();
+        var result = await Sender.Send(new UploadTicketImageCommand(
+            instanceId,
+            activityId,
+            stream,
+            file.FileName,
+            file.ContentType ?? "application/octet-stream",
+            file.Length,
+            bookingId,
+            bookingReference,
+            note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [HttpGet(TourInstanceEndpoint.TicketImages)]
+    public async Task<IActionResult> GetTicketImages(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetTicketImagesQuery(instanceId, activityId));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [HttpDelete(TourInstanceEndpoint.TicketImageById)]
+    public async Task<IActionResult> DeleteTicketImage(Guid instanceId, Guid activityId, Guid imageId)
+    {
+        var result = await Sender.Send(new DeleteTicketImageCommand(activityId, imageId));
+        return HandleResult(result);
+    }
+
 }
 
 public sealed record ProviderApproveRequest(

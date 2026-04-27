@@ -89,6 +89,7 @@ describe("TransportTourAssignmentPage", () => {
             isOptional: false,
             note: null,
             accommodation: null,
+            transportationType: "Bus",
             transportSupplierId: "supplier-1",
             transportSupplierName: "Transport Beta",
             requestedVehicleType: "Coach",
@@ -159,6 +160,33 @@ describe("TransportTourAssignmentPage", () => {
     expect(screen.getByText("Coach")).toBeInTheDocument();
     expect(screen.getByText("18")).toBeInTheDocument();
     expect(screen.getByText("Dang cho duyet")).toBeInTheDocument();
+  });
+
+  it("renders only ground transportation activities and hides external ticket or walking activities", async () => {
+    const baseActivity = mockTour.days[0].activities[0];
+    vi.mocked(tourInstanceService.getMyAssignedInstanceDetail).mockResolvedValue({
+      ...mockTour,
+      days: [
+        {
+          ...mockTour.days[0],
+          activities: [
+            { ...baseActivity, id: "bus-activity", title: "Bus to Ha Long", transportationType: "Bus" },
+            { ...baseActivity, id: "flight-activity", title: "Flight to Da Nang", transportationType: "Flight" },
+            { ...baseActivity, id: "train-activity", title: "Train to Hue", transportationType: "Train" },
+            { ...baseActivity, id: "boat-activity", title: "Boat to Cat Ba", transportationType: "Boat" },
+            { ...baseActivity, id: "walk-activity", title: "Walking tour", transportationType: "Walking" },
+          ],
+        },
+      ],
+    } as never);
+
+    render(<TransportTourAssignmentPage />);
+
+    expect(await screen.findByText("Bus to Ha Long")).toBeInTheDocument();
+    expect(screen.queryByText("Flight to Da Nang")).not.toBeInTheDocument();
+    expect(screen.queryByText("Train to Hue")).not.toBeInTheDocument();
+    expect(screen.queryByText("Boat to Cat Ba")).not.toBeInTheDocument();
+    expect(screen.queryByText("Walking tour")).not.toBeInTheDocument();
   });
 
   it("approves a transportation activity through the activity modal", async () => {

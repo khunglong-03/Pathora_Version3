@@ -43,6 +43,7 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             day.Id, 1, TourDayActivityType.Transportation, "Transfer", "t");
         var activityId = activity.Id;
         activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Bus;
         activity.RequestedVehicleType = VehicleType.Coach;
         activity.RequestedSeatCount = 25;
         activity.TourInstanceDayId = day.Id;
@@ -217,6 +218,7 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             day.Id, 1, TourDayActivityType.Transportation, "Transfer", "t");
         var activityId = activity.Id;
         activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Bus;
         activity.RequestedVehicleType = VehicleType.Coach;
         activity.RequestedSeatCount = 20;
         activity.RequestedVehicleCount = 2; // manager asked for 2 vehicles
@@ -291,6 +293,7 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             day.Id, 1, TourDayActivityType.Transportation, "Transfer", "t");
         var activityId = activity.Id;
         activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Bus;
         activity.RequestedVehicleType = VehicleType.Coach;
         activity.RequestedSeatCount = 50;
         activity.TourInstanceDayId = day.Id;
@@ -387,6 +390,7 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             day.Id, 1, TourDayActivityType.Transportation, "Transfer", "t");
         var activityId = activity.Id;
         activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Bus;
         activity.RequestedVehicleType = VehicleType.Coach;
         activity.RequestedSeatCount = 10;
         activity.TourInstanceDayId = day.Id;
@@ -435,5 +439,149 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
         await unitOfWork.DidNotReceive().ExecuteTransactionAsync(Arg.Any<Func<Task>>());
         await unitOfWork.DidNotReceive().ExecuteTransactionAsync(Arg.Any<System.Data.IsolationLevel>(), Arg.Any<Func<Task>>());
         await vehicleBlockRepository.DidNotReceive().AddAsync(Arg.Any<VehicleBlockEntity>(), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(TransportationType.Flight)]
+    [InlineData(TransportationType.Train)]
+    [InlineData(TransportationType.Boat)]
+    [InlineData(TransportationType.Other)]
+    [InlineData(TransportationType.Walking)]
+    public async Task Handle_WhenActivityIsNotGround_ReturnsActivityNotProviderManaged(TransportationType nonGroundType)
+    {
+        var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        var supplierRepository = Substitute.For<ISupplierRepository>();
+        var vehicleRepository = Substitute.For<IVehicleRepository>();
+        var driverRepository = Substitute.For<IDriverRepository>();
+        var vehicleBlockRepository = Substitute.For<IVehicleBlockRepository>();
+        var availabilityService = Substitute.For<IResourceAvailabilityService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var user = Substitute.For<IUser>();
+
+        var userId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var instanceId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var driverId = Guid.NewGuid();
+
+        user.Id.Returns(userId.ToString());
+        supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns([new SupplierEntity { Id = supplierId, OwnerUserId = userId }]);
+
+        var day = new TourInstanceDayEntity
+        {
+            Id = Guid.NewGuid(),
+            ActualDate = new DateOnly(2026, 5, 5),
+            IsDeleted = false
+        };
+        var activity = TourInstanceDayActivityEntity.Create(
+            day.Id, 1, TourDayActivityType.Transportation, "External", "t");
+        var activityId = activity.Id;
+        // Provider should NOT be approving non-Ground activities even if a supplier is assigned.
+        activity.TransportSupplierId = supplierId;
+        activity.TransportationType = nonGroundType;
+        activity.TourInstanceDayId = day.Id;
+        activity.TourInstanceDay = day;
+        day.Activities = [activity];
+
+        var instance = new TourInstanceEntity
+        {
+            Id = instanceId,
+            MaxParticipation = 10,
+            Status = TourInstanceStatus.PendingApproval,
+            InstanceDays = [day]
+        };
+
+        tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
+
+        var handler = new ApproveTransportationActivityCommandHandler(
+            tourInstanceRepository,
+            supplierRepository,
+            vehicleRepository,
+            driverRepository,
+            vehicleBlockRepository,
+            availabilityService,
+            unitOfWork,
+            user);
+
+        var result = await handler.Handle(
+            new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.NotProviderManaged");
+        await vehicleRepository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await vehicleBlockRepository.DidNotReceive().AddAsync(Arg.Any<VehicleBlockEntity>(), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(TransportationType.Bus)]
+    [InlineData(TransportationType.Car)]
+    [InlineData(TransportationType.Motorbike)]
+    [InlineData(TransportationType.Taxi)]
+    [InlineData(TransportationType.Bicycle)]
+    public async Task Handle_WhenActivityIsGround_PassesGuardAndContinues(TransportationType groundType)
+    {
+        // Ground types must NOT trigger the NotProviderManaged guard. We let the request fall through
+        // to the next validation (NoSupplier here, since we only set TransportationType — no supplier),
+        // which is sufficient evidence the new guard let it pass.
+        var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        var supplierRepository = Substitute.For<ISupplierRepository>();
+        var vehicleRepository = Substitute.For<IVehicleRepository>();
+        var driverRepository = Substitute.For<IDriverRepository>();
+        var vehicleBlockRepository = Substitute.For<IVehicleBlockRepository>();
+        var availabilityService = Substitute.For<IResourceAvailabilityService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var user = Substitute.For<IUser>();
+
+        var userId = Guid.NewGuid();
+        var instanceId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var driverId = Guid.NewGuid();
+
+        user.Id.Returns(userId.ToString());
+
+        var day = new TourInstanceDayEntity
+        {
+            Id = Guid.NewGuid(),
+            ActualDate = new DateOnly(2026, 5, 6),
+            IsDeleted = false
+        };
+        var activity = TourInstanceDayActivityEntity.Create(
+            day.Id, 1, TourDayActivityType.Transportation, "Ground transfer", "t");
+        var activityId = activity.Id;
+        activity.TransportationType = groundType;
+        activity.TourInstanceDayId = day.Id;
+        activity.TourInstanceDay = day;
+        day.Activities = [activity];
+
+        var instance = new TourInstanceEntity
+        {
+            Id = instanceId,
+            MaxParticipation = 10,
+            Status = TourInstanceStatus.PendingApproval,
+            InstanceDays = [day]
+        };
+
+        tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
+
+        var handler = new ApproveTransportationActivityCommandHandler(
+            tourInstanceRepository,
+            supplierRepository,
+            vehicleRepository,
+            driverRepository,
+            vehicleBlockRepository,
+            availabilityService,
+            unitOfWork,
+            user);
+
+        var result = await handler.Handle(
+            new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        // Guard let it through; next check (NoSupplier) fires instead.
+        Assert.DoesNotContain(result.Errors, e => e.Code == "TourInstanceActivity.NotProviderManaged");
+        Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.NoSupplier");
     }
 }

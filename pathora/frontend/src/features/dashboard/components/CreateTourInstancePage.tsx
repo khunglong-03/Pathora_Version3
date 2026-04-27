@@ -8,7 +8,7 @@ import React, {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Icon, CollapsibleSection } from "@/components/ui";
@@ -756,6 +756,7 @@ interface InstanceDetailsStepProps {
   submitting: boolean;
   selectedClassification: TourClassificationDto | null;
   duplicateWarning: CheckDuplicateResult | null;
+  instanceBasePath: string;
   availableServices: string[];
   onSubmit: () => void;
   onPrevious: () => void;
@@ -806,6 +807,7 @@ function InstanceDetailsStep({
   submitting,
   selectedClassification,
   duplicateWarning,
+  instanceBasePath,
   availableServices,
   onSubmit,
   onPrevious,
@@ -883,7 +885,7 @@ function InstanceDetailsStep({
               {duplicateWarning.existingInstances.map((inst) => (
                 <a
                   key={inst.id}
-                  href={`/manager/tour-instances/${inst.id}`}
+                  href={`${instanceBasePath}/${inst.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 flex items-center gap-1.5 text-sm text-amber-800 hover:text-amber-600 underline underline-offset-2">
@@ -2118,9 +2120,17 @@ export function CreateTourInstancePage({
     [mounted, t],
   );
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const urlTourRequestId = searchParams.get("tourRequestId");
+  const instanceBasePath = useMemo(
+    () =>
+      pathname.startsWith("/tour-designer")
+        ? "/tour-designer/tour-instances"
+        : "/manager/tour-instances",
+    [pathname],
+  );
 
   const [currentStep, setCurrentStep] = useState(SELECT_TOUR_STEP);
   const [activeLang, setActiveLang] = useState<"vi" | "en">("vi");
@@ -3024,7 +3034,7 @@ export function CreateTourInstancePage({
         );
         // Backend returns just the Guid ID, not a full TourInstanceDto
         const instanceId = typeof result === "string" ? result : (result as any).id;
-        router.push(`/manager/tour-instances/${instanceId}`);
+        router.push(`${instanceBasePath}/${instanceId}`);
       }
     } catch (error: unknown) {
       const handledError = handleApiError(error);
@@ -3167,7 +3177,7 @@ export function CreateTourInstancePage({
               updateField={updateField}
               setReloadToken={setReloadToken}
               onNext={() => setCurrentStep(INSTANCE_DETAILS_STEP)}
-              onCancel={() => router.push("/manager/tour-instances")}
+              onCancel={() => router.push(instanceBasePath)}
               inputClassName={inputClassName}
               t={safeT}
             />
@@ -3183,6 +3193,7 @@ export function CreateTourInstancePage({
                 submitting={submitting}
                 selectedClassification={selectedClassification}
                 duplicateWarning={duplicateWarning}
+                instanceBasePath={instanceBasePath}
                 availableServices={availableServices}
                 onSubmit={handleSubmit}
                 onPrevious={() => setCurrentStep(SELECT_TOUR_STEP)}

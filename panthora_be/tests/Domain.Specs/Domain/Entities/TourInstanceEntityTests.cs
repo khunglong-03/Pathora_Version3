@@ -129,6 +129,132 @@ public sealed class TourInstanceEntityTests
     }
 
     [Fact]
+    public void AreAllTransportationApproved_WalkingActivityWithSupplier_IsExcluded()
+    {
+        // Edge: Walking activity that somehow has a supplier (legacy/manual mistake) should not block readiness.
+        var instance = CreatePendingApprovalInstance();
+        var day = CreateDay(instance, 1);
+
+        var walking = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            1,
+            TourDayActivityType.Transportation,
+            "Walk to museum",
+            "tester",
+            transportationType: TransportationType.Walking);
+        walking.TransportSupplierId = Guid.NewGuid();
+        walking.TransportationApprovalStatus = ProviderApprovalStatus.Pending;
+
+        day.Activities.Add(walking);
+        instance.InstanceDays.Add(day);
+
+        Assert.True(instance.AreAllTransportationApproved());
+    }
+
+    [Fact]
+    public void AreAllTransportationApproved_WalkingPlusPendingBus_StillFalseDueToBus()
+    {
+        var instance = CreatePendingApprovalInstance();
+        var day = CreateDay(instance, 1);
+
+        var walking = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            1,
+            TourDayActivityType.Transportation,
+            "Walk",
+            "tester",
+            transportationType: TransportationType.Walking);
+
+        var bus = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            2,
+            TourDayActivityType.Transportation,
+            "Bus transfer",
+            "tester",
+            transportationType: TransportationType.Bus);
+        bus.AssignTransportSupplier(Guid.NewGuid(), VehicleType.Coach, 12);
+
+        day.Activities.Add(walking);
+        day.Activities.Add(bus);
+        instance.InstanceDays.Add(day);
+
+        Assert.False(instance.AreAllTransportationApproved());
+    }
+
+    [Fact]
+    public void AreAllExternalTransportConfirmed_OnlyWalking_ReturnsTrue()
+    {
+        var instance = CreatePendingApprovalInstance();
+        var day = CreateDay(instance, 1);
+
+        var walking = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            1,
+            TourDayActivityType.Transportation,
+            "Walk",
+            "tester",
+            transportationType: TransportationType.Walking);
+
+        day.Activities.Add(walking);
+        instance.InstanceDays.Add(day);
+
+        Assert.True(instance.AreAllExternalTransportConfirmed());
+    }
+
+    [Fact]
+    public void AreAllExternalTransportConfirmed_FlightUnconfirmed_ReturnsFalse()
+    {
+        var instance = CreatePendingApprovalInstance();
+        var day = CreateDay(instance, 1);
+
+        var flight = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            1,
+            TourDayActivityType.Transportation,
+            "Hanoi → Saigon",
+            "tester",
+            transportationType: TransportationType.Flight);
+
+        day.Activities.Add(flight);
+        instance.InstanceDays.Add(day);
+
+        Assert.False(instance.AreAllExternalTransportConfirmed());
+    }
+
+    [Fact]
+    public void AreAllExternalTransportConfirmed_FlightConfirmedAndGroundIgnored_ReturnsTrue()
+    {
+        var instance = CreatePendingApprovalInstance();
+        var day = CreateDay(instance, 1);
+
+        var flight = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            1,
+            TourDayActivityType.Transportation,
+            "Hanoi → Saigon",
+            "tester",
+            transportationType: TransportationType.Flight,
+            bookingReference: "VN-12345");
+        flight.DepartureTime = DateTimeOffset.UtcNow.AddDays(1);
+        flight.ArrivalTime = DateTimeOffset.UtcNow.AddDays(1).AddHours(2);
+        flight.ConfirmExternalTransport("manager");
+
+        var bus = TourInstanceDayActivityEntity.Create(
+            day.Id,
+            2,
+            TourDayActivityType.Transportation,
+            "Bus to airport",
+            "tester",
+            transportationType: TransportationType.Bus);
+
+        day.Activities.Add(flight);
+        day.Activities.Add(bus);
+        instance.InstanceDays.Add(day);
+
+        Assert.True(instance.AreAllExternalTransportConfirmed());
+    }
+
+    [Fact]
     public void CheckAndActivateTourInstance_IgnoresSoftDeletedPendingTransportationDay()
     {
         var instance = CreatePendingApprovalInstance();

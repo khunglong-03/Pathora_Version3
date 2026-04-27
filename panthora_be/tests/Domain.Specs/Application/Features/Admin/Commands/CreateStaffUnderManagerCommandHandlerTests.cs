@@ -68,7 +68,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,
-            new CreateStaffUnderManagerRequest("newdesigner@test.com", "New Designer", 1));
+            new CreateStaffUnderManagerRequest(null, "newdesigner@test.com", "New Designer", 1));
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -97,7 +97,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,
-            new CreateStaffUnderManagerRequest("newguide@test.com", "New Guide", 2));
+            new CreateStaffUnderManagerRequest(null, "newguide@test.com", "New Guide", 2));
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -117,7 +117,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", 1));
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -139,7 +139,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,
-            new CreateStaffUnderManagerRequest("existing@example.com", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "existing@example.com", "Test User", 1));
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -159,7 +159,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,
-            new CreateStaffUnderManagerRequest("new@test.com", "New Staff", 1));
+            new CreateStaffUnderManagerRequest(null, "new@test.com", "New Staff", 1));
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

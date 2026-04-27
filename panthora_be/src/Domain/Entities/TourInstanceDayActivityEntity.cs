@@ -88,6 +88,12 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     /// <summary>UserId of Manager who confirmed external transport.</summary>
     public string? ExternalTransportConfirmedBy { get; set; }
 
+    /// <summary>
+    /// Ảnh vé ngoài (Flight/Train/Boat) do TourDesigner upload sau khi customer đã book.
+    /// Eager-load khi cần ở các query phục vụ TourDesigner; Provider không thấy danh sách này.
+    /// </summary>
+    public virtual List<TicketImageEntity> TicketImages { get; set; } = [];
+
     public static TourInstanceDayActivityEntity Create(
         Guid tourInstanceDayId,
         int order,
@@ -162,6 +168,8 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only assign transport supplier to Transportation activities.");
+        if (IsExternalOnlyTransportationType(TransportationType))
+            throw new InvalidOperationException("Cannot assign in-app supplier to Flight/Train/Boat activities — must be handled as external transport.");
 
         TransportSupplierId = supplierId;
         RequestedVehicleType = vehicleType;
@@ -196,6 +204,8 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only approve transportation on Transportation activities.");
+        if (IsExternalOnlyTransportationType(TransportationType))
+            throw new InvalidOperationException("Cannot approve Flight/Train/Boat activities via supplier flow — must be confirmed as external transport.");
         if (!TransportSupplierId.HasValue)
             throw new InvalidOperationException("Cannot approve transportation without an assigned supplier.");
 
@@ -258,4 +268,15 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>
+    /// Vé máy bay / tàu / du thuyền không có nhà cung cấp in-app — phải do Manager
+    /// đặt vé bên ngoài và confirm sau khi khách thanh toán. Dùng để guard cả khi
+    /// Manager gán supplier (<see cref="AssignTransportSupplier"/>) lẫn khi Provider
+    /// duyệt (<see cref="ApproveTransportation"/>).
+    /// </summary>
+    public static bool IsExternalOnlyTransportationType(Domain.Enums.TransportationType? type) =>
+        type is Domain.Enums.TransportationType.Flight
+             or Domain.Enums.TransportationType.Train
+             or Domain.Enums.TransportationType.Boat;
 }

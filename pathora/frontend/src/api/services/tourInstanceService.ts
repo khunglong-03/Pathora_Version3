@@ -7,11 +7,13 @@ import {
   NormalizedTourInstanceDto,
   NormalizedTourInstanceVm,
   PaginatedResponse,
+  TicketImageDto,
   TourDayActivityDto,
   TourInstanceDayDto,
   TourInstanceDto,
   TourInstanceStats,
   TourInstanceVm,
+  UploadTicketImagePayload,
 } from "@/types/tour";
 import { extractResult } from "@/utils/apiResponse";
 
@@ -603,6 +605,59 @@ export const tourInstanceService = {
     const response = await api.post<ApiResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ACCOMMODATION_SUPPLIER(instanceId, activityId),
       { supplierId },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  confirmExternalTransport: async (
+    instanceId: string,
+    activityId: string,
+    confirm: boolean = true,
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.CONFIRM_EXTERNAL_TRANSPORT(instanceId, activityId),
+      { confirm },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  getTicketImages: async (
+    instanceId: string,
+    activityId: string,
+  ): Promise<TicketImageDto[]> => {
+    const response = await api.get<ApiResponse<TicketImageDto[]>>(
+      API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGES(instanceId, activityId),
+    );
+    return extractResult<TicketImageDto[]>(response.data) ?? [];
+  },
+
+  uploadTicketImage: async (
+    instanceId: string,
+    activityId: string,
+    payload: UploadTicketImagePayload,
+  ): Promise<TicketImageDto | null> => {
+    const formData = new FormData();
+    formData.append("file", payload.file);
+    if (payload.bookingId) formData.append("bookingId", payload.bookingId);
+    if (payload.bookingReference?.trim()) {
+      formData.append("bookingReference", payload.bookingReference.trim());
+    }
+    if (payload.note?.trim()) formData.append("note", payload.note.trim());
+
+    const response = await api.post<ApiResponse<TicketImageDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGES(instanceId, activityId),
+      formData,
+    );
+    return extractResult<TicketImageDto>(response.data);
+  },
+
+  deleteTicketImage: async (
+    instanceId: string,
+    activityId: string,
+    imageId: string,
+  ) => {
+    const response = await api.delete<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGE_BY_ID(instanceId, activityId, imageId),
     );
     return extractResult<unknown>(response.data);
   },

@@ -10,6 +10,19 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 {
     private readonly AppDbContext _context = context;
 
+    /// <summary>
+    /// Ground transportation types — đồng bộ với <see cref="TransportApprovalCategory.Ground"/>
+    /// trong <c>TransportationTypeExtensions</c>. Inline ở đây để EF Core dịch sang SQL.
+    /// </summary>
+    private static readonly TransportationType[] GroundTransportationTypes =
+    [
+        TransportationType.Bus,
+        TransportationType.Car,
+        TransportationType.Motorbike,
+        TransportationType.Taxi,
+        TransportationType.Bicycle,
+    ];
+
     public async Task<TourInstanceEntity?> FindById(Guid id, bool asNoTracking = false, CancellationToken cancellationToken = default)
     {
         var query = asNoTracking
@@ -354,14 +367,22 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
     public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
+        // Provider chỉ duyệt activity có TransportationType thuộc nhóm Ground (Bus/Car/Motorbike/Taxi/Bicycle).
+        // Flight/Train/Boat/Other do TourDesigner upload vé ngoài; Walking auto-skip — đều bị loại khỏi Provider scope.
         var activityQuery = _context.TourInstanceDayActivities.AsNoTracking()
-            .Where(a => a.TransportSupplierId == providerId || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
+            .Where(a => (a.TransportSupplierId == providerId
+                            && a.TransportationType.HasValue
+                            && GroundTransportationTypes.Contains(a.TransportationType.Value))
+                        || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
             activityQuery = activityQuery.Where(a =>
-                (a.TransportSupplierId == providerId && a.TransportationApprovalStatus == status) ||
+                (a.TransportSupplierId == providerId
+                    && a.TransportationType.HasValue
+                    && GroundTransportationTypes.Contains(a.TransportationType.Value)
+                    && a.TransportationApprovalStatus == status) ||
                 (a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status));
         }
 
@@ -389,13 +410,19 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     public async Task<int> CountProviderAssigned(Guid providerId, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
         var activityQuery = _context.TourInstanceDayActivities.AsNoTracking()
-            .Where(a => a.TransportSupplierId == providerId || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
+            .Where(a => (a.TransportSupplierId == providerId
+                            && a.TransportationType.HasValue
+                            && GroundTransportationTypes.Contains(a.TransportationType.Value))
+                        || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
             activityQuery = activityQuery.Where(a =>
-                (a.TransportSupplierId == providerId && a.TransportationApprovalStatus == status) ||
+                (a.TransportSupplierId == providerId
+                    && a.TransportationType.HasValue
+                    && GroundTransportationTypes.Contains(a.TransportationType.Value)
+                    && a.TransportationApprovalStatus == status) ||
                 (a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status));
         }
 

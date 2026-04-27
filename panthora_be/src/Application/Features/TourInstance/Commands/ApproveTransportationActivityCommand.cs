@@ -108,6 +108,14 @@ public sealed class ApproveTransportationActivityCommandHandler(
         if (activity.ActivityType != TourDayActivityType.Transportation)
             return Error.Validation(ErrorConstants.TourInstanceActivity.InvalidTypeCode, ErrorConstants.TourInstanceActivity.InvalidTypeDescription.Resolve(lang));
 
+        if (!activity.TransportationType.HasValue
+            || activity.TransportationType.Value.GetApprovalCategory() != TransportApprovalCategory.Ground)
+        {
+            return Error.Validation(
+                TourInstanceTransportErrors.ActivityNotProviderManagedCode,
+                TourInstanceTransportErrors.ActivityNotProviderManagedDescription.Resolve(lang));
+        }
+
         if (!activity.TransportSupplierId.HasValue)
             return Error.Validation(ErrorConstants.TourInstanceActivity.NoSupplierCode, ErrorConstants.TourInstanceActivity.NoSupplierDescription.Resolve(lang));
 

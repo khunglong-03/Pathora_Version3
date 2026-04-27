@@ -11,8 +11,10 @@ import {
   UpdateTourInstancePayload,
   tourInstanceService,
 } from "@/api/services/tourInstanceService";
+import { bookingService } from "@/api/services/bookingService";
 import { userService } from "@/api/services/userService";
 import {
+  isExternalOnlyTransportation,
   NormalizedTourInstanceDto,
   UserInfo,
   type TourInstanceDayActivityDto,
@@ -31,6 +33,7 @@ import {
   toDateInput,
 } from "./tour-instance/ViewComponents";
 import SupplierReassignmentModal from "./SupplierReassignmentModal";
+import TicketImageUpload, { type TicketImageBookingOption } from "./TicketImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 
 
@@ -168,6 +171,8 @@ export default function TourInstanceDetailPage() {
   );
   const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
   const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");
+  const [ticketBookingOptions, setTicketBookingOptions] = useState<TicketImageBookingOption[]>([]);
+  const [ticketBookingOptionsLoading, setTicketBookingOptionsLoading] = useState(false);
 
   // Check if navigated from creation and try to reuse POST response
   useEffect(() => {
@@ -297,6 +302,45 @@ export default function TourInstanceDetailPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (!data?.id || (data.totalBookings ?? 0) <= 0) {
+      setTicketBookingOptions([]);
+      setTicketBookingOptionsLoading(false);
+      return;
+    }
+
+    let active = true;
+    setTicketBookingOptionsLoading(true);
+
+    const loadBookings = async () => {
+      try {
+        const bookings = await bookingService.getBookingsByTourInstance(data.id);
+        if (!active) return;
+        setTicketBookingOptions(
+          bookings
+            .map((booking) => {
+              const id = booking.id || (booking as { bookingId?: string }).bookingId;
+              if (!id) return null;
+              return {
+                id,
+                label: `${booking.customerName} - ${booking.status}`,
+              };
+            })
+            .filter((option): option is TicketImageBookingOption => option !== null),
+        );
+      } catch {
+        if (active) setTicketBookingOptions([]);
+      } finally {
+        if (active) setTicketBookingOptionsLoading(false);
+      }
+    };
+
+    void loadBookings();
+    return () => {
+      active = false;
+    };
+  }, [data?.id, data?.totalBookings]);
 
   const updateField = <K extends keyof EditForm>(field: K, value: EditForm[K]) => {
     setForm((current) => (current ? { ...current, [field]: value } : current));
@@ -1409,6 +1453,16 @@ export default function TourInstanceDetailPage() {
                                               <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span>{" "}
                                               {activity.transportationApprovalNote}
                                             </p>
+                                          )}
+
+                                          {canReassign && isExternalOnlyTransportation(activity.transportationType) && (
+                                            <TicketImageUpload
+                                              instanceId={data.id}
+                                              activity={activity}
+                                              bookingOptions={ticketBookingOptions}
+                                              bookingOptionsLoading={ticketBookingOptionsLoading}
+                                              hasBookings={(data.totalBookings ?? 0) > 0}
+                                            />
                                           )}
                                         </div>
                                       )}

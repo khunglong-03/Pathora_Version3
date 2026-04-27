@@ -43,6 +43,9 @@ export interface TourInstanceEndpoints {
   ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string) => string;
   APPROVE_TRANSPORTATION: (instanceId: string, activityId: string) => string;
   REJECT_TRANSPORTATION: (instanceId: string, activityId: string) => string;
+  CONFIRM_EXTERNAL_TRANSPORT: (instanceId: string, activityId: string) => string;
+  TICKET_IMAGES: (instanceId: string, activityId: string) => string;
+  TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -103,6 +106,12 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/transportation/${activityId}/approve`,
   REJECT_TRANSPORTATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/transportation/${activityId}/reject`,
+  CONFIRM_EXTERNAL_TRANSPORT: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/confirm-external`,
+  TICKET_IMAGES: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images`,
+  TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images/${imageId}`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {

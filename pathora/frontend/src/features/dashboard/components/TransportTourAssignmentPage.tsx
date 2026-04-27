@@ -78,6 +78,21 @@ const isTransportationActivity = (activityType?: string | null) => {
   return normalized === "transportation" || normalized === "7";
 };
 
+/**
+ * Provider chỉ duyệt phương tiện đường bộ (Ground category) — đồng bộ với
+ * `Domain.Enums.TransportApprovalCategory.Ground`. Defense-in-depth song song với
+ * filter ở backend (`TourInstanceRepository.FindProviderAssigned`).
+ */
+const GROUND_TRANSPORTATION_TYPES = new Set(["bus", "car", "motorbike", "taxi", "bicycle"]);
+
+const isGroundTransportationType = (transportationType?: string | null) => {
+  if (!transportationType) return false;
+  const normalized = transportationType.trim().toLowerCase();
+  // Numeric codes from backend enum: Bus=1, Car=5, Bicycle=6, Motorbike=7, Taxi=8.
+  if (["1", "5", "6", "7", "8"].includes(normalized)) return true;
+  return GROUND_TRANSPORTATION_TYPES.has(normalized);
+};
+
 const normalizeApprovalStatus = (status?: string | null) =>
   status?.trim().toLowerCase() ?? "";
 
@@ -258,7 +273,10 @@ export default function TransportTourAssignmentPage() {
         const nextDrafts: Record<string, ApprovalDraft> = {};
         tourDetail.days.forEach((day) => {
           day.activities.forEach((activity) => {
-            if (!isTransportationActivity(activity.activityType)) return;
+            if (
+              !isTransportationActivity(activity.activityType)
+              || !isGroundTransportationType(activity.transportationType)
+            ) return;
 
             nextDrafts[activity.id] = activityDraftFromActivity(activity);
           });
@@ -284,7 +302,10 @@ export default function TransportTourAssignmentPage() {
 
     return tour.days.flatMap((day) =>
       day.activities
-        .filter((activity) => isTransportationActivity(activity.activityType))
+        .filter((activity) =>
+          isTransportationActivity(activity.activityType)
+          && isGroundTransportationType(activity.transportationType),
+        )
         .map((activity) => ({
           dayNumber: day.instanceDayNumber,
           dayTitle: day.title,

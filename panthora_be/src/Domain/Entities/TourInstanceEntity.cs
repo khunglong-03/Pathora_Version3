@@ -1,6 +1,7 @@
 namespace Domain.Entities;
 
 using Domain.Entities.Translations;
+using Domain.Enums;
 
 /// <summary>
 /// Một đợt/kỳ chạy cụ thể của một tour. TourInstance đại diện cho một lịch trình tour
@@ -232,16 +233,20 @@ public class TourInstanceEntity : Aggregate<Guid>
         var transportActivities = InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
-            .Where(a => a.ActivityType == TourDayActivityType.Transportation && a.TransportSupplierId.HasValue)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportSupplierId.HasValue
+                        && (!a.TransportationType.HasValue
+                            || a.TransportationType.Value.GetApprovalCategory() != TransportApprovalCategory.NoApproval))
             .ToList();
 
         return transportActivities.Count == 0 || transportActivities.All(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Approved);
     }
 
     /// <summary>
-    /// True when every External transportation activity (no in-app supplier — flights, trains, ferries)
+    /// True when every External transportation activity (Flight/Train/Boat/Other — vé ngoài)
     /// has been manually confirmed by Manager via <see cref="TourInstanceDayActivityEntity.ConfirmExternalTransport"/>.
-    /// External activities are identified by having <c>TransportSupplierId == null</c>.
+    /// Identification uses <see cref="TransportApprovalCategory.ExternalTicket"/> (deterministic) thay vì
+    /// heuristic <c>TransportSupplierId == null</c>. Walking (NoApproval) bị loại trừ.
     /// Filters out soft-deleted days (ER-16).
     /// </summary>
     public bool AreAllExternalTransportConfirmed()
@@ -249,7 +254,9 @@ public class TourInstanceEntity : Aggregate<Guid>
         var externalTransportActivities = InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
-            .Where(a => a.ActivityType == TourDayActivityType.Transportation && !a.TransportSupplierId.HasValue)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportationType.HasValue
+                        && a.TransportationType.Value.GetApprovalCategory() == TransportApprovalCategory.ExternalTicket)
             .ToList();
 
         return externalTransportActivities.Count == 0 || externalTransportActivities.All(a => a.ExternalTransportConfirmed);
@@ -306,19 +313,17 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
-    /// Check readiness: ALL Ground transport approved + ALL External transport confirmed → Available.
-    /// Accommodation is NOT a gate — it uses lazy-assign model (BƯỚC 7 in lifecycle doc).
-    /// Uses per-activity checks (no rollup). Replaces the old TransportProviderId-based check.
+    /// Check readiness: ALL Ground transport approved → Available.
+    /// External transport (flight/train/ferry) is NOT a gate here — Manager confirms it
+    /// post-payment via <see cref="TourInstanceDayActivityEntity.ConfirmExternalTransport"/>
+    /// after customers have paid (vé chỉ mua sau khi có người book).
+    /// Accommodation is NOT a gate — lazy-assign per booking at BƯỚC 7.
     /// </summary>
     public void CheckAndActivateTourInstance()
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool transportGroundOk = AreAllTransportationApproved();
-        bool transportExternalOk = AreAllExternalTransportConfirmed();
-
-        // Accommodation is NOT checked here — lazy-assign per booking at BƯỚC 7.
-        if (transportGroundOk && transportExternalOk)
+        if (AreAllTransportationApproved())
         {
             Status = TourInstanceStatus.Available;
             LastModifiedOnUtc = DateTimeOffset.UtcNow;

@@ -82,6 +82,8 @@ internal static class DependencyInjection
 
         services.AddScoped<IInsuranceRepository, InsuranceRepository>();
 
+        services.AddScoped<ITicketImageRepository, TicketImageRepository>();
+
         return services;
     }
 }
