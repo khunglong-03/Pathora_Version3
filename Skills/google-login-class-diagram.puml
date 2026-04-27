@@ -1,0 +1,173 @@
+@startuml
+title Google Login Flow - Class Diagram
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Frontend (Next.js)" {
+  class AuthModal <<React Component>> {
+    +onClickGoogleLogin()
+  }
+
+  class ApiGatewayConfig <<Config>> {
+    +API_GATEWAY_BASE_URL: string
+    +GOOGLE_LOGIN_URL: string
+    +resolveApiGatewayBaseUrl()
+  }
+
+  class AuthCallbackPage <<Next.js Page>> {
+    +CallbackHandler()
+  }
+
+  class AuthApiSlice <<RTK Query>> {
+    +getUserInfo()
+  }
+
+  class AuthRouting <<Utility>> {
+    +resolveRoleDefaultPath(roles)
+  }
+
+  class AuthSlice <<Redux Slice>> {
+    +setUser(user)
+    +logOut()
+  }
+
+  class Middleware <<Next Middleware>> {
+    +middleware(request)
+  }
+}
+
+package "Backend (ASP.NET Core)" {
+  class AuthController <<Controller>> {
+    +GoogleLogin(configuration): IActionResult
+    +GoogleCallback(configuration): Task<IActionResult>
+    -GetFrontendUrl(configuration): string
+    -IsGoogleConfigured(configuration): bool
+  }
+
+  class ExternalLoginCommand <<Command>> {
+    +ProviderKey: string
+    +ProviderEmail: string
+    +FullName: string
+    +Picture: string?
+  }
+
+  class ExternalLoginCommandHandler <<Handler>> {
+    +Handle(request, cancellationToken)
+  }
+
+  interface IIdentityService {
+    +ExternalLogin(request): ErrorOr<ExternalLoginResponse>
+  }
+
+  class IdentityService <<Service>> {
+    +ExternalLogin(request): ErrorOr<ExternalLoginResponse>
+    -ResolvePortalAsync(userId)
+  }
+
+  interface IUserRepository {
+    +FindByGoogleId(googleId)
+    +FindByEmail(email)
+    +Update(user)
+    +Create(user)
+  }
+
+  class UserRepository <<Repository>> {
+    +FindByGoogleId(googleId)
+    +FindByEmail(email)
+  }
+
+  class UserEntity <<Aggregate>> {
+    +Email: string
+    +GoogleId: string?
+    +AvatarUrl: string?
+    +LinkGoogle(googleId, performedBy)
+    +CreateFromGoogle(googleId, email, fullName, avatarUrl)
+  }
+
+  class TokenManager <<Identity>> {
+    +GenerateToken(user): (AccessToken, RefreshToken)
+  }
+
+  class AuthPortalResolver <<Static>> {
+    +ResolveByName(roleNames): PortalRouting
+  }
+
+  class PortalRouting <<Value Object>> {
+    +Portal: string
+    +DefaultPath: string
+  }
+
+  class AuthCookieWriter <<Static>> {
+    +WriteAuthCookies(response, tokens, secure, jwtOptions)
+    +ClearAuthCookies(response, secure)
+    +WriteAuthPortalCookie(response, portal, secure)
+  }
+
+  class ExternalLoginRequest <<DTO>> {
+    +Provider: string
+    +ProviderKey: string
+    +ProviderEmail: string
+    +FullName: string
+    +Picture: string?
+  }
+
+  class ExternalLoginResponse <<DTO>> {
+    +AccessToken: string
+    +RefreshToken: string
+    +Portal: string
+    +DefaultPath: string
+  }
+}
+
+class GoogleOAuthProvider <<External OAuth>> {
+  +Authenticate user
+  +Return claims
+}
+
+AuthModal ..> ApiGatewayConfig : uses GOOGLE_LOGIN_URL
+AuthModal ..> AuthController : redirects to /api/auth/google-login
+AuthController ..> GoogleOAuthProvider : Challenge()
+GoogleOAuthProvider ..> AuthController : callback claims
+
+AuthController ..> ExternalLoginCommand : creates
+AuthController ..> AuthCookieWriter : writes/clears cookies
+AuthController ..> ExternalLoginResponse : consumes
+
+ExternalLoginCommandHandler ..> IIdentityService : calls
+ExternalLoginCommandHandler ..> ExternalLoginRequest : maps to
+IIdentityService <|.. IdentityService
+ExternalLoginCommandHandler ..> IdentityService
+
+IdentityService ..> IUserRepository : query/update user
+IUserRepository <|.. UserRepository
+UserRepository ..> UserEntity : persists
+IdentityService ..> UserEntity : LinkGoogle()/CreateFromGoogle()
+IdentityService ..> TokenManager : generate tokens
+IdentityService ..> AuthPortalResolver : resolve portal/defaultPath
+AuthPortalResolver ..> PortalRouting : returns
+IdentityService ..> ExternalLoginResponse : returns
+
+AuthCallbackPage ..> AuthApiSlice : fetch getUserInfo()
+AuthCallbackPage ..> AuthSlice : setUser()/logOut()
+AuthCallbackPage ..> AuthRouting : resolveRoleDefaultPath()
+Middleware ..> AuthCallbackPage : allows /auth/callback
+
+note right of IdentityService
+Google external login strategy:
+1. Find user by GoogleId
+2. Else find user by email and link GoogleId
+3. Else create new customer from Google profile
+4. Generate access/refresh tokens
+5. Resolve portal + defaultPath
+end note
+
+note bottom of AuthController
+GoogleLogin starts OAuth challenge.
+GoogleCallback reads claims from cookie auth,
+dispatches ExternalLoginCommand,
+then writes auth cookies and redirects to /auth/callback.
+end note
+
+@enduml
