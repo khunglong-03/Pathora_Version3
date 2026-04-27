@@ -58,7 +58,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 2850,
     paidAmount: 1425,
     remainingBalance: 1425,
-    image: "/assets/images/tours/bali.jpg",
+    image: "/assets/images/tours/bali.png",
     description:
       "Experience the magic of Bali, Indonesia with our carefully curated package. This 5 days journey takes you through the most iconic landmarks and hidden gems, providing an unforgettable adventure with professional guides and comfortable accommodations.",
     highlights: [
@@ -95,7 +95,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 3200,
     paidAmount: 3200,
     remainingBalance: 0,
-    image: "/assets/images/tours/singapore.jpg",
+    image: "/assets/images/tours/singapore.png",
     description:
       "Discover the cutting-edge marvels of Singapore. This luxury escape includes stays at top-tier hotels, private transfers, and exclusive dining experiences overlooking Marina Bay.",
     highlights: [
@@ -128,7 +128,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 4200,
     paidAmount: 4200,
     remainingBalance: 0,
-    image: "/assets/images/tours/phuket.jpg",
+    image: "/assets/images/tours/phuket.png",
     description:
       "Relax on the stunning beaches of Phuket. Includes island hopping to Phi Phi, snorkeling in crystal clear waters, and enjoying vibrant local night markets.",
     highlights: [
@@ -161,7 +161,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 5600,
     paidAmount: 0,
     remainingBalance: 5600,
-    image: "/assets/images/tours/tokyo.jpg",
+    image: "/assets/images/tours/tokyo.png",
     description:
       "A deep dive into Japan's bustling capital. From the neon-lit streets of Shinjuku to the serene temples of Asakusa, experience the perfect blend of tradition and hyper-modernity.",
     highlights: [
@@ -194,7 +194,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 890,
     paidAmount: 890,
     remainingBalance: 0,
-    image: "/assets/images/tours/hanoi.jpg",
+    image: "/assets/images/tours/hanoi.png",
     description:
       "Explore the 1000-year-old capital of Vietnam. Wander through the Old Quarter, savor world-famous street food, and learn about the city's rich history.",
     highlights: [
@@ -225,7 +225,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 4800,
     paidAmount: 4800,
     remainingBalance: 0,
-    image: "/assets/images/tours/seoul.jpg",
+    image: "/assets/images/tours/seoul.png",
     description:
       "Experience the K-Wave directly at its source. Visit famous filming locations, shop in Myeongdong, and enjoy premium Korean BBQ.",
     highlights: [
@@ -257,7 +257,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     totalAmount: 1600,
     paidAmount: 480,
     remainingBalance: 1120,
-    image: "/assets/images/tours/hanoi.jpg",
+    image: "/assets/images/tours/hanoi.png",
     description:
       "A quick getaway to one of Vietnam's most livable cities. Enjoy the Golden Bridge at Ba Na Hills, relax on My Khe beach, and explore ancient Hoi An nearby.",
     highlights: [
@@ -267,6 +267,110 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     ],
     importantInfo: [
       "Please complete the remaining payment before April 15, 2026",
+    ],
+  },
+  "8": {
+    id: "8",
+    tourName: "Sapa Mountain Trekking",
+    reference: "PATH-2026-007",
+    tier: "standard",
+    status: "pending_approval",
+    paymentStatus: "unpaid",
+    paymentMethod: "bank_transfer",
+    location: "Sapa, Vietnam",
+    duration: "3 Days",
+    bookingDate: "April 20, 2026",
+    departureDate: "May 10, 2026",
+    returnDate: "May 12, 2026",
+    adults: 3,
+    children: 1,
+    pricePerPerson: 600,
+    totalAmount: 2400,
+    paidAmount: 0,
+    remainingBalance: 2400,
+    image: "/assets/images/tours/hanoi.png",
+    description:
+      "Trek through terraced rice paddies and ethnic minority villages in the misty highlands of Sapa. This immersive adventure includes homestays with local Hmong families and guided hikes to Fansipan — the Roof of Indochina.",
+    highlights: [
+      "Guided trek to Fansipan summit via cable car",
+      "Homestay experience with H'Mong families",
+      "Visit Cat Cat and Ta Phin villages",
+      "Local market exploration at Bac Ha",
+    ],
+    importantInfo: [
+      "Booking is awaiting manager approval — you will be notified once confirmed",
+      "Bring waterproof clothing and sturdy hiking shoes",
+      "Payment will be requested only after approval",
+    ],
+  },
+  "9": {
+    id: "9",
+    tourName: "Maldives Luxury Escape",
+    reference: "PATH-2026-008",
+    tier: "luxury",
+    status: "approved",
+    paymentStatus: "partial",
+    paymentMethod: "bank_transfer",
+    location: "Maldives",
+    duration: "6 Days",
+    bookingDate: "April 10, 2026",
+    departureDate: "June 5, 2026",
+    returnDate: "June 10, 2026",
+    adults: 2,
+    children: 0,
+    pricePerPerson: 4250,
+    totalAmount: 8500,
+    paidAmount: 4250,
+    remainingBalance: 4250,
+    image: "/assets/images/tours/bali.png",
+    description:
+      "Indulge in the ultimate tropical escape at a five-star overwater villa resort. Pristine coral reefs, private dining on the sandbank, and world-class spa treatments await you in the Maldives.",
+    highlights: [
+      "Overwater villa with glass-floor viewing",
+      "Private sunset dolphin cruise",
+      "Couples spa and rejuvenation package",
+      "Guided snorkeling on house reef",
+      "Sandbank dinner under the stars",
+    ],
+    importantInfo: [
+      "Your booking has been approved — please complete the remaining balance by May 20, 2026",
+      "Resort transfers are by seaplane; luggage limit 20 kg per person",
+      "All-inclusive dining is included in the package",
+    ],
+  },
+  "10": {
+    id: "10",
+    tourName: "Kyoto Cherry Blossom Special",
+    reference: "PATH-2026-009",
+    tier: "premium",
+    status: "rejected",
+    paymentStatus: "unpaid",
+    paymentMethod: "qr_code",
+    location: "Kyoto, Japan",
+    duration: "5 Days",
+    bookingDate: "March 20, 2026",
+    departureDate: "April 1, 2026",
+    returnDate: "April 5, 2026",
+    adults: 2,
+    children: 1,
+    pricePerPerson: 2067,
+    totalAmount: 6200,
+    paidAmount: 0,
+    remainingBalance: 6200,
+    image: "/assets/images/tours/tokyo.png",
+    description:
+      "Experience the ephemeral beauty of cherry blossoms in Japan's cultural capital. Walk the Philosopher's Path, explore bamboo groves, and attend a traditional geisha performance in Gion.",
+    highlights: [
+      "Private guided tour of Kinkaku-ji & Fushimi Inari",
+      "Philosopher's Path sakura walk",
+      "Arashiyama Bamboo Grove entry",
+      "Gion evening walking tour with geisha district",
+      "Premium kaiseki dinner experience",
+    ],
+    importantInfo: [
+      "This booking was rejected due to tour capacity being reached",
+      "No charges have been applied to your account",
+      "Contact support to be added to the waitlist or choose an alternative date",
     ],
   },
 };

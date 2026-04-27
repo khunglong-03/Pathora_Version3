@@ -66,10 +66,10 @@ export function BookingHistoryPage() {
   const totalCount = SAMPLE_BOOKINGS.length;
   const activeCount = getActiveBookingsCount(SAMPLE_BOOKINGS);
 
-  const getStatusLabel_ = (s: Parameters<typeof getStatusLabel>[1]) => getStatusLabel((key) => key, s);
-  const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) => getTierLabel((key) => key, tier);
-  const getPaymentStatusLabel_ = (s: Parameters<typeof getPaymentStatusLabel>[1]) => getPaymentStatusLabel((key) => key, s);
-  const getPaymentMethodLabel_ = (m: Parameters<typeof getPaymentMethodLabel>[1]) => getPaymentMethodLabel((key) => key, m);
+  const getStatusLabel_ = (s: Parameters<typeof getStatusLabel>[1]) => getStatusLabel(t, s);
+  const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) => getTierLabel(t, tier);
+  const getPaymentStatusLabel_ = (s: Parameters<typeof getPaymentStatusLabel>[1]) => getPaymentStatusLabel(t, s);
+  const getPaymentMethodLabel_ = (m: Parameters<typeof getPaymentMethodLabel>[1]) => getPaymentMethodLabel(t, m);
 
   return (
     <>
@@ -99,7 +99,7 @@ export function BookingHistoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="flex flex-col gap-8"
+            className="grid grid-cols-1 xl:grid-cols-2 gap-8"
           >
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (

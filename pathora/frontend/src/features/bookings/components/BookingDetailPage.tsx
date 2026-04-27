@@ -11,6 +11,7 @@ import {
   getTierLabel,
   getBookingDerivedState,
 } from "./BookingDetailHelpers";
+import { useTranslation } from "react-i18next";
 import { BookingHeroSection } from "./BookingHeroSection";
 import { BookingInfoCard } from "./BookingInfoCard";
 import { GuestDetailsCard } from "./GuestDetailsCard";
@@ -21,6 +22,7 @@ import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 
 export function BookingDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const bookingId = params?.id as string;
   const booking = SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"];
@@ -30,13 +32,13 @@ export function BookingDetailPage() {
 
   const labelFns = {
     getStatusLabel: (s: Parameters<typeof getStatusLabel>[1]) =>
-      getStatusLabel((key) => key, s),
+      getStatusLabel(t, s),
     getPaymentStatusLabel: (s: Parameters<typeof getPaymentStatusLabel>[1]) =>
-      getPaymentStatusLabel((key) => key, s),
+      getPaymentStatusLabel(t, s),
     getPaymentMethodLabel: (m: Parameters<typeof getPaymentMethodLabel>[1]) =>
-      getPaymentMethodLabel((key) => key, m),
-    getTierLabel: (t: Parameters<typeof getTierLabel>[1]) =>
-      getTierLabel((key) => key, t),
+      getPaymentMethodLabel(t, m),
+    getTierLabel: (tier: Parameters<typeof getTierLabel>[1]) =>
+      getTierLabel(t, tier),
   };
 
   return (

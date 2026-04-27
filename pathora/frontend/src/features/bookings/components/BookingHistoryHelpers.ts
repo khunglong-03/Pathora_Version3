@@ -5,7 +5,7 @@ import {
   PaymentMethod,
 } from "./BookingHistoryData";
 
-export const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+export const formatCurrency = (amount: number) => `${amount.toLocaleString('vi-VN')} VND`;
 
 export const getStatusLabel = (t: (key: string) => string, s: BookingStatus) => {
   const map: Record<BookingStatus, string> = {
