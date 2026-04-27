@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useParams } from "next/navigation";
-
+import { motion } from "framer-motion";
 
 import { SAMPLE_BOOKINGS } from "./BookingDetailData";
 import {
@@ -20,9 +20,6 @@ import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 
-/* ══════════════════════════════════════════════════════════════
-   ██  BookingDetailPage
-   ══════════════════════════════════════════════════════════════ */
 export function BookingDetailPage() {
   const params = useParams();
   const bookingId = params?.id as string;
@@ -44,15 +41,13 @@ export function BookingDetailPage() {
 
   return (
     <>
-      
-
-      <main className="bg-gray-50 min-h-screen">
+      <main className="bg-[#f9fafb] min-h-[100dvh]">
         <BookingHeroSection booking={booking} getStatusLabel={labelFns.getStatusLabel} />
 
-        <div className="max-w-[80rem] mx-auto px-4 sm:px-6 py-8">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-10 -mt-10 lg:-mt-16 relative z-20 mb-20">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Column */}
-            <div className="flex-1 flex flex-col gap-6 min-w-0">
+            <div className="flex-1 flex flex-col gap-8 min-w-0">
               <BookingInfoCard
                 booking={booking}
                 getTierLabel={labelFns.getTierLabel}
@@ -68,7 +63,7 @@ export function BookingDetailPage() {
             </div>
 
             {/* Right Sidebar */}
-            <div className="w-full lg:w-[390px] shrink-0 flex flex-col gap-6">
+            <div className="w-full lg:w-[420px] shrink-0 flex flex-col gap-8">
               <BookingPaymentSummary
                 booking={booking}
                 totalGuests={totalGuests}
@@ -83,7 +78,6 @@ export function BookingDetailPage() {
         </div>
       </main>
 
-      
       <BookingFloatingSocial />
     </>
   );

@@ -1,49 +1,64 @@
 "use client";
 import React from "react";
-import { Icon } from "@/components/ui";
+import { Phone, EnvelopeSimple, Lifebuoy } from "@phosphor-icons/react";
+import { motion } from "framer-motion";
 
 export function BookingNeedHelp() {
   return (
-    <div
-      className="rounded-2xl p-6"
-      style={{
-        background:
-          "linear-gradient(147deg, #05073c 0%, rgba(5, 7, 60, 0.8) 100%)",
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+      className="rounded-[2.5rem] p-8 shadow-xl shadow-[#05073c]/10 relative overflow-hidden group"
     >
-      <h3 className="text-lg font-bold text-white mb-1">Need Help?</h3>
-      <p className="text-sm text-white/80 mb-5">
-        Contact our support team for any questions about your booking.
-      </p>
+      <div className="absolute inset-0 bg-[#05073c] z-0" />
+      <div className="absolute -top-10 -right-10 size-40 bg-white/5 rounded-full blur-2xl z-0" />
+      
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center justify-center size-10 rounded-2xl bg-white/10 text-white shadow-sm backdrop-blur-sm">
+            <Lifebuoy weight="fill" className="size-5" />
+          </div>
+          <h3 className="text-xl font-bold tracking-tight text-white">Need Help?</h3>
+        </div>
+        <p className="text-sm font-medium text-white/70 mb-8 pl-1">
+          Contact our support team for any questions about your booking.
+        </p>
 
-      <div className="flex flex-col gap-2">
-        {/* Phone */}
-        <a
-          href="tel:+1234567890"
-          className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-3 hover:bg-white/15 transition-colors"
-        >
-          <Icon icon="heroicons:phone" className="size-4 text-white/70" />
-          <div>
-            <p className="text-xs text-white/60">Phone</p>
-            <p className="text-sm font-semibold text-white">
-              +1 (234) 567-890
-            </p>
-          </div>
-        </a>
-        {/* Email */}
-        <a
-          href="mailto:support@pathora.com"
-          className="flex items-center gap-3 bg-white/10 rounded-xl px-3 py-3 hover:bg-white/15 transition-colors"
-        >
-          <Icon icon="heroicons:envelope" className="size-4 text-white/70" />
-          <div>
-            <p className="text-xs text-white/60">Email</p>
-            <p className="text-sm font-semibold text-white">
-              support@pathora.com
-            </p>
-          </div>
-        </a>
+        <div className="flex flex-col gap-3">
+          {/* Phone */}
+          <a
+            href="tel:+1234567890"
+            className="group/item flex items-center gap-4 bg-white/5 rounded-2xl px-4 py-4 hover:bg-white/10 transition-colors border border-white/5"
+          >
+            <div className="flex items-center justify-center size-10 rounded-full bg-white/10 text-white shrink-0 group-hover/item:scale-110 transition-transform">
+              <Phone weight="fill" className="size-4" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-white/50 mb-0.5">Phone</p>
+              <p className="text-sm font-bold text-white">
+                +1 (234) 567-890
+              </p>
+            </div>
+          </a>
+          
+          {/* Email */}
+          <a
+            href="mailto:support@pathora.com"
+            className="group/item flex items-center gap-4 bg-white/5 rounded-2xl px-4 py-4 hover:bg-white/10 transition-colors border border-white/5"
+          >
+            <div className="flex items-center justify-center size-10 rounded-full bg-white/10 text-white shrink-0 group-hover/item:scale-110 transition-transform">
+              <EnvelopeSimple weight="fill" className="size-4" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-white/50 mb-0.5">Email</p>
+              <p className="text-sm font-bold text-white">
+                support@pathora.com
+              </p>
+            </div>
+          </a>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
