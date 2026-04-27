@@ -54,15 +54,15 @@ export function BookingCard({
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden group"
     >
-      <div className="flex flex-col lg:flex-row p-4 lg:p-6 gap-6 lg:gap-8">
+      <div className="flex flex-col p-4 lg:p-6 gap-6">
         {/* Image Box */}
-        <div className="relative w-full lg:w-72 h-56 lg:h-auto shrink-0 rounded-[1.5rem] overflow-hidden">
+        <div className="relative w-full h-56 sm:h-64 shrink-0 rounded-[1.5rem] overflow-hidden">
           <Image
             src={booking.image}
             alt={booking.tourName}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 1024px) 100vw, 288px"
+            sizes="(max-width: 1024px) 100vw, 50vw"
           />
           <div className="absolute inset-0 bg-linear-to-b from-black/20 to-transparent" />
           <div className="absolute top-4 left-4 z-10">
@@ -100,7 +100,7 @@ export function BookingCard({
           </div>
 
           {/* Info grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 mb-8">
             <InfoItem icon={<MapPin weight="bold" />} label={t("landing.bookings.location")} value={booking.location} />
             <InfoItem icon={<Clock weight="bold" />} label={t("landing.bookings.duration")} value={booking.duration} />
             <InfoItem icon={<CalendarBlank weight="bold" />} label={t("landing.bookings.departure")} value={booking.departure} />
