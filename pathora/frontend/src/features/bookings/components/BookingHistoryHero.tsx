@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { Icon } from "@/components/ui";
+import { ArrowLeft, Ticket, CheckCircle } from "@phosphor-icons/react";
+import { motion } from "framer-motion";
 
 interface BookingHistoryHeroProps {
   totalCount: number;
@@ -23,32 +24,59 @@ export function BookingHistoryHero({
   activeLabel,
 }: BookingHistoryHeroProps) {
   return (
-    <div className="bg-linear-to-r from-[#05073c] to-[#05073c]/90 pt-24 pb-10">
-      <div className="max-w-330 mx-auto px-4 md:px-6">
+    <div className="pt-24 pb-8">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-10"
         >
-          <Icon icon="heroicons:arrow-left" className="size-4" />
+          <ArrowLeft weight="bold" className="size-4" />
           {backLabel}
         </Link>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{titleLabel}</h1>
-            <p className="text-sm text-white/70 mt-2">{subtitleLabel}</p>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+          <div className="max-w-2xl">
+            <motion.h1 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-6xl tracking-tighter leading-none font-bold text-slate-900"
+            >
+              {titleLabel}
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-base text-slate-500 leading-relaxed max-w-[65ch] mt-6"
+            >
+              {subtitleLabel}
+            </motion.p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center min-w-[76px]">
-              <p className="text-2xl font-bold text-white">{totalCount}</p>
-              <p className="text-xs text-white/60">{totalBookingsLabel}</p>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
+            className="flex flex-col sm:flex-row items-center gap-4 shrink-0"
+          >
+            {/* Total Bookings Card */}
+            <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 min-w-[180px] w-full sm:w-auto flex flex-col items-center justify-center relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Ticket weight="fill" className="size-16 text-slate-900" />
+              </div>
+              <p className="text-4xl font-mono tracking-tight font-bold text-slate-900 relative z-10">{totalCount}</p>
+              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">{totalBookingsLabel}</p>
             </div>
-            <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center min-w-[76px]">
-              <p className="text-2xl font-bold text-orange-400">{activeCount}</p>
-              <p className="text-xs text-white/60">{activeLabel}</p>
+
+            {/* Active Bookings Card */}
+            <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 min-w-[180px] w-full sm:w-auto flex flex-col items-center justify-center relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <CheckCircle weight="fill" className="size-16 text-emerald-500" />
+              </div>
+              <p className="text-4xl font-mono tracking-tight font-bold text-emerald-500 relative z-10">{activeCount}</p>
+              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">{activeLabel}</p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

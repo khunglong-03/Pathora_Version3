@@ -1,9 +1,6 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import Button from "@/components/ui/Button";
-import { Icon } from "@/components/ui";
-
-
+import { FacebookLogo, ChatTeardropDots, Ticket } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTranslation } from "react-i18next";
 import { SOCIAL_MEDIA } from "@/configs/urls";
@@ -19,19 +16,23 @@ import {
 import { BookingHistoryHero } from "./BookingHistoryHero";
 import { BookingSearchFilter } from "./BookingSearchFilter";
 import { BookingCard } from "./BookingCard";
+import { motion, AnimatePresence } from "framer-motion";
 
-/* ══════════════════════════════════════════════════════════════
-   ██  BookingHistoryPage
-   ══════════════════════════════════════════════════════════════ */
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
 export function BookingHistoryPage() {
   const { t } = useTranslation();
 
-  /* ── State ──────────────────────────────────────────── */
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 250);
 
-  /* ── Filter definitions ──────────────────────────────── */
   const filters: { key: FilterKey; label: string }[] = [
     { key: "all", label: t("landing.bookings.filterAll") },
     { key: "confirmed", label: t("landing.bookings.statusConfirmed") },
@@ -46,7 +47,6 @@ export function BookingHistoryPage() {
     { key: "rejected", label: t("landing.bookings.statusRejected") },
   ];
 
-  /* ── Filtered bookings ───────────────────────────────── */
   const filtered = useMemo(() => {
     let list = SAMPLE_BOOKINGS;
     if (activeFilter !== "all") {
@@ -63,25 +63,17 @@ export function BookingHistoryPage() {
     return list;
   }, [activeFilter, debouncedSearchQuery]);
 
-  /* ── Stat counts ─────────────────────────────────────── */
   const totalCount = SAMPLE_BOOKINGS.length;
   const activeCount = getActiveBookingsCount(SAMPLE_BOOKINGS);
 
-  /* ── Label helpers ───────────────────────────────────── */
-  const getStatusLabel_ = (s: Parameters<typeof getStatusLabel>[1]) =>
-    getStatusLabel((key) => key, s);
-  const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) =>
-    getTierLabel((key) => key, tier);
-  const getPaymentStatusLabel_ = (s: Parameters<typeof getPaymentStatusLabel>[1]) =>
-    getPaymentStatusLabel((key) => key, s);
-  const getPaymentMethodLabel_ = (m: Parameters<typeof getPaymentMethodLabel>[1]) =>
-    getPaymentMethodLabel((key) => key, m);
+  const getStatusLabel_ = (s: Parameters<typeof getStatusLabel>[1]) => getStatusLabel((key) => key, s);
+  const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) => getTierLabel((key) => key, tier);
+  const getPaymentStatusLabel_ = (s: Parameters<typeof getPaymentStatusLabel>[1]) => getPaymentStatusLabel((key) => key, s);
+  const getPaymentMethodLabel_ = (m: Parameters<typeof getPaymentMethodLabel>[1]) => getPaymentMethodLabel((key) => key, m);
 
   return (
     <>
-      
-
-      <main className="bg-gray-50 min-h-screen">
+      <main className="bg-[#f9fafb] min-h-[100dvh]">
         <BookingHistoryHero
           totalCount={totalCount}
           activeCount={activeCount}
@@ -92,7 +84,7 @@ export function BookingHistoryPage() {
           activeLabel={t("landing.bookings.active")}
         />
 
-        <div className="max-w-330 mx-auto px-4 md:px-6 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 pb-24">
           <BookingSearchFilter
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -103,63 +95,67 @@ export function BookingHistoryPage() {
             filterLabel={t("landing.bookings.filter")}
           />
 
-          {/* Booking Cards */}
-          <div className="flex flex-col gap-6">
-            {filtered.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
-                <Icon
-                  icon="heroicons:ticket"
-                  className="size-12 text-gray-200 mx-auto mb-3"
-                />
-                <p className="text-sm text-gray-400">
-                  {t("landing.bookings.noResults")}
-                </p>
-              </div>
-            ) : (
-              filtered.map((booking) => (
-                <BookingCard
-                  key={booking.id}
-                  booking={booking}
-                  statusLabel={getStatusLabel_(booking.status)}
-                  tierLabel={getTierLabel_(booking.tier)}
-                  paymentStatusLabel={getPaymentStatusLabel_(
-                    booking.paymentStatus,
-                  )}
-                  paymentMethodLabel={getPaymentMethodLabel_(
-                    booking.paymentMethod,
-                  )}
-                  formatCurrency={formatCurrency}
-                  t={t}
-                />
-              ))
-            )}
-          </div>
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-8"
+          >
+            <AnimatePresence mode="popLayout">
+              {filtered.length === 0 ? (
+                <motion.div 
+                  key="empty"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] py-24 text-center flex flex-col items-center justify-center"
+                >
+                  <div className="size-20 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
+                    <Ticket weight="bold" className="size-8 text-slate-300" />
+                  </div>
+                  <p className="text-xl font-bold tracking-tight text-slate-900 mb-2">
+                    {t("landing.bookings.noResults")}
+                  </p>
+                  <p className="text-sm text-slate-500 max-w-sm">
+                    We couldn't find any bookings matching your current filter or search criteria.
+                  </p>
+                </motion.div>
+              ) : (
+                filtered.map((booking) => (
+                  <BookingCard
+                    key={booking.id}
+                    booking={booking}
+                    statusLabel={getStatusLabel_(booking.status)}
+                    tierLabel={getTierLabel_(booking.tier)}
+                    paymentStatusLabel={getPaymentStatusLabel_(booking.paymentStatus)}
+                    paymentMethodLabel={getPaymentMethodLabel_(booking.paymentMethod)}
+                    formatCurrency={formatCurrency}
+                    t={t}
+                  />
+                ))
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </main>
 
-      
-
-      {/* Floating Social Buttons */}
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col gap-3">
+      <div className="fixed right-6 bottom-6 z-50 hidden md:flex flex-col gap-4">
         <a
           href={SOCIAL_MEDIA.facebook}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
-          className="size-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="size-14 rounded-full bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
         >
-          <Icon icon="mdi:facebook" className="size-5 text-blue-600" />
+          <FacebookLogo weight="fill" className="size-6 text-blue-600" />
         </a>
-        <Button
+        <button
           type="button"
           aria-label="Chat with us"
-          className="size-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="size-14 rounded-full bg-slate-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] border border-slate-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
         >
-          <Icon
-            icon="heroicons:chat-bubble-oval-left-ellipsis"
-            className="size-5 text-gray-600"
-          />
-        </Button>
+          <ChatTeardropDots weight="fill" className="size-6 text-white" />
+        </button>
       </div>
     </>
   );
