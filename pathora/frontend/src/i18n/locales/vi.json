@@ -3229,14 +3229,19 @@
       "items": {
         "totalTours": "Chuyến Đi",
         "totalTravellers": "Hành Khách",
-        "totalDistanceKM": "KM Di Chuyển",
+        "totalDistanceKm": "KM Di Chuyển",
         "support": "Hỗ Trợ"
-      }
+      },
+      "unavailable": "Thống kê tạm thời không khả dụng"
     },
     "destinations": {
       "eyebrow": "ĐIỂM ĐẾN PHỔ BIẾN",
       "title": "Bạn muốn đi đâu?",
-      "viewAll": "Xem tất cả"
+      "viewAll": "Xem tất cả",
+      "empty": "Không có điểm đến nào vào lúc này.",
+      "loadError": "Không thể tải danh sách điểm đến",
+      "retry": "Thử lại",
+      "tours": "tour"
     },
     "featured": {
       "eyebrow": "NỔI BẬT",
@@ -3409,6 +3414,8 @@
       "accountNumber": "Số tài khoản",
       "acknowledgePrefix": "Tôi xác nhận rằng",
       "acknowledgeSuffix": "đã được đọc và đồng ý.",
+      "deposit": "Đặt cọc",
+      "payFull": "Thanh toán toàn bộ",
       "adults": "Người lớn",
       "adultsCount": "{{count}} Người lớn",
       "agreeTermsPrefix": "Tôi đồng ý với",

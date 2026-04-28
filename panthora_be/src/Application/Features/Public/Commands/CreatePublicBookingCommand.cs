@@ -63,6 +63,8 @@ public sealed class CreatePublicBookingCommandHandler(
     ITourInstanceRepository tourInstanceRepository,
     ITaxConfigRepository taxConfigRepository,
     IPricingPolicyRepository pricingPolicyRepository,
+    ITourRepository tourRepository,
+    IDepositPolicyRepository depositPolicyRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreatePublicBookingCommand, ErrorOr<CheckoutPriceResponse>>
 {
@@ -136,8 +138,33 @@ public sealed class CreatePublicBookingCommandHandler(
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        // Phase 5.1.4: Always use 30% deposit regardless of IsFullPay (aligned with GetCheckoutPrice)
-        var depositPercentage = 30m;
+        // Phase 5.1.4: Use 100% deposit if IsFullPay is true, else calculate from DepositPolicy
+        var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
+        var tourScope = tour?.TourScope ?? Domain.Enums.TourScope.Domestic;
+        
+        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
+        var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tourScope);
+
+        var depositPercentage = 30m; // Fallback default
+        if (policy != null)
+        {
+            if (policy.DepositType == Domain.Enums.DepositType.Percentage)
+            {
+                depositPercentage = policy.DepositValue;
+            }
+            else
+            {
+                // If it's a fixed amount, calculate percentage equivalent or use the amount directly.
+                // We'll calculate the exact percentage of the total.
+                depositPercentage = totalPrice > 0 ? (policy.DepositValue / totalPrice) * 100m : 0m;
+            }
+        }
+
+        if (request.IsFullPay)
+        {
+            depositPercentage = 100m;
+        }
+
         var depositAmount = totalPrice * depositPercentage / 100m;
         var remainingBalance = totalPrice - depositAmount;
 

@@ -591,6 +591,7 @@ export function TourInstancePublicDetailPage() {
                   const params = new URLSearchParams({
                     tourInstanceId: id,
                     tourName: data.tourName,
+                    thumbnailUrl: data.thumbnail?.publicURL || "",
                     startDate: data.startDate || "",
                     endDate: data.endDate || "",
                     location: data.location || "",

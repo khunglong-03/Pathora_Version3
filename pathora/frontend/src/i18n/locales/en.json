@@ -3201,14 +3201,19 @@
       "items": {
         "totalTours": "Tours",
         "totalTravellers": "Travellers",
-        "totalDistanceKM": "KM Travelled",
+        "totalDistanceKm": "KM Travelled",
         "support": "Support"
-      }
+      },
+      "unavailable": "Statistics temporarily unavailable"
     },
     "destinations": {
       "eyebrow": "POPULAR DESTINATIONS",
       "title": "Where do you want to go?",
-      "viewAll": "View all destinations"
+      "viewAll": "View all destinations",
+      "empty": "No destinations available at the moment.",
+      "loadError": "Unable to load destinations",
+      "retry": "Retry",
+      "tours": "tours"
     },
     "featured": {
       "eyebrow": "FEATURED",
@@ -3381,6 +3386,8 @@
       "accountNumber": "Account Number",
       "acknowledgePrefix": "I acknowledge that",
       "acknowledgeSuffix": "have been read and agreed.",
+      "deposit": "Deposit",
+      "payFull": "Full Payment",
       "adults": "Adults",
       "adultsCount": "{{count}} Adults",
       "agreeTermsPrefix": "I agree to the",

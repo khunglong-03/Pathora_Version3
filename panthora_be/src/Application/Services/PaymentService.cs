@@ -349,9 +349,18 @@ public class PaymentService : IPaymentService
                 case TransactionType.Deposit:
                     if (booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.Confirmed)
                     {
-                        booking.MarkDeposited("SYSTEM");
-                        _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
-                            booking.Id, transaction.TransactionCode);
+                        if (transaction.Amount >= booking.TotalPrice || booking.IsFullPay)
+                        {
+                            booking.MarkPaid("SYSTEM");
+                            _logger.LogInformation("Booking {BookingId} marked as Paid via 100% deposit transaction {TransactionCode}",
+                                booking.Id, transaction.TransactionCode);
+                        }
+                        else
+                        {
+                            booking.MarkDeposited("SYSTEM");
+                            _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
+                                booking.Id, transaction.TransactionCode);
+                        }
                     }
                     break;
 

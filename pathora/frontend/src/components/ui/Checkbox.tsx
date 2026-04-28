@@ -26,14 +26,14 @@ const Checkbox = ({
 }: CheckboxProps) => {
   return (
     <label
-      className={`flex items-start ${
+      className={`relative flex items-start ${
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       }`}
       htmlFor={id}
     >
       <input
         type="checkbox"
-        className="peer sr-only"
+        className="peer absolute opacity-0 w-0 h-0"
         name={name}
         checked={value}
         onChange={onChange}

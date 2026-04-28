@@ -265,6 +265,7 @@ interface PaymentSidebarProps {
   normalizedStatus: NormalizedPaymentStatus;
   onStatusChange?: (status: NormalizedPaymentStatus) => void;
   paymentOption: "full" | "deposit";
+  onPaymentOptionChange: (option: "full" | "deposit") => void;
   checkoutPrice: { depositPercentage?: number } | null;
   depositAmount: number;
   totalPrice: number;
@@ -280,6 +281,7 @@ export function PaymentSidebar({
   normalizedStatus,
   onStatusChange,
   paymentOption,
+  onPaymentOptionChange,
   checkoutPrice,
   depositAmount,
   totalPrice,
@@ -300,6 +302,32 @@ export function PaymentSidebar({
           <PaymentStatusPanel transaction={transaction} normalizedStatus={normalizedStatus} onStatusChange={onStatusChange} t={t} />
         ) : (
           <div className="flex flex-col gap-6">
+            {/* Payment Option Toggle */}
+            <div className="bg-slate-50 p-1.5 rounded-2xl flex items-center border border-slate-100">
+              <button
+                type="button"
+                onClick={() => onPaymentOptionChange("deposit")}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                  paymentOption === "deposit"
+                    ? "bg-white text-slate-900 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t("landing.checkout.deposit", "Deposit")} ({Math.round((checkoutPrice?.depositPercentage ?? 0.3) * 100)}%)
+              </button>
+              <button
+                type="button"
+                onClick={() => onPaymentOptionChange("full")}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                  paymentOption === "full"
+                    ? "bg-white text-slate-900 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/50"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t("landing.checkout.payFull", "Full Payment")}
+              </button>
+            </div>
+
             {/* Price breakdown */}
             <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-3">
               {paymentOption === "deposit" ? (

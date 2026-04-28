@@ -34,6 +34,26 @@ import { TermsConditionsCard } from "@/features/checkout/components/TermsConditi
 import { PaymentSidebar } from "@/features/checkout/components/PaymentSidebar";
 import { SecureBookingCard } from "@/features/checkout/components/SecureBookingCard";
 import { TourInstanceInfoCard } from "@/features/checkout/components/TourInstanceInfoCard";
+import { motion, Variants } from "framer-motion";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 20 }
+  },
+};
 
 /* ── Step Indicator ────────────────────────────────────────── */
 function StepIndicator() {
@@ -102,6 +122,11 @@ export function CheckoutPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Task 5.3.1: visibility ref for tab focus tracking
 
   /* ── Get booking ID or tour instance info from URL ───── */
@@ -116,6 +141,7 @@ export function CheckoutPage() {
   const depositPercentageParam = searchParams.get("depositPercentage");
   const bookingTypeParam = searchParams.get("bookingType") || "InstanceJoin";
   const instanceTypeParam = searchParams.get("instanceType") || "public";
+  const thumbnailUrlParam = searchParams.get("thumbnailUrl");
 
   /* ── State for tour instance booking ─────────────────── */
   const [tourInstanceBooking, setTourInstanceBooking] = useState<{
@@ -166,6 +192,9 @@ export function CheckoutPage() {
         const price = await paymentService.getCheckoutPrice(bookingIdParam);
         if (price) {
           setCheckoutPrice(price);
+          if (price.depositPercentage === 100) {
+            setPaymentOption("full");
+          }
         }
       } catch (error) {
         const handledError = handleApiError(error);
@@ -207,14 +236,26 @@ export function CheckoutPage() {
       const taxAmount = Math.round(subtotal * taxRate);
       const totalPrice = subtotal + taxAmount;
       const depositAmount = Math.round(totalPrice * depositPct);
+
+      // Calculate durationDays from startDate and endDate
+      let durationDays = 0;
+      if (startDateParam && endDateParam) {
+        const start = new Date(startDateParam);
+        const end = new Date(endDateParam);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          durationDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+        }
+      }
+
       return {
         bookingId: "",
         tourInstanceId: tourInstanceIdParam,
         tourName: decodeURIComponent(tourNameParam),
         tourCode: "",
+        thumbnailUrl: thumbnailUrlParam ? decodeURIComponent(thumbnailUrlParam) : undefined,
         startDate: startDateParam || "",
         endDate: endDateParam || "",
-        durationDays: 0,
+        durationDays,
         location: locationParam || "",
         numberAdult,
         numberChild,
@@ -236,10 +277,11 @@ export function CheckoutPage() {
     }
     return null;
   }, [
-    tourInstanceIdParam, tourNameParam, basePriceParam, depositPercentageParam, 
-    startDateParam, endDateParam, locationParam, 
+    tourInstanceIdParam, tourNameParam, basePriceParam, depositPercentageParam,
+    startDateParam, endDateParam, locationParam,
     numberAdult, numberChild, numberInfant,
-    adultPriceParam, childPriceParam, infantPriceParam
+    adultPriceParam, childPriceParam, infantPriceParam,
+    thumbnailUrlParam
   ]);
 
   const effectivePrice = checkoutPrice ?? computedCheckoutPrice;
@@ -420,6 +462,10 @@ export function CheckoutPage() {
   const showTourInstanceCard = tourInstanceBooking && !checkoutPrice;
   const showBookingSummary = !!checkoutPrice;
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
       
@@ -434,64 +480,101 @@ export function CheckoutPage() {
             {t("landing.checkout.backToTour")}
           </Link>
 
+          {/* ── Header ──────────────────────────────────────── */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            className="mb-8 md:mb-12 mt-4"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none mb-3">
+              {t("landing.checkout.pageTitle", "Secure Checkout")}
+            </h1>
+            <p className="text-base text-slate-500 max-w-[65ch]">
+              {t("landing.checkout.pageSubtitle", "Complete your booking securely below.")}
+            </p>
+          </motion.div>
+
           {/* ── Step Indicator ────────────────────────────── */}
-          <StepIndicator />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="mb-8"
+          >
+            <StepIndicator />
+          </motion.div>
 
           {/* ── Two-column layout ─────────────────────────── */}
-          <div className="flex flex-col xl:flex-row gap-8 lg:gap-10">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col xl:flex-row gap-8 lg:gap-10">
             {/* ════════ LEFT COLUMN ════════════════════════ */}
             <div className="flex-1 flex flex-col gap-6 lg:gap-8">
               {showTourInstanceCard && (
-                <TourInstanceInfoCard tourInstanceBooking={tourInstanceBooking} />
+                <motion.div variants={itemVariants}>
+                  <TourInstanceInfoCard tourInstanceBooking={tourInstanceBooking} />
+                </motion.div>
               )}
 
               {/* Booking summary — shown when we have price data */}
               {effectivePrice && (
-                <BookingSummarySection
-                  checkoutPrice={effectivePrice}
-                  totalPrice={effectivePrice.totalPrice}
-                  loadingPrice={false}
-                  priceError={null}
-                />
+                <motion.div variants={itemVariants}>
+                  <BookingSummarySection
+                    checkoutPrice={effectivePrice}
+                    totalPrice={effectivePrice.totalPrice}
+                    loadingPrice={false}
+                    priceError={null}
+                  />
+                </motion.div>
               )}
 
               {transaction && needsBookingCreation && (
-                <CustomerInfoCard
-                  customerName={customerName}
-                  setCustomerName={setCustomerName}
-                  customerPhone={customerPhone}
-                  setCustomerPhone={setCustomerPhone}
-                  customerEmail={customerEmail}
-                  setCustomerEmail={setCustomerEmail}
-                />
+                <motion.div variants={itemVariants}>
+                  <CustomerInfoCard
+                    customerName={customerName}
+                    setCustomerName={setCustomerName}
+                    customerPhone={customerPhone}
+                    setCustomerPhone={setCustomerPhone}
+                    customerEmail={customerEmail}
+                    setCustomerEmail={setCustomerEmail}
+                  />
+                </motion.div>
               )}
 
               {needsBookingCreation && !transaction && (
-                <CustomerInfoCard
-                  customerName={customerName}
-                  setCustomerName={setCustomerName}
-                  customerPhone={customerPhone}
-                  setCustomerPhone={setCustomerPhone}
-                  customerEmail={customerEmail}
-                  setCustomerEmail={setCustomerEmail}
-                />
+                <motion.div variants={itemVariants}>
+                  <CustomerInfoCard
+                    customerName={customerName}
+                    setCustomerName={setCustomerName}
+                    customerPhone={customerPhone}
+                    setCustomerPhone={setCustomerPhone}
+                    customerEmail={customerEmail}
+                    setCustomerEmail={setCustomerEmail}
+                  />
+                </motion.div>
               )}
 
-              <TermsConditionsCard
-                agreeTerms={agreeTerms}
-                setAgreeTerms={setAgreeTerms}
-                acknowledgeInfo={acknowledgeInfo}
-                setAcknowledgeInfo={setAcknowledgeInfo}
-              />
+              <motion.div variants={itemVariants}>
+                <TermsConditionsCard
+                  agreeTerms={agreeTerms}
+                  setAgreeTerms={setAgreeTerms}
+                  acknowledgeInfo={acknowledgeInfo}
+                  setAcknowledgeInfo={setAcknowledgeInfo}
+                />
+              </motion.div>
             </div>
 
             {/* ════════ RIGHT COLUMN (sidebar) ════════════ */}
-            <div className="w-full xl:w-[420px] shrink-0 xl:sticky xl:top-8 flex flex-col gap-6 lg:gap-8 self-start">
+            <motion.div variants={itemVariants} className="w-full xl:w-[420px] shrink-0 xl:sticky xl:top-8 flex flex-col gap-6 lg:gap-8 self-start">
               <PaymentSidebar
                 transaction={transaction}
                 normalizedStatus={normalizedStatus}
                 onStatusChange={setNormalizedStatus}
                 paymentOption={paymentOption}
+                onPaymentOptionChange={setPaymentOption}
                 checkoutPrice={checkoutPrice}
                 depositAmount={depositAmount}
                 totalPrice={totalPrice}
@@ -503,8 +586,8 @@ export function CheckoutPage() {
               />
 
               <SecureBookingCard />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </main>
 
