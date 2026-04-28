@@ -70,6 +70,9 @@ public sealed record TourDto
     [JsonPropertyName("translations")]
     public Dictionary<string, TourTranslationData>? Translations { get; init; }
 
+    [JsonPropertyName("includedServices")]
+    public List<string> IncludedServices { get; init; } = [];
+
     [JsonPropertyName("services")]
     public List<ServiceDto>? Services { get; init; }
 }

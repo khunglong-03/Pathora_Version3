@@ -21,11 +21,10 @@ export const classificationSchema = z.object({
     .optional(),
   basePrice: z
     .string()
-    .min(1, "Giá không được âm")
-    .transform((v) => Number(v))
-    .pipe(z.number().positive("Giá phải lớn hơn 0"))
+    .optional()
+    .transform((v) => (v ? Number(v) : 0))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .catch(() => "" as any),
+    .catch(() => 0 as any),
   durationDays: z
     .string()
     .min(1, "Số ngày không hợp lệ"),

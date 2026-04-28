@@ -83,7 +83,7 @@ When generating UI code, follow this exact sequence:
 4. **[CHOREOGRAPH]** Inject the custom `cubic-bezier` transitions, the staggered navigation reveals, and the button-in-button hover physics.
 5. **[OUTPUT]** Deliver flawless, pixel-perfect React/Tailwind/HTML code. Do not include basic, generic fallbacks.
 
-## 8. PRE-OUTPUT CHECKLIST
+## 8. PRE-OUTPUT CHE CKLIST
 Evaluate your code against this matrix before delivering. This is the last filter.
 * [ ] No banned fonts, icons, borders, shadows, layouts, or motion patterns from Section 2 are present
 * [ ] A Vibe Archetype and Layout Archetype from Section 3 were consciously selected and applied

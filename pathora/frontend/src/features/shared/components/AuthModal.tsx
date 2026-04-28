@@ -28,14 +28,15 @@ type AuthModalProps = {
   initialView?: AuthView;
 };
 
-const PRIMARY_ACTION_CLASS =
-  "inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white shadow-[0_4px_14px_0_rgb(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all hover:-translate-y-[1px] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-black dark:shadow-[0_4px_14px_0_rgb(255,255,255,0.1)] hover:dark:shadow-[0_6px_20px_rgba(255,255,255,0.15)] focus-visible:dark:ring-white/50 active:scale-[0.98]";
-const OUTLINE_ACTION_CLASS =
-  "inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/50 px-5 py-3 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all hover:bg-slate-50 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 hover:dark:bg-white/10 active:scale-[0.98]";
-const LINK_ACTION_CLASS =
-  "font-medium text-slate-900 transition-all hover:text-slate-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 rounded dark:text-white dark:hover:text-slate-300";
 
-/* ── Shared modal shell ────────────────────────────────────── */
+const PRIMARY_ACTION_CLASS =
+  "group inline-flex min-h-[3.5rem] w-full items-center justify-center gap-3 rounded-full bg-[#111] px-7 py-3.5 text-[0.8125rem] font-semibold tracking-wide text-white shadow-[0_8px_24px_-6px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-[2px] hover:shadow-[0_12px_32px_-6px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] active:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15)]";
+const OUTLINE_ACTION_CLASS =
+  "group inline-flex min-h-[3.5rem] w-full items-center justify-center gap-3 rounded-full bg-white/60 px-7 py-3.5 text-[0.8125rem] font-semibold tracking-wide text-[#111] ring-1 ring-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.04),inset_0_1px_1px_rgba(255,255,255,0.8)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-[1px] hover:bg-white/80 hover:shadow-[0_6px_16px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30 focus-visible:ring-offset-2 active:scale-[0.98]";
+const LINK_ACTION_CLASS =
+  "font-semibold text-[#111] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-[#C9873A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30 rounded";
+
+/* ── Double-Bezel Modal Shell (Doppelrand architecture) ───── */
 const ModalShell = ({
   children,
   onClose,
@@ -49,25 +50,30 @@ const ModalShell = ({
   closeLabel: string;
   dialogRef?: React.RefObject<HTMLDivElement | null>;
 }) => (
-  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 perspective-[1000px]">
+  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
+    {/* Backdrop — heavy glass */}
     <button
       type="button"
-      className="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px] transition-opacity"
+      className="absolute inset-0 bg-black/40 backdrop-blur-[6px] transition-opacity duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
       onClick={onClose}
       aria-label={closeLabel}
     />
-    <div
-      ref={dialogRef}
-      className="relative w-full max-w-[32.5rem] max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white/80 px-8 py-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-slate-900/5 backdrop-blur-2xl sm:px-12 sm:py-12 dark:bg-slate-950/70 dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] dark:ring-white/10"
-      role="dialog"
-      aria-modal="true"
-      aria-label={ariaLabel}>
-      {children}
+    {/* Outer Shell (Double-Bezel outer tray) */}
+    <div className="relative w-full max-w-[34rem] rounded-[2.5rem] bg-black/[0.03] p-1.5 ring-1 ring-black/[0.04] animate-blur-in">
+      {/* Inner Core (Double-Bezel content plate) */}
+      <div
+        ref={dialogRef}
+        className="max-h-[85vh] overflow-y-auto rounded-[calc(2.5rem-0.375rem)] bg-white/90 px-8 py-10 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-2xl sm:px-12 sm:py-12"
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel}>
+        {children}
+      </div>
     </div>
   </div>
 );
 
-/* ── Shared input field ────────────────────────────────────── */
+/* ── Premium Input Field ──────────────────────────────────── */
 const InputField = ({
   id,
   label,
@@ -87,13 +93,14 @@ const InputField = ({
   placeholder: string;
   trailing?: React.ReactNode;
 }) => (
-  <div className="flex flex-col gap-2">
+  <div className="flex flex-col gap-2.5">
     <label
       htmlFor={id ?? name}
-      className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#78716C]">
       {label}
     </label>
-    <div className="relative">
+    {/* Input Double-Bezel: outer ring + inner field */}
+    <div className="relative rounded-2xl bg-black/[0.02] p-px ring-1 ring-black/[0.05] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:ring-2 focus-within:ring-[#C9873A]/30 focus-within:bg-transparent">
       <TextInput
         id={id ?? name}
         type={type}
@@ -101,7 +108,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`!rounded-xl !border-0 !bg-slate-100/50 !px-4 !py-3.5 !text-sm !text-slate-900 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)] transition-all placeholder:!text-slate-400 focus:!bg-white focus:!shadow-[inset_0_0_0_2px_rgba(0,0,0,0.8)] focus-visible:!ring-0 dark:!bg-slate-800/50 dark:!text-slate-100 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] focus:dark:!bg-slate-900 focus:dark:!shadow-[inset_0_0_0_2px_rgba(255,255,255,0.8)] dark:placeholder:!text-slate-500 ${trailing ? "!pr-12" : ""}`}
+        className={`!rounded-[calc(1rem-1px)] !border-0 !bg-[#F7F6F3]/60 !px-5 !py-4 !text-[0.875rem] !font-medium !text-[#111] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] placeholder:!text-[#A8A29E] focus:!bg-white focus:!shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] focus-visible:!ring-0 ${trailing ? "!pr-14" : ""}`}
       />
       {trailing}
     </div>
@@ -167,22 +174,27 @@ const SignUpView = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
-          {t("landing.auth.createAccount")}
-        </h2>
+      {/* Header — Eyebrow + Premium Close */}
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <span className="mb-3 inline-flex items-center rounded-full bg-[#C9873A]/[0.08] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9873A]">
+            {t("landing.auth.getStarted", "Get Started")}
+          </span>
+          <h2 className="mt-3 text-[1.75rem] font-bold tracking-[-0.03em] text-[#111] sm:text-[2rem] leading-none">
+            {t("landing.auth.createAccount")}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#78716C] ring-1 ring-black/[0.04] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-black/[0.06] hover:text-[#111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30"
           aria-label={t("landing.auth.close")}>
-          <Icon icon="heroicons-outline:x-mark" className="h-5 w-5" />
+          <Icon icon="heroicons-outline:x-mark" className="h-4 w-4" />
         </button>
       </div>
 
       {/* Fields */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         <InputField
           id="signup-username"
           label={t("landing.auth.username")}
@@ -266,12 +278,12 @@ const SignUpView = ({
           )}
           {isLoading ? t("common.processing") : t("common.signUp")}
         </button>
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-          <span className="text-sm font-medium text-slate-400 dark:text-slate-500">
+        <div className="flex items-center gap-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#A8A29E]">
             {t("landing.auth.or")}
           </span>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
         </div>
         <button
           type="button"
@@ -285,7 +297,7 @@ const SignUpView = ({
       </div>
 
       {/* Footer */}
-      <p className="text-center text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-center text-[0.8125rem] text-[#78716C]">
         {t("landing.auth.alreadyHaveAccount")}{" "}
         <button type="button" className={LINK_ACTION_CLASS} onClick={goToLogin}>
           {t("landing.auth.logIn")}
@@ -369,22 +381,27 @@ const LoginView = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
-          {t("landing.auth.login")}
-        </h2>
+      {/* Header — Eyebrow + Premium Close */}
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <span className="mb-3 inline-flex items-center rounded-full bg-[#C9873A]/[0.08] px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#C9873A]">
+            {t("landing.auth.welcomeBack", "Welcome Back")}
+          </span>
+          <h2 className="mt-3 text-[1.75rem] font-bold tracking-[-0.03em] text-[#111] sm:text-[2rem] leading-none">
+            {t("landing.auth.login")}
+          </h2>
+        </div>
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[#78716C] ring-1 ring-black/[0.04] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-black/[0.06] hover:text-[#111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30"
           aria-label={t("landing.auth.close")}>
-          <Icon icon="heroicons-outline:x-mark" className="h-5 w-5" />
+          <Icon icon="heroicons-outline:x-mark" className="h-4 w-4" />
         </button>
       </div>
 
       {/* Fields */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         <InputField
           id="login-email"
           label={t("landing.auth.emailAddress")}
@@ -426,7 +443,7 @@ const LoginView = ({
           />
           {/* Error message display */}
           {loginError && (
-            <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-[#9F2F2D]/[0.06] px-4 py-3 text-[0.8125rem] font-medium text-[#9F2F2D] ring-1 ring-[#9F2F2D]/10">
               <Icon icon="heroicons-outline:exclamation-circle" className="h-5 w-5 flex-shrink-0" />
               <span>{loginError}</span>
             </div>
@@ -435,7 +452,7 @@ const LoginView = ({
             <button
               type="button"
               onClick={goToForgot}
-              className="text-sm font-medium text-slate-500 transition-colors hover:text-landing-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30 rounded">
+              className="text-[0.8125rem] font-medium text-[#78716C] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-[#C9873A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30 rounded">
               {t("landing.auth.forgotYourPassword")}
             </button>
           </div>
@@ -450,12 +467,12 @@ const LoginView = ({
           )}
           {isLoading ? t("common.processing") : t("common.signIn")}
         </button>
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-          <span className="text-sm font-medium text-slate-400 dark:text-slate-500">
+        <div className="flex items-center gap-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#A8A29E]">
             {t("landing.auth.or")}
           </span>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent" />
         </div>
         <button
           type="button"
@@ -469,7 +486,7 @@ const LoginView = ({
       </div>
 
       {/* Footer */}
-      <p className="text-center text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-center text-[0.8125rem] text-[#78716C]">
         {t("landing.auth.dontHaveAccount")}{" "}
         <button type="button" className={LINK_ACTION_CLASS} onClick={goToSignUp}>
           {t("common.signUp")}
@@ -504,27 +521,27 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center gap-5 text-center">
-        {/* Key icon */}
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-landing-accent/10">
+      <div className="flex flex-col items-center gap-6 text-center">
+        {/* Key icon — Double-Bezel circle */}
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C9873A]/[0.08] ring-1 ring-[#C9873A]/10">
           <Icon
             icon="heroicons-outline:key"
-            className="h-6 w-6 text-landing-accent"
+            className="h-6 w-6 text-[#C9873A]"
           />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-100">
+        <h2 className="text-[1.75rem] font-bold tracking-[-0.03em] text-[#111] sm:text-[2rem]">
           {t("landing.auth.checkYourEmail")}
         </h2>
-        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+        <p className="text-[0.875rem] leading-relaxed text-[#78716C]">
           {t("landing.auth.resetLinkSentTo")}{" "}
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
+          <span className="font-semibold text-[#111]">
             {email}
           </span>
         </p>
         <button
           type="button"
           onClick={goToLogin}
-          className="inline-flex items-center gap-2 rounded text-sm font-medium text-slate-500 transition-colors hover:text-landing-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30">
+          className="inline-flex items-center gap-2 rounded-full text-[0.8125rem] font-medium text-[#78716C] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-[#C9873A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30">
           <Icon icon="heroicons-outline:arrow-left" className="h-4 w-4" />
           {t("landing.auth.backToLogin")}
         </button>
@@ -533,16 +550,16 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-5">
-      {/* Key icon */}
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-landing-accent/10">
-        <Icon icon="heroicons-outline:key" className="h-6 w-6 text-landing-accent" />
+    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6">
+      {/* Key icon — Double-Bezel */}
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C9873A]/[0.08] ring-1 ring-[#C9873A]/10">
+        <Icon icon="heroicons-outline:key" className="h-6 w-6 text-[#C9873A]" />
       </div>
 
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
+      <h2 className="text-[1.75rem] font-bold tracking-[-0.03em] text-[#111] sm:text-[2rem]">
         {t("landing.auth.forgotPassword")}
       </h2>
-      <p className="-mt-2 text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+      <p className="-mt-3 text-center text-[0.875rem] leading-relaxed text-[#78716C]">
         {t("landing.auth.forgotPasswordHelp")}
       </p>
 
@@ -569,7 +586,7 @@ const ForgotPasswordView = ({ goToLogin }: { goToLogin: () => void }) => {
       <button
         type="button"
         onClick={goToLogin}
-        className="inline-flex items-center gap-2 rounded text-sm font-medium text-slate-500 transition-colors hover:text-landing-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30">
+        className="inline-flex items-center gap-2 rounded-full text-[0.8125rem] font-medium text-[#78716C] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-[#C9873A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9873A]/30">
         <Icon icon="heroicons-outline:arrow-left" className="h-4 w-4" />
         {t("landing.auth.backToLogin")}
       </button>

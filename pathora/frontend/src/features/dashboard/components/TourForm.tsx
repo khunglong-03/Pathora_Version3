@@ -2114,16 +2114,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                           {t("tourAdmin.packages.basePrice")}
                         </label>
-                        <div
-                          aria-readonly="true"
-                          className="w-full px-3 py-2 text-sm rounded-xl border border-stone-300 dark:border-stone-600 bg-stone-100 dark:bg-slate-700/50 text-stone-900 dark:text-white"
-                        >
-                          {formatCurrency(Number(cls.basePrice) || 0)}
+                        <div className="relative group">
+                          <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 flex items-center justify-between">
+                            <span className="font-semibold text-stone-900 dark:text-white">
+                              {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
+                            </span>
+                            <div className="flex items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
+                              <Icon icon="heroicons:sparkles" className="size-3" />
+                              {t("tourAdmin.packages.basePriceAutoCalculated")}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 flex items-center gap-1">
-                          <Icon icon="heroicons:calculator" className="size-3" />
-                          {t("tourAdmin.packages.basePriceAutoCalculated", "Auto-calculated from activities")}
-                        </p>
                       </div>
                     </div>
 
@@ -3098,7 +3099,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         packageName: activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })),
                       })}
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                           {t("tourAdmin.insurance.insuranceName")}
@@ -3169,93 +3170,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.provider")}
-                        </label>
-                        <input
-                          type="text"
-                          value={ins.insuranceProvider}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "insuranceProvider",
-                              e.target.value,
-                            )
-                          }
-                          placeholder={t("tourAdmin.insurance.provider")}
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                      </div>
                     </div>
-                    <div className="mt-3">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        {t("tourAdmin.insurance.coverageDescription")}
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
-                            <span>VN</span>
-                            <span className="font-medium text-stone-500">Coverage (VI)</span>
-                          </div>
-                          <textarea
-                            value={ins.coverageDescription}
-                            onChange={(e) =>
-                              updateInsurance(
-                                clsI,
-                                ii,
-                                "coverageDescription",
-                                e.target.value,
-                              )
-                            }
-                            rows={2}
-                            placeholder={t("tourAdmin.insurance.coverageDescription")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
-                            <span>EN</span>
-                            <span className="font-medium text-stone-500">Coverage (EN)</span>
-                          </div>
-                          <textarea
-                            value={ins.enCoverageDescription}
-                            onChange={(e) =>
-                              updateInsurance(
-                                clsI,
-                                ii,
-                                "enCoverageDescription",
-                                e.target.value,
-                              )
-                            }
-                            rows={2}
-                            placeholder={t("tourAdmin.insurance.coverageDescription")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.coverageAmount")}
-                        </label>
-                        <input
-                          type="number"
-                          value={ins.coverageAmount}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "coverageAmount",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="0"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                           {t("tourAdmin.insurance.coverageFee")}

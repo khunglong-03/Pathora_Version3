@@ -606,4 +606,21 @@ public class TourRepository(AppDbContext context) : ITourRepository
         return await _context.TourPlanLocations
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
     }
+
+    public async Task<bool> HasActiveBookings(Guid tourId, CancellationToken cancellationToken = default)
+    {
+        var activeBookingStatuses = new[]
+        {
+            BookingStatus.Pending,
+            BookingStatus.Confirmed,
+            BookingStatus.Deposited,
+            BookingStatus.Paid
+        };
+
+        return await _context.Bookings
+            .AnyAsync(b => b.TourInstance != null
+                        && b.TourInstance.TourId == tourId
+                        && activeBookingStatuses.Contains(b.Status),
+                        cancellationToken);
+    }
 }

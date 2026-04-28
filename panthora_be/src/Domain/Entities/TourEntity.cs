@@ -34,6 +34,7 @@ public class TourEntity : Aggregate<Guid>
     }
     public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null, Continent? continent = null, bool isVisa = false)
     {
+        var isDomestic = tourScope == TourScope.Domestic;
         return new TourEntity
         {
             Id = Guid.CreateVersion7(),
@@ -45,8 +46,8 @@ public class TourEntity : Aggregate<Guid>
             SEODescription = seoDescription,
             Status = status,
             TourScope = tourScope,
-            IsVisa = tourScope == TourScope.Domestic ? false : isVisa,
-            Continent = continent,
+            IsVisa = isDomestic ? false : isVisa,
+            Continent = isDomestic ? null : continent,
             CustomerSegment = customerSegment,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
@@ -59,6 +60,7 @@ public class TourEntity : Aggregate<Guid>
     }
     public void Update(string tourName, string shortDescription, string longDescription, TourStatus status, string performedBy, TourScope tourScope = TourScope.Domestic, Continent? continent = null, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null, bool isVisa = false)
     {
+        var isDomestic = tourScope == TourScope.Domestic;
         TourName = tourName;
         ShortDescription = shortDescription;
         LongDescription = longDescription;
@@ -66,8 +68,8 @@ public class TourEntity : Aggregate<Guid>
         SEODescription = seoDescription;
         Status = status;
         TourScope = tourScope;
-        IsVisa = tourScope == TourScope.Domestic ? false : isVisa;
-        Continent = continent;
+        IsVisa = isDomestic ? false : isVisa;
+        Continent = isDomestic ? null : continent;
         CustomerSegment = customerSegment;
         if (thumbnail is not null)
         {

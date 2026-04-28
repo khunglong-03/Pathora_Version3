@@ -405,6 +405,14 @@ public sealed class UpdateTourCommandValidator : AbstractValidator<UpdateTourCom
             .NotNull().WithMessage("Châu lục là bắt buộc khi phạm vi tour là Quốc tế")
             .When(x => x.TourScope == TourScope.International);
 
+        RuleFor(x => x.Continent)
+            .Null().WithMessage("Tour trong nước không được chọn châu lục")
+            .When(x => x.TourScope == TourScope.Domestic);
+
+        RuleFor(x => x.IsVisa)
+            .Equal(false).WithMessage("Tour trong nước không yêu cầu visa")
+            .When(x => x.TourScope == TourScope.Domestic);
+
         // Thumbnail - Optional but must be valid if provided
         RuleFor(x => x.Thumbnail)
             .SetValidator(new ImageInputDtoValidator()!)

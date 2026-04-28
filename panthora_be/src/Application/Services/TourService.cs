@@ -411,6 +411,18 @@ public class TourService(
             isResubmission ? TourStatus.Pending :
             tour.Status;
 
+        // TC: Retroactive lock policy
+        // Block changing policy fields (TourScope, Continent, IsVisa) if there are active bookings
+        if (tour.TourScope != request.TourScope || tour.Continent != request.Continent || tour.IsVisa != request.IsVisa)
+        {
+            if (await _tourRepository.HasActiveBookings(tour.Id))
+            {
+                return Error.Validation(
+                    "Tour.PolicyLock",
+                    "Không thể thay đổi phạm vi, châu lục hoặc chính sách visa khi tour đang có booking hoạt động. Vui lòng clone tour mới.");
+            }
+        }
+
         var publicIdsToDelete = new List<string>();
 
         // Update thumbnail in-place if provided (avoids shared-type EF Core issue)

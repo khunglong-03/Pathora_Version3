@@ -149,35 +149,19 @@ export function TourClassificationsBuilder({
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                  {t("tourAdmin.packages.basePrice")} <span className="text-red-500">*</span>
+                  {t("tourAdmin.packages.basePrice")}
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    value={cls.basePrice}
-                    onChange={(e) =>
-                      onUpdateClassification(clsI, "basePrice", e.target.value)
-                    }
-                    placeholder={t("tourAdmin.packages.placeholderBasePrice")}
-                    className={`w-full px-3 py-2 pr-8 text-sm rounded-xl border bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                      errors.classifications?.[clsI]?.basePrice
-                        ? "border-red-400 dark:border-red-500"
-                        : "border-stone-300 dark:border-stone-600"
-                    }`}
-                  />
-                  {errors.classifications?.[clsI]?.basePrice && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                      <Icon icon="heroicons:x-circle" className="size-4" />
+                <div className="relative group">
+                  <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 flex items-center justify-between">
+                    <span className="font-semibold text-stone-900 dark:text-white">
+                      {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
                     </span>
-                  )}
+                    <div className="flex items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
+                      <Icon icon="heroicons:sparkles" className="size-3" />
+                      {t("tourAdmin.packages.basePriceAutoCalculated")}
+                    </div>
+                  </div>
                 </div>
-                {errors.classifications?.[clsI]?.basePrice && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                    {errors.classifications[clsI].basePrice.message}
-                  </p>
-                )}
               </div>
             </div>
 

@@ -260,7 +260,7 @@ export function TourPreviewSection({
                       {cls.name || `Package #${ci + 1}`}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {cls.basePrice ? `$${cls.basePrice}` : ""} / {cls.durationDays || "?"} days
+                      {cls.basePrice ? `${Number(cls.basePrice).toLocaleString("vi-VN")} đ` : ""} / {cls.durationDays || "?"} days
                     </span>
                   </div>
                   {/* Day plans preview */}
