@@ -238,7 +238,7 @@ public class IdentityService(
                 // User exists by email - link GoogleId if not already linked
                 if (string.IsNullOrEmpty(userEntity.GoogleId))
                 {
-                    userEntity.LinkGoogle(request.ProviderKey, AuthProviderConstants.Google);
+                    userEntity.LinkGoogle(request.ProviderKey, request.Picture, AuthProviderConstants.Google);
                     _userRepository.Update(userEntity);
                     await _unitOfWork.SaveChangeAsync();
                     _logger?.LogDebug("Linked GoogleId to existing user");

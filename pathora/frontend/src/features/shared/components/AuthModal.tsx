@@ -288,7 +288,8 @@ const SignUpView = ({
         <button
           type="button"
           onClick={() => {
-            window.location.href = GOOGLE_LOGIN_URL;
+            const currentUrl = window.location.pathname + window.location.search;
+            window.location.href = `${GOOGLE_LOGIN_URL}?returnUrl=${encodeURIComponent(currentUrl)}`;
           }}
           className={OUTLINE_ACTION_CLASS}>
           <FcGoogle className="h-5 w-5" aria-hidden="true" />
@@ -477,7 +478,8 @@ const LoginView = ({
         <button
           type="button"
           onClick={() => {
-            window.location.href = GOOGLE_LOGIN_URL;
+            const currentUrl = window.location.pathname + window.location.search;
+            window.location.href = `${GOOGLE_LOGIN_URL}?returnUrl=${encodeURIComponent(currentUrl)}`;
           }}
           className={OUTLINE_ACTION_CLASS}>
           <FcGoogle className="h-5 w-5" aria-hidden="true" />

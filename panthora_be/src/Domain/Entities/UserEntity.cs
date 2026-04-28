@@ -66,9 +66,13 @@ public class UserEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    public void LinkGoogle(string googleId, string performedBy)
+    public void LinkGoogle(string googleId, string? avatarUrl, string performedBy)
     {
         GoogleId = googleId;
+        if (string.IsNullOrEmpty(AvatarUrl) && !string.IsNullOrEmpty(avatarUrl))
+        {
+            AvatarUrl = avatarUrl;
+        }
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

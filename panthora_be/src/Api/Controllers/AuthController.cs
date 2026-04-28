@@ -310,7 +310,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
     [AllowAnonymous]
     [HttpGet(AuthEndpoint.GoogleLogin)]
-    public IActionResult GoogleLogin([FromServices] IConfiguration configuration)
+    public IActionResult GoogleLogin([FromServices] IConfiguration configuration, [FromQuery] string? returnUrl = null)
     {
         if (!IsGoogleConfigured(configuration))
             return Redirect(GetFrontendUrl(configuration) + "/auth/callback?error=google_auth_not_configured");
@@ -319,6 +319,12 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         {
             RedirectUri = Url.Action(nameof(GoogleCallback))
         };
+
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            properties.Items.Add("returnUrl", returnUrl);
+        }
+
         return Challenge(properties, GoogleDefaults.AuthenticationScheme);
     }
 
@@ -357,7 +363,14 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
         var response = result.Value;
         AuthCookieWriter.WriteAuthCookies(Response, response, Request.IsHttps, jwtOptions.Value);
-        return Redirect($"{frontendUrl}/auth/callback");
+        
+        var returnUrl = authenticateResult.Properties?.Items.TryGetValue("returnUrl", out var url) == true ? url : null;
+        var redirectUrl = $"{frontendUrl}/auth/callback";
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            redirectUrl += $"?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        }
+        return Redirect(redirectUrl);
     }
 
     private static string GetFrontendUrl(IConfiguration configuration)
