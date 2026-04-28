@@ -493,9 +493,7 @@ export interface TourInstanceDayActivityDto {
   fromLocation?: TourPlanLocationDto | null;
   toLocation?: TourPlanLocationDto | null;
   durationMinutes?: number | null;
-  distanceKm?: number | null;
   price?: number | null;
-  bookingReference?: string | null;
 
   // Transport Plan fields (per-activity)
   requestedVehicleType?: string | null;

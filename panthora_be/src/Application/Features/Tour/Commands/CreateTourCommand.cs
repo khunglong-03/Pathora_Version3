@@ -31,7 +31,9 @@ public sealed record CreateTourCommand(
     [property: JsonPropertyName("tourScope")] TourScope TourScope = TourScope.Domestic,
     [property: JsonPropertyName("continent")] Continent? Continent = null,
     [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group,
-    [property: JsonPropertyName("isVisa")] bool IsVisa = false) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false,
+    /// <summary>Set by TourController — not deserialized from multipart. Manager/Admin can set Pending→Active directly.</summary>
+    bool IsManager = false) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }
@@ -157,7 +159,7 @@ public sealed class CreateTourCommandHandler(ITourService tourService)
 {
     public async Task<ErrorOr<Guid>> Handle(CreateTourCommand request, CancellationToken cancellationToken)
     {
-        return await tourService.Create(request, isManager: false);
+        return await tourService.Create(request, request.IsManager);
     }
 }
 

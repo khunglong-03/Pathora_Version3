@@ -167,69 +167,11 @@ export const homeService = {
   },
 
   getPublicInstanceDetail: async (id: string, language?: string) => {
-    // MOCK DATA ĐỂ VIEW GIAO DIỆN
-    const MOCK_INSTANCE_DTO = {
-      id: id,
-      tourId: "tour-123",
-      tourInstanceCode: "TI-DALAT-001",
-      title: "Khám Phá Đà Lạt Dịp Lễ 30/4",
-      tourName: "Khám Phá Đà Lạt - Thành Phố Ngàn Hoa",
-      tourCode: "TR-DALAT-001",
-      classificationId: "cls-123",
-      classificationName: "Gói Tiêu Chuẩn 3N2Đ",
-      location: "Đà Lạt, Lâm Đồng",
-      startDate: "2026-04-30T00:00:00",
-      endDate: "2026-05-02T00:00:00",
-      durationDays: 3,
-      basePrice: 2000000,
-      maxParticipation: 20,
-      currentParticipation: 5,
-      status: "active",
-      instanceType: "public",
-      rating: 4.8,
-      totalBookings: 15,
-      revenue: 30000000,
-      confirmationDeadline: "2026-04-20T00:00:00",
-      transportApprovalStatus: 2,
-      thumbnail: { publicURL: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800", fileId: "thumb1", originalFileName: "thumb.jpg", fileName: "thumb.jpg" },
-      images: [
-        { publicURL: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800", fileId: "img1", originalFileName: "img1.jpg", fileName: "img1.jpg" },
-        { publicURL: "https://images.unsplash.com/photo-1596422846543-75c6fc197f0a?w=800", fileId: "img2", originalFileName: "img2.jpg", fileName: "img2.jpg" }
-      ],
-      managers: [
-        { id: "guide1", userId: "user1", userName: "Nguyễn Văn Hướng Dẫn", role: "Guide", userAvatar: "" }
-      ],
-      includedServices: ["Xe đưa đón tận nơi", "Khách sạn 3 sao", "Bảo hiểm du lịch 100tr", "Vé tham quan"],
-      days: [
-        {
-          id: "d1",
-          instanceDayNumber: 1,
-          actualDate: "2026-04-30T00:00:00",
-          title: "Khởi hành đi Đà Lạt",
-          description: "Xe giường nằm chất lượng cao xuất phát lúc 22h.",
-          startTime: null,
-          endTime: null,
-          note: null,
-          activities: [
-            {
-              id: "act1",
-              order: 1,
-              title: "Xe đưa đón",
-              description: "Điểm đón tại Q1, TP.HCM",
-              activityType: "1", // Transportation
-              vehicleType: "Xe giường nằm 40 chỗ",
-              pickupLocation: "Hồ Chí Minh",
-              dropoffLocation: "Đà Lạt",
-              isOptional: false,
-              startTime: null,
-              endTime: null,
-              note: null,
-              accommodation: null
-            }
-          ]
-        }
-      ]
-    };
-    return normalizePublicInstanceDetail(MOCK_INSTANCE_DTO as unknown as TourInstanceDto);
+    const lang = language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
+    const response = await api.get<ApiResponse<TourInstanceDto>>(
+      `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_DETAIL(id)}?lang=${lang}`,
+    );
+    const result = extractResult<TourInstanceDto>(response.data);
+    return result ? normalizePublicInstanceDetail(result) : null;
   },
 };

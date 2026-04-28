@@ -39,9 +39,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public TransportationType? TransportationType { get; set; }
     public string? TransportationName { get; set; }
     public int? DurationMinutes { get; set; }
-    public decimal? DistanceKm { get; set; }
     public decimal? Price { get; set; }
-    public string? BookingReference { get; set; }
 
     // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
     /// <summary>Loại xe yêu cầu cho activity vận chuyển này (do Manager chỉ định).</summary>
@@ -111,9 +109,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         TransportationType? transportationType = null,
         string? transportationName = null,
         int? durationMinutes = null,
-        decimal? distanceKm = null,
-        decimal? price = null,
-        string? bookingReference = null)
+        decimal? price = null)
     {
         var entity = new TourInstanceDayActivityEntity
         {
@@ -133,9 +129,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
             TransportationType = transportationType,
             TransportationName = transportationName,
             DurationMinutes = durationMinutes,
-            DistanceKm = distanceKm,
             Price = price,
-            BookingReference = bookingReference,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
@@ -255,8 +249,6 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
             throw new InvalidOperationException("Can only confirm external transport on Transportation activities.");
         if (TransportSupplierId.HasValue)
             throw new InvalidOperationException("Cannot confirm as external — this activity has an in-app transport supplier (Ground). Use ApproveTransportation instead.");
-        if (string.IsNullOrWhiteSpace(BookingReference))
-            throw new InvalidOperationException("BookingReference is required before confirming external transport.");
         if (!DepartureTime.HasValue || !ArrivalTime.HasValue)
             throw new InvalidOperationException("DepartureTime and ArrivalTime are required before confirming external transport.");
 

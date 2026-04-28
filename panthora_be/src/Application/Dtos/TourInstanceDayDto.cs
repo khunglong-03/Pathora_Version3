@@ -44,9 +44,7 @@ public sealed record TourInstanceDayActivityDto(
     [property: JsonPropertyName("fromLocation")] TourPlanLocationDto? FromLocation,
     [property: JsonPropertyName("toLocation")] TourPlanLocationDto? ToLocation,
     [property: JsonPropertyName("durationMinutes")] int? DurationMinutes,
-    [property: JsonPropertyName("distanceKm")] decimal? DistanceKm,
     [property: JsonPropertyName("price")] decimal? Price,
-    [property: JsonPropertyName("bookingReference")] string? BookingReference,
 
     // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
     [property: JsonPropertyName("requestedVehicleType")] string? RequestedVehicleType,

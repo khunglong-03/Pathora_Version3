@@ -98,8 +98,7 @@ export default function SupplierReassignmentModal({
 
   const isExternalConfirmed = Boolean(activity.externalTransportConfirmed);
   const canConfirmExternal =
-    !!activity.bookingReference
-    && !!activity.departureTime
+    !!activity.departureTime
     && !!activity.arrivalTime;
 
   // Fetch suppliers on open
@@ -269,15 +268,6 @@ export default function SupplierReassignmentModal({
                 {t("tourInstance.transport.externalOnly.bookingDetails", "Thông tin đặt vé")}
               </h4>
               <dl className="grid gap-2 text-xs sm:grid-cols-2">
-                <div>
-                  <dt className="text-slate-500">
-                    {t("tourInstance.transport.externalOnly.bookingReference", "Mã đặt chỗ")}
-                  </dt>
-                  <dd className="text-slate-900">
-                    {activity.bookingReference
-                      ?? t("tourInstance.transport.externalOnly.notSet", "(chưa nhập)")}
-                  </dd>
-                </div>
                 <div>
                   <dt className="text-slate-500">
                     {t("tourInstance.transport.externalOnly.departureTime", "Khởi hành")}

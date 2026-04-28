@@ -580,15 +580,17 @@ export const tourInstanceService = {
       && Array.isArray(data.assignments)
       && data.assignments.length > 0
         ? {
-            assignments: data.assignments.map((a) => ({
-              vehicleId: a.vehicleId,
-              driverId: a.driverId,
-            })),
+            assignments: data.assignments
+              .map((a) => ({
+                vehicleId: String(a.vehicleId ?? "").trim(),
+                driverId: String(a.driverId ?? "").trim(),
+              }))
+              .filter((a) => a.vehicleId.length > 0 && a.driverId.length > 0),
             note: data.note,
           }
         : {
-            vehicleId: (data as { vehicleId: string }).vehicleId,
-            driverId: (data as { driverId: string }).driverId,
+            vehicleId: String((data as { vehicleId: string }).vehicleId ?? "").trim(),
+            driverId: String((data as { driverId: string }).driverId ?? "").trim(),
             note: (data as { note?: string }).note,
           };
 

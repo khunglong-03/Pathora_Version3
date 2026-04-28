@@ -22,7 +22,9 @@ import {
 } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import {
+  computeRequiredTransportSeats,
   filterVehiclesByRequestedType,
+  hasNonEmptyAssignmentId,
   mapVehiclesToSelectOptions,
 } from "./transportApprovalVehicleOptions";
 
@@ -63,10 +65,25 @@ function activityDraftFromActivity(
       note,
     };
   }
-  const requestedCount = activity.requestedVehicleCount && activity.requestedVehicleCount > 0 ? activity.requestedVehicleCount : 1;
+  const requestedCount =
+    activity.requestedVehicleCount && activity.requestedVehicleCount > 0
+      ? activity.requestedVehicleCount
+      : 1;
+
+  /**
+   * When the manager picks a concrete vehicle GUID at tour creation (`CreateTourInstance` copies
+   * `assignedData.VehicleId` onto the activity entity), downstream approval used to ignore it if
+   * `transportAssignments` was empty — drafts showed blank vehicle IDs and felt like "nhập lại".
+   * In manager-driven mode the same catalogue id may repeat per physical seat row.
+   */
+  const linkedFromCreation =
+    typeof activity.vehicleId === "string" && activity.vehicleId.trim().length > 0
+      ? activity.vehicleId.trim()
+      : "";
+
   return {
     rows: Array.from({ length: requestedCount }).map(() => ({
-      vehicleId: "",
+      vehicleId: linkedFromCreation,
       driverId: "",
     })),
     note,
@@ -175,8 +192,9 @@ function sumSeatCapacityForRows(
 ): number {
   let sum = 0;
   for (const r of rows) {
-    if (!r.vehicleId) continue;
-    const v = vehicles.find((x) => x.id === r.vehicleId);
+    const vid = r.vehicleId?.trim();
+    if (!vid) continue;
+    const v = vehicles.find((x) => x.id === vid);
     if (v?.seatCapacity) sum += v.seatCapacity;
   }
   return sum;
@@ -196,7 +214,7 @@ function fillEmptyVehicleIdsFromAvailable(
   let ai = 0;
   let usedFromCurrent = 0;
   return rows.map((row) => {
-    if (row.vehicleId) return row;
+    if (hasNonEmptyAssignmentId(row.vehicleId)) return row;
     // Find the next vehicle with remaining available quantity
     while (ai < available.length) {
       const v = available[ai];
@@ -435,21 +453,33 @@ export default function TransportTourAssignmentPage() {
     return bulkEligibleActivities
       .filter((item) => {
         const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
-        const managerDriven = Boolean(item.activity.requestedVehicleType);
-        const filled = managerDriven
-          ? draft.rows.filter((r) => r.driverId)
-          : draft.rows.filter((r) => r.vehicleId && r.driverId);
+        const filled = draft.rows.filter(
+          (r) => hasNonEmptyAssignmentId(r.vehicleId) && hasNonEmptyAssignmentId(r.driverId),
+        );
         if (filled.length === 0) return true;
-        const driverPicks = draft.rows.map((r) => r.driverId).filter((id) => id) as string[];
+        const managerDriven = Boolean(item.activity.requestedVehicleType);
+        const driverPicks = draft.rows
+          .map((r) => r.driverId?.trim())
+          .filter((id): id is string => Boolean(id && id.length > 0));
         if (driverPicks.length !== new Set(driverPicks).size) return true;
-        // Skip duplicate vehicle check in manager-driven mode
+        // Skip duplicate vehicle check in manager-driven mode (same DB id may repeat)
         if (!managerDriven) {
-          const filledWithVehicle = filled.filter((r) => r.vehicleId);
-          if (filledWithVehicle.length !== new Set(filledWithVehicle.map((r) => r.vehicleId)).size) return true;
-          const required =
-            item.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
+          const filledWithVehicle = filled.filter((r) => hasNonEmptyAssignmentId(r.vehicleId));
+          if (
+            filledWithVehicle.length
+            !== new Set(filledWithVehicle.map((r) => r.vehicleId!.trim())).size
+          ) {
+            return true;
+          }
+        }
+        const filledWithVehicle = filled.filter((r) => hasNonEmptyAssignmentId(r.vehicleId));
+        if (filledWithVehicle.length > 0) {
+          const requiredSeats = computeRequiredTransportSeats(
+            item.activity,
+            tour?.maxParticipation,
+          );
           const sum = sumSeatCapacityForRows(filledWithVehicle, vehicles);
-          if (sum < required) return true;
+          if (sum < requiredSeats) return true;
         }
         // requestedVehicleCount check
         const requestedCount = item.activity.requestedVehicleCount;
@@ -476,47 +506,54 @@ export default function TransportTourAssignmentPage() {
         duplicateDriver: false,
         hasFilledRow: false,
         totalSeats: 0,
+        requiredSeats: 0,
         countMismatch: false,
         requestedCount: undefined as number | undefined,
         filledCount: 0,
+        /** Rows with a driver selected (manager UX); unlike filledCount does not require vehicleId. */
+        driversSelectedCount: 0,
       };
     }
     const draft = approvalDrafts[approveActivityId] ?? EMPTY_APPROVAL_DRAFT;
     const managerDriven = Boolean(activeApproveItem.activity.requestedVehicleType);
-    // In manager-driven mode: a row is "filled" if it has a driverId (vehicleId is auto-filled)
-    // In normal mode: a row is "filled" if it has both vehicleId and driverId
-    const filled = managerDriven
-      ? draft.rows.filter((r) => r.driverId)
-      : draft.rows.filter((r) => r.vehicleId && r.driverId);
+    const driversSelectedCount = draft.rows.filter((r) =>
+      hasNonEmptyAssignmentId(r.driverId),
+    ).length;
+    const filled = draft.rows.filter(
+      (r) => hasNonEmptyAssignmentId(r.vehicleId) && hasNonEmptyAssignmentId(r.driverId),
+    );
     const requestedType = activeApproveItem.activity.requestedVehicleType;
-    const required =
-      activeApproveItem.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0;
+    const requiredSeats = computeRequiredTransportSeats(
+      activeApproveItem.activity,
+      tour?.maxParticipation,
+    );
     let typeMismatch = false;
     for (const r of filled) {
-      if (!r.vehicleId) continue; // skip type check if vehicle not yet auto-filled
-      const v = vehicles.find((x) => x.id === r.vehicleId);
+      const vid = r.vehicleId?.trim();
+      if (!vid) continue;
+      const v = vehicles.find((x) => x.id === vid);
       if (v && requestedType && v.vehicleType !== requestedType) {
         typeMismatch = true;
         break;
       }
     }
     // In manager-driven mode: duplicate vehicleIds are expected (1 record = N physical vehicles)
-    const filledWithVehicle = filled.filter((r) => r.vehicleId);
+    const filledWithVehicle = filled.filter((r) => hasNonEmptyAssignmentId(r.vehicleId));
     const duplicateVehicle = managerDriven
       ? false
       : filledWithVehicle.length > 0
-        && filledWithVehicle.map((r) => r.vehicleId).length
-          !== new Set(filledWithVehicle.map((r) => r.vehicleId)).size;
+        && filledWithVehicle.map((r) => r.vehicleId!.trim()).length
+          !== new Set(filledWithVehicle.map((r) => r.vehicleId!.trim())).size;
     const driverIdsChosen = draft.rows
-      .map((r) => r.driverId)
-      .filter((id): id is string => Boolean(id));
+      .map((r) => r.driverId?.trim())
+      .filter((id): id is string => Boolean(id && id.length > 0));
     const duplicateDriver =
       driverIdsChosen.length > 0
       && driverIdsChosen.length !== new Set(driverIdsChosen).size;
-    const totalSeats = managerDriven
-      ? (activeApproveItem.activity.requestedSeatCount ?? 0) * filled.length
-      : sumSeatCapacityForRows(filledWithVehicle, vehicles);
-    const seatShortfall = !managerDriven && filledWithVehicle.length > 0 && totalSeats < required;
+    /** Sum of SeatCapacity per row — matches backend SUM over assignments (duplicate vehicleId repeats capacity). */
+    const totalSeats = sumSeatCapacityForRows(filledWithVehicle, vehicles);
+    const seatShortfall =
+      filledWithVehicle.length > 0 && totalSeats < requiredSeats;
     // Scope addendum 2026-04-23: strict vehicle count match when manager set one.
     const requestedCount = activeApproveItem.activity.requestedVehicleCount ?? undefined;
     const countMismatch =
@@ -528,9 +565,11 @@ export default function TransportTourAssignmentPage() {
       duplicateDriver,
       hasFilledRow: filled.length > 0,
       totalSeats,
+      requiredSeats,
       countMismatch,
       requestedCount,
       filledCount: filled.length,
+      driversSelectedCount,
     };
   }, [
     activeApproveItem,
@@ -581,11 +620,21 @@ export default function TransportTourAssignmentPage() {
       };
     }
     if (!v.hasFilledRow) {
+      // Driver chosen but warehouse did not attach vehicle GUIDs → not "filled" for submit.
+      if (v.driversSelectedCount > 0) {
+        return {
+          approvePrimaryDisabled: true,
+          approvePrimaryHint: t(
+            "tourInstance.transport.approveButtonHint.needVehicleFromFleet",
+            "Đã có tài xế nhưng chưa gán được xe vào chỗ trong hệ thống (kho trống ngày này hoặc không đủ bản ghi đúng loại). Kiểm tra Quản lý đội xe / ngày chạy, hoặc yêu cầu chỗ trống trên xe.",
+          ),
+        };
+      }
       return {
         approvePrimaryDisabled: true,
         approvePrimaryHint: t(
           "tourInstance.transport.approveButtonHint.noRow",
-          "Chưa chọn tài xế nào.",
+          "Chưa có đủ tài xế và xe được gán trên hệ thống.",
         ),
       };
     }
@@ -637,12 +686,19 @@ export default function TransportTourAssignmentPage() {
     (activityId: string, rowIndex: number, partial: Partial<TransportAssignmentRowDraft>) => {
       setApprovalDrafts((current) => {
         const prev = current[activityId] ?? EMPTY_APPROVAL_DRAFT;
+        const nextPartial: Partial<TransportAssignmentRowDraft> = { ...partial };
+        if (partial.vehicleId !== undefined) {
+          nextPartial.vehicleId = partial.vehicleId.trim();
+        }
         if (partial.driverId !== undefined) {
-          const newDriver = partial.driverId;
-          if (newDriver) {
+          nextPartial.driverId = partial.driverId.trim();
+        }
+        if (nextPartial.driverId !== undefined) {
+          const newDriver = nextPartial.driverId;
+          if (hasNonEmptyAssignmentId(newDriver)) {
             const nextRows = prev.rows.map((r, i) => {
               if (i === rowIndex) {
-                return { ...r, ...partial };
+                return { ...r, ...nextPartial };
               }
               if (r.driverId === newDriver) {
                 return { ...r, driverId: "" };
@@ -653,7 +709,7 @@ export default function TransportTourAssignmentPage() {
           }
         }
         const nextRows = prev.rows.map((r, i) =>
-          i === rowIndex ? { ...r, ...partial } : r,
+          i === rowIndex ? { ...r, ...nextPartial } : r,
         );
         return { ...current, [activityId]: { ...prev, rows: nextRows } };
       });
@@ -767,16 +823,16 @@ export default function TransportTourAssignmentPage() {
   const handleApproveActivity = async () => {
     if (!id || !approveActivityId) return;
 
-    const isManagerDriven = Boolean(activeApproveItem?.activity.requestedVehicleType);
-    // In manager-driven mode: row is filled if it has driverId (vehicleId auto-filled from kho)
-    const filled = isManagerDriven
-      ? approveDraft.rows.filter((r) => r.driverId)
-      : approveDraft.rows.filter((r) => r.vehicleId && r.driverId);
+    const pool = availableVehiclesByActivity[approveActivityId] ?? [];
+    const rowsAfterFill = fillEmptyVehicleIdsFromAvailable(approveDraft.rows, pool);
+    const filled = rowsAfterFill.filter(
+      (r) => hasNonEmptyAssignmentId(r.vehicleId) && hasNonEmptyAssignmentId(r.driverId),
+    );
     if (filled.length === 0) {
       toast.error(
         t(
           "tourInstance.transport.missingAssignment",
-          isManagerDriven ? "Vui lòng chọn tài xế." : "Vui long chon ca xe va tai xe.",
+          "Vui lòng chọn đủ xe và tài xế cho mỗi dòng phân công (hoặc đợi hệ thống gán xe khi có trong kho).",
         ),
       );
       return;
@@ -821,8 +877,8 @@ export default function TransportTourAssignmentPage() {
     try {
       await tourInstanceService.approveTransportation(id, approveActivityId, {
         assignments: filled.map(({ vehicleId, driverId }) => ({
-          vehicleId,
-          driverId,
+          vehicleId: vehicleId.trim(),
+          driverId: driverId.trim(),
         })),
         note: approveDraft.note.trim() || undefined,
       });
@@ -883,15 +939,19 @@ export default function TransportTourAssignmentPage() {
     try {
       for (const item of bulkEligibleActivities) {
         const draft = approvalDrafts[item.activity.id] ?? EMPTY_APPROVAL_DRAFT;
-        const filled = draft.rows.filter((r) => r.vehicleId && r.driverId);
+        const pool = availableVehiclesByActivity[item.activity.id] ?? [];
+        const rowsAfterFill = fillEmptyVehicleIdsFromAvailable(draft.rows, pool);
+        const filled = rowsAfterFill.filter(
+          (r) => hasNonEmptyAssignmentId(r.vehicleId) && hasNonEmptyAssignmentId(r.driverId),
+        );
         const note = (trimmedShared || draft.note.trim()) || undefined;
         await tourInstanceService.approveTransportation(
           id,
           item.activity.id,
           {
             assignments: filled.map(({ vehicleId, driverId }) => ({
-              vehicleId,
-              driverId,
+              vehicleId: vehicleId.trim(),
+              driverId: driverId.trim(),
             })),
             note,
           },
@@ -990,7 +1050,7 @@ export default function TransportTourAssignmentPage() {
             </button>
             {bulkIncompleteTitles.length > 0 && (
               <p className="max-w-[240px] text-xs text-amber-600" id="bulk-incomplete-reason">
-                {t("tourInstance.transport.bulkIncompleteReason", "Còn {{count}} hoạt động chưa chọn đủ xe/tài xế:", { count: bulkIncompleteTitles.length })} {bulkIncompleteTitles.slice(0, 3).join(", ")}{bulkIncompleteTitles.length > 3 ? "..." : ""}
+                {t("tourInstance.transport.bulkIncompleteReason", "Còn {{count}} hoạt động chưa đủ phân công (tài xế và gán xe theo hoạt động):", { count: bulkIncompleteTitles.length })} {bulkIncompleteTitles.slice(0, 3).join(", ")}{bulkIncompleteTitles.length > 3 ? "..." : ""}
               </p>
             )}
           </motion.div>
@@ -1030,7 +1090,7 @@ export default function TransportTourAssignmentPage() {
             <ul className="space-y-4 text-sm text-slate-600 leading-relaxed">
               <li className="flex items-start gap-3">
                 <Icon icon="heroicons:check-badge" className="size-5 text-indigo-500 shrink-0 mt-0.5" />
-                <span>Bắt buộc chọn đủ <strong>Xe</strong> và <strong>Tài xế</strong> cho mỗi hoạt động trước khi duyệt.</span>
+                <span>Nếu <strong>bên quản lý</strong> đã gán nhà xe + loại + số lượng, bạn <strong>chỉ phân đủ tài xế</strong> (bao nhiêu xe được yêu cầu bấy nhiêu tài xế, mỗi dòng một tài xế). Các hoạt động không chế độ đó phải chọn đủ <strong>Xe</strong> và <strong>Tài xế</strong> trước khi duyệt.</span>
               </li>
               <li className="flex items-start gap-3">
                 <Icon icon="heroicons:squares-2x2" className="size-5 text-indigo-500 shrink-0 mt-0.5" />
@@ -1201,7 +1261,7 @@ export default function TransportTourAssignmentPage() {
           activeApproveItem?.activity.requestedVehicleType
             ? t(
                 "tourInstance.transport.approveModalDriversOnly",
-                "Phan cong tai xe (theo yeu cau)",
+                "Phân công tài xế (quản lý đã chốt loại + số xe)",
               )
             : t("tourInstance.transport.approveModal", "Gan xe va duyet")
         }
@@ -1254,7 +1314,7 @@ export default function TransportTourAssignmentPage() {
                 <p className="font-medium leading-relaxed">
                   {t(
                     "tourInstance.transport.managerDriversOnlyHint",
-                    "Quan ly da chon loai va so luong xe. Ban chi can chon tai xe cho tung vi tri — khong chon lai loai/ xe; xe duoc he thong gan ngam tu kho.",
+                    "Bên quản lý đã gán nhà xe + loại xe + số lượng (vd. 2 xe). Bạn chỉ cần gán đủ chừng đó tài xế — mỗi dòng một tài xế khớp một xe được yêu cầu. Hệ thống sẽ gán bản ghi xe phù hợp trong kho vào từng dòng khi có slot (hoặc dùng xe đã gắn từ lúc tạo tour). Bạn không chọn lại loại hay số lượng ở đây.",
                   )}
                 </p>
               </div>
@@ -1391,11 +1451,15 @@ export default function TransportTourAssignmentPage() {
                 <p className={`text-xs font-semibold px-2 ${approveModalValidation.countMismatch ? "text-rose-600" : "text-emerald-600"}`}>
                   {activeApproveItem.activity.requestedVehicleType
                     ? t(
-                        "tourInstance.transport.driverAssignmentCountStatus",
-                        "{{filled}}/{{required}} tài xế đã phân công",
+                        "tourInstance.transport.driverAssignmentCountStatusManager",
+                        "Đã chọn {{drivers}}/{{required}} tài xế (đúng số xe mà quản lý đã yêu cầu; mỗi xe một tài xế). Đủ chỗ/ngày và khóa trên server: {{complete}}/{{required}}.",
                         {
-                          filled: approveModalValidation.filledCount,
-                          required: approveModalValidation.requestedCount,
+                          drivers: approveModalValidation.driversSelectedCount,
+                          complete: approveModalValidation.filledCount,
+                          required:
+                            approveModalValidation.requestedCount
+                            ?? activeApproveItem.activity.requestedVehicleCount
+                            ?? approveDraft.rows.length,
                         },
                       )
                     : t("tourInstance.transport.vehicleCountStatus", "{{filled}}/{{required}} xe", { filled: approveModalValidation.filledCount, required: approveModalValidation.requestedCount })}
@@ -1410,7 +1474,7 @@ export default function TransportTourAssignmentPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ghế yêu cầu</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{activeApproveItem.activity.requestedSeatCount ?? tour.maxParticipation}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-900">{approveModalValidation.requiredSeats}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ghế đã chọn</p>
@@ -1425,7 +1489,11 @@ export default function TransportTourAssignmentPage() {
                 <div role="alert" className="space-y-1.5 rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
                   {approveModalValidation.duplicateVehicle && <p className="font-medium">• Không được chọn trùng xe.</p>}
                   {approveModalValidation.typeMismatch && <p className="font-medium">• Cần xe loại {activeApproveItem?.activity.requestedVehicleType}.</p>}
-                  {approveModalValidation.seatShortfall && <p className="font-medium">• Chưa đủ số ghế (cần {activeApproveItem?.activity.requestedSeatCount ?? tour?.maxParticipation ?? 0}).</p>}
+                  {approveModalValidation.seatShortfall && (
+                    <p className="font-medium">
+                      • Chưa đủ số ghế (cần {approveModalValidation.requiredSeats}). Tổng ghế xe đã chọn: {approveModalValidation.totalSeats}.
+                    </p>
+                  )}
                 </div>
                 <div className="px-2 text-xs">
                   <a href="mailto:manager@example.com" className="text-indigo-600 font-medium hover:underline">

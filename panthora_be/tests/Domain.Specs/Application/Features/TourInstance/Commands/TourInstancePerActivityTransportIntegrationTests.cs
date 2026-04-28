@@ -116,7 +116,8 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
             vehicleBlockRepo,
             availability,
             uow,
-            user);
+            user,
+            NullLogger<ApproveTransportationActivityCommandHandler>.Instance);
 
         // Supplier A approves only activity 1
         user.Id.Returns(userA.ToString());

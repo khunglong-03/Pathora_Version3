@@ -14,8 +14,9 @@ public sealed record ClassificationDto(
     [property: JsonPropertyName("basePrice")] decimal BasePrice,
     [property: JsonPropertyName("numberOfDay")] int NumberOfDay,
     [property: JsonPropertyName("numberOfNight")] int NumberOfNight,
-    [property: JsonPropertyName("plans")] List<DayPlanDto> Plans,
-    [property: JsonPropertyName("insurances")] List<InsuranceDto> Insurances,
+    // Nullable: System.Text.Json omits or nulls missing arrays; TourService treats null as empty.
+    [property: JsonPropertyName("plans")] List<DayPlanDto>? Plans = null,
+    [property: JsonPropertyName("insurances")] List<InsuranceDto>? Insurances = null,
     [property: JsonPropertyName("translations")] Dictionary<string, TourClassificationTranslationData>? Translations = null
 );
 
@@ -24,7 +25,7 @@ public sealed record DayPlanDto(
     [property: JsonPropertyName("dayNumber")] int DayNumber,
     [property: JsonPropertyName("title")] string Title,
     [property: JsonPropertyName("description")] string? Description,
-    [property: JsonPropertyName("activities")] List<ActivityDto> Activities,
+    [property: JsonPropertyName("activities")] List<ActivityDto>? Activities = null,
     [property: JsonPropertyName("translations")] Dictionary<string, TourDayTranslationData>? Translations = null
 );
 

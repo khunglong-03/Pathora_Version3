@@ -12,6 +12,7 @@ using Domain;
 using ErrorOr;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Text.Json.Serialization;
 
@@ -71,6 +72,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
     IResourceAvailabilityService availabilityService,
     IUnitOfWork unitOfWork,
     IUser user,
+    ILogger<ApproveTransportationActivityCommandHandler> logger,
     ILanguageContext? languageContext = null
 ) : ICommandHandler<ApproveTransportationActivityCommand, ErrorOr<Success>>
 {
@@ -135,7 +137,10 @@ public sealed class ApproveTransportationActivityCommandHandler(
                 TourInstanceTransportErrors.ProviderNotAssignedDescription.Resolve(lang));
 
         if (IsIdempotentApproved(activity, normalized))
+        {
+            logger.LogWarning("[APPROVE-DIAG] Idempotent short-circuit: activity {Id} already approved with same assignments", request.ActivityId);
             return Result.Success;
+        }
 
         // Strict vehicle-count guard (scope addendum 2026-04-23): when manager pre-specifies
         // how many vehicles are required, provider must approve with exactly that many rows.
@@ -253,6 +258,7 @@ public sealed class ApproveTransportationActivityCommandHandler(
         {
             try
             {
+                logger.LogWarning("[APPROVE-DIAG] Entering transaction attempt {Attempt} for activity {Id}", attempt, request.ActivityId);
                 await unitOfWork.ExecuteTransactionAsync(IsolationLevel.RepeatableRead, async () =>
                 {
                     // Deduplicate: check each unique vehicleId only once
@@ -293,8 +299,11 @@ public sealed class ApproveTransportationActivityCommandHandler(
                                 seatSnap,
                                 performedBy));
                     }
+                    logger.LogWarning("[APPROVE-DIAG] Added {Count} assignments to activity.TransportAssignments", activity.TransportAssignments.Count);
                     var primary = normalized[0];
                     activity.ApproveTransportation(primary.VehicleId, primary.DriverId, request.Note);
+                    logger.LogWarning("[APPROVE-DIAG] After ApproveTransportation: Status={Status}, VehicleId={V}, DriverId={D}",
+                        activity.TransportationApprovalStatus, activity.VehicleId, activity.DriverId);
 
                     // Create one VehicleBlock per unique vehicleId (unique index prevents duplicates)
                     foreach (var vid in uniqueVehicleIds)
@@ -311,10 +320,18 @@ public sealed class ApproveTransportationActivityCommandHandler(
 
                     instance.CheckAndActivateTourInstance();
 
-                    await tourInstanceRepository.Update(instance, cancellationToken);
-                    await unitOfWork.SaveChangeAsync(cancellationToken);
+                    // Do NOT call tourInstanceRepository.Update(instance) here!
+                    // Update() calls _context.TourInstances.Update() which marks ALL reachable
+                    // entities as Modified — but newly-added TransportAssignment entities must
+                    // be Added, not Modified. Since the instance was loaded tracked (no AsNoTracking
+                    // in FindByIdWithInstanceDaysForUpdate), EF's change tracker already detects
+                    // all modifications. Just call SaveChangesAsync.
+                    logger.LogWarning("[APPROVE-DIAG] Calling SaveChangeAsync...");
+                    var saved = await unitOfWork.SaveChangeAsync(cancellationToken);
+                    logger.LogWarning("[APPROVE-DIAG] SaveChangeAsync returned {Saved} rows affected", saved);
                 });
 
+                logger.LogWarning("[APPROVE-DIAG] Transaction committed, returning success");
                 return Result.Success;
             }
             catch (TransportApproveConflictException tce)

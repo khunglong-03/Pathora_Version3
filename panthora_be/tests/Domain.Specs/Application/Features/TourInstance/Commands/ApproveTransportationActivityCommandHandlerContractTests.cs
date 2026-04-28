@@ -5,12 +5,15 @@ using global::Domain.Common.Repositories;
 using global::Domain.Entities;
 using global::Domain.Enums;
 using global::Domain.UnitOfWork;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
 namespace Domain.Specs.Application.Features.TourInstance.Commands;
 
 public sealed class ApproveTransportationActivityCommandHandlerContractTests
 {
+    private static readonly NullLogger<ApproveTransportationActivityCommandHandler> _logger = new();
+
     [Fact]
     public async Task Handle_8_11_WhenVehicleSeatCapacityLessThanRequested_ReturnsVehicleInsufficientCapacity()
     {
@@ -81,7 +84,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var result = await handler.Handle(
             new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),
@@ -121,7 +125,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var assignments = new List<TransportApprovalAssignmentDto>
         {
@@ -168,7 +173,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var assignments = new List<TransportApprovalAssignmentDto>
         {
@@ -244,7 +250,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         // Provider tries to approve with only 1 vehicle row — mismatch.
         var result = await handler.Handle(
@@ -341,7 +348,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var assignments = new List<TransportApprovalAssignmentDto>
         {
@@ -428,7 +436,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var result = await handler.Handle(
             new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),
@@ -502,7 +511,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var result = await handler.Handle(
             new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),
@@ -573,7 +583,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
             vehicleBlockRepository,
             availabilityService,
             unitOfWork,
-            user);
+            user,
+            _logger);
 
         var result = await handler.Handle(
             new ApproveTransportationActivityCommand(instanceId, activityId, null, vehicleId, driverId),

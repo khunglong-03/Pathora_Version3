@@ -8,6 +8,7 @@ using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Api.Controllers;
@@ -210,9 +211,20 @@ public class TourInstanceController : BaseApiController
         Guid activityId,
         [FromBody] ApproveTransportationRequest request)
     {
-        var assignments = request.Assignments is { Count: > 0 }
-            ? request.Assignments.ConvertAll(a => new TransportApprovalAssignmentDto(a.VehicleId, a.DriverId))
-            : null;
+        List<TransportApprovalAssignmentDto>? assignments = null;
+        if (request.Assignments is { Count: > 0 })
+        {
+            assignments = request.Assignments!
+                .Where(static a =>
+                    a is not null
+                    && a.VehicleId != Guid.Empty
+                    && a.DriverId.HasValue
+                    && a.DriverId.Value != Guid.Empty)
+                .Select(static a => new TransportApprovalAssignmentDto(a!.VehicleId, a!.DriverId))
+                .ToList();
+            if (assignments.Count == 0)
+                assignments = null;
+        }
 
         var result = await Sender.Send(new ApproveTransportationActivityCommand(
             instanceId,

@@ -148,6 +148,7 @@ public class TourController(
 
         try
         {
+            var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
             var command = new CreateTourCommand(
                 tourName,
                 shortDescription ?? string.Empty,
@@ -166,10 +167,11 @@ public class TourController(
                 tourScope,
                 continent,
                 customerSegment,
-                isVisa);
+                isVisa,
+                isManager);
 
-            var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
-            var result = await tourService.Create(command, isManager);
+            // MediatR runs ValidationBehavior + CreateTourCommandValidator (controller bypassed validation before).
+            var result = await Sender.Send(command);
             return HandleResult(result);
         }
         catch

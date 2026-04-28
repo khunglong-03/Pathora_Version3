@@ -60,11 +60,6 @@ public class TourInstanceDayActivityConfiguration : IEntityTypeConfiguration<Tou
         builder.Property(a => a.Price)
             .HasColumnType("numeric(18,2)");
 
-        builder.Property(a => a.DistanceKm)
-            .HasColumnType("numeric(10,2)");
-
-        builder.Property(a => a.BookingReference)
-            .HasMaxLength(200);
 
         builder.Property(a => a.TransportationApprovalStatus)
             .HasDefaultValue(Domain.Enums.ProviderApprovalStatus.Pending);

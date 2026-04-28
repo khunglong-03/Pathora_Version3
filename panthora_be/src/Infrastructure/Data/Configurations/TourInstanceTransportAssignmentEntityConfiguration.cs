@@ -11,6 +11,7 @@ public class TourInstanceTransportAssignmentEntityConfiguration : IEntityTypeCon
         builder.ToTable("TourInstanceTransportAssignments");
 
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
 
         builder.HasIndex(x => x.TourInstanceDayActivityId);
         builder.HasIndex(x => x.VehicleId);

@@ -149,7 +149,11 @@ export default function TransportTripsPage() {
     <div className="p-6">
       <AdminPageHeader
         title="Phân công chuyến"
-        subtitle={pendingCount > 0 ? `${pendingCount} chuyến chờ xác nhận` : `${trips.length} chuyến`}
+        subtitle={
+          pendingCount > 0
+            ? `${pendingCount} chuyến chờ xác nhận · Sinh từ booking khách hàng`
+            : `${trips.length} chuyến · Sinh từ booking khách hàng (khác Duyệt tour)`
+        }
         onRefresh={() => void loadTrips()}
       />
 
@@ -197,7 +201,7 @@ export default function TransportTripsPage() {
         <AdminEmptyState
           icon="heroicons:clipboard-document-list"
           heading="Không có chuyến nào"
-          description="Chưa có chuyến phân công nào."
+          description="Chuyến chỉ sinh khi khách hàng book tour. Duyệt xe/tài xế cho tour ở mục Duyệt tour."
         />
       )}
 

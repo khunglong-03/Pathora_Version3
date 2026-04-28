@@ -254,9 +254,7 @@ public class TourInstanceService(
                     transportationType: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationType : null,
                     transportationName: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationName : null,
                     durationMinutes: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.DurationMinutes : null,
-                    distanceKm: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.DistanceKm : null,
-                    price: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.Price : null,
-                    bookingReference: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.BookingReference : null
+                    price: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.Price : null
                 );
 
                 switch (templateActivity.ActivityType)

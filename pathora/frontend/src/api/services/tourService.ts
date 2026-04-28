@@ -166,14 +166,14 @@ export const tourService = {
     if (continent && continent !== "all") {
       params.append("continent", continent);
     }
-    
+
     type AdminTourStats = {
       total: number;
       active: number;
       inactive: number;
       rejected: number;
     };
-    
+
     const response = await api.get<ApiResponse<AdminTourStats>>(
       `${API_ENDPOINTS.TOUR.GET_ALL_MANAGER_TOUR_MANAGEMENT_STATS}?${params.toString()}`,
     );
@@ -263,53 +263,9 @@ export const tourService = {
   },
 
   getPublicTourDetail: async (id: string, language?: string) => {
-    // MOCK DATA ĐỂ VIEW GIAO DIỆN
-    const MOCK_TOUR_DTO = {
-      id: id,
-      tourCode: "TR-DALAT-001",
-      tourName: "Khám Phá Đà Lạt - Thành Phố Ngàn Hoa",
-      shortDescription: "Chuyến đi 3 ngày 2 đêm tham quan Đà Lạt mộng mơ với các điểm dừng chân siêu đẹp, phù hợp để thư giãn cuối tuần.",
-      longDescription: "Trải nghiệm không khí se lạnh, thưởng thức cafe chồn, tham quan đỉnh Langbiang huyền thoại, check-in với cẩm tú cầu và săn mây sáng sớm.",
-      status: 1, // 1 = Active
-      isVisa: false,
-      thumbnail: { publicURL: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800", fileId: "thumb1", originalFileName: "thumb.jpg", fileName: "thumb.jpg" },
-      images: [
-        { publicURL: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800", fileId: "img1", originalFileName: "img1.jpg", fileName: "img1.jpg" },
-        { publicURL: "https://images.unsplash.com/photo-1596422846543-75c6fc197f0a?w=800", fileId: "img2", originalFileName: "img2.jpg", fileName: "img2.jpg" }
-      ],
-      classifications: [
-        {
-          id: "pkg-1",
-          tourId: "tour-123",
-          name: "Gói Tiêu Chuẩn 3N2Đ",
-          description: "Mô tả gói",
-          price: 2500000,
-          salePrice: 2000000,
-          basePrice: 2000000,
-          durationDays: 3,
-          numberOfDay: 3,
-          dynamicPricing: [],
-          insurances: [
-            {
-              id: "ins-1",
-              insuranceName: "Bảo hiểm toàn diện",
-              insuranceProvider: "Bảo Việt",
-              insuranceType: 1,
-              coverageAmount: 100000000,
-              coverageFee: 50000,
-              coverageDescription: "Bồi thường các rủi ro trong suốt chuyến đi",
-              isOptional: false,
-              note: ""
-            }
-          ],
-          plans: [
-            { id: "p1", classificationId: "cls-123", dayNumber: 1, title: "Đón khách, lên Đà Lạt", description: "Xe giường nằm...", activities: [] },
-            { id: "p2", classificationId: "cls-123", dayNumber: 2, title: "Săn mây, Langbiang", description: "Dậy sớm...", activities: [] },
-            { id: "p3", classificationId: "cls-123", dayNumber: 3, title: "Chợ Đà Lạt, Về lại SG", description: "Mua sắm...", activities: [] }
-          ]
-        }
-      ]
-    };
-    return normalizeTourDetail(MOCK_TOUR_DTO as unknown as TourDto);
+    const url = buildPublicTourDetailUrl(id, language);
+    const response = await api.get<ApiResponse<TourDto>>(url);
+    const result = extractResult<TourDto>(response.data);
+    return result ? normalizeTourDetail(result) : null;
   },
 };

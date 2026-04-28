@@ -140,7 +140,7 @@ public class TourService(
                     classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
 
                     // Add Plans (Days)
-                    foreach (var plan in cls.Plans)
+                    foreach (var plan in cls.Plans ?? [])
                     {
                         var day = TourDayEntity.Create(
                             classification.Id,
@@ -151,9 +151,11 @@ public class TourService(
                         day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
 
                         // Add Activities
-                        foreach (var act in plan.Activities)
+                        var activityOrdinal = 0;
+                        foreach (var act in plan.Activities ?? [])
                         {
-                            var activityOrder = plan.Activities.IndexOf(act) + 1;
+                            activityOrdinal++;
+                            var activityOrder = activityOrdinal;
                             var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
                             TimeOnly? startTime = null;
                             TimeOnly? endTime = null;
@@ -256,7 +258,7 @@ public class TourService(
                     }
 
                     // Add Insurances
-                    foreach (var ins in cls.Insurances)
+                    foreach (var ins in cls.Insurances ?? [])
                     {
                         var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
 
@@ -356,6 +358,7 @@ public class TourService(
                         contactPhone: svc.ContactNumber,
                         price: svc.Price,
                         pricingType: svc.PricingType);
+                    resource.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                     tour.Resources.Add(resource);
                 }
             }
@@ -1038,10 +1041,10 @@ public class TourService(
                 tour.Classifications.Add(classification);
             }
 
-            await UpdatePlansAsync(tour, classification, cls.Plans);
+            await UpdatePlansAsync(tour, classification, cls.Plans ?? []);
 
             // Update Insurances (replace-on-submit)
-            var providedInsuranceIds = cls.Insurances.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
+            var providedInsuranceIds = (cls.Insurances ?? []).Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
             foreach (var existingIns in classification.Insurances.Where(i => !i.IsDeleted))
             {
                 if (!providedInsuranceIds.Contains(existingIns.Id))
@@ -1050,7 +1053,7 @@ public class TourService(
                 }
             }
 
-            foreach (var ins in cls.Insurances)
+            foreach (var ins in cls.Insurances ?? [])
             {
                 var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
 
@@ -1122,7 +1125,7 @@ public class TourService(
                 classification.Plans.Add(day);
             }
 
-            await UpdateActivitiesAsync(tour, day, plan.Activities);
+            await UpdateActivitiesAsync(tour, day, plan.Activities ?? []);
         }
     }
 
