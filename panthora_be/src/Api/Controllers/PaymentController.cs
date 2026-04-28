@@ -26,6 +26,7 @@ public class PaymentController : BaseApiController
         return HandleCreated(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.CreateTransaction)]
     public async Task<IActionResult> CreateTransaction([FromBody] CreatePaymentTransactionCommand command)
     {
@@ -33,6 +34,7 @@ public class PaymentController : BaseApiController
         return HandleCreated(result);
     }
 
+    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.GetTransaction)]
     public async Task<IActionResult> GetTransaction([FromRoute] string code)
     {
@@ -97,6 +99,7 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.ExpireTransaction)]
     public async Task<IActionResult> ExpireTransaction([FromRoute] string code)
     {
