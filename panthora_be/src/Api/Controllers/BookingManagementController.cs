@@ -335,10 +335,10 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet(BookingManagementEndpoint.TeamTourDesigners)]
-    public async Task<IActionResult> GetTourDesigners(Guid id)
+    [HttpGet(BookingManagementEndpoint.TeamTourOperators)]
+    public async Task<IActionResult> GetTourOperators(Guid id)
     {
-        var result = await Sender.Send(new GetBookingTourDesignersQuery(id));
+        var result = await Sender.Send(new GetBookingTourOperatorsQuery(id));
         return HandleResult(result);
     }
 

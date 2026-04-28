@@ -1393,8 +1393,8 @@
     "staff": {
       "title": "Create New Staff",
       "type": "Staff Type",
-      "designer": "Tour Designer",
-      "designerDesc": "Design and plan tours",
+      "designer": "Tour Operator",
+      "designerDesc": "Coordinate and plan tours",
       "guide": "Tour Guide",
       "guideDesc": "Guide and operate tours",
       "username": "Username",
@@ -3074,13 +3074,13 @@
       "loadFailed": "Failed to load bookings list"
     }
   },
-  "tourDesigner": {
-    "title": "Tour Designer",
+  "tourOperator": {
+    "title": "Tour Operator",
     "myTours": "My Tours",
     "createTour": "Create Tour",
     "editTour": "Edit Tour",
     "tourDetail": "Tour Detail",
-    "manageTours": "Manage your tour designs",
+    "manageTours": "Manage your tours",
     "tourCount": "tour(s)",
     "searchPlaceholder": "Search tours...",
     "settings": "Settings",

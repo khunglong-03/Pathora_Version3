@@ -62,13 +62,13 @@ export const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
 export const MANAGER_ROLE_DEFAULT_PATH = "/manager";
 export const HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH = "/hotel";
 export const TRANSPORTPROVIDER_ROLE_DEFAULT_PATH = "/transport";
-export const TOURDESIGNER_ROLE_DEFAULT_PATH = "/tour-designer";
+export const TOUROPERATOR_ROLE_DEFAULT_PATH = "/tour-operator";
 export const TOURGUIDE_ROLE_DEFAULT_PATH = "/tour-guide";
 
-export const TOURDESIGNER_ROLE_NAMES = new Set(["TourDesigner"]);
+export const TOUROPERATOR_ROLE_NAMES = new Set(["TourOperator"]);
 export const TOURGUIDE_ROLE_NAMES = new Set(["TourGuide"]);
 
-export const TOURDESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
+export const TOUROPERATOR_ROUTE_PREFIXES = ["/tour-operator"];
 export const TOURGUIDE_ROUTE_PREFIXES = ["/tour-guide"];
 
 export type AuthPortal = "admin" | "user";
@@ -166,8 +166,8 @@ export const resolveRoleDefaultPath = (
   if (roles.some((role) => role.name === "TransportProvider")) {
     return TRANSPORTPROVIDER_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role.name))) {
-    return TOURDESIGNER_ROLE_DEFAULT_PATH;
+  if (roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role.name))) {
+    return TOUROPERATOR_ROLE_DEFAULT_PATH;
   }
   if (roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role.name))) {
     return TOURGUIDE_ROLE_DEFAULT_PATH;

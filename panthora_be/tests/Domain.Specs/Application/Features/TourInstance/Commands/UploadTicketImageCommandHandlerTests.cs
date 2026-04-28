@@ -29,7 +29,7 @@ public sealed class UploadTicketImageCommandHandlerTests
         var uow = Substitute.For<IUnitOfWork>();
         var user = Substitute.For<IUser>();
         user.Id.Returns(userId);
-        user.Roles.Returns(["TourDesigner"]);
+        user.Roles.Returns(["TourOperator"]);
 
         var handler = new UploadTicketImageCommandHandler(
             tourInstance, bookings, tickets, files, uow, user);
@@ -157,7 +157,7 @@ public sealed class DeleteTicketImageCommandHandlerTests
         var uow = Substitute.For<IUnitOfWork>();
         var user = Substitute.For<IUser>();
         user.Id.Returns(userId);
-        user.Roles.Returns(roles.Length == 0 ? ["TourDesigner"] : roles);
+        user.Roles.Returns(roles.Length == 0 ? ["TourOperator"] : roles);
 
         return (new DeleteTicketImageCommandHandler(tickets, files, uow, user), tickets, files, uow, user);
     }
@@ -187,7 +187,7 @@ public sealed class DeleteTicketImageCommandHandlerTests
     {
         var userId = Guid.NewGuid().ToString();
         var anotherUploader = Guid.NewGuid().ToString();
-        var (handler, tickets, _, _, _) = BuildHandler(userId, "TourDesigner");
+        var (handler, tickets, _, _, _) = BuildHandler(userId, "TourOperator");
         var activityId = Guid.NewGuid();
         var imageId = Guid.NewGuid();
         var entity = TicketImageEntity.Create(
@@ -207,7 +207,7 @@ public sealed class DeleteTicketImageCommandHandlerTests
     public async Task Handle_UploaderDeletes_Succeeds()
     {
         var userId = Guid.NewGuid().ToString();
-        var (handler, tickets, _, uow, _) = BuildHandler(userId, "TourDesigner");
+        var (handler, tickets, _, uow, _) = BuildHandler(userId, "TourOperator");
         var activityId = Guid.NewGuid();
         var imageId = Guid.NewGuid();
         var entity = TicketImageEntity.Create(

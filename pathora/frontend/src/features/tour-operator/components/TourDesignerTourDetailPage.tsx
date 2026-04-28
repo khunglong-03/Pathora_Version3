@@ -13,7 +13,7 @@ import { tourService } from "@/api/services/tourService";
 import type { TourDto, ServiceDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
-import { canTourDesignerEditTour } from "./editableTourStatus";
+import { canTourOperatorEditTour } from "./editableTourStatus";
 
 type DetailState = "loading" | "ready" | "error";
 
@@ -112,7 +112,7 @@ const HoverIlluminationCard = ({ children, className = "" }: { children: React.R
   );
 };
 
-export function TourDesignerTourDetailPage() {
+export function TourOperatorTourDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
   const tourId = params?.id as string;
@@ -158,13 +158,13 @@ export function TourDesignerTourDetailPage() {
       <div className="max-w-[1400px] w-full mx-auto p-6 md:p-8 min-h-[100dvh] bg-[#f9fafb]">
         <div className="p-10 bg-white border border-rose-200 rounded-[2.5rem] text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
           <p className="text-rose-700 font-medium mb-6 text-lg">
-            {errorMessage ?? t("tourDesigner.messages.errorLoading", "Failed to load tour")}
+            {errorMessage ?? t("tourOperator.messages.errorLoading", "Failed to load tour")}
           </p>
           <button
             onClick={() => void fetchTour()}
             className="px-8 py-4 text-sm font-black uppercase tracking-widest text-rose-700 border-2 border-rose-200 rounded-2xl hover:bg-rose-50 hover:border-rose-300 transition-all active:scale-95"
           >
-            {t("tourDesigner.actions.retry", "Retry")}
+            {t("tourOperator.actions.retry", "Retry")}
           </button>
         </div>
       </div>
@@ -173,7 +173,7 @@ export function TourDesignerTourDetailPage() {
 
   const statusKey = String(tour.status ?? "");
   const badge = STATUS_BADGE[statusKey] ?? { bg: "bg-slate-50", text: "text-slate-700", label: statusKey, dot: "bg-slate-400" };
-  const canEdit = canTourDesignerEditTour(statusKey);
+  const canEdit = canTourOperatorEditTour(statusKey);
   const hasIncludedServices = (tour.services && tour.services.length > 0) || (tour.includedServices && tour.includedServices.length > 0);
 
   return (
@@ -184,8 +184,8 @@ export function TourDesignerTourDetailPage() {
         <motion.div variants={itemFadeIn} className="flex flex-col xl:flex-row justify-between items-start gap-10">
           <div className="max-w-4xl">
             <div className="flex items-center gap-4 text-[13px] font-bold text-slate-400 mb-8 uppercase tracking-widest">
-              <Link href="/tour-designer/tours" className="hover:text-slate-900 transition-colors">
-                {t("tourDesigner.breadcrumb.myTours", "My Tours")}
+              <Link href="/tour-operator/tours" className="hover:text-slate-900 transition-colors">
+                {t("tourOperator.breadcrumb.myTours", "My Tours")}
               </Link>
               <Icon icon="heroicons:chevron-right" className="size-4" />
               <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
@@ -216,19 +216,19 @@ export function TourDesignerTourDetailPage() {
           
           <div className="flex items-center gap-4 shrink-0">
             <Link
-              href="/tour-designer/tours"
+              href="/tour-operator/tours"
               className="px-8 py-4 text-sm font-black uppercase tracking-widest text-slate-600 bg-white border border-slate-200/60 rounded-2xl hover:bg-slate-50 hover:shadow-md transition-all duration-300 active:scale-95"
             >
               {t("common.back", "Back")}
             </Link>
             {canEdit && (
               <Link
-                href={`/tour-designer/tours/${tourId}/edit`}
+                href={`/tour-operator/tours/${tourId}/edit`}
                 className="group relative flex items-center gap-3 px-8 py-4 text-sm font-black uppercase tracking-widest text-white bg-slate-900 rounded-2xl hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all duration-300 active:scale-95 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 <PencilSimple size={18} weight="bold" />
-                {t("tourDesigner.actions.edit", "Edit")}
+                {t("tourOperator.actions.edit", "Edit")}
               </Link>
             )}
           </div>
@@ -246,7 +246,7 @@ export function TourDesignerTourDetailPage() {
                 <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
                   <Icon icon="heroicons:information-circle" className="size-6" />
                 </div>
-                {t("tourDesigner.tourDetail", "Tour Details")}
+                {t("tourOperator.tourDetail", "Tour Details")}
               </h2>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -290,7 +290,7 @@ export function TourDesignerTourDetailPage() {
                     <Icon icon="heroicons:map" className="size-6" />
                   </div>
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                    {t("tourDesigner.packages", "Tour Packages")}
+                    {t("tourOperator.packages", "Tour Packages")}
                   </h2>
                 </div>
                 
@@ -315,7 +315,7 @@ export function TourDesignerTourDetailPage() {
                       {cls.durationDays && (
                         <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-[13px] font-black uppercase tracking-widest text-slate-700 mb-12">
                           <Icon icon="heroicons:calendar" className="size-5 text-slate-400" />
-                          {cls.durationDays} {t("tourDesigner.durationDays", "day(s)")}
+                          {cls.durationDays} {t("tourOperator.durationDays", "day(s)")}
                         </div>
                       )}
 
@@ -323,7 +323,7 @@ export function TourDesignerTourDetailPage() {
                       {cls.insurances && cls.insurances.length > 0 && (
                         <div className="mb-12">
                           <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 pl-2">
-                            {t("tourDesigner.insurances", "Insurances")}
+                            {t("tourOperator.insurances", "Insurances")}
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {cls.insurances.map(ins => (
@@ -349,7 +349,7 @@ export function TourDesignerTourDetailPage() {
                       {cls.plans && cls.plans.length > 0 && (
                         <div className="space-y-6">
                           <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 pl-2">
-                            {t("tourDesigner.itinerary", "Itinerary")}
+                            {t("tourOperator.itinerary", "Itinerary")}
                           </h4>
                           <div className="space-y-4">
                             {cls.plans.map((day) => (
@@ -395,7 +395,7 @@ export function TourDesignerTourDetailPage() {
                   <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 border border-emerald-100/50">
                     <Icon icon="heroicons:wrench-screwdriver" className="size-6" />
                   </div>
-                  {t("tourDesigner.services", "Included Services")}
+                  {t("tourOperator.services", "Included Services")}
                 </h3>
                 <div className="space-y-4">
                   {/* Detailed services mapping */}
@@ -457,7 +457,7 @@ export function TourDesignerTourDetailPage() {
                 <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
                   <Icon icon="heroicons:sparkles" className="size-6" />
                 </div>
-                {t("tourDesigner.quickInfo", "Metadata")}
+                {t("tourOperator.quickInfo", "Metadata")}
               </h3>
               <div className="space-y-6 text-sm">
                 <div className="flex justify-between items-center py-4 border-b border-slate-100">
@@ -488,7 +488,7 @@ export function TourDesignerTourDetailPage() {
                   <div className="p-3 bg-slate-50 rounded-2xl text-slate-700 border border-slate-100">
                     <Icon icon="heroicons:photo" className="size-6" />
                   </div>
-                  {t("tourDesigner.images", "Gallery")}
+                  {t("tourOperator.images", "Gallery")}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {tour.images.map((img, idx) => (
@@ -544,7 +544,7 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
         </motion.div>
         <div className="flex-1 min-w-0">
           <motion.h5 layout className="text-lg font-black text-slate-900 truncate tracking-tight">
-            {t("tourDesigner.day", "Day")} {day.dayNumber}: {day.title}
+            {t("tourOperator.day", "Day")} {day.dayNumber}: {day.title}
           </motion.h5>
           {day.description && (
             <motion.p layout className="text-sm text-slate-500 font-medium truncate mt-2">{day.description}</motion.p>
@@ -559,7 +559,7 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="font-mono text-[11px] font-black uppercase tracking-widest text-slate-400 bg-white border border-slate-200/50 px-4 py-2 rounded-xl shadow-sm"
               >
-                {sortedActivities.length} {t("tourDesigner.activities", "ACTs")}
+                {sortedActivities.length} {t("tourOperator.activities", "ACTs")}
               </motion.span>
             )}
           </AnimatePresence>
@@ -646,7 +646,7 @@ function DayPlanAccordion({ day, t }: { day: any; t: any }) {
                   <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-6 border border-slate-100">
                     <Icon icon="heroicons:inbox" className="size-8 text-slate-300" />
                   </div>
-                  <p className="text-base font-bold text-slate-400">{t("tourDesigner.noActivities", "No activities scheduled for this day.")}</p>
+                  <p className="text-base font-bold text-slate-400">{t("tourOperator.noActivities", "No activities scheduled for this day.")}</p>
                 </div>
               )}
             </div>

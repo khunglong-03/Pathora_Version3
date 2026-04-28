@@ -11,7 +11,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     private readonly CreateStaffUnderManagerCommandValidator _validator = new();
 
     [Fact]
-    public void Validate_ValidTourDesignerStaffType_Passes()
+    public void Validate_ValidTourOperatorStaffType_Passes()
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),

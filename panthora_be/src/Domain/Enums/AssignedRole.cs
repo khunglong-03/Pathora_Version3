@@ -12,8 +12,8 @@ public enum AssignedRole
     [Description("TourManager")]
     TourManager = 2,
 
-    [Description("TourDesigner")]
-    TourDesigner = 3,
+    [Description("TourOperator")]
+    TourOperator = 3,
 
     [Description("TourGuide")]
     TourGuide = 4,

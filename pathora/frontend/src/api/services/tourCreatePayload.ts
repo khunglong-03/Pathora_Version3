@@ -139,7 +139,6 @@ interface ServicePayloadInput {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -465,7 +464,6 @@ export const buildServicesPayload = (services: ServicePayloadInput[], mode: "cre
       serviceName: svc.serviceName,
       pricingType: toOptionalString(svc.pricingType),
       price: parseDecimal(svc.price, 0),
-      salePrice: parseDecimal(svc.salePrice, 0),
       email: toOptionalString(svc.email),
       contactNumber: toOptionalString(svc.contactNumber),
       translations: svc.enServiceName.trim().length > 0

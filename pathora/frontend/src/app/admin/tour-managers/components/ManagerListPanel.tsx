@@ -97,7 +97,7 @@ export function ManagerListPanel({
                     <span
                       className="inline-flex min-w-[1.6rem] justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold"
                       style={{ backgroundColor: "#EDE9FE", color: "#7C3AED" }}
-                      title="Tour Designers"
+                      title="Tour Operators"
                     >
                       {manager.designerCount}
                     </span>

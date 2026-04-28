@@ -1,0 +1,1 @@
+export { TourOperatorTourDetailPage } from "./TourDesignerTourDetailPage";

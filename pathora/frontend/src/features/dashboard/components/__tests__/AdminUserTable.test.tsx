@@ -14,7 +14,7 @@ const mockUsers: AdminUserListItem[] = [
   { id: "1", fullName: "Nguyen Van A", email: "nvana@test.com", role: "Admin", status: "Active" },
   { id: "2", fullName: "Tran Thi B", email: "ttb@test.com", role: "Manager", status: "Active" },
   { id: "3", fullName: "Le Van C", email: "lvc@test.com", role: "TourGuide", status: "Inactive" },
-  { id: "4", fullName: "Pham Thi D", email: "ptd@test.com", role: "TourDesigner", status: "Active" },
+  { id: "4", fullName: "Pham Thi D", email: "ptd@test.com", role: "TourOperator", status: "Active" },
   { id: "5", fullName: "Hoang Van E", email: "hve@test.com", role: "Customer", status: "Active" },
 ];
 

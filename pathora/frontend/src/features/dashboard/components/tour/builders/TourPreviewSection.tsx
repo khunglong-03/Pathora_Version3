@@ -94,7 +94,6 @@ interface ServiceForm {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }

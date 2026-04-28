@@ -150,7 +150,6 @@ interface ServiceForm {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -331,7 +330,6 @@ const emptyService = (): ServiceForm => ({
   enServiceName: "",
   pricingType: "",
   price: "",
-  salePrice: "",
   email: "",
   contactNumber: "",
 });
@@ -392,7 +390,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       dayPlans: [[]],
       insurances: [[]],
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" }] as any,
+      services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", email: "", contactNumber: "" }] as any,
       activeLang: "vi",
       deletedClassificationIds: [],
       deletedPlanIds: [],
@@ -719,12 +717,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
 
     if (tour.services && tour.services.length > 0) {
-      const svcForms: ServiceForm[] = tour.services.map((svc) => ({
+        const svcForms: ServiceForm[] = tour.services.map((svc) => ({
         serviceName: svc.serviceName ?? "",
         enServiceName: svc.translations?.en?.name ?? "",
         pricingType: svc.pricingType ?? "",
         price: svc.price != null ? String(svc.price) : "",
-        salePrice: svc.salePrice != null ? String(svc.salePrice) : "",
         email: svc.email ?? "",
         contactNumber: svc.contactNumber ?? "",
       }));
@@ -1045,7 +1042,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   /* ── Service CRUD ─────────────────────────────────────────── */
   const addService = () => {
     const current = form.getValues("services");
-    const newSvc = { serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" };
+    const newSvc = { serviceName: "", enServiceName: "", pricingType: "", price: "", email: "", contactNumber: "" };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form.setValue("services", [...current, newSvc] as any);
   };

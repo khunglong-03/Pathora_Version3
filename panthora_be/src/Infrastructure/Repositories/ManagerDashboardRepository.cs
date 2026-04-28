@@ -20,11 +20,11 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
 
     public async Task<ManagerDashboardReport> GetDashboard(Guid managerId, CancellationToken cancellationToken = default)
     {
-        // Step 1: Get all TourDesigner IDs managed by this Manager
+        // Step 1: Get all TourOperator IDs managed by this Manager
         var designerIds = await _context.TourManagerAssignments
             .AsNoTracking()
             .Where(a => a.TourManagerId == managerId
-                        && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                        && a.AssignedEntityType == AssignedEntityType.TourOperator
                         && a.AssignedUserId != null)
             .Select(a => a.AssignedUserId!.Value)
             .ToListAsync(cancellationToken);
@@ -47,7 +47,7 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
         // Step 2: Get all Tour IDs owned by those designers
         var tourIds = await _context.Tours
             .AsNoTracking()
-            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
+            .Where(t => !t.IsDeleted && t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
@@ -261,8 +261,8 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
         // Count tours per designer
         var tourCounts = await _context.Tours
             .AsNoTracking()
-            .Where(t => !t.IsDeleted && t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
-            .GroupBy(t => t.TourDesignerId!.Value)
+            .Where(t => !t.IsDeleted && t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
+            .GroupBy(t => t.TourOperatorId!.Value)
             .Select(g => new { DesignerId = g.Key, Count = g.Count() })
             .ToListAsync(ct);
 
@@ -274,7 +274,7 @@ public sealed class ManagerDashboardRepository(AppDbContext context, IOptions<Ad
                 u.Id,
                 u.FullName ?? u.Email,
                 u.Email,
-                designerSet.Contains(u.Id) ? "TourDesigner" : "TourGuide",
+                designerSet.Contains(u.Id) ? "TourOperator" : "TourGuide",
                 tourCountMap.GetValueOrDefault(u.Id)))
             .OrderBy(s => s.Role)
             .ThenBy(s => s.FullName)

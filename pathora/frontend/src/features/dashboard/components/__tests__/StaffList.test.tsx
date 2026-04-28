@@ -13,9 +13,9 @@ const renderComponent = (props: React.ComponentProps<typeof StaffList>) => {
 
 describe("StaffList", () => {
   const mockStaff: StaffMemberDto[] = [
-    { id: "s1", fullName: "Designer One", email: "d1@test.com", role: "TourDesigner", status: "Active" },
+    { id: "s1", fullName: "Designer One", email: "d1@test.com", role: "TourOperator", status: "Active" },
     { id: "s2", fullName: "Guide One", email: "g1@test.com", role: "TourGuide", status: "Active" },
-    { id: "s3", fullName: "Designer Two", email: "d2@test.com", role: "TourDesigner", status: "Active" },
+    { id: "s3", fullName: "Designer Two", email: "d2@test.com", role: "TourOperator", status: "Active" },
   ];
 
   const mockManagers: TourManagerSummary[] = [
@@ -28,13 +28,13 @@ describe("StaffList", () => {
 
     expect(screen.getByText("Designer One")).toBeInTheDocument();
     expect(screen.getByText("d1@test.com")).toBeInTheDocument();
-    expect(screen.getByText("Tour Designer")).toBeInTheDocument();
+    expect(screen.getByText("Tour Operator")).toBeInTheDocument();
   });
 
-  it("renders TourDesigner section header", () => {
+  it("renders TourOperator section header", () => {
     renderComponent({ staff: mockStaff, managers: mockManagers, managerId: "mgr1", onReassign: () => {} });
 
-    expect(screen.getByText(/Tour Designer/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tour Operator/i)).toBeInTheDocument();
   });
 
   it("renders TourGuide section header", () => {

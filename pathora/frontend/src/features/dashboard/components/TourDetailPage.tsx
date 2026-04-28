@@ -998,7 +998,7 @@ function ReviewPanel({
             {t("tourAdmin.review.title", "Tour Pending Review")}
           </p>
           <p className="text-xs text-amber-700 mt-0.5">
-            {t("tourAdmin.review.subtitle", "This tour was submitted by a Tour Designer and is awaiting your approval.")}
+            {t("tourAdmin.review.subtitle", "This tour was submitted by a Tour Operator and is awaiting your approval.")}
           </p>
 
           {showRejectInput ? (

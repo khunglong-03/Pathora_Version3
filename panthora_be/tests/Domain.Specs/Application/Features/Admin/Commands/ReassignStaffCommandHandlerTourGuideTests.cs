@@ -54,14 +54,14 @@ public sealed class ReassignStaffCommandHandlerTourGuideTests
     }
 
     [Fact]
-    public async Task Handle_ReassignTourDesignerToDifferentManager_PreservesRoleInTeam()
+    public async Task Handle_ReassignTourOperatorToDifferentManager_PreservesRoleInTeam()
     {
         var staffId = Guid.NewGuid();
         var oldManagerId = Guid.NewGuid();
         var newManagerId = Guid.NewGuid();
         var assignmentId = Guid.NewGuid();
         var existingAssignment = TourManagerAssignmentEntity.Create(
-            oldManagerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            oldManagerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         typeof(TourManagerAssignmentEntity).BaseType!
             .GetProperty("Id")!

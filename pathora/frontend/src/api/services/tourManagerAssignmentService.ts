@@ -5,7 +5,7 @@ import { executeApiRequest } from "./serviceExecutor";
 
 // Entity type constants matching backend AssignedEntityType enum
 export const ASSIGNED_ENTITY_TYPE = {
-  TourDesigner: 1,
+  TourOperator: 1,
   TourGuide: 2,
   Tour: 3,
 } as const;

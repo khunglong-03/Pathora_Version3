@@ -72,7 +72,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
 
         var roleName = request.Request.StaffType switch
         {
-            1 => "TourDesigner",
+            1 => "TourOperator",
             2 => "TourGuide",
             _ => throw new InvalidOperationException($"Invalid StaffType: {request.Request.StaffType}")
         };
@@ -112,7 +112,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
 
             var entityType = request.Request.StaffType switch
             {
-                1 => AssignedEntityType.TourDesigner,
+                1 => AssignedEntityType.TourOperator,
                 2 => AssignedEntityType.TourGuide,
                 _ => throw new InvalidOperationException($"Invalid StaffType: {request.Request.StaffType}")
             };
@@ -130,7 +130,7 @@ public sealed class CreateStaffUnderManagerCommandHandler(
 
         var displayRoleName = request.Request.StaffType switch
         {
-            1 => "Tour Designer",
+            1 => "Tour Operator",
             2 => "Tour Guide",
             _ => "Staff"
         };

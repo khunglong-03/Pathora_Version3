@@ -23,8 +23,8 @@ public class TourEntity : Aggregate<Guid>
     public virtual List<TourClassificationEntity> Classifications { get; set; } = [];
     public virtual List<TourResourceEntity> Resources { get; set; } = [];
     public virtual List<TourPlanLocationEntity> PlanLocations { get; set; } = [];
-    public Guid? TourDesignerId { get; set; }
-    public virtual UserEntity? TourDesigner { get; set; }
+    public Guid? TourOperatorId { get; set; }
+    public virtual UserEntity? TourOperator { get; set; }
 
     public static string GenerateTourCode()
     {
@@ -32,7 +32,7 @@ public class TourEntity : Aggregate<Guid>
         var sequence = Random.Shared.Next(0, Domain.Options.TourOptions.CodeSequenceMaxValue);
         return $"TOUR-{datePart}-{sequence:00000}";
     }
-    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null, Continent? continent = null, bool isVisa = false)
+    public static TourEntity Create(string tourName, string shortDescription, string longDescription, string performedBy, TourStatus status = TourStatus.Pending, TourScope tourScope = TourScope.Domestic, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourOperatorId = null, Continent? continent = null, bool isVisa = false)
     {
         var isDomestic = tourScope == TourScope.Domestic;
         return new TourEntity
@@ -51,14 +51,14 @@ public class TourEntity : Aggregate<Guid>
             CustomerSegment = customerSegment,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
-            TourDesignerId = tourDesignerId,
+            TourOperatorId = tourOperatorId,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
     }
-    public void Update(string tourName, string shortDescription, string longDescription, TourStatus status, string performedBy, TourScope tourScope = TourScope.Domestic, Continent? continent = null, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourDesignerId = null, bool isVisa = false)
+    public void Update(string tourName, string shortDescription, string longDescription, TourStatus status, string performedBy, TourScope tourScope = TourScope.Domestic, Continent? continent = null, CustomerSegment customerSegment = CustomerSegment.Group, string? seoTitle = null, string? seoDescription = null, ImageEntity? thumbnail = null, List<ImageEntity>? images = null, Guid? tourOperatorId = null, bool isVisa = false)
     {
         var isDomestic = tourScope == TourScope.Domestic;
         TourName = tourName;
@@ -96,7 +96,7 @@ public class TourEntity : Aggregate<Guid>
             }
         }
 
-        TourDesignerId = tourDesignerId;
+        TourOperatorId = tourOperatorId;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

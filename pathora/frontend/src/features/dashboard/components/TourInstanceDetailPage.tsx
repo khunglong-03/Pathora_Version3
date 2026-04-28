@@ -167,7 +167,7 @@ export default function TourInstanceDetailPage() {
   // Supplier reassignment modal state (task 3.10)
   const { user } = useAuth();
   const canReassign = user?.roles?.some(
-    (r) => r.name === "Admin" || r.name === "Manager" || r.name === "TourDesigner",
+    (r) => r.name === "Admin" || r.name === "Manager" || r.name === "TourOperator",
   );
   const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
   const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");

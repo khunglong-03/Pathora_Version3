@@ -7,18 +7,9 @@ public static class AppDbContextSeed
     public static Task SeedFreshAsync(AppDbContext context, CancellationToken cancellationToken = default)
     {
         SeedDataPreflightValidator.ValidateRequiredSeedFiles();
-        BookingContextSeed.SeedData(context);
+        // Only seed users, roles, and user-role assignments on fresh reset.
+        // All other data (tours, bookings, suppliers, etc.) starts empty.
         UserRoleSeed.SeedData(context);
-        SeedPolicies(context);
-        SeedSuppliers(context);
-        SeedVehiclesDriversRooms(context);
-        SeedTourContent(context);
-        SeedTourInstances(context);
-        SeedTourInstanceDetails(context);
-        SeedBookings(context);
-        SeedCustomerDepositsAndPayments(context);
-        SeedPaymentTransactions(context);
-        SeedReviews(context);
 
         return Task.CompletedTask;
     }

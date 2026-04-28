@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import AdminShell from "@/app/admin/AdminShell";
 
-const TOURDESIGNER_ROLE_NAMES = new Set(["TourDesigner"]);
+const TOUROPERATOR_ROLE_NAMES = new Set(["TourOperator"]);
 
-export default async function TourDesignerLayout({ children }: { children: ReactNode }) {
+export default async function TourOperatorLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
   const refreshToken = cookieStore.get("refresh_token")?.value;
@@ -21,11 +21,11 @@ export default async function TourDesignerLayout({ children }: { children: React
     }
   }
 
-  const hasTourDesignerRole = roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role));
+  const hasTourOperatorRole = roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role));
 
-  if (!authenticated || !hasTourDesignerRole) {
+  if (!authenticated || !hasTourOperatorRole) {
     redirect("/");
   }
 
-  return <AdminShell variant="tour-designer" providerPortal="tour-designer">{children}</AdminShell>;
+  return <AdminShell variant="tour-operator" providerPortal="tour-operator">{children}</AdminShell>;
 }

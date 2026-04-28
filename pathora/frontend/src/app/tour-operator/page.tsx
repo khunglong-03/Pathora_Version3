@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function TourDesignerRootPage() {
-  redirect("/tour-designer/tours");
+export default function TourOperatorRootPage() {
+  redirect("/tour-operator/tours");
 }

@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Handshake, Star, CheckCircle, PlusCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
-import { SAMPLE_SERVICE_OPTIONS } from "./TourDesignerAssignServicesData";
+import { SAMPLE_SERVICE_OPTIONS } from "./TourOperatorAssignServicesData";
 
-export function TourDesignerAssignServices({ instanceId }: { instanceId: string }) {
+export function TourOperatorAssignServices({ instanceId }: { instanceId: string }) {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   const formatCurrency = (amount: number) => `${amount.toLocaleString('vi-VN')} VND`;
@@ -20,7 +20,7 @@ export function TourDesignerAssignServices({ instanceId }: { instanceId: string 
     <div className="min-h-screen bg-[#f9fafb] pt-8 pb-20">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         <Link
-          href={`/tour-designer/tour-instances/${instanceId}`}
+          href={`/tour-operator/tour-instances/${instanceId}`}
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors mb-8"
         >
           <ArrowLeft weight="bold" className="size-4" />

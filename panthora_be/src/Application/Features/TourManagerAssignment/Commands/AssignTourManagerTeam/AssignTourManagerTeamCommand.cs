@@ -130,7 +130,7 @@ public sealed class AssignTourManagerTeamCommandHandler(
 
             var item = request.Assignments.First(a => a.AssignedUserId == uid);
             var entityType = (AssignedEntityType)item.AssignedEntityType;
-            var validRole = entityType == AssignedEntityType.TourDesigner ? "TourDesigner" : "TourGuide";
+            var validRole = entityType == AssignedEntityType.TourOperator ? "TourOperator" : "TourGuide";
             if (!roles.Contains(validRole))
             {
                 return Error.Validation(
@@ -197,7 +197,7 @@ public sealed class AssignmentItemValidator : AbstractValidator<AssignmentItem>
     {
         RuleFor(x => x.AssignedEntityType)
             .InclusiveBetween(1, 3)
-            .WithMessage("Entity type must be 1 (TourDesigner), 2 (TourGuide), or 3 (Tour).");
+            .WithMessage("Entity type must be 1 (TourOperator), 2 (TourGuide), or 3 (Tour).");
 
         RuleFor(x => x.AssignedRoleInTeam)
             .InclusiveBetween(1, 2)
@@ -210,6 +210,6 @@ public sealed class AssignmentItemValidator : AbstractValidator<AssignmentItem>
 
         RuleFor(x => x)
             .Must(x => x.AssignedEntityType == 3 || x.AssignedUserId.HasValue)
-            .WithMessage("User ID is required when assigning a TourDesigner or TourGuide.");
+            .WithMessage("User ID is required when assigning a TourOperator or TourGuide.");
     }
 }

@@ -57,7 +57,7 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         var activeStaff = CreateStaff(staffId, "Active Designer", "designer@test.com", isDeleted: false);
 
         var assignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
@@ -85,7 +85,7 @@ public sealed class GetTourManagerStaffQueryHandlerStatusTests
         var deletedStaff = CreateStaff(staffId, "Deleted Designer", "deleted@test.com", isDeleted: true);
 
         var assignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())

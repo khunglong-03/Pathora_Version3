@@ -89,8 +89,8 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public string? ExternalTransportConfirmedBy { get; set; }
 
     /// <summary>
-    /// Ảnh vé ngoài (Flight/Train/Boat) do TourDesigner upload sau khi customer đã book.
-    /// Eager-load khi cần ở các query phục vụ TourDesigner; Provider không thấy danh sách này.
+    /// Ảnh vé ngoài (Flight/Train/Boat) do TourOperator upload sau khi customer đã book.
+    /// Eager-load khi cần ở các query phục vụ TourOperator; Provider không thấy danh sách này.
     /// </summary>
     public virtual List<TicketImageEntity> TicketImages { get; set; } = [];
 

@@ -16,10 +16,10 @@ const ADMIN_ROLE_NAMES = new Set<string>(["Admin"]);
 const MANAGER_ROLE_NAMES = new Set<string>(["Manager"]);
 const HOTELSERVICEPROVIDER_ROLE_NAMES = new Set<string>(["HotelServiceProvider"]);
 const TRANSPORTPROVIDER_ROLE_NAMES = new Set<string>(["TransportProvider"]);
-const TOURDESIGNER_ROLE_NAMES = new Set<string>(["TourDesigner"]);
+const TOUROPERATOR_ROLE_NAMES = new Set<string>(["TourOperator"]);
 const TOURGUIDE_ROLE_NAMES = new Set<string>(["TourGuide"]);
 
 // All role names from role.json
-const ALL_ROLE_NAMES: string[] = ["Admin", "Manager", "TourDesigner", "TourGuide", "Customer", "TransportProvider", "HotelServiceProvider"];
+const ALL_ROLE_NAMES: string[] = ["Admin", "Manager", "TourOperator", "TourGuide", "Customer", "TransportProvider", "HotelServiceProvider"];
 
-export { ADMIN_ROLE_NAMES, MANAGER_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, TRANSPORTPROVIDER_ROLE_NAMES, TOURDESIGNER_ROLE_NAMES, TOURGUIDE_ROLE_NAMES, ALL_ROLE_NAMES };
+export { ADMIN_ROLE_NAMES, MANAGER_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, TRANSPORTPROVIDER_ROLE_NAMES, TOUROPERATOR_ROLE_NAMES, TOURGUIDE_ROLE_NAMES, ALL_ROLE_NAMES };

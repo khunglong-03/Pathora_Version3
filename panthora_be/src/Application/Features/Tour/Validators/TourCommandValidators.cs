@@ -345,10 +345,6 @@ public sealed class ServiceDtoValidator : AbstractValidator<ServiceDto>
             .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ServicePriceNonNegative)
             .When(x => x.Price.HasValue);
 
-        RuleFor(x => x.SalePrice)
-            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ServiceSalePriceNonNegative)
-            .When(x => x.SalePrice.HasValue);
-
         RuleFor(x => x.Email)
             .EmailAddress().WithMessage(ValidationMessages.ServiceEmailInvalid)
             .When(x => !string.IsNullOrEmpty(x.Email));

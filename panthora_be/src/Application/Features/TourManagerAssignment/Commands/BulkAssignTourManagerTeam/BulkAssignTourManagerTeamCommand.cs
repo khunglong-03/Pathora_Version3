@@ -170,7 +170,7 @@ public sealed class BulkAssignmentItemValidator : AbstractValidator<AssignmentIt
     {
         RuleFor(x => x.AssignedEntityType)
             .InclusiveBetween(1, 3)
-            .WithMessage("Entity type must be 1 (TourDesigner), 2 (TourGuide), or 3 (Tour).");
+            .WithMessage("Entity type must be 1 (TourOperator), 2 (TourGuide), or 3 (Tour).");
 
         RuleFor(x => x.AssignedRoleInTeam)
             .InclusiveBetween(1, 2)
@@ -183,6 +183,6 @@ public sealed class BulkAssignmentItemValidator : AbstractValidator<AssignmentIt
 
         RuleFor(x => x)
             .Must(x => x.AssignedEntityType == 3 || x.AssignedUserId.HasValue)
-            .WithMessage("User ID is required when assigning a TourDesigner or TourGuide.");
+            .WithMessage("User ID is required when assigning a TourOperator or TourGuide.");
     }
 }

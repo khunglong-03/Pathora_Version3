@@ -11,7 +11,7 @@ interface CreateStaffModalProps {
 }
 
 const ROLES: Array<{ value: 1 | 2; label: string; bg: string; text: string }> = [
-  { value: 1, label: "Tour Designer", bg: "#EDE9FE", text: "#7C3AED" },
+  { value: 1, label: "Tour Operator", bg: "#EDE9FE", text: "#7C3AED" },
   { value: 2, label: "Tour Guide", bg: "#DBEAFE", text: "#2563EB" },
 ];
 

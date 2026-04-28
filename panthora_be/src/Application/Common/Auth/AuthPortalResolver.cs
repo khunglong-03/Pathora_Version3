@@ -31,9 +31,9 @@ public static class AuthPortalResolver
             return PortalRouting.HotelServiceProvider;
         }
 
-        if (names.Contains("TourDesigner"))
+        if (names.Contains("TourOperator"))
         {
-            return PortalRouting.TourDesigner;
+            return PortalRouting.TourOperator;
         }
 
         if (names.Contains("TourGuide"))
@@ -63,7 +63,7 @@ public sealed record PortalRouting(string Portal, string DefaultPath)
 
     public static PortalRouting HotelServiceProvider { get; } = new("user", "/hotel");
 
-    public static PortalRouting TourDesigner { get; } = new("user", "/tour-designer");
+    public static PortalRouting TourOperator { get; } = new("user", "/tour-operator");
 
     public static PortalRouting TourGuide { get; } = new("user", "/tour-guide");
 

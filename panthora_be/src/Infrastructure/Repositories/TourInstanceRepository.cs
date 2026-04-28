@@ -84,7 +84,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -94,10 +94,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 designerIds.Add(principalId.Value);
             }
 
-            // Subquery: tour IDs where TourDesignerId is in designerIds
+            // Subquery: tour IDs where TourOperatorId is in designerIds
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
+                .Where(t => !t.IsDeleted && t.TourOperatorId.HasValue && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             // Subquery: instance IDs directly assigned to principal
@@ -145,7 +145,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -157,7 +157,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId ?? Guid.Empty))
+                .Where(t => !t.IsDeleted && t.TourOperatorId.HasValue && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             var allowedInstanceIds = _context.Set<TourInstanceManagerEntity>()

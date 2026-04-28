@@ -31,7 +31,7 @@ public sealed class ReassignStaffCommandHandlerTests
         var newManagerId = Guid.NewGuid();
         var assignmentId = Guid.NewGuid();
         var existingAssignment = TourManagerAssignmentEntity.Create(
-            oldManagerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            oldManagerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         typeof(TourManagerAssignmentEntity).BaseType!
             .GetProperty("Id")!
@@ -50,7 +50,7 @@ public sealed class ReassignStaffCommandHandlerTests
             Arg.Is<TourManagerAssignmentEntity>(e =>
                 e.TourManagerId == newManagerId &&
                 e.AssignedUserId == staffId &&
-                e.AssignedEntityType == AssignedEntityType.TourDesigner),
+                e.AssignedEntityType == AssignedEntityType.TourOperator),
             Arg.Any<CancellationToken>());
     }
 

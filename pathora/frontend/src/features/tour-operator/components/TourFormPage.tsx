@@ -30,10 +30,10 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
     try {
       if (mode === "create") {
         await tourService.createTour(formData);
-        toast.success(t("tourDesigner.messages.created", "Tour created successfully"));
+        toast.success(t("tourOperator.messages.created", "Tour created successfully"));
       } else if (mode === "edit" && initialData?.id) {
         const currentStatus = initialData.status?.toString();
-        // Tour Designers must resubmit Active/Rejected tours to Pending
+        // Tour Operators must resubmit Active/Rejected tours to Pending
         if (currentStatus === "1" || currentStatus === "3") {
           formData.set("status", "0"); 
         }
@@ -60,11 +60,11 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
         }
 
         await tourService.updateTour(formData, lastModifiedOnUtc);
-        toast.success(t("tourDesigner.messages.updated", "Tour updated successfully"));
+        toast.success(t("tourOperator.messages.updated", "Tour updated successfully"));
       }
       
       router.refresh();
-      router.push("/tour-designer/tours");
+      router.push("/tour-operator/tours");
     } catch (err) {
       const message = handleApiError(err).message;
       toast.error(message);
@@ -79,7 +79,7 @@ export function TourFormPage({ mode, initialData, existingImages, showPolicySect
       existingImages={existingImages}
       onSubmit={handleSubmit}
       showPolicySections={showPolicySections}
-      onCancel={() => router.push("/tour-designer/tours")}
+      onCancel={() => router.push("/tour-operator/tours")}
     />
   );
 }

@@ -327,7 +327,7 @@ internal static class SeedDataPreflightValidator
         // this will catch the mismatch.
         var expectedRoleNames = new[]
         {
-            "Admin", "Manager", "TourDesigner", "TourGuide",
+            "Admin", "Manager", "TourOperator", "TourGuide",
             "Customer", "TransportProvider", "HotelServiceProvider"
         };
 

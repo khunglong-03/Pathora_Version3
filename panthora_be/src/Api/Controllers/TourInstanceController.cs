@@ -150,8 +150,8 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    // ER-12: manager-level assignment requires Admin/Manager/TourDesigner.
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    // ER-12: manager-level assignment requires Admin/Manager/TourOperator.
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost("{instanceId:guid}/accommodations/{activityId:guid}/assign-supplier")]
     public async Task<IActionResult> AssignAccommodationSupplier(Guid instanceId, Guid activityId, [FromBody] AssignSupplierRequest request)
     {
@@ -181,7 +181,7 @@ public class TourInstanceController : BaseApiController
     /// Sets plan fields (vehicle type, seat count) and resets approval to Pending.
     /// </summary>
     // ER-12: only management roles can (re)assign a supplier.
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/assign-supplier")]
     public async Task<IActionResult> AssignTransportSupplier(
         Guid instanceId,
@@ -261,7 +261,7 @@ public class TourInstanceController : BaseApiController
     /// External transport = Transportation activity WITHOUT a TransportSupplierId.
     /// Required for instance activation per BƯỚC 4 in lifecycle doc.
     /// </summary>
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost(TourInstanceEndpoint.ConfirmExternalTransport)]
     public async Task<IActionResult> ConfirmExternalTransport(
         Guid instanceId,
@@ -274,9 +274,9 @@ public class TourInstanceController : BaseApiController
     }
 
     /// <summary>
-    /// TourDesigner/Manager upload ticket image cho hoạt động vận chuyển ngoài (Flight/Train/Boat/Other).
+    /// TourOperator/Manager upload ticket image cho hoạt động vận chuyển ngoài (Flight/Train/Boat/Other).
     /// </summary>
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost(TourInstanceEndpoint.TicketImages)]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadTicketImage(
@@ -304,7 +304,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpGet(TourInstanceEndpoint.TicketImages)]
     public async Task<IActionResult> GetTicketImages(Guid instanceId, Guid activityId)
     {
@@ -312,7 +312,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,Manager,TourDesigner")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpDelete(TourInstanceEndpoint.TicketImageById)]
     public async Task<IActionResult> DeleteTicketImage(Guid instanceId, Guid activityId, Guid imageId)
     {

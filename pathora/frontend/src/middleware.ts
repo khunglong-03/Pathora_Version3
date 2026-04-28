@@ -6,7 +6,7 @@ import {
   USER_DEFAULT_PATH,
 } from "./utils/authRouting";
 // Role names generated from role.json — single source of truth
-import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES, TOURDESIGNER_ROLE_NAMES, TOURGUIDE_ROLE_NAMES } from "./auth-roles";
+import { ADMIN_ROLE_NAMES, HOTELSERVICEPROVIDER_ROLE_NAMES, MANAGER_ROLE_NAMES, TOUROPERATOR_ROLE_NAMES, TOURGUIDE_ROLE_NAMES } from "./auth-roles";
 
 // TRANSPORTPROVIDER_ROLE_NAMES — not in generated auth-roles.ts, define here
 const TRANSPORTPROVIDER_ROLE_NAMES = new Set(["TransportProvider"]);
@@ -76,8 +76,8 @@ const hasHotelServiceProviderRole = (roles: string[]): boolean =>
 const hasTransportProviderRole = (roles: string[]): boolean =>
   roles.some((role) => TRANSPORTPROVIDER_ROLE_NAMES.has(role));
 
-const hasTourDesignerRole = (roles: string[]): boolean =>
-  roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role));
+const hasTourOperatorRole = (roles: string[]): boolean =>
+  roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role));
 
 const hasTourGuideRole = (roles: string[]): boolean =>
   roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role));
@@ -97,7 +97,7 @@ const isManagerRoutePath = (pathname: string): boolean => {
 };
 
 const PROVIDER_ROUTE_PREFIXES = ["/transport", "/hotel"];
-const TOUR_DESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
+const TOUR_OPERATOR_ROUTE_PREFIXES = ["/tour-operator"];
 const TOUR_GUIDE_ROUTE_PREFIXES = ["/tour-guide"];
 const AUTH_COOKIE_NAMES = [
   "access_token",
@@ -112,8 +112,8 @@ const isProviderRoutePath = (pathname: string): boolean =>
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
-const isTourDesignerRoutePath = (pathname: string): boolean =>
-  TOUR_DESIGNER_ROUTE_PREFIXES.some(
+const isTourOperatorRoutePath = (pathname: string): boolean =>
+  TOUR_OPERATOR_ROUTE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
@@ -196,8 +196,8 @@ export function middleware(request: NextRequest) {
     if (hasTransportProviderRole(authRoles)) {
       return redirectTo("/transport");
     }
-    if (hasTourDesignerRole(authRoles)) {
-      return redirectTo("/tour-designer");
+    if (hasTourOperatorRole(authRoles)) {
+      return redirectTo("/tour-operator");
     }
     if (hasTourGuideRole(authRoles)) {
       return redirectTo("/tour-guide");
@@ -269,8 +269,8 @@ export function middleware(request: NextRequest) {
       if (hasTransportProviderRole(authRoles)) {
         return redirectTo("/transport");
       }
-      if (hasTourDesignerRole(authRoles)) {
-        return redirectTo("/tour-designer");
+      if (hasTourOperatorRole(authRoles)) {
+        return redirectTo("/tour-operator");
       }
       if (hasTourGuideRole(authRoles)) {
         return redirectTo("/tour-guide");
@@ -278,13 +278,13 @@ export function middleware(request: NextRequest) {
       return redirectTo("/");
     }
 
-    // Tour Designers must stay in tour-designer routes (except public paths)
+    // Tour Operators must stay in tour-operator routes (except public paths)
     if (
-      hasTourDesignerRole(authRoles) &&
-      !isTourDesignerRoutePath(pathname) &&
+      hasTourOperatorRole(authRoles) &&
+      !isTourOperatorRoutePath(pathname) &&
       !publicPath
     ) {
-      return redirectTo("/tour-designer");
+      return redirectTo("/tour-operator");
     }
 
     // Tour Guides must stay in tour-guide routes (except public paths)
@@ -296,8 +296,8 @@ export function middleware(request: NextRequest) {
       return redirectTo("/tour-guide");
     }
 
-    // Block non-tour-designers from accessing /tour-designer routes
-    if (pathname.startsWith("/tour-designer") && !hasTourDesignerRole(authRoles)) {
+    // Block non-tour-operators from accessing /tour-operator routes
+    if (pathname.startsWith("/tour-operator") && !hasTourOperatorRole(authRoles)) {
       if (hasManagerRole(authRoles)) {
         return redirectTo("/manager");
       }
@@ -316,13 +316,13 @@ export function middleware(request: NextRequest) {
       return redirectTo("/");
     }
 
-    // Block TourDesigner from accessing /manager/* and /admin/* routes
-    if (hasTourDesignerRole(authRoles)) {
+    // Block TourOperator from accessing /manager/* and /admin/* routes
+    if (hasTourOperatorRole(authRoles)) {
       if (pathname.startsWith("/manager/") || pathname === "/manager") {
-        return redirectTo("/tour-designer/tours");
+        return redirectTo("/tour-operator/tours");
       }
       if (pathname.startsWith("/admin/") || pathname === "/admin") {
-        return redirectTo("/tour-designer/tours");
+        return redirectTo("/tour-operator/tours");
       }
     }
 

@@ -100,7 +100,6 @@ public sealed record ServiceDto(
     [property: JsonPropertyName("serviceName")] string ServiceName,
     [property: JsonPropertyName("pricingType")] string? PricingType,
     [property: JsonPropertyName("price")] decimal? Price,
-    [property: JsonPropertyName("salePrice")] decimal? SalePrice,
     [property: JsonPropertyName("email")] string? Email,
     [property: JsonPropertyName("contactNumber")] string? ContactNumber,
     [property: JsonPropertyName("translations")] Dictionary<string, TourResourceTranslationData>? Translations = null

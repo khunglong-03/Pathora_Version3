@@ -352,7 +352,7 @@ export interface AdminDashboardOverview {
   totalUsers: number;
   activeUsers: number;
   totalManagers: number;
-  totalTourDesigners: number;
+  totalTourOperators: number;
   totalTourGuides: number;
   totalTransportProviders: number;
   activeTransportProviders: number;

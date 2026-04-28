@@ -1,7 +1,7 @@
 namespace Domain.Entities;
 
 /// <summary>
-/// Vé ngoài (Flight/Train/Boat/Other) — TourDesigner upload ảnh vé sau khi đã đặt vé bên ngoài.
+/// Vé ngoài (Flight/Train/Boat/Other) — TourOperator upload ảnh vé sau khi đã đặt vé bên ngoài.
 /// Gắn vào một <see cref="TourInstanceDayActivityEntity"/> (transportation activity).
 /// Có thể link tùy chọn tới một <see cref="BookingEntity"/> cụ thể (vé cá nhân) hoặc null (vé nhóm).
 /// </summary>
@@ -13,7 +13,7 @@ public class TicketImageEntity : Aggregate<Guid>
     /// <summary>Ảnh vé — tái dùng cấu trúc <see cref="ImageEntity"/>.</summary>
     public ImageEntity Image { get; set; } = new();
 
-    /// <summary>UserId của TourDesigner/Manager đã upload.</summary>
+    /// <summary>UserId của TourOperator/Manager đã upload.</summary>
     public string UploadedBy { get; set; } = null!;
 
     /// <summary>Thời điểm upload.</summary>

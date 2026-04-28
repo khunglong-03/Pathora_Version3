@@ -136,7 +136,7 @@ function ParticipantsCell({
 type InstanceListDataState = "loading" | "ready" | "empty" | "error";
 
 export interface TourInstanceListPageProps {
-  role?: "manager" | "tour-designer";
+  role?: "manager" | "tour-operator";
 }
 
 export function TourInstanceListPage({

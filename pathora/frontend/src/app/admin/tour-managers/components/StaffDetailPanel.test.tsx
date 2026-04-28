@@ -12,9 +12,9 @@ const renderComponent = (props: React.ComponentProps<typeof StaffDetailPanel>) =
 };
 
 const mockStaff: StaffMemberDto[] = [
-  { id: "s1", fullName: "Designer One", email: "d1@test.com", role: "TourDesigner", status: "Hoạt động" },
+  { id: "s1", fullName: "Designer One", email: "d1@test.com", role: "TourOperator", status: "Hoạt động" },
   { id: "s2", fullName: "Guide One", email: "g1@test.com", role: "TourGuide", status: "Hoạt động" },
-  { id: "s3", fullName: "Designer Two", email: "d2@test.com", role: "TourDesigner", status: "Khóa" },
+  { id: "s3", fullName: "Designer Two", email: "d2@test.com", role: "TourOperator", status: "Khóa" },
 ];
 
 const mockManager: TourManagerSummary = {

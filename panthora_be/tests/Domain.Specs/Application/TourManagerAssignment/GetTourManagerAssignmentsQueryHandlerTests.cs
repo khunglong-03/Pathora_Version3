@@ -28,7 +28,7 @@ public sealed class GetTourManagerAssignmentsQueryHandlerTests
         var tourId = Guid.NewGuid();
         var assignments = new List<TourManagerAssignmentEntity>
         {
-            CreateAssignment(managerId, AssignedEntityType.TourDesigner, designerId, null, null),
+            CreateAssignment(managerId, AssignedEntityType.TourOperator, designerId, null, null),
             CreateAssignment(managerId, AssignedEntityType.TourGuide, guideId, null, null),
             CreateAssignment(managerId, AssignedEntityType.Tour, null, tourId, null)
         };
@@ -67,8 +67,8 @@ public sealed class GetTourManagerAssignmentsQueryHandlerTests
         var tour2Id = Guid.NewGuid();
         var assignments = new List<TourManagerAssignmentEntity>
         {
-            CreateAssignment(managerId, AssignedEntityType.TourDesigner, designer1Id, null, null),
-            CreateAssignment(managerId, AssignedEntityType.TourDesigner, designer2Id, null, null),
+            CreateAssignment(managerId, AssignedEntityType.TourOperator, designer1Id, null, null),
+            CreateAssignment(managerId, AssignedEntityType.TourOperator, designer2Id, null, null),
             CreateAssignment(managerId, AssignedEntityType.TourGuide, guide1Id, null, null),
             CreateAssignment(managerId, AssignedEntityType.Tour, null, tour1Id, null),
             CreateAssignment(managerId, AssignedEntityType.Tour, null, tour2Id, null)
@@ -94,8 +94,8 @@ public sealed class GetTourManagerAssignmentsQueryHandlerTests
         var designer2Id = Guid.NewGuid();
         var assignments = new List<TourManagerAssignmentEntity>
         {
-            CreateAssignment(manager1Id, AssignedEntityType.TourDesigner, designer1Id, null, null),
-            CreateAssignment(manager2Id, AssignedEntityType.TourDesigner, designer2Id, null, null)
+            CreateAssignment(manager1Id, AssignedEntityType.TourOperator, designer1Id, null, null),
+            CreateAssignment(manager2Id, AssignedEntityType.TourOperator, designer2Id, null, null)
         };
 
         _repository.GetAllSummariesAsync(Arg.Any<CancellationToken>()).Returns(assignments);
@@ -116,8 +116,8 @@ public sealed class GetTourManagerAssignmentsQueryHandlerTests
         var designer2Id = Guid.NewGuid();
         var assignments = new List<TourManagerAssignmentEntity>
         {
-            CreateAssignment(manager1Id, AssignedEntityType.TourDesigner, designer1Id, null, null),
-            CreateAssignment(manager2Id, AssignedEntityType.TourDesigner, designer2Id, null, null)
+            CreateAssignment(manager1Id, AssignedEntityType.TourOperator, designer1Id, null, null),
+            CreateAssignment(manager2Id, AssignedEntityType.TourOperator, designer2Id, null, null)
         };
 
         _repository.GetAllSummariesAsync(Arg.Any<CancellationToken>()).Returns(assignments);

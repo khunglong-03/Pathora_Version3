@@ -21,7 +21,7 @@ public class ManageTourRequirementHandler : AuthorizationHandler<ManageTourRequi
             if (Guid.TryParse(userIdString, out var userId))
             {
                 // 2. If the user is the creator of the tour itself, allow them.
-                if (resource.TourDesignerId == userId)
+                if (resource.TourOperatorId == userId)
                 {
                     contextAuth.Succeed(requirement);
                 }

@@ -12,7 +12,7 @@ public enum TransportApprovalCategory
     Ground = 0,
 
     /// <summary>
-    /// Vé ngoài — TourDesigner mua vé bên ngoài (hãng bay, đường sắt, ...) và upload bằng chứng.
+    /// Vé ngoài — TourOperator mua vé bên ngoài (hãng bay, đường sắt, ...) và upload bằng chứng.
     /// Flight, Train, Boat, Other.
     /// </summary>
     ExternalTicket = 1,

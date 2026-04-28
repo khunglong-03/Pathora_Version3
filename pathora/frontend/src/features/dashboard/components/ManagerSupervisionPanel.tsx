@@ -18,7 +18,7 @@ export function ManagerSupervisionPanel({
 }: ManagerSupervisionPanelProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const designers = staff.filter((s) => s.role === "TourDesigner");
+  const designers = staff.filter((s) => s.role === "TourOperator");
   const guides = staff.filter((s) => s.role === "TourGuide");
 
   return (
@@ -68,7 +68,7 @@ export function ManagerSupervisionPanel({
             Chưa có nhân viên
           </p>
           <p className="text-xs" style={{ color: "#9CA3AF" }}>
-            Thêm Tour Designer hoặc Tour Guide vào team
+            Thêm Tour Operator hoặc Tour Guide vào team
           </p>
         </div>
       )}
@@ -76,13 +76,13 @@ export function ManagerSupervisionPanel({
       {/* Staff lists */}
       {staff.length > 0 && (
         <div className="space-y-6">
-          {/* Tour Designers */}
+          {/* Tour Operators */}
           {designers.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Icon icon="PaintBrush" className="size-4" style={{ color: "#7C3AED" }} />
                 <h4 className="text-sm font-semibold" style={{ color: "#374151" }}>
-                  Tour Designers ({designers.length})
+                  Tour Operators ({designers.length})
                 </h4>
               </div>
               <div className="space-y-2">

@@ -2126,8 +2126,8 @@ export function CreateTourInstancePage({
   const urlTourRequestId = searchParams.get("tourRequestId");
   const instanceBasePath = useMemo(
     () =>
-      pathname.startsWith("/tour-designer")
-        ? "/tour-designer/tour-instances"
+      pathname.startsWith("/tour-operator")
+        ? "/tour-operator/tour-instances"
         : "/manager/tour-instances",
     [pathname],
   );

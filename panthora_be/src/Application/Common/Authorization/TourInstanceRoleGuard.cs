@@ -16,7 +16,7 @@ public static class TourInstanceRoleGuard
     [
         "Admin",
         "Manager",
-        "TourDesigner"
+        "TourOperator"
     ];
 
     public static readonly string[] ProviderRoles =

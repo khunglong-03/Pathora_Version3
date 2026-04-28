@@ -34,7 +34,7 @@ public sealed class GetTourManagerAssignmentsQueryHandler(
                     g.Key,
                     manager.FullName ?? manager.Username,
                     manager.Email,
-                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourDesigner),
+                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourOperator),
                     g.Count(a => a.AssignedEntityType == AssignedEntityType.TourGuide),
                     g.Count(a => a.AssignedEntityType == AssignedEntityType.Tour));
             })

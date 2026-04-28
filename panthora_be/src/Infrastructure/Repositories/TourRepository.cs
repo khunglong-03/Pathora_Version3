@@ -105,7 +105,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -115,7 +115,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query
@@ -161,7 +161,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -171,7 +171,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -207,7 +207,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == managerId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -217,7 +217,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query
@@ -260,7 +260,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == managerId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -270,7 +270,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId ?? Guid.Empty));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);

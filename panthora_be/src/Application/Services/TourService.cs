@@ -83,11 +83,11 @@ public class TourService(
             var thumbnail = request.Thumbnail is not null ? ToImageEntity(request.Thumbnail) : new ImageEntity();
             var images = request.Images?.Select(ToImageEntity).ToList() ?? [];
 
-            var tourDesignerId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
+            var tourOperatorId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
                 ? (Guid?)userIdGuid
                 : null;
 
-            // Non-managers (TourDesigners) cannot set the status themselves —
+            // Non-managers (TourOperators) cannot set the status themselves —
             // tours must always start as Pending and go through the Manager review workflow.
             var effectiveStatus = isManager ? request.Status : TourStatus.Pending;
 
@@ -103,7 +103,7 @@ public class TourService(
             seoDescription: request.SEODescription,
             thumbnail: thumbnail,
             images: images,
-            tourDesignerId: tourDesignerId,
+            tourOperatorId: tourOperatorId,
             continent: request.Continent,
             isVisa: request.IsVisa);
 
@@ -354,7 +354,7 @@ public class TourService(
                         _user.Id ?? string.Empty,
                         contactEmail: svc.Email,
                         contactPhone: svc.ContactNumber,
-                        price: svc.Price ?? svc.SalePrice,
+                        price: svc.Price,
                         pricingType: svc.PricingType);
                     tour.Resources.Add(resource);
                 }
@@ -396,11 +396,11 @@ public class TourService(
             && (tour.Status == TourStatus.Rejected || tour.Status == TourStatus.Active)
             && request.Status == TourStatus.Pending;
 
-        // Access control for TourDesigners
+        // Access control for TourOperators
         if (!isManager)
         {
             var currentUserIdGuid = Guid.TryParse(_user.Id, out var userIdGuid) ? userIdGuid : Guid.Empty;
-            if (tour.TourDesignerId != currentUserIdGuid)
+            if (tour.TourOperatorId != currentUserIdGuid)
             {
                 return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
             }
@@ -491,7 +491,7 @@ public class TourService(
             customerSegment: request.CustomerSegment,
             seoTitle: request.SEOTitle,
             seoDescription: request.SEODescription,
-            tourDesignerId: tour.TourDesignerId,
+            tourOperatorId: tour.TourOperatorId,
             continent: request.Continent,
             isVisa: request.IsVisa);
 
@@ -613,7 +613,7 @@ public class TourService(
                             _user.Id ?? string.Empty,
                             contactEmail: svc.Email,
                             contactPhone: svc.ContactNumber,
-                            price: svc.Price ?? svc.SalePrice,
+                            price: svc.Price,
                             pricingType: svc.PricingType);
                         existingSvc.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                         continue;
@@ -627,7 +627,7 @@ public class TourService(
                     _user.Id ?? string.Empty,
                     contactEmail: svc.Email,
                     contactPhone: svc.ContactNumber,
-                    price: svc.Price ?? svc.SalePrice,
+                    price: svc.Price,
                     pricingType: svc.PricingType);
                 resource.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                 tour.Resources.Add(resource);

@@ -139,10 +139,10 @@ export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "Công ty", icon: BuildingOfficeIcon, href: "/hotel/profile" },
 ] as const;
 
-export const TOURDESIGNER_NAV_ITEMS = [
-  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-designer" },
-  { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-designer/tours" },
-  { label: "Tạo Tour", icon: PlusIcon, href: "/tour-designer/tours/create" },
+export const TOUROPERATOR_NAV_ITEMS = [
+  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-operator" },
+  { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
+  { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
@@ -179,9 +179,9 @@ interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   children?: React.ReactNode;
-  variant?: "manager" | "admin" | "provider" | "tour-designer" | "tour-guide";
+  variant?: "manager" | "admin" | "provider" | "tour-operator" | "tour-guide";
   isAdmin?: boolean;
-  providerPortal?: "hotel" | "transport" | "tour-designer" | "tour-guide";
+  providerPortal?: "hotel" | "transport" | "tour-operator" | "tour-guide";
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -210,8 +210,8 @@ export function AdminSidebar({
         ? providerPortal === "transport"
           ? TRANSPORT_PROVIDER_NAV_ITEMS
           : HOTEL_PROVIDER_NAV_ITEMS
-        : variant === "tour-designer"
-          ? TOURDESIGNER_NAV_ITEMS
+        : variant === "tour-operator"
+          ? TOUROPERATOR_NAV_ITEMS
           : variant === "tour-guide"
             ? TOURGUIDE_NAV_ITEMS
             : MANAGER_NAV_ITEMS;
@@ -339,7 +339,7 @@ export function AdminSidebar({
     const exactMatchHrefs = [
       "/manager/dashboard",
       "/admin/users",
-      "/tour-designer",
+      "/tour-operator",
       "/tour-guide",
       "/hotel",
       "/transport",
@@ -351,8 +351,8 @@ export function AdminSidebar({
 
     // Prevent highlighting parent "Tours" when exactly on "Create Tour"
     if (
-      href === "/tour-designer/tours" &&
-      pathname.startsWith("/tour-designer/tours/create")
+      href === "/tour-operator/tours" &&
+      pathname.startsWith("/tour-operator/tours/create")
     ) {
       return false;
     }
@@ -385,8 +385,8 @@ export function AdminSidebar({
                     ? providerPortal === "transport"
                       ? "/transport"
                       : "/hotel"
-                    : variant === "tour-designer"
-                      ? "/tour-designer"
+                    : variant === "tour-operator"
+                      ? "/tour-operator"
                       : variant === "tour-guide"
                         ? "/tour-guide"
                         : "/manager/dashboard"
@@ -425,8 +425,8 @@ export function AdminSidebar({
                     ? "Transport Provider"
                     : providerPortal === "hotel"
                       ? "Hotel Provider"
-                      : providerPortal === "tour-designer"
-                        ? "Tour Designer"
+                      : providerPortal === "tour-operator"
+                        ? "Tour Operator"
                         : providerPortal === "tour-guide"
                           ? "Tour Guide"
                           : "Admin"}
@@ -503,7 +503,7 @@ export function AdminSidebar({
                   );
                 })}
               </div>
-            ) : variant === "tour-designer" || variant === "tour-guide" ? (
+            ) : variant === "tour-operator" || variant === "tour-guide" ? (
               <div className="space-y-0.5">
                 {navItems.map((item) => {
                   const active = isActive(item.href);
@@ -663,7 +663,7 @@ export function AdminSidebar({
                       .map((w) => w[0] ?? "")
                       .join("")
                       .toUpperCase()
-                  : providerPortal === "tour-designer"
+                  : providerPortal === "tour-operator"
                     ? "TD"
                     : providerPortal === "tour-guide"
                       ? "TG"
@@ -683,8 +683,8 @@ export function AdminSidebar({
                   style={{ color: "var(--sidebar-text)" }}>
                   {providerPortal === "transport" && companyName
                     ? companyName
-                    : providerPortal === "tour-designer"
-                      ? "TourDesigner"
+                    : providerPortal === "tour-operator"
+                      ? "TourOperator"
                       : providerPortal === "tour-guide"
                         ? "TourGuide"
                         : "Admin"}
@@ -696,8 +696,8 @@ export function AdminSidebar({
                     ? "TransportProvider"
                     : providerPortal === "hotel"
                       ? "HotelServiceProvider"
-                      : providerPortal === "tour-designer"
-                        ? "TourDesigner"
+                      : providerPortal === "tour-operator"
+                        ? "TourOperator"
                         : providerPortal === "tour-guide"
                           ? "TourGuide"
                           : "Administrator"}

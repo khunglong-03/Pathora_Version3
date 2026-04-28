@@ -173,7 +173,7 @@ public static class ValidationMessages
     public const string PricingPolicyTierAgeToGreaterThanOrEqualAgeFrom = "Age to must be greater than or equal to age from.";
 
     // ── Staff Management ─────────────────────────────────────────
-    public const string StaffTypeInvalid = "StaffType must be 1 (TourDesigner) or 2 (TourGuide).";
+    public const string StaffTypeInvalid = "StaffType must be 1 (TourOperator) or 2 (TourGuide).";
     public const string PasswordMinLength = "Password must be at least 6 characters.";
 
     // ── TourInstance ────────────────────────────────────────────

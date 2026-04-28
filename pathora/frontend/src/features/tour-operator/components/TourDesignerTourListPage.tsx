@@ -8,9 +8,9 @@ import { PlusIcon, MagnifyingGlassIcon, MapTrifoldIcon, CaretRightIcon, WarningC
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
 import { useDebounce } from "@/hooks/useDebounce";
-import { useTourDesignerTourList } from "../hooks/useTourDesignerTourList";
+import { useTourOperatorTourList } from "../hooks/useTourOperatorTourList";
 import { TourStatusMap } from "@/types/tour";
-import { canTourDesignerEditTour } from "./editableTourStatus";
+import { canTourOperatorEditTour } from "./editableTourStatus";
 
 const STATUS_TABS = [
   { key: "all", label: "All" },
@@ -59,7 +59,7 @@ const GridSkeleton = () => (
   </div>
 );
 
-export function TourDesignerTourListPage() {
+export function TourOperatorTourListPage() {
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -74,7 +74,7 @@ export function TourDesignerTourListPage() {
     setMounted(true);
   }, []);
 
-  const { tours, total, state, errorMessage } = useTourDesignerTourList({
+  const { tours, total, state, errorMessage } = useTourOperatorTourList({
     searchText: debouncedSearch,
     statusFilter,
     tourScope,
@@ -93,20 +93,20 @@ export function TourDesignerTourListPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div className="space-y-1">
           <h1 className="text-4xl md:text-5xl font-bold text-zinc-950 tracking-tighter">
-            {t("tourDesigner.myTours", "Tours")}
+            {t("tourOperator.myTours", "Tours")}
           </h1>
           <p className="text-base text-zinc-500 max-w-[65ch] leading-relaxed">
             {total > 0
-              ? `${total} ${t("tourDesigner.tourCount", "tour(s)")} trong danh sách của bạn.`
-              : t("tourDesigner.manageTours", "Quản lý và cập nhật những bản thiết kế chuyến đi của bạn.")}
+              ? `${total} ${t("tourOperator.tourCount", "tour(s)")} trong danh sách của bạn.`
+              : t("tourOperator.manageTours", "Quản lý và cập nhật những bản thiết kế chuyến đi của bạn.")}
           </p>
         </div>
         <Link
-          href="/tour-designer/tours/create"
+          href="/tour-operator/tours/create"
           className="flex items-center gap-2 px-6 py-3 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-sm active:scale-[0.98]"
         >
           <PlusIcon size={18} weight="bold" />
-          {t("tourDesigner.actions.create", "Tạo Tour")}
+          {t("tourOperator.actions.create", "Tạo Tour")}
         </Link>
       </div>
 
@@ -136,7 +136,7 @@ export function TourDesignerTourListPage() {
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   />
                 )}
-                <span className="relative z-10">{t(`tourDesigner.tabs.${tab.key}`, tab.label)}</span>
+                <span className="relative z-10">{t(`tourOperator.tabs.${tab.key}`, tab.label)}</span>
               </button>
             );
           })}
@@ -152,9 +152,9 @@ export function TourDesignerTourListPage() {
             }}
             className="w-full sm:w-auto px-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all shadow-sm"
           >
-            <option value="all">{t("tourDesigner.scopes.all", "Tất cả vùng")}</option>
-            <option value="1">{t("tourDesigner.scopes.domestic", "Trong nước")}</option>
-            <option value="2">{t("tourDesigner.scopes.international", "Quốc tế")}</option>
+            <option value="all">{t("tourOperator.scopes.all", "Tất cả vùng")}</option>
+            <option value="1">{t("tourOperator.scopes.domestic", "Trong nước")}</option>
+            <option value="2">{t("tourOperator.scopes.international", "Quốc tế")}</option>
           </select>
 
           <select
@@ -165,13 +165,13 @@ export function TourDesignerTourListPage() {
             }}
             className="w-full sm:w-auto px-4 py-3 bg-white text-sm border border-zinc-200 rounded-2xl focus:ring-2 focus:ring-zinc-950 focus:border-transparent outline-none transition-all shadow-sm"
           >
-            <option value="all">{t("tourDesigner.continents.all", "Tất cả châu lục")}</option>
-            <option value="1">{t("tourDesigner.continents.asia", "Châu Á")}</option>
-            <option value="2">{t("tourDesigner.continents.europe", "Châu Âu")}</option>
-            <option value="3">{t("tourDesigner.continents.africa", "Châu Phi")}</option>
-            <option value="4">{t("tourDesigner.continents.americas", "Châu Mỹ")}</option>
-            <option value="5">{t("tourDesigner.continents.oceania", "Châu Đại Dương")}</option>
-            <option value="6">{t("tourDesigner.continents.antarctica", "Châu Nam Cực")}</option>
+            <option value="all">{t("tourOperator.continents.all", "Tất cả châu lục")}</option>
+            <option value="1">{t("tourOperator.continents.asia", "Châu Á")}</option>
+            <option value="2">{t("tourOperator.continents.europe", "Châu Âu")}</option>
+            <option value="3">{t("tourOperator.continents.africa", "Châu Phi")}</option>
+            <option value="4">{t("tourOperator.continents.americas", "Châu Mỹ")}</option>
+            <option value="5">{t("tourOperator.continents.oceania", "Châu Đại Dương")}</option>
+            <option value="6">{t("tourOperator.continents.antarctica", "Châu Nam Cực")}</option>
           </select>
 
           <div className="relative w-full sm:w-64">
@@ -181,7 +181,7 @@ export function TourDesignerTourListPage() {
             />
             <input
               type="text"
-              placeholder={t("tourDesigner.searchPlaceholder", "Tìm kiếm theo tên hoặc mã...")}
+              placeholder={t("tourOperator.searchPlaceholder", "Tìm kiếm theo tên hoặc mã...")}
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
@@ -218,16 +218,16 @@ export function TourDesignerTourListPage() {
               <WarningCircleIcon size={32} weight="duotone" className="text-rose-500" />
             </div>
             <h3 className="text-xl font-bold text-zinc-950 tracking-tight mb-2">
-              {t("tourDesigner.messages.errorLoadingTitle", "Không thể tải dữ liệu")}
+              {t("tourOperator.messages.errorLoadingTitle", "Không thể tải dữ liệu")}
             </h3>
             <p className="text-sm text-zinc-500 mb-6 max-w-md">
-              {errorMessage ?? t("tourDesigner.messages.errorLoading", "Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng thử lại sau.")}
+              {errorMessage ?? t("tourOperator.messages.errorLoading", "Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng thử lại sau.")}
             </p>
             <button
               onClick={() => void reload()}
               className="px-6 py-2.5 text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-full hover:bg-rose-100 transition-colors active:scale-95"
             >
-              {t("tourDesigner.actions.retry", "Thử lại")}
+              {t("tourOperator.actions.retry", "Thử lại")}
             </button>
           </motion.div>
         )}
@@ -244,20 +244,20 @@ export function TourDesignerTourListPage() {
               <MapTrifoldIcon size={40} weight="thin" className="text-zinc-300" />
             </div>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight mb-3">
-              {t("tourDesigner.empty.title", "Chưa có Tour nào")}
+              {t("tourOperator.empty.title", "Chưa có Tour nào")}
             </h3>
             <p className="text-base text-zinc-500 mb-8 max-w-sm leading-relaxed">
               {searchText 
-                ? t("tourDesigner.empty.search", "Không tìm thấy Tour nào khớp với tìm kiếm của bạn.") 
-                : t("tourDesigner.empty.description", "Hãy bắt đầu dự án đầu tiên của bạn để thiết kế những trải nghiệm du lịch tuyệt vời.")}
+                ? t("tourOperator.empty.search", "Không tìm thấy Tour nào khớp với tìm kiếm của bạn.") 
+                : t("tourOperator.empty.description", "Hãy bắt đầu dự án đầu tiên của bạn để thiết kế những trải nghiệm du lịch tuyệt vời.")}
             </p>
             {!searchText && (
               <Link
-                href="/tour-designer/tours/create"
+                href="/tour-operator/tours/create"
                 className="inline-flex items-center gap-2 px-8 py-3.5 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-lg active:scale-95"
               >
                 <PlusIcon size={18} weight="bold" />
-                {t("tourDesigner.actions.createFirst", "Bắt đầu thiết kế")}
+                {t("tourOperator.actions.createFirst", "Bắt đầu thiết kế")}
               </Link>
             )}
           </motion.div>
@@ -328,15 +328,15 @@ export function TourDesignerTourListPage() {
                       </span>
                       <div className="flex space-x-2">
                         <Link
-                          href={`/tour-designer/tours/${tour.id}`}
+                          href={`/tour-operator/tours/${tour.id}`}
                           className="p-2 text-zinc-500 bg-zinc-50 hover:bg-zinc-100 hover:text-zinc-950 rounded-xl transition-colors active:scale-90"
                           aria-label="View Details"
                         >
                           <CaretRightIcon size={20} weight="bold" />
                         </Link>
-                        {canTourDesignerEditTour(tour.status) && (
+                        {canTourOperatorEditTour(tour.status) && (
                           <Link
-                            href={`/tour-designer/tours/${tour.id}/edit`}
+                            href={`/tour-operator/tours/${tour.id}/edit`}
                             className="px-4 py-2 text-sm font-semibold text-zinc-950 bg-zinc-50 hover:bg-zinc-100 rounded-xl transition-colors active:scale-95 border border-zinc-200/50"
                           >
                             Edit
@@ -360,7 +360,7 @@ export function TourDesignerTourListPage() {
             disabled={currentPage === 1}
             className="px-6 py-2.5 text-sm font-medium bg-white border border-zinc-200 rounded-full disabled:opacity-40 hover:bg-zinc-50 hover:text-zinc-950 transition-colors shadow-sm active:scale-95"
           >
-            {t("tourDesigner.prev", "Quay lại")}
+            {t("tourOperator.prev", "Quay lại")}
           </button>
           <span className="text-sm font-medium tracking-tight text-zinc-500">
             {currentPage} / {Math.max(1, Math.ceil(total / 12))}
@@ -370,7 +370,7 @@ export function TourDesignerTourListPage() {
             disabled={currentPage >= Math.ceil(total / 12)}
             className="px-6 py-2.5 text-sm font-medium bg-white border border-zinc-200 rounded-full disabled:opacity-40 hover:bg-zinc-50 hover:text-zinc-950 transition-colors shadow-sm active:scale-95"
           >
-            {t("tourDesigner.next", "Tiếp theo")}
+            {t("tourOperator.next", "Tiếp theo")}
           </button>
         </div>
       )}

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { TourFormPage } from "@/features/tour-designer/components/TourFormPage";
+import { TourFormPage } from "@/features/tour-operator/components/TourFormPage";
 
 export const metadata: Metadata = {
-  title: "Create Tour | Tour Designer",
+  title: "Create Tour | Tour Operator",
 };
 
 export default function CreateTourPage() {

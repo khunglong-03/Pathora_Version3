@@ -44,7 +44,6 @@ public sealed class TourProfile : Profile
             .ForCtorParam(nameof(ServiceDto.ServiceName), opt => opt.MapFrom(src => src.Name))
             .ForCtorParam(nameof(ServiceDto.PricingType), opt => opt.MapFrom(src => src.PricingType))
             .ForCtorParam(nameof(ServiceDto.Price), opt => opt.MapFrom(src => src.Price))
-            .ForCtorParam(nameof(ServiceDto.SalePrice), opt => opt.MapFrom(_ => (decimal?)null))
             .ForCtorParam(nameof(ServiceDto.Email), opt => opt.MapFrom(src => src.ContactEmail))
             .ForCtorParam(nameof(ServiceDto.ContactNumber), opt => opt.MapFrom(src => src.ContactPhone))
             .ForMember(dest => dest.Translations, opt => opt.MapFrom(src => src.Translations));

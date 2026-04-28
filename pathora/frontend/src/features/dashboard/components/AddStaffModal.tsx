@@ -13,11 +13,11 @@ interface AddStaffModalProps {
   onSuccess: () => void;
 }
 
-type StaffType = "TourDesigner" | "TourGuide";
+type StaffType = "TourOperator" | "TourGuide";
 
 export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaffModalProps) {
   const { t } = useTranslation();
-  const [selectedType, setSelectedType] = useState<StaffType>("TourDesigner");
+  const [selectedType, setSelectedType] = useState<StaffType>("TourOperator");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -73,7 +73,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
 
     try {
       await adminService.createStaffUnderManager(managerId, {
-        staffType: selectedType === "TourDesigner" ? 1 : 2,
+        staffType: selectedType === "TourOperator" ? 1 : 2,
         username: username.trim() || undefined,
         email: email.trim(),
         fullName: fullName.trim(),
@@ -91,7 +91,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setSelectedType("TourDesigner");
+      setSelectedType("TourOperator");
       setUsername("");
       setEmail("");
       setFullName("");
@@ -114,7 +114,7 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
           <div className="grid grid-cols-2 gap-3">
             <label
               className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                selectedType === "TourDesigner"
+                selectedType === "TourOperator"
                   ? "border-[#7C3AED] bg-[#F5F3FF]"
                   : "border-[#E5E7EB] bg-white hover:border-[#D1D5DB]"
               }`}
@@ -122,8 +122,8 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
               <input
                 type="radio"
                 name="staffType"
-                value="TourDesigner"
-                checked={selectedType === "TourDesigner"}
+                value="TourOperator"
+                checked={selectedType === "TourOperator"}
                 onChange={(e) => setSelectedType(e.target.value as StaffType)}
                 className="sr-only"
                 disabled={isSubmitting}
@@ -131,11 +131,11 @@ export function AddStaffModal({ isOpen, onClose, managerId, onSuccess }: AddStaf
               <Icon
                 icon="PaintBrush"
                 className="size-4 shrink-0"
-                style={{ color: selectedType === "TourDesigner" ? "#7C3AED" : "#6B7280" }}
+                style={{ color: selectedType === "TourOperator" ? "#7C3AED" : "#6B7280" }}
               />
               <p
                 className="text-xs font-semibold"
-                style={{ color: selectedType === "TourDesigner" ? "#7C3AED" : "#374151" }}
+                style={{ color: selectedType === "TourOperator" ? "#7C3AED" : "#374151" }}
               >
                 {t("admin.staff.designer")}
               </p>

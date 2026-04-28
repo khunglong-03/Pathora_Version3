@@ -34,7 +34,7 @@ public sealed class TourManagerAssignmentConstraintTests
 
         var assignment = TourManagerAssignmentEntity.Create(
             managerId,
-            AssignedEntityType.TourDesigner,
+            AssignedEntityType.TourOperator,
             designerId,
             null,
             AssignedRoleInTeam.Lead,
@@ -45,7 +45,7 @@ public sealed class TourManagerAssignmentConstraintTests
 
         var saved = context.TourManagerAssignments.First();
         Assert.Equal(managerId, saved.TourManagerId);
-        Assert.Equal(AssignedEntityType.TourDesigner, saved.AssignedEntityType);
+        Assert.Equal(AssignedEntityType.TourOperator, saved.AssignedEntityType);
         Assert.Equal(designerId, saved.AssignedUserId);
         Assert.Null(saved.AssignedTourId);
         Assert.Equal(AssignedRoleInTeam.Lead, saved.AssignedRoleInTeam);
@@ -119,7 +119,7 @@ public sealed class TourManagerAssignmentConstraintTests
     [Fact]
     public void AssignedEntityType_Enum_HasCorrectValues()
     {
-        Assert.Equal(1, (int)AssignedEntityType.TourDesigner);
+        Assert.Equal(1, (int)AssignedEntityType.TourOperator);
         Assert.Equal(2, (int)AssignedEntityType.TourGuide);
         Assert.Equal(3, (int)AssignedEntityType.Tour);
     }

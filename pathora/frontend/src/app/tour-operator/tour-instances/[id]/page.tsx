@@ -1,5 +1,5 @@
 import TourInstanceDetailPage from "@/features/dashboard/components/TourInstanceDetailPage";
 
-export default function TourDesignerTourInstanceDetailRoute() {
+export default function TourOperatorTourInstanceDetailRoute() {
   return <TourInstanceDetailPage />;
 }

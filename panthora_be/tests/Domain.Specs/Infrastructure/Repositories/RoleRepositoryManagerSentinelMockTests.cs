@@ -155,7 +155,7 @@ public sealed class RoleRepositoryManagerSentinelMockTests
         await _context.TourManagerAssignments.AddRangeAsync(new[]
         {
             TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.Tour, null, null, null, "system"),
-            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourDesigner, staffId, null, null, "system")
+            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourOperator, staffId, null, null, "system")
         });
         await _context.UserRoles.AddAsync(new UserRoleEntity { UserId = managerId, RoleId = 2 });
         await _context.SaveChangesAsync();
@@ -275,7 +275,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelMockTests
         var newAssignments = new List<TourManagerAssignmentEntity>
         {
             TourManagerAssignmentEntity.Create(
-                managerId, AssignedEntityType.TourDesigner, staffId, null, null, "system")
+                managerId, AssignedEntityType.TourOperator, staffId, null, null, "system")
         };
 
         await _repository.BulkUpsertAsync(managerId, newAssignments, "test", CancellationToken.None);
@@ -307,7 +307,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelMockTests
 
         var newAssignments = new List<TourManagerAssignmentEntity>
         {
-            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourDesigner, staffId1, null, null, "system"),
+            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourOperator, staffId1, null, null, "system"),
             TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourGuide, staffId2, null, null, "system")
         };
 
@@ -349,7 +349,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelMockTests
         var sentinel = TourManagerAssignmentEntity.Create(
             managerId, AssignedEntityType.Tour, null, null, null, "system");
         var oldAssignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, oldStaffId, null, null, "system");
+            managerId, AssignedEntityType.TourOperator, oldStaffId, null, null, "system");
         await _context.TourManagerAssignments.AddRangeAsync(new[] { sentinel, oldAssignment });
         await _context.SaveChangesAsync();
 
@@ -367,7 +367,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelMockTests
         Assert.Equal(2, all.Count);
         Assert.Single(all, a => a.AssignedEntityType == AssignedEntityType.Tour);
         Assert.Single(all, a => a.AssignedEntityType == AssignedEntityType.TourGuide);
-        Assert.DoesNotContain(all, a => a.AssignedEntityType == AssignedEntityType.TourDesigner);
+        Assert.DoesNotContain(all, a => a.AssignedEntityType == AssignedEntityType.TourOperator);
     }
 
     [Fact]
@@ -380,7 +380,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelMockTests
         var newAssignments = new List<TourManagerAssignmentEntity>
         {
             TourManagerAssignmentEntity.Create(
-                managerId, AssignedEntityType.TourDesigner, staffId, null, null, "test-user")
+                managerId, AssignedEntityType.TourOperator, staffId, null, null, "test-user")
         };
 
         await _repository.BulkUpsertAsync(managerId, newAssignments, "admin-override", CancellationToken.None);

@@ -271,7 +271,7 @@ public sealed class AdminControllerTests
             new UserSummaryDto(managerId, "Manager One", "manager@example.com", null),
             new List<StaffMemberDto>
             {
-                new(Guid.NewGuid(), "Designer One", "designer@example.com", null, "TourDesigner", "Member", "Hoạt động"),
+                new(Guid.NewGuid(), "Designer One", "designer@example.com", null, "TourOperator", "Member", "Hoạt động"),
                 new(Guid.NewGuid(), "Guide One", "guide@example.com", null, "TourGuide", "Lead", "Hoạt động")
             });
 

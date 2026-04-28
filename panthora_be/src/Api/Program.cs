@@ -17,7 +17,7 @@ var app = builder.Build();
 
 Application.Services.SepayParsingHelper.SetLogger(app.Services.GetService<Microsoft.Extensions.Logging.ILogger>());
 
-// Seed database on startup is temporarily disabled.
+// Seed database on startup (controlled by Dev:ResetAndReseedOnStartup in appsettings.json)
 // var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
 // await dbInitializer.InitializeAsync();
 

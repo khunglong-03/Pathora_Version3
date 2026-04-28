@@ -6,7 +6,7 @@ import type { StaffMemberDto } from "@/types/admin";
 import type { TourManagerSummary } from "@/api/services/tourManagerAssignmentService";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  "Tour Designer": { bg: "#EDE9FE", text: "#7C3AED", label: "Tour Designer" },
+  "Tour Operator": { bg: "#EDE9FE", text: "#7C3AED", label: "Tour Operator" },
   "Tour Guide": { bg: "#DBEAFE", text: "#2563EB", label: "Tour Guide" },
 };
 
@@ -35,7 +35,7 @@ export function StaffList({ staff, managers, managerId, onReassign, onToggleStat
     acc[role].push(member);
     return acc;
   }, {});
-  const roleOrder = ["Tour Designer", "Tour Guide", "Staff"];
+  const roleOrder = ["Tour Operator", "Tour Guide", "Staff"];
   if (staff.length === 0) {
     return (
       <div className="text-center py-12 text-sm" style={{ color: "#9CA3AF" }}>

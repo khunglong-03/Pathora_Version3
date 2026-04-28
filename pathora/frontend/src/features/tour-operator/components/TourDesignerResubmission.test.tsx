@@ -8,14 +8,14 @@ const {
   updateTourMock,
   toastSuccessMock,
   toastErrorMock,
-  useTourDesignerTourListMock,
+  useTourOperatorTourListMock,
 } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   getTourDetailMock: vi.fn(),
   updateTourMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastErrorMock: vi.fn(),
-  useTourDesignerTourListMock: vi.fn(),
+  useTourOperatorTourListMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -54,8 +54,8 @@ vi.mock("@/api/services/tourService", () => ({
   },
 }));
 
-vi.mock("../hooks/useTourDesignerTourList", () => ({
-  useTourDesignerTourList: useTourDesignerTourListMock,
+vi.mock("../hooks/useTourOperatorTourList", () => ({
+  useTourOperatorTourList: useTourOperatorTourListMock,
 }));
 
 vi.mock("@/features/dashboard/components/TourForm", () => ({
@@ -80,9 +80,9 @@ vi.mock("@/features/dashboard/components/TourForm", () => ({
   ),
 }));
 
-import { TourDesignerTourDetailPage } from "./TourDesignerTourDetailPage";
-import { TourDesignerTourEditWrapper } from "./TourDesignerTourEditWrapper";
-import { TourDesignerTourListPage } from "./TourDesignerTourListPage";
+import { TourOperatorTourDetailPage } from "./TourOperatorTourDetailPage";
+import { TourOperatorTourEditWrapper } from "./TourOperatorTourEditWrapper";
+import { TourOperatorTourListPage } from "./TourOperatorTourListPage";
 import { TourFormPage } from "./TourFormPage";
 
 const rejectedDetailTour = {
@@ -115,12 +115,12 @@ const activeDetailTour = {
   status: 1,
 };
 
-describe("TourDesigner resubmission flow", () => {
+describe("TourOperator resubmission flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getTourDetailMock.mockResolvedValue(rejectedDetailTour);
     updateTourMock.mockResolvedValue(undefined);
-    useTourDesignerTourListMock.mockReturnValue({
+    useTourOperatorTourListMock.mockReturnValue({
       tours: [
         {
           id: "tour-1",
@@ -139,8 +139,8 @@ describe("TourDesigner resubmission flow", () => {
     });
   });
 
-  it("shows the edit action for rejected tours in the TourDesigner list", async () => {
-    render(<TourDesignerTourListPage />);
+  it("shows the edit action for rejected tours in the TourOperator list", async () => {
+    render(<TourOperatorTourListPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Rejected Tour")).toBeInTheDocument();
@@ -148,12 +148,12 @@ describe("TourDesigner resubmission flow", () => {
 
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
       "href",
-      "/tour-designer/tours/tour-1/edit",
+      "/tour-operator/tours/tour-1/edit",
     );
   });
 
-  it("shows the edit action for rejected tours in the TourDesigner detail page", async () => {
-    render(<TourDesignerTourDetailPage />);
+  it("shows the edit action for rejected tours in the TourOperator detail page", async () => {
+    render(<TourOperatorTourDetailPage />);
 
     await waitFor(() => {
       expect(getTourDetailMock).toHaveBeenCalledWith("tour-1");
@@ -161,12 +161,12 @@ describe("TourDesigner resubmission flow", () => {
 
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
       "href",
-      "/tour-designer/tours/tour-1/edit",
+      "/tour-operator/tours/tour-1/edit",
     );
   });
 
-  it("allows the TourDesigner edit wrapper to open rejected tours", async () => {
-    render(<TourDesignerTourEditWrapper />);
+  it("allows the TourOperator edit wrapper to open rejected tours", async () => {
+    render(<TourOperatorTourEditWrapper />);
 
     await waitFor(() => {
       expect(getTourDetailMock).toHaveBeenCalledWith("tour-1");
@@ -196,12 +196,12 @@ describe("TourDesigner resubmission flow", () => {
   });
 });
 
-describe("TourDesigner active tour edits", () => {
+describe("TourOperator active tour edits", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getTourDetailMock.mockResolvedValue(activeDetailTour);
     updateTourMock.mockResolvedValue(undefined);
-    useTourDesignerTourListMock.mockReturnValue({
+    useTourOperatorTourListMock.mockReturnValue({
       tours: [
         {
           id: "tour-2",
@@ -220,8 +220,8 @@ describe("TourDesigner active tour edits", () => {
     });
   });
 
-  it("shows the edit action for active tours in the TourDesigner list", async () => {
-    render(<TourDesignerTourListPage />);
+  it("shows the edit action for active tours in the TourOperator list", async () => {
+    render(<TourOperatorTourListPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Active Tour")).toBeInTheDocument();
@@ -229,12 +229,12 @@ describe("TourDesigner active tour edits", () => {
 
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
       "href",
-      "/tour-designer/tours/tour-2/edit",
+      "/tour-operator/tours/tour-2/edit",
     );
   });
 
-  it("shows the edit action for active tours in the TourDesigner detail page", async () => {
-    render(<TourDesignerTourDetailPage />);
+  it("shows the edit action for active tours in the TourOperator detail page", async () => {
+    render(<TourOperatorTourDetailPage />);
 
     await waitFor(() => {
       expect(getTourDetailMock).toHaveBeenCalledWith("tour-1");
@@ -242,12 +242,12 @@ describe("TourDesigner active tour edits", () => {
 
     expect(screen.getByRole("link", { name: /Edit/ })).toHaveAttribute(
       "href",
-      "/tour-designer/tours/tour-1/edit",
+      "/tour-operator/tours/tour-1/edit",
     );
   });
 
-  it("allows the TourDesigner edit wrapper to open active tours", async () => {
-    render(<TourDesignerTourEditWrapper />);
+  it("allows the TourOperator edit wrapper to open active tours", async () => {
+    render(<TourOperatorTourEditWrapper />);
 
     await waitFor(() => {
       expect(getTourDetailMock).toHaveBeenCalledWith("tour-1");

@@ -17,12 +17,12 @@ interface AssignExistingModalProps {
   isOpen: boolean;
   onClose: () => void;
   excludedUserIds: string[];
-  role: "TourDesigner" | "TourGuide";
+  role: "TourOperator" | "TourGuide";
   onAssign: (userId: string) => Promise<void>;
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  TourDesigner: "Tour Designer",
+  TourOperator: "Tour Operator",
   TourGuide: "Tour Guide",
 };
 
@@ -112,12 +112,12 @@ export function AssignExistingModal({
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: role === "TourDesigner" ? "#EDE9FE" : "#DBEAFE" }}
+              style={{ backgroundColor: role === "TourOperator" ? "#EDE9FE" : "#DBEAFE" }}
             >
               <UserPlusIcon
                 size={18}
                 weight="bold"
-                style={{ color: role === "TourDesigner" ? "#7C3AED" : "#2563EB" }}
+                style={{ color: role === "TourOperator" ? "#7C3AED" : "#2563EB" }}
               />
             </div>
             <div>

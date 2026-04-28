@@ -97,12 +97,12 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
 
         AssignedEntityType newEntityType = command.Request.StaffType switch
         {
-            1 => AssignedEntityType.TourDesigner,
+            1 => AssignedEntityType.TourOperator,
             2 => AssignedEntityType.TourGuide,
             _ => throw new InvalidOperationException($"Invalid StaffType: {command.Request.StaffType}")
         };
 
-        string targetRoleName = command.Request.StaffType == 1 ? "TourDesigner" : "TourGuide";
+        string targetRoleName = command.Request.StaffType == 1 ? "TourOperator" : "TourGuide";
         var targetRoleResult = await roleRepository.FindByNameAsync(targetRoleName);
         if (targetRoleResult.IsError || targetRoleResult.Value is null)
         {
@@ -132,7 +132,7 @@ public sealed class UpdateStaffUnderManagerCommandHandler(
         // 7. Map to DTO
         var displayRoleName = command.Request.StaffType switch
         {
-            1 => "Tour Designer",
+            1 => "Tour Operator",
             2 => "Tour Guide",
             _ => "Staff"
         };

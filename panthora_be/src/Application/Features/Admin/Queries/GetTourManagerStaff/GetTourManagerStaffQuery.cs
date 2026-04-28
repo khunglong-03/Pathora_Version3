@@ -56,7 +56,7 @@ public sealed class GetTourManagerStaffQueryHandler(
             {
                 var roleName = assignment.AssignedEntityType switch
                 {
-                    AssignedEntityType.TourDesigner => "Tour Designer",
+                    AssignedEntityType.TourOperator => "Tour Operator",
                     AssignedEntityType.TourGuide => "Tour Guide",
                     _ => "Staff"
                 };

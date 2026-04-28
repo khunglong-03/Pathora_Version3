@@ -1,6 +1,6 @@
 import React from "react";
-import { TourDesignerBookTransport } from "@/features/tour-designer/components/TourDesignerBookTransport";
+import { TourOperatorBookTransport } from "@/features/tour-operator/components/TourOperatorBookTransport";
 
 export default function BookTransportPage({ params }: { params: { id: string } }) {
-  return <TourDesignerBookTransport instanceId={params.id || "INST-001"} />;
+  return <TourOperatorBookTransport instanceId={params.id || "INST-001"} />;
 }

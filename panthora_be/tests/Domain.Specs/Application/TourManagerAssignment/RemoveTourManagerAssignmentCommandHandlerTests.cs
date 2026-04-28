@@ -31,7 +31,7 @@ public sealed class RemoveTourManagerAssignmentCommandHandlerTests
             managerId,
             assignedUserId,
             null,
-            AssignedEntityType.TourDesigner,
+            AssignedEntityType.TourOperator,
             Arg.Any<CancellationToken>());
     }
 
@@ -67,7 +67,7 @@ public sealed class RemoveTourManagerAssignmentCommandHandlerTests
             managerId,
             assignedUserId,
             null,
-            AssignedEntityType.TourDesigner,
+            AssignedEntityType.TourOperator,
             Arg.Any<CancellationToken>());
     }
 

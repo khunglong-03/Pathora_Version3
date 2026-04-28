@@ -403,7 +403,7 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
                 g.User.Id,
                 g.User.FullName ?? g.User.Username,
                 g.User.Email,
-                g.Assignments.Count(a => a.AssignedEntityType == AssignedEntityType.TourDesigner),
+                g.Assignments.Count(a => a.AssignedEntityType == AssignedEntityType.TourOperator),
                 g.Assignments.Count(a => a.AssignedEntityType == AssignedEntityType.TourGuide),
                 g.Assignments.Count(a => a.AssignedEntityType == AssignedEntityType.Tour)));
 

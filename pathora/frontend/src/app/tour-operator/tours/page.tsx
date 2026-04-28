@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { TourDesignerTourListPage } from "@/features/tour-designer/components/TourDesignerTourListPage";
+import { TourOperatorTourListPage } from "@/features/tour-operator/components/TourOperatorTourListPage";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "My Tours | Tour Designer",
+  title: "My Tours | Tour Operator",
 };
 
 export default function MyToursPage() {
@@ -16,7 +16,7 @@ export default function MyToursPage() {
         </div>
       }
     >
-      <TourDesignerTourListPage />
+      <TourOperatorTourListPage />
     </Suspense>
   );
 }

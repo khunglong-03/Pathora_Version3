@@ -16,7 +16,7 @@ using FluentValidation;
 namespace Application.Features.TourInstance.Commands;
 
 /// <summary>
-/// TourDesigner/Manager upload ảnh vé ngoài cho activity vận chuyển (Flight/Train/Boat/Other).
+/// TourOperator/Manager upload ảnh vé ngoài cho activity vận chuyển (Flight/Train/Boat/Other).
 /// Chỉ chạy được sau khi TourInstance đã có ít nhất một booking.
 /// </summary>
 public sealed record UploadTicketImageCommand(

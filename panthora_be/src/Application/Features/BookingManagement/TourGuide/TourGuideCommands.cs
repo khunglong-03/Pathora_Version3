@@ -229,19 +229,19 @@ public sealed class GetBookingTourManagerQueryHandler(
     }
 }
 
-public sealed record GetBookingTourDesignersQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTourOperatorsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-designers:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
-public sealed class GetBookingTourDesignersQueryHandler(
+public sealed class GetBookingTourOperatorsQueryHandler(
     IBookingRepository bookingRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     IOwnershipValidator ownershipValidator)
-    : IQueryHandler<GetBookingTourDesignersQuery, ErrorOr<List<BookingTeamMemberDto>>>
+    : IQueryHandler<GetBookingTourOperatorsQuery, ErrorOr<List<BookingTeamMemberDto>>>
 {
-    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourDesignersQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourOperatorsQuery request, CancellationToken cancellationToken)
     {
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
@@ -256,7 +256,7 @@ public sealed class GetBookingTourDesignersQueryHandler(
 
         var assignments = await bookingTourGuideRepository.GetByBookingIdAsync(request.BookingId);
         return assignments
-            .Where(x => x.AssignedRole == AssignedRole.TourDesigner)
+            .Where(x => x.AssignedRole == AssignedRole.TourOperator)
             .Select(x => new BookingTeamMemberDto(
                 x.Id,
                 x.BookingId,

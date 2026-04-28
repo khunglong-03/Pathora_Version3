@@ -45,7 +45,7 @@ export interface TourFormProps {
     lastModifiedOnUtc?: string,
   ) => Promise<void>;
   onCancel?: () => void;
-  /** Show policy/policy selector sections (hide for TourDesigner role) */
+  /** Show policy/policy selector sections (hide for TourOperator role) */
   showPolicySections?: boolean;
 }
 

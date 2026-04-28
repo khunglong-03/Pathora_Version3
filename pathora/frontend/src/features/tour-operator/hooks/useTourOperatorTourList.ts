@@ -5,7 +5,7 @@ import { handleApiError } from "@/utils/apiResponse";
 
 export type TourListState = "loading" | "ready" | "empty" | "error";
 
-interface UseTourDesignerTourListOptions {
+interface UseTourOperatorTourListOptions {
   searchText?: string;
   statusFilter?: string;
   tourScope?: string;
@@ -14,7 +14,7 @@ interface UseTourDesignerTourListOptions {
   pageSize?: number;
 }
 
-interface UseTourDesignerTourListResult {
+interface UseTourOperatorTourListResult {
   tours: TourVm[];
   total: number;
   state: TourListState;
@@ -22,9 +22,9 @@ interface UseTourDesignerTourListResult {
   refetch: () => void;
 }
 
-export function useTourDesignerTourList(
-  options: UseTourDesignerTourListOptions = {},
-): UseTourDesignerTourListResult {
+export function useTourOperatorTourList(
+  options: UseTourOperatorTourListOptions = {},
+): UseTourOperatorTourListResult {
   const {
     searchText = "",
     statusFilter = "all",

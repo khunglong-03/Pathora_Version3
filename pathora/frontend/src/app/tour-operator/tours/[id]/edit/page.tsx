@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 
-import { TourDesignerTourEditWrapper } from "@/features/tour-designer/components/TourDesignerTourEditWrapper";
+import { TourOperatorTourEditWrapper } from "@/features/tour-operator/components/TourOperatorTourEditWrapper";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return { title: "Edit Tour | Tour Designer" };
+  return { title: "Edit Tour | Tour Operator" };
 }
 
 export default async function EditTourPage() {
-  return <TourDesignerTourEditWrapper />;
+  return <TourOperatorTourEditWrapper />;
 }

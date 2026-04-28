@@ -1,6 +1,6 @@
 import React from "react";
-import { TourDesignerAssignServices } from "@/features/tour-designer/components/TourDesignerAssignServices";
+import { TourOperatorAssignServices } from "@/features/tour-operator/components/TourOperatorAssignServices";
 
 export default function AssignServicesPage({ params }: { params: { id: string } }) {
-  return <TourDesignerAssignServices instanceId={params.id || "INST-001"} />;
+  return <TourOperatorAssignServices instanceId={params.id || "INST-001"} />;
 }

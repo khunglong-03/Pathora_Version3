@@ -42,7 +42,7 @@ public sealed class ReassignStaffCommandHandler(
 
         var targetAssignment = currentAssignments
             .FirstOrDefault(a => a.AssignedUserId == request.StaffId
-                && (a.AssignedEntityType == AssignedEntityType.TourDesigner || a.AssignedEntityType == AssignedEntityType.TourGuide));
+                && (a.AssignedEntityType == AssignedEntityType.TourOperator || a.AssignedEntityType == AssignedEntityType.TourGuide));
 
         if (targetAssignment is null)
             return Error.NotFound("Admin.StaffNotAssigned", "Staff member is not assigned to the specified manager.");

@@ -1393,8 +1393,8 @@
     "staff": {
       "title": "Tạo mới nhân viên",
       "type": "Loại nhân viên",
-      "designer": "Tour Designer",
-      "designerDesc": "Thiết kế và lên kế hoạch tour",
+      "designer": "Tour Operator",
+      "designerDesc": "Điều phối và lên kế hoạch tour",
       "guide": "Tour Guide",
       "guideDesc": "Hướng dẫn và điều hành tour",
       "username": "Tên đăng nhập (Username)",
@@ -3102,13 +3102,13 @@
       }
     }
   },
-  "tourDesigner": {
-    "title": "Nhân Viên Thiết Kế Tour",
+  "tourOperator": {
+    "title": "Người Điều Phối Tour",
     "myTours": "Tour Của Tôi",
     "createTour": "Tạo Tour",
     "editTour": "Sửa Tour",
     "tourDetail": "Chi Tiết Tour",
-    "manageTours": "Quản lý thiết kế tour của bạn",
+    "manageTours": "Quản lý tour của bạn",
     "tourCount": "tour(s)",
     "searchPlaceholder": "Tìm kiếm tour...",
     "settings": "Cài đặt",

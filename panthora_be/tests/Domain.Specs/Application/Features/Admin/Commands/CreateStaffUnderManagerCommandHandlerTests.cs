@@ -53,15 +53,15 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidTourDesignerStaffType_CreatesUserAndAssignment()
+    public async Task Handle_ValidTourOperatorStaffType_CreatesUserAndAssignment()
     {
         var managerId = Guid.NewGuid();
         var manager = CreateManager(managerId);
-        var designerRole = new RoleEntity { Id = 4, Name = "TourDesigner" };
+        var designerRole = new RoleEntity { Id = 4, Name = "TourOperator" };
 
         _userRepository.FindById(managerId).Returns(manager);
         _userRepository.IsEmailUnique(Arg.Any<string>()).Returns(true);
-        _roleRepository.FindByNameAsync("TourDesigner").Returns(Task.FromResult<ErrorOr<RoleEntity?>>(designerRole));
+        _roleRepository.FindByNameAsync("TourOperator").Returns(Task.FromResult<ErrorOr<RoleEntity?>>(designerRole));
         _userRepository.Create(Arg.Any<UserEntity>()).Returns(Task.CompletedTask);
         _assignmentRepository.AssignAsync(Arg.Any<TourManagerAssignmentEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
@@ -77,7 +77,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
         await _assignmentRepository.Received(1).AssignAsync(
             Arg.Is<TourManagerAssignmentEntity>(e =>
                 e.TourManagerId == managerId &&
-                e.AssignedEntityType == AssignedEntityType.TourDesigner),
+                e.AssignedEntityType == AssignedEntityType.TourOperator),
             Arg.Any<CancellationToken>());
     }
 
@@ -131,10 +131,10 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
     {
         var managerId = Guid.NewGuid();
         var manager = CreateManager(managerId);
-        var designerRole = new RoleEntity { Id = 4, Name = "TourDesigner" };
+        var designerRole = new RoleEntity { Id = 4, Name = "TourOperator" };
 
         _userRepository.FindById(managerId).Returns(manager);
-        _roleRepository.FindByNameAsync("TourDesigner").Returns(Task.FromResult<ErrorOr<RoleEntity?>>(designerRole));
+        _roleRepository.FindByNameAsync("TourOperator").Returns(Task.FromResult<ErrorOr<RoleEntity?>>(designerRole));
         _userRepository.IsEmailUnique(Arg.Any<string>()).Returns(false);
 
         var command = new CreateStaffUnderManagerCommand(
@@ -155,7 +155,7 @@ public sealed class CreateStaffUnderManagerCommandHandlerTests
 
         _userRepository.FindById(managerId).Returns(manager);
         _userRepository.IsEmailUnique(Arg.Any<string>()).Returns(true);
-        _roleRepository.FindByNameAsync("TourDesigner").Returns(Task.FromResult<ErrorOr<RoleEntity?>>((RoleEntity?)null));
+        _roleRepository.FindByNameAsync("TourOperator").Returns(Task.FromResult<ErrorOr<RoleEntity?>>((RoleEntity?)null));
 
         var command = new CreateStaffUnderManagerCommand(
             managerId,

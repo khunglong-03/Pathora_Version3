@@ -63,7 +63,7 @@ export interface GetProvidersParams {
 }
 
 export interface CreateStaffRequest {
-  /** 1 = TourDesigner, 2 = TourGuide — matches backend CreateStaffUnderManagerRequest.StaffType */
+  /** 1 = TourOperator, 2 = TourGuide — matches backend CreateStaffUnderManagerRequest.StaffType */
   staffType: 1 | 2;
   username?: string;
   email: string;
