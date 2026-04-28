@@ -272,8 +272,11 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = user.Id ?? "system";
 
+        // Normalize owner email and username
+        var normalizedEmail = request.OwnerEmail.Trim().ToLowerInvariant();
+
         // 1. Check email uniqueness
-        var isUnique = await userRepository.IsEmailUnique(request.OwnerEmail);
+        var isUnique = await userRepository.IsEmailUnique(normalizedEmail);
         if (!isUnique)
         {
             return Error.Conflict(
@@ -313,13 +316,16 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
         var hashedPassword = passwordHasher.HashPassword(password);
 
         var userEntity = UserEntity.Create(
-            request.OwnerEmail,
-            request.OwnerFullName,
-            request.OwnerEmail,
+            normalizedEmail,
+            request.OwnerFullName.Trim(),
+            normalizedEmail,
             hashedPassword,
             performedBy: performedBy,
             avatar: null,
             forcePasswordChange: string.IsNullOrEmpty(request.Password));
+
+        // Mark as verified immediately
+        userEntity.VerifyStatus = VerifyStatus.Verified;
 
         Guid supplierId = default;
 
@@ -331,6 +337,11 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
         {
             // Create user (this calls SaveChangesAsync internally — OK as first op)
             await userRepository.Create(userEntity);
+
+            // Create user settings
+            var settingsRepo = unitOfWork.GenericRepository<UserSettingEntity>();
+            var settings = UserSettingEntity.Create(userEntity.Id, performedBy);
+            await settingsRepo.AddAsync(settings);
 
             // Assign role (AddUser only adds to context, no save)
             var roleAddResult = await roleRepository.AddUser(userEntity.Id, [roleId]);
@@ -355,37 +366,39 @@ public sealed class CreateSupplierWithOwnerCommandHandler(
             await supplierRepository.AddAsync(supplier);
             supplierId = supplier.Id;
 
-            // 6. Generate password-reset token and queue email so owner can set their password
-            var resetToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            var tokenHash = passwordHasher.HashPassword(resetToken);
-            var expiresAt = DateTimeOffset.UtcNow.AddHours(24);
-
-            var resetTokenEntity = Domain.Entities.PasswordResetTokenEntity.Create(
-                userEntity.Id.ToString(),
-                tokenHash,
-                expiresAt);
-
-            // Add token directly without calling CreateAsync (which triggers SaveChangesAsync)
-            await passwordResetTokenRepository.AddWithoutSaveAsync(resetTokenEntity);
-
-            var frontendUrl = configuration["AppConfig:FrontendBaseUrl"]
-                ?? throw new InvalidOperationException("AppConfig:FrontendBaseUrl is not configured.");
-
-            var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?token={resetToken}";
-
-            var mailEntity = new Domain.Mails.MailEntity
+            // 6. Only queue reset-email when admin did NOT provide a password.
+            //    If admin set a password directly, the owner can log in with it — no reset flow needed.
+            if (string.IsNullOrEmpty(request.Password))
             {
-                To = request.OwnerEmail,
-                Subject = "Password Reset",
-                Body = System.Text.Json.JsonSerializer.Serialize(
-                    new Domain.Mails.PasswordResetMail(resetLink, userEntity.Username ?? request.OwnerEmail, 24)),
-                Template = nameof(Domain.Mails.PasswordResetMail),
-            };
+                var resetToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                var tokenHash = passwordHasher.HashPassword(resetToken);
+                var expiresAt = DateTimeOffset.UtcNow.AddHours(24);
 
-            // Add mail directly without calling Add (which triggers SaveChangesAsync)
-            await mailRepository.AddWithoutSaveAsync(mailEntity);
+                var resetTokenEntity = Domain.Entities.PasswordResetTokenEntity.Create(
+                    userEntity.Id.ToString(),
+                    tokenHash,
+                    expiresAt);
+
+                await passwordResetTokenRepository.AddWithoutSaveAsync(resetTokenEntity);
+
+                var frontendUrl = configuration["AppConfig:FrontendBaseUrl"]
+                    ?? throw new InvalidOperationException("AppConfig:FrontendBaseUrl is not configured.");
+
+                var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?token={resetToken}";
+
+                var mailEntity = new Domain.Mails.MailEntity
+                {
+                    To = normalizedEmail,
+                    Subject = "Password Reset",
+                    Body = System.Text.Json.JsonSerializer.Serialize(
+                        new Domain.Mails.PasswordResetMail(resetLink, userEntity.Username ?? normalizedEmail, 24)),
+                    Template = nameof(Domain.Mails.PasswordResetMail),
+                };
+
+                await mailRepository.AddWithoutSaveAsync(mailEntity);
+            }
         });
 
-        return (userEntity.Id, supplierId, request.OwnerEmail);
+        return (userEntity.Id, supplierId, normalizedEmail);
     }
 }

@@ -53,6 +53,7 @@ public class TourController(
     };
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetMyTours(
         [FromQuery] string? searchText,
         [FromQuery] TourStatus? status,

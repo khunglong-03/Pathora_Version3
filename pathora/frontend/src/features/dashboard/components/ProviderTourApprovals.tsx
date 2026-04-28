@@ -62,9 +62,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
               }}
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="0">Đang chờ duyệt</option>
-              <option value="1">Đã duyệt</option>
-              <option value="2">Đã từ chối</option>
+              <option value="1">Đang chờ duyệt</option>
+              <option value="2">Đã duyệt</option>
+              <option value="3">Đã từ chối</option>
             </select>
           </div>
         </div>

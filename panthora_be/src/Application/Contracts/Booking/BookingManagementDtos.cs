@@ -388,7 +388,8 @@ public sealed record CreateSupplierWithOwnerDto(
     [property: JsonPropertyName("email")] string? Email,
     [property: JsonPropertyName("address")] string? Address,
     [property: JsonPropertyName("note")] string? Note,
-    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent,
+    [property: JsonPropertyName("password")] string? Password = null
 );
 
 public sealed record CreateSupplierWithOwnerResponse(

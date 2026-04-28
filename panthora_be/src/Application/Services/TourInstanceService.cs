@@ -1130,12 +1130,10 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], pageNumber, pageSize);
         }
 
-        // Use the first supplier ID for the repository query (which internally handles
-        // hotel access via accommodation-level joins across all owner suppliers)
-        var primarySupplierId = suppliers[0].Id;
+        var supplierIds = suppliers.Select(s => s.Id).ToList();
 
-        var entities = await _tourInstanceRepository.FindProviderAssigned(primarySupplierId, pageNumber, pageSize, approvalStatus, cancellationToken);
-        var total = await _tourInstanceRepository.CountProviderAssigned(primarySupplierId, approvalStatus, cancellationToken);
+        var entities = await _tourInstanceRepository.FindProviderAssigned(supplierIds, pageNumber, pageSize, approvalStatus, cancellationToken);
+        var total = await _tourInstanceRepository.CountProviderAssigned(supplierIds, approvalStatus, cancellationToken);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);

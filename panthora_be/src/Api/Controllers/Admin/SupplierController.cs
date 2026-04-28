@@ -59,7 +59,8 @@ public class SupplierController : BaseApiController
             request.Email,
             request.Address,
             request.Note,
-            request.PrimaryContinent);
+            request.PrimaryContinent,
+            request.Password);
 
         var result = await Sender.Send(command);
         return HandleSupplierWithOwnerCreated(result);

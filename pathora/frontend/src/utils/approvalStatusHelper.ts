@@ -68,7 +68,8 @@ export const getApprovalAppearance = (status?: string | null): ApprovalAppearanc
 /**
  * Returns the visual appearance for a **numeric** instance-level `transportApprovalStatus`.
  *
- * Mapping: 0 = Pending, 1 = Approved, 2 = Rejected, undefined/other = unassigned.
+ * Mapping (mirrors backend ProviderApprovalStatus): 
+ * 1 = Pending, 2 = Approved, 3 = Rejected, undefined/0/other = unassigned.
  *
  * @note This maps from the instance-level field which is a transition artifact.
  * Per-activity `transportationApprovalStatus` (string) is authoritative.
@@ -78,10 +79,10 @@ export const getInstanceApprovalAppearance = (
 ): ApprovalAppearance => {
   switch (status) {
     case 1:
-      return getAppearanceForState("approved");
-    case 0:
       return getAppearanceForState("pending");
     case 2:
+      return getAppearanceForState("approved");
+    case 3:
       return getAppearanceForState("rejected");
     default:
       return getAppearanceForState("unassigned");

@@ -26,8 +26,8 @@ public interface ITourInstanceRepository
     Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindPublicById(Guid id, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default);
-    Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
-    Task<int> CountProviderAssigned(Guid providerId, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindProviderAssigned(IEnumerable<Guid> providerIds, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
+    Task<int> CountProviderAssigned(IEnumerable<Guid> providerIds, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindByManagerUserIds(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindConflictingInstancesForManagers(IEnumerable<Guid> userIds, DateTimeOffset startDate, DateTimeOffset endDate, Guid? excludeInstanceId = null, CancellationToken cancellationToken = default);
 

@@ -177,6 +177,19 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         RequestedVehicleCount = vehicleCount;
         TransportationApprovalStatus = ProviderApprovalStatus.Pending;
         TransportationApprovalNote = null;
+
+        // Auto-fix TransportationType if it's null or Walking (0)
+        // to ensure it passes repository ground-filters.
+        if (!TransportationType.HasValue || TransportationType == Domain.Enums.TransportationType.Walking)
+        {
+            TransportationType = vehicleType switch
+            {
+                VehicleType.Car => Domain.Enums.TransportationType.Car,
+                VehicleType.Motorbike => Domain.Enums.TransportationType.Motorbike,
+                _ => Domain.Enums.TransportationType.Bus
+            };
+        }
+
         // Clear previous vehicle/driver assignment — provider must re-approve
         VehicleId = null;
         DriverId = null;

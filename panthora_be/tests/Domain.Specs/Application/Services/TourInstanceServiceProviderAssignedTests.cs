@@ -85,9 +85,9 @@ public class TourInstanceServiceProviderAssignedTests
             new() { Id = Guid.NewGuid(), Title = "Tour 1" }
         };
 
-        _tourInstanceRepository.FindProviderAssigned(supplierId, 1, 10, null, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindProviderAssigned(Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(supplierId)), 1, 10, null, Arg.Any<CancellationToken>())
             .Returns(tourInstances);
-        _tourInstanceRepository.CountProviderAssigned(supplierId, null, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountProviderAssigned(Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(supplierId)), null, Arg.Any<CancellationToken>())
             .Returns(1);
 
         _mapper.Map<TourInstanceVm>(Arg.Any<TourInstanceEntity>())
@@ -138,17 +138,14 @@ public class TourInstanceServiceProviderAssignedTests
         _supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(suppliers);
 
-        // According to the implementation, it uses suppliers[0].Id
-        var primarySupplierId = supplier1Id;
-
         var tourInstances = new List<TourInstanceEntity>
         {
             new() { Id = Guid.NewGuid(), Title = "Combined Tour" }
         };
 
-        _tourInstanceRepository.FindProviderAssigned(primarySupplierId, 1, 10, null, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindProviderAssigned(Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(supplier1Id) && ids.Contains(supplier2Id)), 1, 10, null, Arg.Any<CancellationToken>())
             .Returns(tourInstances);
-        _tourInstanceRepository.CountProviderAssigned(primarySupplierId, null, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountProviderAssigned(Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(supplier1Id) && ids.Contains(supplier2Id)), null, Arg.Any<CancellationToken>())
             .Returns(1);
 
         _mapper.Map<TourInstanceVm>(Arg.Any<TourInstanceEntity>())
@@ -179,6 +176,6 @@ public class TourInstanceServiceProviderAssignedTests
         Assert.False(result.IsError);
         Assert.Equal(1, result.Value.Total);
         await _supplierRepository.Received(1).FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>());
-        await _tourInstanceRepository.Received(1).FindProviderAssigned(primarySupplierId, 1, 10, null, Arg.Any<CancellationToken>());
+        await _tourInstanceRepository.Received(1).FindProviderAssigned(Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(supplier1Id) && ids.Contains(supplier2Id)), 1, 10, null, Arg.Any<CancellationToken>());
     }
 }

@@ -21,6 +21,26 @@ public static class AuthPortalResolver
             return PortalRouting.Admin;
         }
 
+        if (names.Contains("TransportProvider"))
+        {
+            return PortalRouting.TransportProvider;
+        }
+
+        if (names.Contains("HotelServiceProvider"))
+        {
+            return PortalRouting.HotelServiceProvider;
+        }
+
+        if (names.Contains("TourDesigner"))
+        {
+            return PortalRouting.TourDesigner;
+        }
+
+        if (names.Contains("TourGuide"))
+        {
+            return PortalRouting.TourGuide;
+        }
+
         if (names.Contains("Customer"))
         {
             return PortalRouting.User;
@@ -38,6 +58,14 @@ public sealed record PortalRouting(string Portal, string DefaultPath)
     /// Manager portal — shares "admin" cookie portal but uses /manager default path.
     /// </summary>
     public static PortalRouting Manager { get; } = new("admin", "/manager");
+
+    public static PortalRouting TransportProvider { get; } = new("user", "/transport");
+
+    public static PortalRouting HotelServiceProvider { get; } = new("user", "/hotel");
+
+    public static PortalRouting TourDesigner { get; } = new("user", "/tour-designer");
+
+    public static PortalRouting TourGuide { get; } = new("user", "/tour-guide");
 
     public static PortalRouting User { get; } = new("user", "/");
 }

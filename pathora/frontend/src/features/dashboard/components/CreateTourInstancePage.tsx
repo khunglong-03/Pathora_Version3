@@ -2498,7 +2498,10 @@ export function CreateTourInstancePage({
         const detail = await tourService.getTourDetail(form.tourId);
         setTourDetail(detail);
 
-        setAvailableServices(detail?.includedServices ?? []);
+        const servicesFromDetail = detail?.includedServices ??
+                                  detail?.services?.map(s => s.serviceName) ??
+                                  [];
+        setAvailableServices(servicesFromDetail);
 
         setForm((current) => {
           const next = { ...current, classificationId: "" };
@@ -2506,9 +2509,9 @@ export function CreateTourInstancePage({
           if (detail) {
             if (
               next.includedServices.length === 0 &&
-              detail.includedServices?.length > 0
+              servicesFromDetail.length > 0
             ) {
-              next.includedServices = detail.includedServices;
+              next.includedServices = servicesFromDetail;
             }
             // Auto-fill images from tour
             if (!next.thumbnailUrl) {
@@ -2988,9 +2991,18 @@ export function CreateTourInstancePage({
     try {
       setSubmitting(true);
 
+      // Build a map of activityId -> activityType from our editable state
+      // to ensure we correctly route assignments (Hotel vs Transport) even if the user changed types.
+      const activityTypeMap: Record<string, string> = {};
+      editableItinerary.forEach((day) => {
+        day.activities.forEach((act) => {
+          activityTypeMap[act.id] = act.activityType;
+        });
+      });
+
       const mappedActivityAssignments = mapActivityAssignmentsForPayload(
         form.activityAssignments,
-        buildActivityTypeByActivityId(selectedClassification),
+        activityTypeMap,
       );
 
       const payload: CreateTourInstancePayload = {

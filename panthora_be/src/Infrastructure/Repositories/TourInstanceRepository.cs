@@ -365,41 +365,30 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindProviderAssigned(IEnumerable<Guid> providerIds, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        // Provider chỉ duyệt activity có TransportationType thuộc nhóm Ground (Bus/Car/Motorbike/Taxi/Bicycle).
-        // Flight/Train/Boat/Other do TourDesigner upload vé ngoài; Walking auto-skip — đều bị loại khỏi Provider scope.
-        var activityQuery = _context.TourInstanceDayActivities.AsNoTracking()
-            .Where(a => (a.TransportSupplierId == providerId
-                            && a.TransportationType.HasValue
-                            && GroundTransportationTypes.Contains(a.TransportationType.Value))
-                        || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
+        var idList = providerIds.ToList();
+        if (idList.Count == 0) return [];
+
+        var query = _context.TourInstances.AsNoTracking()
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a => 
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-            activityQuery = activityQuery.Where(a =>
-                (a.TransportSupplierId == providerId
-                    && a.TransportationType.HasValue
-                    && GroundTransportationTypes.Contains(a.TransportationType.Value)
-                    && a.TransportationApprovalStatus == status) ||
-                (a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status));
+            query = query.Where(t => t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value) && a.TransportationApprovalStatus == status) ||
+                (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value) && a.Accommodation.SupplierApprovalStatus == status))));
         }
 
-        var instanceIds = activityQuery
-            .Select(a => a.TourInstanceDay.TourInstanceId)
-            .Distinct();
-
-        var query = _context.TourInstances
-            .AsNoTracking()
+        return await query
             .Include(t => t.Tour)
             .Include(t => t.Classification)
             .Include(t => t.Thumbnail)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
-            .Where(t => !t.IsDeleted && instanceIds.Contains(t.Id));
-
-        return await query
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -407,32 +396,25 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountProviderAssigned(Guid providerId, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountProviderAssigned(IEnumerable<Guid> providerIds, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        var activityQuery = _context.TourInstanceDayActivities.AsNoTracking()
-            .Where(a => (a.TransportSupplierId == providerId
-                            && a.TransportationType.HasValue
-                            && GroundTransportationTypes.Contains(a.TransportationType.Value))
-                        || (a.Accommodation != null && a.Accommodation.SupplierId == providerId));
+        var idList = providerIds.ToList();
+        if (idList.Count == 0) return 0;
+
+        var query = _context.TourInstances.AsNoTracking()
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a => 
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-            activityQuery = activityQuery.Where(a =>
-                (a.TransportSupplierId == providerId
-                    && a.TransportationType.HasValue
-                    && GroundTransportationTypes.Contains(a.TransportationType.Value)
-                    && a.TransportationApprovalStatus == status) ||
-                (a.Accommodation != null && a.Accommodation.SupplierId == providerId && a.Accommodation.SupplierApprovalStatus == status));
+            query = query.Where(t => t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value) && a.TransportationApprovalStatus == status) ||
+                (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value) && a.Accommodation.SupplierApprovalStatus == status))));
         }
 
-        var instanceIds = activityQuery
-            .Select(a => a.TourInstanceDay.TourInstanceId)
-            .Distinct();
-
-        return await _context.TourInstances
-            .Where(t => !t.IsDeleted && instanceIds.Contains(t.Id))
-            .CountAsync(cancellationToken);
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task<List<TourInstanceEntity>> FindByManagerUserIds(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
