@@ -39,15 +39,15 @@ public static class RegisterMiddleware
 
         app.UseSwaggerApi();
 
-        app.MapHealthChecks("/health");
+        app.MapHealthChecks("/health").AllowAnonymous();
         app.MapHealthChecks("/health/live", new()
         {
             Predicate = check => check.Name == "self"
-        });
+        }).AllowAnonymous();
         app.MapHealthChecks("/health/ready", new()
         {
             Predicate = check => check.Name == "database"
-        });
+        }).AllowAnonymous();
 
         return app;
     }
