@@ -88,7 +88,9 @@ export const handleResponseError = async (
 
         // Update access_token cookie (non-HttpOnly, JS-readable)
         if (typeof document !== "undefined") {
-          document.cookie = `access_token=${newAccessToken}; path=/; SameSite=Lax`;
+          const isSecure = window.location.protocol === "https:";
+          const sameSite = isSecure ? "None" : "Lax";
+          document.cookie = `access_token=${newAccessToken}; path=/; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
         }
 
         // Retry the original request with the new token

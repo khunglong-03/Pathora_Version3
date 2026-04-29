@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { AuthState, UserInfo } from "../domain/auth";
 import { getValidAccessToken } from "../../utils/authSession";
+import { getCookie } from "../../utils/cookie";
 
 const storedUser =
   typeof window !== "undefined"
@@ -10,9 +11,17 @@ const storedUser =
 const hasValidSession =
   typeof window !== "undefined" ? Boolean(getValidAccessToken()) : false;
 
+// Even if access_token expired, if auth_status cookie exists (set for 7 days),
+// the refresh_token is likely still valid. Keep the user "authenticated" so
+// the response interceptor can auto-refresh on the next API call.
+const hasRefreshableSession =
+  typeof window !== "undefined" && !hasValidSession
+    ? Boolean(getCookie("auth_status"))
+    : false;
+
 const initialState: AuthState = {
-  user: hasValidSession ? storedUser : null,
-  isAuth: hasValidSession && !!storedUser,
+  user: (hasValidSession || hasRefreshableSession) ? storedUser : null,
+  isAuth: (hasValidSession || hasRefreshableSession) && !!storedUser,
   token: null,
 };
 

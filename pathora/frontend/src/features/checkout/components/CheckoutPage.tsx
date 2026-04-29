@@ -56,12 +56,28 @@ const itemVariants: Variants = {
 };
 
 /* ── Step Indicator ────────────────────────────────────────── */
-function StepIndicator() {
+function StepIndicator({ normalizedStatus }: { normalizedStatus: NormalizedPaymentStatus }) {
   const { t } = useTranslation();
+
+  // Compute dynamic step statuses based on payment state
+  const isPaymentComplete = normalizedStatus === "paid";
+  const isPaymentTerminal = normalizedStatus === "failed" || normalizedStatus === "cancelled" || normalizedStatus === "expired";
+
+  const steps = STEP_KEYS.map((step, i) => {
+    let status: "completed" | "active" | "upcoming" = step.status;
+    if (i === 0) {
+      status = "completed"; // Step 1 (Select Tour) is always completed on checkout page
+    } else if (i === 1) {
+      status = isPaymentComplete || isPaymentTerminal ? "completed" : "active";
+    } else if (i === 2) {
+      status = isPaymentComplete ? "active" : isPaymentTerminal ? "upcoming" : "upcoming";
+    }
+    return { ...step, status };
+  });
 
   return (
     <div className="flex items-center justify-center gap-2 mb-10 mt-4">
-      {STEP_KEYS.map((step, i) => (
+      {steps.map((step, i) => (
         <React.Fragment key={step.key}>
           <div className="flex flex-col items-center gap-2">
             {step.status === "completed" ? (
@@ -85,10 +101,10 @@ function StepIndicator() {
             </span>
           </div>
 
-          {i < STEP_KEYS.length - 1 && (
+          {i < steps.length - 1 && (
             <div
               className={`h-0.5 w-12 md:w-20 mx-2 -mt-6 rounded-full ${
-                i === 0 ? "bg-zinc-900" : "bg-slate-200"
+                step.status === "completed" ? "bg-zinc-900" : "bg-slate-200"
               }`}
             />
           )}
@@ -502,7 +518,7 @@ export function CheckoutPage() {
             transition={{ delay: 0.1, duration: 0.4 }}
             className="mb-8"
           >
-            <StepIndicator />
+            <StepIndicator normalizedStatus={normalizedStatus} />
           </motion.div>
 
           {/* ── Two-column layout ─────────────────────────── */}
@@ -531,18 +547,7 @@ export function CheckoutPage() {
                 </motion.div>
               )}
 
-              {transaction && needsBookingCreation && (
-                <motion.div variants={itemVariants}>
-                  <CustomerInfoCard
-                    customerName={customerName}
-                    setCustomerName={setCustomerName}
-                    customerPhone={customerPhone}
-                    setCustomerPhone={setCustomerPhone}
-                    customerEmail={customerEmail}
-                    setCustomerEmail={setCustomerEmail}
-                  />
-                </motion.div>
-              )}
+
 
               {needsBookingCreation && !transaction && (
                 <motion.div variants={itemVariants}>
@@ -557,14 +562,16 @@ export function CheckoutPage() {
                 </motion.div>
               )}
 
-              <motion.div variants={itemVariants}>
-                <TermsConditionsCard
-                  agreeTerms={agreeTerms}
-                  setAgreeTerms={setAgreeTerms}
-                  acknowledgeInfo={acknowledgeInfo}
-                  setAcknowledgeInfo={setAcknowledgeInfo}
-                />
-              </motion.div>
+              {normalizedStatus !== "paid" && (
+                <motion.div variants={itemVariants}>
+                  <TermsConditionsCard
+                    agreeTerms={agreeTerms}
+                    setAgreeTerms={setAgreeTerms}
+                    acknowledgeInfo={acknowledgeInfo}
+                    setAcknowledgeInfo={setAcknowledgeInfo}
+                  />
+                </motion.div>
+              )}
             </div>
 
             {/* ════════ RIGHT COLUMN (sidebar) ════════════ */}
