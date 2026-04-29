@@ -130,6 +130,15 @@ class SignalRService {
     }
   }
 
+  async invoke(method: string, ...args: unknown[]): Promise<void> {
+    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+      await this.connect();
+    }
+    if (this.connection?.state === signalR.HubConnectionState.Connected) {
+      await this.connection.invoke(method, ...args);
+    }
+  }
+
   // Event subscription methods
   onNotification(handler: NotificationHandler): () => void {
     this.notificationHandlers.push(handler);

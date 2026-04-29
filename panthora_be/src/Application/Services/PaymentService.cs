@@ -335,7 +335,8 @@ public class PaymentService : IPaymentService
     {
         try
         {
-            var booking = await _bookingRepository.GetByIdAsync(transaction.BookingId);
+            var booking = transaction.Booking
+                ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
             if (booking == null)
             {
                 _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
@@ -378,8 +379,10 @@ public class PaymentService : IPaymentService
                     break;
             }
 
-            // Persist booking status change to database
-            await _bookingRepository.UpdateAsync(booking);
+            // Booking is already tracked via transaction.Booking nav (or GetByIdWithDetailsAsync).
+            // No need to call UpdateAsync — EF change tracker picks up state mutation.
+            // SaveChangeAsync in caller will persist.
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {

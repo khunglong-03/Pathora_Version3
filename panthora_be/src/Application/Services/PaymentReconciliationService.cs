@@ -179,6 +179,21 @@ public sealed class PaymentReconciliationService(
             snapshot.NormalizedStatus,
             verifiedWithProvider: true);
 
+        // Broadcast SignalR so FE auto-confirms without user clicking "Đã chuyển khoản"
+        if (_notificationBroadcaster != null)
+        {
+            try
+            {
+                await _notificationBroadcaster.BroadcastAsync(snapshot);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to broadcast SignalR payment update for {TransactionCode}",
+                    result.Value.TransactionCode);
+            }
+        }
+
         return snapshot;
     }
 
