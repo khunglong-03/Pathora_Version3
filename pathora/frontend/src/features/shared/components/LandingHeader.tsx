@@ -454,17 +454,31 @@ export const LandingHeader = () => {
   const [authView, setAuthView] = useState<"signup" | "login" | "forgot">(
     "signup",
   );
-  const loginRequested = searchParams.get("login") === "true";
-  const effectiveAuthOpen = authOpen || loginRequested;
-  const effectiveAuthView = loginRequested ? "login" : authView;
 
   useEffect(() => {
-    if (loginRequested) {
+    if (searchParams.get("login") === "true") {
+      // Clean up the URL regardless of auth state to prevent stuck URL param
       const url = new URL(window.location.href);
       url.searchParams.delete("login");
-      router.replace(url.pathname, { scroll: false });
+      router.replace(`${url.pathname}${url.search}`, { scroll: false });
+
+      // Only open the modal if the user is NOT authenticated
+      if (!clientIsAuth) {
+        setAuthOpen(true);
+        setAuthView("login");
+      }
     }
-  }, [loginRequested, router]);
+  }, [searchParams, clientIsAuth, router]);
+
+  // If user becomes authenticated while modal is open, close it
+  useEffect(() => {
+    if (clientIsAuth && authOpen) {
+      setAuthOpen(false);
+    }
+  }, [clientIsAuth, authOpen]);
+
+  const effectiveAuthOpen = authOpen;
+  const effectiveAuthView = authView;
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
