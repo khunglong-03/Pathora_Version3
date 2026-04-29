@@ -97,9 +97,6 @@ public sealed class RequestPublicPrivateTourCommandValidator : AbstractValidator
 
         RuleFor(x => x.PaymentMethod)
             .IsInEnum().WithMessage(ValidationMessages.PublicBookingPaymentMethodInvalid);
-
-        RuleFor(x => x.IsFullPay)
-            .Equal(true).WithMessage("Đặt tour riêng yêu cầu thanh toán 100% giá công bố ban đầu.");
     }
 }
 
