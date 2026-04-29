@@ -16,8 +16,14 @@ public static class RegisterMiddleware
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
         };
+        // Trust all proxies. Production runs behind a reverse proxy (nginx / traefik / duckdns
+        // tunnel) on a private container network; without this the X-Forwarded-Proto header is
+        // dropped, Request.IsHttps stays false, and SameSite=None/Secure auth cookies never get
+        // written — login appears to succeed but every follow-up call is 401.
         forwardedOptions.KnownIPNetworks.Clear();
         forwardedOptions.KnownProxies.Clear();
+        forwardedOptions.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("0.0.0.0/0"));
+        forwardedOptions.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("::/0"));
         app.UseForwardedHeaders(forwardedOptions);
 
         app.UseMiddleware<StartupCacheClearMiddleware>();
