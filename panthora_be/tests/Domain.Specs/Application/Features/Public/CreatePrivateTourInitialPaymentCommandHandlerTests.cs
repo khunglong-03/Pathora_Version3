@@ -11,10 +11,12 @@ namespace Domain.Specs.Application.Features.Public.Commands;
 public sealed class CreatePrivateTourInitialPaymentCommandHandlerTests
 {
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
+    private readonly IDepositPolicyRepository _depositPolicyRepository = Substitute.For<IDepositPolicyRepository>();
+    private readonly ITourInstanceRepository _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
     private readonly IPaymentService _paymentService = Substitute.For<IPaymentService>();
 
     private CreatePrivateTourInitialPaymentCommandHandler CreateHandler()
-        => new(_bookingRepository, _paymentService);
+        => new(_bookingRepository, _depositPolicyRepository, _tourInstanceRepository, _paymentService);
 
     [Fact]
     public async Task HappyPath_UsesFullPaymentAndBookingTotalPrice()

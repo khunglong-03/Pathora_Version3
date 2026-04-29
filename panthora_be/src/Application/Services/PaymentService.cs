@@ -490,6 +490,23 @@ public class PaymentService : IPaymentService
                         _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
                             booking.Id, transaction.TransactionCode);
                     }
+
+                    // Khi thanh toán deposit cho Private tour Draft → xác nhận instance và gán nhà cung cấp
+                    if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Draft
+                        && booking.BookingType == BookingType.PrivateCustomTourRequest)
+                    {
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private tour instance {InstanceId} confirmed after deposit payment (transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
+
+                        using var scope = _serviceProvider.CreateScope();
+                        var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
+                        await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                    }
                 }
                 break;
 
@@ -501,17 +518,19 @@ public class PaymentService : IPaymentService
                     _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
                         booking.Id, transaction.TransactionCode);
 
+                    // Khi full pay cho Private tour (Draft hoặc PendingAdjustment) → xác nhận instance
                     if (tourInstance.InstanceType == TourType.Private
-                        && tourInstance.Status == TourInstanceStatus.PendingAdjustment)
+                        && (tourInstance.Status == TourInstanceStatus.Draft
+                            || tourInstance.Status == TourInstanceStatus.PendingAdjustment)
+                        && booking.BookingType == BookingType.PrivateCustomTourRequest)
                     {
                         tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
                         await _tourInstanceRepository.Update(tourInstance);
                         _logger.LogInformation(
-                            "Private tour instance {InstanceId} confirmed after top-up (transaction {TransactionCode}).",
+                            "Private tour instance {InstanceId} confirmed after full payment (transaction {TransactionCode}).",
                             tourInstance.Id,
                             transaction.TransactionCode);
 
-                        // Trigger provider assignments now that the tour is confirmed
                         using var scope = _serviceProvider.CreateScope();
                         var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
                         await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
