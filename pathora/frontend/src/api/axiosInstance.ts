@@ -11,7 +11,6 @@ import { showErrorToast } from "./showErrorToast";
 import { getCurrentApiLanguage } from "./languageHeader";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
 import { getCookie } from "@/utils/cookie";
-import { clearAuthSession } from "@/utils/authSession";
 
 const API_BASE_URL: string = API_GATEWAY_BASE_URL;
 
@@ -59,11 +58,14 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 const onUnauthorized = (): void => {
-  if (typeof document !== "undefined") {
-    clearAuthSession();
-  }
   if (typeof window !== "undefined") {
-    window.location.href = "/";
+    // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
+    // để user re-login và giữ nguyên context (booking history, etc.)
+    const currentPath = window.location.pathname + window.location.search;
+    const loginUrl = new URL("/", window.location.origin);
+    loginUrl.searchParams.set("login", "true");
+    loginUrl.searchParams.set("next", currentPath);
+    window.location.href = loginUrl.toString();
   }
 };
 

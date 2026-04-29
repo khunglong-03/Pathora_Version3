@@ -9,7 +9,6 @@ import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
 import { getCurrentApiLanguage } from "../../api/languageHeader";
 import { getCookie } from "../../utils/cookie";
 import { refreshAccessToken } from "@/api/tokenRefreshCoordinator";
-import { clearAuthSession } from "@/utils/authSession";
 
 const baseUrl = API_GATEWAY_BASE_URL;
 
@@ -51,9 +50,13 @@ export function createBaseQueryWithReauth(
     try {
       await refreshAccessToken();
     } catch {
-      clearAuthSession();
+      // Không xóa session — redirect về login để user re-authenticate
       if (typeof window !== "undefined") {
-        window.location.href = "/";
+        const currentPath = window.location.pathname + window.location.search;
+        const loginUrl = new URL("/", window.location.origin);
+        loginUrl.searchParams.set("login", "true");
+        loginUrl.searchParams.set("next", currentPath);
+        window.location.href = loginUrl.toString();
       }
       return result;
     }

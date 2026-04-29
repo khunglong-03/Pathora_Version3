@@ -41,7 +41,6 @@ import {
   FiSettings,
   FiLock,
 } from "react-icons/fi";
-import { bookingService, RecentBooking } from "@/api/services/bookingService";
 
 const languages = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -519,8 +518,7 @@ export const LandingHeader = () => {
   const effectiveAuthView = authView;
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
+
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -599,44 +597,7 @@ export const LandingHeader = () => {
     !user?.roles?.length ||
     user.roles.every((r) => r.name.toLowerCase() === "customer");
 
-  // Fetch recent bookings when user menu opens (Only for Customers)
-  useEffect(() => {
-    if (!clientIsAuth || !userMenuOpen || !isCustomer) return;
 
-    const fetchRecentBookings = async () => {
-      setBookingsLoading(true);
-      try {
-        const bookings = await bookingService.getRecentBookings(3);
-        setRecentBookings(bookings);
-      } catch (err) {
-        console.error("[LandingHeader] getRecentBookings error:", err);
-        setRecentBookings([]);
-      } finally {
-        setBookingsLoading(false);
-      }
-    };
-
-    fetchRecentBookings();
-  }, [clientIsAuth, userMenuOpen, user?.roles]);
-
-  // Helper to get status color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
-      case "approved":
-        return "bg-green-500/20 text-green-400";
-      case "completed":
-        return "bg-blue-500/20 text-blue-400";
-      case "pending":
-      case "pending_approval":
-        return "bg-yellow-500/20 text-yellow-400";
-      case "cancelled":
-      case "rejected":
-        return "bg-red-500/20 text-red-400";
-      default:
-        return "bg-gray-500/20 text-gray-400";
-    }
-  };
 
   return (
     <>
@@ -847,85 +808,17 @@ export const LandingHeader = () => {
                       </div>
                     </div>
 
-                    {/* Recent Bookings */}
-                    {recentBookings.length > 0 && (
+                    {/* My Bookings quick link */}
+                    {clientIsAuth && isCustomer && (
                       <div className="border-t border-white/10">
-                        <div className="px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          {t("booking.recentBookings") || "Tour đã đặt"}
-                        </div>
-                        <div className="max-h-48 overflow-y-auto">
-                          {recentBookings.map((booking) => (
-                            <Link
-                              key={booking.bookingId}
-                              href={`/bookings/${booking.bookingId}`}
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex w-full items-start gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
-                            >
-                              <FiCalendar className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate font-medium">
-                                  {booking.tourName}
-                                </p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs text-gray-400">
-                                    {new Date(
-                                      booking.departureDate,
-                                    ).toLocaleDateString(
-                                      i18n.language === "vi"
-                                        ? "vi-VN"
-                                        : "en-US",
-                                      { day: "numeric", month: "short" },
-                                    )}
-                                  </span>
-                                  <span
-                                    className={`text-xs px-1.5 py-0.5 rounded ${getStatusColor(
-                                      booking.status,
-                                    )}`}
-                                  >
-                                    {booking.status}
-                                  </span>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                          <Link
-                            href="/bookings"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors"
-                          >
-                            <span>{t("booking.viewAll") || "Xem tất cả"}</span>
-                            <FiArrowRight className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Empty bookings state */}
-                    {recentBookings.length === 0 &&
-                      !bookingsLoading &&
-                      clientIsAuth &&
-                      isCustomer && (
-                        <div className="border-t border-white/10 px-4 py-3">
-                          <p className="text-xs text-gray-400">
-                            {t("booking.noBookings") || "Bạn chưa có tour nào"}
-                          </p>
-                          <Link
-                            href="/tours"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="text-xs text-[#fa8b02] hover:underline mt-1 block"
-                          >
-                            {t("booking.browseTours") || "Khám phá tour ngay"}
-                          </Link>
-                        </div>
-                      )}
-
-                    {/* Loading state */}
-                    {bookingsLoading && (
-                      <div className="border-t border-white/10 px-4 py-3">
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <div className="w-3 h-3 border-2 border-gray-400 border-t-[#fa8b02] rounded-full animate-spin" />
-                          {t("booking.loading") || "Đang tải..."}
-                        </div>
+                        <Link
+                          href="/bookings"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors"
+                        >
+                          <span>{t("booking.viewAll") || "Xem tất cả"}</span>
+                          <FiArrowRight className="w-4 h-4" />
+                        </Link>
                       </div>
                     )}
 

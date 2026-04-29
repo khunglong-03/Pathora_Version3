@@ -28,6 +28,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/visa",
   "/policies",
   "/checkout",
+  "/checkout-request",
   "/auth/callback",
   "/tours",
   "/tours/instances",
