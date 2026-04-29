@@ -10,7 +10,6 @@ namespace Application.Features.Identity.Commands;
 
 public sealed record RegisterCommand(
     [property: JsonPropertyName("username")] string Username,
-    [property: JsonPropertyName("fullName")] string FullName,
     [property: JsonPropertyName("email")] string Email,
     [property: JsonPropertyName("password")] string Password) : ICommand<ErrorOr<Success>>;
 
@@ -22,9 +21,6 @@ public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand
             .NotEmpty().WithMessage(ValidationMessages.EmailRequired)
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
             .WithMessage(ValidationMessages.EmailInvalid);
-
-        RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage(ValidationMessages.FullNameRequired);
 
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage(ValidationMessages.UsernameRequired);
@@ -40,7 +36,7 @@ public sealed class RegisterCommandHandler(IIdentityService identityService)
 {
     public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        return await identityService.Register(new RegisterRequest(request.Username, request.FullName, request.Email, request.Password));
+        return await identityService.Register(new RegisterRequest(request.Username, request.Email, request.Password));
     }
 }
 

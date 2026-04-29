@@ -106,7 +106,7 @@ public class IdentityService(
                 {
                     Email = request.Email,
                     Username = request.Username,
-                    FullName = request.FullName,
+                    FullName = request.Username,
                     Password = hashedPassword
                 };
                 await registerRepo.AddAsync(userEntity);

@@ -6,7 +6,6 @@ namespace Application.Contracts.Identity;
 
 public sealed record RegisterRequest(
     [property: JsonPropertyName("username")] string Username,
-    [property: JsonPropertyName("fullName")] string FullName,
     [property: JsonPropertyName("email")] string Email,
     [property: JsonPropertyName("password")] string Password
 );
@@ -19,9 +18,6 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
             .NotEmpty().WithMessage(ValidationMessages.EmailRequired)
             .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
             .WithMessage(ValidationMessages.EmailInvalid);
-
-        RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage(ValidationMessages.FullNameRequired);
 
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage(ValidationMessages.UsernameRequired);

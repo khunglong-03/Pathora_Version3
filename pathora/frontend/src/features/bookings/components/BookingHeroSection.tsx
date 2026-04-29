@@ -22,64 +22,109 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
   }
 
   return (
-    <section className="relative h-[450px] lg:h-[550px] overflow-hidden">
-      <motion.div 
-        initial={{ scale: 1.1 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-        className="absolute inset-0"
-      >
-        <Image
-          src={booking.image}
-          alt={booking.tourName}
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-[#05073c]/90 via-[#05073c]/40 to-black/20" />
-      </motion.div>
+    <section className="relative w-full pt-6 px-4 md:px-8 max-w-[1400px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto min-h-[500px]">
+        {/* Left Side: Text & Actions */}
+        <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-10 flex flex-col justify-between relative overflow-hidden">
+          {/* Subtle animated background gradient */}
+          <motion.div
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%"],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+            className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top_left,_#f0fdf4_0%,_transparent_50%)]"
+          />
 
-      <div className="absolute inset-0 flex flex-col justify-between max-w-[1400px] mx-auto w-full px-4 md:px-8">
-        {/* Back link */}
-        <div className="pt-20 sm:pt-24 z-10">
-          <Link
-            href="/bookings"
-            className="inline-flex items-center gap-2 text-sm font-bold text-white/80 hover:text-white transition-colors group"
-          >
-            <div className="flex items-center justify-center size-8 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors backdrop-blur-md">
-              <ArrowLeft weight="bold" className="size-4" />
+          <div className="relative z-10 flex flex-col items-start gap-12 h-full justify-between">
+            <div>
+              <Link
+                href="/bookings"
+                className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors group"
+              >
+                <div className="flex items-center justify-center size-8 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                  <ArrowLeft weight="bold" className="size-4" />
+                </div>
+                Back to Bookings
+              </Link>
             </div>
-            Back to Bookings
-          </Link>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
+              className="w-full"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-bold ${statusCfg.bg} ${statusCfg.text}`}
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <StatusIcon weight="fill" className="size-4" />
+                  </motion.div>
+                  {getStatusLabel(booking.status)}
+                </span>
+                <span className="text-xs uppercase tracking-widest font-bold text-slate-400 font-mono">
+                  REF: {booking.reference}
+                </span>
+              </div>
+
+              <h1 className="text-5xl md:text-6xl tracking-tighter leading-[1.1] font-bold text-slate-900 mb-8">
+                {booking.tourName}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-4 text-slate-700 text-sm md:text-base font-bold">
+                <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
+                  <motion.div
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <MapPin weight="fill" className="size-5 text-emerald-500" />
+                  </motion.div>
+                  {booking.location}
+                </div>
+                <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
+                  <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Clock weight="fill" className="size-5 text-amber-500" />
+                  </motion.div>
+                  {booking.duration}
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
-        {/* Tour info */}
+        {/* Right Side: Image Bento */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
-          className="pb-10 lg:pb-16 z-10 max-w-4xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          className="relative h-[400px] lg:h-full rounded-[2.5rem] overflow-hidden border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] group"
         >
-          <span
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-[1rem] text-[11px] uppercase tracking-wider font-bold mb-6 backdrop-blur-md ${statusCfg.bg} ${statusCfg.text}`}
+          <motion.div
+            className="absolute inset-0 w-full h-full"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
-            <StatusIcon weight="fill" className="size-4" />
-            {getStatusLabel(booking.status)}
-          </span>
-          <h1 className="text-4xl md:text-6xl tracking-tighter leading-none font-bold text-white mb-6 drop-shadow-lg">
-            {booking.tourName}
-          </h1>
-          <div className="flex flex-wrap items-center gap-6 text-white/90 text-sm md:text-base font-medium">
-            <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full">
-              <MapPin weight="fill" className="size-5 text-emerald-400" />
-              {booking.location}
-            </span>
-            <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full">
-              <Clock weight="fill" className="size-5 text-amber-400" />
-              {booking.duration}
-            </span>
-          </div>
+            <Image
+              src={booking.image}
+              alt={booking.tourName}
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </motion.div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </motion.div>
       </div>
     </section>

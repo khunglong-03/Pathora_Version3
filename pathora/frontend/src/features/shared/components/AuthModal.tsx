@@ -125,12 +125,13 @@ const SignUpView = ({
 }) => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [form, setForm] = useState({
     username: "",
-    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [register, { isLoading }] = useRegisterMutation();
 
@@ -144,10 +145,14 @@ const SignUpView = ({
       return;
     }
 
+    if (form.password !== form.confirmPassword) {
+      toast.error(t("landing.auth.passwordMismatch", "Mật khẩu nhập lại không khớp"));
+      return;
+    }
+
     try {
       await register({
         username: form.username,
-        fullName: form.name,
         email: form.email,
         password: form.password,
       }).unwrap();
@@ -204,14 +209,6 @@ const SignUpView = ({
           placeholder={t("landing.auth.enterUsername")}
         />
         <InputField
-          id="signup-name"
-          label={t("landing.auth.nameAndSurname")}
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          placeholder={t("landing.auth.enterNameAndSurname")}
-        />
-        <InputField
           id="signup-email"
           label={t("landing.auth.emailAddress")}
           type="email"
@@ -241,6 +238,35 @@ const SignUpView = ({
               <Icon
                 icon={
                   showPassword
+                    ? "heroicons-outline:eye"
+                    : "heroicons-outline:eye-slash"
+                }
+                className="h-5 w-5"
+              />
+            </button>
+          }
+        />
+        <InputField
+          id="signup-confirm-password"
+          label={t("landing.auth.confirmPassword", "Nhập lại mật khẩu")}
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          value={form.confirmPassword}
+          onChange={handleChange}
+          placeholder={t("landing.auth.enterConfirmPassword", "Nhập lại mật khẩu")}
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent/30 dark:text-slate-500 dark:hover:text-slate-300"
+              aria-label={
+                showConfirmPassword
+                  ? t("landing.auth.hidePassword")
+                  : t("landing.auth.showPassword")
+              }>
+              <Icon
+                icon={
+                  showConfirmPassword
                     ? "heroicons-outline:eye"
                     : "heroicons-outline:eye-slash"
                 }

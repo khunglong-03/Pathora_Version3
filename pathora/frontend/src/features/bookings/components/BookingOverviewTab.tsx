@@ -18,30 +18,30 @@ export function BookingOverviewTab({ booking, totalGuests, getTierLabel }: Booki
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col"
+      transition={{ delay: 0.5, type: "spring", stiffness: 100, damping: 20 }}
+      className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col p-4"
     >
       {/* Tab header */}
-      <div className="flex border-b border-slate-100 p-2">
+      <div className="flex bg-slate-50 rounded-[2rem] p-2 border border-slate-100">
         <button
           type="button"
           onClick={() => setActiveTab("overview")}
           className={`relative flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.5rem] text-sm font-bold transition-colors overflow-hidden ${
             activeTab === "overview"
               ? "text-slate-900"
-              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
           }`}
         >
           {activeTab === "overview" && (
             <motion.div
               layoutId="activeTabBg"
-              className="absolute inset-0 bg-slate-50 border border-slate-100"
+              className="absolute inset-0 bg-white shadow-sm border border-slate-100"
               initial={false}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           )}
           <span className="relative z-10 flex items-center gap-2">
-            <Info weight={activeTab === "overview" ? "bold" : "regular"} className="size-4" />
+            <Info weight={activeTab === "overview" ? "fill" : "regular"} className="size-5" />
             Overview
           </span>
         </button>
@@ -51,26 +51,26 @@ export function BookingOverviewTab({ booking, totalGuests, getTierLabel }: Booki
           className={`relative flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.5rem] text-sm font-bold transition-colors overflow-hidden ${
             activeTab === "itinerary"
               ? "text-slate-900"
-              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
           }`}
         >
           {activeTab === "itinerary" && (
             <motion.div
               layoutId="activeTabBg"
-              className="absolute inset-0 bg-slate-50 border border-slate-100"
+              className="absolute inset-0 bg-white shadow-sm border border-slate-100"
               initial={false}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           )}
           <span className="relative z-10 flex items-center gap-2">
-            <MapTrifold weight={activeTab === "itinerary" ? "bold" : "regular"} className="size-4" />
+            <MapTrifold weight={activeTab === "itinerary" ? "fill" : "regular"} className="size-5" />
             Itinerary
           </span>
         </button>
       </div>
 
       {/* Tab content */}
-      <div className="p-8">
+      <div className="p-6">
         <AnimatePresence mode="wait">
           {activeTab === "overview" ? (
             <motion.div 
@@ -81,55 +81,67 @@ export function BookingOverviewTab({ booking, totalGuests, getTierLabel }: Booki
               transition={{ duration: 0.2 }}
               className="flex flex-col gap-8"
             >
-              {/* Quick info strip */}
-              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100/50">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                  <QuickInfoItem
-                    icon={<Clock weight="bold" className="size-5" />}
-                    label="Duration"
-                    value={booking.duration}
-                  />
-                  <QuickInfoItem
-                    icon={<Tag weight="bold" className="size-5" />}
-                    label="Package"
-                    value={getTierLabel(booking.tier)}
-                  />
-                  <QuickInfoItem
-                    icon={<MapPin weight="bold" className="size-5" />}
-                    label="Location"
-                    value={booking.location}
-                  />
-                  <QuickInfoItem
-                    icon={<Users weight="bold" className="size-5" />}
-                    label="Guests"
-                    value={`${totalGuests} pax`}
-                  />
+              {/* Quick info strip (Infinite Data Carousel style) */}
+              <div className="overflow-hidden relative rounded-[1.5rem] border border-slate-100 bg-slate-50 py-6 px-2">
+                <div className="flex gap-4 min-w-max px-4">
+                  <div className="flex items-center gap-3 bg-white border border-slate-100 px-6 py-4 rounded-xl shadow-sm">
+                    <Clock weight="fill" className="size-5 text-amber-500" />
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Duration</p>
+                      <p className="text-sm font-bold text-slate-900">{booking.duration}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white border border-slate-100 px-6 py-4 rounded-xl shadow-sm">
+                    <Tag weight="fill" className="size-5 text-blue-500" />
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Package</p>
+                      <p className="text-sm font-bold text-slate-900">{getTierLabel(booking.tier)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white border border-slate-100 px-6 py-4 rounded-xl shadow-sm">
+                    <MapPin weight="fill" className="size-5 text-emerald-500" />
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Location</p>
+                      <p className="text-sm font-bold text-slate-900">{booking.location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white border border-slate-100 px-6 py-4 rounded-xl shadow-sm">
+                    <Users weight="fill" className="size-5 text-indigo-500" />
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Guests</p>
+                      <p className="text-sm font-bold text-slate-900">{totalGuests} pax</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* About This Tour */}
-              <div>
-                <h3 className="text-lg font-bold tracking-tight text-slate-900 mb-3">
+              <div className="px-2">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900 mb-4">
                   About This Tour
                 </h3>
-                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-3xl">
+                <p className="text-base font-medium text-slate-500 leading-relaxed max-w-3xl">
                   {booking.description}
                 </p>
               </div>
 
               {/* Tour Highlights */}
-              <div>
-                <h3 className="text-lg font-bold tracking-tight text-slate-900 mb-4">
+              <div className="px-2">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900 mb-6">
                   Tour Highlights
                 </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {booking.highlights.map((highlight) => (
-                    <div key={highlight} className="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-center size-6 rounded-full bg-emerald-50 shrink-0">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {booking.highlights.map((highlight, index) => (
+                    <motion.div 
+                      key={highlight} 
+                      whileHover={{ scale: 1.02 }}
+                      className="flex items-start gap-4 p-5 rounded-[1.5rem] bg-white border border-slate-100 shadow-sm"
+                    >
+                      <div className="flex items-center justify-center size-8 rounded-full bg-emerald-50 shrink-0 border border-emerald-100">
                         <CheckCircle weight="fill" className="size-4 text-emerald-500" />
                       </div>
-                      <span className="text-sm font-bold text-slate-700 leading-tight pt-0.5">{highlight}</span>
-                    </div>
+                      <span className="text-base font-bold text-slate-700 leading-tight pt-1.5">{highlight}</span>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -143,11 +155,16 @@ export function BookingOverviewTab({ booking, totalGuests, getTierLabel }: Booki
               transition={{ duration: 0.2 }}
               className="text-center py-20 flex flex-col items-center justify-center"
             >
-              <div className="size-20 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
-                <MapTrifold weight="fill" className="size-8 text-slate-300" />
+              <div className="size-24 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center mb-8 relative overflow-hidden">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 bg-[conic-gradient(from_90deg_at_50%_50%,#e2e8f0_0%,#f8fafc_50%,#e2e8f0_100%)] opacity-50"
+                />
+                <MapTrifold weight="fill" className="size-10 text-slate-400 relative z-10" />
               </div>
-              <p className="text-xl font-bold tracking-tight text-slate-900 mb-2">Itinerary coming soon</p>
-              <p className="text-sm font-medium text-slate-400 max-w-xs">Detailed day-by-day plans will be available closer to your departure date.</p>
+              <p className="text-2xl font-bold tracking-tight text-slate-900 mb-3">Itinerary coming soon</p>
+              <p className="text-base font-medium text-slate-400 max-w-sm">Detailed day-by-day plans will be available closer to your departure date.</p>
             </motion.div>
           )}
         </AnimatePresence>
