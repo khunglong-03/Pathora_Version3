@@ -89,9 +89,14 @@ public sealed class CreatePublicBookingCommandHandler(
 
         if (tourInstance.Status != TourInstanceStatus.Available)
         {
-            return Error.Conflict(
-                "TourInstance.NotAvailable",
-                "Tour hiện không có sẵn để đặt.");
+            var allowPrivateDraft = tourInstance.InstanceType == TourType.Private
+                && tourInstance.Status == TourInstanceStatus.Draft;
+            if (!allowPrivateDraft)
+            {
+                return Error.Conflict(
+                    "TourInstance.NotAvailable",
+                    "Tour hiện không có sẵn để đặt.");
+            }
         }
 
         // Check capacity using CurrentParticipation to stay consistent with frontend

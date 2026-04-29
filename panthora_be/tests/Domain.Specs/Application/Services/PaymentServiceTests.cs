@@ -1031,5 +1031,99 @@ public sealed class PaymentServiceTests
         Assert.Null(booking.UserId);
     }
 
+    [Fact]
+    public async Task ProcessSepayCallbackAsync_WhenExternalIdAlreadyCompleted_ReturnsWithoutMutatingBalances()
+    {
+        var bookingId = Guid.NewGuid();
+        var completed = CreatePendingTransaction(bookingId, TransactionType.FullPayment, 100m);
+        completed.MarkAsPaid(100m, DateTimeOffset.UtcNow, "sepay-dup");
+
+        _transactionRepo.GetBySepayTransactionIdAsync("sepay-dup").Returns(completed);
+
+        var service = CreateService();
+        var result = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "sepay-dup",
+            TransactionContent = completed.TransactionCode,
+            Amount = 100m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+
+        Assert.False(result.IsError);
+        await _transactionRepo.DidNotReceive().UpdateAsync(Arg.Any<PaymentTransactionEntity>());
+        _userRepo.DidNotReceive().Update(Arg.Any<UserEntity>());
+    }
+
+    [Fact]
+    public async Task ProcessSepayCallbackAsync_BasePlusTopUpCreditsManagerTwiceForSameBooking()
+    {
+        var bookingId = Guid.NewGuid();
+        var tourId = Guid.NewGuid();
+        var managerId = Guid.NewGuid();
+        var manager = UserEntity.Create("mgr", "Mgr", "mgr@test.com", "hash", "sys");
+        manager.Id = managerId;
+
+        var tour = new TourInstanceEntity { Id = tourId, MaxParticipation = 100, InstanceType = TourType.Private };
+        tour.Managers.Add(new TourInstanceManagerEntity { UserId = managerId, User = manager, Role = TourInstanceManagerRole.Manager });
+
+        var booking = BookingEntity.Create(
+            tourId,
+            "Customer",
+            "0909",
+            1,
+            100m,
+            PaymentMethod.BankTransfer,
+            true,
+            "sys",
+            userId: Guid.NewGuid());
+        booking.Id = bookingId;
+        booking.Status = BookingStatus.Pending;
+
+        var tx1 = CreatePendingTransaction(bookingId, TransactionType.FullPayment, 100m);
+        tx1.TransactionCode = "PAY-TOP1-AAAA1111";
+        var tx2 = CreatePendingTransaction(bookingId, TransactionType.FullPayment, 50m);
+        tx2.TransactionCode = "PAY-TOP2-BBBB2222";
+
+        _tourInstanceRepo.FindById(tourId).Returns(tour);
+        _userRepo.GetByIdAsync(managerId).Returns(manager);
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
+        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
+        _tourInstanceRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
+        _transactionRepo.GetBySepayTransactionIdAsync(Arg.Any<string>()).Returns((PaymentTransactionEntity?)null);
+        _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(callInfo =>
+        {
+            var code = callInfo.Arg<string>();
+            if (code == tx1.TransactionCode) return tx1;
+            if (code == tx2.TransactionCode) return tx2;
+            return null;
+        });
+
+        var service = CreateService();
+
+        var r1 = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "ext-a",
+            TransactionContent = tx1.TransactionCode,
+            Amount = 100m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+        Assert.False(r1.IsError);
+        Assert.Equal(100m, manager.Balance);
+
+        booking.MarkPendingAdjustment("test");
+
+        var r2 = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "ext-b",
+            TransactionContent = tx2.TransactionCode,
+            Amount = 50m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+        Assert.False(r2.IsError);
+        Assert.Equal(150m, manager.Balance);
+    }
+
     #endregion
 }

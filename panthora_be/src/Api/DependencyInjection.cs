@@ -45,6 +45,7 @@ public static class DependencyInjection
         // Background Workers
         services.AddHostedService<OutboxWorkerService>();
         services.AddHostedService<SoftHoldCleanupWorkerService>();
+        services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
 
         // Data Protection: set a stable application name so OAuth correlation cookies
         // are consistent across container restarts (fixes "Correlation failed").

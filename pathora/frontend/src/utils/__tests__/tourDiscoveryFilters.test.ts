@@ -26,6 +26,7 @@ describe("tourDiscoveryFilters", () => {
       maxDays: 7,
       page: 3,
       view: "instances",
+      instanceType: null,
     });
   });
 
@@ -35,6 +36,7 @@ describe("tourDiscoveryFilters", () => {
     const parsed = parseTourDiscoveryFilters(params);
 
     expect(parsed.view).toBe("instances");
+    expect(parsed.instanceType).toBeNull();
   });
 
   it("serializes applied filters for URL sync", () => {
@@ -50,6 +52,7 @@ describe("tourDiscoveryFilters", () => {
       maxDays: 3,
       page: 2,
       view: "tours",
+      instanceType: null,
     });
 
     expect(params.toString()).toBe(
@@ -153,6 +156,7 @@ describe("tourDiscoveryFilters", () => {
       maxDays: null,
       page: 1,
       view: "tours",
+      instanceType: null,
     });
 
     // URLSearchParams.toString() automatically encodes special chars
@@ -180,6 +184,7 @@ describe("tourDiscoveryFilters", () => {
       maxDays: null,
       page: 1,
       view: "tours",
+      instanceType: null,
     });
 
     expect(params.toString()).toBe(
@@ -245,6 +250,7 @@ describe("tourDiscoveryFilters", () => {
       maxDays: null,
       page: 1,
       view: "tours",
+      instanceType: null,
     });
 
     expect(params.toString()).toBe("destination=Da+Nang&people=2");

@@ -27,6 +27,14 @@ public class PaymentController : BaseApiController
     }
 
     [AllowAnonymous]
+    [HttpPost(PaymentEndpoint.CreatePrivateCustomInitial)]
+    public async Task<IActionResult> CreatePrivateCustomInitial([FromBody] CreatePrivateTourInitialPaymentCommand command)
+    {
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
+    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.CreateTransaction)]
     public async Task<IActionResult> CreateTransaction([FromBody] CreatePaymentTransactionCommand command)
     {

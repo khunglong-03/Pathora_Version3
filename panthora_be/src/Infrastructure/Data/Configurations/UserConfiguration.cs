@@ -78,6 +78,11 @@ public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(u => u.TransactionHistories)
+            .WithOne(h => h.User)
+            .HasForeignKey(h => h.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // UserSetting relationship (forward-side; reverse-side + cascade in UserSettingEntityConfiguration)
         builder.HasOne(u => u.UserSetting)
             .WithOne(s => s.User)

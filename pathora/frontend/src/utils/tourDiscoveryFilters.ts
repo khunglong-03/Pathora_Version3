@@ -1,4 +1,6 @@
 export type TourDiscoveryView = "tours" | "instances";
+/** When set to `private`, API lists private catalog instances; `null` = default (public). */
+export type TourDiscoveryInstanceType = "private" | null;
 
 export interface TourDiscoveryFilters {
   destination: string;
@@ -12,6 +14,7 @@ export interface TourDiscoveryFilters {
   maxDays: number | null;
   page: number;
   view: TourDiscoveryView;
+  instanceType: TourDiscoveryInstanceType;
 }
 
 export const DEFAULT_TOUR_DISCOVERY_FILTERS: TourDiscoveryFilters = {
@@ -26,6 +29,7 @@ export const DEFAULT_TOUR_DISCOVERY_FILTERS: TourDiscoveryFilters = {
   maxDays: null,
   page: 1,
   view: "tours",
+  instanceType: null,
 };
 
 type SearchParamReader = {
@@ -80,6 +84,10 @@ export const parseTourDiscoveryFilters = (
       ? "instances"
       : toView(explicitView);
 
+  const rawInstanceType = params.get("instanceType")?.trim().toLowerCase() ?? "";
+  const instanceType: TourDiscoveryInstanceType =
+    rawInstanceType === "private" ? "private" : null;
+
   return {
     destination,
     classifications,
@@ -92,6 +100,7 @@ export const parseTourDiscoveryFilters = (
     maxDays: parseIntParam(params.get("maxDays")),
     page: toPositivePage(parseIntParam(params.get("page"))),
     view,
+    instanceType,
   };
 };
 
@@ -131,6 +140,9 @@ export const buildTourDiscoverySearchParams = (
   if (filters.view !== "tours") {
     params.set("view", filters.view);
   }
+  if (filters.instanceType === "private") {
+    params.set("instanceType", "private");
+  }
 
   return params;
 };
@@ -150,7 +162,8 @@ export const areTourDiscoveryFiltersEqual = (
     a.minDays === b.minDays &&
     a.maxDays === b.maxDays &&
     a.page === b.page &&
-    a.view === b.view
+    a.view === b.view &&
+    a.instanceType === b.instanceType
   );
 };
 

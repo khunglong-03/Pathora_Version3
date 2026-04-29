@@ -39,14 +39,14 @@ public sealed class PublicTourInstanceControllerTests
                 "/api/public/tour-instances/available");
         var languageContext = new TestLanguageContext { CurrentLanguage = "en" };
 
-        var actionResult = await controller.GetAvailable("ha", null, 2, 5, languageContext);
+        var actionResult = await controller.GetAvailable("ha", null, 2, 5, null, languageContext);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
             expectedInstance: "/api/public/tour-instances/available",
             expectedData: response);
-        Assert.Equal(new GetPublicTourInstancesQuery("ha", null, 2, 5, "en"), probe.CapturedRequest);
+        Assert.Equal(new GetPublicTourInstancesQuery("ha", null, 2, 5, "en", null), probe.CapturedRequest);
     }
 
     [Fact]

@@ -29,6 +29,11 @@ const containerVariants = {
 
 export function BookingHistoryPage() {
   const { t } = useTranslation();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,6 +74,9 @@ export function BookingHistoryPage() {
   const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) => getTierLabel(t, tier);
   const getPaymentStatusLabel_ = (s: Parameters<typeof getPaymentStatusLabel>[1]) => getPaymentStatusLabel(t, s);
   const getPaymentMethodLabel_ = (m: Parameters<typeof getPaymentMethodLabel>[1]) => getPaymentMethodLabel(t, m);
+
+
+  if (!mounted) return null;
 
   return (
     <>
@@ -154,7 +162,7 @@ export function BookingHistoryPage() {
                   <div className="size-20 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
                     <Ticket weight="bold" className="size-8 text-slate-300" />
                   </div>
-                  <p className="text-xl font-bold tracking-tight text-slate-900 mb-2">
+                  <p suppressHydrationWarning className="text-xl font-bold tracking-tight text-slate-900 mb-2">
                     {t("landing.bookings.noResults")}
                   </p>
                   <p className="text-sm text-slate-500 max-w-sm">

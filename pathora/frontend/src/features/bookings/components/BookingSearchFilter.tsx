@@ -56,7 +56,7 @@ export function BookingSearchFilter({
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex items-center gap-2 px-2">
             <Funnel weight="bold" className="size-4 text-slate-400" />
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            <span suppressHydrationWarning className="text-xs font-bold uppercase tracking-widest text-slate-400">
               {filterLabel}
             </span>
           </div>
@@ -82,7 +82,7 @@ export function BookingSearchFilter({
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-10">{f.label}</span>
+                  <span suppressHydrationWarning className="relative z-10">{f.label}</span>
                 </button>
               );
             })}

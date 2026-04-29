@@ -37,7 +37,7 @@ public interface ITourInstanceService
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request);
     Task<ErrorOr<TourInstanceDto>> GetDetail(Guid id);
     Task<ErrorOr<TourInstanceStatsDto>> GetStats();
-    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(string? destination, string? sortBy, int page, int pageSize, string? language = null);
+    Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(string? destination, string? sortBy, int page, int pageSize, string? language = null, string? catalogInstanceType = null);
     Task<ErrorOr<TourInstanceDto>> GetPublicDetail(Guid id, string? language = null);
     Task<ErrorOr<CheckDuplicateTourInstanceResultDto>> CheckDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate);
     Task<ErrorOr<TourInstanceDayDto>> UpdateDay(UpdateTourInstanceDayCommand request);
@@ -45,6 +45,10 @@ public interface ITourInstanceService
     Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetMyAssignedInstances(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<ErrorOr<TourInstanceDto>> GetMyAssignedInstanceDetail(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Public flow: create a private <see cref="TourInstanceStatus.Draft"/> instance; manager is the tour operator.
+    /// </summary>
+    Task<ErrorOr<Guid>> CreatePublicPrivateDraftAsync(CreateTourInstanceCommand request);
 }
 
 public class TourInstanceService(
@@ -96,7 +100,40 @@ public class TourInstanceService(
         if (!Guid.TryParse(_user.Id, out var creatorUserId))
             return Error.Validation(ErrorConstants.User.InvalidIdCode, ErrorConstants.User.InvalidIdFormatDescription);
 
-        var performedBy = _user.Id;
+        return await CreateCoreAsync(request, tour, classification, creatorUserId, _user.Id);
+    }
+
+    /// <inheritdoc />
+    public async Task<ErrorOr<Guid>> CreatePublicPrivateDraftAsync(CreateTourInstanceCommand request)
+    {
+        var tour = await _tourRepository.FindById(request.TourId);
+        if (tour is null)
+            return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.NotFoundDescription);
+
+        var classification = tour.Classifications.FirstOrDefault(c => c.Id == request.ClassificationId);
+        if (classification is null)
+            return Error.NotFound(ErrorConstants.Classification.NotFoundCode, ErrorConstants.Classification.NotFoundDescription);
+
+        if (tour.Status != TourStatus.Active)
+            return Error.Validation("Tour.NotActive", "Tour không khả dụng để đặt riêng.");
+
+        if (!tour.TourOperatorId.HasValue)
+            return Error.Validation("Tour.TourOperatorRequired", "Tour chưa gán điều hành viên; không thể đặt tour riêng.");
+
+        if (request.InstanceType != TourType.Private)
+            return Error.Validation("TourInstance.PrivateTypeRequired", "Yêu cầu tour riêng phải dùng loại Private.");
+
+        var operatorId = tour.TourOperatorId.Value;
+        return await CreateCoreAsync(request, tour, classification, operatorId, operatorId.ToString());
+    }
+
+    private async Task<ErrorOr<Guid>> CreateCoreAsync(
+        CreateTourInstanceCommand request,
+        TourEntity tour,
+        TourClassificationEntity classification,
+        Guid creatorUserId,
+        string performedBy)
+    {
         // Room validation now deferred to accommodation-level supplier assignment
         var validatedRoomAssignments = new Dictionary<Guid, RoomType>();
         if (request.ActivityAssignments?.Any(a => !string.IsNullOrWhiteSpace(a.RoomType)) == true)
@@ -1206,10 +1243,22 @@ public class TourInstanceService(
         return new TourInstanceStatsDto(total, available, confirmed, soldOut, completed);
     }
 
-    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(string? destination, string? sortBy, int page, int pageSize, string? language = null)
+    public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetPublicAvailable(
+        string? destination,
+        string? sortBy,
+        int page,
+        int pageSize,
+        string? language = null,
+        string? catalogInstanceType = null)
     {
-        var entities = await _tourInstanceRepository.FindPublicAvailable(destination, sortBy, page, pageSize);
-        var total = await _tourInstanceRepository.CountPublicAvailable(destination);
+        TourType? instanceTypeFilter = catalogInstanceType?.Trim().ToLowerInvariant() switch
+        {
+            "private" => TourType.Private,
+            "public" => TourType.Public,
+            _ => null,
+        };
+        var entities = await _tourInstanceRepository.FindPublicAvailable(destination, sortBy, page, pageSize, instanceTypeFilter);
+        var total = await _tourInstanceRepository.CountPublicAvailable(destination, instanceTypeFilter);
         var resolvedLanguage = PublicLanguageResolver.Resolve(language);
 
         foreach (var entity in entities)

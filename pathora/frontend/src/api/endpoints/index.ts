@@ -32,6 +32,7 @@ import type {
   TourEndpoints,
   TourInstanceEndpoints,
   PublicTourInstanceEndpoints,
+  PublicTourEndpoints,
 } from "./tour";
 import type {
   PublicBookingEndpoints,
@@ -75,6 +76,7 @@ export type {
   TourEndpoints,
   TourInstanceEndpoints,
   PublicTourInstanceEndpoints,
+  PublicTourEndpoints,
 } from "./tour";
 export type {
   PublicBookingEndpoints,
@@ -114,6 +116,7 @@ import {
   TOUR,
   TOUR_INSTANCE,
   PUBLIC_TOUR_INSTANCE,
+  PUBLIC_TOUR,
 } from "./tour";
 import {
   PUBLIC_BOOKING,
@@ -149,6 +152,7 @@ export {
   TOUR,
   TOUR_INSTANCE,
   PUBLIC_TOUR_INSTANCE,
+  PUBLIC_TOUR,
 } from "./tour";
 export {
   PUBLIC_BOOKING,
@@ -197,6 +201,7 @@ export interface ApiEndpoints {
   TOUR: TourEndpoints;
   TOUR_INSTANCE: TourInstanceEndpoints;
   PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints;
+  PUBLIC_TOUR: PublicTourEndpoints;
   ADMIN: AdminEndpoints;
   TOUR_REQUESTS: TourRequestEndpoints;
   PUBLIC_BOOKING: PublicBookingEndpoints;
@@ -221,6 +226,7 @@ export const API_ENDPOINTS: ApiEndpoints = {
   TOUR,
   TOUR_INSTANCE,
   PUBLIC_TOUR_INSTANCE,
+  PUBLIC_TOUR,
   PUBLIC_BOOKING,
   BOOKING,
   TOUR_REQUESTS,

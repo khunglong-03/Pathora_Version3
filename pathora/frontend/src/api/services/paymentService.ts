@@ -2,6 +2,7 @@ import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import type { ApiResponse } from "@/types/home";
 import { extractResult } from "@/utils/apiResponse";
+import { normalizeCheckoutPriceResponse } from "@/utils/checkoutPriceResponse";
 
 export interface GetQrPayload {
   note: string;
@@ -157,6 +158,15 @@ export const paymentService = {
     return extractResult<PaymentTransaction>(response.data);
   },
 
+  createPrivateCustomInitial: async (bookingId: string) => {
+    const response = await api.post<ApiResponse<PaymentTransaction>>(
+      API_ENDPOINTS.PAYMENT.CREATE_PRIVATE_CUSTOM_INITIAL,
+      { bookingId },
+    );
+
+    return extractResult<PaymentTransaction>(response.data);
+  },
+
   getTransaction: async (transactionCode: string) => {
     const response = await api.get<ApiResponse<PaymentTransaction>>(
       API_ENDPOINTS.PAYMENT.GET_TRANSACTION(transactionCode),
@@ -211,11 +221,15 @@ export const paymentService = {
     return extractResult<PaymentTransaction>(response.data);
   },
 
-  getCheckoutPrice: async (bookingId: string) => {
-    const response = await api.get<ApiResponse<CheckoutPriceResponse>>(
-      API_ENDPOINTS.BOOKING.GET_CHECKOUT_PRICE(bookingId),
-    );
-
-    return extractResult<CheckoutPriceResponse>(response.data);
+  getCheckoutPrice: async (
+    bookingId: string,
+    opts?: { usePublicBookingEndpoint?: boolean },
+  ): Promise<CheckoutPriceResponse | null> => {
+    const url = opts?.usePublicBookingEndpoint
+      ? API_ENDPOINTS.PUBLIC_BOOKING.GET_CHECKOUT_PRICE(bookingId)
+      : API_ENDPOINTS.BOOKING.GET_CHECKOUT_PRICE(bookingId);
+    const response = await api.get<ApiResponse<unknown>>(url);
+    const raw = extractResult<unknown>(response.data);
+    return normalizeCheckoutPriceResponse(raw);
   },
 };

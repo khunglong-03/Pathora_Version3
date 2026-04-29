@@ -22,8 +22,8 @@ public interface ITourInstanceRepository
     Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);
     Task SoftDelete(Guid id, CancellationToken cancellationToken = default);
     Task<(int Total, int Available, int Confirmed, int SoldOut, int Completed)> GetStats(CancellationToken cancellationToken = default);
-    Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default);
+    Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default);
+    Task<int> CountPublicAvailable(string? destination, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindPublicById(Guid id, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindProviderAssigned(IEnumerable<Guid> providerIds, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default);
@@ -41,4 +41,13 @@ public interface ITourInstanceRepository
     /// in vehicle availability queries (excludeActivityId ownership check).
     /// </summary>
     Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Private tours in <see cref="TourInstanceStatus.PendingAdjustment"/> whose
+    /// <see cref="TourInstanceEntity.ConfirmationDeadline"/> is before <paramref name="nowUtc"/> (task §6 worker).
+    /// Includes bookings and payment transactions for mutation.
+    /// </summary>
+    Task<List<TourInstanceEntity>> ListPrivateInstancesPendingTopUpPastDeadlineAsync(
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken = default);
 }

@@ -73,12 +73,17 @@ function PaymentStatusPanel({
   normalizedStatus,
   onStatusChange,
   customerEmail,
+  privateCustomCheckout = false,
+  privateTopUpCheckout = false,
   t,
 }: {
   transaction: PaymentTransaction;
   normalizedStatus: NormalizedPaymentStatus;
   onStatusChange?: (status: NormalizedPaymentStatus) => void;
   customerEmail?: string;
+  /** After base payment for private custom — show co-design next steps in success panel. */
+  privateCustomCheckout?: boolean;
+  privateTopUpCheckout?: boolean;
   t: ReturnType<typeof useTranslation>[0];
 }) {
   const timeLeft = useCountdown(transaction.expiredAt);
@@ -137,6 +142,15 @@ function PaymentStatusPanel({
         </div>
         <h3 className="text-lg font-bold text-green-600">{t("landing.checkout.paymentReceived")}</h3>
         <p className="text-sm text-gray-500 text-center">{t("landing.checkout.paymentConfirmedDesc")}</p>
+        {privateTopUpCheckout ? (
+          <p className="text-sm text-emerald-800 text-center leading-relaxed px-1">
+            {t("landing.checkout.privateTopUpSuccessNextSteps")}
+          </p>
+        ) : privateCustomCheckout ? (
+          <p className="text-sm text-emerald-800 text-center leading-relaxed px-1">
+            {t("landing.checkout.privateCustomCoDesignNextSteps")}
+          </p>
+        ) : null}
         <div className="bg-green-50 rounded-xl px-4 py-3 border border-green-200 w-full text-center">
           <span className="text-xs text-gray-500">{t("landing.checkout.transactionCode")}</span>
           <p className="text-lg font-bold font-mono text-green-600 mt-1">{transaction.transactionCode}</p>
@@ -209,6 +223,11 @@ function PaymentStatusPanel({
             : normalizedStatus === "expired" ? t("landing.checkout.paymentExpired")
             : t("landing.checkout.paymentFailed")}
         </h3>
+        {transaction.errorMessage ? (
+          <p className="text-sm text-red-600 text-center max-w-sm" data-payment-provider-error>
+            {transaction.errorMessage}
+          </p>
+        ) : null}
         <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-200 w-full text-center">
           <span className="text-xs text-gray-500">{t("landing.checkout.transactionCode")}</span>
           <p className="text-lg font-bold font-mono text-slate-900 mt-1">{transaction.transactionCode}</p>
@@ -338,6 +357,12 @@ interface PaymentSidebarProps {
   onConfirmBooking: () => void;
   /** Guest checkout email (for post-payment copy when user is not logged in). */
   customerEmail?: string;
+  /** Private custom flow: 100% base upfront only — hide deposit vs full toggle. */
+  hidePayMethodToggle?: boolean;
+  /** Private custom flow — success panel shows co-design copy. */
+  privateCustomCheckout?: boolean;
+  /** Delta &gt; 0 — existing top-up transaction loaded by code. */
+  privateTopUpCheckout?: boolean;
   t: ReturnType<typeof useTranslation>[0];
 }
 
@@ -355,6 +380,9 @@ export function PaymentSidebar({
   loading,
   onConfirmBooking,
   customerEmail,
+  hidePayMethodToggle = false,
+  privateCustomCheckout = false,
+  privateTopUpCheckout = false,
   t,
 }: PaymentSidebarProps) {
   return (
@@ -370,11 +398,25 @@ export function PaymentSidebar({
             normalizedStatus={normalizedStatus}
             onStatusChange={onStatusChange}
             customerEmail={customerEmail}
+            privateCustomCheckout={privateCustomCheckout}
+            privateTopUpCheckout={privateTopUpCheckout}
             t={t}
           />
         ) : (
           <div className="flex flex-col gap-6">
             {/* Payment Option Toggle */}
+            {hidePayMethodToggle ? (
+              <p className="text-sm text-slate-600 leading-relaxed rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+                {t(
+                  "landing.checkout.privateCustomPayNote",
+                  "Private custom tours require payment of the full published base price before co-design begins.",
+                )}
+              </p>
+            ) : privateTopUpCheckout ? (
+              <p className="text-sm text-slate-600 leading-relaxed rounded-2xl border border-orange-100 bg-orange-50/80 px-4 py-3">
+                {t("landing.checkout.privateTopUpPayNote")}
+              </p>
+            ) : (
             <div className="bg-slate-50 p-1.5 rounded-2xl flex items-center border border-slate-100">
               <button
                 type="button"
@@ -399,6 +441,7 @@ export function PaymentSidebar({
                 {t("landing.checkout.payFull", "Full Payment")}
               </button>
             </div>
+            )}
 
             {/* Price breakdown */}
             <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-3">

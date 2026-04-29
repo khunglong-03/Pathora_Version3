@@ -8,12 +8,21 @@ interface StatusOverlayProps {
 }
 
 export function StatusOverlay({ status, label }: StatusOverlayProps) {
-  const cfg = STATUS_CONFIG[status];
+  // Normalize status to match config keys (which are lowercase)
+  const normalizedStatus = (status || "pending").toString().toLowerCase();
+  
+  // Provide a safe fallback if status is not explicitly defined in config
+  const cfg = STATUS_CONFIG[normalizedStatus as BookingStatus] || {
+    bg: "bg-slate-500/90",
+    text: "text-white",
+    icon: "heroicons:information-circle",
+    iconColor: "text-white"
+  };
   
   let StatusIcon = CheckCircle;
-  if (status === "pending" || status === "pending_approval") {
+  if (normalizedStatus.includes("pending")) {
     StatusIcon = Clock;
-  } else if (status === "cancelled" || status === "rejected") {
+  } else if (normalizedStatus.includes("cancel") || normalizedStatus.includes("reject")) {
     StatusIcon = XCircle;
   }
 

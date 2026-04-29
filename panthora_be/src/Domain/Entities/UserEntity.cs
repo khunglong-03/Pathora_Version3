@@ -97,6 +97,8 @@ public class UserEntity : Aggregate<Guid>
 
     public UserSettingEntity? UserSetting { get; set; }
 
+    public virtual List<TransactionHistoryEntity> TransactionHistories { get; set; } = [];
+
     public void UpdateStatus(UserStatus status, string performedBy)
     {
         Status = status;

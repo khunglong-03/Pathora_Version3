@@ -560,9 +560,10 @@ export interface TourInstancePlanAccommodationDto {
 // TourInstancePlanRouteDto removed — vehicle/driver data is now flattened onto TourInstanceDayActivityDto
 
 export interface PricingPolicyTierDto {
-  minParticipants: number;
-  maxParticipants: number;
-  markupPercentage: number;
+  label: string;
+  ageFrom: number;
+  ageTo?: number | null;
+  pricePercentage: number;
 }
 
 export interface PricingPolicyDto {
@@ -626,6 +627,8 @@ export interface TourInstanceDto {
   pricingPolicy?: PricingPolicyDto | null;
   cancellationPolicy?: CancellationPolicyDto | null;
   depositPolicy?: DepositPolicyDto | null;
+  /** Giá chốt sau co-design (private tour); từ API khi đã set. */
+  finalSellPrice?: number | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {

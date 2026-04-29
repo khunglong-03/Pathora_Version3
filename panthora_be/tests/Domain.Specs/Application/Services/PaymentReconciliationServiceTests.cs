@@ -416,6 +416,33 @@ public sealed class PaymentReconciliationServiceTests
         await _paymentService.DidNotReceive().ProcessSepayCallbackAsync(Arg.Any<SepayTransactionData>());
     }
 
+    [Fact]
+    public async Task ReconcileProviderCallbackAsync_WhenDuplicateSepayIdInProcessing_ShouldReturnSnapshot_WithoutProcessSepay()
+    {
+        var tx = CreatePendingTransaction(50_000m, referenceCode: "PROC123");
+        tx.MarkAsProcessing();
+
+        _transactionRepo.GetBySepayTransactionIdAsync("sepay-processing-dup", Arg.Any<CancellationToken>())
+            .Returns(tx);
+
+        var service = new PaymentReconciliationService(
+            _transactionRepo, _paymentService, _unitOfWork, _sePayApiClient, null, _logger);
+
+        var callback = new SepayTransactionData
+        {
+            TransactionId = "sepay-processing-dup",
+            TransactionDate = DateTimeOffset.UtcNow,
+            Amount = 50_000m,
+            TransactionContent = "PAY-TEST-AMOUNT|PROC123|Booking"
+        };
+
+        var result = await service.ReconcileProviderCallbackAsync(callback);
+
+        Assert.False(result.IsError);
+        Assert.Equal("PAY-TEST-AMOUNT", result.Value.TransactionCode);
+        await _paymentService.DidNotReceive().ProcessSepayCallbackAsync(Arg.Any<SepayTransactionData>());
+    }
+
     private static PaymentTransactionEntity CreatePendingTransaction(decimal amount, string? referenceCode = null)
     {
         var t = PaymentTransactionEntity.Create(

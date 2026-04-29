@@ -247,8 +247,9 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return (total, available, confirmed, soldOut, completed);
     }
 
-    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
+        var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
         var query = _context.TourInstances
             .AsNoTracking()
             .AsSplitQuery()
@@ -258,7 +259,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Images)
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
-                && t.InstanceType == TourType.Public
+                && t.InstanceType == instanceTypeFilter
                 && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
@@ -282,11 +283,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default)
+    public async Task<int> CountPublicAvailable(string? destination, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
+        var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
         var query = _context.TourInstances
             .Where(t => !t.IsDeleted
-                && t.InstanceType == TourType.Public
+                && t.InstanceType == instanceTypeFilter
                 && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
@@ -511,5 +513,21 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return await _context.TourInstanceDayActivities
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == activityId, cancellationToken);
+    }
+
+    public async Task<List<TourInstanceEntity>> ListPrivateInstancesPendingTopUpPastDeadlineAsync(
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Include(t => t.Bookings)
+            .ThenInclude(b => b.PaymentTransactions)
+            .Where(t =>
+                !t.IsDeleted
+                && t.InstanceType == TourType.Private
+                && t.Status == TourInstanceStatus.PendingAdjustment
+                && t.ConfirmationDeadline != null
+                && t.ConfirmationDeadline < nowUtc)
+            .ToListAsync(cancellationToken);
     }
 }

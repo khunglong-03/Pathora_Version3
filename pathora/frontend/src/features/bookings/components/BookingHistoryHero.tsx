@@ -28,6 +28,7 @@ export function BookingHistoryHero({
       <div className="max-w-[1400px] mx-auto px-4 md:px-8">
         <Link
           href="/"
+          suppressHydrationWarning
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-10"
         >
           <ArrowLeft weight="bold" className="size-4" />
@@ -39,6 +40,7 @@ export function BookingHistoryHero({
             <motion.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              suppressHydrationWarning
               className="text-4xl md:text-6xl tracking-tighter leading-none font-bold text-slate-900"
             >
               {titleLabel}
@@ -47,6 +49,7 @@ export function BookingHistoryHero({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
+              suppressHydrationWarning
               className="text-base text-slate-500 leading-relaxed max-w-[65ch] mt-6"
             >
               {subtitleLabel}
@@ -65,7 +68,7 @@ export function BookingHistoryHero({
                 <Ticket weight="fill" className="size-16 text-slate-900" />
               </div>
               <p className="text-4xl font-mono tracking-tight font-bold text-slate-900 relative z-10">{totalCount}</p>
-              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">{totalBookingsLabel}</p>
+              <p suppressHydrationWarning className="text-sm font-medium text-slate-500 mt-2 relative z-10">{totalBookingsLabel}</p>
             </div>
 
             {/* Active Bookings Card */}
@@ -74,7 +77,7 @@ export function BookingHistoryHero({
                 <CheckCircle weight="fill" className="size-16 text-emerald-500" />
               </div>
               <p className="text-4xl font-mono tracking-tight font-bold text-emerald-500 relative z-10">{activeCount}</p>
-              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">{activeLabel}</p>
+              <p suppressHydrationWarning className="text-sm font-medium text-slate-500 mt-2 relative z-10">{activeLabel}</p>
             </div>
           </motion.div>
         </div>

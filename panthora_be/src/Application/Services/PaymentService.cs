@@ -242,6 +242,21 @@ public class PaymentService : IPaymentService
 
     public async Task<ErrorOr<PaymentTransactionEntity>> ProcessSepayCallbackAsync(SepayTransactionData transactionData)
     {
+        // Idempotency: same SePay TransactionId must not be processed twice (retry / duplicate webhook).
+        if (!string.IsNullOrWhiteSpace(transactionData.TransactionId))
+        {
+            var existingByExternal = await _transactionRepository.GetBySepayTransactionIdAsync(
+                transactionData.TransactionId.Trim());
+            if (existingByExternal is { Status: TransactionStatus.Completed })
+            {
+                _logger.LogInformation(
+                    "SePay callback duplicate for external id {ExternalId}; transaction {Code} already completed.",
+                    transactionData.TransactionId,
+                    existingByExternal.TransactionCode);
+                return existingByExternal;
+            }
+        }
+
         var transactionCode = ExtractTransactionCode(transactionData.TransactionContent);
 
         PaymentTransactionEntity? transaction = null;
@@ -475,11 +490,23 @@ public class PaymentService : IPaymentService
                 break;
 
             case TransactionType.FullPayment:
-                if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed)
+                if (booking.Status == BookingStatus.PendingAdjustment
+                    || (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed))
                 {
                     booking.MarkPaid("SYSTEM");
                     _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
                         booking.Id, transaction.TransactionCode);
+
+                    if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.PendingAdjustment)
+                    {
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private tour instance {InstanceId} confirmed after top-up (transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
+                    }
                 }
                 break;
 

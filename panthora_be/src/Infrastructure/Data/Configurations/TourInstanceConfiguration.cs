@@ -66,6 +66,9 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasColumnType("numeric(18,2)")
             .IsRequired();
 
+        builder.Property(t => t.FinalSellPrice)
+            .HasColumnType("numeric(18,2)");
+
         builder.Property(t => t.IsDeleted)
             .HasDefaultValue(false);
         builder.Property(t => t.RowVersion)
@@ -134,6 +137,11 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .WithMany()
             .HasForeignKey(t => t.ClassificationId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(t => t.ItineraryFeedbacks)
+            .WithOne(f => f.TourInstance)
+            .HasForeignKey(f => f.TourInstanceId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(t => t.Managers);
     }
 }

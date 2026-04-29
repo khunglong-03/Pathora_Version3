@@ -588,6 +588,19 @@ export function TourInstancePublicDetailPage() {
                     router.push(`/?login=true&returnUrl=/tours/instances/${id}`);
                     return;
                   }
+                  let depositPct = 0.3;
+                  if (data.depositPolicy?.depositValue) {
+                    const typeStr = String(data.depositPolicy.depositType).toLowerCase();
+                    const isPercentage = typeStr === "percentage" || typeStr === "2";
+                    depositPct = isPercentage 
+                      ? data.depositPolicy.depositValue / 100 
+                      : data.depositPolicy.depositValue;
+                    // If depositPct is somehow > 1 but we know it's a percentage (e.g. 30 meaning 30%)
+                    if (isPercentage && depositPct > 1) {
+                      depositPct = depositPct / 100;
+                    }
+                  }
+
                   const params = new URLSearchParams({
                     tourInstanceId: id,
                     tourName: data.tourName,
@@ -602,6 +615,7 @@ export function TourInstancePublicDetailPage() {
                     adults: String(adults),
                     children: String(children),
                     infants: String(infants),
+                    depositPercentage: String(depositPct),
                     bookingType: "InstanceJoin",
                     instanceType: isPublicInstance ? "public" : "private",
                   });

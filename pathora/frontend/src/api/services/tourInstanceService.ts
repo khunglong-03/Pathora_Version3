@@ -24,6 +24,22 @@ interface AddCustomDayResponse {
   actualDate: string;
 }
 
+/** Private tour co-design — backend TourItineraryFeedbackDto */
+export interface TourItineraryFeedbackDto {
+  id: string;
+  tourInstanceDayId: string;
+  bookingId?: string | null;
+  content: string;
+  isFromCustomer: boolean;
+  createdOnUtc: string;
+}
+
+export interface PrivateTourSettlementResultDto {
+  delta: number;
+  topUpTransactionId?: string | null;
+  creditAmount?: number | null;
+}
+
 /** One vehicle + driver row for POST .../transportation/{activityId}/approve */
 export type ApproveTransportationAssignmentRow = {
   vehicleId: string;
@@ -698,5 +714,64 @@ export const tourInstanceService = {
       API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGE_BY_ID(instanceId, activityId, imageId),
     );
     return extractResult<unknown>(response.data);
+  },
+
+  listItineraryFeedback: async (instanceId: string, dayId: string) => {
+    const response = await api.get<ApiResponse<TourItineraryFeedbackDto[]>>(
+      API_ENDPOINTS.TOUR_INSTANCE.LIST_ITINERARY_FEEDBACK(instanceId, dayId),
+    );
+    return extractResult<TourItineraryFeedbackDto[]>(response.data) ?? [];
+  },
+
+  createItineraryFeedback: async (
+    instanceId: string,
+    dayId: string,
+    body: { bookingId?: string | null; content: string; isFromCustomer: boolean },
+  ) => {
+    const response = await api.post<ApiResponse<TourItineraryFeedbackDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.CREATE_ITINERARY_FEEDBACK(instanceId, dayId),
+      body,
+    );
+    return extractResult<TourItineraryFeedbackDto>(response.data);
+  },
+
+  updateItineraryFeedback: async (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+    content: string,
+  ) => {
+    const response = await api.put<ApiResponse<TourItineraryFeedbackDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.UPDATE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
+      { content },
+    );
+    return extractResult<TourItineraryFeedbackDto>(response.data);
+  },
+
+  deleteItineraryFeedback: async (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ) => {
+    const response = await api.delete<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.DELETE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  setFinalSellPrice: async (instanceId: string, finalSellPrice: number) => {
+    const response = await api.patch<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.SET_FINAL_SELL_PRICE(instanceId),
+      { finalSellPrice },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  applyPrivateSettlement: async (instanceId: string, bookingId: string) => {
+    const response = await api.post<ApiResponse<PrivateTourSettlementResultDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.APPLY_PRIVATE_SETTLEMENT(instanceId),
+      { bookingId },
+    );
+    return extractResult<PrivateTourSettlementResultDto>(response.data);
   },
 };

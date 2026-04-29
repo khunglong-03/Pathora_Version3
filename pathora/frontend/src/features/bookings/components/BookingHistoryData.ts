@@ -188,7 +188,7 @@ export const SAMPLE_BOOKINGS: Booking[] = [
 
 /* ── Status config ─────────────────────────────────────────── */
 export const STATUS_CONFIG: Record<
-  BookingStatus,
+  string,
   { bg: string; text: string; icon: string; iconColor: string }
 > = {
   confirmed: {
@@ -203,6 +203,18 @@ export const STATUS_CONFIG: Record<
     icon: "heroicons:check-circle",
     iconColor: "text-white",
   },
+  paid: {
+    bg: "bg-blue-500/90",
+    text: "text-white",
+    icon: "heroicons:check-circle",
+    iconColor: "text-white",
+  },
+  deposited: {
+    bg: "bg-indigo-500/90",
+    text: "text-white",
+    icon: "heroicons:check-circle",
+    iconColor: "text-white",
+  },
   pending: {
     bg: "bg-amber-500/90",
     text: "text-white",
@@ -210,6 +222,12 @@ export const STATUS_CONFIG: Record<
     iconColor: "text-white",
   },
   pending_approval: {
+    bg: "bg-orange-500/90",
+    text: "text-white",
+    icon: "heroicons:clock",
+    iconColor: "text-white",
+  },
+  pendingadjustment: {
     bg: "bg-orange-500/90",
     text: "text-white",
     icon: "heroicons:clock",

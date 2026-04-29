@@ -17,5 +17,9 @@ public enum TourInstanceStatus
     [Description("Cancelled")]
     Cancelled = 6,
     [Description("Pending Approval")]
-    PendingApproval = 7
+    PendingApproval = 7,
+    [Description("Draft")]
+    Draft = 8,
+    [Description("Pending Adjustment")]
+    PendingAdjustment = 9
 }

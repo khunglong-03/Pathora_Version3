@@ -75,6 +75,19 @@ public static class ErrorConstants
                 "This tour instance was modified by another user. Please refresh and try again.");
     }
 
+    public static class ItineraryFeedback
+    {
+        public const string NotFoundCode = "ItineraryFeedback.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy phản hồi lịch trình.", "Itinerary feedback not found.");
+        public const string ForbiddenCode = "ItineraryFeedback.Forbidden";
+        public static readonly LocalizedMessage ForbiddenDescription =
+            new("Bạn không có quyền thực hiện thao tác này.", "You are not allowed to perform this action.");
+        public const string InvalidDayCode = "ItineraryFeedback.InvalidDay";
+        public static readonly LocalizedMessage InvalidDayDescription =
+            new("Ngày lịch trình không thuộc tour instance.", "Tour day does not belong to this instance.");
+    }
+
     public static class TourInstanceActivity
     {
         public const string NotFoundCode = "TourInstanceActivity.NotFound";

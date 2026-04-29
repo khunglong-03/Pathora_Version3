@@ -1,4 +1,5 @@
 using Api.Endpoint;
+using Application.Features.Public.Commands;
 using Application.Features.Public.Queries;
 using Application.Features.Tour.Queries;
 using Contracts.Interfaces;
@@ -16,6 +17,27 @@ public class PublicTourController : BaseApiController
     {
         var result = await Sender.Send(new GetPublicTourDetailQuery(id, languageContext.CurrentLanguage));
         return HandleResult(result);
+    }
+
+    [HttpPost("{id:guid}/request-private")]
+    public async Task<IActionResult> RequestPrivateTour(Guid id, [FromBody] RequestPublicPrivateTourRequestDto body)
+    {
+        var command = new RequestPublicPrivateTourCommand(
+            id,
+            body.ClassificationId,
+            body.StartDate,
+            body.EndDate,
+            body.MaxParticipation,
+            body.CustomerName,
+            body.CustomerPhone,
+            body.CustomerEmail,
+            body.NumberAdult,
+            body.NumberChild,
+            body.NumberInfant,
+            body.PaymentMethod,
+            body.IsFullPay);
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
     }
 
     [HttpGet]

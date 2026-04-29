@@ -3160,6 +3160,9 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal?>("FinalSellPrice")
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<string>("IncludedServices")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -3384,7 +3387,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.TourInstanceTransportAssignmentEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
@@ -3502,6 +3504,54 @@ namespace Infrastructure.Migrations
                     b.HasIndex("TourClassificationId");
 
                     b.ToTable("TourInsurances", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourItineraryFeedbackEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsFromCustomer")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TourInstanceDayId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TourInstanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("TourInstanceDayId");
+
+                    b.HasIndex("TourInstanceId");
+
+                    b.HasIndex("TourInstanceId", "TourInstanceDayId");
+
+                    b.ToTable("TourItineraryFeedbacks", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TourManagerAssignmentEntity", b =>
@@ -4013,6 +4063,49 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Type");
 
                     b.ToTable("TourResources", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.TransactionHistoryEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("CreatedOnUtc");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TransactionHistories", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.UserEntity", b =>
@@ -5331,6 +5424,32 @@ namespace Infrastructure.Migrations
                     b.Navigation("TourClassification");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourItineraryFeedbackEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingEntity", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.TourInstanceDayEntity", "TourInstanceDay")
+                        .WithMany()
+                        .HasForeignKey("TourInstanceDayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.TourInstanceEntity", "TourInstance")
+                        .WithMany("ItineraryFeedbacks")
+                        .HasForeignKey("TourInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("TourInstance");
+
+                    b.Navigation("TourInstanceDay");
+                });
+
             modelBuilder.Entity("Domain.Entities.TourManagerAssignmentEntity", b =>
                 {
                     b.HasOne("Domain.Entities.TourInstanceEntity", "AssignedTour")
@@ -5435,6 +5554,24 @@ namespace Infrastructure.Migrations
                     b.Navigation("ToLocation");
 
                     b.Navigation("Tour");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TransactionHistoryEntity", b =>
+                {
+                    b.HasOne("Domain.Entities.BookingEntity", "Booking")
+                        .WithMany("TransactionHistories")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.UserEntity", "User")
+                        .WithMany("TransactionHistories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.UserRoleEntity", b =>
@@ -5560,6 +5697,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("SupplierPayables");
 
                     b.Navigation("TourDayActivityStatuses");
+
+                    b.Navigation("TransactionHistories");
                 });
 
             modelBuilder.Entity("Domain.Entities.BookingParticipantEntity", b =>
@@ -5642,6 +5781,8 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("InstanceDays");
 
+                    b.Navigation("ItineraryFeedbacks");
+
                     b.Navigation("Managers");
                 });
 
@@ -5652,6 +5793,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.UserEntity", b =>
                 {
+                    b.Navigation("TransactionHistories");
+
                     b.Navigation("UserSetting");
                 });
 

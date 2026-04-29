@@ -35,6 +35,7 @@ import {
 import SupplierReassignmentModal from "./SupplierReassignmentModal";
 import TicketImageUpload, { type TicketImageBookingOption } from "./TicketImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
+import { PrivateTourCoDesignOperatorSection } from "@/features/private-co-design/PrivateTourCoDesignOperatorSection";
 
 
 type EditForm = {
@@ -173,6 +174,7 @@ export default function TourInstanceDetailPage() {
   const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");
   const [ticketBookingOptions, setTicketBookingOptions] = useState<TicketImageBookingOption[]>([]);
   const [ticketBookingOptionsLoading, setTicketBookingOptionsLoading] = useState(false);
+  const [primaryPrivateBookingId, setPrimaryPrivateBookingId] = useState<string | null>(null);
 
   // Check if navigated from creation and try to reuse POST response
   useEffect(() => {
@@ -302,6 +304,28 @@ export default function TourInstanceDetailPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (!data?.id || data.instanceType?.toLowerCase() !== "private" || !canReassign) {
+      setPrimaryPrivateBookingId(null);
+      return;
+    }
+    let active = true;
+    void (async () => {
+      try {
+        const bookings = await bookingService.getBookingsByTourInstance(data.id);
+        if (!active) return;
+        const first = bookings[0];
+        const bid = first?.id ?? (first as { bookingId?: string } | undefined)?.bookingId ?? null;
+        setPrimaryPrivateBookingId(bid);
+      } catch {
+        if (active) setPrimaryPrivateBookingId(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [data?.id, data?.instanceType, canReassign]);
 
   useEffect(() => {
     if (!data?.id || (data.totalBookings ?? 0) <= 0) {
@@ -909,6 +933,18 @@ export default function TourInstanceDetailPage() {
                 </article>
               </div>
             </section>
+
+            {data.instanceType?.toLowerCase() === "private" && canReassign ? (
+              <section className="mb-8">
+                <PrivateTourCoDesignOperatorSection
+                  tourInstanceId={data.id}
+                  bookingId={primaryPrivateBookingId}
+                  days={data.days ?? []}
+                  initialFinalSellPrice={data.finalSellPrice ?? null}
+                  onFinalPriceSaved={() => void loadData()}
+                />
+              </section>
+            ) : null}
 
             {/* Itinerary */}
             <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">

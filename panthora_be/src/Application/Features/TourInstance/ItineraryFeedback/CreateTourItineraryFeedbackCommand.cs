@@ -1,0 +1,97 @@
+using Application.Common.Constant;
+using Application.Services;
+using Domain.Common.Repositories;
+using Domain.Entities;
+using Domain.Enums;
+using ErrorOr;
+using FluentValidation;
+using MediatR;
+using System.Text.Json.Serialization;
+
+namespace Application.Features.TourInstance.ItineraryFeedback;
+
+public sealed record CreateTourItineraryFeedbackCommand(
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("tourInstanceDayId")] Guid TourInstanceDayId,
+    [property: JsonPropertyName("bookingId")] Guid? BookingId,
+    [property: JsonPropertyName("content")] string Content,
+    [property: JsonPropertyName("isFromCustomer")] bool IsFromCustomer)
+    : IRequest<ErrorOr<TourItineraryFeedbackDto>>;
+
+public sealed class CreateTourItineraryFeedbackCommandValidator : AbstractValidator<CreateTourItineraryFeedbackCommand>
+{
+    public CreateTourItineraryFeedbackCommandValidator()
+    {
+        RuleFor(x => x.TourInstanceId).NotEmpty();
+        RuleFor(x => x.TourInstanceDayId).NotEmpty();
+        RuleFor(x => x.Content).NotEmpty().MaximumLength(8000);
+    }
+}
+
+public sealed class CreateTourItineraryFeedbackCommandHandler(
+    ITourInstanceRepository tourInstanceRepository,
+    IBookingRepository bookingRepository,
+    ITourItineraryFeedbackRepository feedbackRepository,
+    IOwnershipValidator ownershipValidator,
+    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateTourItineraryFeedbackCommand, ErrorOr<TourItineraryFeedbackDto>>
+{
+    public async Task<ErrorOr<TourItineraryFeedbackDto>> Handle(
+        CreateTourItineraryFeedbackCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(ownershipValidator.GetCurrentUserId(), out var userId))
+            return Error.Unauthorized();
+
+        var instance = await tourInstanceRepository.FindById(request.TourInstanceId, cancellationToken: cancellationToken);
+        if (instance == null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (instance.InstanceType != TourType.Private)
+            return Error.Validation(ErrorConstants.ItineraryFeedback.ForbiddenCode, "Chỉ tour riêng mới dùng co-design feedback.");
+
+        if (!PrivateTourCoDesignAccess.DayBelongsToInstance(instance, request.TourInstanceDayId))
+            return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
+
+        var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+        var isManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+
+        if (request.IsFromCustomer)
+        {
+            if (request.BookingId is null)
+                return Error.Validation("ItineraryFeedback.BookingRequired", "Khách cần liên kết booking để gửi phản hồi.");
+
+            var booking = await bookingRepository.GetByIdAsync(request.BookingId.Value, cancellationToken);
+            if (booking == null)
+                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
+            if (booking.TourInstanceId != instance.Id)
+                return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
+            if (booking.UserId != userId && !isAdmin)
+                return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
+            if (booking.UserId is null && !isAdmin)
+                return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, "Tài khoản khách cần đăng nhập để bình luận.");
+        }
+        else
+        {
+            if (!isManager && !isAdmin)
+                return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
+        }
+
+        var performedBy = userId.ToString();
+        var entity = TourItineraryFeedbackEntity.Create(
+            request.TourInstanceId,
+            request.TourInstanceDayId,
+            request.Content,
+            request.IsFromCustomer,
+            performedBy,
+            request.BookingId);
+
+        await feedbackRepository.AddAsync(entity, cancellationToken);
+        await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        return Map(entity);
+    }
+
+    private static TourItineraryFeedbackDto Map(TourItineraryFeedbackEntity f) =>
+        new(f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc);
+}

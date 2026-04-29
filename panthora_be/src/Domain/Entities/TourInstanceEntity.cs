@@ -46,6 +46,9 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Giá cơ bản tại thời điểm tạo instance (snapshot từ Classification).</summary>
     public decimal BasePrice { get; set; }
 
+    /// <summary>Giá chốt do operator nhập sau co-design (private). Không thay thế <see cref="BasePrice"/>.</summary>
+    public decimal? FinalSellPrice { get; set; }
+
     // Media & Location
     /// <summary>Địa điểm xuất phát/tour.</summary>
     public string? Location { get; set; }
@@ -64,6 +67,12 @@ public class TourInstanceEntity : Aggregate<Guid>
     // Instance-specific day schedule
     /// <summary>Danh sách các ngày cụ thể của instance (TourInstanceDay).</summary>
     public virtual List<TourInstanceDayEntity> InstanceDays { get; set; } = [];
+
+    /// <summary>Các booking gắn với instance này.</summary>
+    public virtual List<BookingEntity> Bookings { get; set; } = [];
+
+    /// <summary>Phản hồi co-design theo ngày (private tour).</summary>
+    public virtual List<TourItineraryFeedbackEntity> ItineraryFeedbacks { get; set; } = [];
 
     // Soft delete
     /// <summary>Cờ xóa mềm.</summary>
@@ -127,7 +136,9 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = requiresApproval ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
+            Status = instanceType == TourType.Private
+                ? TourInstanceStatus.Draft
+                : (requiresApproval ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available),
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),
@@ -364,6 +375,23 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Operator nhập giá chốt sau co-design; chỉ tour riêng đang <see cref="TourInstanceStatus.Draft"/>.
+    /// </summary>
+    public void SetFinalSellPrice(decimal finalSellPrice, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới có FinalSellPrice.");
+        if (Status != TourInstanceStatus.Draft)
+            throw new InvalidOperationException("Chỉ được set FinalSellPrice khi instance đang Draft.");
+        if (finalSellPrice < 0)
+            throw new ArgumentOutOfRangeException(nameof(finalSellPrice), "Giá chốt không được âm.");
+
+        FinalSellPrice = finalSellPrice;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
     private static void EnsureValidDateRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
         if (startDate > endDate)
@@ -385,6 +413,10 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.InProgress => next is TourInstanceStatus.Completed,
+            TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.Completed => false,
+            TourInstanceStatus.Cancelled => false,
             _ => false
         };
 

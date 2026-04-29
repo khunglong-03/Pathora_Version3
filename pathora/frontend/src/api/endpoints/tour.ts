@@ -46,12 +46,23 @@ export interface TourInstanceEndpoints {
   CONFIRM_EXTERNAL_TRANSPORT: (instanceId: string, activityId: string) => string;
   TICKET_IMAGES: (instanceId: string, activityId: string) => string;
   TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string) => string;
+  LIST_ITINERARY_FEEDBACK: (instanceId: string, dayId: string) => string;
+  CREATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string) => string;
+  UPDATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  DELETE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  SET_FINAL_SELL_PRICE: (instanceId: string) => string;
+  APPLY_PRIVATE_SETTLEMENT: (instanceId: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
   GET_AVAILABLE: string;
   GET_DETAIL: EndpointWithId;
   RESOLVE_PRICING: (id: string, participants: number) => string;
+}
+
+/** Anonymous public tour catalog actions */
+export interface PublicTourEndpoints {
+  REQUEST_PRIVATE: EndpointWithId;
 }
 
 export const TOUR: TourEndpoints = {
@@ -112,6 +123,26 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images`,
   TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string): string =>
     `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images/${imageId}`,
+  LIST_ITINERARY_FEEDBACK: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback`,
+  CREATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback`,
+  UPDATE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}`,
+  DELETE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}`,
+  SET_FINAL_SELL_PRICE: (instanceId: string): string =>
+    `/api/tour-instance/${instanceId}/final-sell-price`,
+  APPLY_PRIVATE_SETTLEMENT: (instanceId: string): string =>
+    `/api/tour-instance/${instanceId}/private-settlement`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {
@@ -119,4 +150,8 @@ export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {
   GET_DETAIL: (id: string): string => `/api/public/tour-instances/${id}`,
   RESOLVE_PRICING: (id: string, participants: number): string =>
     `/api/public/tour-instances/${id}/pricing/resolve?participants=${participants}`,
+};
+
+export const PUBLIC_TOUR: PublicTourEndpoints = {
+  REQUEST_PRIVATE: (id: string): string => `/api/public/tours/${id}/request-private`,
 };

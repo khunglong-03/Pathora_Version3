@@ -21,7 +21,7 @@ export function TourPoliciesCard({
   depositPolicy,
   className = "",
 }: TourPoliciesCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (!pricingPolicy && !cancellationPolicy && !depositPolicy) {
     return null;
@@ -47,9 +47,9 @@ export function TourPoliciesCard({
                 <p>
                   {t("tours.policies.deposit.amount", "A deposit of {{amount}} is required to secure your booking.", {
                     amount:
-                      String(depositPolicy.depositType).toLowerCase() === "percentage" || depositPolicy.depositType === 0
+                      String(depositPolicy.depositType).toLowerCase() === "percentage" || depositPolicy.depositType === 2
                         ? `${depositPolicy.depositValue}%`
-                        : `$${depositPolicy.depositValue}`,
+                        : `${new Intl.NumberFormat(i18n.language === "vi" ? "vi-VN" : "en-GB", { style: "currency", currency: "VND" }).format(depositPolicy.depositValue).replace("VND", "VND").trim()}`,
                   })}
                 </p>
                 <p className="mt-1 text-gray-500 text-xs">
@@ -102,26 +102,26 @@ export function TourPoliciesCard({
             <div>
               <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2 mb-3">
                 <Icon icon="heroicons:users" className="size-4 text-gray-500" />
-                {t("tours.policies.pricing.title", "Group Pricing Structure")}
+                {t("tours.policies.pricing.title", "Age-Based Pricing")}
               </h4>
               <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
                 <p className="mb-2">
-                  {t("tours.policies.pricing.description", "Pricing adjusts based on the total number of participants in your group.")}
+                  {t("tours.policies.pricing.description", "Tour price varies based on the age of participants.")}
                 </p>
                 <ul className="space-y-1">
                   {pricingPolicy.tiers.map((tier, idx) => (
                     <li key={idx} className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">
-                        {tier.maxParticipants === 9999
-                          ? t("tours.policies.pricing.moreThan", "{{min}}+ participants", { min: tier.minParticipants })
-                          : t("tours.policies.pricing.between", "{{min}} - {{max}} participants", { min: tier.minParticipants, max: tier.maxParticipants })}
+                      <span className="text-gray-500 font-medium">
+                        {tier.label ? tier.label + " (" : ""}
+                        {!tier.ageTo
+                          ? t("tours.policies.pricing.moreThan", "{{min}}+ years old", { min: tier.ageFrom })
+                          : t("tours.policies.pricing.between", "{{min}} - {{max}} years old", { min: tier.ageFrom, max: tier.ageTo })}
+                        {tier.label ? ")" : ""}
                       </span>
-                      <span className="font-medium text-gray-700">
-                        {tier.markupPercentage > 0
-                          ? `+${tier.markupPercentage}%`
-                          : tier.markupPercentage < 0
-                          ? `${tier.markupPercentage}%`
-                          : t("tours.policies.pricing.baseRate", "Base Rate")}
+                      <span className="font-bold text-gray-700">
+                        {tier.pricePercentage === 100
+                          ? t("tours.policies.pricing.baseRate", "100% (Base Price)")
+                          : `${tier.pricePercentage}%`}
                       </span>
                     </li>
                   ))}

@@ -11,6 +11,50 @@ using global::Xunit;
 
 public sealed class CreatePublicBookingCommandHandlerTests
 {
+    [Fact]
+    public async Task PrivateDraft_AllowsBooking_WhenCapacityOk()
+    {
+        var tourInstanceId = Guid.NewGuid();
+        var tourInstance = CreateTourInstance(tourInstanceId);
+        tourInstance.InstanceType = TourType.Private;
+        tourInstance.Status = TourInstanceStatus.Draft;
+
+        _tourInstanceRepository.FindById(tourInstanceId).Returns(tourInstance);
+        _taxConfigRepository.GetListAsync(Arg.Any<System.Linq.Expressions.Expression<Func<TaxConfigEntity, bool>>?>(), Arg.Any<System.Linq.Expressions.Expression<Func<TaxConfigEntity, object>>[]?>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<TaxConfigEntity>());
+        _pricingPolicyRepository.GetActivePolicyByTourType(Arg.Any<TourType>(), Arg.Any<CancellationToken>())
+            .Returns((PricingPolicy?)null);
+        _pricingPolicyRepository.GetDefaultPolicy(Arg.Any<CancellationToken>())
+            .Returns((PricingPolicy?)null);
+        _depositPolicyRepository.GetAllActiveAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<DepositPolicyEntity>());
+        var tour = new TourEntity { Id = tourInstance.TourId, TourScope = TourScope.Domestic };
+        _tourRepository.FindById(tourInstance.TourId, true, Arg.Any<CancellationToken>())
+            .Returns(tour);
+        _bookingRepository.AddAsync(Arg.Any<BookingEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(1));
+
+        _user.Id.Returns((string?)null);
+
+        var handler = CreateHandler();
+        var cmd = new CreatePublicBookingCommand(
+            tourInstanceId,
+            "Name",
+            "+84 912345678",
+            null,
+            2,
+            0,
+            0,
+            PaymentMethod.BankTransfer,
+            true);
+
+        var result = await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsError);
+    }
+
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
     private readonly ITourInstanceRepository _tourInstanceRepository = Substitute.For<ITourInstanceRepository>();

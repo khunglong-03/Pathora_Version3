@@ -32,4 +32,6 @@ public sealed record TourInstanceDto(
     [property: JsonPropertyName("pricingPolicy")] PricingPolicyDto? PricingPolicy = null,
     [property: JsonPropertyName("cancellationPolicy")] CancellationPolicyDto? CancellationPolicy = null,
     [property: JsonPropertyName("depositPolicy")] DepositPolicyDto? DepositPolicy = null,
+    /// <summary>Giá chốt sau co-design (private tour); null khi chưa set.</summary>
+    [property: JsonPropertyName("finalSellPrice")] decimal? FinalSellPrice = null,
     [property: JsonPropertyName("days")] List<TourInstanceDayDto>? Days = null);

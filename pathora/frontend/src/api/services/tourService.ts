@@ -10,6 +10,8 @@ import {
   TourVm,
 } from "@/types/tour";
 import { extractResult } from "@/utils/apiResponse";
+import type { CheckoutPriceResponse } from "@/api/services/paymentService";
+import { normalizeCheckoutPriceResponse } from "@/utils/checkoutPriceResponse";
 import { ApiResponse } from "@/types/home";
 
 const normalizeClassification = (
@@ -267,5 +269,33 @@ export const tourService = {
     const response = await api.get<ApiResponse<TourDto>>(url);
     const result = extractResult<TourDto>(response.data);
     return result ? normalizeTourDetail(result) : null;
+  },
+
+  /** POST /api/public/tours/{id}/request-private — draft private instance + booking; returns checkout price shape. */
+  requestPrivateTour: async (
+    tourId: string,
+    payload: {
+      classificationId: string;
+      startDate: string;
+      endDate: string;
+      maxParticipation: number;
+      customerName: string;
+      customerPhone: string;
+      customerEmail?: string;
+      numberAdult: number;
+      numberChild: number;
+      numberInfant: number;
+      /** API enum: 1 Cash, 2 BankTransfer, … */
+      paymentMethod: number;
+      /** Must be true (backend validation). */
+      isFullPay: boolean;
+    },
+  ): Promise<CheckoutPriceResponse | null> => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.PUBLIC_TOUR.REQUEST_PRIVATE(tourId),
+      payload,
+    );
+    const raw = extractResult<unknown>(response.data);
+    return normalizeCheckoutPriceResponse(raw);
   },
 };

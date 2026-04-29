@@ -65,5 +65,11 @@ public sealed class GetPublicTourInstancesQueryValidator : AbstractValidator<Get
         RuleFor(x => x.PageSize)
             .InclusiveBetween(1, 50)
             .WithMessage(ValidationMessages.SearchToursPageSizeRange);
+
+        RuleFor(x => x.InstanceType)
+            .Must(s => string.IsNullOrWhiteSpace(s)
+                       || string.Equals(s.Trim(), "public", StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(s.Trim(), "private", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("instanceType must be public, private, or omitted.");
     }
 }

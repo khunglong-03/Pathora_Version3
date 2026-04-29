@@ -80,6 +80,9 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>Danh sách các giao dịch thanh toán của booking.</summary>
     public virtual List<PaymentTransactionEntity> PaymentTransactions { get; set; } = [];
 
+    /// <summary>Ghi nhận hoàn / điều chỉnh ví liên quan booking (OpenSpec TransactionHistory).</summary>
+    public virtual List<TransactionHistoryEntity> TransactionHistories { get; set; } = [];
+
 
     public static BookingEntity Create(
         Guid tourInstanceId,
@@ -94,7 +97,8 @@ public class BookingEntity : Aggregate<Guid>
         Guid? tourRequestId = null,
         string? customerEmail = null,
         int numberChild = 0,
-        int numberInfant = 0)
+        int numberInfant = 0,
+        BookingType bookingType = BookingType.InstanceJoin)
     {
         EnsureValidParticipants(numberAdult, numberChild, numberInfant);
         EnsureValidPrice(totalPrice);
@@ -114,6 +118,7 @@ public class BookingEntity : Aggregate<Guid>
             TotalPrice = totalPrice,
             PaymentMethod = paymentMethod,
             IsFullPay = isFullPay,
+            BookingType = bookingType,
             Status = BookingStatus.Pending,
             BookingDate = DateTimeOffset.UtcNow,
             CreatedBy = performedBy,
@@ -143,6 +148,15 @@ public class BookingEntity : Aggregate<Guid>
     {
         EnsureValidTransition(Status, BookingStatus.Paid);
         Status = BookingStatus.Paid;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Chờ top-up sau khi <c>FinalSellPrice</c> &gt; tổng đã thanh toán.</summary>
+    public void MarkPendingAdjustment(string performedBy)
+    {
+        EnsureValidTransition(Status, BookingStatus.PendingAdjustment);
+        Status = BookingStatus.PendingAdjustment;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
@@ -194,7 +208,10 @@ public class BookingEntity : Aggregate<Guid>
             BookingStatus.Pending => next is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Cancelled,
             BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Cancelled,
             BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.Cancelled,
-            BookingStatus.Paid => next is BookingStatus.Completed or BookingStatus.Cancelled,
+            BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled,
+            BookingStatus.PendingAdjustment => next is BookingStatus.Paid or BookingStatus.Cancelled,
+            BookingStatus.Completed => false,
+            BookingStatus.Cancelled => false,
             _ => false
         };
 

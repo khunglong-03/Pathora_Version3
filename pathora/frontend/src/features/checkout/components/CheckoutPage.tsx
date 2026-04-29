@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui";
@@ -139,6 +139,7 @@ export function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState("");
 
   const [isMounted, setIsMounted] = useState(false);
+  const [loadingTopUpTransaction, setLoadingTopUpTransaction] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -148,6 +149,20 @@ export function CheckoutPage() {
   /* ── Get booking ID or tour instance info from URL ───── */
   const bookingIdParam = searchParams.get("bookingId");
   const tourInstanceIdParam = searchParams.get("tourInstanceId");
+  const checkoutFlowParam = searchParams.get("flow");
+  const transactionCodeParam = searchParams.get("transactionCode");
+  const isPrivateCustomCheckout = checkoutFlowParam === "private-custom";
+  const isPrivateTopUpCheckout = checkoutFlowParam === "private-top-up";
+  const usePublicBookingCheckoutPrice = isPrivateCustomCheckout || isPrivateTopUpCheckout;
+
+  const toastPaidSuccess = useCallback(() => {
+    toast.success(
+      isPrivateCustomCheckout
+        ? t("landing.checkout.privateCustomPaymentReceived")
+        : t("landing.checkout.paymentReceived"),
+    );
+  }, [isPrivateCustomCheckout, t]);
+
   const tourNameParam = searchParams.get("tourName");
   const startDateParam = searchParams.get("startDate");
   const endDateParam = searchParams.get("endDate");
@@ -194,6 +209,9 @@ export function CheckoutPage() {
     }
   }, [tourInstanceIdParam, tourNameParam, startDateParam, endDateParam, locationParam, depositPerPersonParam, basePriceParam, depositPercentageParam, bookingTypeParam, instanceTypeParam]);
 
+  /* ── Derived booking-id checkout (API price) vs tour-instance URL checkout ── */
+  const isBookingIdPriceFetch = Boolean(bookingIdParam && !tourInstanceIdParam);
+
   /* ── Fetch checkout price from API ────────────────────── */
   useEffect(() => {
     if (!bookingIdParam) {
@@ -205,24 +223,69 @@ export function CheckoutPage() {
       try {
         setLoadingPrice(true);
         setPriceError(null);
-        const price = await paymentService.getCheckoutPrice(bookingIdParam);
+        const price = await paymentService.getCheckoutPrice(bookingIdParam, {
+          usePublicBookingEndpoint: usePublicBookingCheckoutPrice,
+        });
         if (price) {
           setCheckoutPrice(price);
-          if (price.depositPercentage === 100) {
+          if (price.depositPercentage >= 1) {
             setPaymentOption("full");
           }
+        } else {
+          setPriceError(t("landing.checkout.checkoutPriceMissing"));
         }
       } catch (error) {
         const handledError = handleApiError(error);
         console.error("Failed to fetch checkout price:", handledError.message);
         setPriceError(handledError.message);
+        toast.error(t("landing.checkout.priceFetchError"));
       } finally {
         setLoadingPrice(false);
       }
     };
 
     fetchCheckoutPrice();
-  }, [bookingIdParam]);
+  }, [bookingIdParam, usePublicBookingCheckoutPrice, t]);
+
+  /* ── Private top-up: load existing payment transaction (Delta &gt; 0) ─── */
+  useEffect(() => {
+    if (!isPrivateTopUpCheckout || !transactionCodeParam || !bookingIdParam) {
+      return;
+    }
+    let cancelled = false;
+    setLoadingTopUpTransaction(true);
+    void paymentService
+      .getTransaction(transactionCodeParam)
+      .then((tx) => {
+        if (cancelled) return;
+        if (tx) {
+          setTransaction(tx);
+        } else {
+          toast.error(t("landing.checkout.privateTopUpTransactionLoadError"));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          toast.error(t("landing.checkout.privateTopUpTransactionLoadError"));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingTopUpTransaction(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isPrivateTopUpCheckout, transactionCodeParam, bookingIdParam, t]);
+
+  useEffect(() => {
+    if (!isPrivateTopUpCheckout) return;
+    if (!bookingIdParam || !transactionCodeParam) {
+      setPriceError(t("landing.checkout.privateTopUpMissingParams"));
+      setLoadingPrice(false);
+    }
+  }, [isPrivateTopUpCheckout, bookingIdParam, transactionCodeParam, t]);
 
   /* ── Derived ──────────────────────────────────────────── */
   const adultsParam = searchParams.get("adults") || "1";
@@ -311,10 +374,17 @@ export function CheckoutPage() {
   const remainingBalance = effectivePrice?.remainingBalance ?? 0;
   const payAmount = paymentOption === "full" ? totalPrice : depositAmount;
   const canConfirm = Boolean(
-    agreeTerms && acknowledgeInfo && !loading && !transaction
+    !isPrivateTopUpCheckout
+    && agreeTerms && acknowledgeInfo && !loading && !loadingTopUpTransaction && !transaction
     && hasPrice
     && (!needsBookingCreation || hasCustomerInfo),
   );
+
+  useEffect(() => {
+    if (isPrivateCustomCheckout || isPrivateTopUpCheckout) {
+      setPaymentOption("full");
+    }
+  }, [isPrivateCustomCheckout, isPrivateTopUpCheckout]);
 
   useEffect(() => {
     if (!transaction) {
@@ -332,16 +402,14 @@ export function CheckoutPage() {
     if (transaction && paymentSignalR.status !== "pending") {
       setNormalizedStatus(paymentSignalR.status);
       if (paymentSignalR.status === "paid") {
-        toast.success(t("landing.checkout.paymentReceived"));
-      } else if (
-        paymentSignalR.status === "failed"
-        || paymentSignalR.status === "cancelled"
-        || paymentSignalR.status === "expired"
-      ) {
+        toastPaidSuccess();
+      } else if (paymentSignalR.status === "expired") {
+        toast.error(t("landing.checkout.paymentExpired"));
+      } else if (paymentSignalR.status === "failed" || paymentSignalR.status === "cancelled") {
         toast.error(t("landing.checkout.paymentFailed"));
       }
     }
-  }, [paymentSignalR.status, transaction, t]);
+  }, [paymentSignalR.status, transaction, t, toastPaidSuccess]);
 
   // Task 5.3.1: Page visibility handling — immediate fetch on tab focus
   useEffect(() => {
@@ -351,7 +419,7 @@ export function CheckoutPage() {
           .then(snapshot => {
             setNormalizedStatus(snapshot.normalizedStatus);
             if (snapshot.normalizedStatus === "paid") {
-              toast.success(t("landing.checkout.paymentReceived"));
+              toastPaidSuccess();
             } else if (snapshot.normalizedStatus === "expired") {
               toast.error(t("landing.checkout.paymentExpired"));
             } else if (snapshot.normalizedStatus === "failed") {
@@ -367,7 +435,7 @@ export function CheckoutPage() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [transaction?.transactionCode]);
+  }, [transaction?.transactionCode, t, toastPaidSuccess]);
 
   /* ── Handle redirect return/cancel from hosted payment ───── */
   useEffect(() => {
@@ -390,7 +458,7 @@ export function CheckoutPage() {
         }
 
         if (snapshot.normalizedStatus === "paid") {
-          toast.success(t("landing.checkout.paymentReceived"));
+          toastPaidSuccess();
           return;
         }
 
@@ -408,7 +476,7 @@ export function CheckoutPage() {
     };
 
     reconcilePayment();
-  }, [searchParams, t]);
+  }, [searchParams, t, toastPaidSuccess]);
 
   /* ── Handle Confirm Booking ────────────────────────────── */
   const handleConfirmBooking = async () => {
@@ -445,14 +513,19 @@ export function CheckoutPage() {
       }
 
       // Step 2: Create payment transaction
-      const result = await paymentService.createTransaction({
-        bookingId: currentBookingId,
-        type: paymentOption === "full" ? "FullPayment" : "Deposit",
-        amount: payAmount,
-        paymentMethod: "BankTransfer",
-        paymentNote: `Payment for ${checkoutPrice?.tourName ?? "Tour"} - ${paymentOption === "full" ? "Full Payment" : `Deposit ${Math.round((checkoutPrice?.depositPercentage ?? DEFAULT_DEPOSIT_PERCENTAGE) * 100)}%`}`,
-        createdBy: user?.email ?? user?.username ?? "guest",
-      });
+      let result: PaymentTransaction | null = null;
+      if (isPrivateCustomCheckout && currentBookingId) {
+        result = await paymentService.createPrivateCustomInitial(currentBookingId);
+      } else {
+        result = await paymentService.createTransaction({
+          bookingId: currentBookingId,
+          type: paymentOption === "full" ? "FullPayment" : "Deposit",
+          amount: payAmount,
+          paymentMethod: "BankTransfer",
+          paymentNote: `Payment for ${checkoutPrice?.tourName ?? "Tour"} - ${paymentOption === "full" ? "Full Payment" : `Deposit ${Math.round((checkoutPrice?.depositPercentage ?? DEFAULT_DEPOSIT_PERCENTAGE) * 100)}%`}`,
+          createdBy: user?.email ?? user?.username ?? "guest",
+        });
+      }
 
       if (result) {
         setTransaction(result);
@@ -468,7 +541,11 @@ export function CheckoutPage() {
     } catch (error: unknown) {
       const handledError = handleApiError(error);
       console.error("Failed to create transaction:", handledError.message);
-      toast.error(t("landing.checkout.transactionError"));
+      toast.error(
+        isPrivateCustomCheckout
+          ? t("landing.checkout.privateCustomTransactionError")
+          : t("landing.checkout.transactionError"),
+      );
     } finally {
       setLoading(false);
     }
@@ -504,12 +581,35 @@ export function CheckoutPage() {
             className="mb-8 md:mb-12 mt-4"
           >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none mb-3">
-              {t("landing.checkout.pageTitle", "Secure Checkout")}
+              {isPrivateTopUpCheckout
+                ? t("landing.checkout.privateTopUpPageTitle")
+                : t("landing.checkout.pageTitle", "Secure Checkout")}
             </h1>
             <p className="text-base text-slate-500 max-w-[65ch]">
-              {t("landing.checkout.pageSubtitle", "Complete your booking securely below.")}
+              {isPrivateTopUpCheckout
+                ? t("landing.checkout.privateTopUpPageSubtitle")
+                : t("landing.checkout.pageSubtitle", "Complete your booking securely below.")}
             </p>
           </motion.div>
+
+          {isPrivateTopUpCheckout ? (
+            <div
+              className="mb-8 rounded-2xl border border-orange-100 bg-orange-50/80 px-4 py-3 text-sm text-slate-800 max-w-[65ch]"
+              data-private-top-up-context
+            >
+              <p className="font-medium">{t("landing.checkout.privateTopUpDeltaExplain")}</p>
+              <p className="mt-2 text-xs text-slate-600">{t("landing.checkout.privateTopUpConfirmationDeadline")}</p>
+            </div>
+          ) : null}
+
+          {isPrivateTopUpCheckout && (!bookingIdParam || !transactionCodeParam) ? (
+            <div
+              className="mb-8 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900 max-w-[65ch]"
+              data-private-top-up-params-error
+            >
+              {t("landing.checkout.privateTopUpMissingParams")}
+            </div>
+          ) : null}
 
           {/* ── Step Indicator ────────────────────────────── */}
           <motion.div
@@ -536,13 +636,13 @@ export function CheckoutPage() {
               )}
 
               {/* Booking summary — shown when we have price data */}
-              {effectivePrice && (
+              {(isBookingIdPriceFetch || effectivePrice) && (
                 <motion.div variants={itemVariants}>
                   <BookingSummarySection
                     checkoutPrice={effectivePrice}
-                    totalPrice={effectivePrice.totalPrice}
-                    loadingPrice={false}
-                    priceError={null}
+                    totalPrice={effectivePrice?.totalPrice ?? 0}
+                    loadingPrice={isBookingIdPriceFetch && loadingPrice}
+                    priceError={isBookingIdPriceFetch ? priceError : null}
                   />
                 </motion.div>
               )}
@@ -562,7 +662,7 @@ export function CheckoutPage() {
                 </motion.div>
               )}
 
-              {normalizedStatus !== "paid" && (
+              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && (
                 <motion.div variants={itemVariants}>
                   <TermsConditionsCard
                     agreeTerms={agreeTerms}
@@ -587,9 +687,12 @@ export function CheckoutPage() {
                 totalPrice={totalPrice}
                 remainingBalance={remainingBalance}
                 canConfirm={canConfirm}
-                loading={loading}
+                loading={loading || loadingTopUpTransaction}
                 onConfirmBooking={handleConfirmBooking}
                 customerEmail={customerEmail}
+                hidePayMethodToggle={isPrivateCustomCheckout || isPrivateTopUpCheckout}
+                privateCustomCheckout={isPrivateCustomCheckout}
+                privateTopUpCheckout={isPrivateTopUpCheckout}
                 t={t}
               />
 
