@@ -114,6 +114,70 @@ function StepIndicator({ normalizedStatus }: { normalizedStatus: NormalizedPayme
   );
 }
 
+/* ── Passenger Adjuster Card ───────────────────────────────── */
+function PassengerAdjusterCard({
+  numberAdult, setNumberAdult,
+  numberChild, setNumberChild,
+  numberInfant, setNumberInfant,
+}: {
+  numberAdult: number; setNumberAdult: (v: number) => void;
+  numberChild: number; setNumberChild: (v: number) => void;
+  numberInfant: number; setNumberInfant: (v: number) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-8 md:p-10 flex flex-col gap-6">
+        <h3 className="text-xl font-semibold tracking-tight text-slate-900">{t("landing.checkout.participants", "Participants")}</h3>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-slate-900">{t("landing.checkout.adults", "Adults")}</div>
+            </div>
+            <div className="flex items-center gap-4 bg-slate-50 px-2 py-1 rounded-full border border-slate-200">
+              <button type="button" onClick={() => setNumberAdult(Math.max(1, numberAdult - 1))} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:opacity-50" disabled={numberAdult <= 1}>
+                <Icon icon="heroicons:minus" className="size-4" />
+              </button>
+              <span className="w-4 text-center font-semibold text-slate-900">{numberAdult}</span>
+              <button type="button" onClick={() => setNumberAdult(numberAdult + 1)} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300">
+                <Icon icon="heroicons:plus" className="size-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-slate-900">{t("landing.checkout.children", "Children")}</div>
+            </div>
+            <div className="flex items-center gap-4 bg-slate-50 px-2 py-1 rounded-full border border-slate-200">
+              <button type="button" onClick={() => setNumberChild(Math.max(0, numberChild - 1))} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:opacity-50" disabled={numberChild <= 0}>
+                <Icon icon="heroicons:minus" className="size-4" />
+              </button>
+              <span className="w-4 text-center font-semibold text-slate-900">{numberChild}</span>
+              <button type="button" onClick={() => setNumberChild(numberChild + 1)} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300">
+                <Icon icon="heroicons:plus" className="size-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-slate-900">{t("landing.checkout.infants", "Infants")}</div>
+            </div>
+            <div className="flex items-center gap-4 bg-slate-50 px-2 py-1 rounded-full border border-slate-200">
+              <button type="button" onClick={() => setNumberInfant(Math.max(0, numberInfant - 1))} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:opacity-50" disabled={numberInfant <= 0}>
+                <Icon icon="heroicons:minus" className="size-4" />
+              </button>
+              <span className="w-4 text-center font-semibold text-slate-900">{numberInfant}</span>
+              <button type="button" onClick={() => setNumberInfant(numberInfant + 1)} className="size-8 flex items-center justify-center bg-white rounded-full border border-slate-200 shadow-sm text-slate-600 hover:text-slate-900 hover:border-slate-300">
+                <Icon icon="heroicons:plus" className="size-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════
    ██  CheckoutPage
    ══════════════════════════════════════════════════════════════ */
@@ -291,13 +355,20 @@ export function CheckoutRequestPage() {
     }
   }, [isPrivateTopUpCheckout, bookingIdParam, transactionCodeParam, t]);
 
-  /* ── Derived ──────────────────────────────────────────── */
+  /* ── Derived & State ──────────────────────────────────── */
   const adultsParam = searchParams.get("adults") || "1";
   const childrenParam = searchParams.get("children") || "0";
   const infantsParam = searchParams.get("infants") || "0";
-  const numberAdult = parseInt(adultsParam, 10) || 1;
-  const numberChild = parseInt(childrenParam, 10) || 0;
-  const numberInfant = parseInt(infantsParam, 10) || 0;
+  
+  const [numberAdult, setNumberAdult] = useState(() => parseInt(adultsParam, 10) || 1);
+  const [numberChild, setNumberChild] = useState(() => parseInt(childrenParam, 10) || 0);
+  const [numberInfant, setNumberInfant] = useState(() => parseInt(infantsParam, 10) || 0);
+
+  useEffect(() => {
+    setNumberAdult(parseInt(searchParams.get("adults") || "1", 10));
+    setNumberChild(parseInt(searchParams.get("children") || "0", 10));
+    setNumberInfant(parseInt(searchParams.get("infants") || "0", 10));
+  }, [searchParams]);
 
   const adultPriceParam = searchParams.get("adultPrice");
   const childPriceParam = searchParams.get("childPrice");
@@ -489,12 +560,8 @@ export function CheckoutRequestPage() {
 
       // Step 1: Create booking if needed (when coming from tour detail page)
       if (needsBookingCreation && tourInstanceBooking) {
-        const adultsParam = searchParams.get("adults") || "1";
-        const childrenParam = searchParams.get("children") || "0";
-        const infantsParam = searchParams.get("infants") || "0";
-
         if (tourInstanceBooking.bookingType === "PrivateCustom") {
-          const totalPax = (parseInt(adultsParam, 10) || 1) + (parseInt(childrenParam, 10) || 0) + (parseInt(infantsParam, 10) || 0);
+          const totalPax = numberAdult + numberChild + numberInfant;
           const bookingResult = await import("@/api/services/tourService").then((m) => m.tourService.requestPrivateTour(tourInstanceBooking.tourInstanceId, {
             classificationId: tourInstanceBooking.classificationId || "",
             startDate: new Date(tourInstanceBooking.startDate).toISOString(),
@@ -503,9 +570,9 @@ export function CheckoutRequestPage() {
             customerName: customerName.trim(),
             customerPhone: customerPhone.trim(),
             customerEmail: customerEmail.trim() || undefined,
-            numberAdult: parseInt(adultsParam, 10) || 1,
-            numberChild: parseInt(childrenParam, 10) || 0,
-            numberInfant: parseInt(infantsParam, 10) || 0,
+            numberAdult: numberAdult,
+            numberChild: numberChild,
+            numberInfant: numberInfant,
             paymentMethod: 2,
             isFullPay: paymentOption === "full",
           }));
@@ -521,9 +588,9 @@ export function CheckoutRequestPage() {
             customerName: customerName.trim(),
             customerPhone: customerPhone.trim(),
             customerEmail: customerEmail.trim() || undefined,
-            numberAdult: parseInt(adultsParam, 10) || 1,
-            numberChild: parseInt(childrenParam, 10) || 0,
-            numberInfant: parseInt(infantsParam, 10) || 0,
+            numberAdult: numberAdult,
+            numberChild: numberChild,
+            numberInfant: numberInfant,
             paymentMethod: 2, // BankTransfer
             isFullPay: paymentOption === "full",
           };
@@ -674,6 +741,16 @@ export function CheckoutRequestPage() {
               )}
 
 
+
+              {needsBookingCreation && !transaction && (
+                <motion.div variants={itemVariants}>
+                  <PassengerAdjusterCard 
+                    numberAdult={numberAdult} setNumberAdult={setNumberAdult}
+                    numberChild={numberChild} setNumberChild={setNumberChild}
+                    numberInfant={numberInfant} setNumberInfant={setNumberInfant}
+                  />
+                </motion.div>
+              )}
 
               {needsBookingCreation && !transaction && (
                 <motion.div variants={itemVariants}>
