@@ -19,6 +19,7 @@ namespace Api.Controllers;
 [EnableRateLimiting("auth-strict")]
 public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 {
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Login)]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
@@ -32,6 +33,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return base.HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.LoginWithRoles)]
     public async Task<IActionResult> LoginWithRoles([FromBody] LoginWithRolesCommand command)
     {
@@ -45,6 +47,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return base.HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Register)]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
@@ -52,6 +55,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Refresh)]
     public async Task<IActionResult> Refresh([FromBody] RefreshCommand command)
     {
@@ -97,6 +101,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
         return HandleResult(result);
     }
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ConfirmRegister)]
     public async Task<IActionResult> ConfirmRegister([FromBody] ConfirmCommand command)
     {
@@ -104,6 +109,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ForgotPassword)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
@@ -111,6 +117,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ResetPassword)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
