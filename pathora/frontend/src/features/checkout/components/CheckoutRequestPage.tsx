@@ -785,7 +785,7 @@ export function CheckoutRequestPage() {
                 onStatusChange={setNormalizedStatus}
                 paymentOption={paymentOption}
                 onPaymentOptionChange={setPaymentOption}
-                checkoutPrice={checkoutPrice}
+                checkoutPrice={effectivePrice}
                 depositAmount={depositAmount}
                 totalPrice={totalPrice}
                 remainingBalance={remainingBalance}
