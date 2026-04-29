@@ -165,8 +165,13 @@ export function middleware(request: NextRequest) {
   const authRolesRaw = request.cookies.get("auth_roles")?.value;
   const { searchParams } = request.nextUrl;
 
-  const authenticated = Boolean(accessToken || refreshToken);
-  const hasStaleAuthMarker = Boolean(authStatus) && !authenticated;
+  // Production fix: access_token/refresh_token are set by api.vivugo.me (different domain),
+  // so Edge middleware cannot read them. auth_status IS set by frontend JS via
+  // persistAuthSession() on the frontend domain → use it as the primary auth signal.
+  const authenticated = Boolean(authStatus || accessToken || refreshToken);
+  // hasStaleAuthMarker removed: on production, accessToken is always undefined in Edge
+  // middleware context (wrong domain), so the stale check would always fire and
+  // incorrectly clear valid sessions. Token expiry is handled by axiosInstance 401 → refresh.
   const adminPortal = isAdminPortal(authPortal);
   const authRoles = parseAuthRoles(authRolesRaw);
   const publicPath = isPublicPath(pathname);
@@ -338,17 +343,7 @@ export function middleware(request: NextRequest) {
     loginUrl.searchParams.set("login", "true");
     const nextDestination = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
     loginUrl.searchParams.set("next", nextDestination);
-    const response = finalizeResponse(NextResponse.redirect(loginUrl));
-    if (hasStaleAuthMarker) {
-      clearAuthCookies(response);
-    }
-    return response;
-  }
-
-  if (hasStaleAuthMarker) {
-    const response = finalizeResponse(NextResponse.next());
-    clearAuthCookies(response);
-    return response;
+    return finalizeResponse(NextResponse.redirect(loginUrl));
   }
 
   return finalizeResponse(NextResponse.next());

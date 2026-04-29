@@ -8,6 +8,8 @@ import { logOut, setUser } from "@/store/infrastructure/authSlice";
 import { authApiSlice } from "@/store/api/auth/authApiSlice";
 import type { AppDispatch, RootState } from "@/store";
 import { resolveRoleDefaultPath } from "@/utils/authRouting";
+import { markAuthenticatedSession } from "@/utils/authSession";
+import { setCookie } from "@/utils/cookie";
 
 function CallbackHandler() {
   const router = useRouter();
@@ -73,6 +75,18 @@ function CallbackHandler() {
       if ("data" in result && result.data?.data) {
         const userInfo = result.data.data;
         dispatch(setUser(userInfo));
+
+        // Sync auth cookies onto the frontend domain so Next.js Edge middleware
+        // can detect authenticated state. Without this, middleware reads no cookies
+        // (backend set them on a different domain) and redirects to /?login=true.
+        markAuthenticatedSession();
+
+        const roleNames = userInfo.roles.map((r) => r.name);
+        setCookie("auth_roles", encodeURIComponent(JSON.stringify(roleNames)), 7 * 24 * 60 * 60);
+
+        const portal = userInfo.portal ?? (roleNames.some((r) => r === "Admin" || r === "Manager") ? "admin" : "user");
+        setCookie("auth_portal", portal, 7 * 24 * 60 * 60);
+
         toast.success("Successfully logged in with Google!");
         if (returnUrl) {
           router.replace(returnUrl);
