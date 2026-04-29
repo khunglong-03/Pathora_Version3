@@ -18,7 +18,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "admin",
-            FullName: "Administrator",
             Email: "admin@example.com",
             Password: "secret123");
         var (controller, probe) = BuildController(Result.Success);
@@ -40,7 +39,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "existing",
-            FullName: "Existing User",
             Email: "existing@example.com",
             Password: "secret123");
         var (controller, _) = BuildController(Error.Conflict("Identity.EmailExists", "Email đã tồn tại"));
@@ -65,7 +63,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "admin",
-            FullName: "Administrator",
             Email: "invalid-email-format",
             Password: "123");
         var (controller, _) = BuildController(Error.Validation("Identity.InvalidInput", "Sai định dạng input"));
@@ -89,7 +86,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "admin",
-            FullName: "Administrator",
             Email: "admin@example.com",
             Password: "secret123");
         var (controller, _) = BuildController(Error.Forbidden("Auth.EmailTemporarilyLocked", "Email này đã bị tạm khóa"));
@@ -112,7 +108,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "admin",
-            FullName: "Administrator",
             Email: "admin@example.com",
             Password: "secret123");
         var (controller, _) = BuildController(Error.Failure("Auth.LockoutCheckFailed", "Unable to verify registration eligibility"));
@@ -135,7 +130,6 @@ public sealed class AuthControllerRegisterTests
     {
         var command = new RegisterCommand(
             Username: "admin",
-            FullName: "Administrator",
             Email: "admin@example.com",
             Password: "secret123");
         var (controller, _) = BuildController(Error.Failure("Server.Error", "Lỗi máy chủ không xác định"));

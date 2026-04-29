@@ -87,7 +87,7 @@ const attachInterceptors = (instance: AxiosInstance): void => {
           console.log("Params:", config.params);
         }
         
-        let parsedData = config.data;
+        const parsedData = config.data;
         if (config.data instanceof FormData) {
           const obj: Record<string, any> = {};
           config.data.forEach((value, key) => {

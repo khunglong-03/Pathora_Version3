@@ -158,7 +158,7 @@ export function BookingHistoryPage() {
                     {t("landing.bookings.noResults")}
                   </p>
                   <p className="text-sm text-slate-500 max-w-sm">
-                    We couldn't find any bookings matching your current filter or search criteria.
+                    We couldn&apos;t find any bookings matching your current filter or search criteria.
                   </p>
                 </motion.div>
               ) : (

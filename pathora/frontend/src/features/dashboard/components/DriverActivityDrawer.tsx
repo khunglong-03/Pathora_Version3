@@ -156,7 +156,9 @@ export const DriverActivityDrawer = ({
                     <Icon icon="lucide:clipboard-list" className="w-6 h-6 text-slate-400" />
                   </div>
                   <p className="text-slate-500 font-medium">No activities found</p>
-                  <p className="text-xs text-slate-400 mt-1">This driver hasn't been assigned to any trips yet.</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    This driver hasn&apos;t been assigned to any trips yet.
+                  </p>
                 </div>
               ) : (
                 <div className="relative pl-6">
@@ -226,7 +228,9 @@ export const DriverActivityDrawer = ({
                           {activity.rejectionReason && (
                             <div className="mt-3 p-2 bg-red-50 rounded-lg border border-red-100">
                               <p className="text-[10px] text-red-400 font-bold uppercase mb-0.5">Rejection Reason</p>
-                              <p className="text-xs text-red-700 italic">"{activity.rejectionReason}"</p>
+                              <p className="text-xs text-red-700 italic">
+                                &ldquo;{activity.rejectionReason}&rdquo;
+                              </p>
                             </div>
                           )}
                         </div>

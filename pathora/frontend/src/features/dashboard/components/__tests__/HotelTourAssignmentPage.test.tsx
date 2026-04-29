@@ -136,7 +136,7 @@ describe("HotelTourAssignmentPage", () => {
     (tourInstanceService.assignRoomToAccommodation as any).mockResolvedValue({ success: true });
     
     // Initial fetch + 1 reload
-    let getRoomAvailabilityMock = (hotelProviderService.getRoomAvailability as any);
+    const getRoomAvailabilityMock = (hotelProviderService.getRoomAvailability as any);
     
     render(<HotelTourAssignmentPage />);
 

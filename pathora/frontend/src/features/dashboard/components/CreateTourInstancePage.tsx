@@ -2250,7 +2250,6 @@ export function CreateTourInstancePage({
           100,
         );
       }
-      // @ts-ignore - TourVm and SearchTourVm are compatible for id and name
       setTours(result?.data ?? []);
     } catch (error: unknown) {
       const handledError = handleApiError(error);
