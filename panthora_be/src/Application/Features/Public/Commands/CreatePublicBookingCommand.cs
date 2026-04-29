@@ -93,11 +93,10 @@ public sealed class CreatePublicBookingCommandHandler(
                 "Tour hiện không có sẵn để đặt.");
         }
 
-        // Check capacity
-        var currentBookings = await bookingRepository.CountByTourInstanceIdAsync(request.TourInstanceId);
+        // Check capacity using CurrentParticipation to stay consistent with frontend
         var totalParticipants = request.NumberAdult + request.NumberChild + request.NumberInfant;
 
-        if (currentBookings + totalParticipants > tourInstance.MaxParticipation)
+        if (tourInstance.CurrentParticipation + totalParticipants > tourInstance.MaxParticipation)
         {
             return Error.Conflict(
                 "TourInstance.NotEnoughCapacity",
