@@ -476,12 +476,35 @@ export const LandingHeader = () => {
     "signup",
   );
 
+  // Strip a stale, self-referencing `next` (e.g. `/?next=%2F%3Fnext%3D%252F...`)
+  // whenever it shows up at the home route. Without this the URL keeps the
+  // corrupted query string forever, even after the login flow that produced it
+  // has finished, and the address bar reads `?next=…` instead of clean `/`.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const rawNext = searchParams.get("next");
+    if (!rawNext) return;
+    const isSelfReferencing =
+      rawNext === "/" ||
+      rawNext.includes("?next=") ||
+      rawNext.includes("?login=true");
+    if (!isSelfReferencing) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("next");
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
+  }, [searchParams, router]);
+
   useEffect(() => {
     if (searchParams.get("login") !== "true") return;
 
-    // Clean up the URL regardless of auth state to prevent stuck URL param
+    // Clean up the URL regardless of auth state to prevent stuck URL param.
+    // Also drop any leftover `next` so the modal flow starts from a clean slate.
     const url = new URL(window.location.href);
     url.searchParams.delete("login");
+    const staleNext = url.searchParams.get("next");
+    if (staleNext && (staleNext === "/" || staleNext.includes("?next=") || staleNext.includes("?login=true"))) {
+      url.searchParams.delete("next");
+    }
     router.replace(`${url.pathname}${url.search}`, { scroll: false });
 
     // Check actual auth cookies — they survive longer than the JWT and prove
