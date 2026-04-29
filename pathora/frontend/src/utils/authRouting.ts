@@ -230,10 +230,11 @@ export const isSafeNextPath = (next?: string | null): next is string => {
   }
 
   // Must be a relative path (no protocol, no host)
+  let parsed: URL;
   try {
-    const url = new URL(next, "http://localhost");
+    parsed = new URL(next, "http://localhost");
     // If it has a different origin, it's not safe
-    if (url.origin !== "http://localhost") {
+    if (parsed.origin !== "http://localhost") {
       return false;
     }
   } catch {
@@ -242,6 +243,12 @@ export const isSafeNextPath = (next?: string | null): next is string => {
 
   // Should not contain null bytes or other dangerous characters
   if (next.includes("\0") || next.includes("\n")) {
+    return false;
+  }
+
+  // Reject self-referencing redirect chains (e.g. `/?next=/?next=/...`) so
+  // post-login routing can't trap the user on the home page forever.
+  if (parsed.searchParams.has("next") || parsed.searchParams.has("login")) {
     return false;
   }
 

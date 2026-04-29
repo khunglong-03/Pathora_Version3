@@ -61,10 +61,23 @@ const onUnauthorized = (): void => {
   if (typeof window !== "undefined") {
     // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
     // để user re-login và giữ nguyên context (booking history, etc.)
-    const currentPath = window.location.pathname + window.location.search;
+    //
+    // Strip `login`/`next` from current URL before reusing it as the new `next`,
+    // otherwise repeated 401s would nest `?next=%2F%3Fnext%3D%252F...` infinitely.
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete("login");
+    currentUrl.searchParams.delete("next");
+    const cleanSearch = currentUrl.searchParams.toString();
+    const currentPath = currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+
     const loginUrl = new URL("/", window.location.origin);
     loginUrl.searchParams.set("login", "true");
-    loginUrl.searchParams.set("next", currentPath);
+    if (currentPath !== "/") {
+      loginUrl.searchParams.set("next", currentPath);
+    }
+    if (window.location.href === loginUrl.toString()) {
+      return;
+    }
     window.location.href = loginUrl.toString();
   }
 };

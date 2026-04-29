@@ -2,6 +2,7 @@ using Api.Infrastructure;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.DataProtection;
 using Serilog;
+using StackExchange.Redis;
 
 namespace Api;
 
@@ -47,10 +48,19 @@ public static class DependencyInjection
         services.AddHostedService<SoftHoldCleanupWorkerService>();
         services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
 
-        // Data Protection: set a stable application name so OAuth correlation cookies
-        // are consistent across container restarts (fixes "Correlation failed").
-        services.AddDataProtection()
-            .SetApplicationName("Panthora");
+        // Data Protection: persist keys to Redis so OAuth correlation cookies and
+        // any encrypted cookies survive container restarts and stay consistent
+        // across multiple instances behind a load balancer (fixes "Correlation failed").
+        // Falls back to the default in-memory ephemeral keyring when Redis is not
+        // configured (Development).
+        var dpBuilder = services.AddDataProtection().SetApplicationName("Panthora");
+        var redisConnection = configuration["Redis:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(redisConnection))
+        {
+            dpBuilder.PersistKeysToStackExchangeRedis(
+                ConnectionMultiplexer.Connect(redisConnection),
+                "DataProtection-Keys");
+        }
 
         return services;
     }

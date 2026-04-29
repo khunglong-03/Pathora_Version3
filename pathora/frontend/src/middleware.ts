@@ -342,8 +342,16 @@ export function middleware(request: NextRequest) {
   if (!authenticated && !publicPath) {
     const loginUrl = new URL(USER_DEFAULT_PATH, request.url);
     loginUrl.searchParams.set("login", "true");
-    const nextDestination = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
-    loginUrl.searchParams.set("next", nextDestination);
+    // Strip `login`/`next` so repeated middleware redirects don't nest
+    // `?next=%2F%3Fnext%3D%252F...` infinitely.
+    const cleanedParams = new URLSearchParams(searchParams);
+    cleanedParams.delete("login");
+    cleanedParams.delete("next");
+    const cleanedSearch = cleanedParams.toString();
+    const nextDestination = pathname + (cleanedSearch ? `?${cleanedSearch}` : "");
+    if (nextDestination !== USER_DEFAULT_PATH) {
+      loginUrl.searchParams.set("next", nextDestination);
+    }
     return finalizeResponse(NextResponse.redirect(loginUrl));
   }
 
