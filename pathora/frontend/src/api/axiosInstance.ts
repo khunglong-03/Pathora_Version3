@@ -58,28 +58,35 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 const onUnauthorized = (): void => {
-  if (typeof window !== "undefined") {
-    // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
-    // để user re-login và giữ nguyên context (booking history, etc.)
-    //
-    // Strip `login`/`next` from current URL before reusing it as the new `next`,
-    // otherwise repeated 401s would nest `?next=%2F%3Fnext%3D%252F...` infinitely.
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete("login");
-    currentUrl.searchParams.delete("next");
-    const cleanSearch = currentUrl.searchParams.toString();
-    const currentPath = currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+  if (typeof window === "undefined") return;
 
-    const loginUrl = new URL("/", window.location.origin);
-    loginUrl.searchParams.set("login", "true");
-    if (currentPath !== "/") {
-      loginUrl.searchParams.set("next", currentPath);
-    }
-    if (window.location.href === loginUrl.toString()) {
-      return;
-    }
-    window.location.href = loginUrl.toString();
+  // Skip the redirect when no session marker exists. Public pages call protected
+  // endpoints opportunistically (e.g. getUserInfo on mount); without this guard
+  // the 401 from those calls bounces the browser to /?login=true&next=... before
+  // the user can submit the login form, making the login/refresh requests vanish
+  // from the Network tab.
+  if (!getCookie("auth_status")) return;
+
+  // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
+  // để user re-login và giữ nguyên context (booking history, etc.)
+  //
+  // Strip `login`/`next` from current URL before reusing it as the new `next`,
+  // otherwise repeated 401s would nest `?next=%2F%3Fnext%3D%252F...` infinitely.
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete("login");
+  currentUrl.searchParams.delete("next");
+  const cleanSearch = currentUrl.searchParams.toString();
+  const currentPath = currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+
+  const loginUrl = new URL("/", window.location.origin);
+  loginUrl.searchParams.set("login", "true");
+  if (currentPath !== "/") {
+    loginUrl.searchParams.set("next", currentPath);
   }
+  if (window.location.href === loginUrl.toString()) {
+    return;
+  }
+  window.location.href = loginUrl.toString();
 };
 
 const attachInterceptors = (instance: AxiosInstance): void => {

@@ -47,16 +47,39 @@ export function createBaseQueryWithReauth(
       return result;
     }
 
+    // Only attempt refresh when an auth_status cookie exists. On a fresh page
+    // load with no session, the very first RTK query (e.g. getUserInfo) returns
+    // 401 — refreshing then would fail again and redirect to /?login=true&next=…
+    // before the user can even submit the login form, which is what made the
+    // login + refresh requests "disappear" from the Network panel.
+    const hasSession =
+      typeof document !== "undefined" && Boolean(getCookie("auth_status"));
+    if (!hasSession) {
+      return result;
+    }
+
     try {
       await refreshAccessToken();
     } catch {
-      // Không xóa session — redirect về login để user re-authenticate
+      // Không xóa session — redirect về login để user re-authenticate.
+      // Strip stale `login`/`next` so repeated 401s don't nest
+      // `?next=%2F%3Fnext%3D%252F...` infinitely.
       if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname + window.location.search;
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete("login");
+        currentUrl.searchParams.delete("next");
+        const cleanSearch = currentUrl.searchParams.toString();
+        const currentPath =
+          currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+
         const loginUrl = new URL("/", window.location.origin);
         loginUrl.searchParams.set("login", "true");
-        loginUrl.searchParams.set("next", currentPath);
-        window.location.href = loginUrl.toString();
+        if (currentPath !== "/") {
+          loginUrl.searchParams.set("next", currentPath);
+        }
+        if (window.location.href !== loginUrl.toString()) {
+          window.location.href = loginUrl.toString();
+        }
       }
       return result;
     }
