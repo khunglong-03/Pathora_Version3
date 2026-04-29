@@ -1,6 +1,7 @@
 using Application.Common.Constant;
 using Application.Contracts.Booking;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -59,6 +60,7 @@ public sealed class CreatePublicBookingCommandValidator : AbstractValidator<Crea
 }
 
 public sealed class CreatePublicBookingCommandHandler(
+    IUser user,
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,
     ITaxConfigRepository taxConfigRepository,
@@ -121,6 +123,13 @@ public sealed class CreatePublicBookingCommandHandler(
         var taxAmount = subtotal * taxRate / 100m;
         var totalPrice = subtotal + taxAmount;
 
+        // Extract User ID if authenticated
+        Guid? currentUserId = null;
+        if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
         // Create booking entity
         var booking = BookingEntity.Create(
             tourInstanceId: request.TourInstanceId,
@@ -130,7 +139,8 @@ public sealed class CreatePublicBookingCommandHandler(
             totalPrice: totalPrice,
             paymentMethod: request.PaymentMethod,
             isFullPay: request.IsFullPay,
-            performedBy: "PUBLIC_USER",
+            performedBy: currentUserId?.ToString() ?? "PUBLIC_USER",
+            userId: currentUserId,
             customerEmail: request.CustomerEmail,
             numberChild: request.NumberChild,
             numberInfant: request.NumberInfant);

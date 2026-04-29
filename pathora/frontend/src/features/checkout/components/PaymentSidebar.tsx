@@ -129,6 +129,24 @@ function PaymentStatusPanel({
           <span className="text-xs text-gray-500">{t("landing.checkout.transactionCode")}</span>
           <p className="text-lg font-bold font-mono text-green-600 mt-1">{transaction.transactionCode}</p>
         </div>
+        <div className="flex flex-col gap-3 w-full mt-2">
+          <Button
+            type="button"
+            onClick={() => router.push("/bookings")}
+            className="w-full h-10 rounded-xl font-semibold text-sm bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center gap-2"
+          >
+            <Icon icon="heroicons:ticket" className="size-4" />
+            {t("landing.checkout.viewMyBookings", "Xem Tour của tôi")}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => router.push("/")}
+            variant="outline"
+            className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center"
+          >
+            {t("landing.checkout.backToHome", "Về trang chủ")}
+          </Button>
+        </div>
       </div>
     );
   }
