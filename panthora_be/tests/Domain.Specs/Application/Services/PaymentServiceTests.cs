@@ -26,6 +26,15 @@ public sealed class PaymentServiceTests
 
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
 
+    public PaymentServiceTests()
+    {
+        var dummyInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
+            TourType.Public, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
+            100, 1000m, "manager");
+        _tourInstanceRepo.FindById(Arg.Any<Guid>()).Returns(dummyInstance);
+    }
+
     private PaymentService CreateService() => new(
         _transactionRepo,
         _bookingRepo,
@@ -79,7 +88,7 @@ public sealed class PaymentServiceTests
 
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
-        _bookingRepo.GetByIdAsync(bookingId).Returns(booking);
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
         _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
 
         var transactionData = new SepayTransactionData
@@ -114,7 +123,7 @@ public sealed class PaymentServiceTests
 
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
-        _bookingRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(booking);
+        _bookingRepo.GetByIdWithDetailsAsync(Arg.Any<Guid>()).Returns(booking);
         _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
 
         var transactionData = new SepayTransactionData
@@ -163,14 +172,16 @@ public sealed class PaymentServiceTests
         // Mock a tour instance with a manager
         var managerUser = UserEntity.Create("Manager", "Manager User", "manager@test.com", "hash", "system");
         managerUser.Id = managerUserId;
-        var tourInstance = new TourInstanceEntity { Id = tourInstanceId };
+        var tourInstance = new TourInstanceEntity { Id = tourInstanceId, MaxParticipation = 100 };
         tourInstance.Managers.Add(new TourInstanceManagerEntity { UserId = managerUserId, User = managerUser, Role = TourInstanceManagerRole.Manager });
 
+        _tourInstanceRepo.FindById(Arg.Any<Guid>()).Returns(tourInstance);
+        _tourInstanceRepo.FindUserByIdAsync(managerUserId).Returns(managerUser);
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(Arg.Any<Guid>()).Returns(booking);
         _tourInstanceRepo.FindById(tourInstanceId).Returns(tourInstance);
-        _userRepo.FindById(managerUserId).Returns(managerUser);
+        _userRepo.GetByIdAsync(managerUserId).Returns(managerUser);
 
         var transactionData = new SepayTransactionData
         {

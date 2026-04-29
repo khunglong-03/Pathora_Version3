@@ -24,6 +24,7 @@ import useWidth from "@/hooks/useWidth";
 import type { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
 import { handleCustomizer } from "@/store/layout";
+import { logOut } from "@/store/infrastructure/authSlice";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
 import {
   FiGlobe,
@@ -474,13 +475,17 @@ export const LandingHeader = () => {
       url.searchParams.delete("login");
       router.replace(`${url.pathname}${url.search}`, { scroll: false });
 
-      // Only open the modal if the user is NOT authenticated
-      if (!clientIsAuth) {
-        setAuthOpen(true);
-        setAuthView("login");
+      // If client thinks we are auth'd, but middleware redirected us here with login=true,
+      // it means cookies are gone/expired. Force client logout first to sync state.
+      if (clientIsAuth) {
+        dispatch(logOut());
       }
+
+      // Always open the auth modal if we were redirected here by middleware
+      setAuthOpen(true);
+      setAuthView("login");
     }
-  }, [searchParams, clientIsAuth, router]);
+  }, [searchParams, clientIsAuth, router, dispatch]);
 
   // If user becomes authenticated while modal is open, close it
   useEffect(() => {

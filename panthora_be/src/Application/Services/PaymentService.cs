@@ -312,36 +312,62 @@ public class PaymentService : IPaymentService
 
         await _transactionRepository.UpdateAsync(transaction);
 
-        // Update booking status based on transaction type
-        await UpdateBookingStatusAsync(transaction);
+        // Update booking status based on transaction type (and check capacity)
+        bool isBookingSuccess = await UpdateBookingStatusAsync(transaction);
 
-        // Credit manager balance
         var bookingForCredit = transaction.Booking
             ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
-        if (bookingForCredit != null)
+        
+        if (isBookingSuccess)
         {
-            var managerId = await GetPrimaryManagerIdForTourInstanceAsync(bookingForCredit.TourInstanceId);
-            if (managerId.HasValue)
+            // Credit manager balance
+            if (bookingForCredit != null)
             {
-                var manager = await _userRepository.GetByIdAsync(managerId.Value);
-                if (manager != null)
+                var managerId = await GetPrimaryManagerIdForTourInstanceAsync(bookingForCredit.TourInstanceId);
+                if (managerId.HasValue)
                 {
-                    var creditAmount = transaction.PaidAmount ?? transaction.Amount;
-                    manager.CreditBalance(creditAmount);
-                    _logger.LogInformation(
-                        "Credited {Amount} to manager {ManagerId} balance for transaction {TransactionCode}",
-                        creditAmount, managerId.Value, transaction.TransactionCode);
+                    var manager = await _userRepository.GetByIdAsync(managerId.Value);
+                    if (manager != null)
+                    {
+                        var creditAmount = transaction.PaidAmount ?? transaction.Amount;
+                        manager.CreditBalance(creditAmount);
+                        _userRepository.Update(manager);
+                        _logger.LogInformation(
+                            "Credited {Amount} to manager {ManagerId} balance for transaction {TransactionCode}",
+                            creditAmount, managerId.Value, transaction.TransactionCode);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Manager {ManagerId} not found for balance credit", managerId.Value);
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Manager {ManagerId} not found for balance credit", managerId.Value);
+                    _logger.LogWarning(
+                        "No manager found for TourInstance of booking {BookingId}. Balance not credited.",
+                        transaction.BookingId);
+                }
+            }
+        }
+        else
+        {
+            // Capacity is full. Refund to Customer Wallet.
+            if (bookingForCredit != null && bookingForCredit.UserId.HasValue)
+            {
+                var customer = await _userRepository.GetByIdAsync(bookingForCredit.UserId.Value);
+                if (customer != null)
+                {
+                    var refundAmount = transaction.PaidAmount ?? transaction.Amount;
+                    customer.CreditBalance(refundAmount);
+                    _logger.LogInformation(
+                        "Refunded {Amount} to customer {CustomerId} wallet because tour was full for transaction {TransactionCode}",
+                        refundAmount, customer.Id, transaction.TransactionCode);
+                    _userRepository.Update(customer);
                 }
             }
             else
             {
-                _logger.LogWarning(
-                    "No manager found for TourInstance of booking {BookingId}. Balance not credited.",
-                    transaction.BookingId);
+                _logger.LogWarning("Booking {BookingId} failed due to capacity but no customer account found to refund. Amount: {Amount}", transaction.BookingId, transaction.PaidAmount ?? transaction.Amount);
             }
         }
 
@@ -364,7 +390,7 @@ public class PaymentService : IPaymentService
         return transaction;
     }
 
-    private async Task UpdateBookingStatusAsync(PaymentTransactionEntity transaction)
+    private async Task<bool> UpdateBookingStatusAsync(PaymentTransactionEntity transaction)
     {
         var booking = transaction.Booking
             ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
@@ -372,7 +398,33 @@ public class PaymentService : IPaymentService
         {
             _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
                 transaction.BookingId, transaction.TransactionCode);
-            return;
+            return false;
+        }
+
+        var tourInstance = await _tourInstanceRepository.FindById(booking.TourInstanceId);
+        if (tourInstance == null)
+        {
+            _logger.LogWarning("TourInstance {TourInstanceId} not found for booking {BookingId}", booking.TourInstanceId, booking.Id);
+            return false;
+        }
+
+        // Only check and reserve capacity if the booking is currently Pending
+        if (booking.Status == BookingStatus.Pending)
+        {
+            var totalParticipants = booking.NumberAdult + booking.NumberChild + booking.NumberInfant;
+            
+            if (tourInstance.CurrentParticipation + totalParticipants > tourInstance.MaxParticipation)
+            {
+                _logger.LogWarning("Tour {TourInstanceId} is full for booking {BookingId}. Capacity: {Current}/{Max}",
+                    tourInstance.Id, booking.Id, tourInstance.CurrentParticipation, tourInstance.MaxParticipation);
+                booking.Cancel("Hết chỗ. Số tiền thanh toán đã được cộng vào số dư tài khoản.", "SYSTEM");
+                await _bookingRepository.UpdateAsync(booking);
+                return false;
+            }
+
+            // Reserve capacity!
+            tourInstance.AddParticipant(totalParticipants);
+            await _tourInstanceRepository.Update(tourInstance);
         }
 
         // Update booking status based on transaction type
@@ -411,6 +463,7 @@ public class PaymentService : IPaymentService
         }
 
         await _bookingRepository.UpdateAsync(booking);
+        return true;
     }
 
     public async Task<ErrorOr<PaymentTransactionEntity>> ExpireTransactionAsync(string transactionCode)
@@ -455,31 +508,37 @@ public class PaymentService : IPaymentService
         var booking = await _bookingRepository.GetByPaymentTransactionCodeAsync(transactionCode);
         if (booking != null && booking.Status != BookingStatus.Cancelled)
         {
+            var originalStatus = booking.Status;
+            
             booking.Cancel(
                 "Payment expired after 30 minutes without payment",
                 "SYSTEM");
             await _bookingRepository.UpdateAsync(booking);
 
-            // Restore capacity on the tour instance
-            var tourInstance = await _tourInstanceRepository.FindById(booking.TourInstanceId);
-            if (tourInstance != null)
+            // Restore capacity on the tour instance ONLY IF capacity was previously reserved
+            // (i.e. booking was not Pending)
+            if (originalStatus != BookingStatus.Pending)
             {
-                var participants = booking.TotalParticipants();
-                if (tourInstance.CurrentParticipation >= participants)
+                var tourInstance = await _tourInstanceRepository.FindById(booking.TourInstanceId);
+                if (tourInstance != null)
                 {
-                    tourInstance.RemoveParticipant(participants);
-                }
-                else
-                {
-                    _logger.LogWarning(
-                        "CurrentParticipation ({Current}) < participants to remove ({Count}) for TourInstance {TourInstanceId}. Clamping to 0.",
-                        tourInstance.CurrentParticipation, participants, tourInstance.Id);
-                    if (tourInstance.CurrentParticipation > 0)
+                    var participants = booking.TotalParticipants();
+                    if (tourInstance.CurrentParticipation >= participants)
                     {
-                        tourInstance.RemoveParticipant(tourInstance.CurrentParticipation);
+                        tourInstance.RemoveParticipant(participants);
                     }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "CurrentParticipation ({Current}) < participants to remove ({Count}) for TourInstance {TourInstanceId}. Clamping to 0.",
+                            tourInstance.CurrentParticipation, participants, tourInstance.Id);
+                        if (tourInstance.CurrentParticipation > 0)
+                        {
+                            tourInstance.RemoveParticipant(tourInstance.CurrentParticipation);
+                        }
+                    }
+                    await _tourInstanceRepository.Update(tourInstance);
                 }
-                await _tourInstanceRepository.Update(tourInstance);
             }
         }
 

@@ -147,18 +147,8 @@ public sealed class CreatePublicBookingCommandHandler(
             numberChild: request.NumberChild,
             numberInfant: request.NumberInfant);
 
-        // Reserve capacity on the tour instance (atomic with booking creation)
-        try
-        {
-            tourInstance.AddParticipant(totalParticipants);
-        }
-        catch (InvalidOperationException)
-        {
-            return Error.Conflict(
-                "TourInstance.NotEnoughCapacity",
-                "Tour không còn đủ chỗ cho số lượng người yêu cầu.");
-        }
-
+        // No longer reserve capacity here. Capacity will be reserved upon successful payment.
+        
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
