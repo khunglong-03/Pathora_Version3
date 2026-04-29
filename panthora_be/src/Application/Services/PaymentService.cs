@@ -323,12 +323,11 @@ public class PaymentService : IPaymentService
             var managerId = await GetPrimaryManagerIdForTourInstanceAsync(bookingForCredit.TourInstanceId);
             if (managerId.HasValue)
             {
-                var manager = await _userRepository.FindById(managerId.Value);
+                var manager = await _userRepository.GetByIdAsync(managerId.Value);
                 if (manager != null)
                 {
                     var creditAmount = transaction.PaidAmount ?? transaction.Amount;
                     manager.CreditBalance(creditAmount);
-                    _userRepository.Update(manager);
                     _logger.LogInformation(
                         "Credited {Amount} to manager {ManagerId} balance for transaction {TransactionCode}",
                         creditAmount, managerId.Value, transaction.TransactionCode);
