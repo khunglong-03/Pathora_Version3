@@ -1,5 +1,6 @@
 using Api.Infrastructure;
 using Contracts.Interfaces;
+using Microsoft.AspNetCore.DataProtection;
 using Serilog;
 
 namespace Api;
@@ -44,6 +45,11 @@ public static class DependencyInjection
         // Background Workers
         services.AddHostedService<OutboxWorkerService>();
         services.AddHostedService<SoftHoldCleanupWorkerService>();
+
+        // Data Protection: set a stable application name so OAuth correlation cookies
+        // are consistent across container restarts (fixes "Correlation failed").
+        services.AddDataProtection()
+            .SetApplicationName("Panthora");
 
         return services;
     }

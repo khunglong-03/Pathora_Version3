@@ -27,8 +27,16 @@ internal static class DependencyInjection
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-            .AddCookie(IdentityConstants.ExternalScheme)
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+            .AddCookie(IdentityConstants.ExternalScheme, options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            })
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
 
         var googleClientId = configuration["Authentication:Google:ClientId"];
         var googleClientSecret = configuration["Authentication:Google:ClientSecret"];
@@ -42,6 +50,18 @@ internal static class DependencyInjection
                 options.Scope.Add("email");
                 options.Scope.Add("profile");
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+                // Fix "Correlation failed" on production: the correlation cookie
+                // must survive the cross-origin redirect Google → backend callback.
+                // Behind a reverse proxy (HTTPS), browsers silently drop cookies
+                // without SameSite=None + Secure.
+                options.CorrelationCookie = new CookieBuilder
+                {
+                    SameSite = SameSiteMode.None,
+                    SecurePolicy = CookieSecurePolicy.Always,
+                    HttpOnly = true,
+                    IsEssential = true
+                };
             });
         }
 
