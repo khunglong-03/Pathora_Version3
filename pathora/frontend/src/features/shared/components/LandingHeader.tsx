@@ -323,6 +323,18 @@ const MobileSidebar = ({
               {isAuth && (
                 <div>
                   <Link
+                    href="/bookings"
+                    onClick={onClose}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    <Icon
+                      icon="heroicons-outline:calendar-days"
+                      className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
+                    />
+                    <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
+                      {t("booking.myBookings") || "Tour đã đặt"}
+                    </span>
+                  </Link>
+                  <Link
                     href="/tours/my-requests"
                     onClick={onClose}
                     className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
@@ -331,7 +343,7 @@ const MobileSidebar = ({
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("tourRequest.page.myRequests.title")}
+                      {t("tourRequest.page.myRequests.title") || "Yêu cầu thiết kế tour"}
                     </span>
                   </Link>
                 </div>
@@ -910,12 +922,22 @@ export const LandingHeader = () => {
                         <span>{t("common.settings") || "Cài đặt"}</span>
                       </Link>
 
+                      {/* My Bookings */}
+                      <Link
+                        href="/bookings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        <FiCalendar className="w-4 h-4" />
+                        <span>{t("booking.myBookings") || "Tour đã đặt"}</span>
+                      </Link>
+
+                      {/* Custom Tour Requests */}
                       <Link
                         href="/tours/my-requests"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
                         <FiClipboard className="w-4 h-4" />
-                        <span>{t("tourRequest.page.myRequests.title")}</span>
+                        <span>{t("tourRequest.page.myRequests.title") || "Yêu cầu thiết kế tour"}</span>
                       </Link>
 
                       <Button
