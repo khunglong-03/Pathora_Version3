@@ -27,6 +27,7 @@ export interface BookingEndpoints {
   SET_TOUR_OPERATORS: (id: string) => string;
   SET_TOUR_GUIDES: (id: string) => string;
   GET_MY_RECENT: string;
+  GET_MY_BOOKINGS: string;
 }
 
 export interface TourRequestEndpoints {
@@ -57,6 +58,7 @@ export const BOOKING: BookingEndpoints = {
   GET_LIST: "/api/bookings",
   GET_BY_TOUR_INSTANCE: (tourInstanceId: string): string => `/api/bookings/by-tour-instance/${tourInstanceId}`,
   GET_MY_RECENT: "/api/public/bookings/my-recent-bookings",
+  GET_MY_BOOKINGS: "/api/public/bookings/my-bookings",
   GET_DETAIL: (id: string): string => `/api/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/bookings/${id}/checkout-price`,
   GET_ACTIVITIES: (id: string): string => `/api/bookings/${id}/activities`,

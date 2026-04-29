@@ -51,6 +51,7 @@ public class PaymentService : IPaymentService
     private readonly IOutboxRepository _outboxRepository;
     private readonly ITourInstanceRepository _tourInstanceRepository;
     private readonly IManagerBankAccountRepository _managerBankAccountRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<PaymentService> _logger;
     private readonly Domain.UnitOfWork.IUnitOfWork _unitOfWork;
 
@@ -60,6 +61,7 @@ public class PaymentService : IPaymentService
         IOutboxRepository outboxRepository,
         ITourInstanceRepository tourInstanceRepository,
         IManagerBankAccountRepository managerBankAccountRepository,
+        IUserRepository userRepository,
         ILogger<PaymentService> logger,
         IConfiguration configuration,
         Domain.UnitOfWork.IUnitOfWork unitOfWork)
@@ -69,6 +71,7 @@ public class PaymentService : IPaymentService
         _outboxRepository = outboxRepository;
         _tourInstanceRepository = tourInstanceRepository;
         _managerBankAccountRepository = managerBankAccountRepository;
+        _userRepository = userRepository;
         _logger = logger;
         _unitOfWork = unitOfWork;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
@@ -312,7 +315,38 @@ public class PaymentService : IPaymentService
         // Update booking status based on transaction type
         await UpdateBookingStatusAsync(transaction);
 
-        // Persist all changes (transaction + booking) in one transaction
+        // Credit manager balance
+        var bookingForCredit = transaction.Booking
+            ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
+        if (bookingForCredit != null)
+        {
+            var managerId = await GetPrimaryManagerIdForTourInstanceAsync(bookingForCredit.TourInstanceId);
+            if (managerId.HasValue)
+            {
+                var manager = await _userRepository.FindById(managerId.Value);
+                if (manager != null)
+                {
+                    var creditAmount = transaction.PaidAmount ?? transaction.Amount;
+                    manager.CreditBalance(creditAmount);
+                    _userRepository.Update(manager);
+                    _logger.LogInformation(
+                        "Credited {Amount} to manager {ManagerId} balance for transaction {TransactionCode}",
+                        creditAmount, managerId.Value, transaction.TransactionCode);
+                }
+                else
+                {
+                    _logger.LogWarning("Manager {ManagerId} not found for balance credit", managerId.Value);
+                }
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "No manager found for TourInstance of booking {BookingId}. Balance not credited.",
+                    transaction.BookingId);
+            }
+        }
+
+        // Persist all changes (transaction + booking + manager balance) in one transaction
         try
         {
             await _unitOfWork.SaveChangeAsync(CancellationToken.None);
@@ -333,62 +367,51 @@ public class PaymentService : IPaymentService
 
     private async Task UpdateBookingStatusAsync(PaymentTransactionEntity transaction)
     {
-        try
+        var booking = transaction.Booking
+            ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
+        if (booking == null)
         {
-            var booking = transaction.Booking
-                ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
-            if (booking == null)
-            {
-                _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
-                    transaction.BookingId, transaction.TransactionCode);
-                return;
-            }
+            _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
+                transaction.BookingId, transaction.TransactionCode);
+            return;
+        }
 
-            // Update booking status based on transaction type
-            switch (transaction.Type)
-            {
-                case TransactionType.Deposit:
-                    if (booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.Confirmed)
-                    {
-                        if (transaction.Amount >= booking.TotalPrice || booking.IsFullPay)
-                        {
-                            booking.MarkPaid("SYSTEM");
-                            _logger.LogInformation("Booking {BookingId} marked as Paid via 100% deposit transaction {TransactionCode}",
-                                booking.Id, transaction.TransactionCode);
-                        }
-                        else
-                        {
-                            booking.MarkDeposited("SYSTEM");
-                            _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
-                                booking.Id, transaction.TransactionCode);
-                        }
-                    }
-                    break;
-
-                case TransactionType.FullPayment:
-                    if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed)
+        // Update booking status based on transaction type
+        switch (transaction.Type)
+        {
+            case TransactionType.Deposit:
+                if (booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.Confirmed)
+                {
+                    if (transaction.Amount >= booking.TotalPrice || booking.IsFullPay)
                     {
                         booking.MarkPaid("SYSTEM");
-                        _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
+                        _logger.LogInformation("Booking {BookingId} marked as Paid via 100% deposit transaction {TransactionCode}",
                             booking.Id, transaction.TransactionCode);
                     }
-                    break;
+                    else
+                    {
+                        booking.MarkDeposited("SYSTEM");
+                        _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
+                            booking.Id, transaction.TransactionCode);
+                    }
+                }
+                break;
 
-                default:
-                    _logger.LogDebug("No booking status update for transaction type: {Type}", transaction.Type);
-                    break;
-            }
+            case TransactionType.FullPayment:
+                if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed)
+                {
+                    booking.MarkPaid("SYSTEM");
+                    _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
+                        booking.Id, transaction.TransactionCode);
+                }
+                break;
 
-            // Booking is already tracked via transaction.Booking nav (or GetByIdWithDetailsAsync).
-            // No need to call UpdateAsync — EF change tracker picks up state mutation.
-            // SaveChangeAsync in caller will persist.
-            await Task.CompletedTask;
+            default:
+                _logger.LogDebug("No booking status update for transaction type: {Type}", transaction.Type);
+                break;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to update booking status for transaction {TransactionCode}", transaction.TransactionCode);
-            // Don't fail the payment processing if booking update fails
-        }
+
+        await _bookingRepository.UpdateAsync(booking);
     }
 
     public async Task<ErrorOr<PaymentTransactionEntity>> ExpireTransactionAsync(string transactionCode)
@@ -443,7 +466,20 @@ public class PaymentService : IPaymentService
             if (tourInstance != null)
             {
                 var participants = booking.TotalParticipants();
-                tourInstance.RemoveParticipant(participants);
+                if (tourInstance.CurrentParticipation >= participants)
+                {
+                    tourInstance.RemoveParticipant(participants);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "CurrentParticipation ({Current}) < participants to remove ({Count}) for TourInstance {TourInstanceId}. Clamping to 0.",
+                        tourInstance.CurrentParticipation, participants, tourInstance.Id);
+                    if (tourInstance.CurrentParticipation > 0)
+                    {
+                        tourInstance.RemoveParticipant(tourInstance.CurrentParticipation);
+                    }
+                }
                 await _tourInstanceRepository.Update(tourInstance);
             }
         }

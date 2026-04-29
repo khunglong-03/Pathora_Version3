@@ -15,5 +15,14 @@ public class PublicBookingController : BaseApiController
         var result = await Sender.Send(command);
         return HandleCreated(result);
     }
-
+    [Authorize]
+    [HttpGet("my-bookings")]
+    public async Task<IActionResult> GetMyBookings(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? status = null)
+    {
+        var result = await Sender.Send(new Application.Features.BookingManagement.Queries.GetMyBookings.GetMyBookingsQuery(page, pageSize, status));
+        return HandleResult(result);
+    }
 }

@@ -110,4 +110,12 @@ public class UserEntity : Aggregate<Guid>
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
+
+    public void CreditBalance(decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Credit amount must be greater than 0.");
+        Balance += amount;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 }

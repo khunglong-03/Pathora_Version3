@@ -23,7 +23,10 @@ public sealed record CreatePublicBookingCommand(
     [property: JsonPropertyName("numberChild")] int NumberChild,
     [property: JsonPropertyName("numberInfant")] int NumberInfant,
     [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
-    [property: JsonPropertyName("isFullPay")] bool IsFullPay) : ICommand<ErrorOr<CheckoutPriceResponse>>;
+    [property: JsonPropertyName("isFullPay")] bool IsFullPay) : ICommand<ErrorOr<CheckoutPriceResponse>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [Application.Common.CacheKey.TourInstance];
+}
 
 public sealed class CreatePublicBookingCommandValidator : AbstractValidator<CreatePublicBookingCommand>
 {
@@ -144,6 +147,18 @@ public sealed class CreatePublicBookingCommandHandler(
             customerEmail: request.CustomerEmail,
             numberChild: request.NumberChild,
             numberInfant: request.NumberInfant);
+
+        // Reserve capacity on the tour instance (atomic with booking creation)
+        try
+        {
+            tourInstance.AddParticipant(totalParticipants);
+        }
+        catch (InvalidOperationException)
+        {
+            return Error.Conflict(
+                "TourInstance.NotEnoughCapacity",
+                "Tour không còn đủ chỗ cho số lượng người yêu cầu.");
+        }
 
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);

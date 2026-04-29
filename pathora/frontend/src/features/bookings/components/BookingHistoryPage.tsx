@@ -4,7 +4,8 @@ import { FacebookLogo, ChatTeardropDots, Ticket } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTranslation } from "react-i18next";
 import { SOCIAL_MEDIA } from "@/configs/urls";
-import { SAMPLE_BOOKINGS, FilterKey } from "./BookingHistoryData";
+import { FilterKey } from "./BookingHistoryData";
+import { useBookings } from "../hooks/useBookings";
 import {
   formatCurrency,
   getStatusLabel,
@@ -47,11 +48,10 @@ export function BookingHistoryPage() {
     { key: "rejected", label: t("landing.bookings.statusRejected") },
   ];
 
+  const { bookings, totalCount, isLoading, isError } = useBookings(activeFilter, 1, 50); // Fetch first 50 bookings for now
+
   const filtered = useMemo(() => {
-    let list = SAMPLE_BOOKINGS;
-    if (activeFilter !== "all") {
-      list = list.filter((b) => b.status === activeFilter);
-    }
+    let list = bookings;
     if (debouncedSearchQuery.trim()) {
       const q = debouncedSearchQuery.toLowerCase();
       list = list.filter(
@@ -61,10 +61,9 @@ export function BookingHistoryPage() {
       );
     }
     return list;
-  }, [activeFilter, debouncedSearchQuery]);
+  }, [bookings, debouncedSearchQuery]);
 
-  const totalCount = SAMPLE_BOOKINGS.length;
-  const activeCount = getActiveBookingsCount(SAMPLE_BOOKINGS);
+  const activeCount = getActiveBookingsCount(bookings);
 
   const getStatusLabel_ = (s: Parameters<typeof getStatusLabel>[1]) => getStatusLabel(t, s);
   const getTierLabel_ = (tier: Parameters<typeof getTierLabel>[1]) => getTierLabel(t, tier);
@@ -102,13 +101,55 @@ export function BookingHistoryPage() {
             className="grid grid-cols-1 xl:grid-cols-2 gap-8"
           >
             <AnimatePresence mode="popLayout">
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                // Loading Skeleton
+                [1, 2].map((i) => (
+                  <motion.div
+                    key={`skeleton-${i}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-sm overflow-hidden"
+                  >
+                    <div className="flex flex-col p-4 lg:p-6 gap-6">
+                      <div className="w-full h-56 sm:h-64 rounded-[1.5rem] bg-slate-100 animate-pulse" />
+                      <div className="flex-1 flex flex-col justify-between py-2">
+                        <div className="flex justify-between gap-4 mb-6">
+                          <div className="space-y-3 w-full">
+                            <div className="h-8 bg-slate-100 rounded-lg w-3/4 animate-pulse" />
+                            <div className="h-5 bg-slate-100 rounded-md w-1/4 animate-pulse" />
+                          </div>
+                          <div className="h-16 bg-slate-50 rounded-2xl w-32 shrink-0 animate-pulse" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-8">
+                          {[1, 2, 3, 4].map(j => (
+                            <div key={j} className="flex gap-3">
+                              <div className="size-8 rounded-lg bg-slate-100 animate-pulse shrink-0" />
+                              <div className="space-y-2 w-full">
+                                <div className="h-3 bg-slate-100 rounded w-12 animate-pulse" />
+                                <div className="h-4 bg-slate-100 rounded w-24 animate-pulse" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex justify-between items-end pt-6 border-t border-slate-100">
+                          <div className="space-y-2">
+                            <div className="h-3 bg-slate-100 rounded w-16 animate-pulse" />
+                            <div className="h-8 bg-slate-100 rounded w-32 animate-pulse" />
+                          </div>
+                          <div className="h-10 bg-slate-100 rounded-xl w-10 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              ) : filtered.length === 0 ? (
                 <motion.div 
                   key="empty"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] py-24 text-center flex flex-col items-center justify-center"
+                  className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] py-24 text-center flex flex-col items-center justify-center col-span-1 xl:col-span-2"
                 >
                   <div className="size-20 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
                     <Ticket weight="bold" className="size-8 text-slate-300" />

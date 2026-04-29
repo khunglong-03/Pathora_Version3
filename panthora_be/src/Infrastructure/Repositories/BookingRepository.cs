@@ -109,4 +109,35 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.PaymentTransactions.Any(pt => pt.TransactionCode == transactionCode), cancellationToken);
     }
+
+    public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(
+        string userIdStr, 
+        Domain.Enums.BookingStatus? status, 
+        int page, 
+        int pageSize, 
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti.Thumbnail)
+            .Include(b => b.PaymentTransactions)
+            .Where(b => b.CreatedBy == userIdStr || (b.UserId != null && b.UserId.ToString() == userIdStr));
+
+        if (status.HasValue)
+        {
+            query = query.Where(b => b.Status == status.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        
+        var items = await query
+            .OrderByDescending(b => b.CreatedOnUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
 }

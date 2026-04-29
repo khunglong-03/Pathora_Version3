@@ -24,12 +24,15 @@ public sealed class PaymentServiceTests
     private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
     private readonly IManagerBankAccountRepository _managerBankAccountRepo = Substitute.For<IManagerBankAccountRepository>();
 
+    private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
+
     private PaymentService CreateService() => new(
         _transactionRepo,
         _bookingRepo,
         _outboxRepo,
         _tourInstanceRepo,
         _managerBankAccountRepo,
+        _userRepo,
         _logger,
         _configuration,
         _unitOfWork);
@@ -130,6 +133,63 @@ public sealed class PaymentServiceTests
         // Assert
         Assert.False(result.IsError);
         await _bookingRepo.ReceivedWithAnyArgs().UpdateAsync(Arg.Any<BookingEntity>());
+    }
+
+    #endregion
+
+    #region TC03: ProcessPaymentCallbackAsync with Manager credits manager balance
+
+    [Fact]
+    public async Task ProcessSepayCallbackAsync_WithManager_ShouldCreditManagerBalance()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        var tourInstanceId = Guid.NewGuid();
+        var managerUserId = Guid.NewGuid();
+        var transactionAmount = 100000m;
+        
+        var transaction = CreatePendingTransaction(bookingId, TransactionType.Deposit, transactionAmount);
+        
+        var booking = BookingEntity.Create(
+            tourInstanceId: tourInstanceId,
+            customerName: "Test User",
+            customerPhone: "0123456789",
+            numberAdult: 2,
+            totalPrice: 100000m,
+            paymentMethod: PaymentMethod.BankTransfer,
+            isFullPay: false,
+            performedBy: "test@test.com");
+
+        // Mock a tour instance with a manager
+        var managerUser = UserEntity.Create("Manager", "Manager User", "manager@test.com", "hash", "system");
+        managerUser.Id = managerUserId;
+        var tourInstance = new TourInstanceEntity { Id = tourInstanceId };
+        tourInstance.Managers.Add(new TourInstanceManagerEntity { UserId = managerUserId, User = managerUser, Role = TourInstanceManagerRole.Manager });
+
+        _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
+        _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.GetByIdWithDetailsAsync(Arg.Any<Guid>()).Returns(booking);
+        _tourInstanceRepo.FindById(tourInstanceId).Returns(tourInstance);
+        _userRepo.FindById(managerUserId).Returns(managerUser);
+
+        var transactionData = new SepayTransactionData
+        {
+            TransactionId = "tx-003",
+            TransactionContent = "PAY-20240101-ABCD1234",
+            Amount = transactionAmount,
+            TransactionDate = DateTimeOffset.UtcNow
+        };
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.ProcessSepayCallbackAsync(transactionData);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Equal(transactionAmount, managerUser.Balance);
+        _userRepo.Received(1).Update(managerUser);
+        await _unitOfWork.Received(1).SaveChangeAsync();
     }
 
     #endregion
