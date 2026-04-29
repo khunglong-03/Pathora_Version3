@@ -2,7 +2,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import { fmtCurrency } from "./checkoutHelpers";
 
 interface TourInstanceInfoCardProps {
@@ -20,6 +22,8 @@ interface TourInstanceInfoCardProps {
 
 export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCardProps) {
   const { t } = useTranslation();
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
 
   const isPublic = tourInstanceBooking.instanceType === "public" || tourInstanceBooking.instanceType === "Public";
 
@@ -91,9 +95,22 @@ export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCa
           </div>
         </div>
 
-        <Link href="/bookings" className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all">
-          {t("landing.checkout.viewMyBookings")}
-        </Link>
+        {/* Auth-aware booking link: authenticated → /bookings, guest → login with redirect */}
+        {authLoading ? (
+          <div className="mt-8 h-5 w-40 animate-pulse rounded bg-slate-200" />
+        ) : user ? (
+          <Link href="/bookings" className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all">
+            {t("landing.checkout.viewMyBookings")}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => router.push("/?login=true&next=/bookings")}
+            className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all"
+          >
+            {t("landing.checkout.loginToViewBookings")}
+          </button>
+        )}
       </div>
     </div>
   );
