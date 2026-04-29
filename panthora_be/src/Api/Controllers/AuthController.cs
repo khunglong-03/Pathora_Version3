@@ -55,7 +55,11 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
     [HttpPost(AuthEndpoint.Refresh)]
     public async Task<IActionResult> Refresh([FromBody] RefreshCommand command)
     {
-        var result = await Sender.Send(command);
+        var refreshToken = string.IsNullOrWhiteSpace(command.RefreshToken)
+            ? Request.Cookies["refresh_token"] ?? string.Empty
+            : command.RefreshToken;
+
+        var result = await Sender.Send(command with { RefreshToken = refreshToken });
 
         if (!result.IsError)
         {
