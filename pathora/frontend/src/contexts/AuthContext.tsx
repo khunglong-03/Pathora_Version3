@@ -7,6 +7,7 @@ import type { RootState, AppDispatch } from "@/store";
 import type { UserInfo } from "@/types";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
 import { clearAuthSession } from "@/utils/authSession";
+import { getCookie } from "@/utils/cookie";
 
 type LoginRequest = Record<string, unknown>;
 type RegisterRequest = Record<string, unknown>;
@@ -60,10 +61,17 @@ export const useAuth = (): AuthContextValue => {
     });
   };
 
+  // Derive isLoading from actual hydration state:
+  // If auth cookies exist (auth_status) but Redux user is not yet populated,
+  // the AuthSessionInitializer is still fetching getUserInfo → loading.
+  const hasAuthSession =
+    typeof document !== "undefined" && Boolean(getCookie("auth_status"));
+  const isLoading = hasAuthSession && !authState.user;
+
   return {
     user: authState?.user ?? null,
     isAuthenticated: !!authState?.isAuth,
-    isLoading: false,
+    isLoading,
     login: async () => {
       throw new Error("useAuth.login is not implemented.");
     },

@@ -222,7 +222,8 @@ const MobileSidebar = ({
           enterTo="opacity-100"
           leave="transition-opacity duration-200 ease-in"
           leaveFrom="opacity-100"
-          leaveTo="opacity-0">
+          leaveTo="opacity-0"
+        >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
         </TransitionChild>
 
@@ -233,7 +234,8 @@ const MobileSidebar = ({
           enterTo="translate-x-0"
           leave="transform transition duration-200 ease-in"
           leaveFrom="translate-x-0"
-          leaveTo="translate-x-full">
+          leaveTo="translate-x-full"
+        >
           <div
             ref={panelRef}
             id={dialogId}
@@ -241,13 +243,15 @@ const MobileSidebar = ({
             role="dialog"
             aria-modal="true"
             aria-labelledby={menuTitleId}
-            tabIndex={-1}>
+            tabIndex={-1}
+          >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
               <Link
                 href="/"
                 onClick={onClose}
-                className="flex items-center gap-3">
+                className="flex items-center gap-3"
+              >
                 {logoVariant === "text" ? (
                   <span className="text-xl font-bold text-white font-['Space_Grotesk']">
                     Pathora
@@ -309,7 +313,8 @@ const MobileSidebar = ({
                   <Link
                     href={item.href}
                     onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
                     <Icon
                       icon={item.icon}
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
@@ -326,7 +331,8 @@ const MobileSidebar = ({
                   <Link
                     href="/bookings"
                     onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
                     <Icon
                       icon="heroicons-outline:calendar-days"
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
@@ -338,13 +344,15 @@ const MobileSidebar = ({
                   <Link
                     href="/tours/my-requests"
                     onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
                     <Icon
                       icon="heroicons-outline:clipboard-document-list"
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("tourRequest.page.myRequests.title") || "Yêu cầu thiết kế tour"}
+                      {t("tourRequest.page.myRequests.title") ||
+                        "Yêu cầu thiết kế tour"}
                     </span>
                   </Link>
                 </div>
@@ -368,7 +376,8 @@ const MobileSidebar = ({
                           : "text-gray-300 hover:text-white"
                       } min-h-9 min-w-14`}
                       onClick={() => i18n.changeLanguage(lang.code)}
-                      aria-pressed={normalizedLanguage === lang.code}>
+                      aria-pressed={normalizedLanguage === lang.code}
+                    >
                       {lang.code.toUpperCase()}
                     </Button>
                   ))}
@@ -469,22 +478,34 @@ export const LandingHeader = () => {
   );
 
   useEffect(() => {
-    if (searchParams.get("login") === "true") {
-      // Clean up the URL regardless of auth state to prevent stuck URL param
-      const url = new URL(window.location.href);
-      url.searchParams.delete("login");
-      router.replace(`${url.pathname}${url.search}`, { scroll: false });
+    if (searchParams.get("login") !== "true") return;
 
-      // If client thinks we are auth'd, but middleware redirected us here with login=true,
-      // it means cookies are gone/expired. Force client logout first to sync state.
-      if (clientIsAuth) {
-        dispatch(logOut());
-      }
+    // Clean up the URL regardless of auth state to prevent stuck URL param
+    const url = new URL(window.location.href);
+    url.searchParams.delete("login");
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
 
-      // Always open the auth modal if we were redirected here by middleware
-      setAuthOpen(true);
-      setAuthView("login");
+    // Check actual auth cookies — they survive longer than the JWT and prove
+    // the user has a refreshable session.  ?login=true can arrive from
+    // TourInstanceInfoCard (hydration race) as well as middleware, so we
+    // must NOT blindly dispatch(logOut()) when cookies are still present.
+    const hasAuthCookie =
+      typeof document !== "undefined" &&
+      document.cookie
+        .split("; ")
+        .some(
+          (c) => c.startsWith("auth_status=") || c.startsWith("refresh_token="),
+        );
+
+    if (clientIsAuth || hasAuthCookie) {
+      // User is still authenticated — do NOT wipe Redux or open the modal.
+      return;
     }
+
+    // Truly unauthenticated: sync Redux and show login modal
+    dispatch(logOut());
+    setAuthOpen(true);
+    setAuthView("login");
   }, [searchParams, clientIsAuth, router, dispatch]);
 
   // If user becomes authenticated while modal is open, close it
@@ -621,7 +642,8 @@ export const LandingHeader = () => {
     <>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-md focus:bg-[#fa8b02] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg">
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-md focus:bg-[#fa8b02] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      >
         Skip to main content
       </a>
       <header
@@ -631,13 +653,15 @@ export const LandingHeader = () => {
             : scrolled
               ? "bg-[rgba(26,26,26,0.95)] backdrop-blur-xl shadow-lg shadow-black/20"
               : "bg-[rgba(26,26,26,0.7)] backdrop-blur-md"
-        } ${scrolled ? "py-3" : "py-5"}`}>
+        } ${scrolled ? "py-3" : "py-5"}`}
+      >
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0 group">
               <div
-                className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}>
+                className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}
+              >
                 <Image
                   src={LOGO}
                   alt="Pathora logo"
@@ -652,7 +676,8 @@ export const LandingHeader = () => {
             {/* Desktop Navigation */}
             <nav
               className="hidden lg:flex items-center gap-1"
-              aria-label="Main navigation">
+              aria-label="Main navigation"
+            >
               {navLinks.map((link) => {
                 const isActive =
                   link.href === "/"
@@ -670,7 +695,8 @@ export const LandingHeader = () => {
                         ? "text-[#fa8b02]"
                         : "text-white hover:text-[#fa8b02]"
                     }`}
-                    aria-current={isActive ? "page" : undefined}>
+                    aria-current={isActive ? "page" : undefined}
+                  >
                     {mounted
                       ? t(link.labelKey)
                       : link.labelKey === "landing.nav.home"
@@ -708,7 +734,8 @@ export const LandingHeader = () => {
                   aria-label={`${t("landing.a11y.changeLanguage")} (${mounted ? normalizedLanguage.toUpperCase() : "EN"})`}
                   aria-haspopup="menu"
                   aria-expanded={languageMenuOpen}
-                  aria-controls={languageMenuId}>
+                  aria-controls={languageMenuId}
+                >
                   <FiGlobe
                     suppressHydrationWarning
                     className="w-4 h-4 text-white/70"
@@ -729,7 +756,8 @@ export const LandingHeader = () => {
                     languageMenuOpen
                       ? "visible opacity-100 translate-y-0"
                       : "invisible opacity-0 translate-y-2 pointer-events-none"
-                  }`}>
+                  }`}
+                >
                   {languages.map((lang) => {
                     const isActive =
                       mounted && lang.code === normalizedLanguage;
@@ -745,7 +773,8 @@ export const LandingHeader = () => {
                           isActive
                             ? "text-[#fa8b02] bg-[#fa8b02]/10"
                             : "text-white"
-                        }`}>
+                        }`}
+                      >
                         <span className="text-lg">{lang.flag}</span>
                         <span className="font-medium">{lang.label}</span>
                         {isActive && <FiCheck className="w-4 h-4 ml-auto" />}
@@ -768,7 +797,8 @@ export const LandingHeader = () => {
                     aria-label="User menu"
                     aria-haspopup="menu"
                     aria-expanded={userMenuOpen}
-                    aria-controls={userMenuId}>
+                    aria-controls={userMenuId}
+                  >
                     {user?.avatar ? (
                       <AvatarImage
                         src={user.avatar}
@@ -790,7 +820,8 @@ export const LandingHeader = () => {
                       userMenuOpen
                         ? "visible opacity-100 translate-y-0"
                         : "invisible opacity-0 translate-y-2 pointer-events-none"
-                    }`}>
+                    }`}
+                  >
                     {/* User Info Header */}
                     <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
                       <div className="w-10 h-10 rounded-full bg-linear-to-r from-[#fa8b02] to-[#ff9f2d] flex items-center justify-center shrink-0 overflow-hidden">
@@ -828,7 +859,8 @@ export const LandingHeader = () => {
                               key={booking.bookingId}
                               href={`/bookings/${booking.bookingId}`}
                               onClick={() => setUserMenuOpen(false)}
-                              className="flex w-full items-start gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                              className="flex w-full items-start gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                            >
                               <FiCalendar className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
                               <div className="min-w-0 flex-1">
                                 <p className="truncate font-medium">
@@ -848,7 +880,8 @@ export const LandingHeader = () => {
                                   <span
                                     className={`text-xs px-1.5 py-0.5 rounded ${getStatusColor(
                                       booking.status,
-                                    )}`}>
+                                    )}`}
+                                  >
                                     {booking.status}
                                   </span>
                                 </div>
@@ -858,7 +891,8 @@ export const LandingHeader = () => {
                           <Link
                             href="/bookings"
                             onClick={() => setUserMenuOpen(false)}
-                            className="flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors">
+                            className="flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors"
+                          >
                             <span>{t("booking.viewAll") || "Xem tất cả"}</span>
                             <FiArrowRight className="w-4 h-4" />
                           </Link>
@@ -878,7 +912,8 @@ export const LandingHeader = () => {
                           <Link
                             href="/tours"
                             onClick={() => setUserMenuOpen(false)}
-                            className="text-xs text-[#fa8b02] hover:underline mt-1 block">
+                            className="text-xs text-[#fa8b02] hover:underline mt-1 block"
+                          >
                             {t("booking.browseTours") || "Khám phá tour ngay"}
                           </Link>
                         </div>
@@ -900,7 +935,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiUser className="w-4 h-4" />
                         <span>
                           {t("common.profile") || "Thông tin cá nhân"}
@@ -911,7 +947,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile?tab=password"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiLock className="w-4 h-4" />
                         <span>
                           {t("common.changePassword") || "Đổi mật khẩu"}
@@ -922,7 +959,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile?tab=settings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiSettings className="w-4 h-4" />
                         <span>{t("common.settings") || "Cài đặt"}</span>
                       </Link>
@@ -931,7 +969,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/bookings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiCalendar className="w-4 h-4" />
                         <span>{t("booking.myBookings") || "Tour đã đặt"}</span>
                       </Link>
@@ -940,15 +979,20 @@ export const LandingHeader = () => {
                       <Link
                         href="/tours/my-requests"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiClipboard className="w-4 h-4" />
-                        <span>{t("tourRequest.page.myRequests.title") || "Yêu cầu thiết kế tour"}</span>
+                        <span>
+                          {t("tourRequest.page.myRequests.title") ||
+                            "Yêu cầu thiết kế tour"}
+                        </span>
                       </Link>
 
                       <Button
                         type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
                         <FiLogOut className="w-4 h-4" />
                         <span>{t("common.signOut") || "Đăng xuất"}</span>
                       </Button>
@@ -982,7 +1026,8 @@ export const LandingHeader = () => {
               onClick={() => setMobileMenuOpen(true)}
               aria-label={t("landing.a11y.openMenu")}
               aria-expanded={mobileMenuOpen}
-              aria-controls="landing-mobile-menu">
+              aria-controls="landing-mobile-menu"
+            >
               {mobileMenuOpen ? (
                 <FiX suppressHydrationWarning className="w-6 h-6" />
               ) : (
@@ -1011,7 +1056,12 @@ export const LandingHeader = () => {
         }}
         initialView={effectiveAuthView}
       />
-      {isSolid && <div className="h-[88px] md:h-[96px] w-full shrink-0" aria-hidden="true" />}
+      {isSolid && (
+        <div
+          className="h-[88px] md:h-[96px] w-full shrink-0"
+          aria-hidden="true"
+        />
+      )}
     </>
   );
 };

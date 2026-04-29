@@ -2,9 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
-import { useAuth } from "@/contexts/AuthContext";
 import { fmtCurrency } from "./checkoutHelpers";
 
 interface TourInstanceInfoCardProps {
@@ -20,12 +18,14 @@ interface TourInstanceInfoCardProps {
   };
 }
 
-export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCardProps) {
+export function TourInstanceInfoCard({
+  tourInstanceBooking,
+}: TourInstanceInfoCardProps) {
   const { t } = useTranslation();
-  const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
 
-  const isPublic = tourInstanceBooking.instanceType === "public" || tourInstanceBooking.instanceType === "Public";
+  const isPublic =
+    tourInstanceBooking.instanceType === "public" ||
+    tourInstanceBooking.instanceType === "Public";
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -33,7 +33,10 @@ export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCa
         {isPublic ? (
           <div className="flex flex-col items-center mb-8">
             <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-              <Icon icon="heroicons:check" className="size-8 text-emerald-600" />
+              <Icon
+                icon="heroicons:check"
+                className="size-8 text-emerald-600"
+              />
             </div>
             <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">
               {t("landing.checkout.bookingConfirmed")}
@@ -59,22 +62,39 @@ export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCa
         <div className="w-full bg-slate-50 rounded-3xl p-6 border border-slate-100 text-left relative overflow-hidden group">
           {/* subtle liquid glass effect line */}
           <div className="absolute inset-0 border border-white/50 rounded-3xl pointer-events-none" />
-          
-          <h4 className="font-semibold text-lg tracking-tight text-slate-900 mb-4 pr-8">{tourInstanceBooking.tourName}</h4>
-          
+
+          <h4 className="font-semibold text-lg tracking-tight text-slate-900 mb-4 pr-8">
+            {tourInstanceBooking.tourName}
+          </h4>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Location</span>
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                Location
+              </span>
               <div className="flex items-center gap-2 text-sm text-slate-700">
-                <Icon icon="heroicons:map-pin" className="size-4 text-slate-400" />
-                <span className="font-medium">{tourInstanceBooking.location || "N/A"}</span>
+                <Icon
+                  icon="heroicons:map-pin"
+                  className="size-4 text-slate-400"
+                />
+                <span className="font-medium">
+                  {tourInstanceBooking.location || "N/A"}
+                </span>
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Dates</span>
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                Dates
+              </span>
               <div className="flex items-center gap-2 text-sm text-slate-700">
-                <Icon icon="heroicons:calendar" className="size-4 text-slate-400" />
-                <span className="font-medium font-mono">{tourInstanceBooking.startDate} — {tourInstanceBooking.endDate}</span>
+                <Icon
+                  icon="heroicons:calendar"
+                  className="size-4 text-slate-400"
+                />
+                <span className="font-medium font-mono">
+                  {tourInstanceBooking.startDate} —{" "}
+                  {tourInstanceBooking.endDate}
+                </span>
               </div>
             </div>
           </div>
@@ -82,35 +102,34 @@ export function TourInstanceInfoCard({ tourInstanceBooking }: TourInstanceInfoCa
           <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
-                {tourInstanceBooking.bookingType === "InstanceJoin" ? t("landing.checkout.instanceJoin") : t("landing.checkout.tourBooking")}
+                {tourInstanceBooking.bookingType === "InstanceJoin"
+                  ? t("landing.checkout.instanceJoin")
+                  : t("landing.checkout.tourBooking")}
               </div>
               <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
-                {isPublic ? t("landing.checkout.public") : t("landing.checkout.private")}
+                {isPublic
+                  ? t("landing.checkout.public")
+                  : t("landing.checkout.private")}
               </div>
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Deposit Required</span>
-              <span className="text-lg font-bold text-zinc-900">{fmtCurrency(tourInstanceBooking.depositPerPerson)}</span>
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                Deposit Required
+              </span>
+              <span className="text-lg font-bold text-zinc-900">
+                {fmtCurrency(tourInstanceBooking.depositPerPerson)}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Auth-aware booking link: authenticated → /bookings, guest → login with redirect */}
-        {authLoading ? (
-          <div className="mt-8 h-5 w-40 animate-pulse rounded bg-slate-200" />
-        ) : user ? (
-          <Link href="/bookings" className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all">
-            {t("landing.checkout.viewMyBookings")}
-          </Link>
-        ) : (
-          <button
-            type="button"
-            onClick={() => router.push("/?login=true&next=/bookings")}
-            className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all"
-          >
-            {t("landing.checkout.loginToViewBookings")}
-          </button>
-        )}
+        {/* Simple link — middleware handles auth gate for /bookings (redirects guests to /?login=true&next=/bookings) */}
+        <Link
+          href="/bookings"
+          className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all"
+        >
+          {t("landing.checkout.viewMyBookings")}
+        </Link>
       </div>
     </div>
   );
