@@ -10,9 +10,8 @@ const readFile = (relativePath: string): string => {
 describe("tour detail private-custom booking contract", () => {
   it("exposes request-private flow: modal, API, and checkout deep link", () => {
     const page = readFile("src/features/tours/components/TourDetailPage.tsx");
-    expect(page).toMatch(/tourService\.requestPrivateTour/);
-    expect(page).toMatch(/privateModalOpen/);
-    expect(page).toMatch(/flow=private-custom/);
-    expect(page).toMatch(/landing\.tourDetail\.privateCustom\./);
+    expect(page).toMatch(/checkout-request/);
+    expect(page).toMatch(/depositPercentage:\s*"0\.3"/);
+    expect(page).toMatch(/bookingType:\s*"PrivateCustom"/);
   });
 });

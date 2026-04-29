@@ -175,13 +175,13 @@ export function TourDetailPage() {
       adults: String(adults),
       children: String(children),
       infants: String(infants),
-      depositPercentage: "1", // Private custom is always full pay initial
+      depositPercentage: "0.3", // Private custom booking allows 30% deposit
       bookingType: "PrivateCustom",
       instanceType: "private",
       classificationId: String(selectedClassification.id),
       maxParticipation: String(Math.max(1, totalPax)),
     });
-    router.push(`/checkout?${params.toString()}`);
+    router.push(`/checkout-request?${params.toString()}`);
   };
 
 

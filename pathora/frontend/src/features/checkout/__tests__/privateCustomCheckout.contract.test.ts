@@ -8,9 +8,9 @@ const readFile = (relativePath: string): string => {
 };
 
 describe("private-custom checkout contract", () => {
-  it("CheckoutPage branches on flow=private-custom and uses createPrivateCustomInitial", () => {
-    const page = readFile("src/features/checkout/components/CheckoutPage.tsx");
-    expect(page).toMatch(/private-custom/);
+  it("CheckoutRequestPage handles private custom bookings natively", () => {
+    const page = readFile("src/features/checkout/components/CheckoutRequestPage.tsx");
+    expect(page).toMatch(/isPrivateCustomCheckout = true/);
     expect(page).toMatch(/createPrivateCustomInitial/);
   });
 
@@ -30,7 +30,7 @@ describe("private-custom checkout contract", () => {
   });
 
   it("uses private-custom success toast and co-design copy after base payment", () => {
-    const page = readFile("src/features/checkout/components/CheckoutPage.tsx");
+    const page = readFile("src/features/checkout/components/CheckoutRequestPage.tsx");
     expect(page).toMatch(/toastPaidSuccess/);
     expect(page).toMatch(/privateCustomPaymentReceived/);
     const sidebar = readFile("src/features/checkout/components/PaymentSidebar.tsx");
@@ -39,7 +39,7 @@ describe("private-custom checkout contract", () => {
   });
 
   it("shows distinct error toast when private-custom payment init fails", () => {
-    const page = readFile("src/features/checkout/components/CheckoutPage.tsx");
+    const page = readFile("src/features/checkout/components/CheckoutRequestPage.tsx");
     expect(page).toMatch(/privateCustomTransactionError/);
   });
 });
