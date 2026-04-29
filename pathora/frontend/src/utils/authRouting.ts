@@ -249,8 +249,14 @@ export const isSafeNextPath = (next?: string | null): next is string => {
 };
 
 /**
- * Resolves the post-login destination, prioritizing a valid `next` parameter
- * for non-admin users when present.
+ * Resolves the post-login destination.
+ *
+ * Role-specific `defaultPath` (e.g. `/admin/users`, `/manager`, `/tour-operator`,
+ * `/tour-guide`, `/hotel`, `/transport`) wins over `next`, otherwise the unauthorized
+ * redirect (which sets `next=<currentPath>`) traps role users on whichever page they
+ * came from instead of their portal home. `next` is still honored when it lives under
+ * the role's portal root so deep links within the same portal survive re-login, and
+ * when the role has no dedicated portal (Customer → defaultPath `/`).
  */
 export const resolveLoginDestination = ({
   next,
@@ -265,11 +271,19 @@ export const resolveLoginDestination = ({
   roles?: RoleWithName[] | null;
   fallbackPath?: string;
 }): string => {
-  // First priority: valid next parameter for non-admin users
+  if (isValidPath(defaultPath)) {
+    if (isSafeNextPath(next)) {
+      const portalRoot = `/${defaultPath.split("/").filter(Boolean)[0] ?? ""}`;
+      if (portalRoot.length > 1 && (next === portalRoot || next.startsWith(`${portalRoot}/`))) {
+        return next;
+      }
+    }
+    return defaultPath;
+  }
+
   if (isSafeNextPath(next) && !isAdminPortal(portal) && !hasAdminRole(roles)) {
     return next;
   }
 
-  // Fall back to existing resolvePostLoginPath logic
   return resolvePostLoginPath({ defaultPath, portal, roles, fallbackPath });
 };

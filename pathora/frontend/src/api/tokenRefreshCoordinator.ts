@@ -8,10 +8,13 @@ let isRefreshing = false;
 type QueueEntry = { resolve: (token: string) => void; reject: (err: unknown) => void };
 let refreshQueue: QueueEntry[] = [];
 
+import { getCookie } from "@/utils/cookie";
+
 async function fetchNewAccessTokenFromApi(): Promise<string> {
+  const refreshToken = getCookie("refresh_token") ?? "";
   const response = await axios.post<{ data: { accessToken: string } }>(
     "/api/auth/refresh",
-    {},
+    { refreshToken },
     {
       baseURL: API_GATEWAY_BASE_URL,
       withCredentials: true,

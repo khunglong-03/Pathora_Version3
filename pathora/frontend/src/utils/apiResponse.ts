@@ -273,7 +273,7 @@ const shouldUseDetailsAsErrorCode = (details: string | undefined): boolean => {
 
 const extractBackendErrorPayload = (
   payload: unknown,
-): { rawMessage: string; rawCode: string; rawDetails?: string } => {
+): { rawMessage: string; rawCode: string; rawDetails?: string; rawValidationErrors?: Record<string, string[]> } => {
   if (!payload || typeof payload !== "object") {
     return {
       rawMessage: "DEFAULT_ERROR",
@@ -281,8 +281,18 @@ const extractBackendErrorPayload = (
     };
   }
 
-  const body = payload as BackendErrorPayload;
-  const firstError = body.errors?.[0];
+  const body = payload as any; // Using any to handle both array and object 'errors' formats
+  
+  let validationErrors: Record<string, string[]> | undefined;
+  let firstError: any = undefined;
+
+  // Handle ASP.NET Core ValidationProblemDetails format where errors is an object: { "Field": ["Error 1"] }
+  if (body.errors && typeof body.errors === "object" && !Array.isArray(body.errors)) {
+    validationErrors = body.errors;
+  } else if (Array.isArray(body.errors)) {
+    firstError = body.errors[0];
+  }
+
   const topLevelCode = typeof body.code === "string" ? body.code : undefined;
 
   return {
@@ -290,9 +300,11 @@ const extractBackendErrorPayload = (
       firstError?.errorMessage ??
       firstError?.message ??
       body.message ??
+      (validationErrors ? Object.values(validationErrors)[0]?.[0] : null) ??
       "DEFAULT_ERROR",
     rawCode: firstError?.code ?? topLevelCode ?? "UNKNOWN_ERROR",
     rawDetails: firstError?.details,
+    rawValidationErrors: validationErrors,
   };
 };
 
@@ -328,7 +340,7 @@ export const handleApiError = (error: unknown): ApiError => {
       };
     }
 
-    const { rawMessage, rawCode, rawDetails } = extractBackendErrorPayload(error.response?.data);
+    const { rawMessage, rawCode, rawDetails, rawValidationErrors } = extractBackendErrorPayload(error.response?.data);
     const rawMappingCandidate = resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails);
 
     // Map to translation key for specific error types
@@ -338,6 +350,7 @@ export const handleApiError = (error: unknown): ApiError => {
       code: rawCode !== "UNKNOWN_ERROR" ? rawCode : String(error.response?.status ?? "UNKNOWN_ERROR"),
       message: translationKey,
       details: rawDetails,
+      validationErrors: rawValidationErrors,
     };
   }
 
@@ -347,7 +360,7 @@ export const handleApiError = (error: unknown): ApiError => {
       data?: unknown;
       error?: string;
     };
-    const { rawMessage, rawCode, rawDetails } = extractBackendErrorPayload(rtkError.data);
+    const { rawMessage, rawCode, rawDetails, rawValidationErrors } = extractBackendErrorPayload(rtkError.data);
     const rawMappingCandidate =
       rawMessage !== "DEFAULT_ERROR"
         ? resolveErrorMappingCandidate(rawMessage, rawCode, rawDetails)
@@ -365,6 +378,7 @@ export const handleApiError = (error: unknown): ApiError => {
       code: rawCode !== "UNKNOWN_ERROR" ? rawCode : String(rtkError.status ?? "UNKNOWN_ERROR"),
       message: mapToTranslationKey(rawMappingCandidate),
       details: rawDetails,
+      validationErrors: rawValidationErrors,
     };
   }
 

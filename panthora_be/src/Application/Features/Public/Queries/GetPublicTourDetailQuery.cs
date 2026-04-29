@@ -23,7 +23,10 @@ public sealed record GetPublicTourDetailQuery(
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
 }
 
-public sealed class GetPublicTourDetailQueryHandler(ITourRepository tourRepository, IMapper mapper)
+public sealed class GetPublicTourDetailQueryHandler(
+    ITourRepository tourRepository,
+    IDepositPolicyRepository depositPolicyRepository,
+    IMapper mapper)
     : IQueryHandler<GetPublicTourDetailQuery, ErrorOr<TourDto>>
 {
     public async Task<ErrorOr<TourDto>> Handle(GetPublicTourDetailQuery request, CancellationToken cancellationToken)
@@ -34,6 +37,16 @@ public sealed class GetPublicTourDetailQueryHandler(ITourRepository tourReposito
             return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.PublicNotFoundDescription);
 
         tour.ApplyResolvedTranslations(request.ResolvedLanguage);
-        return mapper.Map<TourDto>(tour);
+        var dto = mapper.Map<TourDto>(tour);
+
+        // Fetch and map deposit policy
+        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
+        var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tour.TourScope);
+        if (policy != null)
+        {
+            dto = dto with { DepositPolicy = mapper.Map<DepositPolicyDto>(policy) };
+        }
+
+        return dto;
     }
 }

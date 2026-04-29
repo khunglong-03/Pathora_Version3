@@ -158,8 +158,20 @@ export function TourDetailPage() {
       departureDate,
       Math.max(0, (selectedClassification.durationDays ?? 1) - 1),
     );
-    const startIso = new Date(`${departureDate}T12:00:00`).toISOString();
-    const endIso = new Date(`${endDateStr}T12:00:00`).toISOString();
+    const startIso = new Date(`${departureDate}T00:00:00Z`).toISOString();
+    const endIso = new Date(`${endDateStr}T00:00:00Z`).toISOString();
+
+    let depositPct = 0.3;
+    if (tour.depositPolicy?.depositValue) {
+      const typeStr = String(tour.depositPolicy.depositType).toLowerCase();
+      const isPercentage = typeStr === "percentage" || typeStr === "2";
+      depositPct = isPercentage 
+        ? tour.depositPolicy.depositValue / 100 
+        : tour.depositPolicy.depositValue;
+      if (isPercentage && depositPct > 1) {
+        depositPct = depositPct / 100;
+      }
+    }
 
     const params = new URLSearchParams({
       tourInstanceId: tourId, // Using tourInstanceId param to hold tourId for the checkout page creation logic
@@ -175,7 +187,7 @@ export function TourDetailPage() {
       adults: String(adults),
       children: String(children),
       infants: String(infants),
-      depositPercentage: "0.3", // Private custom booking allows 30% deposit
+      depositPercentage: String(depositPct),
       bookingType: "PrivateCustom",
       instanceType: "private",
       classificationId: String(selectedClassification.id),
@@ -636,6 +648,7 @@ export function TourDetailPage() {
                     <Icon icon="heroicons-outline:calendar" className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
                     <TextInput
                       type="date"
+                      min={new Date().toISOString().split('T')[0]}
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all outline-none"

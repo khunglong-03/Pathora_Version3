@@ -2,6 +2,7 @@ export interface ApiError {
   code: string;
   message: string;
   details?: string;
+  validationErrors?: Record<string, string[]>;
 }
 
 /** Executor/Result pattern — NOT the same as ApiResponse in types/home.ts (backend wrapper) */

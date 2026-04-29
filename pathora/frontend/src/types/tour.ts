@@ -199,6 +199,7 @@ export interface TourDto {
   lastModifiedBy: string | null;
   lastModifiedOnUtc: string | null;
   services?: ServiceDto[];
+  depositPolicy?: DepositPolicyDto | null;
 }
 
 export interface TourTranslationData {

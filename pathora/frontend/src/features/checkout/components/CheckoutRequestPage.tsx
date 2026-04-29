@@ -389,7 +389,11 @@ export function CheckoutRequestPage() {
       const taxRate = 0;
       const taxAmount = Math.round(subtotal * taxRate);
       const totalPrice = subtotal + taxAmount;
-      const depositAmount = Math.round(totalPrice * depositPct);
+      const depositAmountRaw = depositPct <= 1 ? totalPrice * depositPct : depositPct;
+      const depositAmount = Math.round(depositAmountRaw);
+      
+      // Compute actual percentage for UI display
+      const computedDepositPercentage = totalPrice > 0 ? depositAmount / totalPrice : 0;
 
       // Calculate durationDays from startDate and endDate
       let durationDays = 0;
@@ -424,7 +428,7 @@ export function CheckoutRequestPage() {
         taxRate,
         taxAmount,
         totalPrice,
-        depositPercentage: depositPct,
+        depositPercentage: computedDepositPercentage,
         depositAmount,
         remainingBalance: totalPrice - depositAmount,
       };
@@ -634,11 +638,18 @@ export function CheckoutRequestPage() {
     } catch (error: unknown) {
       const handledError = handleApiError(error);
       console.error("Failed to create transaction:", handledError.message);
-      toast.error(
-        isPrivateCustomCheckout
+      
+      let errorMessage = handledError.details || handledError.message;
+      if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
+        // Flatten validation errors into a single string
+        errorMessage = Object.values(handledError.validationErrors).flat().join(", ");
+      } else if (!errorMessage || errorMessage === "DEFAULT_ERROR") {
+        errorMessage = isPrivateCustomCheckout
           ? t("landing.checkout.privateCustomTransactionError")
-          : t("landing.checkout.transactionError"),
-      );
+          : t("landing.checkout.transactionError");
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
