@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
 
@@ -11,6 +11,15 @@ import { handleApiError } from "@/utils/apiResponse";
 // Task 4.5.2: SignalR real-time payment updates with polling fallback
 import { usePaymentSignalR } from "@/hooks/usePaymentSignalR";
 import { PaymentBeneficiaryCard } from "@/features/checkout/components/PaymentBeneficiaryCard";
+import { useAuth } from "@/contexts/AuthContext";
+
+function buildPostPaymentLoginHref(bookingId: string | null | undefined): string {
+  const nextPath = bookingId ? `/bookings/${bookingId}` : "/bookings";
+  const params = new URLSearchParams();
+  params.set("login", "true");
+  params.set("next", nextPath);
+  return `/?${params.toString()}`;
+}
 
 function CheckoutUrlDisplay({ url, size = 200 }: { url: string; size?: number }) {
   return (
@@ -113,6 +122,8 @@ function PaymentBreakdown({ bookingId }: { bookingId: string | null }) {
 
 export default function PaymentStatusPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const params = useParams<{ transactionCode?: string }>();
   const searchParams = useSearchParams();
   const transactionCode =
@@ -354,6 +365,8 @@ export default function PaymentStatusPage() {
 
   // Success state
   if (status === "completed") {
+    const effectiveBookingId = bookingId ?? transaction.bookingId ?? null;
+
     return (
       <>
 
@@ -388,23 +401,46 @@ export default function PaymentStatusPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              {bookingId ? (
+            {authLoading ? (
+              <div className="flex flex-col gap-3 animate-pulse">
+                <div className="h-12 w-full rounded-lg bg-gray-200" />
+                <div className="h-12 w-full rounded-lg bg-gray-100" />
+              </div>
+            ) : user != null ? (
+              <div className="flex gap-3">
+                {effectiveBookingId ? (
+                  <Link
+                    href={`/bookings/${effectiveBookingId}`}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+                    View Booking
+                  </Link>
+                ) : (
+                  <Link
+                    href="/bookings"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+                    My Bookings
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push(buildPostPaymentLoginHref(effectiveBookingId))}
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                  <Icon icon="heroicons:arrow-right-on-rectangle" className="size-5" />
+                  {t("landing.checkout.loginToViewBookings")}
+                </button>
                 <Link
-                  href={`/bookings/${bookingId}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                  <Icon icon="heroicons:clipboard-document-check" className="size-5" />
-                  View Booking
+                  href="/"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                  <Icon icon="heroicons:home" className="size-5" />
+                  {t("landing.checkout.backToHome")}
                 </Link>
-              ) : (
-                <Link
-                  href="/bookings"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                  <Icon icon="heroicons:clipboard-document-check" className="size-5" />
-                  My Bookings
-                </Link>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </main>
 

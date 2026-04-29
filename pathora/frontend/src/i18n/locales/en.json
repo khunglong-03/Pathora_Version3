@@ -3479,6 +3479,8 @@
       "transferInstructions": "Please transfer the exact amount with the correct content",
       "verifyingPayment": "Verifying...",
       "viewMyBookings": "View My Bookings",
+      "loginToViewBookings": "Sign in to view booking",
+      "guestBookingNote": "No account required to book. Sign in with {{email}} to track this booking.",
       "statusPending": "Pending",
       "statusProcessing": "Processing",
       "statusPaid": "Paid",

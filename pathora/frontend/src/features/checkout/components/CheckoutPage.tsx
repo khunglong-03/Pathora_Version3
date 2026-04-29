@@ -589,6 +589,7 @@ export function CheckoutPage() {
                 canConfirm={canConfirm}
                 loading={loading}
                 onConfirmBooking={handleConfirmBooking}
+                customerEmail={customerEmail}
                 t={t}
               />
 

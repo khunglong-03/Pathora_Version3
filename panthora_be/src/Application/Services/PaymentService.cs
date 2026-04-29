@@ -371,6 +371,32 @@ public class PaymentService : IPaymentService
             }
         }
 
+        if (isBookingSuccess
+            && bookingForCredit != null
+            && bookingForCredit.UserId == null
+            && !string.IsNullOrWhiteSpace(bookingForCredit.CustomerEmail))
+        {
+            var matchedUser = await _userRepository.GetByEmailAsync(
+                bookingForCredit.CustomerEmail,
+                CancellationToken.None);
+            if (matchedUser != null)
+            {
+                bookingForCredit.UserId = matchedUser.Id;
+                await _bookingRepository.UpdateAsync(bookingForCredit);
+                _logger.LogInformation(
+                    "Linked booking {BookingId} to user {UserId} via email match",
+                    bookingForCredit.Id,
+                    matchedUser.Id);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "No active user match for booking {BookingId} customer email {Email}",
+                    bookingForCredit.Id,
+                    bookingForCredit.CustomerEmail);
+            }
+        }
+
         // Persist all changes (transaction + booking + manager balance) in one transaction
         try
         {

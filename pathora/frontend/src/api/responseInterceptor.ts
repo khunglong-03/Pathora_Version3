@@ -10,8 +10,7 @@ import {
   getRetryDelayMs,
   shouldRetryError,
 } from "./retryPolicy";
-import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
-import { getCookie } from "@/utils/cookie";
+import { refreshAccessToken } from "./tokenRefreshCoordinator";
 
 export interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   __retryCount?: number;
@@ -31,41 +30,11 @@ export const waitForRetry = (delayMs: number): Promise<void> => {
   });
 };
 
-/** Tracks whether a refresh is already in-flight to avoid concurrent refresh calls */
-let isRefreshing = false;
-/** Queue of pending requests to retry after refresh succeeds */
-let refreshQueue: Array<() => void> = [];
-
-const processRefreshQueue = (error?: Error | null) => {
-  refreshQueue.forEach((cb) => cb());
-  refreshQueue = [];
-  if (error) {
-    // Refresh failed — redirect to login
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  }
-};
-
 /**
- * Calls POST /api/auth/refresh to rotate token pair.
- * Refresh token is sent as HttpOnly cookie automatically by the browser.
- * Backend returns the new access token in the response body (since the cookie is HttpOnly).
- * Returns the new access token on success, throws on failure.
+ * On 401, rotate access token via tokenRefreshCoordinator (shared with RTK Query) and retry once.
+ * refresh_token is mirrored on a non-HttpOnly cookie on the frontend domain; the browser sends it with withCredentials: true.
+ * Backend returns the new access_token in the response body.
  */
-const callRefreshEndpoint = async (): Promise<string> => {
-  // Use withCredentials so the browser sends the HttpOnly refresh_token cookie
-  const response = await axios.post<{ data: { accessToken: string } }>(
-    "/api/auth/refresh",
-    {},
-    {
-      baseURL: API_GATEWAY_BASE_URL,
-      withCredentials: true,
-    },
-  );
-  return response.data.data.accessToken;
-};
-
 export const handleResponseError = async (
   error: AxiosError,
   deps: ResponseErrorDependencies,
@@ -74,64 +43,26 @@ export const handleResponseError = async (
 
   const originalConfig = error.config as RetryableRequestConfig | undefined;
 
-  // ── Attempt automatic token refresh on 401 ──────────────────────
   const isAuthChallenge = error.response?.status === 401;
   const isRefreshRequest = originalConfig?.url?.includes("/auth/refresh");
   const isAlreadyRefreshing = originalConfig?.__isAuthRequest;
 
   if (isAuthChallenge && !isRefreshRequest && !isAlreadyRefreshing) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        // Call refresh — browser auto-sends HttpOnly refresh_token cookie
-        const newAccessToken = await callRefreshEndpoint();
+    try {
+      const newAccessToken = await refreshAccessToken();
 
-        // Update access_token cookie (non-HttpOnly, JS-readable)
-        if (typeof document !== "undefined") {
-          const isSecure = window.location.protocol === "https:";
-          const sameSite = isSecure ? "None" : "Lax";
-          document.cookie = `access_token=${newAccessToken}; path=/; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
-        }
-
-        // Retry the original request with the new token
-        if (originalConfig) {
-          originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
-          originalConfig.__isAuthRequest = true;
-        }
-
-        const retryResponse = await deps.request(originalConfig!);
-        isRefreshing = false;
-        processRefreshQueue();
-        return retryResponse;
-      } catch (refreshError) {
-        isRefreshing = false;
-        processRefreshQueue(refreshError as Error);
-        // Clear cookies and redirect
-        deps.onUnauthorized();
-        return Promise.reject(error);
+      if (originalConfig) {
+        originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalConfig.__isAuthRequest = true;
       }
-    } else {
-      // Refresh already in progress — queue this request
-      return new Promise((resolve, reject) => {
-        refreshQueue.push(() => {
-          if (originalConfig) {
-            // Re-read token from cookie (set by the in-flight refresh)
-            const newToken = getCookie("access_token");
-            if (newToken) {
-              originalConfig.headers.Authorization = `Bearer ${newToken}`;
-            }
-            originalConfig.__isAuthRequest = true;
-          }
-          deps
-            .request(originalConfig!)
-            .then(resolve)
-            .catch(reject);
-        });
-      });
+
+      return await deps.request(originalConfig!);
+    } catch {
+      deps.onUnauthorized();
+      return Promise.reject(error);
     }
   }
 
-  // ── Retry logic for network/server errors ───────────────────────
   const retryConfig = createRetryConfig();
   const retryCount = originalConfig?.__retryCount ?? 0;
 

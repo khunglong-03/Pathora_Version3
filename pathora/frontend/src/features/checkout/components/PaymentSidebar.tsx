@@ -5,9 +5,18 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import { fmtCurrency, copyToClipboard, STATUS_STEPS } from "./checkoutHelpers";
 import { PaymentTransaction, type NormalizedPaymentStatus, paymentService } from "@/api/services/paymentService";
 import { PaymentBeneficiaryCard } from "./PaymentBeneficiaryCard";
+
+function buildPostPaymentLoginHref(bookingId: string | null | undefined): string {
+  const nextPath = bookingId ? `/bookings/${bookingId}` : "/bookings";
+  const params = new URLSearchParams();
+  params.set("login", "true");
+  params.set("next", nextPath);
+  return `/?${params.toString()}`;
+}
 
 /* ── Countdown Timer ─────────────────────────────────── */
 function useCountdown(expiredAt: string | undefined) {
@@ -63,15 +72,18 @@ function PaymentStatusPanel({
   transaction,
   normalizedStatus,
   onStatusChange,
+  customerEmail,
   t,
 }: {
   transaction: PaymentTransaction;
   normalizedStatus: NormalizedPaymentStatus;
   onStatusChange?: (status: NormalizedPaymentStatus) => void;
+  customerEmail?: string;
   t: ReturnType<typeof useTranslation>[0];
 }) {
   const timeLeft = useCountdown(transaction.expiredAt);
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const { seconds: refreshCooldown, rateLimitMsg, clearCooldown } = useRefreshCooldown();
   const [verifyingPayment, setVerifyingPayment] = useState(false); // Task 5.4.1: optimistic UI state
 
@@ -130,22 +142,55 @@ function PaymentStatusPanel({
           <p className="text-lg font-bold font-mono text-green-600 mt-1">{transaction.transactionCode}</p>
         </div>
         <div className="flex flex-col gap-3 w-full mt-2">
-          <Button
-            type="button"
-            onClick={() => router.push("/bookings")}
-            className="w-full h-10 rounded-xl font-semibold text-sm bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center gap-2"
-          >
-            <Icon icon="heroicons:ticket" className="size-4" />
-            {t("landing.checkout.viewMyBookings", "Xem Tour của tôi")}
-          </Button>
-          <Button
-            type="button"
-            onClick={() => router.push("/")}
-            variant="outline"
-            className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center"
-          >
-            {t("landing.checkout.backToHome", "Về trang chủ")}
-          </Button>
+          {authLoading ? (
+            <div className="flex flex-col gap-3 w-full animate-pulse">
+              <div className="h-10 w-full rounded-xl bg-slate-200" />
+              <div className="h-10 w-full rounded-xl bg-slate-100" />
+            </div>
+          ) : user != null ? (
+            <>
+              <Button
+                type="button"
+                onClick={() => router.push("/bookings")}
+                className="w-full h-10 rounded-xl font-semibold text-sm bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center gap-2"
+              >
+                <Icon icon="heroicons:ticket" className="size-4" />
+                {t("landing.checkout.viewMyBookings")}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => router.push("/")}
+                variant="outline"
+                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center"
+              >
+                {t("landing.checkout.backToHome")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                onClick={() => router.push(buildPostPaymentLoginHref(transaction.bookingId))}
+                className="w-full h-10 rounded-xl font-semibold text-sm bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center gap-2"
+              >
+                <Icon icon="heroicons:arrow-right-on-rectangle" className="size-4" />
+                {t("landing.checkout.loginToViewBookings")}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => router.push("/")}
+                variant="outline"
+                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center"
+              >
+                {t("landing.checkout.backToHome")}
+              </Button>
+              <p className="text-xs text-gray-500 text-center">
+                {t("landing.checkout.guestBookingNote", {
+                  email: (customerEmail ?? "").trim() || "—",
+                })}
+              </p>
+            </>
+          )}
         </div>
       </div>
     );
@@ -291,6 +336,8 @@ interface PaymentSidebarProps {
   canConfirm: boolean;
   loading: boolean;
   onConfirmBooking: () => void;
+  /** Guest checkout email (for post-payment copy when user is not logged in). */
+  customerEmail?: string;
   t: ReturnType<typeof useTranslation>[0];
 }
 
@@ -307,6 +354,7 @@ export function PaymentSidebar({
   canConfirm,
   loading,
   onConfirmBooking,
+  customerEmail,
   t,
 }: PaymentSidebarProps) {
   return (
@@ -317,7 +365,13 @@ export function PaymentSidebar({
         </h3>
 
         {transaction ? (
-          <PaymentStatusPanel transaction={transaction} normalizedStatus={normalizedStatus} onStatusChange={onStatusChange} t={t} />
+          <PaymentStatusPanel
+            transaction={transaction}
+            normalizedStatus={normalizedStatus}
+            onStatusChange={onStatusChange}
+            customerEmail={customerEmail}
+            t={t}
+          />
         ) : (
           <div className="flex flex-col gap-6">
             {/* Payment Option Toggle */}

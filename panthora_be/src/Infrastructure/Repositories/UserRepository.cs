@@ -18,6 +18,24 @@ public class UserRepository(AppDbContext context) : Repository<UserEntity>(conte
         return result;
     }
 
+    public async Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return null;
+        }
+
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                u => u.Email != null
+                    && u.Email.Trim().ToLower() == normalizedEmail
+                    && !u.IsDeleted
+                    && u.Status == UserStatus.Active,
+                cancellationToken);
+    }
+
     public async Task<UserEntity?> FindById(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Users

@@ -2,7 +2,7 @@ import { deleteCookie, getCookie, setCookie } from "./cookie";
 import { isJwtExpired } from "./jwt";
 import { resolveAuthPortal } from "./authRouting";
 
-const DAY_SECONDS = 60 * 60 * 24;
+export const DAY_SECONDS = 60 * 60 * 24;
 const WEEK_SECONDS = DAY_SECONDS * 7;
 
 export const persistAuthSession = (

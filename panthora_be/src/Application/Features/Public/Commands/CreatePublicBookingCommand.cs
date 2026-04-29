@@ -70,6 +70,7 @@ public sealed class CreatePublicBookingCommandHandler(
     IPricingPolicyRepository pricingPolicyRepository,
     ITourRepository tourRepository,
     IDepositPolicyRepository depositPolicyRepository,
+    IUserRepository userRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreatePublicBookingCommand, ErrorOr<CheckoutPriceResponse>>
 {
@@ -130,6 +131,15 @@ public sealed class CreatePublicBookingCommandHandler(
         if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
         {
             currentUserId = parsedId;
+        }
+
+        if (currentUserId == null && !string.IsNullOrWhiteSpace(request.CustomerEmail))
+        {
+            var matchedByEmail = await userRepository.GetByEmailAsync(request.CustomerEmail, cancellationToken);
+            if (matchedByEmail != null)
+            {
+                currentUserId = matchedByEmail.Id;
+            }
         }
 
         // Create booking entity

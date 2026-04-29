@@ -1,11 +1,14 @@
 using Domain.Entities;
-using Domain.Enums;
-using ErrorOr;
 
 namespace Domain.Common.Repositories;
 
 public interface IUserRepository : IRepository<UserEntity>
 {
+    /// <summary>
+    /// Lookup an active, non-deleted user by email (case-insensitive). Used to attach guest bookings to existing accounts.
+    /// </summary>
+    Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
     Task<UserEntity?> FindByEmail(string email, CancellationToken cancellationToken = default);
     Task<UserEntity?> FindById(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<UserEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
