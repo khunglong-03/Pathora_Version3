@@ -73,6 +73,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _mapper,
             NullLogger<TourInstanceService>.Instance,
             Substitute.For<ICloudinaryService>(),
+            null,
             _notificationBroadcaster);
 
         var assignResult = await assignHandler.Handle(
@@ -178,6 +179,7 @@ public sealed class TourInstanceServiceApprovalFlowTests
             _mapper,
             NullLogger<TourInstanceService>.Instance,
             Substitute.For<ICloudinaryService>(),
+            null,
             _notificationBroadcaster);
 
         var result = await service.ProviderApprove(

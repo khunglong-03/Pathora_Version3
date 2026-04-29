@@ -39,16 +39,16 @@ public sealed class GetTourInstanceDetailQueryHandler(
 
         // Fetch system-wide policies
         var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(instanceType, cancellationToken);
-        
+
         var cancelPolicies = await cancellationPolicyRepository.FindByTourScope(tour.TourScope, cancellationToken);
         var cancellationPolicy = cancelPolicies.FirstOrDefault(p => p.Status == CancellationPolicyStatus.Active);
-        
+
         var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
         var depositPolicy = depositPolicies.FirstOrDefault(p => p.TourScope == tour.TourScope);
 
         // Map and inject into DTO
-        return dto with 
-        { 
+        return dto with
+        {
             PricingPolicy = mapper.Map<PricingPolicyDto>(pricingPolicy),
             CancellationPolicy = mapper.Map<CancellationPolicyDto>(cancellationPolicy),
             DepositPolicy = mapper.Map<DepositPolicyDto>(depositPolicy)

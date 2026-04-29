@@ -32,7 +32,8 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
     ITransactionHistoryRepository transactionHistoryRepository,
     IUserRepository userRepository,
     IOwnershipValidator ownershipValidator,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    ITourInstanceService tourInstanceService)
     : IRequestHandler<ApplyPrivateTourSettlementCommand, ErrorOr<PrivateTourSettlementResultDto>>
 {
     public async Task<ErrorOr<PrivateTourSettlementResultDto>> Handle(
@@ -121,12 +122,18 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
             await tourInstanceRepository.Update(instance, cancellationToken);
             await unitOfWork.SaveChangeAsync(cancellationToken);
 
+            // Trigger provider assignment notifications
+            await tourInstanceService.TriggerProviderAssignmentsAsync(instance.Id, cancellationToken);
+
             return new PrivateTourSettlementResultDto(delta, null, credit);
         }
 
         instance.ChangeStatus(TourInstanceStatus.Confirmed, userId.ToString());
         await tourInstanceRepository.Update(instance, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        // Trigger provider assignment notifications
+        await tourInstanceService.TriggerProviderAssignmentsAsync(instance.Id, cancellationToken);
 
         return new PrivateTourSettlementResultDto(0, null, null);
     }

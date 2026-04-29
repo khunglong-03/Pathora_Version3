@@ -367,7 +367,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
         var response = result.Value;
         AuthCookieWriter.WriteAuthCookies(Response, response, Request.IsHttps, jwtOptions.Value);
-        
+
         var returnUrl = authenticateResult.Properties?.Items.TryGetValue("returnUrl", out var url) == true ? url : null;
         var redirectUrl = $"{frontendUrl}/auth/callback";
         if (!string.IsNullOrEmpty(returnUrl))

@@ -41,4 +41,29 @@ public class TransactionHistoryEntity : Aggregate<Guid>
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
     }
+    public static TransactionHistoryEntity CreateDebit(
+        Guid userId,
+        decimal amount,
+        string description,
+        string performedBy,
+        Guid? bookingId = null)
+    {
+        if (amount < 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be non-negative for debit entry (will be subtracted).");
+        if (string.IsNullOrWhiteSpace(description))
+            throw new ArgumentException("Description is required.", nameof(description));
+
+        return new TransactionHistoryEntity
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            BookingId = bookingId,
+            Amount = -amount,
+            Description = description.Trim(),
+            CreatedBy = performedBy,
+            LastModifiedBy = performedBy,
+            CreatedOnUtc = DateTimeOffset.UtcNow,
+            LastModifiedOnUtc = DateTimeOffset.UtcNow
+        };
+    }
 }

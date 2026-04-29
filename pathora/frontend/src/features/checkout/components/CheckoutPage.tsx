@@ -185,6 +185,8 @@ export function CheckoutPage() {
     depositPercentage: number;
     bookingType: string;
     instanceType: string;
+    classificationId?: string;
+    maxParticipation?: number;
   } | null>(null);
 
   /* ── Initialize tour instance booking from URL params ──── */
@@ -204,6 +206,8 @@ export function CheckoutPage() {
         depositPercentage: depositPercentage,
         bookingType: bookingTypeParam,
         instanceType: instanceTypeParam,
+        classificationId: searchParams.get("classificationId") || undefined,
+        maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
       });
       setLoadingPrice(false);
     }
@@ -491,30 +495,54 @@ export function CheckoutPage() {
         const childrenParam = searchParams.get("children") || "0";
         const infantsParam = searchParams.get("infants") || "0";
 
-        const bookingPayload: CreateBookingPayload = {
-          tourInstanceId: tourInstanceBooking.tourInstanceId,
-          customerName: customerName.trim(),
-          customerPhone: customerPhone.trim(),
-          customerEmail: customerEmail.trim() || undefined,
-          numberAdult: parseInt(adultsParam, 10) || 1,
-          numberChild: parseInt(childrenParam, 10) || 0,
-          numberInfant: parseInt(infantsParam, 10) || 0,
-          paymentMethod: 2, // BankTransfer
-          isFullPay: paymentOption === "full",
-        };
-
-        const bookingResult = await bookingService.createBooking(bookingPayload);
-        if (bookingResult && bookingResult.bookingId) {
-          setCheckoutPrice(bookingResult);
-          currentBookingId = bookingResult.bookingId;
+        if (tourInstanceBooking.bookingType === "PrivateCustom") {
+          const totalPax = (parseInt(adultsParam, 10) || 1) + (parseInt(childrenParam, 10) || 0) + (parseInt(infantsParam, 10) || 0);
+          const bookingResult = await import("@/api/services/tourService").then((m) => m.tourService.requestPrivateTour(tourInstanceBooking.tourInstanceId, {
+            classificationId: tourInstanceBooking.classificationId || "",
+            startDate: new Date(tourInstanceBooking.startDate).toISOString(),
+            endDate: new Date(tourInstanceBooking.endDate).toISOString(),
+            maxParticipation: Math.max(tourInstanceBooking.maxParticipation || 1, totalPax),
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerEmail: customerEmail.trim() || undefined,
+            numberAdult: parseInt(adultsParam, 10) || 1,
+            numberChild: parseInt(childrenParam, 10) || 0,
+            numberInfant: parseInt(infantsParam, 10) || 0,
+            paymentMethod: 2,
+            isFullPay: paymentOption === "full",
+          }));
+          if (bookingResult && bookingResult.bookingId) {
+            // We just need the bookingId to proceed to payment, requestPrivateTour returns price info including bookingId
+            currentBookingId = bookingResult.bookingId;
+          } else {
+            throw new Error("Failed to create private custom booking");
+          }
         } else {
-          throw new Error("Failed to create booking");
+          const bookingPayload: CreateBookingPayload = {
+            tourInstanceId: tourInstanceBooking.tourInstanceId,
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerEmail: customerEmail.trim() || undefined,
+            numberAdult: parseInt(adultsParam, 10) || 1,
+            numberChild: parseInt(childrenParam, 10) || 0,
+            numberInfant: parseInt(infantsParam, 10) || 0,
+            paymentMethod: 2, // BankTransfer
+            isFullPay: paymentOption === "full",
+          };
+
+          const bookingResult = await bookingService.createBooking(bookingPayload);
+          if (bookingResult && bookingResult.bookingId) {
+            setCheckoutPrice(bookingResult);
+            currentBookingId = bookingResult.bookingId;
+          } else {
+            throw new Error("Failed to create booking");
+          }
         }
       }
 
       // Step 2: Create payment transaction
       let result: PaymentTransaction | null = null;
-      if (isPrivateCustomCheckout && currentBookingId) {
+      if ((isPrivateCustomCheckout || tourInstanceBooking?.bookingType === "PrivateCustom") && currentBookingId) {
         result = await paymentService.createPrivateCustomInitial(currentBookingId);
       } else {
         result = await paymentService.createTransaction({

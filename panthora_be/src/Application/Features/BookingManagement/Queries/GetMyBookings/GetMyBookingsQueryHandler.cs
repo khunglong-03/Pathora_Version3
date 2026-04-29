@@ -27,7 +27,7 @@ public sealed class GetMyBookingsQueryHandler(
 
         // Convert the status filter to enum if provided
         BookingStatus? statusFilter = null;
-        if (!string.IsNullOrWhiteSpace(request.StatusFilter) && 
+        if (!string.IsNullOrWhiteSpace(request.StatusFilter) &&
             Enum.TryParse<BookingStatus>(request.StatusFilter, true, out var parsedStatus))
         {
             statusFilter = parsedStatus;
@@ -45,10 +45,11 @@ public sealed class GetMyBookingsQueryHandler(
         var items = result.Items;
         var totalCount = result.TotalCount;
 
-        var dtos = items.Select(b => {
+        var dtos = items.Select(b =>
+        {
             var paidAmount = b.PaymentTransactions?.Where(t => t.Status == TransactionStatus.Completed).Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
             var paymentStatus = paidAmount >= b.TotalPrice ? PaymentStatus.Paid : (paidAmount > 0 ? PaymentStatus.Partial : PaymentStatus.Unpaid);
-            
+
             return new MyBookingDto(
                 Id: b.Id,
                 TourName: b.TourInstance?.TourName ?? string.Empty,

@@ -1,5 +1,6 @@
 using Contracts;
 using Contracts.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Application.Common.Interfaces;
 using Application.Common.Constant;
 using Application.Common.Localization;
@@ -49,6 +50,8 @@ public interface ITourInstanceService
     /// Public flow: create a private <see cref="TourInstanceStatus.Draft"/> instance; manager is the tour operator.
     /// </summary>
     Task<ErrorOr<Guid>> CreatePublicPrivateDraftAsync(CreateTourInstanceCommand request);
+    Task TriggerProviderAssignmentsAsync(Guid instanceId, CancellationToken cancellationToken = default);
+    Task HandleSupplierRejectionAsync(Guid instanceId, string reason, CancellationToken cancellationToken = default);
 }
 
 public class TourInstanceService(
@@ -64,6 +67,7 @@ public class TourInstanceService(
     IMapper mapper,
     ILogger<TourInstanceService> logger,
     ICloudinaryService cloudinaryService,
+    IServiceProvider? serviceProvider = null,
     ITourInstanceNotificationBroadcaster? notificationBroadcaster = null,
     IVehicleBlockRepository? vehicleBlockRepository = null,
     IUnitOfWork? unitOfWork = null) : ITourInstanceService
@@ -80,6 +84,7 @@ public class TourInstanceService(
     private readonly IMapper _mapper = mapper;
     private readonly ILogger<TourInstanceService> _logger = logger;
     private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+    private readonly IServiceProvider? _serviceProvider = serviceProvider;
     private readonly IUnitOfWork? _unitOfWork = unitOfWork;
     private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
     private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
@@ -330,7 +335,10 @@ public class TourInstanceService(
             await _tourInstanceRepository.Create(entity);
 
             // Notify providers about their assignment (fire-and-forget, separate try-catch per provider)
-            await NotifyProviderAssignmentAsync(entity);
+            if (entity.InstanceType != TourType.Private)
+            {
+                await NotifyProviderAssignmentAsync(entity);
+            }
             if (tourRequest is not null)
             {
                 tourRequest.TourInstanceId = entity.Id;
@@ -593,6 +601,99 @@ public class TourInstanceService(
                 ex,
                 "Failed to queue tour ready email for request {RequestId}",
                 requestEntity.Id);
+        }
+    }
+
+    public async Task TriggerProviderAssignmentsAsync(Guid instanceId, CancellationToken cancellationToken = default)
+    {
+        var entity = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+        if (entity is not null)
+        {
+            await NotifyProviderAssignmentAsync(entity);
+        }
+    }
+
+    public async Task HandleSupplierRejectionAsync(Guid instanceId, string reason, CancellationToken cancellationToken = default)
+    {
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, cancellationToken);
+        if (instance is null) return;
+
+        if (instance.InstanceType == TourType.Private && instance.Status == TourInstanceStatus.Confirmed)
+        {
+            // The fallback mechanism: if any supplier rejects an assigned activity after the tour is confirmed, cancel it.
+            instance.Cancel(reason, "SYSTEM");
+
+            // Release RoomBlock and VehicleBlock records
+            if (_vehicleBlockRepository is not null)
+            {
+                var activityIds = instance.InstanceDays.SelectMany(d => d.Activities).Select(a => a.Id).ToList();
+                foreach (var actId in activityIds)
+                {
+                    await _vehicleBlockRepository.DeleteByActivityAsync(actId, cancellationToken);
+                }
+            }
+            if (_roomBlockRepository is not null)
+            {
+                await _roomBlockRepository.DeleteByTourInstanceAsync(instanceId, cancellationToken);
+            }
+
+            await _tourInstanceRepository.Update(instance, cancellationToken);
+
+            // Refund from Manager's balance to Customer's wallet
+            if (_serviceProvider != null)
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var bookingRepo = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                var paymentTxRepo = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
+                var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+                var txHistoryRepo = scope.ServiceProvider.GetRequiredService<ITransactionHistoryRepository>();
+                var localUnitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+                var bookings = await bookingRepo.GetByTourInstanceIdAsync(instance.Id, cancellationToken);
+                var booking = bookings.FirstOrDefault();
+                if (booking != null && booking.UserId.HasValue)
+                {
+                    var customerId = booking.UserId.Value;
+                    var managerId = instance.Managers.FirstOrDefault(m => m.Role == TourInstanceManagerRole.Manager)?.UserId;
+
+                    if (managerId.HasValue)
+                    {
+                        var manager = await userRepo.FindById(managerId.Value, cancellationToken);
+                        var customer = await userRepo.FindById(customerId, cancellationToken);
+
+                        if (manager != null && customer != null)
+                        {
+                            var txs = await paymentTxRepo.GetByBookingIdListAsync(booking.Id, cancellationToken);
+                            var totalPaid = txs.Where(t => t.Status == TransactionStatus.Completed).Sum(t => t.PaidAmount ?? t.Amount);
+
+                            if (totalPaid > 0)
+                            {
+                                manager.Balance -= totalPaid;
+                                customer.CreditBalance(totalPaid);
+
+                                userRepo.Update(manager);
+                                userRepo.Update(customer);
+
+                                // Record transaction histories
+                                var mgrHistory = TransactionHistoryEntity.CreateDebit(
+                                    managerId.Value, totalPaid, $"Hoàn tiền tour {instance.TourCode} do nhà cung cấp từ chối", "SYSTEM", booking.Id);
+                                var cusHistory = TransactionHistoryEntity.CreateCredit(
+                                    customerId, totalPaid, $"Nhận hoàn tiền tour {instance.TourCode} do bị huỷ", "SYSTEM", booking.Id);
+
+                                await txHistoryRepo.AddAsync(mgrHistory, cancellationToken);
+                                await txHistoryRepo.AddAsync(cusHistory, cancellationToken);
+                            }
+                        }
+                    }
+                    booking.Cancel("Supplier rejected assignment", "SYSTEM");
+                    await bookingRepo.UpdateAsync(booking, cancellationToken);
+                }
+                if (_unitOfWork is null)
+                {
+                    await localUnitOfWork.SaveChangeAsync(cancellationToken);
+                }
+            }
+            // (If _unitOfWork is not null, caller is expected to save changes)
         }
     }
 
@@ -1128,7 +1229,17 @@ public class TourInstanceService(
             return Error.Validation(bex.Code, bex.Message);
         }
 
-        await _tourInstanceRepository.Update(instance, cancellationToken);
+        if (!isApproved && instance.InstanceType == TourType.Private && instance.Status == TourInstanceStatus.Confirmed)
+        {
+            // Fallback for private tour: if supplier rejects after confirmation, cancel tour and refund
+            await HandleSupplierRejectionAsync(instance.Id, note ?? "Supplier rejected assignment", cancellationToken);
+            var updatedInstance = await _tourInstanceRepository.FindById(instance.Id, cancellationToken: cancellationToken);
+            if (updatedInstance != null) instance = updatedInstance;
+        }
+        else
+        {
+            await _tourInstanceRepository.Update(instance, cancellationToken);
+        }
 
         // Notify manager and admins about the approval result (fire-and-forget)
         await NotifyProviderApprovalResultAsync(instance, notificationProviderName, isApproved, note);

@@ -1,4 +1,5 @@
 namespace Domain.Entities;
+
 public class TourInstanceTransportAssignmentEntity : Aggregate<Guid>
 {
     public Guid TourInstanceDayActivityId { get; set; }

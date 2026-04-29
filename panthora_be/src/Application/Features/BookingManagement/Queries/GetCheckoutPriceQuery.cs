@@ -56,7 +56,7 @@ public sealed class GetCheckoutPriceQueryHandler(
 
         var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
         var tourScope = tour?.TourScope ?? Domain.Enums.TourScope.Domestic;
-        
+
         var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
         var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tourScope);
 

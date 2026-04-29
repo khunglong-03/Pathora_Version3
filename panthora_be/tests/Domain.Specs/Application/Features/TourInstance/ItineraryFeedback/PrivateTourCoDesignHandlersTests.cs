@@ -153,7 +153,8 @@ public sealed class PrivateTourCoDesignHandlersTests
             Substitute.For<ITransactionHistoryRepository>(),
             Substitute.For<IUserRepository>(),
             _ownershipValidator,
-            _unitOfWork);
+            _unitOfWork,
+            Substitute.For<ITourInstanceService>());
 
         var result = await handler.Handle(
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
@@ -215,7 +216,8 @@ public sealed class PrivateTourCoDesignHandlersTests
             historyRepo,
             userRepo,
             _ownershipValidator,
-            _unitOfWork);
+            _unitOfWork,
+            Substitute.For<ITourInstanceService>());
 
         var result = await handler.Handle(
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),

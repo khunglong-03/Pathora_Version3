@@ -37,7 +37,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>
                 description: failure.ErrorMessage));
 
         // Use reflection to create ErrorOr<T> from errors if TResponse is ErrorOr
-        if (typeof(TResponse).IsGenericType && 
+        if (typeof(TResponse).IsGenericType &&
             typeof(TResponse).GetGenericTypeDefinition() == typeof(ErrorOr<>))
         {
             return (TResponse)typeof(TResponse)

@@ -163,14 +163,14 @@ public sealed class CreatePublicBookingCommandHandler(
             numberInfant: request.NumberInfant);
 
         // No longer reserve capacity here. Capacity will be reserved upon successful payment.
-        
+
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         // Phase 5.1.4: Use 100% deposit if IsFullPay is true, else calculate from DepositPolicy
         var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
         var tourScope = tour?.TourScope ?? Domain.Enums.TourScope.Domestic;
-        
+
         var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
         var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tourScope);
 

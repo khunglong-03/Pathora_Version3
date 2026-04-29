@@ -373,9 +373,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (idList.Count == 0) return [];
 
         var query = _context.TourInstances.AsNoTracking()
-            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a => 
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
                 (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
-                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))));
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))))
+            .Where(t => !(t.InstanceType == TourType.Private && (t.Status == TourInstanceStatus.Draft || t.Status == TourInstanceStatus.PendingAdjustment)));
 
         if (approvalStatus.HasValue)
         {
@@ -404,9 +405,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         if (idList.Count == 0) return 0;
 
         var query = _context.TourInstances.AsNoTracking()
-            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a => 
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
                 (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
-                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))));
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))))
+            .Where(t => !(t.InstanceType == TourType.Private && (t.Status == TourInstanceStatus.Draft || t.Status == TourInstanceStatus.PendingAdjustment)));
 
         if (approvalStatus.HasValue)
         {

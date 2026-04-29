@@ -7,6 +7,7 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OutboxMessage = Domain.Entities.OutboxMessage;
 using System.Linq;
@@ -54,6 +55,7 @@ public class PaymentService : IPaymentService
     private readonly IUserRepository _userRepository;
     private readonly ILogger<PaymentService> _logger;
     private readonly Domain.UnitOfWork.IUnitOfWork _unitOfWork;
+    private readonly IServiceProvider _serviceProvider;
 
     public PaymentService(
         IPaymentTransactionRepository transactionRepository,
@@ -64,7 +66,8 @@ public class PaymentService : IPaymentService
         IUserRepository userRepository,
         ILogger<PaymentService> logger,
         IConfiguration configuration,
-        Domain.UnitOfWork.IUnitOfWork unitOfWork)
+        Domain.UnitOfWork.IUnitOfWork unitOfWork,
+        IServiceProvider serviceProvider)
     {
         _transactionRepository = transactionRepository;
         _bookingRepository = bookingRepository;
@@ -74,6 +77,7 @@ public class PaymentService : IPaymentService
         _userRepository = userRepository;
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _serviceProvider = serviceProvider;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
         _sepayBankCode = NormalizeConfigValue(configuration["Payment:Bank"]);
         _sepayQrBaseUrl = NormalizeConfigValue(configuration["Payment:QrBaseUrl"]);
@@ -332,7 +336,7 @@ public class PaymentService : IPaymentService
 
         var bookingForCredit = transaction.Booking
             ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
-        
+
         if (isBookingSuccess)
         {
             // Credit manager balance
@@ -453,7 +457,7 @@ public class PaymentService : IPaymentService
         if (booking.Status == BookingStatus.Pending)
         {
             var totalParticipants = booking.NumberAdult + booking.NumberChild + booking.NumberInfant;
-            
+
             if (tourInstance.CurrentParticipation + totalParticipants > tourInstance.MaxParticipation)
             {
                 _logger.LogWarning("Tour {TourInstanceId} is full for booking {BookingId}. Capacity: {Current}/{Max}",
@@ -506,6 +510,11 @@ public class PaymentService : IPaymentService
                             "Private tour instance {InstanceId} confirmed after top-up (transaction {TransactionCode}).",
                             tourInstance.Id,
                             transaction.TransactionCode);
+
+                        // Trigger provider assignments now that the tour is confirmed
+                        using var scope = _serviceProvider.CreateScope();
+                        var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
+                        await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
                     }
                 }
                 break;
@@ -562,7 +571,7 @@ public class PaymentService : IPaymentService
         if (booking != null && booking.Status != BookingStatus.Cancelled)
         {
             var originalStatus = booking.Status;
-            
+
             booking.Cancel(
                 "Payment expired after 30 minutes without payment",
                 "SYSTEM");

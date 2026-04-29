@@ -111,11 +111,17 @@ public sealed class AssignAccommodationSupplierCommandHandler(
                         ct: cancellationToken);
                 }
 
-                await notifications.NotifyProviderAssignedAsync(
-                    request.SupplierId,
-                    activity.Id,
-                    instance.Id,
-                    cancellationToken);
+                bool shouldNotifyAssignment = !(instance.InstanceType == TourType.Private &&
+                    (instance.Status == TourInstanceStatus.Draft || instance.Status == TourInstanceStatus.PendingAdjustment));
+
+                if (shouldNotifyAssignment)
+                {
+                    await notifications.NotifyProviderAssignedAsync(
+                        request.SupplierId,
+                        activity.Id,
+                        instance.Id,
+                        cancellationToken);
+                }
             }
             catch
             {

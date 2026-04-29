@@ -41,7 +41,7 @@ public sealed class TourItineraryFeedbackRepository(AppDbContext context) : ITou
 
     public Task DeleteAsync(TourItineraryFeedbackEntity entity, CancellationToken cancellationToken = default)
     {
-       _context.TourItineraryFeedbacks.Remove(entity);
+        _context.TourItineraryFeedbacks.Remove(entity);
         return Task.CompletedTask;
     }
 }

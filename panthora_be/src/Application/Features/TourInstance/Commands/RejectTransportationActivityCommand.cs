@@ -3,6 +3,7 @@ using Application.Common.Constant;
 using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
+using Application.Services;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
@@ -36,7 +37,8 @@ public sealed class RejectTransportationActivityCommandHandler(
     ITourInstanceRepository tourInstanceRepository,
     ISupplierRepository supplierRepository,
     IVehicleBlockRepository vehicleBlockRepository,
-    IUser user
+    IUser user,
+    ITourInstanceService tourInstanceService
 ) : ICommandHandler<RejectTransportationActivityCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(RejectTransportationActivityCommand request, CancellationToken cancellationToken)
@@ -83,9 +85,20 @@ public sealed class RejectTransportationActivityCommandHandler(
         if (instance.Status == TourInstanceStatus.Available)
         {
             instance.Status = TourInstanceStatus.PendingApproval;
+            await tourInstanceRepository.Update(instance, cancellationToken);
+        }
+        else if (instance.InstanceType == TourType.Private && instance.Status == TourInstanceStatus.Confirmed)
+        {
+            // First save the rejection on the activity
+            await tourInstanceRepository.Update(instance, cancellationToken);
+            // Then trigger the fallback to cancel the tour and refund
+            await tourInstanceService.HandleSupplierRejectionAsync(instance.Id, request.Note ?? "Supplier rejected assignment", cancellationToken);
+        }
+        else
+        {
+            await tourInstanceRepository.Update(instance, cancellationToken);
         }
 
-        await tourInstanceRepository.Update(instance, cancellationToken);
         return Result.Success;
     }
 }

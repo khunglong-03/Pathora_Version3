@@ -44,7 +44,8 @@ public sealed class PaymentServiceTests
         _userRepo,
         _logger,
         _configuration,
-        _unitOfWork);
+        _unitOfWork,
+        Substitute.For<IServiceProvider>());
 
     private static PaymentTransactionEntity CreatePendingTransaction(
         Guid bookingId,
@@ -156,9 +157,9 @@ public sealed class PaymentServiceTests
         var tourInstanceId = Guid.NewGuid();
         var managerUserId = Guid.NewGuid();
         var transactionAmount = 100000m;
-        
+
         var transaction = CreatePendingTransaction(bookingId, TransactionType.Deposit, transactionAmount);
-        
+
         var booking = BookingEntity.Create(
             tourInstanceId: tourInstanceId,
             customerName: "Test User",

@@ -111,10 +111,10 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     }
 
     public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(
-        string userIdStr, 
-        Domain.Enums.BookingStatus? status, 
-        int page, 
-        int pageSize, 
+        string userIdStr,
+        Domain.Enums.BookingStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Bookings
@@ -130,7 +130,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
-        
+
         var items = await query
             .OrderByDescending(b => b.CreatedOnUtc)
             .Skip((page - 1) * pageSize)

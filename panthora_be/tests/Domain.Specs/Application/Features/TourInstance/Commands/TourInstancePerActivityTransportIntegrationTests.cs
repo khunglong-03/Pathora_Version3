@@ -84,6 +84,8 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         vehicleBlockRepo.DeleteByActivityAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         availability.CheckVehicleAvailabilityAsync(Arg.Any<Guid>(), Arg.Any<DateOnly>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(_ => Task.FromResult<ErrorOr<bool>>(true));
+        availability.CheckDriverAvailabilityAsync(Arg.Any<Guid>(), Arg.Any<DateOnly>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromResult<ErrorOr<bool>>(true));
 
         vehicleRepo.GetByIdAsync(v1, Arg.Any<CancellationToken>()).Returns(new VehicleEntity
         {
@@ -125,7 +127,7 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
             .Returns([new SupplierEntity { Id = supplierA, OwnerUserId = userA }]);
 
         var r1 = await handler.Handle(new ApproveTransportationActivityCommand(instanceId, act1.Id, null, v1, d1), CancellationToken.None);
-        Assert.False(r1.IsError);
+        Assert.False(r1.IsError, r1.IsError ? r1.FirstError.Description : "");
         Assert.Equal(TourInstanceStatus.PendingApproval, instance.Status);
 
         // Supplier B approves activity 2 — no accommodation needed; both transports approved → Available
@@ -171,7 +173,8 @@ public sealed class TourInstancePerActivityTransportIntegrationTests
         tourRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         vehicleBlockRepo.DeleteByActivityAsync(act.Id, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
-        var handler = new RejectTransportationActivityCommandHandler(tourRepo, supplierRepo, vehicleBlockRepo, user);
+        var tourInstanceService = Substitute.For<ITourInstanceService>();
+        var handler = new RejectTransportationActivityCommandHandler(tourRepo, supplierRepo, vehicleBlockRepo, user, tourInstanceService);
         var result = await handler.Handle(new RejectTransportationActivityCommand(instance.Id, act.Id, "no"), CancellationToken.None);
 
         Assert.False(result.IsError);

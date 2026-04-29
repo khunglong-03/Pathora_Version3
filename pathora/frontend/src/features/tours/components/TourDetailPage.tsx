@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -150,68 +150,41 @@ export function TourDetailPage() {
   const [departureDate, setDepartureDate] = useState("");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [privateModalOpen, setPrivateModalOpen] = useState(false);
-  const [privateSubmitting, setPrivateSubmitting] = useState(false);
-  const [privateCustomerName, setPrivateCustomerName] = useState("");
-  const [privateCustomerPhone, setPrivateCustomerPhone] = useState("");
-  const [privateCustomerEmail, setPrivateCustomerEmail] = useState("");
-  const [privateMaxPax, setPrivateMaxPax] = useState(2);
+  const handlePrivateBookingClick = () => {
+    if (!tourId || !selectedClassification?.id || !departureDate) return;
 
-  const openPrivateModal = useCallback(() => {
-    const total = adults + children + infants;
-    setPrivateMaxPax(Math.max(1, total));
-    setPrivateModalOpen(true);
-  }, [adults, children, infants]);
+    const totalPax = adults + children + infants;
+    const endDateStr = addCalendarDays(
+      departureDate,
+      Math.max(0, (selectedClassification.durationDays ?? 1) - 1),
+    );
+    const startIso = new Date(`${departureDate}T12:00:00`).toISOString();
+    const endIso = new Date(`${endDateStr}T12:00:00`).toISOString();
 
-  const submitPrivateRequest = async () => {
-    if (!tourId || !selectedClassification?.id || !departureDate) {
-      return;
-    }
-    if (!privateCustomerName.trim()) {
-      toast.error(t("landing.tourDetail.privateCustom.nameRequired"));
-      return;
-    }
-    if (!privateCustomerPhone.trim()) {
-      toast.error(t("landing.tourDetail.privateCustom.phoneRequired"));
-      return;
-    }
-    setPrivateSubmitting(true);
-    try {
-      const totalPax = adults + children + infants;
-      const endDateStr = addCalendarDays(
-        departureDate,
-        Math.max(0, (selectedClassification.durationDays ?? 1) - 1),
-      );
-      const startIso = new Date(`${departureDate}T12:00:00`).toISOString();
-      const endIso = new Date(`${endDateStr}T12:00:00`).toISOString();
-      const price = await tourService.requestPrivateTour(tourId, {
-        classificationId: String(selectedClassification.id),
-        startDate: startIso,
-        endDate: endIso,
-        maxParticipation: Math.max(privateMaxPax, totalPax),
-        customerName: privateCustomerName.trim(),
-        customerPhone: privateCustomerPhone.trim(),
-        customerEmail: privateCustomerEmail.trim() || undefined,
-        numberAdult: adults,
-        numberChild: children,
-        numberInfant: infants,
-        paymentMethod: 2,
-        isFullPay: true,
-      });
-      if (price?.bookingId) {
-        setPrivateModalOpen(false);
-        router.push(
-          `/checkout?bookingId=${encodeURIComponent(price.bookingId)}&flow=private-custom`,
-        );
-        return;
-      }
-      toast.error(t("landing.tourDetail.privateCustom.error"));
-    } catch {
-      toast.error(t("landing.tourDetail.privateCustom.error"));
-    } finally {
-      setPrivateSubmitting(false);
-    }
+    const params = new URLSearchParams({
+      tourInstanceId: tourId, // Using tourInstanceId param to hold tourId for the checkout page creation logic
+      tourName: tour.tourName,
+      thumbnailUrl: tour.thumbnail?.publicURL || "",
+      startDate: startIso,
+      endDate: endIso,
+      location: tour.location || "",
+      basePrice: String(selectedClassification.basePrice ?? selectedClassification.price ?? 0),
+      adultPrice: String(estimateBreakdown?.adultPrice ?? selectedClassification.basePrice ?? selectedClassification.price ?? 0),
+      childPrice: String(estimateBreakdown?.childPrice ?? selectedClassification.basePrice ?? selectedClassification.price ?? 0),
+      infantPrice: String(estimateBreakdown?.infantPrice ?? 0),
+      adults: String(adults),
+      children: String(children),
+      infants: String(infants),
+      depositPercentage: "1", // Private custom is always full pay initial
+      bookingType: "PrivateCustom",
+      instanceType: "private",
+      classificationId: String(selectedClassification.id),
+      maxParticipation: String(Math.max(1, totalPax)),
+    });
+    router.push(`/checkout?${params.toString()}`);
   };
+
+
 
   /* ── Derived values ── */
   const classifications = tour?.classifications ?? [];
@@ -722,48 +695,27 @@ export function TourDetailPage() {
               <div className="relative group/book">
                 <motion.button
                   type="button"
-                  disabled={!canBook}
-                  whileHover={canBook ? { scale: 0.98 } : {}}
-                  whileTap={canBook ? { scale: 0.95 } : {}}
+                  disabled={!canRequestPrivate}
+                  whileHover={canRequestPrivate ? { scale: 0.98 } : {}}
+                  whileTap={canRequestPrivate ? { scale: 0.95 } : {}}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  onClick={() => {
-                    if (tourId && canBook) {
-                      router.push(`/tours/instances/${tourId}`);
-                    }
-                  }}
+                  onClick={handlePrivateBookingClick}
                   className={`w-full py-4 rounded-full font-bold text-sm tracking-wide transition-colors flex items-center justify-center gap-2 ${
-                    canBook 
+                    canRequestPrivate
                       ? "bg-slate-900 text-white hover:bg-slate-800 shadow-[0_8px_16px_-6px_rgba(0,0,0,0.3)]" 
                       : "bg-slate-100 text-slate-400 cursor-not-allowed"
                   }`}
                 >
-                  <Icon icon="heroicons-outline:paper-airplane" className={`size-4 ${canBook ? "group-hover/book:-translate-y-0.5 group-hover/book:translate-x-0.5 group-hover/book:rotate-[-8deg] transition-all duration-300" : ""}`} />
-                  Request Booking
+                  <Icon icon="heroicons-outline:user-group" className="size-4" />
+                  {t("landing.tourDetail.privateCustom.cta")}
                 </motion.button>
-                {!canBook && !departureDate && (
+                {!canRequestPrivate && !departureDate && (
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover/book:opacity-100 transition-opacity pointer-events-none bg-slate-800 shadow-xl">
                     Please select a departure date first
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
                   </div>
                 )}
               </div>
-
-              <motion.button
-                type="button"
-                disabled={!canRequestPrivate}
-                whileHover={canRequestPrivate ? { scale: 0.99 } : {}}
-                whileTap={canRequestPrivate ? { scale: 0.97 } : {}}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                onClick={openPrivateModal}
-                className={`mt-3 w-full py-3.5 rounded-full font-semibold text-sm tracking-wide border-2 transition-colors flex items-center justify-center gap-2 ${
-                  canRequestPrivate
-                    ? "border-slate-900 text-slate-900 bg-white hover:bg-slate-50"
-                    : "border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed"
-                }`}
-              >
-                <Icon icon="heroicons-outline:user-group" className="size-4" />
-                {t("landing.tourDetail.privateCustom.cta")}
-              </motion.button>
 
               <p className="text-[10px] text-center leading-[0.9375rem] text-slate-400 mt-2">
                 No payment required now. You&apos;ll be redirected to complete your booking details.
@@ -775,127 +727,7 @@ export function TourDetailPage() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {privateModalOpen && (
-          <motion.div
-            key="private-custom-modal"
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <button
-              type="button"
-              aria-label={t("landing.tourDetail.privateCustom.cancel")}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
-              disabled={privateSubmitting}
-              onClick={() => setPrivateModalOpen(false)}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="private-custom-modal-title"
-              className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.25)]"
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
-              transition={SPRING_TRANSITION}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2
-                id="private-custom-modal-title"
-                className="text-lg font-bold tracking-tight text-slate-900"
-              >
-                {t("landing.tourDetail.privateCustom.modalTitle")}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                {t("landing.tourDetail.privateCustom.modalIntro")}
-              </p>
-              <div className="mt-5 flex flex-col gap-3">
-                <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {t("landing.tourDetail.privateCustom.customerName")}
-                  </label>
-                  <TextInput
-                    type="text"
-                    value={privateCustomerName}
-                    onChange={(e) => setPrivateCustomerName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                    autoComplete="name"
-                    disabled={privateSubmitting}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {t("landing.tourDetail.privateCustom.customerPhone")}
-                  </label>
-                  <TextInput
-                    type="tel"
-                    value={privateCustomerPhone}
-                    onChange={(e) => setPrivateCustomerPhone(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                    autoComplete="tel"
-                    disabled={privateSubmitting}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {t("landing.tourDetail.privateCustom.customerEmail")}
-                  </label>
-                  <TextInput
-                    type="email"
-                    value={privateCustomerEmail}
-                    onChange={(e) => setPrivateCustomerEmail(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                    autoComplete="email"
-                    disabled={privateSubmitting}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {t("landing.tourDetail.privateCustom.maxParticipants")}
-                  </label>
-                  <TextInput
-                    type="number"
-                    min={Math.max(1, adults + children + infants)}
-                    value={String(privateMaxPax)}
-                    onChange={(e) => {
-                      const v = Number.parseInt(e.target.value, 10);
-                      const floor = Math.max(1, adults + children + infants);
-                      setPrivateMaxPax(Number.isFinite(v) ? Math.max(floor, v) : floor);
-                    }}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                    disabled={privateSubmitting}
-                  />
-                </div>
-              </div>
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse sm:justify-end">
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="w-full rounded-full sm:w-auto"
-                  disabled={privateSubmitting}
-                  onClick={() => void submitPrivateRequest()}
-                >
-                  {privateSubmitting
-                    ? t("landing.tourDetail.privateCustom.submitting")
-                    : t("landing.tourDetail.privateCustom.submit")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full rounded-full sm:w-auto"
-                  disabled={privateSubmitting}
-                  onClick={() => setPrivateModalOpen(false)}
-                >
-                  {t("landing.tourDetail.privateCustom.cancel")}
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {lightboxOpen && (
         <ImageLightbox

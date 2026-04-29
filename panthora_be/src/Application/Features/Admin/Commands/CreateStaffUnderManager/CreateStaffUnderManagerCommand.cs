@@ -82,8 +82,8 @@ public sealed class CreateStaffUnderManagerCommandHandler(
             return Error.NotFound("Role.NotFound", $"Role '{roleName}' not found.");
         var roleId = roleResult.Value.Id;
 
-        var password = !string.IsNullOrEmpty(request.Request.Password) 
-            ? request.Request.Password 
+        var password = !string.IsNullOrEmpty(request.Request.Password)
+            ? request.Request.Password
             : "password123";
 
         var userEntity = UserEntity.Create(
