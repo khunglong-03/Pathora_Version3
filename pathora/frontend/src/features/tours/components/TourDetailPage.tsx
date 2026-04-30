@@ -658,7 +658,16 @@ export function TourDetailPage() {
                       type="date"
                       min={new Date().toISOString().split('T')[0]}
                       value={departureDate}
-                      onChange={(e) => setDepartureDate(e.target.value)}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        if (selectedDate && selectedDate < todayStr) {
+                          setDepartureDate(todayStr);
+                          toast.error(t("landing.tourDetail.pastDateError", "Cannot select a date in the past."));
+                        } else {
+                          setDepartureDate(selectedDate);
+                        }
+                      }}
                       className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all outline-none"
                     />
                   </div>
