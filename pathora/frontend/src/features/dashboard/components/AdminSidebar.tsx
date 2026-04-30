@@ -144,20 +144,41 @@ export const HOTEL_PROVIDER_NAV_ITEMS = [
   { label: "Công ty", icon: BuildingOfficeIcon, href: "/hotel/profile" },
 ] as const;
 
-export const TOUROPERATOR_NAV_ITEMS = [
+// Shared base nav items (always shown)
+export const TOUROPERATOR_BASE_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-operator" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
+] as const;
+
+// Public tour section — xe/khách sạn đã đăng ký sẵn
+export const TOUROPERATOR_PUBLIC_NAV_ITEMS = [
   {
-    label: "Tour Instances",
+    label: "Tour Công Cộng",
+    icon: GlobeHemisphereWestIcon,
+    href: "/tour-operator/tour-instances/public",
+  },
+] as const;
+
+// Private tour section — cần đăng ký xe và khách sạn
+export const TOUROPERATOR_PRIVATE_NAV_ITEMS = [
+  {
+    label: "Tour Riêng Tư",
     icon: CalendarDotsIcon,
-    href: "/tour-operator/tour-instances",
+    href: "/tour-operator/tour-instances/private",
   },
   {
     label: "Custom Tour Requests",
     icon: ClipboardTextIcon,
     href: "/tour-operator/custom-tour-requests",
   },
+] as const;
+
+// Flat list kept for backward compat
+export const TOUROPERATOR_NAV_ITEMS = [
+  ...TOUROPERATOR_BASE_NAV_ITEMS,
+  ...TOUROPERATOR_PUBLIC_NAV_ITEMS,
+  ...TOUROPERATOR_PRIVATE_NAV_ITEMS,
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
@@ -372,10 +393,18 @@ export function AdminSidebar({
       return false;
     }
 
-    // Prevent highlighting parent "Tour Instances" when on create sub-route
+    // Prevent "Tour Công Cộng" from matching when inside a private sub-route
     if (
-      href === "/tour-operator/tour-instances" &&
-      pathname.startsWith("/tour-operator/tour-instances/create")
+      href === "/tour-operator/tour-instances/public" &&
+      pathname.startsWith("/tour-operator/tour-instances/private")
+    ) {
+      return false;
+    }
+
+    // Prevent "Tour Riêng Tư" from matching when inside a public sub-route
+    if (
+      href === "/tour-operator/tour-instances/private" &&
+      pathname.startsWith("/tour-operator/tour-instances/public")
     ) {
       return false;
     }
@@ -526,7 +555,158 @@ export function AdminSidebar({
                   );
                 })}
               </div>
-            ) : variant === "tour-operator" || variant === "tour-guide" ? (
+            ) : variant === "tour-operator" ? (
+              <div className="space-y-0.5">
+                {/* Base items */}
+                {TOUROPERATOR_BASE_NAV_ITEMS.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "var(--sidebar-active-bg)",
+                              color: "var(--sidebar-active-text)",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                      />
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp size={20} weight={active ? "fill" : "regular"} />
+                      </span>
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId="sidebar-active-indicator"
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full"
+                            style={{ backgroundColor: "var(--sidebar-active-border)" }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+
+                {/* ── Tour Công Cộng section ─────────────────── */}
+                <div
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  style={{ color: "#9CA3AF" }}>
+                  🌐 Tour Công Cộng
+                </div>
+                {TOUROPERATOR_PUBLIC_NAV_ITEMS.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "rgba(16,185,129,0.12)",
+                              color: "#059669",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(16,185,129,0.06)" }}
+                      />
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp size={20} weight={active ? "fill" : "regular"} />
+                      </span>
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId={`sidebar-active-indicator-${item.href}`}
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full bg-emerald-500"
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+
+                {/* ── Tour Riêng Tư section ──────────────────── */}
+                <div
+                  className="px-3 py-1.5 mt-3 text-[10px] font-semibold tracking-widest uppercase"
+                  style={{ color: "#9CA3AF" }}>
+                  🔒 Tour Riêng Tư
+                </div>
+                {TOUROPERATOR_PRIVATE_NAV_ITEMS.map((item) => {
+                  const active = isActive(item.href);
+                  const IconComp = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
+                      onClick={onClose}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "rgba(139,92,246,0.12)",
+                              color: "#7c3aed",
+                            }
+                          : {
+                              color: "var(--sidebar-text-muted)",
+                            }
+                      }>
+                      <span
+                        className="absolute inset-0 rounded-xl transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                        style={{ backgroundColor: "rgba(139,92,246,0.06)" }}
+                      />
+                      <span className="relative z-10 transition-colors duration-200">
+                        <IconComp size={20} weight={active ? "fill" : "regular"} />
+                      </span>
+                      <span className="relative z-10 transition-colors duration-200">
+                        {item.label}
+                      </span>
+                      <AnimatePresence>
+                        {active && (
+                          <motion.span
+                            layoutId={`sidebar-active-indicator-${item.href}`}
+                            initial={{ opacity: 0, scaleY: 0 }}
+                            animate={{ opacity: 1, scaleY: 1 }}
+                            exit={{ opacity: 0, scaleY: 0 }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full bg-purple-500"
+                          />
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : variant === "tour-guide" ? (
               <div className="space-y-0.5">
                 {navItems.map((item) => {
                   const active = isActive(item.href);

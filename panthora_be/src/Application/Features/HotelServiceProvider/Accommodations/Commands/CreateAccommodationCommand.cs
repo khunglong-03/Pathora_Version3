@@ -1,4 +1,5 @@
 using Application.Common.Constant;
+using Application.Dtos;
 using Application.Features.HotelServiceProvider.Accommodations.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -39,6 +40,9 @@ public sealed class CreateAccommodationCommandHandler(
         if (existing is not null)
             return Error.Conflict(ErrorConstants.Accommodation.DuplicateCode, ErrorConstants.Accommodation.DuplicateDescription.En);
 
+        var thumbnail = request.Request.Thumbnail is not null ? new ImageEntity { FileId = request.Request.Thumbnail.FileId, OriginalFileName = request.Request.Thumbnail.OriginalFileName, FileName = request.Request.Thumbnail.FileName, PublicURL = request.Request.Thumbnail.PublicURL } : null;
+        var images = request.Request.Images?.Select(img => new ImageEntity { FileId = img.FileId, OriginalFileName = img.OriginalFileName, FileName = img.FileName, PublicURL = img.PublicURL }).ToList();
+
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplier.Id,
             roomType: request.Request.RoomType,
@@ -48,9 +52,8 @@ public sealed class CreateAccommodationCommandHandler(
             address: request.Request.Address,
             locationArea: request.Request.LocationArea.HasValue ? (Continent)request.Request.LocationArea.Value : null,
             operatingCountries: request.Request.OperatingCountries,
-            imageUrls: request.Request.ImageUrls is { Count: > 0 }
-                ? System.Text.Json.JsonSerializer.Serialize(request.Request.ImageUrls)
-                : null,
+            thumbnail: thumbnail,
+            images: images,
             notes: request.Request.Notes);
 
         await inventoryRepository.AddAsync(entity);
@@ -70,9 +73,8 @@ public sealed class CreateAccommodationCommandHandler(
             e.Address,
             e.LocationArea?.ToString(),
             e.OperatingCountries,
-            !string.IsNullOrWhiteSpace(e.ImageUrls)
-                ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(e.ImageUrls)
-                : [],
+            e.Thumbnail is not null ? new ImageDto(e.Thumbnail.FileId, e.Thumbnail.OriginalFileName, e.Thumbnail.FileName, e.Thumbnail.PublicURL) : null,
+            e.Images?.Select(i => new ImageDto(i.FileId, i.OriginalFileName, i.FileName, i.PublicURL)).ToList(),
             e.Notes);
     }
 }

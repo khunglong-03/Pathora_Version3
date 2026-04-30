@@ -11,7 +11,9 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { hotelProviderService } from "@/api/services/hotelProviderService";
+import { fileService } from "@/api/services/fileService";
 import { toast } from "react-toastify";
+import TourImageUpload from "@/components/ui/TourImageUpload";
 
 interface HotelOnboardingWizardProps {
   onComplete: () => void;
@@ -59,9 +61,9 @@ export default function HotelOnboardingWizard({ onComplete }: HotelOnboardingWiz
   const [roomData, setRoomData] = useState({
     roomType: "Standard",
     totalRooms: 1,
-    imageUrls: [] as string[],
   });
-  const [newImageUrl, setNewImageUrl] = useState("");
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
 
   const handleCreateHotel = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +88,25 @@ export default function HotelOnboardingWizard({ onComplete }: HotelOnboardingWiz
     e.preventDefault();
     setIsLoading(true);
     try {
+      let thumbnailRes = null;
+      if (thumbnail) {
+        const meta = await fileService.uploadFile(thumbnail);
+        thumbnailRes = { fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name };
+      }
+      
+      const imagesRes: any[] = [];
+      if (images.length > 0) {
+        const metas = await Promise.all(images.map(f => fileService.uploadFile(f)));
+        metas.forEach(meta => {
+          imagesRes.push({ fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name });
+        });
+      }
+
       await hotelProviderService.createAccommodation({
         roomType: roomData.roomType,
         totalRooms: roomData.totalRooms,
-        imageUrls: roomData.imageUrls,
+        thumbnail: thumbnailRes,
+        images: imagesRes.length > 0 ? imagesRes : null,
       });
       setStep(3);
       toast.success("Đã thiết lập phòng đầu tiên!");
@@ -98,17 +115,6 @@ export default function HotelOnboardingWizard({ onComplete }: HotelOnboardingWiz
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const addImageUrl = () => {
-    if (newImageUrl && !roomData.imageUrls.includes(newImageUrl)) {
-      setRoomData({ ...roomData, imageUrls: [...roomData.imageUrls, newImageUrl] });
-      setNewImageUrl("");
-    }
-  };
-
-  const removeImageUrl = (url: string) => {
-    setRoomData({ ...roomData, imageUrls: roomData.imageUrls.filter((i) => i !== url) });
   };
 
   return (
@@ -242,37 +248,13 @@ export default function HotelOnboardingWizard({ onComplete }: HotelOnboardingWiz
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Hình ảnh phòng (URL)</label>
-                  <div className="flex gap-2">
-                    <input
-                      className="flex-1 h-12 px-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      placeholder="Dán link ảnh tại đây"
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={addImageUrl}
-                      className="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-xl hover:bg-slate-200 transition-all"
-                    >
-                      <PlusIcon size={20} weight="bold" />
-                    </button>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {roomData.imageUrls.map((url) => (
-                      <div key={url} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
-                        <img src={url} alt="Room" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeImageUrl(url)}
-                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <XIcon size={12} weight="bold" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <TourImageUpload
+                    thumbnail={thumbnail}
+                    setThumbnail={setThumbnail}
+                    images={images}
+                    setImages={setImages}
+                    t={(key, fb) => fb}
+                  />
                 </div>
 
                 <button

@@ -10,10 +10,25 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";
 import dayjs from "dayjs";
 import { handleApiError } from "@/utils/apiResponse";
-import { getInstanceApprovalAppearance } from "@/utils/approvalStatusHelper";
+import { getInstanceApprovalAppearance, type ApprovalAppearance } from "@/utils/approvalStatusHelper";
 
 interface ProviderTourApprovalsProps {
   providerType: "hotel" | "transport";
+}
+
+/** Map instance.status (normalized string) → approval badge for hotel portal */
+function getHotelApprovalAppearance(instanceStatus: string): ApprovalAppearance {
+  const s = instanceStatus?.trim().toLowerCase() ?? "";
+  if (s === "pendingapproval") {
+    return { state: "pending", label: "Chờ duyệt phòng", icon: "heroicons:clock", ringClassName: "bg-amber-50 text-amber-700 ring-1 ring-amber-500/20" };
+  }
+  if (s === "available" || s === "confirmed" || s === "soldout" || s === "inprogress" || s === "completed") {
+    return { state: "approved", label: "Đã duyệt", icon: "heroicons:check-circle", ringClassName: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20" };
+  }
+  if (s === "cancelled") {
+    return { state: "rejected", label: "Đã từ chối/Huỷ", icon: "heroicons:x-circle", ringClassName: "bg-rose-50 text-rose-700 ring-1 ring-rose-500/20" };
+  }
+  return { state: "unassigned", label: "Chưa giao", icon: "heroicons:information-circle", ringClassName: "bg-slate-100 text-slate-600 ring-1 ring-slate-500/10" };
 }
 
 export default function ProviderTourApprovals({ providerType }: ProviderTourApprovalsProps) {
@@ -90,7 +105,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             {instances.map((instance) => {
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
-              const appearance = getInstanceApprovalAppearance(instance.transportApprovalStatus);
+              const appearance = providerType === "hotel"
+                ? getHotelApprovalAppearance(instance.status)
+                : getInstanceApprovalAppearance(instance.transportApprovalStatus);
 
               return (
                 <div 

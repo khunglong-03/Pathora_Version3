@@ -12,6 +12,7 @@ import {
   tourInstanceService,
 } from "@/api/services/tourInstanceService";
 import { bookingService } from "@/api/services/bookingService";
+import type { AdminBookingListResponse } from "@/api/services/bookingService";
 import { userService } from "@/api/services/userService";
 import {
   isExternalOnlyTransportation,
@@ -36,6 +37,8 @@ import SupplierReassignmentModal from "./SupplierReassignmentModal";
 import TicketImageUpload, { type TicketImageBookingOption } from "./TicketImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { PrivateTourCoDesignOperatorSection } from "@/features/private-co-design/PrivateTourCoDesignOperatorSection";
+import PublicTourBookingAssignmentPanel from "./PublicTourBookingAssignmentPanel";
+import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
 
 
 type EditForm = {
@@ -176,6 +179,10 @@ export default function TourInstanceDetailPage() {
   const canEditItinerary = user?.roles?.some(
     (r) => r.name === "Admin" || r.name === "TourOperator",
   );
+
+  // Public tour per-booking assignment state
+  const [publicTourBookings, setPublicTourBookings] = useState<AdminBookingListResponse[]>([]);
+  const [publicTourBookingsLoading, setPublicTourBookingsLoading] = useState(false);
 
   const hasAssignedOperator = useMemo(() => {
     if (data?.instanceType?.toLowerCase() === "private") return true;
@@ -331,6 +338,27 @@ export default function TourInstanceDetailPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Load bookings for public tour per-booking assignment panel
+  useEffect(() => {
+    if (!data?.id || data.instanceType?.toLowerCase() !== "public") {
+      setPublicTourBookings([]);
+      return;
+    }
+    let active = true;
+    setPublicTourBookingsLoading(true);
+    void (async () => {
+      try {
+        const bookings = await bookingService.getBookingsByTourInstance(data.id);
+        if (active) setPublicTourBookings(bookings.filter((b) => b.status !== "Cancelled"));
+      } catch {
+        if (active) setPublicTourBookings([]);
+      } finally {
+        if (active) setPublicTourBookingsLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [data?.id, data?.instanceType]);
 
   useEffect(() => {
     if (!data?.id || data.instanceType?.toLowerCase() !== "private" || !canReassign) {
@@ -1735,6 +1763,71 @@ export default function TourInstanceDetailPage() {
                   </div>
               )}
             </section>
+
+            {/* ── Public tour per-booking assignment panel ── */}
+            {data.instanceType?.toLowerCase() === "public" && canReassign && (() => {
+              const allActivities = (data.days ?? []).flatMap((d) => d.activities ?? []);
+
+              // Accommodation activities assigned to a hotel supplier
+              const accomActivities = allActivities
+                .filter((a) => isAccommodationActivity(a.activityType) && !!a.accommodation?.supplierId)
+                .map((a, _i) => {
+                  const day = data.days?.find((d) => d.activities?.some((x) => x.id === a.id));
+                  return {
+                    activityId: a.id,
+                    title: a.title,
+                    date: day?.actualDate ?? "",
+                    dayNumber: day?.instanceDayNumber ?? 0,
+                    roomBlocksTotal: a.accommodation?.roomBlocksTotal ?? 0,
+                    quantity: a.accommodation?.quantity ?? 0,
+                    roomType: a.accommodation?.roomType ?? null,
+                    supplierName: a.accommodation?.supplierName ?? null,
+                    supplierApprovalStatus: a.accommodation?.supplierApprovalStatus ?? null,
+                  };
+                });
+
+              // External transport activities (Flight/Train/Boat)
+              const externalActivities = allActivities
+                .filter((a) => isTransportationActivity(a.activityType) && isExternalOnlyTransportation(a.transportationType ?? a.transportationName))
+                .map((a) => {
+                  const day = data.days?.find((d) => d.activities?.some((x) => x.id === a.id));
+                  const rawType = (a.transportationType ?? a.transportationName ?? "") as string;
+                  const transportType: "Flight" | "Train" | "Boat" =
+                    rawType.toLowerCase().includes("flight") || rawType === "3" ? "Flight"
+                    : rawType.toLowerCase().includes("boat") || rawType === "4" ? "Boat"
+                    : "Train";
+                  return {
+                    activityId: a.id,
+                    title: a.title,
+                    date: day?.actualDate ?? "",
+                    dayNumber: day?.instanceDayNumber ?? 0,
+                    transportType,
+                    confirmed: a.externalTransportConfirmed ?? false,
+                  };
+                });
+
+              if (accomActivities.length === 0 && externalActivities.length === 0) return null;
+
+              return (
+                <PublicTourBookingAssignmentPanel
+                  instanceId={data.id}
+                  instanceType={data.instanceType ?? "public"}
+                  bookings={publicTourBookings}
+                  bookingsLoading={publicTourBookingsLoading}
+                  accommodationActivities={accomActivities}
+                  externalTransportActivities={externalActivities}
+                  onSaveTicket={async (activityId, entry) => {
+                    // Ticket data is frontend-only (TourOperator tracking).
+                    // Optionally upload ticket images via existing TicketImageUpload flow.
+                    console.info("[PublicTour] Ticket saved for booking", entry.bookingId, "activity", activityId);
+                  }}
+                  onConfirmExternalTransport={async (activityId) => {
+                    await tourInstanceService.confirmExternalTransport(data.id, activityId, true);
+                    void loadData();
+                  }}
+                />
+              );
+            })()}
           </>
         ) : (
           <form className="mt-8 space-y-8" onSubmit={handleSaveEdit}>

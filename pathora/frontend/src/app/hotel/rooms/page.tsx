@@ -6,7 +6,10 @@ import { hotelProviderService } from "@/api/services/hotelProviderService";
 import type {
   AccommodationItem,
   RoomAvailability,
+  ImageDto,
 } from "@/api/services/hotelProviderService";
+import { fileService } from "@/api/services/fileService";
+import TourImageUpload from "@/components/ui/TourImageUpload";
 import {
   AdminPageHeader,
   AdminEmptyState,
@@ -41,14 +44,17 @@ export default function RoomsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [createRoomType, setCreateRoomType] = useState("Standard");
   const [createTotal, setCreateTotal] = useState(1);
-  const [createImageUrls, setCreateImageUrls] = useState<string[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState("");
+  const [createThumbnail, setCreateThumbnail] = useState<File | null>(null);
+  const [createImages, setCreateImages] = useState<File[]>([]);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTotal, setEditTotal] = useState(0);
-  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [editThumbnail, setEditThumbnail] = useState<File | null>(null);
+  const [editExistingThumbnail, setEditExistingThumbnail] = useState<ImageDto | null>(null);
+  const [editImages, setEditImages] = useState<File[]>([]);
+  const [editExistingImages, setEditExistingImages] = useState<ImageDto[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -77,16 +83,31 @@ export default function RoomsPage() {
     setCreating(true);
     setCreateError(null);
     try {
+      let thumbnailRes: ImageDto | null = null;
+      if (createThumbnail) {
+        const meta = await fileService.uploadFile(createThumbnail);
+        thumbnailRes = { fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name };
+      }
+      
+      const imagesRes: ImageDto[] = [];
+      if (createImages.length > 0) {
+        const metas = await Promise.all(createImages.map(f => fileService.uploadFile(f)));
+        metas.forEach(meta => {
+          imagesRes.push({ fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name });
+        });
+      }
+
       await hotelProviderService.createAccommodation({
         roomType: createRoomType,
         totalRooms: createTotal,
-        imageUrls: createImageUrls,
+        thumbnail: thumbnailRes,
+        images: imagesRes.length > 0 ? imagesRes : null,
       });
       setShowCreate(false);
       setCreateTotal(1);
       setCreateRoomType("Standard");
-      setCreateImageUrls([]);
-      setNewImageUrl("");
+      setCreateThumbnail(null);
+      setCreateImages([]);
       await loadAccommodations();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Tạo phòng thất bại");
@@ -100,9 +121,24 @@ export default function RoomsPage() {
     setSaving(true);
     setSaveError(null);
     try {
+      let thumbnailRes = editExistingThumbnail;
+      if (editThumbnail) {
+        const meta = await fileService.uploadFile(editThumbnail);
+        thumbnailRes = { fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name };
+      }
+
+      const imagesRes: ImageDto[] = [...editExistingImages];
+      if (editImages.length > 0) {
+        const metas = await Promise.all(editImages.map(f => fileService.uploadFile(f)));
+        metas.forEach(meta => {
+          imagesRes.push({ fileId: meta.id, publicURL: meta.url, fileName: meta.name, originalFileName: meta.name });
+        });
+      }
+
       await hotelProviderService.updateAccommodation(editingId, {
         totalRooms: editTotal,
-        imageUrls: editImageUrls,
+        thumbnail: thumbnailRes,
+        images: imagesRes.length > 0 ? imagesRes : null,
       });
       setEditingId(null);
       await loadAccommodations();
@@ -236,23 +272,30 @@ export default function RoomsPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="flex -space-x-2 overflow-hidden">
-                      {acc.imageUrls && acc.imageUrls.length > 0 ? (
-                        acc.imageUrls.slice(0, 3).map((url, i) => (
+                      {acc.thumbnail && (
+                        <img
+                          src={acc.thumbnail.publicURL}
+                          alt="Thumbnail"
+                          className="inline-block h-10 w-10 rounded-lg ring-2 ring-white object-cover"
+                        />
+                      )}
+                      {acc.images && acc.images.length > 0 ? (
+                        acc.images.slice(0, acc.thumbnail ? 2 : 3).map((img, i) => (
                           <img
                             key={i}
-                            src={url}
+                            src={img.publicURL}
                             alt=""
                             className="inline-block h-10 w-10 rounded-lg ring-2 ring-white object-cover"
                           />
                         ))
-                      ) : (
+                      ) : (!acc.thumbnail && (
                         <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
                           <EyeIcon size={16} className="text-slate-300" />
                         </div>
-                      )}
-                      {acc.imageUrls && acc.imageUrls.length > 3 && (
+                      ))}
+                      {acc.images && acc.images.length > (acc.thumbnail ? 2 : 3) && (
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 text-xs font-medium ring-2 ring-white border border-slate-200">
-                          +{acc.imageUrls.length - 3}
+                          +{acc.images.length - (acc.thumbnail ? 2 : 3)}
                         </div>
                       )}
                     </div>
@@ -280,7 +323,10 @@ export default function RoomsPage() {
                         onClick={() => {
                           setEditingId(acc.id);
                           setEditTotal(acc.totalRooms);
-                          setEditImageUrls(acc.imageUrls || []);
+                          setEditThumbnail(null);
+                          setEditExistingThumbnail(acc.thumbnail);
+                          setEditImages([]);
+                          setEditExistingImages(acc.images || []);
                         }}
                         className="p-1.5 rounded hover:bg-slate-100 text-slate-500"
                         title="Sửa"
@@ -351,42 +397,13 @@ export default function RoomsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Hình ảnh phòng (URL)</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="Dán link ảnh"
-                className="flex-1 px-3 py-2 rounded-lg border text-sm"
-                style={{ borderColor: "var(--border)" }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (newImageUrl) {
-                    setCreateImageUrls([...createImageUrls, newImageUrl]);
-                    setNewImageUrl("");
-                  }
-                }}
-                className="px-3 py-2 bg-slate-100 rounded-lg text-sm"
-              >
-                Thêm
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {createImageUrls.map((url, index) => (
-                <div key={index} className="relative w-16 h-16 rounded border overflow-hidden">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => setCreateImageUrls(createImageUrls.filter((_, i) => i !== index))}
-                    className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"
-                  >
-                    <TrashIcon size={10} />
-                  </button>
-                </div>
-              ))}
-            </div>
+            <TourImageUpload
+              thumbnail={createThumbnail}
+              setThumbnail={setCreateThumbnail}
+              images={createImages}
+              setImages={setCreateImages}
+              t={(key, fb) => fb}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -433,42 +450,17 @@ export default function RoomsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Hình ảnh phòng (URL)</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="Dán link ảnh"
-                className="flex-1 px-3 py-2 rounded-lg border text-sm"
-                style={{ borderColor: "var(--border)" }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (newImageUrl) {
-                    setEditImageUrls([...editImageUrls, newImageUrl]);
-                    setNewImageUrl("");
-                  }
-                }}
-                className="px-3 py-2 bg-slate-100 rounded-lg text-sm"
-              >
-                Thêm
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {editImageUrls.map((url, index) => (
-                <div key={index} className="relative w-16 h-16 rounded border overflow-hidden">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
-                    className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"
-                  >
-                    <TrashIcon size={10} />
-                  </button>
-                </div>
-              ))}
-            </div>
+            <TourImageUpload
+              thumbnail={editThumbnail}
+              setThumbnail={setEditThumbnail}
+              images={editImages}
+              setImages={setEditImages}
+              existingThumbnail={editExistingThumbnail}
+              onRemoveExistingThumbnail={() => setEditExistingThumbnail(null)}
+              existingImages={editExistingImages}
+              onRemoveExistingImage={(img) => setEditExistingImages(editExistingImages.filter(i => i.fileId !== img.fileId))}
+              t={(key, fb) => fb}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button

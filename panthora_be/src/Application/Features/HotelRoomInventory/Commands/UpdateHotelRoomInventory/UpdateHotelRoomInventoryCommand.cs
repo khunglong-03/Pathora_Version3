@@ -1,7 +1,9 @@
 using Application.Common.Constant;
+using Application.Dtos;
 using Application.Features.HotelRoomInventory.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
+using Domain.Entities;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
@@ -12,7 +14,9 @@ namespace Application.Features.HotelRoomInventory.Commands.UpdateHotelRoomInvent
 
 public sealed record UpdateHotelRoomInventoryCommand(
     [property: JsonPropertyName("id")] Guid Id,
-    [property: JsonPropertyName("totalRooms")] int TotalRooms) : ICommand<ErrorOr<HotelRoomInventoryDto>>;
+    [property: JsonPropertyName("totalRooms")] int TotalRooms,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images = null) : ICommand<ErrorOr<HotelRoomInventoryDto>>;
 
 public sealed class UpdateHotelRoomInventoryCommandHandler(
     IHotelRoomInventoryRepository inventoryRepository,
@@ -35,15 +39,19 @@ public sealed class UpdateHotelRoomInventoryCommandHandler(
 
         var supplier = await supplierRepository.GetByIdAsync(entity.SupplierId);
 
+        var thumbnail = request.Thumbnail is not null ? new ImageEntity { FileId = request.Thumbnail.FileId, OriginalFileName = request.Thumbnail.OriginalFileName, FileName = request.Thumbnail.FileName, PublicURL = request.Thumbnail.PublicURL } : null;
+        var images = request.Images?.Select(img => new ImageEntity { FileId = img.FileId, OriginalFileName = img.OriginalFileName, FileName = img.FileName, PublicURL = img.PublicURL }).ToList();
+
         entity.Update(
             request.TotalRooms,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
+            null, // roomType
+            null, // name
+            null, // address
+            null, // locationArea
+            null, // operatingCountries
+            thumbnail,
+            images,
+            null, // notes
             performedBy);
         inventoryRepository.Update(entity);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -58,7 +66,8 @@ public sealed class UpdateHotelRoomInventoryCommandHandler(
             entity.Address,
             entity.LocationArea?.ToString(),
             entity.OperatingCountries,
-            entity.ImageUrls,
+            entity.Thumbnail is not null ? new ImageDto(entity.Thumbnail.FileId, entity.Thumbnail.OriginalFileName, entity.Thumbnail.FileName, entity.Thumbnail.PublicURL) : null,
+            entity.Images?.Select(i => new ImageDto(i.FileId, i.OriginalFileName, i.FileName, i.PublicURL)).ToList(),
             entity.Notes);
     }
 }

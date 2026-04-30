@@ -62,7 +62,10 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             b.TourInstance.TourName,
             b.TourInstance.StartDate,
             b.TotalPrice,
-            b.Status.ToString()
+            b.Status.ToString(),
+            b.NumberAdult,
+            b.NumberChild,
+            b.NumberInfant
         )).ToList();
 
         return result;

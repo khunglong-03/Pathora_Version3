@@ -28,8 +28,10 @@ public class HotelRoomInventoryEntity : Aggregate<Guid>
     public Continent? LocationArea { get; set; }
     /// <summary>Danh sách quốc gia hoạt động.</summary>
     public string? OperatingCountries { get; set; }
-    /// <summary>URL ảnh khách sạn.</summary>
-    public string? ImageUrls { get; set; }
+    /// <summary>Ảnh đại diện khách sạn.</summary>
+    public ImageEntity Thumbnail { get; set; } = new();
+    /// <summary>Danh sách ảnh khách sạn.</summary>
+    public List<ImageEntity> Images { get; set; } = [];
     /// <summary>Ghi chú bổ sung.</summary>
     public string? Notes { get; set; }
 
@@ -42,7 +44,8 @@ public class HotelRoomInventoryEntity : Aggregate<Guid>
         string? address = null,
         Continent? locationArea = null,
         string? operatingCountries = null,
-        string? imageUrls = null,
+        ImageEntity? thumbnail = null,
+        List<ImageEntity>? images = null,
         string? notes = null)
     {
         if (totalRooms <= 0)
@@ -58,7 +61,8 @@ public class HotelRoomInventoryEntity : Aggregate<Guid>
             Address = address?.Trim(),
             LocationArea = locationArea,
             OperatingCountries = operatingCountries?.Trim().ToUpperInvariant(),
-            ImageUrls = imageUrls,
+            Thumbnail = thumbnail ?? new ImageEntity(),
+            Images = images ?? [],
             Notes = notes?.Trim(),
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
@@ -74,7 +78,8 @@ public class HotelRoomInventoryEntity : Aggregate<Guid>
         string? address,
         Continent? locationArea,
         string? operatingCountries,
-        string? imageUrls,
+        ImageEntity? thumbnail,
+        List<ImageEntity>? images,
         string? notes,
         string performedBy)
     {
@@ -87,7 +92,30 @@ public class HotelRoomInventoryEntity : Aggregate<Guid>
         Address = address?.Trim();
         LocationArea = locationArea;
         OperatingCountries = operatingCountries?.Trim().ToUpperInvariant();
-        ImageUrls = imageUrls;
+        if (thumbnail is not null)
+        {
+            Thumbnail = new ImageEntity
+            {
+                FileId = thumbnail.FileId,
+                OriginalFileName = thumbnail.OriginalFileName,
+                FileName = thumbnail.FileName,
+                PublicURL = thumbnail.PublicURL,
+            };
+        }
+        if (images is not null)
+        {
+            Images.Clear();
+            foreach (var img in images)
+            {
+                Images.Add(new ImageEntity
+                {
+                    FileId = img.FileId,
+                    OriginalFileName = img.OriginalFileName,
+                    FileName = img.FileName,
+                    PublicURL = img.PublicURL,
+                });
+            }
+        }
         Notes = notes?.Trim();
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;

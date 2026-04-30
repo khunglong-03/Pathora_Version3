@@ -1,4 +1,5 @@
 using Application.Common.Constant;
+using Application.Dtos;
 using Application.Features.HotelServiceProvider.Accommodations.DTOs;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
@@ -48,9 +49,8 @@ public sealed class GetAccommodationsQueryHandler(
             e.Address,
             e.LocationArea?.ToString(),
             e.OperatingCountries,
-            !string.IsNullOrWhiteSpace(e.ImageUrls)
-                ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(e.ImageUrls)
-                : [],
+            e.Thumbnail is not null ? new ImageDto(e.Thumbnail.FileId, e.Thumbnail.OriginalFileName, e.Thumbnail.FileName, e.Thumbnail.PublicURL) : null,
+            e.Images?.Select(i => new ImageDto(i.FileId, i.OriginalFileName, i.FileName, i.PublicURL)).ToList(),
             e.Notes);
     }
 }

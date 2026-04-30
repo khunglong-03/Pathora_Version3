@@ -62,6 +62,12 @@ export interface AdminBookingListResponse {
   departureDate: string;
   totalPrice: number;
   status: string;
+  /** Người lớn — mỗi người cần 1 ghế */
+  numberAdult: number;
+  /** Trẻ em — mỗi người cần 1 ghế */
+  numberChild: number;
+  /** Em bé (< 2 tuổi) — KHÔNG cần ghế riêng */
+  numberInfant: number;
 }
 
 export const bookingService = {

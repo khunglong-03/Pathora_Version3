@@ -359,7 +359,10 @@ public sealed record AdminBookingListResponse(
     [property: JsonPropertyName("tourName")] string TourName,
     [property: JsonPropertyName("departureDate")] DateTimeOffset DepartureDate,
     [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
-    [property: JsonPropertyName("status")] string Status
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant
 );
 
 public sealed record AdminBookingListResult(

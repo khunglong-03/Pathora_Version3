@@ -1,3 +1,4 @@
+using Application.Dtos;
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
@@ -12,7 +13,8 @@ public sealed record AccommodationDto(
     [property: JsonPropertyName("address")] string? Address,
     [property: JsonPropertyName("locationArea")] string? LocationArea,
     [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
-    [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images,
     [property: JsonPropertyName("notes")] string? Notes);
 
 public sealed record CreateAccommodationRequestDto(
@@ -24,7 +26,8 @@ public sealed record CreateAccommodationRequestDto(
     [property: JsonPropertyName("address")] string? Address,
     [property: JsonPropertyName("locationArea")] int? LocationArea,
     [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
-    [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images,
     [property: JsonPropertyName("notes")] string? Notes);
 
 public sealed record UpdateAccommodationRequestDto(
@@ -36,5 +39,6 @@ public sealed record UpdateAccommodationRequestDto(
     [property: JsonPropertyName("address")] string? Address,
     [property: JsonPropertyName("locationArea")] int? LocationArea,
     [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
-    [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images,
     [property: JsonPropertyName("notes")] string? Notes);

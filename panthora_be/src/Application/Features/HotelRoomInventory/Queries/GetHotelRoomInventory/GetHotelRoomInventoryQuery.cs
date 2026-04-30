@@ -38,7 +38,8 @@ public sealed class GetHotelRoomInventoryQueryHandler(
             e.Address,
             e.LocationArea?.ToString(),
             e.OperatingCountries,
-            e.ImageUrls,
+            e.Thumbnail is not null ? new Application.Dtos.ImageDto(e.Thumbnail.FileId, e.Thumbnail.OriginalFileName, e.Thumbnail.FileName, e.Thumbnail.PublicURL) : null,
+            e.Images?.Select(i => new Application.Dtos.ImageDto(i.FileId, i.OriginalFileName, i.FileName, i.PublicURL)).ToList(),
             e.Notes)).ToList();
     }
 }

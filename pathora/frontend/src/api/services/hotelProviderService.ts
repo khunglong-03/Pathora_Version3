@@ -98,6 +98,13 @@ export interface UpdateGuestArrivalDto {
 
 // ─── Hotel Accommodations ────────────────────────────────────────────
 
+export interface ImageDto {
+  fileId: string;
+  originalFileName: string;
+  fileName: string;
+  publicURL: string;
+}
+
 export interface AccommodationItem {
   id: string;
   supplierId: string;
@@ -107,7 +114,8 @@ export interface AccommodationItem {
   address: string | null;
   locationArea: string | null;
   operatingCountries: string | null;
-  imageUrls: string[];
+  thumbnail: ImageDto | null;
+  images: ImageDto[] | null;
   notes: string | null;
 }
 
@@ -116,7 +124,8 @@ export interface CreateAccommodationDto {
   totalRooms: number;
   name?: string;
   address?: string;
-  imageUrls?: string[];
+  thumbnail?: ImageDto | null;
+  images?: ImageDto[] | null;
   notes?: string;
 }
 
@@ -126,7 +135,8 @@ export interface UpdateAccommodationDto {
   name?: string;
   address?: string;
   operatingCountries?: string;
-  imageUrls?: string[];
+  thumbnail?: ImageDto | null;
+  images?: ImageDto[] | null;
   notes?: string;
 }
 

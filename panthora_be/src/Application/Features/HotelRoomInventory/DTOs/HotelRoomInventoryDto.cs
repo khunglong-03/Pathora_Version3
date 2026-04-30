@@ -1,3 +1,4 @@
+using Application.Dtos;
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
@@ -13,5 +14,6 @@ public sealed record HotelRoomInventoryDto(
     [property: JsonPropertyName("address")] string? Address = null,
     [property: JsonPropertyName("locationArea")] string? LocationArea = null,
     [property: JsonPropertyName("operatingCountries")] string? OperatingCountries = null,
-    [property: JsonPropertyName("imageUrls")] string? ImageUrls = null,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images = null,
     [property: JsonPropertyName("notes")] string? Notes = null);

@@ -140,19 +140,23 @@ public sealed class HotelRoomInventoryEntityTests
     }
 
     [Fact]
-    public void Create_TC08_ImageUrlsPreservedWithSpaces_ShouldNotTrim()
+    public void Create_TC08_ImagesListProvided_ShouldStoreCorrectly()
     {
         var supplierId = Guid.NewGuid();
-        var imageUrl = "https://example.com/image with spaces.jpg";
+        var images = new List<ImageEntity>
+        {
+            new ImageEntity { FileId = "123", OriginalFileName = "test.jpg", FileName = "test-123.jpg", PublicURL = "url" }
+        };
 
         var entity = HotelRoomInventoryEntity.Create(
             supplierId: supplierId,
             roomType: global::Domain.Enums.RoomType.Standard,
             totalRooms: 3,
             performedBy: "admin",
-            imageUrls: imageUrl);
+            images: images);
 
-        Assert.Equal(imageUrl, entity.ImageUrls);
+        Assert.NotNull(entity.Images);
+        Assert.Single(entity.Images);
     }
 
     [Fact]
@@ -170,7 +174,8 @@ public sealed class HotelRoomInventoryEntityTests
         Assert.Null(entity.Address);
         Assert.Null(entity.LocationArea);
         Assert.Null(entity.OperatingCountries);
-        Assert.Null(entity.ImageUrls);
+        Assert.Null(entity.Thumbnail);
+        Assert.Null(entity.Images);
         Assert.Null(entity.Notes);
     }
 
@@ -213,7 +218,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: "New Address",
             locationArea: global::Domain.Enums.Continent.Europe,
             operatingCountries: "DE",
-            imageUrls: "https://img.com/hotel.jpg",
+            thumbnail: new ImageEntity { FileId = "1", OriginalFileName = "1.jpg", FileName = "1.jpg", PublicURL = "1.jpg" },
+            images: new List<ImageEntity>(),
             notes: "Updated notes",
             performedBy: "superadmin");
 
@@ -223,7 +229,8 @@ public sealed class HotelRoomInventoryEntityTests
         Assert.Equal("New Address", entity.Address);
         Assert.Equal(global::Domain.Enums.Continent.Europe, entity.LocationArea);
         Assert.Equal("DE", entity.OperatingCountries);
-        Assert.Equal("https://img.com/hotel.jpg", entity.ImageUrls);
+        Assert.NotNull(entity.Thumbnail);
+        Assert.NotNull(entity.Images);
         Assert.Equal("Updated notes", entity.Notes);
         Assert.Equal("superadmin", entity.LastModifiedBy);
     }
@@ -244,7 +251,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: entity.Address,
             locationArea: entity.LocationArea,
             operatingCountries: entity.OperatingCountries,
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 
@@ -268,7 +276,8 @@ public sealed class HotelRoomInventoryEntityTests
                 address: entity.Address,
                 locationArea: entity.LocationArea,
                 operatingCountries: entity.OperatingCountries,
-                imageUrls: entity.ImageUrls,
+                thumbnail: entity.Thumbnail,
+                images: entity.Images,
                 notes: entity.Notes,
                 performedBy: "admin"));
 
@@ -292,7 +301,8 @@ public sealed class HotelRoomInventoryEntityTests
                 address: entity.Address,
                 locationArea: entity.LocationArea,
                 operatingCountries: entity.OperatingCountries,
-                imageUrls: entity.ImageUrls,
+                thumbnail: entity.Thumbnail,
+                images: entity.Images,
                 notes: entity.Notes,
                 performedBy: "admin"));
 
@@ -317,7 +327,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: null,
             locationArea: entity.LocationArea,
             operatingCountries: entity.OperatingCountries,
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 
@@ -341,7 +352,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: entity.Address,
             locationArea: entity.LocationArea,
             operatingCountries: "  fr  ",
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 
@@ -368,7 +380,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: entity.Address,
             locationArea: entity.LocationArea,
             operatingCountries: entity.OperatingCountries,
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 
@@ -394,7 +407,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: entity.Address,
             locationArea: entity.LocationArea,
             operatingCountries: entity.OperatingCountries,
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 
@@ -420,7 +434,8 @@ public sealed class HotelRoomInventoryEntityTests
             address: entity.Address,
             locationArea: entity.LocationArea,
             operatingCountries: entity.OperatingCountries,
-            imageUrls: entity.ImageUrls,
+            thumbnail: entity.Thumbnail,
+            images: entity.Images,
             notes: entity.Notes,
             performedBy: "admin");
 

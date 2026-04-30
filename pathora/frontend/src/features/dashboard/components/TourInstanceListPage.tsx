@@ -137,10 +137,13 @@ type InstanceListDataState = "loading" | "ready" | "empty" | "error";
 
 export interface TourInstanceListPageProps {
   role?: "manager" | "tour-operator";
+  /** When set, pre-filters the list to this instance type and hides the visibility dropdown */
+  instanceTypeFilter?: "public" | "private";
 }
 
 export function TourInstanceListPage({
   role = "manager",
+  instanceTypeFilter,
 }: TourInstanceListPageProps = {}) {
   const basePath = role === "tour-operator" ? "/tour-operator/tour-instances" : "/manager/tour-instances";
   const { t } = useTranslation();
@@ -162,7 +165,8 @@ export function TourInstanceListPage({
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
+  // If instanceTypeFilter prop is provided, it overrides and locks the visibility dropdown
+  const [visibilityFilter, setVisibilityFilter] = useState(instanceTypeFilter ?? "all");
   const [excludePast, setExcludePast] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -277,13 +281,18 @@ export function TourInstanceListPage({
           className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold tracking-tight text-stone-900">
-              {safeT("tourInstance.title", "Tour Instances")}
+              {instanceTypeFilter === "public"
+                ? safeT("tourInstance.publicTitle", "Tour Công Cộng")
+                : instanceTypeFilter === "private"
+                  ? safeT("tourInstance.privateTitle", "Tour Riêng Tư")
+                  : safeT("tourInstance.title", "Tour Instances")}
             </h1>
             <p className="text-sm text-stone-500">
-              {safeT(
-                "tourInstance.description",
-                "Manage scheduled tour instances and track departures",
-              )}
+              {instanceTypeFilter === "public"
+                ? safeT("tourInstance.publicDesc", "Các tour công cộng — xe, khách sạn đã được đăng ký sẵn")
+                : instanceTypeFilter === "private"
+                  ? safeT("tourInstance.privateDesc", "Tour riêng tư — cần đăng ký xe và khách sạn cho khách")
+                  : safeT("tourInstance.description", "Manage scheduled tour instances and track departures")}
             </p>
           </div>
           <button
@@ -393,24 +402,39 @@ export function TourInstanceListPage({
               />
             </div>
 
-            <div className="relative flex-1 md:flex-none min-w-[140px]">
-              <select
-                value={visibilityFilter}
-                onChange={(e) => setVisibilityFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">All Visibility</option>
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-              <Icon
-                icon="heroicons:chevron-down"
-                className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-              <Icon
-                icon="heroicons:eye"
-                className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-            </div>
+            {/* Only show visibility dropdown when NOT locked to a specific type */}
+            {!instanceTypeFilter && (
+              <div className="relative flex-1 md:flex-none min-w-[140px]">
+                <select
+                  value={visibilityFilter}
+                  onChange={(e) => setVisibilityFilter(e.target.value)}
+                  className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
+                  <option value="all">All Visibility</option>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+                <Icon
+                  icon="heroicons:chevron-down"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+                />
+                <Icon
+                  icon="heroicons:eye"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+                />
+              </div>
+            )}
+            {/* When locked, show a badge to indicate the filtered type */}
+            {instanceTypeFilter && (
+              <span
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold border ${
+                  instanceTypeFilter === "public"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-stone-800 text-stone-100 border-stone-700"
+                }`}>
+                <Icon icon="heroicons:eye" className="size-3.5" />
+                {instanceTypeFilter === "public" ? "Chỉ Public" : "Chỉ Private"}
+              </span>
+            )}
             
             <label className="flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
               <input 
