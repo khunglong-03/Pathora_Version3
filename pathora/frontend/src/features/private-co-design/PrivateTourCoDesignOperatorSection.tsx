@@ -231,9 +231,22 @@ export function PrivateTourCoDesignOperatorSection({
 
       <div className="mb-6 grid gap-3 rounded-xl border border-orange-100 bg-orange-50/50 p-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-stone-500">
-            {t("landing.privateCoDesign.finalSellPriceLabel")}
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="block text-xs font-bold uppercase tracking-wide text-stone-500">
+              {t("landing.privateCoDesign.finalSellPriceLabel")}
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const total = days.reduce((sum, day) => 
+                  sum + day.activities.reduce((actSum, act) => actSum + (act.price || 0), 0), 0);
+                setPriceInput(String(total));
+              }}
+              className="text-[10px] font-semibold text-orange-600 hover:text-orange-700 underline"
+            >
+              {t("landing.privateCoDesign.fillTotalCost", "Gợi ý tổng chi phí")}
+            </button>
+          </div>
           <input
             type="text"
             inputMode="decimal"
@@ -242,7 +255,12 @@ export function PrivateTourCoDesignOperatorSection({
             className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             data-operator-final-price-input
           />
-          <p className="mt-1 text-[11px] text-stone-500">{t("landing.privateCoDesign.finalSellPriceHint")}</p>
+          <p className="mt-1 flex items-center justify-between text-[11px] text-stone-500">
+            <span>{t("landing.privateCoDesign.finalSellPriceHint")}</span>
+            <span className="font-medium text-stone-600">
+              Tổng chi phí hiện tại: {formatCurrency(days.reduce((sum, day) => sum + day.activities.reduce((actSum, act) => actSum + (act.price || 0), 0), 0))}
+            </span>
+          </p>
           <button
             type="button"
             data-action="set-final-sell-price"

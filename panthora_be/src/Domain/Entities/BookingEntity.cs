@@ -205,8 +205,8 @@ public class BookingEntity : Aggregate<Guid>
     {
         var valid = current switch
         {
-            BookingStatus.Pending => next is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Cancelled,
-            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Cancelled,
+            BookingStatus.Pending => next is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
+            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
             BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
             BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled,
             BookingStatus.PendingAdjustment => next is BookingStatus.Paid or BookingStatus.Cancelled,
