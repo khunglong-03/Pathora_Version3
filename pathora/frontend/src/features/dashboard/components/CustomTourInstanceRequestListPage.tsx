@@ -135,13 +135,13 @@ function ParticipantsCell({
    ══════════════════════════════════════════════════════════════ */
 type InstanceListDataState = "loading" | "ready" | "empty" | "error";
 
-export interface TourInstanceListPageProps {
+export interface CustomTourInstanceRequestListPageProps {
   role?: "manager" | "tour-operator";
 }
 
-export function TourInstanceListPage({
+export function CustomTourInstanceRequestListPage({
   role = "manager",
-}: TourInstanceListPageProps = {}) {
+}: CustomTourInstanceRequestListPageProps = {}) {
   const { t } = useTranslation();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -189,7 +189,7 @@ export function TourInstanceListPage({
           1,
           pageSize,
           excludePast,
-          false // wantsCustomization
+          true // wantsCustomization
         );
         if (!active) return;
         if (result) {
@@ -276,13 +276,10 @@ export function TourInstanceListPage({
           className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold tracking-tight text-stone-900">
-              {safeT("tourInstance.title", "Tour Instances")}
+              Custom Tour Requests
             </h1>
             <p className="text-sm text-stone-500">
-              {safeT(
-                "tourInstance.description",
-                "Manage scheduled tour instances and track departures",
-              )}
+              Manage draft instances that have customer customization requests.
             </p>
           </div>
           <button
@@ -374,6 +371,7 @@ export function TourInstanceListPage({
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
                 <option value="all">All Status</option>
+                <option value="draft">Draft / Request</option>
                 <option value="available">Available</option>
                 <option value="pendingapproval">Pending Approval</option>
                 <option value="confirmed">Confirmed</option>

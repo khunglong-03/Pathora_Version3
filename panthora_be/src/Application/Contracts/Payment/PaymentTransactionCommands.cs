@@ -318,3 +318,16 @@ public sealed class CheckPaymentNowCommandHandler(
             transaction.ExternalTransactionId);
     }
 }
+public sealed record GetPendingTransactionByBookingIdQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IRequest<ErrorOr<PaymentTransactionEntity>>;
+
+public sealed class GetPendingTransactionByBookingIdQueryHandler(IPaymentTransactionRepository paymentTransactionRepository)
+    : IRequestHandler<GetPendingTransactionByBookingIdQuery, ErrorOr<PaymentTransactionEntity>>
+{
+    public async Task<ErrorOr<PaymentTransactionEntity>> Handle(GetPendingTransactionByBookingIdQuery request, CancellationToken cancellationToken)
+    {
+        var transaction = await paymentTransactionRepository.GetPendingByBookingIdAsync(request.BookingId, cancellationToken);
+        if (transaction == null)
+            return Error.NotFound("PaymentTransaction.NotFound", "No pending transaction found for this booking.");
+        return transaction;
+    }
+}

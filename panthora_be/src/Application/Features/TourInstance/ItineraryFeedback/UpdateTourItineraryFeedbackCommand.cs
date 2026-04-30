@@ -31,7 +31,8 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
     ITourInstanceRepository tourInstanceRepository,
     IBookingRepository bookingRepository,
     IOwnershipValidator ownershipValidator,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user)
     : IRequestHandler<UpdateTourItineraryFeedbackCommand, ErrorOr<TourItineraryFeedbackDto>>
 {
     public async Task<ErrorOr<TourItineraryFeedbackDto>> Handle(
@@ -54,9 +55,10 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
 
-        if (!isManager && !isAdmin)
+        if (!isAssignedManager && !isAdmin && !isGlobalManager)
         {
             if (!feedback.IsFromCustomer || feedback.BookingId is null)
                 return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);

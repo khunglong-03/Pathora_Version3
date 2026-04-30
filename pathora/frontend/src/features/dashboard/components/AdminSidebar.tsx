@@ -54,6 +54,11 @@ export const MANAGER_NAV_ITEMS = [
     icon: ClipboardTextIcon,
     href: "/manager/dashboard/tour-requests",
   },
+  {
+    label: "Custom Tour Requests",
+    icon: ClipboardTextIcon,
+    href: "/manager/dashboard/custom-tour-requests",
+  },
   { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
   {
     label: "Payments",
@@ -143,6 +148,11 @@ export const TOUROPERATOR_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-operator" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
+  {
+    label: "Custom Tour Requests",
+    icon: ClipboardTextIcon,
+    href: "/tour-operator/custom-tour-requests",
+  },
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [

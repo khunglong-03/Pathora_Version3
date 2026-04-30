@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.Public;
 
-[AllowAnonymous]
 [Route(PublicEndpoint.Base + "/" + PublicEndpoint.Tours)]
 public class PublicTourController : BaseApiController
 {
+    [AllowAnonymous]
     [HttpGet(PublicEndpoint.Detail)]
     public async Task<IActionResult> GetTourDetail(Guid id, [FromServices] ILanguageContext languageContext)
     {
@@ -19,6 +19,7 @@ public class PublicTourController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize]
     [HttpPost("{id:guid}/request-private")]
     public async Task<IActionResult> RequestPrivateTour(Guid id, [FromBody] RequestPublicPrivateTourRequestDto body)
     {
@@ -35,11 +36,14 @@ public class PublicTourController : BaseApiController
             body.NumberChild,
             body.NumberInfant,
             body.PaymentMethod,
-            body.IsFullPay);
+            body.IsFullPay,
+            body.WantsCustomization,
+            body.CustomizationNotes);
         var result = await Sender.Send(command);
         return HandleCreated(result);
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllTours(
         [FromQuery] string? searchText,

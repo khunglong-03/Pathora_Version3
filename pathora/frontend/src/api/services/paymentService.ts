@@ -221,6 +221,14 @@ export const paymentService = {
     return extractResult<PaymentTransaction>(response.data);
   },
 
+  getPendingByBookingId: async (bookingId: string) => {
+    const response = await api.get<ApiResponse<PaymentTransaction>>(
+      `/api/payment/pending-by-booking/${bookingId}`,
+    );
+
+    return extractResult<PaymentTransaction>(response.data);
+  },
+
   getCheckoutPrice: async (
     bookingId: string,
     opts?: { usePublicBookingEndpoint?: boolean },

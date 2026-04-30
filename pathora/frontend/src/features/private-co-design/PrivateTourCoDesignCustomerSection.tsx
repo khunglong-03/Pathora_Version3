@@ -10,6 +10,9 @@ import {
 } from "@/api/services/tourInstanceService";
 import type { TourInstanceDayDto } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import { paymentService } from "@/api/services/paymentService";
+import { useRouter } from "next/navigation";
+import { CheckCircle } from "@phosphor-icons/react";
 
 export interface PrivateTourCoDesignCustomerSectionProps {
   tourInstanceId: string;
@@ -40,6 +43,8 @@ export function PrivateTourCoDesignCustomerSection({
   const [activeDayId, setActiveDayId] = useState<string | null>(sortedDays[0]?.id ?? null);
   const [items, setItems] = useState<TourItineraryFeedbackDto[]>([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const router = useRouter();
   const [feedbackFetchError, setFeedbackFetchError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [sending, setSending] = useState(false);
@@ -114,11 +119,38 @@ export function PrivateTourCoDesignCustomerSection({
         {finalSellPrice != null && finalSellPrice >= 0 ? (
           <div className="rounded-xl border border-[#fa8b02]/30 bg-orange-50/80 px-4 py-2 text-right">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              {t("landing.privateCoDesign.finalPriceLabel")}
+              {t("landing.privateCoDesign.finalPriceLabel", "Final Price")}
             </p>
-            <p className="text-base font-bold text-slate-900" data-final-sell-price-display>
+            <p className="text-base font-bold text-slate-900 mb-2" data-final-sell-price-display>
               {fmtVnd(finalSellPrice)}
             </p>
+            <button
+              type="button"
+              disabled={paying}
+              onClick={async () => {
+                setPaying(true);
+                try {
+                  const tx = await paymentService.getPendingByBookingId(bookingId);
+                  if (tx?.transactionCode) {
+                    router.push(`/checkout/payment?transactionCode=${tx.transactionCode}`);
+                  } else {
+                    toast.error(t("landing.privateCoDesign.noPendingTransaction", "Không tìm thấy giao dịch thanh toán. Vui lòng đợi Operator cập nhật!"));
+                  }
+                } catch (err) {
+                  toast.error(handleApiError(err).message);
+                } finally {
+                  setPaying(false);
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#fa8b02] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#e07d02] disabled:opacity-50"
+            >
+              {paying ? (
+                <span className="size-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <CheckCircle weight="bold" className="size-3.5" />
+              )}
+              {t("landing.privateCoDesign.acceptAndPay", "Accept & Pay")}
+            </button>
           </div>
         ) : null}
       </div>

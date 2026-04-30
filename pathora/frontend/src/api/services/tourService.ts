@@ -289,6 +289,8 @@ export const tourService = {
       paymentMethod: number;
       /** Must be true (backend validation). */
       isFullPay: boolean;
+      wantsCustomization?: boolean;
+      customizationNotes?: string;
     },
   ): Promise<CheckoutPriceResponse | null> => {
     const response = await api.post<ApiResponse<unknown>>(

@@ -12,8 +12,8 @@ public sealed class GetAllTourInstancesQueryTests
         var managerAId = Guid.NewGuid().ToString();
         var managerBId = Guid.NewGuid().ToString();
 
-        var managerAQuery = new GetAllTourInstancesQuery("ha long", TourInstanceStatus.Available, 1, 10, true, managerAId);
-        var managerBQuery = new GetAllTourInstancesQuery("ha long", TourInstanceStatus.Available, 1, 10, true, managerBId);
+        var managerAQuery = new GetAllTourInstancesQuery("ha long", TourInstanceStatus.Available, 1, 10, true, null, managerAId);
+        var managerBQuery = new GetAllTourInstancesQuery("ha long", TourInstanceStatus.Available, 1, 10, true, null, managerBId);
 
         Assert.NotEqual(managerAQuery.CacheKey, managerBQuery.CacheKey);
     }
@@ -22,7 +22,7 @@ public sealed class GetAllTourInstancesQueryTests
     public void CacheKey_WhenPrincipalMissingOrInvalid_ShouldUseAnonSentinel()
     {
         var missingPrincipalQuery = new GetAllTourInstancesQuery(null, null, 1, 10);
-        var invalidPrincipalQuery = new GetAllTourInstancesQuery(null, null, 1, 10, false, "not-a-guid");
+        var invalidPrincipalQuery = new GetAllTourInstancesQuery(null, null, 1, 10, false, null, "not-a-guid");
 
         Assert.Contains(":anon:", missingPrincipalQuery.CacheKey);
         Assert.Contains(":anon:", invalidPrincipalQuery.CacheKey);
@@ -32,7 +32,7 @@ public sealed class GetAllTourInstancesQueryTests
     public void CacheKey_ShouldKeepTourInstanceNamespace()
     {
         var managerId = Guid.NewGuid().ToString();
-        var query = new GetAllTourInstancesQuery(null, null, 1, 10, false, managerId);
+        var query = new GetAllTourInstancesQuery(null, null, 1, 10, false, null, managerId);
 
         Assert.StartsWith($"{CacheKey.TourInstance}:all:", query.CacheKey);
     }

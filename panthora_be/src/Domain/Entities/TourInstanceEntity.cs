@@ -25,6 +25,8 @@ public class TourInstanceEntity : Aggregate<Guid>
     public TourType InstanceType { get; set; } = TourType.Public;
     public TourInstanceStatus Status { get; set; } = TourInstanceStatus.Available;
     public string? CancellationReason { get; set; }
+    public bool WantsCustomization { get; set; } = false;
+    public string? CustomizationNotes { get; set; }
 
     // Schedule
     /// <summary>Ngày khởi hành.</summary>
@@ -120,7 +122,9 @@ public class TourInstanceEntity : Aggregate<Guid>
         List<ImageEntity>? images = null,
         DateTimeOffset? confirmationDeadline = null,
         List<string>? includedServices = null,
-        bool requiresApproval = false)
+        bool requiresApproval = false,
+        bool wantsCustomization = false,
+        string? customizationNotes = null)
     {
         EnsureValidDateRange(startDate, endDate);
         EnsureValidMaxParticipation(maxParticipation);
@@ -154,7 +158,9 @@ public class TourInstanceEntity : Aggregate<Guid>
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
-            LastModifiedOnUtc = DateTimeOffset.UtcNow
+            LastModifiedOnUtc = DateTimeOffset.UtcNow,
+            WantsCustomization = wantsCustomization,
+            CustomizationNotes = customizationNotes
         };
     }
 

@@ -131,7 +131,9 @@ public sealed class PublicTourControllerTests
             0,
             0,
             PaymentMethod.BankTransfer,
-            true);
+            true,
+            false,
+            null);
 
         var actionResult = await controller.RequestPrivateTour(tourId, body);
 
@@ -155,7 +157,9 @@ public sealed class PublicTourControllerTests
             0,
             0,
             PaymentMethod.BankTransfer,
-            true);
+            true,
+            false,
+            null);
         Assert.Equal(expectedCommand, probe.CapturedRequest);
     }
 

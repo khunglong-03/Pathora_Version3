@@ -227,7 +227,9 @@ public class TourInstanceService(
             thumbnail: thumbnail,
             images: request.ImageUrls?.Select(url => new ImageEntity { PublicURL = url }).ToList(),
             includedServices: request.IncludedServices,
-            requiresApproval: request.ActivityAssignments?.Any(a => a.TransportSupplierId.HasValue || a.SupplierId.HasValue) == true);
+            requiresApproval: request.ActivityAssignments?.Any(a => a.TransportSupplierId.HasValue || a.SupplierId.HasValue) == true,
+            wantsCustomization: request.WantsCustomization,
+            customizationNotes: request.CustomizationNotes);
 
         if (request.Translations is not null)
         {
@@ -1332,8 +1334,8 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
         }
 
-        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, principalId);
-        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, principalId);
+        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, principalId);
+        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, principalId);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, request.PageNumber, request.PageSize);

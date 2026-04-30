@@ -115,6 +115,14 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet("pending-by-booking/{bookingId:guid}")]
+    public async Task<IActionResult> GetPendingByBooking(Guid bookingId)
+    {
+        var result = await Sender.Send(new GetPendingTransactionByBookingIdQuery(bookingId));
+        return HandleResult(result);
+    }
+
     private static string ResolveTransactionCode(string? transactionCode, string? code, string? orderCode)
     {
         if (!string.IsNullOrWhiteSpace(transactionCode))

@@ -109,6 +109,8 @@ public class TourInstanceServiceProviderAssignedTests
                 10,
                 1000,
                 "Available",
+                false,
+                null,
                 "Public"));
 
         // Act
@@ -167,6 +169,8 @@ public class TourInstanceServiceProviderAssignedTests
                 10,
                 1000,
                 "Available",
+                false,
+                null,
                 "Public"));
 
         // Act

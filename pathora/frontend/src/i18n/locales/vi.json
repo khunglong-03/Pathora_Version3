@@ -3180,6 +3180,28 @@
     }
   },
   "landing": {
+    "visa": {
+      "title": "Trạng thái xin Visa",
+      "backToBooking": "Quay lại Đặt chỗ",
+      "filter": "Lọc",
+      "filterAll": "Tất cả",
+      "statusApproved": "Đã duyệt",
+      "statusPending": "Đang chờ",
+      "statusUnderReview": "Đang xét duyệt",
+      "statusRejected": "Từ chối",
+      "searchPlaceholder": "Tìm kiếm theo tên hoặc hộ chiếu...",
+      "participants": "Danh sách tham gia",
+      "refresh": "Làm mới",
+      "noResults": "Không tìm thấy kết quả.",
+      "typeAdult": "Người lớn",
+      "typeChild": "Trẻ em",
+      "processingInfo": "Thông tin xử lý Visa",
+      "infoItem1": "Thời gian xử lý Visa thường mất 3-5 ngày làm việc.",
+      "infoItem2": "Bạn sẽ nhận được email khi trạng thái thay đổi.",
+      "infoItem3": "Vui lòng đảm bảo thông tin hộ chiếu chính xác.",
+      "infoItem4": "Liên hệ hỗ trợ nếu bạn cần cập nhật thông tin.",
+      "selectParticipant": "Chọn một người tham gia để xem chi tiết"
+    },
     "auth": {
       "login": "Đăng nhập",
       "emailAddress": "Địa chỉ Email",

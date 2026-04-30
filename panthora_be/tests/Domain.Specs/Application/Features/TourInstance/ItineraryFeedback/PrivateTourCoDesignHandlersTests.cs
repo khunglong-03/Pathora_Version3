@@ -17,6 +17,7 @@ public sealed class PrivateTourCoDesignHandlersTests
     private readonly ITourItineraryFeedbackRepository _feedbackRepository = Substitute.For<ITourItineraryFeedbackRepository>();
     private readonly IOwnershipValidator _ownershipValidator = Substitute.For<IOwnershipValidator>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly global::Contracts.Interfaces.IUser _user = Substitute.For<global::Contracts.Interfaces.IUser>();
 
     [Fact]
     public async Task CreateFeedback_Customer_Succeeds_WhenOwnsBooking()
@@ -49,7 +50,8 @@ public sealed class PrivateTourCoDesignHandlersTests
             _bookingRepository,
             _feedbackRepository,
             _ownershipValidator,
-            _unitOfWork);
+            _unitOfWork,
+            _user);
 
         var result = await handler.Handle(
             new CreateTourItineraryFeedbackCommand(instance.Id, dayId, booking.Id, "Hello", true),
@@ -109,14 +111,14 @@ public sealed class PrivateTourCoDesignHandlersTests
             "sys",
             userId: customerId);
         booking.Id = Guid.NewGuid();
-        booking.Status = BookingStatus.Paid;
+        booking.Status = BookingStatus.Deposited; // changed to Deposited
         booking.TourInstance = instance;
 
         var paymentTx = Substitute.For<IPaymentTransactionRepository>();
         paymentTx.GetByBookingIdListAsync(booking.Id, Arg.Any<CancellationToken>())
             .Returns(
             [
-                CompletedTransaction(booking.Id, 10000m)
+                CompletedTransaction(booking.Id, 3000m) // paid 3000m
             ]);
 
         var paymentService = Substitute.For<IPaymentService>();
@@ -124,14 +126,14 @@ public sealed class PrivateTourCoDesignHandlersTests
             booking.Id,
             "PAY-UP-1",
             TransactionType.FullPayment,
-            2000m,
+            9000m, // Delta: 12000 - 3000 = 9000
             PaymentMethod.BankTransfer,
             "top-up",
             managerId.ToString());
         paymentService.CreatePaymentTransactionAsync(
                 Arg.Any<Guid>(),
                 TransactionType.FullPayment,
-                2000m,
+                9000m, // Expect 9000
                 Arg.Any<PaymentMethod>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -161,7 +163,7 @@ public sealed class PrivateTourCoDesignHandlersTests
             CancellationToken.None);
 
         Assert.False(result.IsError);
-        Assert.Equal(2000m, result.Value.Delta);
+        Assert.Equal(9000m, result.Value.Delta); // Delta expected to be 9000
         Assert.NotNull(result.Value.TopUpTransactionId);
         Assert.Equal(BookingStatus.PendingAdjustment, booking.Status);
         Assert.Equal(TourInstanceStatus.PendingAdjustment, instance.Status);

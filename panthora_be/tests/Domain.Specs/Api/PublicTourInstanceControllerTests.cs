@@ -30,6 +30,8 @@ public sealed class PublicTourInstanceControllerTests
             MaxParticipation: 20,
             BasePrice: 1000m,
             Status: "Available",
+            WantsCustomization: false,
+            CustomizationNotes: null,
             InstanceType: "Public");
 
         var response = new PaginatedList<TourInstanceVm>(1, [vm], 1, 10);
@@ -79,7 +81,14 @@ public sealed class PublicTourInstanceControllerTests
             Revenue: 0,
             ConfirmationDeadline: null,
             Managers: [],
-            IncludedServices: []);
+            IncludedServices: [],
+            PricingPolicy: null,
+            CancellationPolicy: null,
+            DepositPolicy: null,
+            FinalSellPrice: null,
+            WantsCustomization: false,
+            CustomizationNotes: null,
+            Days: null);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<PublicTourInstanceController, GetPublicTourInstanceDetailQuery, TourInstanceDto>(

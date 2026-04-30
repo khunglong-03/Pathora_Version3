@@ -20,4 +20,6 @@ public sealed record TourInstanceVm(
     [property: JsonPropertyName("maxParticipation")] int MaxParticipation,
     [property: JsonPropertyName("basePrice")] decimal BasePrice,
     [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization,
+    [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes,
     [property: JsonPropertyName("instanceType")] string InstanceType);

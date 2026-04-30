@@ -1,47 +1,52 @@
-# Private tour — luồng thanh toán hai giai đoạn (co-design)
+# Private tour — luồng thanh toán và quyết toán
 
-Tài liệu cho dev: mô tả **nghiệp vụ** bằng tiếng Việt; **route API, mã lệnh, enum, tên bảng** giữ tiếng Anh như trong code.
+Tài liệu cho dev: mô tả **nghiệp vụ** bằng tiếng Việt; **route API, enum, tên bảng** giữ như trong code.
 
-## Bối cảnh
+## Bối cảnh (đồng bộ OpenSpec `private-custom-tour`)
 
-- Tour riêng (`InstanceType = Private`) bắt đầu ở trạng thái instance **`Draft`**.
-- Khách thanh toán **100% Base Price** (giá snapshot tại lúc tạo instance) trước khi co-design.
-- Operator chỉnh itinerary / giá chốt tay: **`FinalSellPrice`** (không thay thế `BasePrice`).
-- Sau khi có `FinalSellPrice`, hệ thống quyết toán **Delta** = `FinalSellPrice − tổng đã thu (Completed)` trên các giao dịch thanh toán của booking.
+- Tour riêng (`InstanceType = Private`) có thể bắt đầu ở trạng thái instance **`Draft`**.
+- Hai nhánh từ **Tour template** (chi tiết `openspec/changes/private-custom-tour/design.md`):
+  - **Không chỉnh mẫu:** không bật luồng Manager → Operator chỉnh nội dung như một bước bắt buộc; thanh toán gate **30% hoặc 100%** theo milestone spec.
+  - **Có chỉnh thêm:** Manager → Tour Operator; sau khi khách **Đồng ý** bản gửi: **phải** thanh toán **30% hoặc 100%** theo policy; **từ chối** không bắt buộc lý do.
+- Operator chỉnh itinerary / **`FinalSellPrice`** (không thay snapshot `BasePrice`).
+- **Delta** = `FinalSellPrice` − **tổng đã thanh toán Completed** (gồm mọi đợt: cọc, full ban đầu, v.v.).
 
-## Hai nhánh Delta
+## Nhánh Delta sau khi đã có khoản thu và `FinalSellPrice`
 
-| Delta | Hành vi ngắn gọn | Gợi ý endpoint / command (tiếng Anh) |
-|--------|------------------|--------------------------------------|
-| **> 0** | Booking → **`PendingAdjustment`**, instance → **`PendingAdjustment`**, tạo giao dịch top-up (`TransactionType.FullPayment`). | `ApplyPrivateTourSettlementCommand` — REST do controller co-design/sttlement expose. |
-| **= 0** | Instance → **`Confirmed`**. | Cùng command settlement. |
-| **< 0** | Cộng tiền vào **`User.Balance`**, ghi **`TransactionHistory`** (credit), instance → **`Confirmed`**. | `User.CreditBalance`, `TransactionHistoryEntity.CreateCredit` trong handler settlement. |
+| Delta | Hành vi ngắn gọn | Gợi ý trong code |
+|--------|------------------|-------------------|
+| **> 0** | Booking có thể → **`PendingAdjustment`**, sinh biên nhận top-up (= Delta). | `ApplyPrivateTourSettlementCommand` và REST co-design/settlement hiện có / mở rộng |
+| **= 0** | Chốt theo máy trạng thái. | Cùng command settlement |
+| **< 0** | Cộng **User.Balance** + **TransactionHistory** (credit). | `User.CreditBalance`, handler settlement |
 
 ## Webhook SePay & idempotency
 
-- Callback map theo **`TransactionCode`** trong nội dung chuyển khoản và **`TransactionId`** (SePay).
-- **`CheckDuplicateBySepayIdAsync`**: nếu đã tồn tại giao dịch cùng SePay id và trạng thái **không phải Pending**, webhook trả snapshot hiện có **không** gọi lại `ProcessSepayCallbackAsync` (tránh cộng tiền / cập nhật booking hai lần).
-- Có thể có **nhiều** giao dịch `FullPayment` trên một booking (base + top-up); mỗi giao dịch có `TransactionCode` riêng.
+- Callback map theo **`TransactionCode`** và **`TransactionId`** (SePay).
+- **`CheckDuplicateBySepayIdAsync`**: tránh cộng trùng.
+- **Nhiều** giao dịch Completed trên một booking (30%, 100%, top-up…) — **tổng paid** = SUM Completed.
 
-## Hạn xác nhận top-up
+## Hạn chờ và job nền
 
-- **`TourInstance.ConfirmationDeadline`**: job nền hủy instance/booking **`PendingAdjustment`** nếu quá hạn chưa hoàn tất top-up; đóng giao dịch top-up pending/processing (không tự trừ phí hủy trong code — chờ policy pháp lý/kế toán).
-- Worker: **`PrivateTourTopUpDeadlineWorkerService`** (hosted service), xử lý qua **`PrivateTourTopUpDeadlineProcessor`**.
+- **`TourInstance.ConfirmationDeadline`**: nhắc/hủy top-up chờ trong `PendingAdjustment` nếu quá policy; **trừ phí/hủy** chỉ merge sau chỉ đạo pháp lý/kế toán.
+- **`PrivateTourTopUpDeadlineWorkerService`** / **`PrivateTourTopUpDeadlineProcessor`** (tham chiếu repo).
 
-## Trạng thái liên quan (tham chiếu)
+## Trạng thái liên quan
 
 - **`TourInstanceStatus`**: `Draft`, `PendingAdjustment`, `Confirmed`, `Cancelled`, …
 - **`BookingStatus`**: `Paid`, `PendingAdjustment`, `Cancelled`, …
 
-## Đọc thêm trong repo
+## Implementation vs spec
 
-- OpenSpec change: `openspec/changes/private-custom-tour/`
-- Tests gợi ý: `PrivateTourStateMachineTests`, `PrivateTourTopUpDeadlineProcessorTests`, `PaymentReconciliationServiceTests.ReconcileProviderCallbackAsync_WhenDuplicateSepayId*`, `PaymentServiceTests.ProcessSepayCallbackAsync_*`.
+- Code trong repo có thể vẫn có nhánh **100% Base trước co-design**. OpenSpec/spec đã chuyển sang **milestones 30%/100% và hai nhánh** — cần refactor hoặc change follow-up để khớp.
 
-### Lệnh regression (gate cho change này)
+## Regression (gate đề xuất)
 
 ```bash
 cd panthora_be
 dotnet test tests/Domain.Specs/Domain.Specs.csproj \
   --filter "FullyQualifiedName~PrivateTourStateMachine|FullyQualifiedName~UserEntityCreditBalance|FullyQualifiedName~TransactionHistoryEntityTests|FullyQualifiedName~PrivateTourTopUpDeadline|FullyQualifiedName~PrivateTourDomainPersistence|FullyQualifiedName~PrivateTourCoDesign|FullyQualifiedName~ReconcileProviderCallbackAsync_WhenDuplicate|FullyQualifiedName~ProcessSepayCallbackAsync_WhenExternalIdAlreadyCompleted|FullyQualifiedName~ProcessSepayCallbackAsync_BasePlusTopUp"
 ```
+
+## Đọc thêm
+
+- OpenSpec change: `openspec/changes/private-custom-tour/`

@@ -3152,6 +3152,28 @@
     }
   },
   "landing": {
+    "visa": {
+      "title": "Visa Application Status",
+      "backToBooking": "Back to Booking",
+      "filter": "Filter",
+      "filterAll": "All",
+      "statusApproved": "Approved",
+      "statusPending": "Pending",
+      "statusUnderReview": "Under Review",
+      "statusRejected": "Rejected",
+      "searchPlaceholder": "Search by name or passport...",
+      "participants": "Participants",
+      "refresh": "Refresh",
+      "noResults": "No results found.",
+      "typeAdult": "Adult",
+      "typeChild": "Child",
+      "processingInfo": "Visa Processing Information",
+      "infoItem1": "Visa processing usually takes 3-5 business days.",
+      "infoItem2": "You will receive an email once the status changes.",
+      "infoItem3": "Ensure all passport details are correct.",
+      "infoItem4": "Contact support if you need to update any information.",
+      "selectParticipant": "Select a participant to view details"
+    },
     "auth": {
       "login": "Log In",
       "emailAddress": "Email Address",

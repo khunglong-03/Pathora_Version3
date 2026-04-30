@@ -496,16 +496,28 @@ public class PaymentService : IPaymentService
                         && tourInstance.Status == TourInstanceStatus.Draft
                         && booking.BookingType == BookingType.PrivateCustomTourRequest)
                     {
-                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
-                        await _tourInstanceRepository.Update(tourInstance);
-                        _logger.LogInformation(
-                            "Private tour instance {InstanceId} confirmed after deposit payment (transaction {TransactionCode}).",
-                            tourInstance.Id,
-                            transaction.TransactionCode);
+                        if (tourInstance.WantsCustomization)
+                        {
+                            _logger.LogInformation(
+                                "Private tour instance {InstanceId} requires customization. Keeping in Draft and notifying operator (transaction {TransactionCode}).",
+                                tourInstance.Id,
+                                transaction.TransactionCode);
+                            // TODO: Notify managers that a private custom tour requires their attention.
+                            // The notification logic has been deferred to a specialized event/handler.
+                        }
+                        else
+                        {
+                            tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                            await _tourInstanceRepository.Update(tourInstance);
+                            _logger.LogInformation(
+                                "Private tour instance {InstanceId} confirmed after deposit payment (transaction {TransactionCode}).",
+                                tourInstance.Id,
+                                transaction.TransactionCode);
 
-                        using var scope = _serviceProvider.CreateScope();
-                        var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
-                        await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                            using var scope = _serviceProvider.CreateScope();
+                            var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
+                            await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                        }
                     }
                 }
                 break;
@@ -524,16 +536,28 @@ public class PaymentService : IPaymentService
                             || tourInstance.Status == TourInstanceStatus.PendingAdjustment)
                         && booking.BookingType == BookingType.PrivateCustomTourRequest)
                     {
-                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
-                        await _tourInstanceRepository.Update(tourInstance);
-                        _logger.LogInformation(
-                            "Private tour instance {InstanceId} confirmed after full payment (transaction {TransactionCode}).",
-                            tourInstance.Id,
-                            transaction.TransactionCode);
+                        if (tourInstance.Status == TourInstanceStatus.Draft && tourInstance.WantsCustomization)
+                        {
+                            _logger.LogInformation(
+                                "Private tour instance {InstanceId} requires customization. Keeping in Draft and notifying operator (transaction {TransactionCode}).",
+                                tourInstance.Id,
+                                transaction.TransactionCode);
+                            // TODO: Notify managers that a private custom tour requires their attention.
+                            // The notification logic has been deferred to a specialized event/handler.
+                        }
+                        else
+                        {
+                            tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                            await _tourInstanceRepository.Update(tourInstance);
+                            _logger.LogInformation(
+                                "Private tour instance {InstanceId} confirmed after full payment (transaction {TransactionCode}).",
+                                tourInstance.Id,
+                                transaction.TransactionCode);
 
-                        using var scope = _serviceProvider.CreateScope();
-                        var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
-                        await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                            using var scope = _serviceProvider.CreateScope();
+                            var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
+                            await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                        }
                     }
                 }
                 break;

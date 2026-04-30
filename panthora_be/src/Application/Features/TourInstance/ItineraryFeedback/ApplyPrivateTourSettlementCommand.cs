@@ -58,8 +58,8 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
         if (!isAdmin && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
-        if (booking.Status != BookingStatus.Paid)
-            return Error.Validation("PrivateTour.SettlementRequiresPaidBooking", "Booking phải đã thanh toán (Paid) trước khi quyết toán.");
+        if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Deposited && booking.Status != BookingStatus.Pending)
+            return Error.Validation("PrivateTour.SettlementRequiresPaidBooking", "Booking phải đã thanh toán (Paid/Deposited) hoặc đang chờ (Pending) trước khi quyết toán.");
 
         if (instance.FinalSellPrice is null)
             return Error.Validation("PrivateTour.FinalSellPriceMissing", "Cần set FinalSellPrice trước khi quyết toán.");

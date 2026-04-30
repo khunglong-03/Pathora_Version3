@@ -30,7 +30,9 @@ public sealed record CreateTourInstanceCommand(
     [property: JsonPropertyName("tourRequestId")] Guid? TourRequestId = null,
     [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls = null,
     [property: JsonPropertyName("translations")] Dictionary<string, TourInstanceTranslationData>? Translations = null,
-    [property: JsonPropertyName("activityAssignments")] List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("activityAssignments")] List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null,
+    [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization = false,
+    [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
 
 
@@ -184,6 +184,7 @@ function PassengerAdjusterCard({
 export function CheckoutRequestPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { user } = useAuth();
 
   /* ── State ─────────────────────────────────────────────── */
@@ -218,6 +219,8 @@ export function CheckoutRequestPage() {
   const isPrivateCustomCheckout = true; // Always true for checkout-request
   const isPrivateTopUpCheckout = false;
   const usePublicBookingCheckoutPrice = true;
+  /** True when the user ticked "I want to customize this schedule" — Draft only, no payment. */
+  const isCustomizationOnly = searchParams.get("wantsCustomization") === "true";
 
   const toastPaidSuccess = useCallback(() => {
     toast.success(
@@ -557,6 +560,12 @@ export function CheckoutRequestPage() {
 
   /* ── Handle Confirm Booking ────────────────────────────── */
   const handleConfirmBooking = async () => {
+    if (!user) {
+      toast.error(t("landing.checkout.loginRequired", "Vui lòng đăng nhập để tiếp tục."));
+      router.push(`/?login=true&next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -579,10 +588,20 @@ export function CheckoutRequestPage() {
             numberInfant: numberInfant,
             paymentMethod: 2,
             isFullPay: paymentOption === "full",
+            wantsCustomization: searchParams.get("wantsCustomization") === "true",
+            customizationNotes: searchParams.get("customizationNotes") || undefined,
           }));
           if (bookingResult && bookingResult.bookingId) {
             // We just need the bookingId to proceed to payment, requestPrivateTour returns price info including bookingId
             currentBookingId = bookingResult.bookingId;
+
+            // Stop here if the user wants customization; do not proceed to payment
+            const wantsCustomization = searchParams.get("wantsCustomization") === "true";
+            if (wantsCustomization) {
+              toast.success(t("landing.checkout.customRequestSubmitted", "Yêu cầu tuỳ chỉnh của bạn đã được gửi để duyệt!"));
+              router.push("/bookings");
+              return;
+            }
           } else {
             throw new Error("Failed to create private custom booking");
           }
@@ -685,12 +704,16 @@ export function CheckoutRequestPage() {
             className="mb-8 md:mb-12 mt-4"
           >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none mb-3">
-              {isPrivateTopUpCheckout
+              {isCustomizationOnly
+                ? t("landing.checkout.customRequestPageTitle", "Yêu cầu tuỳ chỉnh lịch trình")
+                : isPrivateTopUpCheckout
                 ? t("landing.checkout.privateTopUpPageTitle")
                 : t("landing.checkout.pageTitle", "Secure Checkout")}
             </h1>
             <p className="text-base text-slate-500 max-w-[65ch]">
-              {isPrivateTopUpCheckout
+              {isCustomizationOnly
+                ? t("landing.checkout.customRequestPageSubtitle", "Điền thông tin của bạn và gửi yêu cầu đến Manager để bắt đầu thiết kế lịch trình riêng.")
+                : isPrivateTopUpCheckout
                 ? t("landing.checkout.privateTopUpPageSubtitle")
                 : t("landing.checkout.pageSubtitle", "Complete your booking securely below.")}
             </p>
@@ -715,15 +738,17 @@ export function CheckoutRequestPage() {
             </div>
           ) : null}
 
-          {/* ── Step Indicator ────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="mb-8"
-          >
-            <StepIndicator normalizedStatus={normalizedStatus} />
-          </motion.div>
+          {/* ── Step Indicator (hidden for customization-only flow) ── */}
+          {!isCustomizationOnly && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+              className="mb-8"
+            >
+              <StepIndicator normalizedStatus={normalizedStatus} />
+            </motion.div>
+          )}
 
           {/* ── Two-column layout ─────────────────────────── */}
           <motion.div 
@@ -739,8 +764,8 @@ export function CheckoutRequestPage() {
                 </motion.div>
               )}
 
-              {/* Booking summary — shown when we have price data */}
-              {(isBookingIdPriceFetch || effectivePrice) && (
+              {/* Booking summary — shown when we have price data (hidden for customization-only) */}
+              {!isCustomizationOnly && (isBookingIdPriceFetch || effectivePrice) && (
                 <motion.div variants={itemVariants}>
                   <BookingSummarySection
                     checkoutPrice={effectivePrice}
@@ -776,7 +801,7 @@ export function CheckoutRequestPage() {
                 </motion.div>
               )}
 
-              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && (
+              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && !isCustomizationOnly && (
                 <motion.div variants={itemVariants}>
                   <TermsConditionsCard
                     agreeTerms={agreeTerms}
@@ -790,25 +815,112 @@ export function CheckoutRequestPage() {
 
             {/* ════════ RIGHT COLUMN (sidebar) ════════════ */}
             <motion.div variants={itemVariants} className="w-full xl:w-[420px] shrink-0 xl:sticky xl:top-8 flex flex-col gap-6 lg:gap-8 self-start">
-              <PaymentSidebar
-                transaction={transaction}
-                normalizedStatus={normalizedStatus}
-                onStatusChange={setNormalizedStatus}
-                paymentOption={paymentOption}
-                onPaymentOptionChange={setPaymentOption}
-                checkoutPrice={effectivePrice}
-                depositAmount={depositAmount}
-                totalPrice={totalPrice}
-                remainingBalance={remainingBalance}
-                canConfirm={canConfirm}
-                loading={loading || loadingTopUpTransaction}
-                onConfirmBooking={handleConfirmBooking}
-                customerEmail={customerEmail}
-                hidePayMethodToggle={false} // Allow 30% or 100% deposit for custom booking requests
-                privateCustomCheckout={isPrivateCustomCheckout}
-                privateTopUpCheckout={isPrivateTopUpCheckout}
-                t={t}
-              />
+              {isCustomizationOnly ? (
+                /* ── Customization-only sidebar: no payment, just submit request ── */
+                <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+                  <div className="p-8 md:p-10 flex flex-col gap-6">
+                    <div className="flex items-center gap-3">
+                      <div className="size-12 rounded-2xl bg-orange-100 flex items-center justify-center">
+                        <Icon icon="heroicons:pencil-square" className="size-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold tracking-tight text-slate-900">
+                          {t("landing.checkout.customRequestTitle", "Yêu cầu tuỳ chỉnh")}
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          {t("landing.checkout.customRequestSubtitle", "Không cần thanh toán ngay")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4 text-sm text-slate-700 leading-relaxed">
+                      <p className="font-medium text-slate-900 mb-1">
+                        {t("landing.checkout.customRequestFlowTitle", "Quy trình sẽ diễn ra:")}
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 text-xs text-slate-600">
+                        <li>{t("landing.checkout.customRequestStep1", "Yêu cầu của bạn được gửi đến Manager")}</li>
+                        <li>{t("landing.checkout.customRequestStep2", "Tour Operator sẽ chỉnh sửa lịch trình theo ý bạn")}</li>
+                        <li>{t("landing.checkout.customRequestStep3", "Bạn xem lại và trao đổi qua chat")}</li>
+                        <li>{t("landing.checkout.customRequestStep4", "Khi hài lòng, bạn xác nhận và thanh toán")}</li>
+                      </ol>
+                    </div>
+
+                    {searchParams.get("customizationNotes") && (
+                      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                          {t("landing.checkout.yourNotes", "Ghi chú của bạn")}
+                        </p>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                          {decodeURIComponent(searchParams.get("customizationNotes") || "")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Estimated Price (for reference only) */}
+                    {effectivePrice && (
+                      <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">{t("landing.checkout.estimatedPrice", "Giá ước tính")}</span>
+                          <span className="text-lg font-bold tracking-tight text-slate-900">
+                            {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(effectivePrice.totalPrice)}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          {t("landing.checkout.priceWillBeFinalized", "Giá chính thức sẽ được chốt sau khi Operator hoàn tất chỉnh sửa")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Submit Request Button */}
+                    <button
+                      type="button"
+                      disabled={loading || !hasCustomerInfo}
+                      onClick={handleConfirmBooking}
+                      className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
+                        !loading && hasCustomerInfo
+                          ? "bg-[#fa8b02] text-white hover:bg-[#e07d02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-400/20 cursor-pointer"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                      }`}
+                    >
+                      {loading ? (
+                        <>
+                          <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+                          <span>{t("landing.checkout.processing")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon icon="heroicons:paper-airplane" className="size-5" />
+                          <span>{t("landing.checkout.submitCustomRequest", "Gửi yêu cầu tuỳ chỉnh")}</span>
+                        </>
+                      )}
+                    </button>
+                    <p className="text-center text-[11px] font-medium text-slate-400 flex items-center justify-center gap-1.5">
+                      <Icon icon="heroicons:information-circle" className="size-3" />
+                      {t("landing.checkout.noPaymentRequired", "Bạn chưa cần thanh toán ở bước này")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <PaymentSidebar
+                  transaction={transaction}
+                  normalizedStatus={normalizedStatus}
+                  onStatusChange={setNormalizedStatus}
+                  paymentOption={paymentOption}
+                  onPaymentOptionChange={setPaymentOption}
+                  checkoutPrice={effectivePrice}
+                  depositAmount={depositAmount}
+                  totalPrice={totalPrice}
+                  remainingBalance={remainingBalance}
+                  canConfirm={canConfirm}
+                  loading={loading || loadingTopUpTransaction}
+                  onConfirmBooking={handleConfirmBooking}
+                  customerEmail={customerEmail}
+                  hidePayMethodToggle={false}
+                  privateCustomCheckout={isPrivateCustomCheckout}
+                  privateTopUpCheckout={isPrivateTopUpCheckout}
+                  t={t}
+                />
+              )}
 
               <SecureBookingCard />
             </motion.div>

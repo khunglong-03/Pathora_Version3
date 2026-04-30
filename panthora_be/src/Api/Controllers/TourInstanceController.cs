@@ -23,9 +23,10 @@ public class TourInstanceController : BaseApiController
         [FromQuery] TourInstanceStatus? status,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] bool excludePast = false)
+        [FromQuery] bool excludePast = false,
+        [FromQuery] bool? wantsCustomization = null)
     {
-        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, CurrentUserId));
+        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, wantsCustomization, CurrentUserId));
         return HandleResult(result);
     }
 

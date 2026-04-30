@@ -53,7 +53,7 @@ public sealed class TourInstanceServiceGetAllScopeTests
     public async Task GetAll_WhenUserIdInvalid_ShouldReturnEmptyAndNotQueryRepository()
     {
         _user.Id.Returns("not-a-guid");
-        var query = new GetAllTourInstancesQuery(null, null, 1, 10, false, "not-a-guid");
+        var query = new GetAllTourInstancesQuery(null, null, 1, 10, false, null, "not-a-guid");
 
         var result = await _sut.GetAll(query);
 
@@ -66,12 +66,14 @@ public sealed class TourInstanceServiceGetAllScopeTests
             Arg.Any<int>(),
             Arg.Any<int>(),
             Arg.Any<bool>(),
+            Arg.Any<bool?>(),
             Arg.Any<Guid?>(),
             Arg.Any<CancellationToken>());
         _ = _tourInstanceRepository.DidNotReceive().CountAll(
             Arg.Any<string?>(),
             Arg.Any<TourInstanceStatus?>(),
             Arg.Any<bool>(),
+            Arg.Any<bool?>(),
             Arg.Any<Guid?>(),
             Arg.Any<CancellationToken>());
     }
@@ -82,19 +84,19 @@ public sealed class TourInstanceServiceGetAllScopeTests
         var managerId = Guid.NewGuid();
         var entity = CreateEntity("Manager A instance");
         _user.Id.Returns(managerId.ToString());
-        _tourInstanceRepository.FindAll(null, null, 1, 10, false, managerId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindAll(null, null, 1, 10, false, null, managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourInstanceEntity> { entity });
-        _tourInstanceRepository.CountAll(null, null, false, managerId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountAll(null, null, false, null, managerId, Arg.Any<CancellationToken>())
             .Returns(1);
 
-        var result = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, managerId.ToString()));
+        var result = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, null, managerId.ToString()));
 
         Assert.False(result.IsError);
         Assert.Equal(1, result.Value.Total);
         Assert.Single(result.Value.Items);
         Assert.Equal("Manager A instance", result.Value.Items[0].Title);
-        await _tourInstanceRepository.Received(1).FindAll(null, null, 1, 10, false, managerId, Arg.Any<CancellationToken>());
-        await _tourInstanceRepository.Received(1).CountAll(null, null, false, managerId, Arg.Any<CancellationToken>());
+        await _tourInstanceRepository.Received(1).FindAll(null, null, 1, 10, false, null, managerId, Arg.Any<CancellationToken>());
+        await _tourInstanceRepository.Received(1).CountAll(null, null, false, null, managerId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -105,20 +107,20 @@ public sealed class TourInstanceServiceGetAllScopeTests
         var managerAEntity = CreateEntity("Manager A instance");
         var managerBEntity = CreateEntity("Manager B instance");
 
-        _tourInstanceRepository.FindAll(null, null, 1, 10, false, managerAId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindAll(null, null, 1, 10, false, null, managerAId, Arg.Any<CancellationToken>())
             .Returns(new List<TourInstanceEntity> { managerAEntity });
-        _tourInstanceRepository.CountAll(null, null, false, managerAId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountAll(null, null, false, null, managerAId, Arg.Any<CancellationToken>())
             .Returns(1);
-        _tourInstanceRepository.FindAll(null, null, 1, 10, false, managerBId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindAll(null, null, 1, 10, false, null, managerBId, Arg.Any<CancellationToken>())
             .Returns(new List<TourInstanceEntity> { managerBEntity });
-        _tourInstanceRepository.CountAll(null, null, false, managerBId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountAll(null, null, false, null, managerBId, Arg.Any<CancellationToken>())
             .Returns(1);
 
         _user.Id.Returns(managerAId.ToString());
-        var managerAResult = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, managerAId.ToString()));
+        var managerAResult = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, null, managerAId.ToString()));
 
         _user.Id.Returns(managerBId.ToString());
-        var managerBResult = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, managerBId.ToString()));
+        var managerBResult = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, null, managerBId.ToString()));
 
         Assert.False(managerAResult.IsError);
         Assert.False(managerBResult.IsError);
@@ -131,17 +133,17 @@ public sealed class TourInstanceServiceGetAllScopeTests
     {
         var managerId = Guid.NewGuid();
         _user.Id.Returns(managerId.ToString());
-        _tourInstanceRepository.FindAll(null, null, 1, 10, false, managerId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindAll(null, null, 1, 10, false, null, managerId, Arg.Any<CancellationToken>())
             .Returns(new List<TourInstanceEntity>());
-        _tourInstanceRepository.CountAll(null, null, false, managerId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.CountAll(null, null, false, null, managerId, Arg.Any<CancellationToken>())
             .Returns(0);
 
-        var result = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, managerId.ToString()));
+        var result = await _sut.GetAll(new GetAllTourInstancesQuery(null, null, 1, 10, false, null, managerId.ToString()));
 
         Assert.False(result.IsError);
         Assert.Equal(0, result.Value.Total);
         Assert.Empty(result.Value.Items);
-        await _tourInstanceRepository.Received(1).FindAll(null, null, 1, 10, false, managerId, Arg.Any<CancellationToken>());
+        await _tourInstanceRepository.Received(1).FindAll(null, null, 1, 10, false, null, managerId, Arg.Any<CancellationToken>());
     }
 
     private static TourInstanceEntity CreateEntity(string title)
@@ -186,6 +188,8 @@ public sealed class TourInstanceServiceGetAllScopeTests
             entity.MaxParticipation,
             entity.BasePrice,
             entity.Status.ToString(),
+            entity.WantsCustomization,
+            entity.CustomizationNotes,
             entity.InstanceType.ToString());
     }
 }

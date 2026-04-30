@@ -48,7 +48,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -77,6 +77,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         {
             var now = DateTimeOffset.UtcNow;
             query = query.Where(t => t.EndDate >= now);
+        }
+
+        if (wantsCustomization.HasValue)
+        {
+            query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
         }
 
         if (principalId.HasValue)
@@ -116,7 +121,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -138,6 +143,11 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         {
             var now = DateTimeOffset.UtcNow;
             query = query.Where(t => t.EndDate >= now);
+        }
+
+        if (wantsCustomization.HasValue)
+        {
+            query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
         }
 
         if (principalId.HasValue)

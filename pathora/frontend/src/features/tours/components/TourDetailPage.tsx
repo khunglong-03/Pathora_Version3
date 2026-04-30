@@ -23,6 +23,7 @@ import {
   ReviewsSection,
   ScheduledDeparturesSection,
 } from "@/features/shared/components";
+import { useAuth } from "@/contexts/AuthContext";
 import { TourDto, InsuranceTypeMap } from "@/types/tour";
 
 /* ── Motion & Style Constants ── */
@@ -86,6 +87,7 @@ export function TourDetailPage() {
   const { t, i18n } = useTranslation();
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const tourId = params?.id as string;
   
   const [apiLanguage, setApiLanguage] = useState(() =>
@@ -150,7 +152,9 @@ export function TourDetailPage() {
   const [departureDate, setDepartureDate] = useState("");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const handlePrivateBookingClick = () => {
+  const [wantsCustomization, setWantsCustomization] = useState(false);
+  const [customizationNotes, setCustomizationNotes] = useState("");
+  const handlePrivateBookingClick = async () => {
     if (!tourId || !selectedClassification?.id || !departureDate) return;
 
     const totalPax = adults + children + infants;
@@ -160,6 +164,40 @@ export function TourDetailPage() {
     );
     const startIso = new Date(`${departureDate}T00:00:00Z`).toISOString();
     const endIso = new Date(`${endDateStr}T00:00:00Z`).toISOString();
+
+    if (wantsCustomization) {
+      if (!user) {
+        toast.error(t("landing.checkout.loginRequired", "Vui lòng đăng nhập để tiếp tục."));
+        router.push(`/?login=true&next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        return;
+      }
+
+      try {
+        await tourService.requestPrivateTour(tourId, {
+          classificationId: selectedClassification.id,
+          startDate: startIso,
+          endDate: endIso,
+          maxParticipation: Math.max(1, totalPax),
+          customerName: user.fullName || "User",
+          customerPhone: (user as any).phoneNumber || "",
+          customerEmail: user.email || "",
+          numberAdult: adults,
+          numberChild: children,
+          numberInfant: infants,
+          paymentMethod: 2,
+          isFullPay: false,
+          wantsCustomization: true,
+          customizationNotes: customizationNotes,
+        });
+
+        toast.success(t("landing.tourDetail.customizationSuccess", "Yêu cầu tùy chỉnh của bạn đã được gửi thành công. Quản lý sẽ liên hệ lại với bạn để trao đổi thêm."));
+        router.push("/dashboard/booking-history");
+      } catch (err) {
+        console.error("Failed to request private tour customization", err);
+        toast.error(t("landing.tourDetail.customizationError", "Gửi yêu cầu thất bại. Vui lòng thử lại."));
+      }
+      return;
+    }
 
     let depositPct = 0.3;
     if (tour.depositPolicy?.depositValue) {
@@ -192,6 +230,8 @@ export function TourDetailPage() {
       instanceType: "private",
       classificationId: String(selectedClassification.id),
       maxParticipation: String(Math.max(1, totalPax)),
+      wantsCustomization: String(wantsCustomization),
+      customizationNotes: customizationNotes,
     });
     router.push(`/checkout-request?${params.toString()}`);
   };
@@ -665,6 +705,37 @@ export function TourDetailPage() {
                     <GuestRow label="Children" subtitle="< 12 years" value={children} onDecrement={() => setChildren(Math.max(0, children - 1))} onIncrement={() => setChildren(children + 1)} />
                     <GuestRow label="Infants" subtitle="< 2 years" value={infants} onDecrement={() => setInfants(Math.max(0, infants - 1))} onIncrement={() => setInfants(infants + 1)} showBorder={false} />
                   </div>
+                </div>
+
+                <div className="h-px bg-slate-200/60 mx-2" />
+
+                <div className="flex flex-col gap-2 px-2">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={wantsCustomization}
+                        onChange={(e) => setWantsCustomization(e.target.checked)}
+                      />
+                      <div className="w-5 h-5 border-2 rounded-md border-slate-300 bg-white peer-checked:bg-slate-900 peer-checked:border-slate-900 transition-colors group-hover:border-slate-400"></div>
+                      <Icon icon="heroicons:check" className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold text-slate-900 leading-none">{t("landing.tourDetail.customizeScheduleTitle", "I want to customize this schedule")}</span>
+                      <span className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{t("landing.tourDetail.customizeScheduleDesc", "Work with our operators to adjust itinerary, hotels, or activities. This will require manager approval.")}</span>
+                    </div>
+                  </label>
+                  {wantsCustomization && (
+                    <div className="mt-3 pl-8">
+                      <textarea
+                        placeholder={t("landing.tourDetail.customizationNotesPlaceholder", "Please describe what you would like to change (e.g., want a 5-star hotel, add a cooking class on day 2...)")}
+                        value={customizationNotes}
+                        onChange={(e) => setCustomizationNotes(e.target.value)}
+                        className="w-full min-h-[100px] p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#fa8b02]/20 focus:border-[#fa8b02] focus:bg-white transition-all outline-none resize-y placeholder:text-slate-400"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

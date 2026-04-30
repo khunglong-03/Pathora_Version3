@@ -28,7 +28,9 @@ public sealed record RequestPublicPrivateTourRequestDto(
     [property: JsonPropertyName("numberChild")] int NumberChild,
     [property: JsonPropertyName("numberInfant")] int NumberInfant,
     [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
-    [property: JsonPropertyName("isFullPay")] bool IsFullPay);
+    [property: JsonPropertyName("isFullPay")] bool IsFullPay,
+    [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization,
+    [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes);
 
 /// <summary>
 /// Public: tạo tour instance loại Private (Draft), booking liên kết, trả về giá checkout (100% khi IsFullPay).
@@ -46,7 +48,9 @@ public sealed record RequestPublicPrivateTourCommand(
     int NumberChild,
     int NumberInfant,
     PaymentMethod PaymentMethod,
-    bool IsFullPay) : ICommand<ErrorOr<CheckoutPriceResponse>>, ICacheInvalidator
+    bool IsFullPay,
+    bool WantsCustomization,
+    string? CustomizationNotes) : ICommand<ErrorOr<CheckoutPriceResponse>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [Application.Common.CacheKey.TourInstance];
 }
@@ -152,7 +156,9 @@ public sealed class RequestPublicPrivateTourCommandHandler(
             TourRequestId: null,
             ImageUrls: null,
             Translations: null,
-            ActivityAssignments: null);
+            ActivityAssignments: null,
+            WantsCustomization: request.WantsCustomization,
+            CustomizationNotes: request.CustomizationNotes);
 
         var instanceResult = await tourInstanceService.CreatePublicPrivateDraftAsync(createInstance);
         if (instanceResult.IsError)

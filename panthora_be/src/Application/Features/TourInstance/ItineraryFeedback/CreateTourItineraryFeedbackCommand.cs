@@ -33,7 +33,8 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
     IBookingRepository bookingRepository,
     ITourItineraryFeedbackRepository feedbackRepository,
     IOwnershipValidator ownershipValidator,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user)
     : IRequestHandler<CreateTourItineraryFeedbackCommand, ErrorOr<TourItineraryFeedbackDto>>
 {
     public async Task<ErrorOr<TourItineraryFeedbackDto>> Handle(
@@ -54,7 +55,8 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
             return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
         if (request.IsFromCustomer)
         {
@@ -73,7 +75,7 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
         }
         else
         {
-            if (!isManager && !isAdmin)
+            if (!isAssignedManager && !isAdmin && !isGlobalManager)
                 return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
         }
 

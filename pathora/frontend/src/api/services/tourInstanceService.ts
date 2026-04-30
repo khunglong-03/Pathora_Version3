@@ -229,7 +229,8 @@ export const tourInstanceService = {
     status?: string,
     pageNumber = 1,
     pageSize = 10,
-    excludePast = false
+    excludePast = false,
+    wantsCustomization?: boolean
   ) => {
     const params = new URLSearchParams();
     if (searchText) params.append("searchText", searchText);
@@ -237,6 +238,7 @@ export const tourInstanceService = {
     params.append("pageNumber", pageNumber.toString());
     params.append("pageSize", pageSize.toString());
     if (excludePast) params.append("excludePast", "true");
+    if (wantsCustomization !== undefined) params.append("wantsCustomization", wantsCustomization.toString());
 
     // Backend returns PaginatedList<T> mapped as { items: [], totalCount: 0 }
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };

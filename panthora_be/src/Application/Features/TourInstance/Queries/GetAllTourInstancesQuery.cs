@@ -16,12 +16,13 @@ public sealed record GetAllTourInstancesQuery(
     [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,
     [property: JsonPropertyName("excludePast")] bool ExcludePast = false,
+    [property: JsonPropertyName("wantsCustomization")] bool? WantsCustomization = null,
     [property: JsonPropertyName("currentUserId")] string? CurrentUserId = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
 {
     private string PrincipalCacheKey =>
         Guid.TryParse(CurrentUserId, out var principalId) ? principalId.ToString("D") : "anon";
 
-    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PrincipalCacheKey}:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{SearchText}";
+    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PrincipalCacheKey}:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{WantsCustomization}:{SearchText}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
 }
 

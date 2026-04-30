@@ -17,7 +17,8 @@ public sealed class ListTourItineraryFeedbackQueryHandler(
     ITourInstanceRepository tourInstanceRepository,
     IBookingRepository bookingRepository,
     ITourItineraryFeedbackRepository feedbackRepository,
-    IOwnershipValidator ownershipValidator)
+    IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user)
     : IRequestHandler<ListTourItineraryFeedbackQuery, ErrorOr<List<TourItineraryFeedbackDto>>>
 {
     public async Task<ErrorOr<List<TourItineraryFeedbackDto>>> Handle(
@@ -35,9 +36,10 @@ public sealed class ListTourItineraryFeedbackQueryHandler(
             return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
 
-        if (!isManager && !isAdmin)
+        if (!isAssignedManager && !isAdmin && !isGlobalManager)
         {
             var onInstance = await bookingRepository.GetByTourInstanceIdAsync(request.TourInstanceId, cancellationToken);
             var ownsBooking = onInstance.Exists(b => b.UserId == userId);

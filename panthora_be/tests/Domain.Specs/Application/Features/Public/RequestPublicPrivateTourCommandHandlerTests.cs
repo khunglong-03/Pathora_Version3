@@ -125,7 +125,9 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
             0,
             0,
             PaymentMethod.BankTransfer,
-            true);
+            true,
+            true,
+            null);
 
         var result = await CreateHandler().Handle(cmd, CancellationToken.None);
 
