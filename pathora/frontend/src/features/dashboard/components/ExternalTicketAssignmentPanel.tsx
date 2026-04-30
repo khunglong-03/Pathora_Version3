@@ -97,6 +97,14 @@ export default function ExternalTicketAssignmentPanel({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [confirmingAll, setConfirmingAll] = useState(false);
 
+  // Common details that apply to the whole group
+  const [commonDetails, setCommonDetails] = useState({
+    flightNumber: "",
+    seatClass: "Economy",
+    departureAt: "",
+    arrivalAt: "",
+  });
+
   const updateEntry = useCallback(
     (bookingId: string, field: keyof BookingTicketEntry, value: string) => {
       setEntries((prev) => ({
@@ -120,14 +128,14 @@ export default function ExternalTicketAssignmentPanel({
     };
 
     // Validate: flight number required
-    if (!entry.flightNumber.trim()) {
-      toast.error("Vui lòng nhập số hiệu chuyến bay/tàu");
+    if (!fullEntry.flightNumber.trim()) {
+      toast.error("Vui lòng nhập số hiệu chuyến bay/tàu ở phần thông tin chung");
       return;
     }
 
     try {
       setSavingId(bookingId);
-      await onSave?.(entry);
+      await onSave?.(fullEntry);
       setSavedIds((prev) => new Set([...prev, bookingId]));
       toast.success(`Đã lưu vé cho ${entry.customerName}`);
     } catch {
@@ -201,6 +209,81 @@ export default function ExternalTicketAssignmentPanel({
           />
           {savedIds.size}/{bookings.length} booking
         </span>
+      </div>
+
+      {/* Common Information Block */}
+      <div className="p-6 bg-blue-50/50 border border-blue-100 rounded-[1.5rem]">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon icon="heroicons:information-circle" className="size-5 text-blue-600" />
+          <h4 className="text-sm font-bold text-blue-900">Thông tin chung (Áp dụng cho cả đoàn)</h4>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div className="md:col-span-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              {transportType === "Flight"
+                ? "Chuyến bay *"
+                : transportType === "Train"
+                  ? "Chuyến tàu *"
+                  : "Tàu thuyền *"}
+            </label>
+            <input
+              type="text"
+              value={commonDetails.flightNumber}
+              onChange={(e) =>
+                setCommonDetails((prev) => ({ ...prev, flightNumber: e.target.value }))
+              }
+              placeholder={transportType === "Flight" ? "VN 123" : "SE1"}
+              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              Hạng ghế
+            </label>
+            <select
+              value={commonDetails.seatClass}
+              onChange={(e) =>
+                setCommonDetails((prev) => ({ ...prev, seatClass: e.target.value }))
+              }
+              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              {seatClassOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              Giờ đi
+            </label>
+            <input
+              type="datetime-local"
+              value={commonDetails.departureAt}
+              onChange={(e) =>
+                setCommonDetails((prev) => ({ ...prev, departureAt: e.target.value }))
+              }
+              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              Giờ đến
+            </label>
+            <input
+              type="datetime-local"
+              value={commonDetails.arrivalAt}
+              onChange={(e) =>
+                setCommonDetails((prev) => ({ ...prev, arrivalAt: e.target.value }))
+              }
+              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Booking list */}
