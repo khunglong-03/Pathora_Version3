@@ -1,10 +1,15 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { CurrencyCircleDollar, AirplaneTilt, XCircle, Receipt } from "@phosphor-icons/react";
 import { BookingDetail, PAYMENT_STATUS_COLOR } from "./BookingDetailData";
 import { formatCurrency, getPaymentStatusLabel } from "./BookingDetailHelpers";
 import { motion, AnimatePresence } from "framer-motion";
+import { paymentService } from "@/api/services/paymentService";
+import { handleApiError } from "@/utils/apiResponse";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BookingPaymentSummaryProps {
   booking: BookingDetail;
@@ -23,6 +28,41 @@ export function BookingPaymentSummary({
   showCancelBooking,
   getPaymentStatusLabel,
 }: BookingPaymentSummaryProps) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [creatingTransaction, setCreatingTransaction] = useState(false);
+
+  const handlePayRemaining = async () => {
+    if (creatingTransaction) return;
+    if (booking.remainingBalance <= 0) {
+      toast.info("No remaining balance to pay.");
+      return;
+    }
+
+    setCreatingTransaction(true);
+    try {
+      const result = await paymentService.createTransaction({
+        bookingId: booking.id,
+        type: "FullPayment",
+        amount: booking.remainingBalance,
+        paymentMethod: "BankTransfer",
+        paymentNote: `Remaining balance for ${booking.tourName}`,
+        createdBy: user?.email ?? user?.username ?? "customer",
+      });
+
+      if (result?.transactionCode) {
+        router.push(`/payment/${result.transactionCode}?bookingId=${booking.id}`);
+      } else {
+        toast.error("Failed to create payment transaction.");
+      }
+    } catch (error: unknown) {
+      const handledError = handleApiError(error);
+      console.error("Failed to create remaining payment transaction:", handledError.message);
+      toast.error(handledError.message || "Failed to create payment transaction.");
+    } finally {
+      setCreatingTransaction(false);
+    }
+  };
   return (
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
@@ -104,14 +144,22 @@ export function BookingPaymentSummary({
         <AnimatePresence>
           {showPayRemaining && (
             <motion.div key="btn-pay" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href={`/payment/${booking.pendingTransactionId}`}
-                className="group relative flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden"
+              <button
+                type="button"
+                onClick={handlePayRemaining}
+                disabled={creatingTransaction}
+                className={`group relative flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
+                  creatingTransaction
+                    ? "bg-emerald-400 cursor-not-allowed"
+                    : "bg-emerald-500 cursor-pointer"
+                }`}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <CurrencyCircleDollar weight="bold" className="size-5 relative z-10" />
-                <span className="relative z-10">Pay Remaining Balance</span>
-              </Link>
+                <span className="relative z-10">
+                  {creatingTransaction ? "Generating QR…" : "Pay Remaining Balance"}
+                </span>
+              </button>
             </motion.div>
           )}
 

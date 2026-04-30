@@ -8,7 +8,7 @@ export function usePaymentSignalR(transactionCode: string) {
   const [isConnected, setIsConnected] = useState(signalRService.isConnected);
 
   useEffect(() => {
-    if (!transactionCode) return;
+    if (!transactionCode || transactionCode === "null" || transactionCode === "undefined") return;
 
     let cancelled = false;
 

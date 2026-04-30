@@ -902,7 +902,7 @@ public class TourInstanceService(
                 desiredManagers.Add((userId, TourInstanceManagerRole.Guide));
             }
         }
-        
+
         if (request.ManagerUserIds?.Count > 0)
         {
             foreach (var userId in request.ManagerUserIds)
@@ -1572,7 +1572,8 @@ public class TourInstanceService(
         activity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
 
         await _tourInstanceRepository.Update(instance);
-        if (_unitOfWork != null) {
+        if (_unitOfWork != null)
+        {
             await _unitOfWork.SaveChangeAsync();
         }
 

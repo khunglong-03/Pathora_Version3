@@ -25,10 +25,10 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
         }
 
         // Check access: admin/manager can access all; guides can only access if assigned to this instance
-        var isAdminOrManager = user.Roles.Any(r => 
-            string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) || 
+        var isAdminOrManager = user.Roles.Any(r =>
+            string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
-            
+
         if (!isAdminOrManager)
         {
             if (!Guid.TryParse(user.Id, out var currentUserId))

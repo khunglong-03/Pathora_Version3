@@ -122,7 +122,7 @@ export const bookingService = {
 
   getBookingDetail: async (bookingId: string) => {
     const response = await api.get<ApiResponse<any>>(
-      `/api/booking-management/${bookingId}`,
+      `/api/public/bookings/${bookingId}`,
     );
     return extractResult<any>(response.data);
   },

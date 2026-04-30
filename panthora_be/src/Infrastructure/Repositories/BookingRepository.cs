@@ -22,10 +22,12 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     {
         return await _context.Bookings
             .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti.Thumbnail)
             .Include(b => b.User)
             .Include(b => b.TourRequest)
             .Include(b => b.Deposits)
             .Include(b => b.Payments)
+            .Include(b => b.PaymentTransactions)
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }

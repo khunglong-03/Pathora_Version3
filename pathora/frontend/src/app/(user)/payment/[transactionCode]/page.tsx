@@ -21,14 +21,16 @@ function buildPostPaymentLoginHref(bookingId: string | null | undefined): string
   return `/?${params.toString()}`;
 }
 
-function CheckoutUrlDisplay({ url, size = 200 }: { url: string; size?: number }) {
+function CheckoutUrlDisplay({ url, size = 240 }: { url: string; size?: number }) {
   return (
-    <img
-      src={url}
-      alt="Payment QR Code"
-      style={{ width: size, height: size }}
-      className="rounded-lg border-2 border-gray-200"
-    />
+    <div className="flex justify-center items-center bg-white p-4 rounded-[1.5rem] border border-slate-200/50 shadow-sm inline-block mx-auto">
+      <img
+        src={url}
+        alt="Payment QR Code"
+        style={{ width: size, height: size }}
+        className="rounded-xl"
+      />
+    </div>
   );
 }
 
@@ -38,12 +40,12 @@ function PaymentMethodBadge({ method }: { method: string | undefined }) {
   const isPayOS = method === "PayOS" || method === "PayOs";
   const label = isPayOS ? "PayOS" : method === "Sepay" || method === "SePay" ? "Sepay" : method;
   const badgeStyle = isPayOS
-    ? "bg-blue-100 text-blue-700 border-blue-200"
-    : "bg-green-100 text-green-700 border-green-200";
+    ? "bg-blue-50 text-blue-700 border-blue-200/50"
+    : "bg-emerald-50 text-emerald-700 border-emerald-200/50";
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}`}>
-      <Icon icon={isPayOS ? "heroicons:credit-card" : "heroicons:qr-code"} className="size-3" />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${badgeStyle}`}>
+      <Icon icon={isPayOS ? "heroicons:credit-card" : "heroicons:qr-code"} className="size-3.5" />
       {label}
     </span>
   );
@@ -88,10 +90,10 @@ function PaymentBreakdown({ bookingId }: { bookingId: string | null }) {
 
   if (loading) {
     return (
-      <div className="animate-pulse space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-1/2" />
-        <div className="h-4 bg-gray-200 rounded w-2/3" />
+      <div className="animate-pulse space-y-3 mt-4">
+        <div className="h-4 bg-slate-100 rounded w-3/4" />
+        <div className="h-4 bg-slate-100 rounded w-1/2" />
+        <div className="h-4 bg-slate-100 rounded w-2/3" />
       </div>
     );
   }
@@ -99,22 +101,22 @@ function PaymentBreakdown({ bookingId }: { bookingId: string | null }) {
   if (!breakdown) return null;
 
   return (
-    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2">
+    <div className="bg-[#f9fafb] rounded-[1rem] p-5 border border-slate-200/50 space-y-3 mt-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">{t("landing.payment.breakdown.subtotal")}</span>
-        <span className="text-sm font-medium text-slate-900">{formatCurrency(breakdown.subtotal)}</span>
+        <span className="text-sm text-slate-500">{t("landing.payment.breakdown.subtotal", "Subtotal")}</span>
+        <span className="text-sm font-medium text-slate-900 tabular-nums">{formatCurrency(breakdown.subtotal)}</span>
       </div>
       {breakdown.taxRate > 0 && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">
-            {t("landing.payment.breakdown.tax")} ({Math.round(breakdown.taxRate * 100)}% VAT)
+          <span className="text-sm text-slate-500">
+            {t("landing.payment.breakdown.tax", "Tax")} ({Math.round(breakdown.taxRate * 100)}% VAT)
           </span>
-          <span className="text-sm font-medium text-slate-900">{formatCurrency(breakdown.taxAmount)}</span>
+          <span className="text-sm font-medium text-slate-900 tabular-nums">{formatCurrency(breakdown.taxAmount)}</span>
         </div>
       )}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-        <span className="text-sm font-bold text-slate-900">{t("landing.payment.breakdown.total")}</span>
-        <span className="text-base font-bold text-orange-500">{formatCurrency(breakdown.totalPrice)}</span>
+      <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+        <span className="text-sm font-bold text-slate-900">{t("landing.payment.breakdown.total", "Total")}</span>
+        <span className="text-lg font-bold text-[#fa8b02] tabular-nums">{formatCurrency(breakdown.totalPrice)}</span>
       </div>
     </div>
   );
@@ -247,7 +249,7 @@ export default function PaymentStatusPage() {
   }, [transactionCode]);
 
   const fetchStatus = async () => {
-    if (!transactionCode) {
+    if (!transactionCode || transactionCode === "null" || transactionCode === "undefined") {
       setError("Missing transaction code");
       setLoading(false);
       return;
@@ -328,38 +330,32 @@ export default function PaymentStatusPage() {
 
   if (loading) {
     return (
-      <>
-
-        <main className="bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <Icon icon="heroicons:arrow-path" className="size-12 text-orange-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading payment status...</p>
-          </div>
-        </main>
-      </>
+      <main className="bg-[#f9fafb] min-h-[100dvh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <Icon icon="heroicons:arrow-path" className="size-12 text-[#fa8b02] animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 text-sm">{t("landing.payment.loading", "Loading payment status...")}</p>
+        </div>
+      </main>
     );
   }
 
   if (error || !transaction) {
     return (
-      <>
-
-        <main className="bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="max-w-md mx-auto p-6 text-center">
-            <div className="size-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon icon="heroicons:exclamation-triangle" className="size-8 text-red-500" />
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Payment Error</h1>
-            <p className="text-gray-600 mb-6">{error || "Unable to load transaction"}</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-              <Icon icon="heroicons:home" className="size-5" />
-              Back to Home
-            </Link>
+      <main className="bg-[#f9fafb] min-h-[100dvh] flex items-center justify-center py-8 md:py-10 px-4">
+        <div className="w-full max-w-xl bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center">
+          <div className="size-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Icon icon="heroicons:exclamation-triangle" className="size-10 text-red-500" />
           </div>
-        </main>
-      </>
+          <h1 className="text-3xl font-bold tracking-tighter text-slate-900 leading-tight mb-3">Payment Error</h1>
+          <p className="text-slate-500 leading-relaxed mb-8">{error || "Unable to load transaction"}</p>
+          <Link
+            href="/"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900">
+            <Icon icon="heroicons:home" className="size-5" />
+            Back to Home
+          </Link>
+        </div>
+      </main>
     );
   }
 
@@ -368,277 +364,255 @@ export default function PaymentStatusPage() {
     const effectiveBookingId = bookingId ?? transaction.bookingId ?? null;
 
     return (
-      <>
-
-        <main className="bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="max-w-md mx-auto p-6 text-center">
-            <div className="size-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon icon="heroicons:check-circle" className="size-12 text-green-500" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-            <p className="text-gray-600 mb-6">
-              Your payment of {formatCurrency(transaction.paidAmount || transaction.amount)} has been processed.
-            </p>
-
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-left mb-6">
-              <div className="grid gap-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Transaction Code</span>
-                  <span className="font-mono font-medium">{transaction.transactionCode}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Payment Method</span>
-                  <PaymentMethodBadge method={transaction.paymentMethod} />
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Paid Amount</span>
-                  <span className="font-medium text-green-600">{formatCurrency(transaction.paidAmount || transaction.amount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Payment Time</span>
-                  <span>{formatDate(transaction.paidAt)}</span>
-                </div>
-              </div>
-            </div>
-
-            {authLoading ? (
-              <div className="flex flex-col gap-3 animate-pulse">
-                <div className="h-12 w-full rounded-lg bg-gray-200" />
-                <div className="h-12 w-full rounded-lg bg-gray-100" />
-              </div>
-            ) : user != null ? (
-              <div className="flex gap-3">
-                {effectiveBookingId ? (
-                  <Link
-                    href={`/bookings/${effectiveBookingId}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
-                    View Booking
-                  </Link>
-                ) : (
-                  <Link
-                    href="/bookings"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                    <Icon icon="heroicons:clipboard-document-check" className="size-5" />
-                    My Bookings
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={() => router.push(buildPostPaymentLoginHref(effectiveBookingId))}
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                  <Icon icon="heroicons:arrow-right-on-rectangle" className="size-5" />
-                  {t("landing.checkout.loginToViewBookings")}
-                </button>
-                <Link
-                  href="/"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                  <Icon icon="heroicons:home" className="size-5" />
-                  {t("landing.checkout.backToHome")}
-                </Link>
-              </div>
-            )}
+      <main className="bg-[#f9fafb] min-h-[100dvh] flex flex-col items-center justify-center py-8 md:py-10 px-4">
+        <div className="w-full max-w-xl bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center">
+          <div className="size-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Icon icon="heroicons:check-circle" className="size-10 text-emerald-600" />
           </div>
-        </main>
+          <h1 className="text-4xl font-bold tracking-tighter text-slate-900 leading-tight mb-3">Payment Successful!</h1>
+          <p className="text-slate-500 leading-relaxed mb-8">
+            Your payment of <span className="font-semibold text-slate-900">{formatCurrency(transaction.paidAmount || transaction.amount)}</span> has been processed.
+          </p>
 
-      </>
+          <div className="bg-[#f9fafb] rounded-[1rem] border border-slate-200/50 p-5 text-left mb-8">
+            <div className="grid gap-4 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Transaction Code</span>
+                <span className="font-mono font-bold text-slate-900">{transaction.transactionCode}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Payment Method</span>
+                <PaymentMethodBadge method={transaction.paymentMethod} />
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Paid Amount</span>
+                <span className="font-bold text-emerald-600 text-base tabular-nums">{formatCurrency(transaction.paidAmount || transaction.amount)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Payment Time</span>
+                <span className="font-medium text-slate-900">{formatDate(transaction.paidAt)}</span>
+              </div>
+            </div>
+          </div>
+
+          {authLoading ? (
+            <div className="flex flex-col gap-3 animate-pulse">
+              <div className="h-14 w-full rounded-xl bg-slate-100" />
+              <div className="h-14 w-full rounded-xl bg-slate-50" />
+            </div>
+          ) : user != null ? (
+            <div className="flex gap-3">
+              {effectiveBookingId ? (
+                <Link
+                  href={`/bookings/${effectiveBookingId}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#fa8b02] text-white rounded-xl font-semibold hover:bg-orange-600 transition-all active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02]">
+                  <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+                  View Booking
+                </Link>
+              ) : (
+                <Link
+                  href="/bookings"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#fa8b02] text-white rounded-xl font-semibold hover:bg-orange-600 transition-all active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02]">
+                  <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+                  My Bookings
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => router.push(buildPostPaymentLoginHref(effectiveBookingId))}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#fa8b02] text-white rounded-xl font-semibold hover:bg-orange-600 transition-all active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02]">
+                <Icon icon="heroicons:arrow-right-on-rectangle" className="size-5" />
+                {t("landing.checkout.loginToViewBookings", "Login to View Bookings")}
+              </button>
+              <Link
+                href="/"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-200">
+                <Icon icon="heroicons:home" className="size-5" />
+                {t("landing.checkout.backToHome", "Back to Home")}
+              </Link>
+            </div>
+          )}
+        </div>
+      </main>
     );
   }
 
   // Expired state
   if (status === "expired") {
     return (
-      <>
-
-        <main className="bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="max-w-md mx-auto p-6 text-center">
-            <div className="size-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon icon="heroicons:clock" className="size-12 text-gray-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Expired</h1>
-            <p className="text-gray-600 mb-6">
-              The payment window has expired. Please create a new payment to complete your booking.
-            </p>
-
-            <div className="flex gap-3">
-              <Link
-                href="/"
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                Back to Home
-              </Link>
-              {bookingId && (
-                <Link
-                  href={`/checkout?bookingId=${bookingId}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                  Try Again
-                </Link>
-              )}
-            </div>
+      <main className="bg-[#f9fafb] min-h-[100dvh] flex items-center justify-center py-8 md:py-10 px-4">
+        <div className="w-full max-w-xl bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center">
+          <div className="size-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Icon icon="heroicons:clock" className="size-10 text-slate-400" />
           </div>
-        </main>
+          <h1 className="text-3xl font-bold tracking-tighter text-slate-900 leading-tight mb-3">Payment Expired</h1>
+          <p className="text-slate-500 leading-relaxed mb-8">
+            The payment window has expired. Please create a new payment to complete your booking.
+          </p>
 
-      </>
+          <div className="flex gap-3">
+            <Link
+              href="/"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all active:scale-[0.98]">
+              Back to Home
+            </Link>
+            {bookingId && (
+              <Link
+                href={`/checkout?bookingId=${bookingId}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all active:scale-[0.98]">
+                Try Again
+              </Link>
+            )}
+          </div>
+        </div>
+      </main>
     );
   }
 
   // Failed state
   if (status === "failed") {
     return (
-      <>
-
-        <main className="bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="max-w-md mx-auto p-6 text-center">
-            <div className="size-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon icon="heroicons:x-circle" className="size-12 text-red-500" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Failed</h1>
-            <p className="text-gray-600 mb-6">
-              There was an issue processing your payment. Please try again.
-            </p>
-
-            <div className="flex gap-3">
-              <Link
-                href="/"
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                Back to Home
-              </Link>
-              {bookingId && (
-                <Link
-                  href={`/checkout?bookingId=${bookingId}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                  Try Again
-                </Link>
-              )}
-            </div>
+      <main className="bg-[#f9fafb] min-h-[100dvh] flex items-center justify-center py-8 md:py-10 px-4">
+        <div className="w-full max-w-xl bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 md:p-10 text-center">
+          <div className="size-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Icon icon="heroicons:x-circle" className="size-10 text-red-500" />
           </div>
-        </main>
+          <h1 className="text-3xl font-bold tracking-tighter text-slate-900 leading-tight mb-3">Payment Failed</h1>
+          <p className="text-slate-500 leading-relaxed mb-8">
+            There was an issue processing your payment. Please try again.
+          </p>
 
-      </>
+          <div className="flex gap-3">
+            <Link
+              href="/"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all active:scale-[0.98]">
+              Back to Home
+            </Link>
+            {bookingId && (
+              <Link
+                href={`/checkout?bookingId=${bookingId}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all active:scale-[0.98]">
+                Try Again
+              </Link>
+            )}
+          </div>
+        </div>
+      </main>
     );
   }
 
   // Pending/Processing state
   return (
-    <>
-
-      <main className="bg-gray-50 min-h-screen">
-        <div className="max-w-lg mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Complete Your Payment</h1>
-            <div className="flex items-center justify-center gap-2 mt-1">
-              <p className="text-gray-600">Pay {formatCurrency(transaction.amount)}</p>
-              <PaymentMethodBadge method={transaction.paymentMethod} />
-            </div>
-          </div>
-
-          {/* Transaction Info Card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-            <div className="p-5">
-              <div className="grid gap-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Transaction Code</span>
-                  <span className="font-mono font-medium">{transaction.transactionCode}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Amount</span>
-                  <span className="font-bold text-orange-600">{formatCurrency(transaction.amount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Payment Content</span>
-                  <span className="font-medium">{transaction.paymentNote}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Breakdown */}
-          {bookingId && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-              <div className="p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">Payment Breakdown</h3>
-                <PaymentBreakdown bookingId={bookingId} />
-              </div>
-            </div>
-          )}
-
-          {/* QR Code Card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-            <div className="p-6 text-center">
-              {transaction.checkoutUrl ? (
-                <CheckoutUrlDisplay url={transaction.checkoutUrl} size={220} />
-              ) : (
-                <div className="size-[220px] bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
-                  <Icon icon="heroicons:qr-code" className="size-16 text-gray-400" />
-                </div>
-              )}
-
-              <p className="text-xs text-gray-500 mt-4">
-                Open your banking app and scan the QR code
-              </p>
-            </div>
-          </div>
-
-          <PaymentBeneficiaryCard transaction={transaction} className="mb-6" />
-
-          {/* Countdown Timer */}
-          {countdown > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center mb-6">
-              <p className="text-sm text-orange-700">
-                Payment expires in: <span className="font-bold text-lg">{formatCountdown(countdown)}</span>
-              </p>
-            </div>
-          )}
-
-          {/* Rate Limit Message */}
-          {rateLimitMessage && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center mb-6">
-              <p className="text-sm text-amber-700">{rateLimitMessage}</p>
-            </div>
-          )}
-
-          {/* Refresh Button */}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshCooldown > 0 || isTerminal}
-            className={`w-full h-12 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors mb-6 ${
-              refreshCooldown > 0 || isTerminal
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-orange-500 text-white hover:bg-orange-600 cursor-pointer"
-            }`}>
-            <Icon icon="heroicons:arrow-path" className={`size-4 ${refreshCooldown > 0 ? "animate-spin" : ""}`} />
-            {refreshCooldown > 0
-              ? t("landing.payment.retryAfterMessage", { seconds: refreshCooldown })
-              : t("landing.payment.refreshButton")}
-          </button>
-
-          {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-              <Icon icon="heroicons:information-circle" className="size-5" />
-              Payment Instructions
-            </h3>
-            <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-              <li>Open your mobile banking app</li>
-              <li>Select &ldquo;Scan QR&rdquo; and scan the code above</li>
-              <li>Verify the payment amount and content</li>
-              <li>Confirm the payment</li>
-              <li>Click &ldquo;Tôi đã chuyển khoản&rdquo; above to verify immediately</li>
-            </ol>
-          </div>
-
-          {/* Status Indicator */}
-          <div className="flex items-center justify-center gap-2 text-gray-600">
-            <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-            <span className="text-sm">Waiting for payment...</span>
+    <main className="bg-[#f9fafb] min-h-[100dvh] flex flex-col items-center justify-center py-8 md:py-10 px-4">
+      <div className="w-full max-w-xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold tracking-tighter text-slate-900 leading-tight mb-3">Complete Your Payment</h1>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <p className="text-slate-500 text-lg">Pay <span className="font-bold text-slate-900">{formatCurrency(transaction.amount)}</span></p>
+            <PaymentMethodBadge method={transaction.paymentMethod} />
           </div>
         </div>
-      </main>
 
-    </>
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden mb-6">
+          <div className="p-6 md:p-8">
+            <div className="grid gap-4 text-sm mb-8 pb-8 border-b border-slate-100">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Transaction Code</span>
+                <span className="font-mono font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200/50">{transaction.transactionCode}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Amount</span>
+                <span className="font-bold text-lg tabular-nums text-emerald-600">{formatCurrency(transaction.amount)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Content</span>
+                <span className="font-medium text-slate-900 bg-[#fa8b02]/10 text-orange-800 px-3 py-1 rounded-lg font-mono text-xs">{transaction.paymentNote}</span>
+              </div>
+            </div>
+
+            {/* QR Code Card */}
+            <div className="text-center mb-8">
+              {transaction.checkoutUrl ? (
+                <CheckoutUrlDisplay url={transaction.checkoutUrl} size={240} />
+              ) : (
+                <div className="size-[240px] bg-slate-50 rounded-[1.5rem] border border-slate-200/50 flex items-center justify-center mx-auto">
+                  <Icon icon="heroicons:qr-code" className="size-16 text-slate-300" />
+                </div>
+              )}
+              <p className="text-sm text-slate-500 mt-5 leading-relaxed max-w-[40ch] mx-auto">
+                Open your banking app and scan the QR code to complete your booking securely.
+              </p>
+            </div>
+
+            {/* Countdown Timer */}
+            {countdown > 0 && (
+              <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 text-center mb-6">
+                <p className="text-sm text-orange-800">
+                  Payment expires in: <span className="font-bold tabular-nums text-lg ml-1">{formatCountdown(countdown)}</span>
+                </p>
+              </div>
+            )}
+
+            {/* Rate Limit Message */}
+            {rateLimitMessage && (
+              <div className="bg-amber-50 border border-amber-200/50 rounded-2xl p-4 text-center mb-6">
+                <p className="text-sm font-medium text-amber-800">{rateLimitMessage}</p>
+              </div>
+            )}
+
+            {/* Refresh Button */}
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshCooldown > 0 || isTerminal}
+              className={`w-full h-14 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all ${
+                refreshCooldown > 0 || isTerminal
+                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  : "bg-[#fa8b02] text-white hover:bg-orange-600 active:scale-[0.98] shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fa8b02] cursor-pointer"
+              }`}>
+              <Icon icon="heroicons:arrow-path" className={`size-5 ${refreshCooldown > 0 ? "animate-spin" : ""}`} />
+              {refreshCooldown > 0
+                ? t("landing.payment.retryAfterMessage", { seconds: refreshCooldown })
+                : t("landing.payment.refreshButton", "I have transferred the money")}
+            </button>
+
+            {/* Payment Breakdown */}
+            {bookingId && (
+              <div className="mt-8 pt-8 border-t border-slate-100">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4">Payment Breakdown</h3>
+                <PaymentBreakdown bookingId={bookingId} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <PaymentBeneficiaryCard transaction={transaction} className="mb-6 border-slate-200/50 shadow-sm" />
+
+        {/* Instructions */}
+        <div className="bg-[#f9fafb] border border-slate-200/50 rounded-[1.5rem] p-6 md:p-8 mb-8">
+          <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2 text-base">
+            <Icon icon="heroicons:information-circle" className="size-5 text-slate-400" />
+            Payment Instructions
+          </h3>
+          <ol className="text-sm text-slate-600 space-y-3 list-decimal list-inside leading-relaxed">
+            <li>Open your mobile banking app</li>
+            <li>Select <strong>&ldquo;Scan QR&rdquo;</strong> and scan the code above</li>
+            <li>Verify the payment amount and content exactly</li>
+            <li>Confirm the payment in your app</li>
+            <li>Click <strong>&ldquo;I have transferred&rdquo;</strong> above to verify immediately</li>
+          </ol>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="flex items-center justify-center gap-2 text-slate-500 mb-8">
+          <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+          <span className="text-sm font-medium">Waiting for payment...</span>
+        </div>
+      </div>
+    </main>
   );
 }

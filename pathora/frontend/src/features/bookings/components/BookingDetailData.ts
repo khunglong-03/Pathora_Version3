@@ -35,7 +35,7 @@ export interface BookingDetail {
   description: string;
   highlights: string[];
   importantInfo: string[];
-  pendingTransactionId?: string;
+  pendingTransactionCode?: string;
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */

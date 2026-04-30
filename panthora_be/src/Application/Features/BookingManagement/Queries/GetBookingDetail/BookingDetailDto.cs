@@ -27,5 +27,5 @@ public class BookingDetailDto
     public string Description { get; set; } = string.Empty;
     public List<string> Highlights { get; set; } = [];
     public List<string> ImportantInfo { get; set; } = [];
-    public Guid? PendingTransactionId { get; set; }
+    public string? PendingTransactionCode { get; set; }
 }

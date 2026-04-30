@@ -146,49 +146,11 @@ public class PaymentService : IPaymentService
 
         var paymentNoteWithRef = $"{transactionCode}|{refCode}|{paymentNote}";
 
-        // Determine manager's bank account from ManagerBankAccountEntity
-        string? managerAccountNumber = null;
-        string? managerBankCode = null;
-        string? managerAccountName = null;
-        string? beneficiaryBank = null;
-
-        var managerId = await GetPrimaryManagerIdForTourInstanceAsync(booking.TourInstanceId);
-        if (managerId.HasValue)
-        {
-            // Try default account first, then first verified, then any account
-            var bankAccount = await _managerBankAccountRepository.GetDefaultByUserIdAsync(managerId.Value);
-            if (bankAccount is null)
-            {
-                var allAccounts = await _managerBankAccountRepository.GetByUserIdAsync(managerId.Value);
-                bankAccount = allAccounts.FirstOrDefault(a => a.IsVerified) ?? allAccounts.FirstOrDefault();
-            }
-
-            if (bankAccount is not null && !string.IsNullOrWhiteSpace(bankAccount.BankAccountNumber) && !string.IsNullOrWhiteSpace(bankAccount.BankCode))
-            {
-                managerAccountNumber = bankAccount.BankAccountNumber;
-                managerBankCode = bankAccount.BankCode;
-                managerAccountName = bankAccount.BankAccountName;
-                beneficiaryBank = bankAccount.BankShortName ?? bankAccount.BankCode;
-                _logger.LogInformation("Using manager {ManagerId} bank account {AccountId} for payment transaction", managerId.Value, bankAccount.Id);
-            }
-            else
-            {
-                _logger.LogWarning("Manager {ManagerId} for tour instance {TourInstanceId} has no valid bank account; using default config", managerId.Value, booking.TourInstanceId);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("No manager found for tour instance {TourInstanceId}; using default config", booking.TourInstanceId);
-        }
-
-        // Fallback to VietQR config if not set
-        if (string.IsNullOrWhiteSpace(managerAccountNumber) || string.IsNullOrWhiteSpace(managerBankCode))
-        {
-            managerAccountNumber = _vietQrAccountNo;
-            managerBankCode = _vietQrBankBin;
-            managerAccountName = _vietQrAccountName;
-            beneficiaryBank = _sepayBankCode;
-        }
+        // Sepay receiving account — single source from VietQR config (matches Sepay webhook config).
+        var managerAccountNumber = _vietQrAccountNo;
+        var managerBankCode = _vietQrBankBin;
+        var managerAccountName = _vietQrAccountName;
+        var beneficiaryBank = string.IsNullOrWhiteSpace(_sepayBankCode) ? _vietQrBankBin : _sepayBankCode;
 
         var transaction = PaymentTransactionEntity.Create(
             bookingId: bookingId,

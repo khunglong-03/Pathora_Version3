@@ -228,7 +228,7 @@ public sealed class CreatePrivateTourInitialPaymentCommandHandlerTests
         Assert.False(result.IsError);
         Assert.Equal(expectedAmount, result.Value.Amount);
         Assert.Equal(TransactionType.Deposit, result.Value.Type);
-        
+
         await _paymentService.Received(1).CreatePaymentTransactionAsync(
             bookingId,
             TransactionType.Deposit,

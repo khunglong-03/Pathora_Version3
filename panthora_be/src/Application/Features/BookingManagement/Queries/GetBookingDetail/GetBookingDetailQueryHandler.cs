@@ -70,11 +70,11 @@ public class GetBookingDetailQueryHandler(
             TotalAmount = booking.TotalPrice,
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,
-            Image = "/assets/images/tours/placeholder.png",
+            Image = booking.TourInstance?.Thumbnail?.PublicURL ?? "/assets/images/tours/placeholder.png",
             Description = booking.TourInstance?.TourName ?? string.Empty,
             Highlights = [],
             ImportantInfo = [],
-            PendingTransactionId = pendingTransaction?.Id
+            PendingTransactionCode = pendingTransaction?.TransactionCode
         };
 
         return dto;

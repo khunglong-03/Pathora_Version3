@@ -235,7 +235,7 @@ export const paymentService = {
   ): Promise<CheckoutPriceResponse | null> => {
     const url = opts?.usePublicBookingEndpoint
       ? API_ENDPOINTS.PUBLIC_BOOKING.GET_CHECKOUT_PRICE(bookingId)
-      : API_ENDPOINTS.BOOKING.GET_CHECKOUT_PRICE(bookingId);
+      : API_ENDPOINTS.BOOKING.GET_CUSTOMER_CHECKOUT_PRICE(bookingId);
     const response = await api.get<ApiResponse<unknown>>(url);
     const raw = extractResult<unknown>(response.data);
     return normalizeCheckoutPriceResponse(raw);
