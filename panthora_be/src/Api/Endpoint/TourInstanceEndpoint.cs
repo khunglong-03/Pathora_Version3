@@ -19,6 +19,10 @@ public static class TourInstanceEndpoint
     public const string TicketImages = "{instanceId:guid}/activities/{activityId:guid}/ticket-images";
     public const string TicketImageById = "{instanceId:guid}/activities/{activityId:guid}/ticket-images/{imageId:guid}";
 
+    public const string BookingTickets = "{instanceId:guid}/activities/{activityId:guid}/booking-tickets";
+
+    public const string BookingRoomAssignments = "{instanceId:guid}/activities/{activityId:guid}/booking-room-assignments";
+
     /// <summary>Co-design feedback theo ngày (private tour).</summary>
     public const string DayFeedback = "{id:guid}/days/{dayId:guid}/itinerary-feedback";
     public const string DayFeedbackById = "{id:guid}/days/{dayId:guid}/itinerary-feedback/{feedbackId:guid}";

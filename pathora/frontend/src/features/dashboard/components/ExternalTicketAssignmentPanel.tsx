@@ -16,6 +16,7 @@ import React, { useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Icon } from "@/components/ui";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
+import { tourInstanceService } from "@/api/services/tourInstanceService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,12 @@ interface Props {
   onConfirmAll?: () => Promise<void>;
   /** Đang loading */
   loading?: boolean;
+  /** Ngày diễn ra hoạt động (YYYY-MM-DD) */
+  activityDate?: string;
+  /** ID của activity */
+  activityId?: string;
+  /** ID của tour instance để gọi API */
+  instanceId?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -70,14 +77,24 @@ export default function ExternalTicketAssignmentPanel({
   onSave,
   onConfirmAll,
   loading = false,
+  activityDate,
+  activityId,
+  instanceId,
 }: Props) {
+  const [dataLoading, setDataLoading] = useState(false);
+  const [commonDetails, setCommonDetails] = useState({
+    flightNumber: "",
+    seatClass: "Economy",
+    departureAt: "",
+    arrivalAt: "",
+  });
   // Local state: form entries per booking
   const [entries, setEntries] = useState<Record<string, BookingTicketEntry>>(() => {
     const init: Record<string, BookingTicketEntry> = {};
     for (const b of bookings) {
       const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0);
-      init[b.id] = {
-        bookingId: b.id,
+      init[b.id.toLowerCase()] = {
+        bookingId: b.id.toLowerCase(),
         customerName: b.customerName,
         requiredSeats,
         infantCount: b.numberInfant ?? 0,
@@ -97,46 +114,130 @@ export default function ExternalTicketAssignmentPanel({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [confirmingAll, setConfirmingAll] = useState(false);
 
-  // Common details that apply to the whole group
-  const [commonDetails, setCommonDetails] = useState({
-    flightNumber: "",
-    seatClass: "Economy",
-    departureAt: "",
-    arrivalAt: "",
-  });
+  // Khôi phục từ DB khi mount
+  React.useEffect(() => {
+    if (!activityId || !instanceId) return;
+    let isMounted = true;
+    const fetchTickets = async () => {
+      try {
+        setDataLoading(true);
+        const fetched = await tourInstanceService.getBookingTickets(instanceId, activityId);
+        if (isMounted && fetched && fetched.length > 0) {
+          const loadedEntries: Record<string, Partial<BookingTicketEntry>> = {};
+          const loadedIds = new Set<string>();
 
+          console.log("Fetched tickets:", fetched);
+          let firstTicket = null;
+          for (const t of fetched) {
+            console.log("Processing ticket:", t);
+            if (!firstTicket) firstTicket = t;
+            // Try different possible property names for the booking ID
+            const rawId = t.bookingId || t.BookingId || t.id || t.Id;
+            if (!rawId) {
+              console.warn("Ticket does not have a recognizable booking ID!", t);
+              continue;
+            }
+            const lowerBookingId = String(rawId).toLowerCase();
+            loadedEntries[lowerBookingId] = {
+              seatNumbers: t.seatNumbers || t.SeatNumbers || "",
+              eTicketNumbers: t.eTicketNumbers || t.ETicketNumbers || "",
+              note: t.note || t.Note || "",
+            };
+            loadedIds.add(lowerBookingId);
+          }
+
+          if (firstTicket) {
+            setCommonDetails({
+              flightNumber: firstTicket.flightNumber || firstTicket.FlightNumber || "",
+              seatClass: firstTicket.seatClass || firstTicket.SeatClass || "Economy",
+              departureAt: (firstTicket.departureAt || firstTicket.DepartureAt) ? new Date(firstTicket.departureAt || firstTicket.DepartureAt).toISOString().slice(0, 16) : "",
+              arrivalAt: (firstTicket.arrivalAt || firstTicket.ArrivalAt) ? new Date(firstTicket.arrivalAt || firstTicket.ArrivalAt).toISOString().slice(0, 16) : "",
+            });
+          }
+
+          console.log("Loaded entries map:", loadedEntries);
+
+          setEntries((prev) => {
+            const next = { ...prev };
+            console.log("Current entries:", next);
+            for (const bId of Object.keys(loadedEntries)) {
+              if (next[bId]) {
+                console.log(`Applying data for booking ${bId}`);
+                next[bId] = { ...next[bId], ...loadedEntries[bId] };
+              } else {
+                console.warn(`Booking ID ${bId} not found in existing entries!`);
+              }
+            }
+            return next;
+          });
+          setSavedIds((prev) => new Set([...prev, ...loadedIds]));
+        }
+      } catch (error) {
+        console.error("Failed to load tickets", error);
+      } finally {
+        if (isMounted) setDataLoading(false);
+      }
+    };
+    void fetchTickets();
+    return () => {
+      isMounted = false;
+    };
+  }, [activityId, instanceId]);
+
+  
   const updateEntry = useCallback(
     (bookingId: string, field: keyof BookingTicketEntry, value: string) => {
       setEntries((prev) => ({
         ...prev,
-        [bookingId]: { ...prev[bookingId], [field]: value },
+        [bookingId.toLowerCase()]: { ...prev[bookingId.toLowerCase()], [field]: value },
       }));
     },
     []
   );
 
   const handleSave = async (bookingId: string) => {
-    const entry = entries[bookingId];
+    const entry = entries[bookingId.toLowerCase()];
     if (!entry) return;
 
-    const fullEntry = {
-      ...entry,
-      flightNumber: commonDetails.flightNumber,
-      seatClass: commonDetails.seatClass,
-      departureAt: commonDetails.departureAt,
-      arrivalAt: commonDetails.arrivalAt,
-    };
-
     // Validate: flight number required
-    if (!fullEntry.flightNumber.trim()) {
-      toast.error("Vui lòng nhập số hiệu chuyến bay/tàu ở phần thông tin chung");
+    if (!commonDetails.flightNumber.trim()) {
+      toast.error("Vui lòng nhập số hiệu chuyến bay/tàu ở Thông tin chung");
       return;
+    }
+
+    if (!commonDetails.departureAt || !commonDetails.arrivalAt) {
+      toast.error("Vui lòng nhập đầy đủ giờ đi và giờ đến ở Thông tin chung");
+      return;
+    }
+
+    const depDate = new Date(commonDetails.departureAt);
+    const arrDate = new Date(commonDetails.arrivalAt);
+
+    if (arrDate <= depDate) {
+      toast.error("Giờ đến phải lớn hơn giờ đi");
+      return;
+    }
+
+    if (activityDate) {
+      const actDate = new Date(activityDate);
+      actDate.setHours(0, 0, 0, 0);
+      if (depDate < actDate) {
+        toast.error(`Giờ khởi hành không được trước ngày hoạt động diễn ra (${new Date(activityDate).toLocaleDateString("vi-VN")})`);
+        return;
+      }
     }
 
     try {
       setSavingId(bookingId);
+      const fullEntry = {
+        ...entry,
+        flightNumber: commonDetails.flightNumber,
+        seatClass: commonDetails.seatClass,
+        departureAt: commonDetails.departureAt,
+        arrivalAt: commonDetails.arrivalAt,
+      };
       await onSave?.(fullEntry);
-      setSavedIds((prev) => new Set([...prev, bookingId]));
+      setSavedIds((prev) => new Set([...prev, bookingId.toLowerCase()]));
       toast.success(`Đã lưu vé cho ${entry.customerName}`);
     } catch {
       toast.error("Lưu vé thất bại. Vui lòng thử lại.");
@@ -146,7 +247,7 @@ export default function ExternalTicketAssignmentPanel({
   };
 
   const handleConfirmAll = async () => {
-    const allSaved = bookings.every((b) => savedIds.has(b.id));
+    const allSaved = bookings.every((b) => savedIds.has(b.id.toLowerCase()));
     if (!allSaved) {
       toast.warning("Vui lòng lưu vé cho tất cả booking trước khi xác nhận");
       return;
@@ -162,13 +263,13 @@ export default function ExternalTicketAssignmentPanel({
     }
   };
 
-  const allSaved = bookings.every((b) => savedIds.has(b.id));
+  const allSaved = bookings.every((b) => savedIds.has(b.id.toLowerCase()));
 
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <div className="flex items-center gap-3 p-4 text-stone-500 text-sm">
         <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
-        Đang tải danh sách booking...
+        Đang tải danh sách vé...
       </div>
     );
   }
@@ -211,76 +312,57 @@ export default function ExternalTicketAssignmentPanel({
         </span>
       </div>
 
-      {/* Common Information Block */}
-      <div className="p-6 bg-blue-50/50 border border-blue-100 rounded-[1.5rem]">
-        <div className="flex items-center gap-2 mb-4">
-          <Icon icon="heroicons:information-circle" className="size-5 text-blue-600" />
-          <h4 className="text-sm font-bold text-blue-900">Thông tin chung (Áp dụng cho cả đoàn)</h4>
-        </div>
+      
+      {/* Thông tin chuyến đi (Common) */}
+      <div className="p-6 bg-stone-50 border-t border-stone-100">
+        <h4 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
+          <Icon icon="heroicons:paper-airplane" className="size-4 text-stone-500" />
+          Thông tin chung cho cả đoàn
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           <div className="md:col-span-1">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-              {transportType === "Flight"
-                ? "Chuyến bay *"
-                : transportType === "Train"
-                  ? "Chuyến tàu *"
-                  : "Tàu thuyền *"}
+              {transportType === "Flight" ? "Chuyến bay *" : transportType === "Train" ? "Chuyến tàu *" : "Tàu thuyền *"}
             </label>
             <input
               type="text"
               value={commonDetails.flightNumber}
-              onChange={(e) =>
-                setCommonDetails((prev) => ({ ...prev, flightNumber: e.target.value }))
-              }
+              onChange={(e) => setCommonDetails(prev => ({ ...prev, flightNumber: e.target.value }))}
               placeholder={transportType === "Flight" ? "VN 123" : "SE1"}
-              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
             />
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-              Hạng ghế
-            </label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Hạng ghế</label>
             <select
               value={commonDetails.seatClass}
-              onChange={(e) =>
-                setCommonDetails((prev) => ({ ...prev, seatClass: e.target.value }))
-              }
-              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              onChange={(e) => setCommonDetails(prev => ({ ...prev, seatClass: e.target.value }))}
+              className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
             >
               {seatClassOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
+                <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-              Giờ đi
-            </label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Giờ đi *</label>
             <input
               type="datetime-local"
               value={commonDetails.departureAt}
-              onChange={(e) =>
-                setCommonDetails((prev) => ({ ...prev, departureAt: e.target.value }))
-              }
-              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              onChange={(e) => setCommonDetails(prev => ({ ...prev, departureAt: e.target.value }))}
+              className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
             />
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-              Giờ đến
-            </label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Giờ đến *</label>
             <input
               type="datetime-local"
               value={commonDetails.arrivalAt}
-              onChange={(e) =>
-                setCommonDetails((prev) => ({ ...prev, arrivalAt: e.target.value }))
-              }
-              className="w-full rounded-xl border border-white/60 bg-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              onChange={(e) => setCommonDetails(prev => ({ ...prev, arrivalAt: e.target.value }))}
+              className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
             />
           </div>
         </div>
@@ -289,9 +371,11 @@ export default function ExternalTicketAssignmentPanel({
       {/* Booking list */}
       <div className="divide-y divide-stone-100/50 border-t border-stone-100">
         {bookings.map((booking, index) => {
-          const entry = entries[booking.id];
-          const isSaved = savedIds.has(booking.id);
+          const entry = entries[booking.id.toLowerCase()];
+          const isSaved = savedIds.has(booking.id.toLowerCase());
           const isSaving = savingId === booking.id;
+
+          if (!entry) return null;
 
           return (
             <div
@@ -341,83 +425,7 @@ export default function ExternalTicketAssignmentPanel({
                       Chỉ nhập <strong>{entry.requiredSeats} ghế</strong> cho người lớn + trẻ em.
                     </span>
                   </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                  {/* Flight/Train number */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      {transportType === "Flight"
-                        ? "Chuyến bay *"
-                        : transportType === "Train"
-                          ? "Chuyến tàu *"
-                          : "Tàu thuyền *"}
-                    </label>
-                    <input
-                      type="text"
-                      value={entry.flightNumber}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "flightNumber", e.target.value)
-                      }
-                      placeholder={
-                        transportType === "Flight" ? "VN 123" : "SE1"
-                      }
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-
-                  {/* Seat class */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Hạng ghế
-                    </label>
-                    <select
-                      value={entry.seatClass}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "seatClass", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      {seatClassOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Departure time */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Giờ đi
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={entry.departureAt}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "departureAt", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-
-                  {/* Arrival time */}
-                  <div className="md:col-span-1">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Giờ đến
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={entry.arrivalAt}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "arrivalAt", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                )}                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Seat numbers — free text */}
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">

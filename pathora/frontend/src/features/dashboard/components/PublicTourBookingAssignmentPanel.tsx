@@ -5,38 +5,39 @@
  *
  * Dành riêng cho tour PUBLIC — nơi có nhiều bookings độc lập.
  *
- * Logic phân bổ:
- * ─ Xe (Bus/Car): đi chung → KHÔNG hiện ở đây (gán ở mức instance, đã có)
- * ─ ✈️ Vé ngoài (Flight/Train/Boat): mỗi booking cần vé riêng → per-order (ExternalTicketAssignmentPanel)
- * ─ 🏨 Phòng khách sạn: mỗi booking có phòng riêng → TourOperator ghi số phòng cụ thể per-order
+ * Phân bổ phòng khách sạn (per-booking):
+ * 1. Manager đã assign hotel supplier cho activity
+ * 2. Hotel provider duyệt + block tổng số phòng
+ * 3. TourOperator phân bổ số phòng đã block xuống từng booking dựa trên số khách
+ *    (tổng các phân bổ ≤ số phòng đã block)
  *
- * NOTE: "Ghi số phòng" là operation phía TourOperator (tracking nội bộ, frontend-only lưu local
- * hoặc gọi note API nếu có). Backend không có endpoint riêng để gán số phòng theo booking —
- * room blocking (số lượng phòng) đã được hotel provider làm ở HotelTourAssignmentPage.
+ * Vé phương tiện (Flight/Train/Boat) gán per-booking qua ExternalTicketAssignmentPanel.
  */
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Icon } from "@/components/ui";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
 import ExternalTicketAssignmentPanel from "./ExternalTicketAssignmentPanel";
 import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
-import type { TourInstanceDayActivityDto } from "@/types/tour";
+import type { BookingRoomAssignmentDto } from "@/api/services/tourInstanceService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface RoomBookingEntry {
+export interface RoomAssignmentEntry {
   bookingId: string;
   customerName: string;
   /** Số người lớn + trẻ em (không tính infant) */
   guestCount: number;
   infantCount: number;
-  /** Số phòng yêu cầu (tính theo guestCount) */
-  roomsNeeded: number;
-  /** Số phòng cụ thể / tên phòng TourOperator ghi */
-  roomNumbers: string;
+  /** Số phòng đề xuất theo guest count */
+  roomsSuggested: number;
+  /** Số phòng TourOperator phân bổ */
+  roomCount: number;
   /** Loại phòng được giao */
   roomType: string;
+  /** Số phòng / tên phòng cụ thể (optional, ghi sau khi check-in) */
+  roomNumbers: string;
   /** Ghi chú */
   note: string;
 }
@@ -66,26 +67,50 @@ interface ExternalTransportActivityInfo {
 
 interface Props {
   instanceId: string;
-  instanceType: string; // "public" | "private"
+  instanceType: string;
   bookings: AdminBookingListResponse[];
   bookingsLoading: boolean;
-  /** Accommodation activities */
   accommodationActivities: AccommodationActivityInfo[];
-  /** External transport activities (Flight/Train/Boat) */
   externalTransportActivities: ExternalTransportActivityInfo[];
   onSaveTicket?: (activityId: string, entry: BookingTicketEntry) => Promise<void>;
   onConfirmExternalTransport?: (activityId: string) => Promise<void>;
+  /** Save 1 booking room assignment to backend */
+  onSaveRoomAssignment?: (
+    activityId: string,
+    payload: {
+      bookingId: string;
+      roomType: string;
+      roomCount: number;
+      roomNumbers?: string | null;
+      note?: string | null;
+    },
+  ) => Promise<void>;
+  /** Load existing assignments for an activity */
+  onLoadRoomAssignments?: (activityId: string) => Promise<BookingRoomAssignmentDto[]>;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const ROOMS_PER_COUPLE = 1; // 2 adults share 1 room (default)
-
-function calcRoomsNeeded(adults: number, children: number): number {
-  // Default: every 2 adults share 1 room; each child adds 0.5 room
-  // Operators can override via the roomNumbers field
-  const raw = Math.ceil(adults / 2) + Math.ceil(children / 2);
-  return Math.max(1, raw);
+/** Ước lượng số phòng theo loại phòng và số khách */
+function suggestRoomCount(adults: number, children: number, roomType: string): number {
+  const total = adults + Math.ceil(children / 2);
+  const capacityByType: Record<string, number> = {
+    single: 1,
+    double: 2,
+    twin: 2,
+    triple: 3,
+    quad: 4,
+    family: 4,
+    suite: 2,
+    dormitory: 8,
+    villa: 6,
+    standard: 2,
+    deluxe: 2,
+    vip: 2,
+    other: 2,
+  };
+  const cap = capacityByType[roomType?.toLowerCase()] ?? 2;
+  return Math.max(1, Math.ceil(total / cap));
 }
 
 // ─── Sub-component: Accommodation per-booking ─────────────────────────────────
@@ -93,23 +118,31 @@ function calcRoomsNeeded(adults: number, children: number): number {
 function AccommodationBookingCard({
   activity,
   bookings,
+  onSaveRoomAssignment,
+  onLoadRoomAssignments,
 }: {
   activity: AccommodationActivityInfo;
   bookings: AdminBookingListResponse[];
+  onSaveRoomAssignment?: Props["onSaveRoomAssignment"];
+  onLoadRoomAssignments?: Props["onLoadRoomAssignments"];
 }) {
-  const [entries, setEntries] = useState<Record<string, RoomBookingEntry>>(() => {
-    const init: Record<string, RoomBookingEntry> = {};
+  const defaultRoomType = activity.roomType ?? "Standard";
+
+  const [entries, setEntries] = useState<Record<string, RoomAssignmentEntry>>(() => {
+    const init: Record<string, RoomAssignmentEntry> = {};
     for (const b of bookings) {
       const adults = b.numberAdult ?? 0;
       const children = b.numberChild ?? 0;
+      const suggested = suggestRoomCount(adults, children, defaultRoomType);
       init[b.id] = {
         bookingId: b.id,
         customerName: b.customerName,
         guestCount: adults + children,
         infantCount: b.numberInfant ?? 0,
-        roomsNeeded: calcRoomsNeeded(adults, children),
+        roomsSuggested: suggested,
+        roomCount: suggested,
+        roomType: defaultRoomType,
         roomNumbers: "",
-        roomType: activity.roomType ?? "",
         note: "",
       };
     }
@@ -117,30 +150,102 @@ function AccommodationBookingCard({
   });
 
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [expandedId, setExpandedId] = useState<string | null>(bookings[0]?.id ?? null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const updateEntry = useCallback(
-    (bookingId: string, field: keyof RoomBookingEntry, value: string | number) => {
-      setEntries((prev) => ({ ...prev, [bookingId]: { ...prev[bookingId], [field]: value } }));
-    },
-    []
+  // Load existing assignments
+  useEffect(() => {
+    if (!onLoadRoomAssignments) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const existing = await onLoadRoomAssignments(activity.activityId);
+        if (cancelled) return;
+        if (existing.length === 0) return;
+        setEntries((prev) => {
+          const next = { ...prev };
+          for (const dto of existing) {
+            if (next[dto.bookingId]) {
+              next[dto.bookingId] = {
+                ...next[dto.bookingId],
+                roomCount: dto.roomCount,
+                roomType: typeof dto.roomType === "string" ? dto.roomType : String(dto.roomType),
+                roomNumbers: dto.roomNumbers ?? "",
+                note: dto.note ?? "",
+              };
+            }
+          }
+          return next;
+        });
+        setSavedIds(new Set(existing.map((d) => d.bookingId)));
+      } catch {
+        if (cancelled) return;
+        setLoadError("Không thể tải phân bổ đã lưu trước đó");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activity.activityId, onLoadRoomAssignments]);
+
+  // Tổng số phòng đã phân bổ (ngoại trừ booking đang edit) — dùng validate
+  const totalAssigned = useMemo(
+    () => Object.values(entries).filter((e) => savedIds.has(e.bookingId)).reduce((sum, e) => sum + e.roomCount, 0),
+    [entries, savedIds],
   );
 
-  const handleSave = (bookingId: string) => {
+  const updateEntry = useCallback(
+    (bookingId: string, field: keyof RoomAssignmentEntry, value: string | number) => {
+      setEntries((prev) => ({ ...prev, [bookingId]: { ...prev[bookingId], [field]: value } }));
+    },
+    [],
+  );
+
+  const handleSave = async (bookingId: string) => {
     const entry = entries[bookingId];
     if (!entry) return;
-    if (!entry.roomNumbers.trim()) {
-      toast.warning("Vui lòng nhập số phòng hoặc tên phòng được giao");
+    if (entry.roomCount <= 0) {
+      toast.warning("Số phòng phải lớn hơn 0");
       return;
     }
-    setSavedIds((prev) => new Set([...prev, bookingId]));
-    toast.success(`Đã ghi nhận phòng cho ${entry.customerName}`);
-    // Move to next unsaved (not needed if no accordion, but keeping logic for completeness)
-    const next = bookings.find((b) => b.id !== bookingId && !savedIds.has(b.id));
+
+    // Validate: tổng phòng phân bổ không vượt block total
+    const otherAssigned = Object.values(entries)
+      .filter((e) => e.bookingId !== bookingId && savedIds.has(e.bookingId))
+      .reduce((sum, e) => sum + e.roomCount, 0);
+    if (activity.roomBlocksTotal > 0 && otherAssigned + entry.roomCount > activity.roomBlocksTotal) {
+      toast.error(
+        `Tổng số phòng phân bổ (${otherAssigned + entry.roomCount}) vượt quá số phòng đã giữ (${activity.roomBlocksTotal}).`,
+      );
+      return;
+    }
+
+    if (!onSaveRoomAssignment) {
+      toast.warning("Chức năng lưu chưa được kết nối");
+      return;
+    }
+
+    try {
+      setSavingId(bookingId);
+      await onSaveRoomAssignment(activity.activityId, {
+        bookingId: entry.bookingId,
+        roomType: entry.roomType,
+        roomCount: entry.roomCount,
+        roomNumbers: entry.roomNumbers.trim() || null,
+        note: entry.note.trim() || null,
+      });
+      setSavedIds((prev) => new Set([...prev, bookingId]));
+      toast.success(`Đã lưu phân bổ phòng cho ${entry.customerName}`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Không thể lưu phân bổ phòng");
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const allSaved = bookings.every((b) => savedIds.has(b.id));
   const isApproved = activity.supplierApprovalStatus?.toLowerCase() === "approved";
+  const remaining = Math.max(0, activity.roomBlocksTotal - totalAssigned);
 
   return (
     <div className="rounded-[1.5rem] border border-stone-200/50 bg-white overflow-hidden shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
@@ -157,11 +262,13 @@ function AccommodationBookingCard({
               ) : (
                 <span className="text-stone-400 italic">Chưa giao khách sạn</span>
               )}
+              {activity.roomType && (
+                <span className="text-stone-500"> · {activity.roomType}</span>
+              )}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          {/* Hotel approval status */}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
               isApproved
@@ -187,13 +294,11 @@ function AccommodationBookingCard({
               ? "Khách sạn từ chối"
               : "Chờ khách sạn duyệt"}
           </span>
-          {/* Room block info */}
           <span className="text-[10px] text-stone-400">
             {activity.roomBlocksTotal > 0
-              ? `Đã giữ ${activity.roomBlocksTotal}/${activity.quantity} phòng`
+              ? `Đã giữ ${activity.roomBlocksTotal} phòng · Còn ${remaining}`
               : `Cần ${activity.quantity} phòng`}
           </span>
-          {/* Room assignment progress */}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
               allSaved
@@ -201,30 +306,39 @@ function AccommodationBookingCard({
                 : "bg-stone-100 text-stone-500"
             }`}
           >
-            {savedIds.size}/{bookings.length} đã ghi số phòng
+            {savedIds.size}/{bookings.length} đã phân bổ
           </span>
         </div>
       </div>
 
-      {/* Warning if hotel not approved yet */}
+      {/* Warning */}
       {!isApproved && (
         <div className="flex items-start gap-3 px-6 py-4 bg-orange-50/50 border-b border-orange-100 text-sm text-orange-800">
           <Icon icon="heroicons:exclamation-triangle" className="size-5 shrink-0 mt-0.5 text-orange-500" />
           <span className="leading-relaxed">
-            Khách sạn chưa xác nhận phòng. Bạn vẫn có thể ghi trước số phòng dự kiến, nhưng cần khách sạn duyệt trước khi xác nhận với khách.
+            Khách sạn chưa duyệt activity này. Cần chờ duyệt trước khi phân bổ phòng.
           </span>
         </div>
       )}
+      {loadError && (
+        <div className="flex items-start gap-3 px-6 py-3 bg-rose-50 border-b border-rose-100 text-sm text-rose-700">
+          <Icon icon="heroicons:x-circle" className="size-5 shrink-0 mt-0.5" />
+          <span>{loadError}</span>
+        </div>
+      )}
 
-      {/* Per-booking Flat List */}
+      {/* Per-booking list */}
       <div className="divide-y divide-stone-100">
         {bookings.map((booking, index) => {
           const entry = entries[booking.id];
           const isSaved = savedIds.has(booking.id);
+          const isSaving = savingId === booking.id;
 
           return (
-            <div key={booking.id} className={`p-6 transition-colors ${isSaved ? "bg-emerald-50/20" : "bg-white hover:bg-stone-50/30"}`}>
-              {/* Row Header */}
+            <div
+              key={booking.id}
+              className={`p-6 transition-colors ${isSaved ? "bg-emerald-50/20" : "bg-white hover:bg-stone-50/30"}`}
+            >
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3 min-w-0">
                   <span
@@ -237,7 +351,7 @@ function AccommodationBookingCard({
                   <div className="min-w-0">
                     <p className="text-base font-semibold text-stone-900 truncate">{booking.customerName}</p>
                     <p className="text-sm text-stone-500 mt-0.5">
-                      {entry.guestCount} khách · cần ~{entry.roomsNeeded} phòng
+                      {entry.guestCount} khách · đề xuất {entry.roomsSuggested} phòng
                       {entry.infantCount > 0 && (
                         <span className="ml-1 text-orange-600">· {entry.infantCount} em bé</span>
                       )}
@@ -246,29 +360,25 @@ function AccommodationBookingCard({
                 </div>
               </div>
 
-              {/* Form Grid */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-                {/* Room numbers input */}
-                <div className="md:col-span-4">
+                {/* Room count */}
+                <div className="md:col-span-2">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                    Số phòng / Tên phòng *
+                    Số phòng *
                   </label>
                   <input
-                    type="text"
-                    value={entry.roomNumbers}
-                    onChange={(e) => updateEntry(booking.id, "roomNumbers", e.target.value)}
-                    placeholder={`VD: 201 202`}
-                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm font-mono focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                    type="number"
+                    min={1}
+                    value={entry.roomCount}
+                    onChange={(e) =>
+                      updateEntry(booking.id, "roomCount", Math.max(1, Number(e.target.value) || 1))
+                    }
+                    disabled={!isApproved}
+                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm font-mono focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50 disabled:text-stone-400"
                   />
-                  {entry.roomNumbers && (
-                    <p className="mt-1.5 text-xs text-stone-500">
-                      {entry.roomNumbers.trim().split(/\s+/).filter(Boolean).length} phòng đã nhập
-                      {entry.roomsNeeded > 0 &&
-                        entry.roomNumbers.trim().split(/\s+/).filter(Boolean).length !== entry.roomsNeeded && (
-                          <span className="ml-1 text-orange-600">
-                            (dự kiến cần {entry.roomsNeeded} phòng)
-                          </span>
-                        )}
+                  {entry.roomCount !== entry.roomsSuggested && (
+                    <p className="mt-1.5 text-xs text-orange-600">
+                      Đề xuất: {entry.roomsSuggested}
                     </p>
                   )}
                 </div>
@@ -278,17 +388,51 @@ function AccommodationBookingCard({
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
                     Loại phòng
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={entry.roomType}
                     onChange={(e) => updateEntry(booking.id, "roomType", e.target.value)}
-                    placeholder="Standard / Deluxe..."
-                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                    disabled={!isApproved}
+                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-white disabled:bg-stone-50 disabled:text-stone-400"
+                  >
+                    {[
+                      "Single",
+                      "Double",
+                      "Twin",
+                      "Triple",
+                      "Quad",
+                      "Family",
+                      "Suite",
+                      "Dormitory",
+                      "Villa",
+                      "Standard",
+                      "Deluxe",
+                      "VIP",
+                      "Other",
+                    ].map((rt) => (
+                      <option key={rt} value={rt}>
+                        {rt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Room numbers */}
+                <div className="md:col-span-3">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                    Số phòng cụ thể
+                  </label>
+                  <input
+                    type="text"
+                    value={entry.roomNumbers}
+                    onChange={(e) => updateEntry(booking.id, "roomNumbers", e.target.value)}
+                    disabled={!isApproved}
+                    placeholder="VD: 201, 202"
+                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm font-mono focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50"
                   />
                 </div>
 
-                {/* Note */}
-                <div className="md:col-span-5">
+                {/* Note + Save */}
+                <div className="md:col-span-4">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
                     Ghi chú
                   </label>
@@ -297,22 +441,30 @@ function AccommodationBookingCard({
                       type="text"
                       value={entry.note}
                       onChange={(e) => updateEntry(booking.id, "note", e.target.value)}
+                      disabled={!isApproved}
                       placeholder="Yêu cầu đặc biệt..."
-                      className="flex-1 rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                      className="flex-1 rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50"
                     />
                     <button
                       onClick={() => handleSave(booking.id)}
-                      className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      disabled={!isApproved || isSaving}
+                      className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                         isSaved
                           ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
                           : "bg-orange-500 hover:bg-orange-600 text-white shadow-sm focus-visible:outline-orange-500"
                       }`}
                     >
                       <Icon
-                        icon={isSaved ? "heroicons:check-circle" : "heroicons:check"}
-                        className="size-4"
+                        icon={
+                          isSaving
+                            ? "heroicons:arrow-path"
+                            : isSaved
+                            ? "heroicons:check-circle"
+                            : "heroicons:check"
+                        }
+                        className={`size-4 ${isSaving ? "animate-spin" : ""}`}
                       />
-                      {isSaved ? "Đã lưu" : "Lưu"}
+                      {isSaving ? "Đang lưu..." : isSaved ? "Cập nhật" : "Lưu"}
                     </button>
                   </div>
                 </div>
@@ -327,7 +479,7 @@ function AccommodationBookingCard({
         <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border-t border-emerald-100">
           <Icon icon="heroicons:check-badge" className="size-4 text-emerald-600" />
           <p className="text-xs font-semibold text-emerald-700">
-            Đã ghi số phòng cho tất cả {bookings.length} booking trong activity này
+            Đã phân bổ phòng cho tất cả {bookings.length} booking · Tổng {totalAssigned}/{activity.roomBlocksTotal} phòng
           </p>
         </div>
       )}
@@ -347,27 +499,22 @@ export default function PublicTourBookingAssignmentPanel({
   externalTransportActivities,
   onSaveTicket,
   onConfirmExternalTransport,
+  onSaveRoomAssignment,
+  onLoadRoomAssignments,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>(
-    accommodationActivities.length > 0 ? "accommodation" : "external-transport"
+    accommodationActivities.length > 0 ? "accommodation" : "external-transport",
   );
 
   const isPublic = instanceType?.toLowerCase() === "public";
-
-  // Public tour only
   if (!isPublic) return null;
-
-  // Nothing to show
-  if (accommodationActivities.length === 0 && externalTransportActivities.length === 0) {
-    return null;
-  }
+  if (accommodationActivities.length === 0 && externalTransportActivities.length === 0) return null;
 
   const hasAccom = accommodationActivities.length > 0;
   const hasExternal = externalTransportActivities.length > 0;
 
   return (
     <section className="rounded-[1.5rem] border border-stone-200/50 bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden mt-8">
-      {/* Section header */}
       <div className="px-6 py-5 border-b border-stone-100 bg-[#F8F8F6]">
         <div className="flex items-center gap-3">
           <Icon icon="heroicons:clipboard-document-list" className="size-6 text-stone-600" />
@@ -381,7 +528,6 @@ export default function PublicTourBookingAssignmentPanel({
         </p>
       </div>
 
-      {/* Tabs */}
       {hasAccom && hasExternal && (
         <div className="flex border-b border-stone-100 px-2">
           <button
@@ -394,7 +540,11 @@ export default function PublicTourBookingAssignmentPanel({
           >
             <Icon icon="heroicons:building-office-2" className="size-4.5" />
             Phòng khách sạn
-            <span className={`rounded-full text-[11px] font-bold px-2 py-0.5 ml-1 ${activeTab === 'accommodation' ? 'bg-orange-100 text-orange-700' : 'bg-stone-100 text-stone-600'}`}>
+            <span
+              className={`rounded-full text-[11px] font-bold px-2 py-0.5 ml-1 ${
+                activeTab === "accommodation" ? "bg-orange-100 text-orange-700" : "bg-stone-100 text-stone-600"
+              }`}
+            >
               {accommodationActivities.length}
             </span>
           </button>
@@ -408,7 +558,11 @@ export default function PublicTourBookingAssignmentPanel({
           >
             <Icon icon="heroicons:ticket" className="size-4.5" />
             Vé phương tiện
-            <span className={`rounded-full text-[11px] font-bold px-2 py-0.5 ml-1 ${activeTab === 'external-transport' ? 'bg-blue-100 text-blue-700' : 'bg-stone-100 text-stone-600'}`}>
+            <span
+              className={`rounded-full text-[11px] font-bold px-2 py-0.5 ml-1 ${
+                activeTab === "external-transport" ? "bg-blue-100 text-blue-700" : "bg-stone-100 text-stone-600"
+              }`}
+            >
               {externalTransportActivities.length}
             </span>
           </button>
@@ -428,17 +582,15 @@ export default function PublicTourBookingAssignmentPanel({
           </div>
         ) : (
           <>
-            {/* ── Accommodation tab ── */}
             {(!hasExternal || activeTab === "accommodation") && hasAccom && (
               <div className="space-y-5">
-                {/* Context note */}
                 <div className="flex items-start gap-3 rounded-[1.5rem] bg-orange-50/80 border border-orange-200/60 p-5 shadow-sm text-sm text-orange-800">
                   <Icon icon="heroicons:information-circle" className="size-5 shrink-0 mt-0.5 text-orange-500" />
                   <div className="leading-relaxed">
-                    <p className="font-semibold mb-1 text-base tracking-tight">Ghi số phòng cho từng khách</p>
+                    <p className="font-semibold mb-1 text-base tracking-tight">Phân bổ phòng cho từng booking</p>
                     <p className="max-w-[65ch] text-orange-700">
-                      Tại đây, bạn ghi cụ thể
-                      <strong> số phòng / tên phòng</strong> được phân cho từng booking để hiển thị trên app/vé của khách hàng. Việc này độc lập với việc nhà cung cấp giữ chỗ tổng.
+                      Hotel supplier đã được chọn và đã duyệt block tổng số phòng. Tại đây, bạn phân bổ
+                      <strong> số phòng cụ thể</strong> cho từng booking dựa trên số khách. Tổng các phân bổ phải nằm trong số phòng đã giữ.
                     </p>
                   </div>
                 </div>
@@ -448,12 +600,13 @@ export default function PublicTourBookingAssignmentPanel({
                     key={activity.activityId}
                     activity={activity}
                     bookings={bookings}
+                    onSaveRoomAssignment={onSaveRoomAssignment}
+                    onLoadRoomAssignments={onLoadRoomAssignments}
                   />
                 ))}
               </div>
             )}
 
-            {/* ── External Transport tab ── */}
             {(!hasAccom || activeTab === "external-transport") && hasExternal && (
               <div className="space-y-5">
                 <div className="flex items-start gap-3 rounded-[1.5rem] bg-blue-50/80 border border-blue-200/60 p-5 shadow-sm text-sm text-blue-800">
@@ -469,7 +622,6 @@ export default function PublicTourBookingAssignmentPanel({
 
                 {externalTransportActivities.map((activity) => (
                   <div key={activity.activityId} className="rounded-2xl border border-stone-200 bg-white overflow-hidden">
-                    {/* Activity header */}
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-blue-50 border-b border-blue-100">
                       <div className="flex items-center gap-2">
                         <Icon
@@ -497,9 +649,11 @@ export default function PublicTourBookingAssignmentPanel({
 
                     <div className="p-4">
                       <ExternalTicketAssignmentPanel
+                        activityId={activity.activityId}
                         activityTitle={activity.title}
                         transportType={activity.transportType}
                         bookings={bookings}
+                        activityDate={activity.date}
                         onSave={(entry) => onSaveTicket?.(activity.activityId, entry)}
                         onConfirmAll={() => onConfirmExternalTransport?.(activity.activityId)}
                       />

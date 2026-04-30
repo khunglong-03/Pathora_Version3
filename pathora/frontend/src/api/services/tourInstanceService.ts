@@ -807,4 +807,68 @@ export const tourInstanceService = {
     );
     return extractResult<PrivateTourSettlementResultDto>(response.data);
   },
+
+  getBookingTickets: async (instanceId: string, activityId: string) => {
+    const response = await api.get<ApiResponse<any[]>>(
+      API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
+    );
+    return extractResult<any[]>(response.data) ?? [];
+  },
+
+  saveBookingTicket: async (
+    instanceId: string,
+    activityId: string,
+    payload: {
+      bookingId: string;
+      flightNumber?: string | null;
+      departureAt?: string | null;
+      arrivalAt?: string | null;
+      seatNumbers?: string | null;
+      eTicketNumbers?: string | null;
+      seatClass?: string | null;
+      note?: string | null;
+    },
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
+      payload,
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  getBookingRoomAssignments: async (
+    instanceId: string,
+    activityId: string,
+  ): Promise<BookingRoomAssignmentDto[]> => {
+    const response = await api.get<ApiResponse<BookingRoomAssignmentDto[]>>(
+      API_ENDPOINTS.TOUR_INSTANCE.BOOKING_ROOM_ASSIGNMENTS(instanceId, activityId),
+    );
+    return extractResult<BookingRoomAssignmentDto[]>(response.data) ?? [];
+  },
+
+  saveBookingRoomAssignment: async (
+    instanceId: string,
+    activityId: string,
+    payload: {
+      bookingId: string;
+      roomType: string | number;
+      roomCount: number;
+      roomNumbers?: string | null;
+      note?: string | null;
+    },
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.BOOKING_ROOM_ASSIGNMENTS(instanceId, activityId),
+      payload,
+    );
+    return extractResult<unknown>(response.data);
+  },
 };
+
+export interface BookingRoomAssignmentDto {
+  bookingId: string;
+  roomType: string | number;
+  roomCount: number;
+  roomNumbers?: string | null;
+  note?: string | null;
+}

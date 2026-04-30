@@ -351,7 +351,78 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.BookingTickets)]
+    public async Task<IActionResult> SaveBookingTicket(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] SaveBookingTicketRequest request)
+    {
+        var result = await Sender.Send(new SaveBookingTicketCommand(
+            instanceId,
+            activityId,
+            request.BookingId,
+            request.FlightNumber,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.SeatNumbers,
+            request.ETicketNumbers,
+            request.SeatClass,
+            request.Note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet(TourInstanceEndpoint.BookingTickets)]
+    public async Task<IActionResult> GetBookingTickets(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetBookingTicketsQuery(activityId));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.BookingRoomAssignments)]
+    public async Task<IActionResult> SaveBookingRoomAssignment(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] SaveBookingRoomAssignmentRequest request)
+    {
+        var result = await Sender.Send(new SaveBookingRoomAssignmentCommand(
+            instanceId,
+            activityId,
+            request.BookingId,
+            request.RoomType,
+            request.RoomCount,
+            request.RoomNumbers,
+            request.Note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet(TourInstanceEndpoint.BookingRoomAssignments)]
+    public async Task<IActionResult> GetBookingRoomAssignments(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetBookingRoomAssignmentsQuery(activityId));
+        return HandleResult(result);
+    }
 }
+
+public sealed record SaveBookingRoomAssignmentRequest(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("roomNumbers")] string? RoomNumbers,
+    [property: JsonPropertyName("note")] string? Note);
+
+public sealed record SaveBookingTicketRequest(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("flightNumber")] string? FlightNumber,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("seatNumbers")] string? SeatNumbers,
+    [property: JsonPropertyName("eTicketNumbers")] string? ETicketNumbers,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("note")] string? Note);
 
 public sealed record ProviderApproveRequest(
     [property: JsonPropertyName("isApproved")] bool IsApproved,

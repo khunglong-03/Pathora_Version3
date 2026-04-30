@@ -1373,12 +1373,28 @@ export default function TourInstanceDetailPage() {
                                               <Icon icon="heroicons:building-office-2" className="size-3" />
                                               {t("tourInstance.accommodation.approval", "Accommodation approval")}
                                             </p>
-                                            <span
-                                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).ringClassName}`}
-                                            >
-                                              <Icon icon={getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).icon} className="size-3" />
-                                              {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                              <span
+                                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).ringClassName}`}
+                                              >
+                                                <Icon icon={getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).icon} className="size-3" />
+                                                {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
+                                              </span>
+                                              {canReassign && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setReassignActivity(activity);
+                                                    setReassignType("Accommodation");
+                                                  }}
+                                                  aria-label={`Đổi nhà cung cấp chỗ ở cho hoạt động ${activity.title}`}
+                                                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                >
+                                                  <Icon icon="heroicons:pencil-square" className="size-3" />
+                                                  Đổi NCC
+                                                </button>
+                                              )}
+                                            </div>
                                           </div>
                                           <div className="grid gap-2 sm:grid-cols-2">
                                             <div>
@@ -1817,14 +1833,28 @@ export default function TourInstanceDetailPage() {
                   accommodationActivities={accomActivities}
                   externalTransportActivities={externalActivities}
                   onSaveTicket={async (activityId, entry) => {
-                    // Ticket data is frontend-only (TourOperator tracking).
-                    // Optionally upload ticket images via existing TicketImageUpload flow.
+                    await tourInstanceService.saveBookingTicket(data.id, activityId, {
+                      bookingId: entry.bookingId,
+                      flightNumber: entry.flightNumber,
+                      departureAt: entry.departureAt ? new Date(entry.departureAt).toISOString() : null,
+                      arrivalAt: entry.arrivalAt ? new Date(entry.arrivalAt).toISOString() : null,
+                      seatNumbers: entry.seatNumbers,
+                      eTicketNumbers: entry.eTicketNumbers,
+                      seatClass: entry.seatClass,
+                      note: entry.note,
+                    });
                     console.info("[PublicTour] Ticket saved for booking", entry.bookingId, "activity", activityId);
                   }}
                   onConfirmExternalTransport={async (activityId) => {
                     await tourInstanceService.confirmExternalTransport(data.id, activityId, true);
                     void loadData();
                   }}
+                  onSaveRoomAssignment={async (activityId, payload) => {
+                    await tourInstanceService.saveBookingRoomAssignment(data.id, activityId, payload);
+                  }}
+                  onLoadRoomAssignments={async (activityId) =>
+                    tourInstanceService.getBookingRoomAssignments(data.id, activityId)
+                  }
                 />
               );
             })()}

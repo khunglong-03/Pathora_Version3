@@ -85,6 +85,8 @@ internal static class DependencyInjection
         services.AddScoped<IInsuranceRepository, InsuranceRepository>();
 
         services.AddScoped<ITicketImageRepository, TicketImageRepository>();
+        services.AddScoped<ITourInstanceBookingTicketRepository, TourInstanceBookingTicketRepository>();
+        services.AddScoped<ITourInstanceBookingRoomAssignmentRepository, TourInstanceBookingRoomAssignmentRepository>();
 
         return services;
     }

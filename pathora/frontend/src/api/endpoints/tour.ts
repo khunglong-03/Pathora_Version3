@@ -54,6 +54,8 @@ export interface TourInstanceEndpoints {
   DELETE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
   SET_FINAL_SELL_PRICE: (instanceId: string) => string;
   APPLY_PRIVATE_SETTLEMENT: (instanceId: string) => string;
+  BOOKING_TICKETS: (instanceId: string, activityId: string) => string;
+  BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
@@ -149,6 +151,10 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/final-sell-price`,
   APPLY_PRIVATE_SETTLEMENT: (instanceId: string): string =>
     `/api/tour-instance/${instanceId}/private-settlement`,
+  BOOKING_TICKETS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/booking-tickets`,
+  BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/booking-room-assignments`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {

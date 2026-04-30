@@ -539,6 +539,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     {
         return await _context.TourInstanceDayActivities
             .AsNoTracking()
+            .Include(a => a.TourInstanceDay)
+            .Include(a => a.Accommodation)
             .FirstOrDefaultAsync(a => a.Id == activityId, cancellationToken);
     }
 
