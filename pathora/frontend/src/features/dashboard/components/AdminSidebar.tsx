@@ -149,6 +149,11 @@ export const TOUROPERATOR_NAV_ITEMS = [
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
   {
+    label: "Tour Instances",
+    icon: CalendarDotsIcon,
+    href: "/tour-operator/tour-instances",
+  },
+  {
     label: "Custom Tour Requests",
     icon: ClipboardTextIcon,
     href: "/tour-operator/custom-tour-requests",
@@ -363,6 +368,14 @@ export function AdminSidebar({
     if (
       href === "/tour-operator/tours" &&
       pathname.startsWith("/tour-operator/tours/create")
+    ) {
+      return false;
+    }
+
+    // Prevent highlighting parent "Tour Instances" when on create sub-route
+    if (
+      href === "/tour-operator/tour-instances" &&
+      pathname.startsWith("/tour-operator/tour-instances/create")
     ) {
       return false;
     }

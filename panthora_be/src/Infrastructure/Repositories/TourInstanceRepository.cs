@@ -226,7 +226,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
     public async Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default)
     {
-        _context.TourInstances.Update(tourInstance);
+        // Entity is already tracked by EF (loaded via FindById without AsNoTracking).
+        // Calling _context.TourInstances.Update() would reset all navigation property states
+        // (Deleted/Added managers → Modified) causing DbUpdateConcurrencyException.
+        // Change tracking already knows what to DELETE, INSERT, UPDATE — just save.
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -363,6 +366,18 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     public async Task UpdateTourDayActivity(TourDayActivityEntity activity, CancellationToken cancellationToken = default)
     {
         _context.TourDayActivities.Update(activity);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
+    {
+        await _context.TourInstanceDayActivities.AddAsync(activity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
+    {
+        _context.TourInstanceDayActivities.Remove(activity);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

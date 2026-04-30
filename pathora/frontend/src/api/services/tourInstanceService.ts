@@ -422,6 +422,26 @@ export const tourInstanceService = {
     return extractResult<TourInstanceDayDto>(response.data);
   },
 
+  createInstanceActivity: async (
+    instanceId: string,
+    dayId: string,
+    data: {
+      title: string;
+      activityType: number;
+      description?: string | null;
+      note?: string | null;
+      startTime?: string | null;
+      endTime?: string | null;
+      isOptional?: boolean;
+    },
+  ) => {
+    const response = await api.post<ApiResponse<TourDayActivityDto>>(
+      API_ENDPOINTS.TOUR_INSTANCE.CREATE_INSTANCE_ACTIVITY(instanceId, dayId),
+      data,
+    );
+    return extractResult<TourDayActivityDto>(response.data);
+  },
+
   updateInstanceActivity: async (
     instanceId: string,
     dayId: string,
@@ -433,6 +453,17 @@ export const tourInstanceService = {
       data,
     );
     return extractResult<TourDayActivityDto>(response.data);
+  },
+
+  deleteInstanceActivity: async (
+    instanceId: string,
+    dayId: string,
+    activityId: string,
+  ) => {
+    const response = await api.delete<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.DELETE_INSTANCE_ACTIVITY(instanceId, dayId, activityId),
+    );
+    return extractResult<unknown>(response.data);
   },
 
   changeStatus: async (id: string, status: string | number) => {

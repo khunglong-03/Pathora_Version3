@@ -283,7 +283,7 @@ export function CustomTourInstanceRequestListPage({
             </p>
           </div>
           <button
-            onClick={() => router.push("/manager/tour-instances/create")}
+            onClick={() => router.push(role === "tour-operator" ? "/tour-operator/tour-instances/create" : "/manager/tour-instances/create")}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 shrink-0">
             <Icon icon="heroicons:plus" className="size-4" />
             {safeT("tourInstance.createInstance", "Create Instance")}
@@ -685,7 +685,7 @@ export function CustomTourInstanceRequestListPage({
                         </div>
                         <button
                           onClick={() =>
-                            router.push(`/manager/tour-instances/${inst.id}`)
+                            router.push(role === "tour-operator" ? `/tour-operator/tour-instances/${inst.id}` : `/manager/tour-instances/${inst.id}`)
                           }
                           className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
                           {safeT("common.viewDetails", "Details")}

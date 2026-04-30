@@ -16,6 +16,8 @@ public interface ITourInstanceRepository
     Task UpdateInstanceDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default);
     Task AddDay(TourInstanceDayEntity day, CancellationToken cancellationToken = default);
     Task UpdateTourDayActivity(TourDayActivityEntity activity, CancellationToken cancellationToken = default);
+    Task AddInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default);
+    Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default);
     Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default);
     Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default);
     Task Create(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default);

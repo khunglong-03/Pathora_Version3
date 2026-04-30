@@ -81,7 +81,8 @@ public sealed class PrivateTourCoDesignHandlersTests
         var handler = new SetPrivateTourFinalSellPriceCommandHandler(
             _tourInstanceRepository,
             _ownershipValidator,
-            _unitOfWork);
+            _unitOfWork,
+            _user);
 
         var result = await handler.Handle(
             new SetPrivateTourFinalSellPriceCommand(instance.Id, 12000m),
@@ -156,7 +157,8 @@ public sealed class PrivateTourCoDesignHandlersTests
             Substitute.For<IUserRepository>(),
             _ownershipValidator,
             _unitOfWork,
-            Substitute.For<ITourInstanceService>());
+            Substitute.For<ITourInstanceService>(),
+            _user);
 
         var result = await handler.Handle(
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
@@ -219,7 +221,8 @@ public sealed class PrivateTourCoDesignHandlersTests
             userRepo,
             _ownershipValidator,
             _unitOfWork,
-            Substitute.For<ITourInstanceService>());
+            Substitute.For<ITourInstanceService>(),
+            _user);
 
         var result = await handler.Handle(
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),

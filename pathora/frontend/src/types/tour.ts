@@ -630,6 +630,10 @@ export interface TourInstanceDto {
   depositPolicy?: DepositPolicyDto | null;
   /** Giá chốt sau co-design (private tour); từ API khi đã set. */
   finalSellPrice?: number | null;
+  /** Khách muốn tùy chỉnh lịch trình (private custom tour). */
+  wantsCustomization?: boolean;
+  /** Ghi chú tùy chỉnh từ khách. */
+  customizationNotes?: string | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {

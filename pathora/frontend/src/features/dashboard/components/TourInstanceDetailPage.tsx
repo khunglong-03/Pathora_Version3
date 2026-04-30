@@ -16,9 +16,9 @@ import { userService } from "@/api/services/userService";
 import {
   isExternalOnlyTransportation,
   NormalizedTourInstanceDto,
-  UserInfo,
   type TourInstanceDayActivityDto,
 } from "@/types/tour";
+import { UserInfo } from "@/types";
 import { handleApiError } from "@/utils/apiResponse";
 import {
   getApprovalAppearance,
@@ -152,6 +152,8 @@ export default function TourInstanceDetailPage() {
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [dayEditForm, setDayEditForm] = useState<Record<string, { title: string; description: string; actualDate: string; startTime: string; endTime: string; note: string }>>({});
   const [activityEditForm, setActivityEditForm] = useState<Record<string, { note: string; startTime: string; endTime: string; isOptional: boolean }>>({});
+  const [addingActivityForDayId, setAddingActivityForDayId] = useState<string | null>(null);
+  const [newActivityForm, setNewActivityForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [data, setData] = useState<NormalizedTourInstanceDto | null>(null);
   const [form, setForm] = useState<EditForm | null>(null);
@@ -167,14 +169,34 @@ export default function TourInstanceDetailPage() {
 
   // Supplier reassignment modal state (task 3.10)
   const { user } = useAuth();
+  const isManager = user?.roles?.some((r) => r.name === "Admin" || r.name === "Manager");
   const canReassign = user?.roles?.some(
     (r) => r.name === "Admin" || r.name === "Manager" || r.name === "TourOperator",
   );
+  const canEditItinerary = user?.roles?.some(
+    (r) => r.name === "Admin" || r.name === "TourOperator",
+  );
+
+  const hasAssignedOperator = useMemo(() => {
+    if (data?.instanceType?.toLowerCase() === "private") return true;
+    const managerRoles = data?.managers?.filter((m) => m.role === "Manager") || [];
+    return managerRoles.length > 1; // Assuming 1 manager is the system, >1 means assigned
+  }, [data?.managers, data?.instanceType]);
+
   const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
   const [reassignType, setReassignType] = useState<"Transportation" | "Accommodation">("Transportation");
   const [ticketBookingOptions, setTicketBookingOptions] = useState<TicketImageBookingOption[]>([]);
   const [ticketBookingOptionsLoading, setTicketBookingOptionsLoading] = useState(false);
   const [primaryPrivateBookingId, setPrimaryPrivateBookingId] = useState<string | null>(null);
+
+  // Operator Assignment Modal State
+  const [tourOperators, setTourOperators] = useState<UserInfo[]>([]);
+  const [showAssignOperatorModal, setShowAssignOperatorModal] = useState(false);
+  const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
+  const [assigningOperator, setAssigningOperator] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancellingInstance, setCancellingInstance] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   // Check if navigated from creation and try to reuse POST response
   useEffect(() => {
@@ -228,19 +250,24 @@ export default function TourInstanceDetailPage() {
     };
   }, [data]);
 
-  const guides = useMemo(
-    () => allUsers.filter((u) => !u.isDeleted),
+  const availableGuides = useMemo(
+    () => allUsers.filter((u) => u.roles?.some((r) => r.name === "TourGuide")),
+    [allUsers],
+  );
+
+  const availableManagers = useMemo(
+    () => allUsers.filter((u) => u.roles?.some((r) => r.name === "Manager" || r.name === "TourOperator" || r.name === "Admin")),
     [allUsers],
   );
 
   const selectedGuides = useMemo(
-    () => guides.filter((u) => (form?.guideUserIds ?? []).includes(u.id)),
-    [guides, form?.guideUserIds],
+    () => allUsers.filter((u) => (form?.guideUserIds ?? []).includes(u.id)),
+    [allUsers, form?.guideUserIds],
   );
 
   const selectedManagers = useMemo(
-    () => guides.filter((u) => (form?.managerUserIds ?? []).includes(u.id)),
-    [guides, form?.managerUserIds],
+    () => allUsers.filter((u) => (form?.managerUserIds ?? []).includes(u.id)),
+    [allUsers, form?.managerUserIds],
   );
 
   const loadData = useCallback(async () => {
@@ -554,6 +581,46 @@ export default function TourInstanceDetailPage() {
     }
   };
 
+  const saveNewActivity = async (dayId: string) => {
+    if (!data) return;
+    if (!newActivityForm.title.trim()) {
+      toast.error(t("tourInstance.validation.titleRequired", "Title is required"));
+      return;
+    }
+    try {
+      await tourInstanceService.createInstanceActivity(data.id, dayId, {
+        title: newActivityForm.title.trim(),
+        activityType: newActivityForm.activityType,
+        description: newActivityForm.description.trim() || null,
+        note: newActivityForm.note.trim() || null,
+        startTime: newActivityForm.startTime || null,
+        endTime: newActivityForm.endTime || null,
+        isOptional: newActivityForm.isOptional,
+      });
+      toast.success(t("tourInstance.activityAdded", "Activity added successfully"));
+      setAddingActivityForDayId(null);
+      setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+      await loadData();
+    } catch (error: unknown) {
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
+    }
+  };
+
+  const handleDeleteActivity = async (dayId: string, activityId: string) => {
+    if (!data) return;
+    if (!confirm(t("common.confirmDelete", "Are you sure you want to delete this?"))) return;
+    
+    try {
+      await tourInstanceService.deleteInstanceActivity(data.id, dayId, activityId);
+      toast.success(t("tourInstance.activityDeleted", "Activity deleted successfully"));
+      await loadData();
+    } catch (error: unknown) {
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
+    }
+  };
+
   const handleCancelEdit = () => {
     if (!data) return;
     setForm(toEditForm(data));
@@ -745,7 +812,13 @@ export default function TourInstanceDetailPage() {
         <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row relative">
           <button
             type="button"
-            onClick={() => router.push("/manager/tour-instances")}
+            onClick={() => {
+              if (window.history.length > 2) {
+                router.back();
+              } else {
+                router.push(isManager ? "/manager/tour-instances" : "/tour-operator/custom-tour-requests");
+              }
+            }}
             className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 hover:bg-white hover:text-stone-900 shadow-sm border border-stone-200/50 transition-all">
             <Icon icon="heroicons:arrow-left" className="size-4" />
           </button>
@@ -775,33 +848,55 @@ export default function TourInstanceDetailPage() {
 
               <div className="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
                 <TourStatusBadge status={data.status} />
-                {!isEditing ? (
+                {isManager && !hasAssignedOperator ? (
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800 active:scale-[0.98] transition-all focus:ring-2 focus:ring-stone-900/20">
-                    <Icon icon="heroicons:pencil-square" className="size-4" />
-                    {t("tourInstance.edit", "Edit")}
+                    onClick={() => setShowAssignOperatorModal(true)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98] transition-all focus:ring-2 focus:ring-orange-500/20">
+                    <Icon icon="heroicons:user-plus" className="size-4" />
+                    {t("tourInstance.assignOperator", "Assign Operator")}
                   </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleCancelEdit}
-                      className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-[0.98] transition-all">
-                      {t("tourInstance.cancel", "Cancel")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveEdit}
-                      disabled={saving}
-                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition-all">
-                      <Icon icon="heroicons:check" className="size-4" />
-                      {saving
-                        ? t("common.saving", "Saving...")
-                        : t("common.save", "Save")}
-                    </button>
-                  </>
+                ) : isManager ? null : (
+                  !isEditing ? (
+                    <>
+                      {/* Operator Actions for their assigned custom tours */}
+                      {data.instanceType?.toLowerCase() === "private" && (
+                        <button
+                          type="button"
+                          onClick={() => setShowCancelConfirm(true)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 active:scale-[0.98] transition-all">
+                          <Icon icon="heroicons:x-circle" className="size-4" />
+                          {t("tourInstance.cancelTour", "Cancel Tour")}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800 active:scale-[0.98] transition-all focus:ring-2 focus:ring-stone-900/20">
+                        <Icon icon="heroicons:pencil-square" className="size-4" />
+                        {t("tourInstance.edit", "Edit")}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-[0.98] transition-all">
+                        {t("tourInstance.cancel", "Cancel")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveEdit}
+                        disabled={saving}
+                        className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition-all">
+                        <Icon icon="heroicons:check" className="size-4" />
+                        {saving
+                          ? t("common.saving", "Saving...")
+                          : t("common.save", "Save")}
+                      </button>
+                    </>
+                  )
                 )}
               </div>
             </div>
@@ -1041,36 +1136,19 @@ export default function TourInstanceDetailPage() {
                       <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm hover:border-stone-300 transition-colors focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500/20">
                         <div className="flex items-center justify-between gap-3 p-4 bg-stone-50/50 border-b border-stone-100">
                           <div className="flex flex-1 items-center gap-3">
-                            {editingDayId === day.id ? (
-                              <div className="flex-1 grid gap-2 md:grid-cols-2">
-                                <input
-                                  className={inputClassName}
-                                  value={dayEditForm[day.id]?.title ?? ""}
-                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], title: e.target.value } }))}
-                                  placeholder={t("tourInstance.form.title", "Title")}
-                                />
-                                <input
-                                  type="date"
-                                  className={inputClassName}
-                                  value={dayEditForm[day.id]?.actualDate ?? ""}
-                                  onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], actualDate: e.target.value } }))}
-                                />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
                               </div>
-                            ) : (
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
-                                </div>
-                                {day.actualDate && (
-                                  <p className="text-xs text-stone-500">
-                                    {t("tourInstance.form.actualDate", "Actual Date")}:{" "}
-                                    {new Date(day.actualDate).toLocaleDateString("vi-VN")}
-                                    {day.startTime && ` ${day.startTime}`}
-                                    {day.endTime && ` - ${day.endTime}`}
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                              {day.actualDate && (
+                                <p className="text-xs text-stone-500">
+                                  {t("tourInstance.form.actualDate", "Actual Date")}:{" "}
+                                  {new Date(day.actualDate).toLocaleDateString("vi-VN")}
+                                  {day.startTime && ` ${day.startTime}`}
+                                  {day.endTime && ` - ${day.endTime}`}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             {editingDayId === day.id ? (
@@ -1511,366 +1589,515 @@ export default function TourInstanceDetailPage() {
                                         </p>
                                       )}
                                     </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => startEditActivity(day.id, activity)}
-                                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
-                                      <Icon icon="heroicons:pencil" className="size-3" />
-                                    </button>
+                                    <div className="flex flex-col gap-1 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditActivity(day.id, activity)}
+                                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
+                                        <Icon icon="heroicons:pencil" className="size-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteActivity(day.id, activity.id)}
+                                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-500 hover:bg-red-50 hover:text-red-700">
+                                        <Icon icon="heroicons:trash" className="size-3" />
+                                      </button>
+                                    </div>
                                   </div>
                                 )}
                               </div>
                             ))}
-                          </div>
-                        )}
+                            </div>
+                          )}
+
+                          {addingActivityForDayId === day.id ? (
+                            <div className="p-4 border-t border-stone-100 bg-orange-50/50">
+                              <div className="rounded-xl border border-orange-200 bg-white p-3 space-y-3 shadow-sm">
+                                <h4 className="text-sm font-semibold text-orange-700">
+                                  {t("tourInstance.wizard.addActivity", "Thêm hoạt động mới")}
+                                </h4>
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">
+                                      {t("tourInstance.wizard.activity.title", "Tiêu đề")} *
+                                    </label>
+                                    <input
+                                      type="text"
+                                      className={inputClassName}
+                                      value={newActivityForm.title}
+                                      onChange={(e) => setNewActivityForm((f) => ({ ...f, title: e.target.value }))}
+                                      placeholder={t("tourInstance.form.titlePlaceholder", "Tên hoạt động")}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">
+                                      {t("tourInstance.wizard.activity.type", "Loại hoạt động")}
+                                    </label>
+                                    <select
+                                      className={inputClassName}
+                                      value={newActivityForm.activityType}
+                                      onChange={(e) => setNewActivityForm((f) => ({ ...f, activityType: Number(e.target.value) }))}
+                                    >
+                                      <option value={0}>{t("activityTypes.0", "Tham quan")}</option>
+                                      <option value={1}>{t("activityTypes.1", "Ăn uống")}</option>
+                                      <option value={2}>{t("activityTypes.2", "Mua sắm")}</option>
+                                      <option value={3}>{t("activityTypes.3", "Phiêu lưu")}</option>
+                                      <option value={4}>{t("activityTypes.4", "Nghỉ dưỡng")}</option>
+                                      <option value={5}>{t("activityTypes.5", "Văn hóa")}</option>
+                                      <option value={6}>{t("activityTypes.6", "Giải trí")}</option>
+                                      <option value={7}>{t("activityTypes.7", "Phương tiện")}</option>
+                                      <option value={8}>{t("activityTypes.8", "Lưu trú")}</option>
+                                      <option value={9}>{t("activityTypes.9", "Thời gian tự do")}</option>
+                                      <option value={99}>{t("activityTypes.99", "Khác")}</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">
+                                      {t("tourInstance.wizard.activity.start", "Giờ bắt đầu")}
+                                    </label>
+                                    <input
+                                      type="time"
+                                      className={inputClassName}
+                                      value={newActivityForm.startTime}
+                                      onChange={(e) => setNewActivityForm((f) => ({ ...f, startTime: e.target.value }))}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">
+                                      {t("tourInstance.wizard.activity.end", "Giờ kết thúc")}
+                                    </label>
+                                    <input
+                                      type="time"
+                                      className={inputClassName}
+                                      value={newActivityForm.endTime}
+                                      onChange={(e) => setNewActivityForm((f) => ({ ...f, endTime: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-xs font-medium text-stone-600">
+                                    {t("tourInstance.form.description", "Description")}
+                                  </label>
+                                  <textarea
+                                    className={inputClassName + " resize-none"}
+                                    rows={2}
+                                    value={newActivityForm.description}
+                                    onChange={(e) => setNewActivityForm((f) => ({ ...f, description: e.target.value }))}
+                                  />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <label className="flex items-center gap-2 text-xs text-stone-600">
+                                    <input
+                                      type="checkbox"
+                                      checked={newActivityForm.isOptional}
+                                      onChange={(e) => setNewActivityForm((f) => ({ ...f, isOptional: e.target.checked }))}
+                                      className="size-4 rounded border-stone-300 text-orange-500"
+                                    />
+                                    {t("tourInstance.optional", "Optional")}
+                                  </label>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setAddingActivityForDayId(null);
+                                        setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+                                      }}
+                                      className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">
+                                      {t("common.cancel", "Cancel")}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => saveNewActivity(day.id)}
+                                      className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                      {t("common.add", "Thêm")}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-4 border-t border-stone-100 bg-stone-50/50 flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() => setAddingActivityForDayId(day.id)}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                              >
+                                <Icon icon="heroicons:plus" className="size-4" />
+                                {t("tourInstance.addActivity", "Thêm hoạt động")}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
               )}
             </section>
           </>
         ) : (
-          <section className="space-y-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-bold text-stone-900">
-              {t("tourInstance.form.editInformation", "Edit tour instance")}
-            </h2>
+          <form className="mt-8 space-y-8" onSubmit={handleSaveEdit}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-stone-900 tracking-tight">
+                {t("tourInstance.edit", "Edit Tour Instance")}
+              </h2>
+            </div>
+
+            {data.wantsCustomization && (
+              <div className="flex items-start gap-3 rounded-2xl bg-amber-50/80 border border-amber-200/60 p-5 shadow-sm">
+                <Icon icon="heroicons:information-circle" className="size-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-amber-800">
+                    {t("tourInstance.customerNote", "Ghi chú của khách hàng:")}
+                  </h4>
+                  <p className="mt-1.5 text-sm text-amber-700 leading-relaxed whitespace-pre-wrap max-w-[65ch]">
+                    {data.customizationNotes || t("tourInstance.noNote", "Khách hàng muốn tùy chỉnh tour này.")}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Immutable fields — shown as read-only chips */}
-            <div className="flex flex-wrap gap-2 rounded-xl border border-stone-100 bg-stone-50 p-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1 text-xs font-medium text-stone-600">
-                <Icon icon="heroicons:lock-closed" className="size-3" />
-                {t("tourInstance.instanceType", "Tour Instance Type")}: {data.instanceType}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1 text-xs font-medium text-stone-600">
-                <Icon icon="heroicons:lock-closed" className="size-3" />
-                {t("tourInstance.form.packageTour", "Package Tour")}: {data.tourName}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1 text-xs font-medium text-stone-600">
-                <Icon icon="heroicons:lock-closed" className="size-3" />
-                {t("tourInstance.classification", "Classification")}: {data.classificationName}
-              </span>
-              <p className="w-full text-xs text-stone-500">
+            <div className="flex flex-wrap gap-2.5 rounded-[1.5rem] border border-stone-200/50 bg-stone-50/50 p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <p className="w-full text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-1">
                 {t("tourInstance.immutableFields.note", "This field is locked after the instance is created")}
               </p>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-600 shadow-sm">
+                <Icon icon="heroicons:lock-closed" className="size-3.5 text-stone-400" />
+                {t("tourInstance.instanceType", "Tour Instance Type")}: {data.instanceType}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-600 shadow-sm">
+                <Icon icon="heroicons:lock-closed" className="size-3.5 text-stone-400" />
+                {t("tourInstance.form.packageTour", "Package Tour")}: {data.tourName}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-600 shadow-sm">
+                <Icon icon="heroicons:lock-closed" className="size-3.5 text-stone-400" />
+                {t("tourInstance.classification", "Classification")}: {data.classificationName}
+              </span>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.form.title", "Title")} *
-                </label>
-                <input
-                  className={inputClassName}
-                  value={form.title}
-                  onChange={(event) => updateField("title", event.target.value)}
-                />
-                {errors.title && (
-                  <p className="text-xs text-red-600">{errors.title}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.location", "Location")}
-                </label>
-                <input
-                  className={inputClassName}
-                  value={form.location}
-                  onChange={(event) =>
-                    updateField("location", event.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.instanceType", "Tour Instance Type")} *
-                </label>
-                <select
-                  className={inputClassName}
-                  value={form.instanceType}
-                  onChange={(event) => updateField("instanceType", event.target.value)}>
-                  <option value="1">{t("tourInstance.private", "Private")}</option>
-                  <option value="2">{t("tourInstance.public", "Public")}</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.startDate", "Start Date")} *
-                </label>
-                <input
-                  type="date"
-                  className={inputClassName}
-                  value={form.startDate}
-                  onChange={(event) =>
-                    updateField("startDate", event.target.value)
-                  }
-                />
-                {errors.startDate && (
-                  <p className="text-xs text-red-600">{errors.startDate}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.endDate", "End Date")} *
-                </label>
-                <input
-                  type="date"
-                  className={inputClassName}
-                  value={form.endDate}
-                  onChange={(event) =>
-                    updateField("endDate", event.target.value)
-                  }
-                />
-                {errors.endDate && (
-                  <p className="text-xs text-red-600">{errors.endDate}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.maxParticipants", "Maximum Participants")} *
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  className={inputClassName}
-                  value={form.maxParticipation}
-                  onChange={(event) =>
-                    updateField("maxParticipation", event.target.value)
-                  }
-                />
-                {errors.maxParticipation && (
-                  <p className="text-xs text-red-600">
-                    {errors.maxParticipation}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-stone-700">
-                  {t("tourInstance.basePrice", "Base Price")} *
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  className={inputClassName}
-                  value={form.basePrice}
-                  onChange={(event) =>
-                    updateField("basePrice", event.target.value)
-                  }
-                />
-                {errors.basePrice && (
-                  <p className="text-xs text-red-600">{errors.basePrice}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700">
-                {t("tourInstance.confirmationDeadline", "Confirmation Deadline")}
-              </label>
-              <input
-                type="date"
-                className={inputClassName}
-                value={form.confirmationDeadline}
-                onChange={(event) =>
-                  updateField("confirmationDeadline", event.target.value)
-                }
-              />
-            </div>
-
-            {/* Guides */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700">
-                {t("tourInstance.wizard.section.guides", "Guides")}
-              </label>
-              {selectedGuides.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {selectedGuides.map((guide) => (
-                    <span
-                      key={guide.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-700">
-                      {guide.avatar ? (
-                        <img
-                          src={guide.avatar}
-                          alt=""
-                          className="size-5 rounded-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <Icon icon="heroicons:user" className="size-3" />
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Left Column */}
+              <div className="space-y-6">
+                {/* Panel 1: General Info */}
+                <div className="rounded-[1.5rem] border border-stone-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6">
+                  <h3 className="text-lg font-semibold tracking-tight text-stone-900 border-b border-stone-100 pb-4">
+                    {t("tourInstance.form.generalInfo", "Thông tin chung")}
+                  </h3>
+                  <div className="space-y-5">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.form.title", "Title")} *
+                      </label>
+                      <input
+                        className={inputClassName}
+                        value={form.title}
+                        onChange={(event) => updateField("title", event.target.value)}
+                      />
+                      {errors.title && (
+                        <p className="text-xs font-medium text-red-500">{errors.title}</p>
                       )}
-                      <span className="max-w-24 truncate">
-                        {guide.fullName || guide.username || guide.email}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => toggleUser(guide.id, "guideUserIds")}
-                        className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-orange-500 hover:text-orange-700">
-                        <Icon icon="heroicons:x-mark" className="size-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <select
-                className={inputClassName}
-                value=""
-                onChange={(e) => {
-                  if (e.target.value)
-                    toggleUser(e.target.value, "guideUserIds");
-                  e.target.value = "";
-                }}>
-                <option value="">
-                  {t("tourInstance.form.addGuide", "+ Add guide")}
-                </option>
-                {guides
-                  .filter((u) => !form.guideUserIds.includes(u.id))
-                  .map((guide) => (
-                    <option key={guide.id} value={guide.id}>
-                      {guide.fullName || guide.username || guide.email}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            {/* Managers */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700">
-                {t("tourInstance.wizard.section.managers", "Managers")}
-              </label>
-              {selectedManagers.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {selectedManagers.map((mgr) => (
-                    <span
-                      key={mgr.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                      {mgr.avatar ? (
-                        <img
-                          src={mgr.avatar}
-                          alt=""
-                          className="size-5 rounded-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <Icon icon="heroicons:user" className="size-3" />
-                      )}
-                      <span className="max-w-24 truncate">
-                        {mgr.fullName || mgr.username || mgr.email}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => toggleUser(mgr.id, "managerUserIds")}
-                        className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-blue-500 hover:text-blue-700">
-                        <Icon icon="heroicons:x-mark" className="size-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <select
-                className={inputClassName}
-                value=""
-                onChange={(e) => {
-                  if (e.target.value)
-                    toggleUser(e.target.value, "managerUserIds");
-                  e.target.value = "";
-                }}>
-                <option value="">
-                  {t("tourInstance.form.addManager", "+ Add manager")}
-                </option>
-                {guides
-                  .filter((u) => !form.managerUserIds.includes(u.id))
-                  .map((mgr) => (
-                    <option key={mgr.id} value={mgr.id}>
-                      {mgr.fullName || mgr.username || mgr.email}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            {/* Included Services */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700">
-                {t("tourInstance.includedServices", "Included Services")}
-              </label>
-              <div className="space-y-2">
-                {form.includedServices.map((service, index) => (
-                  <div key={`service-${index}`} className="flex items-center gap-2">
-                    <input
-                      className={inputClassName}
-                      value={service}
-                      onChange={(event) =>
-                        updateListItem(
-                          "includedServices",
-                          index,
-                          event.target.value,
-                        )
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeListItem("includedServices", index)
-                      }
-                      className="rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-700 hover:bg-stone-100 whitespace-nowrap">
-                      {t("common.remove", "Remove")}
-                    </button>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.location", "Location")}
+                      </label>
+                      <input
+                        className={inputClassName}
+                        value={form.location}
+                        onChange={(event) => updateField("location", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.instanceType", "Tour Instance Type")} *
+                      </label>
+                      <select
+                        className={inputClassName}
+                        value={form.instanceType}
+                        onChange={(event) => updateField("instanceType", event.target.value)}>
+                        <option value="1">{t("tourInstance.private", "Private")}</option>
+                        <option value="2">{t("tourInstance.public", "Public")}</option>
+                      </select>
+                    </div>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendListItem("includedServices")}
-                  className="rounded-xl border border-orange-200 px-3 py-2 text-sm font-semibold text-orange-500 hover:bg-orange-50">
-                  + {t("tourInstance.form.addService", "Add service")}
-                </button>
-              </div>
-            </div>
+                </div>
 
-            {/* Images */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700">
-                {t("tourInstance.form.media", "Media")}
-              </label>
-              <div className="space-y-2">
-                {form.imageUrls.map((url, index) => (
-                  <div key={`image-${index}`} className="flex items-center gap-2">
-                    <input
-                      className={inputClassName}
-                      value={url}
-                      onChange={(event) =>
-                        updateListItem("imageUrls", index, event.target.value)
-                      }
-                      placeholder={t(
-                        "tourInstance.form.imageUrl",
-                        "Image URL",
+                {/* Panel 2: Assignments */}
+                <div className="rounded-[1.5rem] border border-stone-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6">
+                  <h3 className="text-lg font-semibold tracking-tight text-stone-900 border-b border-stone-100 pb-4">
+                    {t("tourInstance.form.assignments", "Điều phối nhân sự")}
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {/* Guides */}
+                    <div className="space-y-3">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                        {t("tourInstance.wizard.section.guides", "Guides")}
+                      </label>
+                      {selectedGuides.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {selectedGuides.map((guide) => (
+                            <span
+                              key={guide.id}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200/60 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                              {guide.avatar ? (
+                                <img
+                                  src={guide.avatar}
+                                  alt=""
+                                  className="size-5 rounded-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <Icon icon="heroicons:user" className="size-3 text-orange-500" />
+                              )}
+                              <span className="max-w-24 truncate">
+                                {guide.fullName || guide.username || guide.email}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleUser(guide.id, "guideUserIds")}
+                                className="ml-1 flex size-4 items-center justify-center rounded-full text-orange-400 hover:bg-orange-100 hover:text-orange-600 transition-colors">
+                                <Icon icon="heroicons:x-mark" className="size-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       )}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeListItem("imageUrls", index)}
-                      className="rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-700 hover:bg-stone-100 whitespace-nowrap">
-                      {t("common.remove", "Remove")}
-                    </button>
+                      <select
+                        className={inputClassName}
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) toggleUser(e.target.value, "guideUserIds");
+                          e.target.value = "";
+                        }}>
+                        <option value="">{t("tourInstance.form.addGuide", "+ Add guide")}</option>
+                        {availableGuides
+                          .filter((u) => !form.guideUserIds.includes(u.id))
+                          .map((guide) => (
+                            <option key={guide.id} value={guide.id}>
+                              {guide.fullName || guide.username || guide.email}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="h-px w-full bg-stone-100"></div>
+
+                    {/* Managers */}
+                    <div className="space-y-3">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                        {t("tourInstance.wizard.section.managers", "Managers")}
+                      </label>
+                      {selectedManagers.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {selectedManagers.map((mgr) => (
+                            <span
+                              key={mgr.id}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                              {mgr.avatar ? (
+                                <img
+                                  src={mgr.avatar}
+                                  alt=""
+                                  className="size-5 rounded-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <Icon icon="heroicons:user" className="size-3 text-blue-500" />
+                              )}
+                              <span className="max-w-24 truncate">
+                                {mgr.fullName || mgr.username || mgr.email}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleUser(mgr.id, "managerUserIds")}
+                                className="ml-1 flex size-4 items-center justify-center rounded-full text-blue-400 hover:bg-blue-100 hover:text-blue-600 transition-colors">
+                                <Icon icon="heroicons:x-mark" className="size-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <select
+                        className={inputClassName}
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) toggleUser(e.target.value, "managerUserIds");
+                          e.target.value = "";
+                        }}>
+                        <option value="">{t("tourInstance.form.addManager", "+ Add manager")}</option>
+                        {availableManagers
+                          .filter((u) => !form.managerUserIds.includes(u.id))
+                          .map((mgr) => (
+                            <option key={mgr.id} value={mgr.id}>
+                              {mgr.fullName || mgr.username || mgr.email}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => appendListItem("imageUrls")}
-                  className="rounded-xl border border-orange-200 px-3 py-2 text-sm font-semibold text-orange-500 hover:bg-orange-50">
-                  + {t("tourInstance.form.addImage", "Add image")}
-                </button>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-6">
+                {/* Panel 3: Time & Price */}
+                <div className="rounded-[1.5rem] border border-stone-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6">
+                  <h3 className="text-lg font-semibold tracking-tight text-stone-900 border-b border-stone-100 pb-4">
+                    {t("tourInstance.form.timeAndPrice", "Thời gian & Giá cả")}
+                  </h3>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.startDate", "Start Date")} *
+                      </label>
+                      <input
+                        type="date"
+                        className={inputClassName}
+                        value={form.startDate}
+                        onChange={(event) => updateField("startDate", event.target.value)}
+                      />
+                      {errors.startDate && <p className="text-xs font-medium text-red-500">{errors.startDate}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.endDate", "End Date")} *
+                      </label>
+                      <input
+                        type="date"
+                        className={inputClassName}
+                        value={form.endDate}
+                        onChange={(event) => updateField("endDate", event.target.value)}
+                      />
+                      {errors.endDate && <p className="text-xs font-medium text-red-500">{errors.endDate}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.maxParticipants", "Maximum Participants")} *
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        className={inputClassName}
+                        value={form.maxParticipation}
+                        onChange={(event) => updateField("maxParticipation", event.target.value)}
+                      />
+                      {errors.maxParticipation && (
+                        <p className="text-xs font-medium text-red-500">{errors.maxParticipation}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.basePrice", "Base Price")} *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500">$</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className={`${inputClassName} pl-7`}
+                          value={form.basePrice}
+                          onChange={(event) => updateField("basePrice", event.target.value)}
+                        />
+                      </div>
+                      {errors.basePrice && <p className="text-xs font-medium text-red-500">{errors.basePrice}</p>}
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-semibold text-stone-700">
+                        {t("tourInstance.confirmationDeadline", "Confirmation Deadline")}
+                      </label>
+                      <input
+                        type="date"
+                        className={inputClassName}
+                        value={form.confirmationDeadline}
+                        onChange={(event) => updateField("confirmationDeadline", event.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Panel 4: Services & Media */}
+                <div className="rounded-[1.5rem] border border-stone-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] space-y-6">
+                  <h3 className="text-lg font-semibold tracking-tight text-stone-900 border-b border-stone-100 pb-4">
+                    {t("tourInstance.form.servicesAndMedia", "Dịch vụ & Tiện ích")}
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {/* Included Services */}
+                    <div className="space-y-3">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                        {t("tourInstance.includedServices", "Included Services")}
+                      </label>
+                      <div className="space-y-2.5">
+                        {form.includedServices.map((service, index) => (
+                          <div key={`service-${index}`} className="flex items-center gap-2">
+                            <input
+                              className={inputClassName}
+                              value={service}
+                              onChange={(event) => updateListItem("includedServices", index, event.target.value)}
+                              placeholder="e.g. Free breakfast"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeListItem("includedServices", index)}
+                              className="shrink-0 flex items-center justify-center rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
+                              <Icon icon="heroicons:trash" className="size-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => appendListItem("includedServices")}
+                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-400 transition-colors">
+                          <Icon icon="heroicons:plus" className="size-4" />
+                          {t("tourInstance.form.addService", "Add service")}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="h-px w-full bg-stone-100"></div>
+
+                    {/* Images */}
+                    <div className="space-y-3">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                        {t("tourInstance.form.media", "Media")}
+                      </label>
+                      <div className="space-y-2.5">
+                        {form.imageUrls.map((url, index) => (
+                          <div key={`image-${index}`} className="flex items-center gap-2">
+                            <input
+                              className={inputClassName}
+                              value={url}
+                              onChange={(event) => updateListItem("imageUrls", index, event.target.value)}
+                              placeholder={t("tourInstance.form.imageUrl", "Image URL (https://...)")}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeListItem("imageUrls", index)}
+                              className="shrink-0 flex items-center justify-center rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
+                              <Icon icon="heroicons:trash" className="size-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => appendListItem("imageUrls")}
+                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-400 transition-colors">
+                          <Icon icon="heroicons:photo" className="size-4" />
+                          {t("tourInstance.form.addImage", "Add image")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </section>
+          </form>
         )}
       </div>
     </main>

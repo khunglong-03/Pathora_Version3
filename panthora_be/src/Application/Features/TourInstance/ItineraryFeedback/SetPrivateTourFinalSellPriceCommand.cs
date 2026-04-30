@@ -26,7 +26,8 @@ public sealed class SetPrivateTourFinalSellPriceCommandValidator : AbstractValid
 public sealed class SetPrivateTourFinalSellPriceCommandHandler(
     ITourInstanceRepository tourInstanceRepository,
     IOwnershipValidator ownershipValidator,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user)
     : IRequestHandler<SetPrivateTourFinalSellPriceCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(
@@ -41,7 +42,8 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        if (!isAdmin && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+        if (!isAdmin && !isGlobalManager && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
         try

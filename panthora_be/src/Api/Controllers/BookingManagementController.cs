@@ -363,13 +363,6 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpGet("by-tour-instance/{tourInstanceId:guid}")]
-    public async Task<IActionResult> GetByTourInstance(Guid tourInstanceId)
-    {
-        var result = await Sender.Send(new GetBookingsByTourInstanceQuery(tourInstanceId));
-        return HandleResult(result);
-    }
 }
 
 public sealed record CreateBookingActivityReservationRequest(

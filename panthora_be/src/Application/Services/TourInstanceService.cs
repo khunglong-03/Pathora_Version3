@@ -44,6 +44,8 @@ public interface ITourInstanceService
     Task<ErrorOr<TourInstanceDayDto>> UpdateDay(UpdateTourInstanceDayCommand request);
     Task<ErrorOr<Guid>> AddCustomDay(CreateTourInstanceDayCommand request);
     Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request);
+    Task<ErrorOr<TourInstanceDayActivityDto>> CreateActivity(CreateTourInstanceActivityCommand request);
+    Task<ErrorOr<Success>> DeleteActivity(DeleteTourInstanceActivityCommand request);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetMyAssignedInstances(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<ErrorOr<TourInstanceDto>> GetMyAssignedInstanceDetail(Guid id, CancellationToken cancellationToken = default);
     /// <summary>
@@ -70,6 +72,7 @@ public class TourInstanceService(
     IServiceProvider? serviceProvider = null,
     ITourInstanceNotificationBroadcaster? notificationBroadcaster = null,
     IVehicleBlockRepository? vehicleBlockRepository = null,
+    Domain.Common.Repositories.IBookingRepository? bookingRepository = null,
     IUnitOfWork? unitOfWork = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
@@ -88,6 +91,7 @@ public class TourInstanceService(
     private readonly IUnitOfWork? _unitOfWork = unitOfWork;
     private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
     private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
+    private readonly Domain.Common.Repositories.IBookingRepository? _bookingRepository = bookingRepository;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -880,8 +884,9 @@ public class TourInstanceService(
 
         var performedBy = _user.Id ?? string.Empty;
 
-        // Update Managers
-        entity.Managers.Clear();
+        var existingManagers = entity.Managers.ToList();
+        var desiredManagers = new List<(Guid UserId, TourInstanceManagerRole Role)>();
+
         if (request.GuideUserIds?.Count > 0)
         {
             var conflictingInstances = await _tourInstanceRepository.FindConflictingInstancesForManagers(
@@ -894,16 +899,34 @@ public class TourInstanceService(
 
             foreach (var userId in request.GuideUserIds)
             {
-                entity.Managers.Add(TourInstanceManagerEntity.Create(
-                    entity.Id, userId, TourInstanceManagerRole.Guide, performedBy));
+                desiredManagers.Add((userId, TourInstanceManagerRole.Guide));
             }
         }
+        
         if (request.ManagerUserIds?.Count > 0)
         {
             foreach (var userId in request.ManagerUserIds)
             {
+                desiredManagers.Add((userId, TourInstanceManagerRole.Manager));
+            }
+        }
+
+        // Remove managers that are no longer desired
+        foreach (var existing in existingManagers)
+        {
+            if (!desiredManagers.Any(d => d.UserId == existing.UserId && d.Role == existing.Role))
+            {
+                entity.Managers.Remove(existing);
+            }
+        }
+
+        // Add managers that are newly desired
+        foreach (var desired in desiredManagers)
+        {
+            if (!existingManagers.Any(e => e.UserId == desired.UserId && e.Role == desired.Role))
+            {
                 entity.Managers.Add(TourInstanceManagerEntity.Create(
-                    entity.Id, userId, TourInstanceManagerRole.Manager, performedBy));
+                    entity.Id, desired.UserId, desired.Role, performedBy));
             }
         }
 
@@ -941,21 +964,16 @@ public class TourInstanceService(
 
         await _tourInstanceRepository.Update(entity);
 
-        if (_unitOfWork != null)
+        // Physical deletion from Cloudinary after DB success
+        if (publicIdsToDelete.Count > 0)
         {
-            await _unitOfWork.SaveChangeAsync();
-
-            // Physical deletion from Cloudinary after DB success
-            if (publicIdsToDelete.Count > 0)
+            try
             {
-                try
-                {
-                    await _cloudinaryService.DeleteFilesAsync(publicIdsToDelete);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to delete old images from Cloudinary for TourInstance {InstanceId}", entity.Id);
-                }
+                await _cloudinaryService.DeleteFilesAsync(publicIdsToDelete);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete old images from Cloudinary for TourInstance {InstanceId}", entity.Id);
             }
         }
 
@@ -1322,7 +1340,15 @@ public class TourInstanceService(
         if (!hasAccess)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        return _mapper.Map<TourInstanceDto>(entity);
+        var dto = _mapper.Map<TourInstanceDto>(entity);
+        if (_bookingRepository is not null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(id, cancellationToken);
+            var totalBookings = bookings.Count(b => b.Status != BookingStatus.Cancelled);
+            var revenue = bookings.Where(b => b.Status is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Completed).Sum(b => b.TotalPrice);
+            dto = dto with { TotalBookings = totalBookings, Revenue = revenue };
+        }
+        return dto;
     }
 
     public async Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetAll(GetAllTourInstancesQuery request)
@@ -1347,7 +1373,15 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        return _mapper.Map<TourInstanceDto>(entity);
+        var dto = _mapper.Map<TourInstanceDto>(entity);
+        if (_bookingRepository is not null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(id);
+            var totalBookings = bookings.Count(b => b.Status != BookingStatus.Cancelled);
+            var revenue = bookings.Where(b => b.Status is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Completed).Sum(b => b.TotalPrice);
+            dto = dto with { TotalBookings = totalBookings, Revenue = revenue };
+        }
+        return dto;
     }
 
     public async Task<ErrorOr<TourInstanceStatsDto>> GetStats()
@@ -1390,7 +1424,15 @@ public class TourInstanceService(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.PublicNotFoundDescription);
 
         entity.ApplyResolvedTranslation(PublicLanguageResolver.Resolve(language));
-        return _mapper.Map<TourInstanceDto>(entity);
+        var dto = _mapper.Map<TourInstanceDto>(entity);
+        if (_bookingRepository is not null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(id);
+            var totalBookings = bookings.Count(b => b.Status != BookingStatus.Cancelled);
+            var revenue = bookings.Where(b => b.Status is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.Completed).Sum(b => b.TotalPrice);
+            dto = dto with { TotalBookings = totalBookings, Revenue = revenue };
+        }
+        return dto;
     }
 
     private static Dictionary<string, TourInstanceDayTranslationData> ConvertTourDayTranslation(
@@ -1458,12 +1500,12 @@ public class TourInstanceService(
 
     public async Task<ErrorOr<Guid>> AddCustomDay(CreateTourInstanceDayCommand request)
     {
-        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        if (instance.Status != TourInstanceStatus.Available)
-            return Error.Validation("TourInstance.InvalidStatus", "Custom days can only be added when instance status is Available.");
+        if (instance.Status != TourInstanceStatus.Available && instance.Status != TourInstanceStatus.Draft)
+            return Error.Validation("TourInstance.InvalidStatus", "Custom days can only be added when instance status is Available or Draft.");
 
         // Validate actualDate within instance date range
         var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
@@ -1503,17 +1545,20 @@ public class TourInstanceService(
 
     public async Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request)
     {
-        var instanceDay = await _tourInstanceRepository.FindInstanceDayById(request.InstanceId, request.DayId);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        var instanceDay = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
         if (instanceDay is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Tour instance day not found.");
 
-        var activity = instanceDay.TourDay.Activities.FirstOrDefault(a => a.Id == request.ActivityId);
+        var activity = instanceDay.Activities.FirstOrDefault(a => a.Id == request.ActivityId);
         if (activity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
 
         var performedBy = _user.Id ?? string.Empty;
 
-        // Partial update: only apply non-null fields
         if (request.Note is not null)
             activity.Note = request.Note;
         if (request.StartTime.HasValue)
@@ -1526,9 +1571,51 @@ public class TourInstanceService(
         activity.LastModifiedBy = performedBy;
         activity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
 
-        await _tourInstanceRepository.UpdateTourDayActivity(activity);
+        await _tourInstanceRepository.Update(instance);
+        if (_unitOfWork != null) {
+            await _unitOfWork.SaveChangeAsync();
+        }
 
+        // Return a mapped DTO. Wait, the return type is TourDayActivityDto but the entity is TourInstanceDayActivityEntity.
+        // It might be mapped correctly if AutoMapper profile exists.
         return _mapper.Map<TourDayActivityDto>(activity);
+    }
+
+    public async Task<ErrorOr<TourInstanceDayActivityDto>> CreateActivity(CreateTourInstanceActivityCommand request)
+    {
+        var day = await _tourInstanceRepository.FindInstanceDayById(request.InstanceId, request.DayId);
+        if (day == null)
+            return Error.NotFound("TourInstanceDay.NotFound", "Day not found.");
+
+        int order = day.Activities.Count > 0 ? day.Activities.Max(a => a.Order) + 1 : 1;
+
+        var activity = TourInstanceDayActivityEntity.Create(
+            request.DayId,
+            order,
+            request.ActivityType,
+            request.Title,
+            _user.Id ?? "system",
+            request.Description,
+            request.Note,
+            request.StartTime,
+            request.EndTime,
+            request.IsOptional
+        );
+
+        await _tourInstanceRepository.AddInstanceDayActivity(activity);
+
+        return _mapper.Map<TourInstanceDayActivityDto>(activity);
+    }
+
+    public async Task<ErrorOr<Success>> DeleteActivity(DeleteTourInstanceActivityCommand request)
+    {
+        var activity = await _tourInstanceRepository.FindActivityByIdAsync(request.ActivityId);
+        if (activity == null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
+
+        await _tourInstanceRepository.DeleteInstanceDayActivity(activity);
+
+        return Result.Success;
     }
 }
 

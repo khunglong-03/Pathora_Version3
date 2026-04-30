@@ -56,7 +56,7 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
-        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
         if (!isAssignedManager && !isAdmin && !isGlobalManager)
         {

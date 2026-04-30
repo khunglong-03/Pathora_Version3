@@ -100,7 +100,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
@@ -109,7 +109,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPost(TourInstanceEndpoint.Days)]
     public async Task<IActionResult> CreateDay(Guid id, [FromBody] CreateTourInstanceDayCommand command)
     {
@@ -118,12 +118,30 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPatch(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> UpdateActivity(Guid id, Guid dayId, Guid activityId, [FromBody] UpdateTourInstanceActivityCommand command)
     {
         var updatedCommand = command with { InstanceId = id, DayId = dayId, ActivityId = activityId };
         var result = await Sender.Send(updatedCommand);
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.DayId + "/activities")]
+    public async Task<IActionResult> CreateActivity(Guid id, Guid dayId, [FromBody] CreateTourInstanceActivityCommand command)
+    {
+        var updatedCommand = command with { InstanceId = id, DayId = dayId };
+        var result = await Sender.Send(updatedCommand);
+        return HandleCreated(result);
+    }
+
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpDelete(TourInstanceEndpoint.ActivityId)]
+    public async Task<IActionResult> DeleteActivity(Guid id, Guid dayId, Guid activityId)
+    {
+        var command = new DeleteTourInstanceActivityCommand(id, dayId, activityId);
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 

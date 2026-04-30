@@ -33,7 +33,8 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
     IUserRepository userRepository,
     IOwnershipValidator ownershipValidator,
     Domain.UnitOfWork.IUnitOfWork unitOfWork,
-    ITourInstanceService tourInstanceService)
+    ITourInstanceService tourInstanceService,
+    global::Contracts.Interfaces.IUser user)
     : IRequestHandler<ApplyPrivateTourSettlementCommand, ErrorOr<PrivateTourSettlementResultDto>>
 {
     public async Task<ErrorOr<PrivateTourSettlementResultDto>> Handle(
@@ -50,12 +51,16 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
         if (booking.TourInstanceId != request.TourInstanceId)
             return Error.Validation("PrivateTour.BookingInstanceMismatch", "Booking không thuộc lịch trình này.");
 
-        var instance = booking.TourInstance;
+        var instance = await tourInstanceRepository.FindById(request.TourInstanceId, cancellationToken: cancellationToken);
+        if (instance == null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
         if (instance.InstanceType != TourType.Private)
             return Error.Validation("PrivateTour.NotPrivate", "Chỉ booking tour riêng mới quyết toán Delta.");
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        if (!isAdmin && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
+        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+        if (!isAdmin && !isGlobalManager && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
         if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Deposited && booking.Status != BookingStatus.Pending)

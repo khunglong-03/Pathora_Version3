@@ -11,6 +11,7 @@ namespace Application.Features.BookingManagement.Handlers;
 public sealed class GetBookingsByTourInstanceQueryHandler(
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,
+    ITourRepository tourRepository,
     IUser user)
     : IQueryHandler<GetBookingsByTourInstanceQuery, ErrorOr<List<AdminBookingListResponse>>>
 {
@@ -30,17 +31,27 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             
         if (!isAdminOrManager)
         {
-            if (Guid.TryParse(user.Id, out var currentUserId))
+            if (!Guid.TryParse(user.Id, out var currentUserId))
             {
-                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(request.TourInstanceId, currentUserId, cancellationToken);
-                if (!isAssignedGuide)
+                return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+            }
+
+            var isTourOperator = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+            if (isTourOperator)
+            {
+                var tour = await tourRepository.FindById(tourInstance.TourId, asNoTracking: true, cancellationToken);
+                if (tour is null || tour.TourOperatorId != currentUserId)
                 {
                     return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
                 }
             }
             else
             {
-                return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(request.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+                }
             }
         }
 

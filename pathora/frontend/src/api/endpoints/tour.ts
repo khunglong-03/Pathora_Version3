@@ -34,7 +34,9 @@ export interface TourInstanceEndpoints {
   CHECK_DUPLICATE: string;
   CHECK_GUIDE_AVAILABILITY: string;
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string) => string;
+  CREATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string) => string;
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
+  DELETE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
   GET_PROVIDER_ASSIGNED: string;
   APPROVE: (id: string) => string;
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
@@ -101,7 +103,11 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   CHECK_GUIDE_AVAILABILITY: "/api/tour-instance/check-guide-availability",
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}`,
+  CREATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/activities`,
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
+  DELETE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
   GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
   APPROVE: (id: string): string => `/api/tour-instance/${id}/approve`,

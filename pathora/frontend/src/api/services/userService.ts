@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { UserInfo } from "@/types/tour";
+import { UserInfo } from "@/types";
 import { extractResult } from "@/utils/apiResponse";
 
 type PaginatedUsersResponse = {
@@ -29,6 +29,13 @@ export const userService = {
   getGuides: async (): Promise<UserInfo[]> => {
     const response = await api.get(API_ENDPOINTS.USER.GET_ALL, {
       params: { role: "TourGuide", pageSize: 100 },
+    });
+    return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
+  },
+
+  getTourOperators: async (): Promise<UserInfo[]> => {
+    const response = await api.get(API_ENDPOINTS.USER.GET_ALL, {
+      params: { role: "TourOperator", pageSize: 100 },
     });
     return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
   },

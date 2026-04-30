@@ -165,39 +165,7 @@ export function TourDetailPage() {
     const startIso = new Date(`${departureDate}T00:00:00Z`).toISOString();
     const endIso = new Date(`${endDateStr}T00:00:00Z`).toISOString();
 
-    if (wantsCustomization) {
-      if (!user) {
-        toast.error(t("landing.checkout.loginRequired", "Vui lòng đăng nhập để tiếp tục."));
-        router.push(`/?login=true&next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
-        return;
-      }
 
-      try {
-        await tourService.requestPrivateTour(tourId, {
-          classificationId: selectedClassification.id,
-          startDate: startIso,
-          endDate: endIso,
-          maxParticipation: Math.max(1, totalPax),
-          customerName: user.fullName || "User",
-          customerPhone: (user as any).phoneNumber || "",
-          customerEmail: user.email || "",
-          numberAdult: adults,
-          numberChild: children,
-          numberInfant: infants,
-          paymentMethod: 2,
-          isFullPay: false,
-          wantsCustomization: true,
-          customizationNotes: customizationNotes,
-        });
-
-        toast.success(t("landing.tourDetail.customizationSuccess", "Yêu cầu tùy chỉnh của bạn đã được gửi thành công. Quản lý sẽ liên hệ lại với bạn để trao đổi thêm."));
-        router.push("/dashboard/booking-history");
-      } catch (err) {
-        console.error("Failed to request private tour customization", err);
-        toast.error(t("landing.tourDetail.customizationError", "Gửi yêu cầu thất bại. Vui lòng thử lại."));
-      }
-      return;
-    }
 
     let depositPct = 0.3;
     if (tour.depositPolicy?.depositValue) {
