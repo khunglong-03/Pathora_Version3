@@ -61,17 +61,6 @@ const transportLabel: Record<string, string> = {
 
 const seatClassOptions = ["Economy", "Business", "First Class", "Sleeper", "Seat"];
 
-function countSeats(entry: BookingTicketEntry): {
-  entered: number;
-  required: number;
-  ok: boolean;
-} {
-  const seatList = entry.seatNumbers.trim().split(/\s+/).filter(Boolean);
-  const entered = seatList.length;
-  const required = entry.requiredSeats;
-  return { entered, required, ok: entered === required };
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ExternalTicketAssignmentPanel({
@@ -122,18 +111,17 @@ export default function ExternalTicketAssignmentPanel({
     const entry = entries[bookingId];
     if (!entry) return;
 
+    const fullEntry = {
+      ...entry,
+      flightNumber: commonDetails.flightNumber,
+      seatClass: commonDetails.seatClass,
+      departureAt: commonDetails.departureAt,
+      arrivalAt: commonDetails.arrivalAt,
+    };
+
     // Validate: flight number required
     if (!entry.flightNumber.trim()) {
       toast.error("Vui lòng nhập số hiệu chuyến bay/tàu");
-      return;
-    }
-    // Validate: seat count must match required
-    const { entered, required, ok } = countSeats(entry);
-    if (!ok) {
-      toast.error(
-        `Số ghế nhập (${entered}) không khớp với số hành khách cần ghế (${required}). ` +
-          `Trẻ em dưới 2 tuổi không cần ghế riêng.`
-      );
       return;
     }
 
@@ -202,11 +190,10 @@ export default function ExternalTicketAssignmentPanel({
           </p>
         </div>
         <span
-          className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
-            allSaved
+          className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${allSaved
               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
               : "bg-orange-50 text-orange-700 border border-orange-200"
-          }`}
+            }`}
         >
           <Icon
             icon={allSaved ? "heroicons:check-circle" : "heroicons:clock"}
@@ -221,25 +208,22 @@ export default function ExternalTicketAssignmentPanel({
         {bookings.map((booking, index) => {
           const entry = entries[booking.id];
           const isSaved = savedIds.has(booking.id);
-          const { entered, required, ok: seatOk } = countSeats(entry);
           const isSaving = savingId === booking.id;
 
           return (
             <div
               key={booking.id}
-              className={`p-6 transition-colors ${
-                isSaved ? "bg-emerald-50/20" : "bg-white hover:bg-stone-50/30"
-              }`}
+              className={`p-6 transition-colors ${isSaved ? "bg-emerald-50/20" : "bg-white hover:bg-stone-50/30"
+                }`}
             >
               {/* Row Header */}
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3 min-w-0">
                   <span
-                    className={`size-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${
-                      isSaved
+                    className={`size-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${isSaved
                         ? "bg-emerald-500 text-white"
                         : "bg-stone-100 text-stone-600"
-                    }`}
+                      }`}
                   >
                     {isSaved ? <Icon icon="heroicons:check" className="size-4" /> : index + 1}
                   </span>
@@ -256,19 +240,6 @@ export default function ExternalTicketAssignmentPanel({
                       )}
                     </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {entry.seatNumbers && !isSaved && (
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${
-                        seatOk
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-red-50 text-red-600"
-                      }`}
-                    >
-                      {entered}/{required} ghế
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -364,10 +335,10 @@ export default function ExternalTicketAssignmentPanel({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Seat numbers — key field */}
+                  {/* Seat numbers — free text */}
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Số ghế * <span className="normal-case font-normal">(cách nhau dấu cách)</span>
+                      Vị trí / Mã ghế * <span className="normal-case font-normal">(VD: 12A-12G, Toa 4)</span>
                     </label>
                     <input
                       type="text"
@@ -375,26 +346,9 @@ export default function ExternalTicketAssignmentPanel({
                       onChange={(e) =>
                         updateEntry(booking.id, "seatNumbers", e.target.value)
                       }
-                      placeholder={`VD: 12A 12B${entry.requiredSeats > 2 ? " 13C" : ""}`}
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 ${
-                        entry.seatNumbers && !seatOk
-                          ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-                          : entry.seatNumbers && seatOk
-                            ? "border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/20"
-                            : "border-stone-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      }`}
+                      placeholder={`Cần xếp ${entry.requiredSeats} chỗ...`}
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 border-stone-200 focus:border-blue-500 focus:ring-blue-500/20`}
                     />
-                    {entry.seatNumbers && (
-                      <p
-                        className={`mt-1.5 text-xs ${
-                          seatOk ? "text-emerald-600" : "text-red-600"
-                        }`}
-                      >
-                        {seatOk
-                          ? `✓ Đủ ${required} ghế`
-                          : `✗ Nhập ${entered} ghế, cần ${required} ghế`}
-                      </p>
-                    )}
                   </div>
 
                   {/* E-ticket numbers */}
@@ -443,11 +397,10 @@ export default function ExternalTicketAssignmentPanel({
                   <button
                     onClick={() => handleSave(booking.id)}
                     disabled={isSaving}
-                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                      isSaved
+                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${isSaved
                         ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
                         : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500"
-                    }`}
+                      }`}
                   >
                     {isSaving ? (
                       <Icon
@@ -477,11 +430,10 @@ export default function ExternalTicketAssignmentPanel({
         <button
           onClick={handleConfirmAll}
           disabled={!allSaved || confirmingAll}
-          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-            allSaved
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
               ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500"
               : "bg-stone-100 text-stone-400 cursor-not-allowed"
-          }`}
+            }`}
         >
           {confirmingAll ? (
             <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
