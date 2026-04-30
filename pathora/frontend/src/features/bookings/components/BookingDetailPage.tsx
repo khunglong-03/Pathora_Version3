@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { SAMPLE_BOOKINGS } from "./BookingDetailData";
+import { bookingService } from "@/api/services";
 import {
   getStatusLabel,
   getPaymentStatusLabel,
@@ -25,7 +26,43 @@ export function BookingDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
   const bookingId = params?.id as string;
-  const booking = SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"];
+  
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!bookingId) return;
+    
+    const fetchBooking = async () => {
+      try {
+        setLoading(true);
+        const data = await bookingService.getBookingDetail(bookingId);
+        if (data) {
+          setBooking(data);
+        } else {
+          // Fallback to sample for dev/demo if real data fails
+          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch booking", error);
+        setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [bookingId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!booking) return null;
 
   const { totalGuests, showPayRemaining, showVisaStatus, showCancelBooking } =
     getBookingDerivedState(booking);

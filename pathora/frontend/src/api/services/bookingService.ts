@@ -119,4 +119,11 @@ export const bookingService = {
     );
     return extractResult<CheckoutPriceResponse>(response.data);
   },
+
+  getBookingDetail: async (bookingId: string) => {
+    const response = await api.get<ApiResponse<any>>(
+      `/api/booking-management/${bookingId}`,
+    );
+    return extractResult<any>(response.data);
+  },
 };

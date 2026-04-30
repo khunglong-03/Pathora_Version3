@@ -105,7 +105,7 @@ export function BookingPaymentSummary({
           {showPayRemaining && (
             <motion.div key="btn-pay" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
               <Link
-                href={`/payment/txn-${booking.id}`}
+                href={`/payment/${booking.pendingTransactionId}`}
                 className="group relative flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
