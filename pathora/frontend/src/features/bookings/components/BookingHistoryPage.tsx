@@ -18,6 +18,7 @@ import { BookingHistoryHero } from "./BookingHistoryHero";
 import { BookingSearchFilter } from "./BookingSearchFilter";
 import { BookingCard } from "./BookingCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/cn";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -80,7 +81,7 @@ export function BookingHistoryPage() {
 
   return (
     <>
-      <main className="bg-[#f9fafb] min-h-[100dvh]">
+      <main className={cn("v-stack min-h-[100dvh] bg-slate-50")}>
         <BookingHistoryHero
           totalCount={totalCount}
           activeCount={activeCount}
@@ -91,7 +92,7 @@ export function BookingHistoryPage() {
           activeLabel={t("landing.bookings.active")}
         />
 
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 pb-24">
+        <div className={cn("mx-auto w-full max-w-[1400px] px-4 pb-24 md:px-8")}>
           <BookingSearchFilter
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -106,7 +107,7 @@ export function BookingHistoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-1 xl:grid-cols-2 gap-8"
+            className={cn("grid grid-cols-1 gap-8 xl:grid-cols-2")}
           >
             <AnimatePresence mode="popLayout">
               {isLoading ? (
@@ -117,31 +118,31 @@ export function BookingHistoryPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-sm overflow-hidden"
+                    className={cn("overflow-hidden rounded-[2.5rem] border border-slate-200/50 bg-white shadow-sm")}
                   >
-                    <div className="flex flex-col p-4 lg:p-6 gap-6">
-                      <div className="w-full h-56 sm:h-64 rounded-[1.5rem] bg-slate-100 animate-pulse" />
-                      <div className="flex-1 flex flex-col justify-between py-2">
-                        <div className="flex justify-between gap-4 mb-6">
-                          <div className="space-y-3 w-full">
+                    <div className={cn("v-stack gap-6 p-4 lg:p-6")}>
+                      <div className={cn("h-56 w-full animate-pulse rounded-[1.5rem] bg-slate-100 sm:h-64")} />
+                      <div className={cn("v-stack spacer justify-between py-2")}>
+                        <div className={cn("h-stack mb-6 justify-between gap-4")}>
+                          <div className={cn("v-stack w-full gap-3")}>
                             <div className="h-8 bg-slate-100 rounded-lg w-3/4 animate-pulse" />
                             <div className="h-5 bg-slate-100 rounded-md w-1/4 animate-pulse" />
                           </div>
                           <div className="h-16 bg-slate-50 rounded-2xl w-32 shrink-0 animate-pulse" />
                         </div>
-                        <div className="grid grid-cols-2 gap-4 mb-8">
+                        <div className={cn("mb-8 grid grid-cols-2 gap-4")}>
                           {[1, 2, 3, 4].map(j => (
-                            <div key={j} className="flex gap-3">
-                              <div className="size-8 rounded-lg bg-slate-100 animate-pulse shrink-0" />
-                              <div className="space-y-2 w-full">
+                            <div key={j} className={cn("h-stack gap-3")}>
+                              <div className={cn("size-8 shrink-0 animate-pulse rounded-lg bg-slate-100")} />
+                              <div className={cn("v-stack w-full gap-2")}>
                                 <div className="h-3 bg-slate-100 rounded w-12 animate-pulse" />
                                 <div className="h-4 bg-slate-100 rounded w-24 animate-pulse" />
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className="flex justify-between items-end pt-6 border-t border-slate-100">
-                          <div className="space-y-2">
+                        <div className={cn("h-stack items-end justify-between border-t border-slate-100 pt-6")}>
+                          <div className={cn("v-stack gap-2")}>
                             <div className="h-3 bg-slate-100 rounded w-16 animate-pulse" />
                             <div className="h-8 bg-slate-100 rounded w-32 animate-pulse" />
                           </div>
@@ -157,15 +158,15 @@ export function BookingHistoryPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] py-24 text-center flex flex-col items-center justify-center col-span-1 xl:col-span-2"
+                  className={cn("center col-span-1 flex-col rounded-[2.5rem] border border-slate-200/50 bg-white py-24 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] xl:col-span-2")}
                 >
-                  <div className="size-20 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mb-6">
-                    <Ticket weight="bold" className="size-8 text-slate-300" />
+                  <div className={cn("center mb-6 size-20 rounded-full border border-slate-100 bg-slate-50")}>
+                    <Ticket weight="bold" className={cn("size-8 text-slate-300")} />
                   </div>
-                  <p suppressHydrationWarning className="text-xl font-bold tracking-tight text-slate-900 mb-2">
+                  <p suppressHydrationWarning className={cn("mb-2 text-xl font-bold tracking-tight text-slate-900")}>
                     {t("landing.bookings.noResults")}
                   </p>
-                  <p className="text-sm text-slate-500 max-w-sm">
+                  <p className={cn("max-w-sm text-sm text-slate-500")}>
                     We couldn&apos;t find any bookings matching your current filter or search criteria.
                   </p>
                 </motion.div>
@@ -188,22 +189,22 @@ export function BookingHistoryPage() {
         </div>
       </main>
 
-      <div className="fixed right-6 bottom-6 z-50 hidden md:flex flex-col gap-4">
+      <div className={cn("v-stack fixed right-6 bottom-6 z-50 hidden gap-4 md:flex")}>
         <a
           href={SOCIAL_MEDIA.facebook}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
-          className="size-14 rounded-full bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
+          className={cn("center size-14 rounded-full border border-slate-100 bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] transition-transform hover:scale-110 active:scale-95")}
         >
-          <FacebookLogo weight="fill" className="size-6 text-blue-600" />
+          <FacebookLogo weight="fill" className={cn("size-6 text-blue-600")} />
         </a>
         <button
           type="button"
           aria-label="Chat with us"
-          className="size-14 rounded-full bg-slate-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] border border-slate-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
+          className={cn("center size-14 rounded-full border border-slate-800 bg-slate-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] transition-transform hover:scale-110 active:scale-95")}
         >
-          <ChatTeardropDots weight="fill" className="size-6 text-white" />
+          <ChatTeardropDots weight="fill" className={cn("size-6 text-white")} />
         </button>
       </div>
     </>

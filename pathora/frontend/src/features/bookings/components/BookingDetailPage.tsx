@@ -32,26 +32,47 @@ export function BookingDetailPage() {
 
   useEffect(() => {
     if (!bookingId) return;
-    
+
+    let cancelled = false;
+
     const fetchBooking = async () => {
-      try {
-        setLoading(true);
-        const data = await bookingService.getBookingDetail(bookingId);
-        if (data) {
-          setBooking(data);
-        } else {
-          // Fallback to sample for dev/demo if real data fails
+      const MAX_RETRIES = 3;
+      const RETRY_DELAY_MS = 800;
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          setLoading(true);
+          const data = await bookingService.getBookingDetail(bookingId);
+          if (cancelled) return;
+          if (data) {
+            setBooking(data);
+            return; // success — stop retrying
+          }
+          // API returned null/empty — backend may not have committed yet
+          if (attempt < MAX_RETRIES) {
+            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+            if (cancelled) return;
+            continue;
+          }
+          // Exhausted retries and still no real data — fall back to sample
           setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+        } catch (error) {
+          console.error(`Failed to fetch booking (attempt ${attempt + 1})`, error);
+          if (cancelled) return;
+          if (attempt < MAX_RETRIES) {
+            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+            continue;
+          }
+          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch booking", error);
-        setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
-      } finally {
-        setLoading(false);
+        break;
       }
     };
 
-    fetchBooking();
+    void fetchBooking();
+    return () => { cancelled = true; };
   }, [bookingId]);
 
   if (loading) {

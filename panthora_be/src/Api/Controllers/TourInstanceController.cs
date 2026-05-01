@@ -70,7 +70,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize]
     [HttpPatch(TourInstanceEndpoint.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request)
     {

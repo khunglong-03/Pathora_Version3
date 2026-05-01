@@ -339,6 +339,18 @@ body.bold-theme {
   font-variant-numeric: tabular-nums;
 }
 
+/* ─── Stack Layout Utilities ─── */
+@utility v-stack { display: flex; flex-direction: column; }
+@utility h-stack { display: flex; flex-direction: row; }
+@utility z-stack {
+  display: grid; align-items: center; justify-items: center;
+  & > * { grid-area: 1 / 1 / 1 / 2; }
+}
+@utility center { display: flex; justify-content: center; align-items: center; }
+@utility spacer { flex: 1 1 auto; }
+@utility circle { aspect-ratio: 1 / 1; border-radius: 9999px; flex-shrink: 0; }
+
+
 /* ─── Data Value (tabular numbers for prices, IDs, counts) ─── */
 @utility data-value {
   font-variant-numeric: tabular-nums;

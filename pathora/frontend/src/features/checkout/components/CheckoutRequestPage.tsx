@@ -599,7 +599,10 @@ export function CheckoutRequestPage() {
             const wantsCustomization = searchParams.get("wantsCustomization") === "true";
             if (wantsCustomization) {
               toast.success(t("landing.checkout.customRequestSubmitted", "Yêu cầu tuỳ chỉnh của bạn đã được gửi để duyệt!"));
-              router.push("/bookings");
+              // Navigate to the specific booking detail so data is available immediately
+              // Small delay allows the backend to commit before we fetch
+              await new Promise((resolve) => setTimeout(resolve, 600));
+              router.push(`/bookings/${currentBookingId}`);
               return;
             }
           } else {

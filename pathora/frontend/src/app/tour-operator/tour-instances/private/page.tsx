@@ -1,10 +1,10 @@
-import { TourInstanceListPage } from "@/features/dashboard/components/TourInstanceListPage";
+import { PrivateTourInstanceListPage } from "@/features/dashboard/components/PrivateTourInstanceListPage";
 
 export const metadata = {
   title: "Tour Riêng Tư | Tour Operator",
-  description: "Danh sách các tour riêng tư cần đăng ký xe và khách sạn cho khách",
+  description: "Quản lý duyệt xe và dịch vụ cho các tour riêng tư",
 };
 
 export default function TourOperatorPrivateInstancesPage() {
-  return <TourInstanceListPage role="tour-operator" instanceTypeFilter="private" />;
+  return <PrivateTourInstanceListPage />;
 }

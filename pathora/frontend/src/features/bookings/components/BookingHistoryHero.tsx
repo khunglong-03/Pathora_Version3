@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Ticket, CheckCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/cn";
 
 interface BookingHistoryHeroProps {
   totalCount: number;
@@ -24,24 +25,24 @@ export function BookingHistoryHero({
   activeLabel,
 }: BookingHistoryHeroProps) {
   return (
-    <div className="pt-24 pb-8">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+    <div className={cn("pb-8 pt-24")}>
+      <div className={cn("mx-auto w-full max-w-[1400px] px-4 md:px-8")}>
         <Link
           href="/"
           suppressHydrationWarning
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-10"
+          className={cn("h-stack mb-10 items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900")}
         >
-          <ArrowLeft weight="bold" className="size-4" />
+          <ArrowLeft weight="bold" className={cn("size-4")} />
           {backLabel}
         </Link>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-          <div className="max-w-2xl">
+        <div className={cn("v-stack justify-between gap-10 lg:h-stack lg:items-end")}>
+          <div className={cn("max-w-2xl")}>
             <motion.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               suppressHydrationWarning
-              className="text-4xl md:text-6xl tracking-tighter leading-none font-bold text-slate-900"
+              className={cn("text-4xl font-bold leading-none tracking-tighter text-slate-900 md:text-6xl")}
             >
               {titleLabel}
             </motion.h1>
@@ -50,7 +51,7 @@ export function BookingHistoryHero({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               suppressHydrationWarning
-              className="text-base text-slate-500 leading-relaxed max-w-[65ch] mt-6"
+              className={cn("mt-6 max-w-[65ch] text-base leading-relaxed text-slate-500")}
             >
               {subtitleLabel}
             </motion.p>
@@ -60,24 +61,24 @@ export function BookingHistoryHero({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
-            className="flex flex-col sm:flex-row items-center gap-4 shrink-0"
+            className={cn("v-stack shrink-0 items-center gap-4 sm:h-stack")}
           >
             {/* Total Bookings Card */}
-            <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 min-w-[180px] w-full sm:w-auto flex flex-col items-center justify-center relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Ticket weight="fill" className="size-16 text-slate-900" />
+            <div className={cn("center group relative w-full min-w-[180px] flex-col overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:w-auto")}>
+              <div className={cn("absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-20")}>
+                <Ticket weight="fill" className={cn("size-16 text-slate-900")} />
               </div>
-              <p className="text-4xl font-mono tracking-tight font-bold text-slate-900 relative z-10">{totalCount}</p>
-              <p suppressHydrationWarning className="text-sm font-medium text-slate-500 mt-2 relative z-10">{totalBookingsLabel}</p>
+              <p className={cn("relative z-10 font-mono text-4xl font-bold tracking-tight text-slate-900")}>{totalCount}</p>
+              <p suppressHydrationWarning className={cn("relative z-10 mt-2 text-sm font-medium text-slate-500")}>{totalBookingsLabel}</p>
             </div>
 
             {/* Active Bookings Card */}
-            <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-6 min-w-[180px] w-full sm:w-auto flex flex-col items-center justify-center relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <CheckCircle weight="fill" className="size-16 text-emerald-500" />
+            <div className={cn("center group relative w-full min-w-[180px] flex-col overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:w-auto")}>
+              <div className={cn("absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-20")}>
+                <CheckCircle weight="fill" className={cn("size-16 text-emerald-500")} />
               </div>
-              <p className="text-4xl font-mono tracking-tight font-bold text-emerald-500 relative z-10">{activeCount}</p>
-              <p suppressHydrationWarning className="text-sm font-medium text-slate-500 mt-2 relative z-10">{activeLabel}</p>
+              <p className={cn("relative z-10 font-mono text-4xl font-bold tracking-tight text-emerald-500")}>{activeCount}</p>
+              <p suppressHydrationWarning className={cn("relative z-10 mt-2 text-sm font-medium text-slate-500")}>{activeLabel}</p>
             </div>
           </motion.div>
         </div>
