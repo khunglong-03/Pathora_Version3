@@ -35,15 +35,25 @@ interface EditForm {
   operatorNote: string;
 }
 
-const fromDto = (data: NormalizedTourInstanceDto): EditForm => ({
-  title: data.title ?? "",
-  startDate: toDateInput(data.startDate),
-  endDate: toDateInput(data.endDate),
-  location: data.location ?? "",
-  maxParticipation: String(data.maxParticipation ?? 0),
-  confirmationDeadline: toDateInput(data.confirmationDeadline),
-  operatorNote: "",
-});
+const fromDto = (data: NormalizedTourInstanceDto): EditForm => {
+  // Auto-fill confirmation deadline for custom tour requests:
+  // default to 3 days before start date when backend returns null
+  let deadline = toDateInput(data.confirmationDeadline);
+  if (!deadline && data.wantsCustomization && data.startDate) {
+    const start = new Date(data.startDate);
+    start.setDate(start.getDate() - 3);
+    deadline = start.toISOString().split("T")[0];
+  }
+  return {
+    title: data.title ?? "",
+    startDate: toDateInput(data.startDate),
+    endDate: toDateInput(data.endDate),
+    location: data.location ?? "",
+    maxParticipation: String(data.maxParticipation ?? 0),
+    confirmationDeadline: deadline,
+    operatorNote: "",
+  };
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -320,7 +330,7 @@ export default function PrivateTourInstanceEditPage() {
             Thêm, sửa, xoá các hoạt động trong tour. Các thay đổi lịch trình sẽ được lưu trực tiếp vào cơ sở dữ liệu.
           </p>
           
-          <ItineraryEditor instanceId={data.id} days={data.days} onRefresh={loadData} />
+          <ItineraryEditor instanceId={data.id} days={data.days} startDate={form.startDate} endDate={form.endDate} onRefresh={loadData} />
         </div>
       </motion.div>
 
@@ -362,24 +372,96 @@ export default function PrivateTourInstanceEditPage() {
 /* ══════════════════════════════════════════════════════════════
    Itinerary Editor Components
    ══════════════════════════════════════════════════════════════ */
-function ItineraryEditor({ instanceId, days, onRefresh }: { instanceId: string, days?: TourInstanceDayDto[], onRefresh: () => void }) {
+function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
+  instanceId: string;
+  days?: TourInstanceDayDto[];
+  startDate: string;
+  endDate: string;
+  onRefresh: () => void;
+}) {
   const [addingDay, setAddingDay] = useState(false);
   const [newDayTitle, setNewDayTitle] = useState("");
   const [newDayDate, setNewDayDate] = useState("");
+
+  // Auto-suggest next date when opening the add-day form
+  const suggestNextDate = useCallback(() => {
+    if (days && days.length > 0) {
+      // Find the latest date among existing days
+      const sortedDates = days
+        .map((d) => d.actualDate)
+        .filter(Boolean)
+        .map((d) => new Date(d))
+        .sort((a, b) => b.getTime() - a.getTime());
+      if (sortedDates.length > 0) {
+        const next = new Date(sortedDates[0]);
+        next.setDate(next.getDate() + 1);
+        const nextStr = next.toISOString().split("T")[0];
+        // Only suggest if on or after tour start date
+        if (!startDate || nextStr >= startDate) return nextStr;
+      }
+    }
+    return startDate || "";
+  }, [days, startDate, endDate]);
+
+  const handleOpenAddDay = () => {
+    const nextNum = (days?.length ?? 0) + 1;
+    setNewDayTitle(`Ngày ${nextNum}`);
+    setNewDayDate(suggestNextDate());
+    setAddingDay(true);
+  };
   const [saving, setSaving] = useState(false);
+  // Track newly added day so DayEditor auto-opens the activity form
+  const [newlyAddedDayId, setNewlyAddedDayId] = useState<string | null>(null);
+
+  // ── Inline activity fields for the "Add Day" form ──
+  const [actTitle, setActTitle] = useState("");
+  const [actType, setActType] = useState("0");
+  const [actStartTime, setActStartTime] = useState("");
+  const [actEndTime, setActEndTime] = useState("");
+  const [actPrice, setActPrice] = useState("");
+  const [actNote, setActNote] = useState("");
+
+  const resetActivityFields = () => {
+    setActTitle(""); setActType("0"); setActStartTime(""); setActEndTime(""); setActPrice(""); setActNote("");
+  };
 
   const handleAddDay = async () => {
     if (!newDayTitle.trim() || !newDayDate) {
-      toast.error("Vui lòng nhập tiêu đề và chọn ngày");
+      toast.error("Vui lòng nhập tiêu đề ngày và chọn ngày");
+      return;
+    }
+    if (!actTitle.trim()) {
+      toast.error("Vui lòng nhập tên hoạt động đầu tiên cho ngày này");
+      return;
+    }
+    if (actStartTime && actEndTime && actStartTime >= actEndTime) {
+      toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
     setSaving(true);
     try {
-      await tourInstanceService.addCustomDay(instanceId, { title: newDayTitle.trim(), actualDate: newDayDate });
-      toast.success("Thêm ngày mới thành công");
+      // Step 1: Create the day
+      const result = await tourInstanceService.addCustomDay(instanceId, { title: newDayTitle.trim(), actualDate: newDayDate });
+      const newDayId = result;
+
+      // Step 2: Create the first activity for that day
+      if (newDayId) {
+        await tourInstanceService.createInstanceActivity(instanceId, newDayId, {
+          title: actTitle.trim(),
+          activityType: Number(actType),
+          note: actNote || undefined,
+          startTime: actStartTime ? `${actStartTime}:00` : null,
+          endTime: actEndTime ? `${actEndTime}:00` : null,
+          price: actPrice ? Number(actPrice) : null,
+        });
+      }
+
+      toast.success("Thêm ngày mới và hoạt động thành công");
       setAddingDay(false);
       setNewDayTitle("");
       setNewDayDate("");
+      resetActivityFields();
+      if (newDayId) setNewlyAddedDayId(newDayId);
       onRefresh();
     } catch (e: unknown) {
       toast.error(handleApiError(e).message || "Không thể thêm ngày");
@@ -397,14 +479,24 @@ function ItineraryEditor({ instanceId, days, onRefresh }: { instanceId: string, 
       ) : (
         <div className="space-y-6">
           {days.map((day, idx) => (
-            <DayEditor key={day.id} instanceId={instanceId} day={day} index={idx} onRefresh={onRefresh} />
+            <DayEditor
+              key={day.id}
+              instanceId={instanceId}
+              day={day}
+              index={idx}
+              onRefresh={onRefresh}
+              autoOpenActivity={day.id === newlyAddedDayId}
+              onAutoOpenConsumed={() => setNewlyAddedDayId(null)}
+            />
           ))}
         </div>
       )}
 
       {addingDay ? (
-        <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 space-y-4">
+        <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 space-y-5">
           <h4 className="text-sm font-bold text-slate-900">Thêm Ngày Mới</h4>
+
+          {/* ── Day info ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Tiêu đề ngày</label>
@@ -412,19 +504,63 @@ function ItineraryEditor({ instanceId, days, onRefresh }: { instanceId: string, 
             </div>
             <div>
               <label className={labelCls}>Ngày diễn ra</label>
-              <input type="date" className={inputCls} value={newDayDate} onChange={e => setNewDayDate(e.target.value)} />
+              <input type="date" className={inputCls} value={newDayDate} min={startDate} onChange={e => setNewDayDate(e.target.value)} />
             </div>
           </div>
+
+          {/* ── First activity (required) ── */}
+          <div className="border-t border-slate-200 pt-4">
+            <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Icon icon="heroicons:puzzle-piece" className="size-4 text-[#fa8b02]" />
+              Hoạt động đầu tiên <span className="text-red-400">*</span>
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Tên hoạt động *</label>
+                <input className={inputCls} value={actTitle} onChange={e => setActTitle(e.target.value)} placeholder="VD: Tham quan bảo tàng" />
+              </div>
+              <div>
+                <label className={labelCls}>Loại hoạt động</label>
+                <select className={inputCls} value={actType} onChange={e => setActType(e.target.value)}>
+                  <option value="0">Tham quan (Sightseeing)</option>
+                  <option value="1">Ăn uống (Dining)</option>
+                  <option value="7">Di chuyển (Transportation)</option>
+                  <option value="8">Lưu trú (Accommodation)</option>
+                  <option value="99">Khác (Other)</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+              <div>
+                <label className={labelCls}>Giờ bắt đầu</label>
+                <input type="time" className={inputCls} value={actStartTime} onChange={e => setActStartTime(e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Giờ kết thúc</label>
+                <input type="time" className={inputCls} value={actEndTime} onChange={e => setActEndTime(e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Giá (Tuỳ chọn)</label>
+                <input type="number" min="0" step="any" className={inputCls} value={actPrice} onChange={e => setActPrice(e.target.value)} placeholder="VD: 500000" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <label className={labelCls}>Ghi chú / Mô tả</label>
+              <textarea className={inputCls} rows={2} value={actNote} onChange={e => setActNote(e.target.value)} placeholder="Thông tin chi tiết về hoạt động này..." />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-2">
-            <button onClick={() => setAddingDay(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900">Huỷ</button>
-            <button onClick={handleAddDay} disabled={saving} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
-              Lưu Ngày
+            <button onClick={() => { setAddingDay(false); resetActivityFields(); }} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900">Huỷ</button>
+            <button onClick={handleAddDay} disabled={saving} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2">
+              {saving ? <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> : <Icon icon="heroicons:plus" className="size-4" />}
+              {saving ? "Đang lưu..." : "Lưu Ngày & Hoạt Động"}
             </button>
           </div>
         </div>
       ) : (
         <button
-          onClick={() => setAddingDay(true)}
+          onClick={handleOpenAddDay}
           className="w-full py-4 border-2 border-dashed border-slate-200 rounded-[1.5rem] text-sm font-bold text-slate-500 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
         >
           <Icon icon="heroicons:plus" className="size-5" />
@@ -435,8 +571,25 @@ function ItineraryEditor({ instanceId, days, onRefresh }: { instanceId: string, 
   );
 }
 
-function DayEditor({ instanceId, day, index, onRefresh }: { instanceId: string, day: TourInstanceDayDto, index: number, onRefresh: () => void }) {
+function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAutoOpenConsumed }: {
+  instanceId: string;
+  day: TourInstanceDayDto;
+  index: number;
+  onRefresh: () => void;
+  autoOpenActivity?: boolean;
+  onAutoOpenConsumed?: () => void;
+}) {
   const [addingAct, setAddingAct] = useState(false);
+  const hasActivities = day.activities && day.activities.length > 0;
+
+  // Auto-open activity form for newly created days
+  useEffect(() => {
+    if (autoOpenActivity && !addingAct) {
+      setAddingAct(true);
+      onAutoOpenConsumed?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenActivity]);
   
   return (
     <div className="border border-slate-200 rounded-[1.5rem] overflow-hidden bg-white">
@@ -447,18 +600,34 @@ function DayEditor({ instanceId, day, index, onRefresh }: { instanceId: string, 
           </h3>
           <p className="text-xs font-semibold text-slate-500 mt-0.5">{toDateInput(day.actualDate)}</p>
         </div>
-        <button onClick={() => setAddingAct(true)} className="p-2 bg-white rounded-full text-[#fa8b02] border border-slate-200 shadow-sm hover:shadow hover:text-[#fa8b02]/80 transition-all">
-          <Icon icon="heroicons:plus" className="size-4" />
-        </button>
+        {hasActivities && (
+          <button onClick={() => setAddingAct(true)} className="p-2 bg-white rounded-full text-[#fa8b02] border border-slate-200 shadow-sm hover:shadow hover:text-[#fa8b02]/80 transition-all" title="Thêm hoạt động">
+            <Icon icon="heroicons:plus" className="size-4" />
+          </button>
+        )}
       </div>
 
       <div className="p-5 space-y-4">
-        {(!day.activities || day.activities.length === 0) ? (
-          <p className="text-xs text-slate-400 text-center py-2">Không có hoạt động nào trong ngày này.</p>
+        {!hasActivities && !addingAct ? (
+          <div className="text-center py-6 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
+              <Icon icon="heroicons:puzzle-piece" className="size-6 text-slate-300" />
+            </div>
+            <p className="text-sm text-slate-500">Chưa có hoạt động nào trong ngày này.</p>
+            <button
+              onClick={() => setAddingAct(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#fa8b02] text-white text-sm font-semibold rounded-xl hover:bg-[#fa8b02]/90 transition-all hover:-translate-y-0.5 active:scale-[0.98] shadow-sm"
+            >
+              <Icon icon="heroicons:plus" className="size-4" />
+              Thêm hoạt động đầu tiên
+            </button>
+          </div>
         ) : (
-          day.activities.map((act) => (
-            <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} act={act} dayActivities={day.activities} onRefresh={onRefresh} />
-          ))
+          <>
+            {day.activities?.map((act) => (
+              <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} act={act} dayActivities={day.activities} onRefresh={onRefresh} />
+            ))}
+          </>
         )}
 
         {addingAct && (
@@ -469,6 +638,17 @@ function DayEditor({ instanceId, day, index, onRefresh }: { instanceId: string, 
             onCancel={() => setAddingAct(false)} 
             onSuccess={() => { setAddingAct(false); onRefresh(); }} 
           />
+        )}
+
+        {/* Explicit add activity button after existing activities */}
+        {hasActivities && !addingAct && (
+          <button
+            onClick={() => setAddingAct(true)}
+            className="w-full py-3 border border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-400 hover:text-[#fa8b02] hover:border-[#fa8b02]/30 hover:bg-[#fa8b02]/5 transition-all flex items-center justify-center gap-1.5"
+          >
+            <Icon icon="heroicons:plus" className="size-3.5" />
+            Thêm hoạt động
+          </button>
         )}
       </div>
     </div>

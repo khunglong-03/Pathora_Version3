@@ -18,11 +18,7 @@ import {
 } from "@/types/tour";
 import { extractResult } from "@/utils/apiResponse";
 
-interface AddCustomDayResponse {
-  id: string;
-  title: string;
-  actualDate: string;
-}
+
 
 /** Private tour co-design — backend TourItineraryFeedbackDto */
 export interface TourItineraryFeedbackDto {
@@ -482,12 +478,12 @@ export const tourInstanceService = {
   addCustomDay: async (
     instanceId: string,
     payload: { title: string; actualDate: string; description?: string },
-  ): Promise<AddCustomDayResponse> => {
-    const response = await api.post(
+  ): Promise<string> => {
+    const response = await api.post<ApiResponse<string>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}/${instanceId}/days`,
       payload,
     );
-    return extractResult(response.data);
+    return extractResult<string>(response.data) as string;
   },
 
   getProviderAssigned: async (

@@ -1520,7 +1520,7 @@ public class TourInstanceService(
 
         var customDay = TourInstanceDayEntity.Create(
             request.InstanceId,
-            Guid.Empty,
+            null,
             maxDayNumber + 1,
             request.ActualDate,
             request.Title,

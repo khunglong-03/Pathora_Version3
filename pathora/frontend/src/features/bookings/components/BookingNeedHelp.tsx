@@ -18,8 +18,8 @@ export function BookingNeedHelp() {
       />
       
       <div className="relative z-10">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center justify-center size-12 rounded-[1rem] bg-white/10 text-white backdrop-blur-md border border-white/20">
+        <div className="h-stack items-center gap-4 mb-4">
+          <div className="center size-12 rounded-[1rem] bg-white/10 text-white backdrop-blur-md border border-white/20">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -33,14 +33,14 @@ export function BookingNeedHelp() {
           Contact our support team for any questions about your booking.
         </p>
 
-        <div className="flex flex-col gap-4">
+        <div className="v-stack gap-4">
           {/* Phone */}
           <motion.a
             whileHover={{ scale: 1.02, x: 5 }}
             href="tel:+1234567890"
-            className="flex items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
+            className="h-stack items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
           >
-            <div className="flex items-center justify-center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
+            <div className="center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
               <Phone weight="fill" className="size-5" />
             </div>
             <div>
@@ -55,9 +55,9 @@ export function BookingNeedHelp() {
           <motion.a
             whileHover={{ scale: 1.02, x: 5 }}
             href="mailto:support@pathora.com"
-            className="flex items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
+            className="h-stack items-center gap-4 bg-white/5 rounded-[1.5rem] p-5 hover:bg-white/10 transition-colors border border-white/5 backdrop-blur-sm"
           >
-            <div className="flex items-center justify-center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
+            <div className="center size-12 rounded-[1rem] bg-white/10 text-white shrink-0 border border-white/10">
               <EnvelopeSimple weight="fill" className="size-5" />
             </div>
             <div>

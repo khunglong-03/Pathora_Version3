@@ -105,9 +105,9 @@ export function BookingDetailPage() {
         <BookingHeroSection booking={booking} getStatusLabel={labelFns.getStatusLabel} />
 
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-12 relative z-20 mb-20">
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="v-stack lg:h-stack gap-6">
             {/* Left Column */}
-            <div className="flex-1 flex flex-col gap-6 min-w-0">
+            <div className="spacer v-stack gap-6 min-w-0">
               <BookingInfoCard
                 booking={booking}
                 getTierLabel={labelFns.getTierLabel}
@@ -123,7 +123,7 @@ export function BookingDetailPage() {
             </div>
 
             {/* Right Sidebar */}
-            <div className="w-full lg:w-[480px] shrink-0 flex flex-col gap-6">
+            <div className="w-full lg:w-[480px] shrink-0 v-stack gap-6 lg:sticky lg:top-8 self-start">
               <BookingPaymentSummary
                 booking={booking}
                 totalGuests={totalGuests}

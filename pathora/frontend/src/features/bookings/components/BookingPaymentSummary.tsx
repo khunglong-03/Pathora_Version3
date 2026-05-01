@@ -68,10 +68,10 @@ export function BookingPaymentSummary({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.4, type: "spring", stiffness: 100, damping: 20 }}
-      className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 sticky top-8 flex flex-col relative overflow-hidden"
+      className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8 v-stack relative overflow-hidden"
     >
-      <div className="flex items-center gap-3 mb-8">
-        <div className="relative flex items-center justify-center size-12 rounded-[1rem] bg-slate-900 border border-slate-800 shadow-sm text-white overflow-hidden">
+      <div className="h-stack items-center gap-3 mb-8">
+        <div className="relative center size-12 rounded-[1rem] bg-slate-900 border border-slate-800 shadow-sm text-white overflow-hidden">
           <motion.div 
             animate={{ y: ["-100%", "100%"] }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -84,16 +84,16 @@ export function BookingPaymentSummary({
         </h3>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="v-stack gap-4">
         {/* Infinite Carousel Data Stream effect for the price breakdown */}
-        <div className="flex flex-col gap-3 p-5 rounded-[1.5rem] bg-slate-50 border border-slate-100/50 relative overflow-hidden">
-          <div className="flex items-center justify-between relative z-10">
+        <div className="v-stack gap-3 p-5 rounded-[1.5rem] bg-slate-50 border border-slate-100/50 relative overflow-hidden">
+          <div className="h-stack items-center justify-between relative z-10">
             <span className="text-sm font-bold text-slate-500">Price per person</span>
             <span className="text-sm font-bold font-mono text-slate-900">
               {formatCurrency(booking.pricePerPerson)}
             </span>
           </div>
-          <div className="flex items-center justify-between relative z-10">
+          <div className="h-stack items-center justify-between relative z-10">
             <span className="text-sm font-bold text-slate-500">Number of guests</span>
             <span className="text-sm font-bold font-mono text-slate-900">
               &times;{totalGuests}
@@ -101,14 +101,14 @@ export function BookingPaymentSummary({
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 px-2">
+        <div className="h-stack items-center justify-between pt-4 px-2">
           <span className="text-lg font-bold tracking-tight text-slate-900">Total Amount</span>
           <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
             {formatCurrency(booking.totalAmount)}
           </span>
         </div>
 
-        <div className="flex items-center justify-between px-2">
+        <div className="h-stack items-center justify-between px-2">
           <span className="text-sm font-bold text-slate-500">Paid Amount</span>
           <span className="text-sm font-bold font-mono text-emerald-500">
             -{formatCurrency(booking.paidAmount)}
@@ -117,7 +117,7 @@ export function BookingPaymentSummary({
 
         <motion.div 
           whileHover={{ scale: 1.02 }}
-          className="flex flex-col p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
+          className="v-stack p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
         >
           <motion.div 
             animate={{ rotate: 360 }}
@@ -127,7 +127,7 @@ export function BookingPaymentSummary({
           <span className="text-sm font-bold text-slate-400 mb-1 relative z-10">
             Remaining Balance
           </span>
-          <div className="flex items-center justify-between relative z-10">
+          <div className="h-stack items-center justify-between relative z-10">
             <span className="text-3xl font-bold font-mono text-white tracking-tighter">
               {formatCurrency(booking.remainingBalance)}
             </span>
@@ -140,7 +140,7 @@ export function BookingPaymentSummary({
         </motion.div>
       </div>
 
-      <div className="flex flex-col gap-3 mt-8">
+      <div className="v-stack gap-3 mt-8">
         <AnimatePresence>
           {showPayRemaining && (
             <motion.div key="btn-pay" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
@@ -148,7 +148,7 @@ export function BookingPaymentSummary({
                 type="button"
                 onClick={handlePayRemaining}
                 disabled={creatingTransaction}
-                className={`group relative flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
+                className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
                   creatingTransaction
                     ? "bg-emerald-400 cursor-not-allowed"
                     : "bg-emerald-500 cursor-pointer"
@@ -168,7 +168,7 @@ export function BookingPaymentSummary({
               key="btn-visa"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors"
+              className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors"
             >
               <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
                 <AirplaneTilt weight="bold" className="size-5 text-blue-500" />
@@ -181,7 +181,7 @@ export function BookingPaymentSummary({
             <motion.div key="btn-cancel" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link
                 href={`/bookings/${booking.id}/cancellation`}
-                className="flex items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] border border-red-100 bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100/50 transition-colors mt-2"
+                className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] border border-red-100 bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100/50 transition-colors mt-2"
               >
                 <XCircle weight="bold" className="size-5" />
                 Cancel Booking

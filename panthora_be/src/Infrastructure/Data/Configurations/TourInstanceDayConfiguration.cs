@@ -52,7 +52,7 @@ public class TourInstanceDayConfiguration : IEntityTypeConfiguration<TourInstanc
             .WithMany()
             .HasForeignKey(t => t.TourDayId)
             .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.HasMany(t => t.Activities)
             .WithOne(a => a.TourInstanceDay)

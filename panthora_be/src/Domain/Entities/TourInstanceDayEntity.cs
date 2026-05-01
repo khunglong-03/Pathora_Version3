@@ -6,8 +6,8 @@ public class TourInstanceDayEntity : Aggregate<Guid>
 {
     public Guid TourInstanceId { get; set; }
     public virtual TourInstanceEntity TourInstance { get; set; } = null!;
-    public Guid TourDayId { get; set; }
-    public virtual TourDayEntity TourDay { get; set; } = null!;
+    public Guid? TourDayId { get; set; }
+    public virtual TourDayEntity? TourDay { get; set; }
     public int InstanceDayNumber { get; set; }
     public DateOnly ActualDate { get; set; }
     public string Title { get; set; } = null!;
@@ -21,7 +21,7 @@ public class TourInstanceDayEntity : Aggregate<Guid>
 
     public static TourInstanceDayEntity Create(
         Guid tourInstanceId,
-        Guid tourDayId,
+        Guid? tourDayId,
         int instanceDayNumber,
         DateOnly actualDate,
         string title,

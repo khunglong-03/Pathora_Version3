@@ -25,7 +25,7 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
     <section className="relative w-full pt-6 px-4 md:px-8 max-w-[1400px] mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto min-h-[500px]">
         {/* Left Side: Text & Actions */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-10 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-10 v-stack justify-between relative overflow-hidden">
           {/* Subtle animated background gradient */}
           <motion.div
             animate={{
@@ -39,13 +39,13 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
             className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_top_left,_#f0fdf4_0%,_transparent_50%)]"
           />
 
-          <div className="relative z-10 flex flex-col items-start gap-12 h-full justify-between">
+          <div className="relative z-10 v-stack items-start gap-12 h-full justify-between">
             <div>
               <Link
                 href="/bookings"
-                className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors group"
+                className="h-stack items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors group"
               >
-                <div className="flex items-center justify-center size-8 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                <div className="center size-8 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
                   <ArrowLeft weight="bold" className="size-4" />
                 </div>
                 Back to Bookings
@@ -58,9 +58,9 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
               transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
               className="w-full"
             >
-              <div className="flex items-center gap-3 mb-6">
+              <div className="h-stack items-center gap-3 mb-6">
                 <span
-                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-bold ${statusCfg.bg} ${statusCfg.text}`}
+                  className={`h-stack items-center gap-1.5 px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-bold ${statusCfg.bg} ${statusCfg.text}`}
                 >
                   <motion.div
                     animate={{ rotate: [0, 15, -15, 0] }}
@@ -79,8 +79,8 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
                 {booking.tourName}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-slate-700 text-sm md:text-base font-bold">
-                <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
+              <div className="h-stack flex-wrap items-center gap-4 text-slate-700 text-sm md:text-base font-bold">
+                <div className="h-stack items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
                   <motion.div
                     animate={{ y: [0, -3, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -89,7 +89,7 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
                   </motion.div>
                   {booking.location}
                 </div>
-                <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
+                <div className="h-stack items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-[1.5rem]">
                   <motion.div
                     animate={{ rotate: [0, 360] }}
                     transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
