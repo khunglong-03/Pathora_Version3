@@ -6,8 +6,6 @@ import {
   BoldStatsStrip,
   BoldTrendingDestinations,
   BoldFeaturedTrips,
-  BoldLatestTours,
-  BoldWhyChooseUs,
   BoldCtaSection,
   BoldReviewsSection
 } from "@/features/home/components";
@@ -44,12 +42,7 @@ export default function HomeClient() {
       <Suspense fallback={<SectionSkeleton className="h-[800px] mt-16" />}>
         <BoldFeaturedTrips />
       </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-72 mt-16" />}>
-        <BoldLatestTours />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
-        <BoldWhyChooseUs />
-      </Suspense>
+
       <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
         <BoldReviewsSection />
       </Suspense>

@@ -11,10 +11,12 @@ let refreshQueue: QueueEntry[] = [];
 import { getCookie } from "@/utils/cookie";
 
 async function fetchNewAccessTokenFromApi(): Promise<string> {
-  const refreshToken = getCookie("refresh_token") ?? "";
+  const refreshToken = getCookie("refresh_token");
   const response = await axios.post<{ data: { accessToken: string } }>(
     "/api/auth/refresh",
-    { refreshToken },
+    // Only include refreshToken in body if the cookie is readable (non-HttpOnly).
+    // Otherwise send empty body so backend falls back to reading the HttpOnly cookie.
+    refreshToken ? { refreshToken } : {},
     {
       baseURL: API_GATEWAY_BASE_URL,
       withCredentials: true,

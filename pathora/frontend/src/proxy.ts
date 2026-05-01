@@ -189,7 +189,7 @@ export function proxy(request: NextRequest) {
     });
   }
 
-  if (authenticated && adminPortal && isLoginEntryPath(pathname, searchParams)) {
+  if (authenticated && isLoginEntryPath(pathname, searchParams)) {
     if (hasAdminRole(authRoles)) {
       return redirectTo("/admin/users");
     }
@@ -208,7 +208,7 @@ export function proxy(request: NextRequest) {
     if (hasTourGuideRole(authRoles)) {
       return redirectTo("/tour-guide");
     }
-    return redirectTo(USER_DEFAULT_PATH);
+    // Regular customers have no specific dashboard and should stay on the home page
   }
 
   if (authenticated) {

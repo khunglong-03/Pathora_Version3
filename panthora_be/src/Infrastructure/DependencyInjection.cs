@@ -39,7 +39,7 @@ public static class DependencyInjection
         var cacheOptions = configuration.GetSection(CacheOptions.Cache).Get<CacheOptions>() ?? new CacheOptions();
 
         return services
-           .AddScoped<HotelServiceProviderSupplierMapper>()
+           .AddScoped<HotelServicePProviderSupplierMapper>()
            .AddScoped<Application.Common.Interfaces.ICurrentUser, CurrentUserService>()
            .AddDbContext<AppDbContext>(options =>
             {
