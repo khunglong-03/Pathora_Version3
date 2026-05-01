@@ -43,7 +43,7 @@ public interface ITourInstanceService
     Task<ErrorOr<CheckDuplicateTourInstanceResultDto>> CheckDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate);
     Task<ErrorOr<TourInstanceDayDto>> UpdateDay(UpdateTourInstanceDayCommand request);
     Task<ErrorOr<Guid>> AddCustomDay(CreateTourInstanceDayCommand request);
-    Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request);
+    Task<ErrorOr<TourInstanceDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request);
     Task<ErrorOr<TourInstanceDayActivityDto>> CreateActivity(CreateTourInstanceActivityCommand request);
     Task<ErrorOr<Success>> DeleteActivity(DeleteTourInstanceActivityCommand request);
     Task<ErrorOr<PaginatedList<TourInstanceVm>>> GetMyAssignedInstances(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
@@ -1504,13 +1504,11 @@ public class TourInstanceService(
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        if (instance.Status != TourInstanceStatus.Available && instance.Status != TourInstanceStatus.Draft)
-            return Error.Validation("TourInstance.InvalidStatus", "Custom days can only be added when instance status is Available or Draft.");
-
-        // Validate actualDate within instance date range
         var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-        if (actualDateOffset.Date < instance.StartDate.Date || actualDateOffset.Date > instance.EndDate.Date)
-            return Error.Validation("TourInstanceDay.DateOutOfRange", "Ngày thực tế phải nằm trong khoảng ngày bắt đầu và kết thúc của tour instance.");
+        var performedBy = _user.Id ?? string.Empty;
+
+        // Auto extend the start/end date bounds if the day added is out of current bounds
+        instance.ExtendDateRangeIfNecessary(actualDateOffset, performedBy);
 
         // Check duplicate date
         if (instance.InstanceDays.Any(d => d.ActualDate == request.ActualDate))
@@ -1519,8 +1517,6 @@ public class TourInstanceService(
         var maxDayNumber = instance.InstanceDays.Any()
             ? instance.InstanceDays.Max(d => d.InstanceDayNumber)
             : 0;
-
-        var performedBy = _user.Id ?? string.Empty;
 
         var customDay = TourInstanceDayEntity.Create(
             request.InstanceId,
@@ -1533,8 +1529,6 @@ public class TourInstanceService(
 
         await _tourInstanceRepository.AddDay(customDay);
 
-        // Recalculate DurationDays
-        instance.DurationDays = instance.InstanceDays.Count + 1; // +1 for the newly added day not yet in the collection
         await _tourInstanceRepository.Update(instance);
 
         _logger.LogInformation("Custom day added to TourInstance {InstanceId} with InstanceDayNumber {DayNumber}",
@@ -1543,7 +1537,7 @@ public class TourInstanceService(
         return customDay.Id;
     }
 
-    public async Task<ErrorOr<TourDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request)
+    public async Task<ErrorOr<TourInstanceDayActivityDto>> UpdateActivity(UpdateTourInstanceActivityCommand request)
     {
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
         if (instance is null)
@@ -1567,6 +1561,8 @@ public class TourInstanceService(
             activity.EndTime = request.EndTime;
         if (request.IsOptional.HasValue)
             activity.IsOptional = request.IsOptional.Value;
+        if (request.Price.HasValue)
+            activity.Price = request.Price.Value;
 
         activity.LastModifiedBy = performedBy;
         activity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
@@ -1579,7 +1575,7 @@ public class TourInstanceService(
 
         // Return a mapped DTO. Wait, the return type is TourDayActivityDto but the entity is TourInstanceDayActivityEntity.
         // It might be mapped correctly if AutoMapper profile exists.
-        return _mapper.Map<TourDayActivityDto>(activity);
+        return _mapper.Map<TourInstanceDayActivityDto>(activity);
     }
 
     public async Task<ErrorOr<TourInstanceDayActivityDto>> CreateActivity(CreateTourInstanceActivityCommand request)
@@ -1600,7 +1596,8 @@ public class TourInstanceService(
             request.Note,
             request.StartTime,
             request.EndTime,
-            request.IsOptional
+            request.IsOptional,
+            price: request.Price
         );
 
         await _tourInstanceRepository.AddInstanceDayActivity(activity);

@@ -1,6 +1,6 @@
 import { apiSlice } from "./apiSlice";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { ApiResponse, PaginatedResponse } from "@/types/api";
+import { ApiResponse, PaginatedResponse } from "@/types/home";
 
 export interface MyBookingDto {
   id: string;

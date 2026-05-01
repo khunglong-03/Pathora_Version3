@@ -61,24 +61,18 @@ export function BookingHistoryHero({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 100, damping: 20 }}
-            className={cn("v-stack shrink-0 items-center gap-4 sm:h-stack")}
+            className={cn("v-stack shrink-0 gap-4 sm:h-stack")}
           >
             {/* Total Bookings Card */}
-            <div className={cn("center group relative w-full min-w-[180px] flex-col overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:w-auto")}>
-              <div className={cn("absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-20")}>
-                <Ticket weight="fill" className={cn("size-16 text-slate-900")} />
-              </div>
-              <p className={cn("relative z-10 font-mono text-4xl font-bold tracking-tight text-slate-900")}>{totalCount}</p>
-              <p suppressHydrationWarning className={cn("relative z-10 mt-2 text-sm font-medium text-slate-500")}>{totalBookingsLabel}</p>
+            <div className={cn("v-stack w-full min-w-[160px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:w-auto")}>
+              <p className={cn("text-xs font-semibold uppercase tracking-widest text-slate-400")}>{totalBookingsLabel}</p>
+              <p className={cn("mt-1 font-mono text-3xl font-medium text-slate-900")}>{totalCount}</p>
             </div>
 
             {/* Active Bookings Card */}
-            <div className={cn("center group relative w-full min-w-[180px] flex-col overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:w-auto")}>
-              <div className={cn("absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-20")}>
-                <CheckCircle weight="fill" className={cn("size-16 text-emerald-500")} />
-              </div>
-              <p className={cn("relative z-10 font-mono text-4xl font-bold tracking-tight text-emerald-500")}>{activeCount}</p>
-              <p suppressHydrationWarning className={cn("relative z-10 mt-2 text-sm font-medium text-slate-500")}>{activeLabel}</p>
+            <div className={cn("v-stack w-full min-w-[160px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:w-auto")}>
+              <p className={cn("text-xs font-semibold uppercase tracking-widest text-slate-400")}>{activeLabel}</p>
+              <p className={cn("mt-1 font-mono text-3xl font-medium text-emerald-600")}>{activeCount}</p>
             </div>
           </motion.div>
         </div>

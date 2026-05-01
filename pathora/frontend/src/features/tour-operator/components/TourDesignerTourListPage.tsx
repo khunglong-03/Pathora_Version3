@@ -11,6 +11,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTourOperatorTourList } from "../hooks/useTourOperatorTourList";
 import { TourStatusMap } from "@/types/tour";
 import { canTourOperatorEditTour } from "./editableTourStatus";
+import { cn } from "@/lib/cn";
 
 const STATUS_TABS = [
   { key: "all", label: "All" },
@@ -47,9 +48,9 @@ const itemVariants: Variants = {
 const GridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     {[...Array(6)].map((_, i) => (
-      <div key={i} className="flex flex-col bg-white rounded-3xl overflow-hidden border border-slate-200/60 shadow-sm">
+      <div key={i} className="v-stack bg-white rounded-3xl overflow-hidden border border-slate-200/60 shadow-sm">
         <div className="aspect-[16/9] bg-slate-100 animate-pulse" />
-        <div className="p-5 flex flex-col gap-3">
+        <div className="p-5 v-stack gap-3">
           <div className="h-5 bg-slate-100 animate-pulse rounded-md w-3/4" />
           <div className="h-4 bg-slate-100 animate-pulse rounded-md w-1/4" />
           <div className="h-10 bg-slate-100 animate-pulse rounded-xl w-full mt-2" />
@@ -90,7 +91,7 @@ export function TourOperatorTourListPage() {
   return (
     <div className="max-w-[1400px] w-full mx-auto p-6 lg:p-8">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+      <div className="v-stack md:h-stack md:items-end justify-between gap-6 mb-10">
         <div className="space-y-1">
           <h1 className="text-4xl md:text-5xl font-bold text-zinc-950 tracking-tighter">
             {t("tourOperator.myTours", "Tours")}
@@ -103,7 +104,7 @@ export function TourOperatorTourListPage() {
         </div>
         <Link
           href="/tour-operator/tours/create"
-          className="flex items-center gap-2 px-6 py-3 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-sm active:scale-[0.98]"
+          className="h-stack items-center gap-2 px-6 py-3 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-sm active:scale-[0.98]"
         >
           <PlusIcon size={18} weight="bold" />
           {t("tourOperator.actions.create", "Tạo Tour")}
@@ -111,9 +112,9 @@ export function TourOperatorTourListPage() {
       </div>
 
       {/* Control Bar (Search & Tabs) */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+      <div className="v-stack lg:h-stack lg:items-center justify-between gap-4 mb-8">
         {/* Segmented Status Tabs */}
-        <div className="flex bg-zinc-100/80 p-1.5 rounded-2xl w-fit">
+        <div className="h-stack bg-zinc-100/80 p-1.5 rounded-2xl w-fit">
           {STATUS_TABS.map((tab) => {
             const isActive = statusFilter === tab.key;
             return (
@@ -123,11 +124,12 @@ export function TourOperatorTourListPage() {
                   setStatusFilter(tab.key);
                   setCurrentPage(1);
                 }}
-                className={`relative px-5 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                className={cn(
+                  "relative px-5 py-2 text-sm font-medium rounded-xl transition-all duration-200",
                   isActive
                     ? "text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:text-zinc-950"
-                }`}
+                )}
               >
                 {isActive && (
                   <motion.div
@@ -143,7 +145,7 @@ export function TourOperatorTourListPage() {
         </div>
 
         {/* Filters & Search */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+        <div className="v-stack sm:h-stack items-center gap-3 w-full lg:w-auto">
           <select
             value={tourScope}
             onChange={(e) => {
@@ -212,9 +214,9 @@ export function TourOperatorTourListPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
+            className="v-stack items-center justify-center py-20 text-center"
           >
-            <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-rose-50/50">
+            <div className="size-16 circle bg-rose-50 center mb-4 ring-8 ring-rose-50/50">
               <WarningCircleIcon size={32} weight="duotone" className="text-rose-500" />
             </div>
             <h3 className="text-xl font-bold text-zinc-950 tracking-tight mb-2">
@@ -238,9 +240,9 @@ export function TourOperatorTourListPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center border border-dashed border-zinc-200 rounded-[2.5rem] bg-zinc-50/50"
+            className="v-stack items-center justify-center py-24 text-center border border-dashed border-zinc-200 rounded-[2.5rem] bg-zinc-50/50"
           >
-            <div className="w-20 h-20 bg-white shadow-sm rounded-full flex items-center justify-center mb-6 ring-1 ring-zinc-200/50">
+            <div className="size-20 circle bg-white shadow-sm center mb-6 ring-1 ring-zinc-200/50">
               <MapTrifoldIcon size={40} weight="thin" className="text-zinc-300" />
             </div>
             <h3 className="text-2xl font-bold text-zinc-950 tracking-tight mb-3">
@@ -254,7 +256,7 @@ export function TourOperatorTourListPage() {
             {!searchText && (
               <Link
                 href="/tour-operator/tours/create"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-lg active:scale-95"
+                className="h-stack items-center gap-2 px-8 py-3.5 bg-zinc-950 text-white text-sm font-medium rounded-full hover:bg-zinc-800 transition-colors shadow-lg active:scale-95"
               >
                 <PlusIcon size={18} weight="bold" />
                 {t("tourOperator.actions.createFirst", "Bắt đầu thiết kế")}
@@ -279,12 +281,15 @@ export function TourOperatorTourListPage() {
                 <motion.div
                   key={tour.id}
                   variants={itemVariants}
-                  className="group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-zinc-200/60 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  className="group relative v-stack bg-white rounded-3xl overflow-hidden border border-zinc-200/60 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                 >
                   {/* Aspect Image Container */}
                   <div className="relative aspect-[16/9] w-full bg-zinc-100 overflow-hidden">
                     {/* Status Badge (Liquid Glass) */}
-                    <div className={`absolute top-4 left-4 z-10 font-sans tracking-tight px-3 py-1 text-xs font-semibold rounded-full backdrop-blur-md ring-1 ring-inset ${badgeStyle.bg} ${badgeStyle.text} ${badgeStyle.ring}`}>
+                    <div className={cn(
+                      "absolute top-4 left-4 z-10 font-sans tracking-tight px-3 py-1 text-xs font-semibold rounded-full backdrop-blur-md ring-1 ring-inset",
+                      badgeStyle.bg, badgeStyle.text, badgeStyle.ring
+                    )}>
                       {statusName}
                     </div>
 
@@ -296,7 +301,7 @@ export function TourOperatorTourListPage() {
                         loading="lazy"
                       />
                     ) : (
-                    <div className="w-full h-full bg-stone-100 flex flex-col justify-center items-center">
+                    <div className="w-full h-full bg-stone-100 v-stack center">
                       <ImageSquareIcon className="size-8 text-stone-300 mb-2 drop-shadow-sm" weight="duotone" />
                       <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
                         {t("common.noImage", "NO IMAGE")}
@@ -306,7 +311,7 @@ export function TourOperatorTourListPage() {
                   </div>
 
                   {/* Card Content */}
-                  <div className="flex flex-col flex-1 p-6">
+                  <div className="v-stack flex-1 p-6">
                     <div className="flex-1">
                       <div className="text-xs font-mono font-medium tracking-wider text-zinc-400 mb-2 uppercase">
                         {tour.tourCode}
@@ -322,11 +327,11 @@ export function TourOperatorTourListPage() {
                     </div>
                     
                     {/* Action Footer */}
-                    <div className="mt-6 pt-5 flex items-center justify-between border-t border-zinc-100">
+                    <div className="mt-6 pt-5 h-stack items-center justify-between border-t border-zinc-100">
                       <span className="text-xs font-medium text-zinc-400">
                         {new Date(tour.createdOnUtc).toLocaleDateString("vi-VN")}
                       </span>
-                      <div className="flex space-x-2">
+                      <div className="h-stack gap-2">
                         <Link
                           href={`/tour-operator/tours/${tour.id}`}
                           className="p-2 text-zinc-500 bg-zinc-50 hover:bg-zinc-100 hover:text-zinc-950 rounded-xl transition-colors active:scale-90"
@@ -354,7 +359,7 @@ export function TourOperatorTourListPage() {
 
       {/* Pagination */}
       {state === "ready" && total > 0 && (
-        <div className="mt-12 flex items-center justify-center gap-4">
+        <div className="mt-12 center gap-4">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}

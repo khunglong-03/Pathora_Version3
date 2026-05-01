@@ -20,6 +20,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/utils/format";
 import { NormalizedTourInstanceVm, TourInstanceStats } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
+import { cn } from "@/lib/cn";
 
 /* ── Animation Variants ───────────────────────────────────── */
 const containerVariants = {
@@ -77,11 +78,15 @@ function StatCard({ label, value, accent, icon }: StatCardProps) {
   return (
     <motion.div
       variants={itemVariants}
-      className={`relative overflow-hidden bg-white rounded-[2.5rem] border border-stone-200/50 p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] hover:-translate-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,1)] group`}>
+      className="relative overflow-hidden bg-white rounded-[2.5rem] border border-stone-200/50 p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] hover:-translate-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,1)] group"
+    >
       <div
-        className={`absolute -inset-1 blur-2xl opacity-10 transition-opacity duration-500 group-hover:opacity-30 ${c.bg} mix-blend-multiply`}
+        className={cn(
+          "absolute -inset-1 blur-2xl opacity-10 transition-opacity duration-500 group-hover:opacity-30 mix-blend-multiply",
+          c.bg
+        )}
       />
-      <div className="relative flex items-center justify-between gap-4">
+      <div className="relative h-stack items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">
             {label}
@@ -91,8 +96,12 @@ function StatCard({ label, value, accent, icon }: StatCardProps) {
           </p>
         </div>
         <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center ${c.bg} border border-white/50 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          <Icon icon={icon} className={`size-6 ${c.text}`} />
+          className={cn(
+            "size-14 rounded-2xl center border border-white/50 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+            c.bg
+          )}
+        >
+          <Icon icon={icon} className={cn("size-6", c.text)} />
         </div>
       </div>
     </motion.div>
@@ -114,7 +123,7 @@ function ParticipantsCell({
   const pct = max > 0 ? (registered / max) * 100 : 0;
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
+      <div className="h-stack items-center gap-1.5">
         <Icon icon="heroicons:user-group" className="size-4 text-stone-400" />
         <span className="text-sm font-semibold text-stone-700 tracking-tight">
           {registered}/{max}
@@ -278,7 +287,7 @@ export function TourInstanceListPage({
           variants={itemVariants}
           initial="hidden"
           animate="show"
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
+          className="v-stack sm:h-stack items-start sm:items-center gap-4 sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold tracking-tight text-stone-900">
               {instanceTypeFilter === "public"
@@ -347,8 +356,8 @@ export function TourInstanceListPage({
           initial="hidden"
           animate="show"
           layout
-          className="bg-white border border-stone-200/50 rounded-[2rem] p-3 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
-          <div className="relative flex-1 w-full min-w-[300px]">
+          className="bg-white border border-stone-200/50 rounded-[2rem] p-3 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] v-stack md:h-stack items-center justify-between gap-4 relative z-10">
+          <div className="relative spacer min-w-[300px]">
             <Icon
               icon="heroicons:magnifying-glass"
               className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-stone-400 pointer-events-none"
@@ -370,15 +379,15 @@ export function TourInstanceListPage({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   onClick={() => setSearchText("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-stone-200 text-stone-500 hover:bg-stone-300 hover:text-stone-700 rounded-full transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 size-7 center bg-stone-200 text-stone-500 hover:bg-stone-300 hover:text-stone-700 rounded-full transition-colors">
                   <Icon icon="heroicons:x-mark" className="size-4" />
                 </motion.button>
               )}
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-4">
-            <div className="relative flex-1 md:flex-none min-w-[140px]">
+          <div className="h-stack items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-4">
+            <div className="relative spacer md:flex-none min-w-[140px]">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -404,7 +413,7 @@ export function TourInstanceListPage({
 
             {/* Only show visibility dropdown when NOT locked to a specific type */}
             {!instanceTypeFilter && (
-              <div className="relative flex-1 md:flex-none min-w-[140px]">
+              <div className="relative spacer md:flex-none min-w-[140px]">
                 <select
                   value={visibilityFilter}
                   onChange={(e) => setVisibilityFilter(e.target.value)}
@@ -426,17 +435,18 @@ export function TourInstanceListPage({
             {/* When locked, show a badge to indicate the filtered type */}
             {instanceTypeFilter && (
               <span
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold border ${
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold border",
                   instanceTypeFilter === "public"
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : "bg-stone-800 text-stone-100 border-stone-700"
-                }`}>
+                )}>
                 <Icon icon="heroicons:eye" className="size-3.5" />
                 {instanceTypeFilter === "public" ? "Chỉ Public" : "Chỉ Private"}
               </span>
             )}
             
-            <label className="flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
+            <label className="h-stack items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
               <input 
                 type="checkbox" 
                 checked={excludePast} 
@@ -457,7 +467,7 @@ export function TourInstanceListPage({
               initial="hidden"
               animate="show"
               className="p-8 bg-red-50/50 border border-red-200 border-dashed rounded-[2.5rem]">
-              <div className="flex items-start justify-between gap-4">
+              <div className="h-stack items-start justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-red-800">
                     {safeT(
@@ -493,11 +503,11 @@ export function TourInstanceListPage({
                 <motion.div
                   key={i}
                   variants={itemVariants}
-                  className="bg-white/60 border border-stone-200/50 rounded-[2.5rem] p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                  <div className="w-24 h-24 rounded-[1.5rem] bg-stone-200/50 animate-pulse shrink-0" />
-                  <div className="flex-1 space-y-4 w-full">
+                  className="bg-white/60 border border-stone-200/50 rounded-[2.5rem] p-6 v-stack md:h-stack gap-6 items-start md:items-center">
+                  <div className="size-24 rounded-[1.5rem] bg-stone-200/50 animate-pulse shrink-0" />
+                  <div className="spacer space-y-4 w-full">
                     <div className="w-1/3 h-6 bg-stone-200/50 animate-pulse rounded-lg" />
-                    <div className="flex gap-4">
+                    <div className="h-stack gap-4">
                       <div className="w-1/4 h-4 bg-stone-200/50 animate-pulse rounded-md" />
                       <div className="w-1/4 h-4 bg-stone-200/50 animate-pulse rounded-md" />
                       <div className="w-1/4 h-4 bg-stone-200/50 animate-pulse rounded-md" />
@@ -516,8 +526,8 @@ export function TourInstanceListPage({
               initial="hidden"
               animate="show"
               layout
-              className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2.5rem] bg-stone-50/50 flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-[2rem] bg-white border border-stone-200/50 shadow-sm flex items-center justify-center mb-6">
+              className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2.5rem] bg-stone-50/50 v-stack center">
+              <div className="size-20 rounded-[2rem] bg-white border border-stone-200/50 shadow-sm center mb-6">
                 <Icon
                   icon="heroicons:calendar-days"
                   className="size-8 text-stone-300"
@@ -556,7 +566,7 @@ export function TourInstanceListPage({
                       layout
                       layoutId={`instance-${inst.id}`}
                       key={inst.id}
-                      className="bg-white border border-stone-200/50 rounded-[2.5rem] p-4 sm:p-5 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col lg:flex-row gap-6 lg:items-center relative group filter-none">
+                      className="bg-white border border-stone-200/50 rounded-[2.5rem] p-4 sm:p-5 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] transition-all duration-300 v-stack lg:h-stack gap-6 lg:items-center relative group filter-none">
                       {/* 1. Media Zone */}
                       <div className="relative w-full lg:w-32 h-44 lg:h-32 rounded-[1.5rem] overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0">
                         {inst.thumbnail?.publicURL ? (
@@ -566,7 +576,7 @@ export function TourInstanceListPage({
                             className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full center">
                             <Icon
                               icon="heroicons:photo"
                               className="size-8 text-stone-300"
@@ -576,9 +586,12 @@ export function TourInstanceListPage({
                         <div className="absolute top-2 left-2">
                           <TourStatusBadge status={inst.status} />
                         </div>
-                        <div className="absolute top-2 right-2 flex gap-1">
+                        <div className="absolute top-2 right-2 h-stack gap-1">
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md ${isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"}`}>
+                            className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md",
+                              isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"
+                            )}>
                             {isPublic
                               ? safeT("tourInstance.public", "Public")
                               : safeT("tourInstance.private", "Private")}
@@ -587,7 +600,7 @@ export function TourInstanceListPage({
                       </div>
 
                       {/* 2. Primary Info Node */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-center space-y-3">
+                      <div className="spacer min-w-0 v-stack justify-center space-y-3">
                         <div>
                           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">
                             {inst.tourInstanceCode}
@@ -598,7 +611,7 @@ export function TourInstanceListPage({
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-stone-600">
-                          <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
+                          <div className="h-stack items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
                             <Icon
                               icon="heroicons:map-pin"
                               className="size-4 text-stone-400"
@@ -607,7 +620,7 @@ export function TourInstanceListPage({
                               {inst.location || "N/A"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="h-stack items-center gap-1.5">
                             <Icon
                               icon="heroicons:swatch"
                               className="size-4 text-stone-400"
@@ -616,7 +629,7 @@ export function TourInstanceListPage({
                               {inst.tourName}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="h-stack items-center gap-1.5">
                             <Icon
                               icon="heroicons:tag"
                               className="size-4 text-stone-400"
@@ -631,13 +644,14 @@ export function TourInstanceListPage({
                         {inst.status === "pendingapproval" && (
                           <div className="flex flex-wrap gap-2 mt-1">
                             <span
-                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold border",
                                 inst.transportApprovalStatus === 2
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : inst.transportApprovalStatus === 3
-                                    ? "bg-red-50 text-red-700 border border-red-200"
-                                    : "bg-orange-50 text-orange-700 border border-orange-200"
-                              }`}>
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-orange-50 text-orange-700 border-orange-200"
+                              )}>
                               <Icon icon="heroicons:truck" className="size-3" />
                               VT:{" "}
                               {inst.transportApprovalStatus === 2
@@ -651,10 +665,10 @@ export function TourInstanceListPage({
                       </div>
 
                       {/* 3. Timeline / Meta Stack */}
-                      <div className="flex flex-row lg:flex-col gap-4 lg:gap-2 shrink-0 lg:w-48 xl:w-56 justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-stone-100 pt-4 lg:pt-0 lg:pl-6">
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
+                      <div className="h-stack lg:v-stack gap-4 lg:gap-2 shrink-0 lg:w-48 xl:w-56 justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-stone-100 pt-4 lg:pt-0 lg:pl-6">
+                        <div className="v-stack gap-1.5">
+                          <div className="h-stack justify-between items-center text-xs text-stone-500">
+                            <span className="h-stack items-center gap-1.5">
                               <Icon
                                 icon="heroicons:calendar"
                                 className="size-3.5"
@@ -665,8 +679,8 @@ export function TourInstanceListPage({
                               {formatDate(inst.startDate)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
+                          <div className="h-stack justify-between items-center text-xs text-stone-500">
+                            <span className="h-stack items-center gap-1.5">
                               <Icon
                                 icon="heroicons:calendar-days"
                                 className="size-3.5"
@@ -677,8 +691,8 @@ export function TourInstanceListPage({
                               {formatDate(inst.endDate)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
+                          <div className="h-stack justify-between items-center text-xs text-stone-500">
+                            <span className="h-stack items-center gap-1.5">
                               <Icon
                                 icon="heroicons:clock"
                                 className="size-3.5"
@@ -701,7 +715,7 @@ export function TourInstanceListPage({
                       </div>
 
                       {/* 4. Financial & CTA */}
-                      <div className="flex items-center justify-between lg:flex-col lg:items-end gap-4 shrink-0 lg:w-36 justify-center border-t lg:border-t-0 pt-4 lg:pt-0">
+                      <div className="h-stack justify-between lg:v-stack lg:items-end gap-4 shrink-0 lg:w-36 lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0">
                         <div className="text-left lg:text-right">
                           <p className="text-xl md:text-2xl font-black text-amber-500 tracking-tighter leading-none mb-1">
                             {formatCurrency(inst.basePrice)}
@@ -714,7 +728,7 @@ export function TourInstanceListPage({
                           onClick={() =>
                             router.push(`${basePath}/${inst.id}`)
                           }
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                          className="h-stack items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
                           {safeT("common.viewDetails", "Details")}
                           <Icon
                             icon="heroicons:arrow-right"
@@ -732,11 +746,11 @@ export function TourInstanceListPage({
 
         {/* ── Pagination ─────────────────────────────────── */}
         {(dataState === "ready" || dataState === "empty") && totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white border border-stone-200/50 rounded-[2.5rem] p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <div className="h-stack items-center justify-between bg-white border border-stone-200/50 rounded-[2.5rem] p-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
             <span className="text-sm text-stone-600">
               Page {currentPage} of {totalPages}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="h-stack items-center gap-2">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}

@@ -1,6 +1,7 @@
 import React from "react";
 import { BookingStatus, TourTier, STATUS_CONFIG, TIER_CONFIG } from "./BookingHistoryData";
 import { CheckCircle, Clock, XCircle } from "@phosphor-icons/react";
+import { cn } from "@/lib/cn";
 
 interface StatusOverlayProps {
   status: BookingStatus;
@@ -13,10 +14,10 @@ export function StatusOverlay({ status, label }: StatusOverlayProps) {
   
   // Provide a safe fallback if status is not explicitly defined in config
   const cfg = STATUS_CONFIG[normalizedStatus as BookingStatus] || {
-    bg: "bg-slate-500/90",
-    text: "text-white",
+    bg: "bg-slate-100",
+    text: "text-slate-600",
     icon: "heroicons:information-circle",
-    iconColor: "text-white"
+    iconColor: "text-slate-600"
   };
   
   let StatusIcon = CheckCircle;
@@ -28,9 +29,9 @@ export function StatusOverlay({ status, label }: StatusOverlayProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[0.75rem] text-[11px] uppercase tracking-wider font-bold backdrop-blur-md shadow-sm ${cfg.bg} ${cfg.text}`}
+      className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider", cfg.bg, cfg.text)}
     >
-      <StatusIcon weight="fill" className={`size-3.5 ${cfg.iconColor}`} />
+      <StatusIcon weight="fill" className={cn("size-3.5", cfg.iconColor)} />
       {label}
     </span>
   );
@@ -45,7 +46,7 @@ export function TierBadge({ tier, label }: TierBadgeProps) {
   const cfg = TIER_CONFIG[tier];
   return (
     <span
-      className={`px-2.5 py-1 rounded-[0.5rem] text-[10px] uppercase tracking-widest font-bold border border-current/10 ${cfg.bg} ${cfg.text}`}
+      className={cn("rounded-full border border-current/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", cfg.bg, cfg.text)}
     >
       {label}
     </span>

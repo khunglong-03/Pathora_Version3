@@ -24,6 +24,7 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
     private readonly IDepositPolicyRepository _depositPolicyRepository = Substitute.For<IDepositPolicyRepository>();
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly ITourInstanceNotificationBroadcaster _notificationBroadcaster = Substitute.For<ITourInstanceNotificationBroadcaster>();
 
     private RequestPublicPrivateTourCommandHandler CreateHandler() => new(
         _tourInstanceService,
@@ -35,7 +36,8 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
         _pricingPolicyRepository,
         _depositPolicyRepository,
         _userRepository,
-        _unitOfWork);
+        _unitOfWork,
+        _notificationBroadcaster);
 
     [Fact]
     public async Task HappyPath_CreatesPrivateDraftAndSetsBookingType()

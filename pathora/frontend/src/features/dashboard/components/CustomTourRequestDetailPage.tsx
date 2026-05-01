@@ -122,7 +122,7 @@ export default function CustomTourRequestDetailPage({
     // wantsCustomization=true → operator must edit itinerary before confirming
     // wantsCustomization=false/null → customer already confirmed, just view detail
     return data?.wantsCustomization
-      ? `/tour-operator/tour-instances/private/${id}/edit`
+      ? `/tour-operator/custom-tour-requests/${id}/edit`
       : `/tour-operator/tour-instances/private/${id}`;
   }, [role, id, data?.wantsCustomization]);
 
@@ -290,9 +290,17 @@ export default function CustomTourRequestDetailPage({
               <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-tight">
                 {data.title || data.tourName}
               </h1>
-              <p className="text-base text-slate-500 font-mono mt-3">
-                {data.tourInstanceCode}
-              </p>
+              <div className="flex flex-wrap gap-3 mt-4 items-center">
+                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold border border-slate-200/50">
+                  {data.tourCode}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[#fa8b02]/10 text-[#fa8b02] text-sm font-bold border border-[#fa8b02]/20">
+                  {data.classificationName}
+                </span>
+                <span className="text-sm text-slate-500 font-mono">
+                  {data.tourInstanceCode}
+                </span>
+              </div>
             </div>
           </motion.div>
 
@@ -330,25 +338,71 @@ export default function CustomTourRequestDetailPage({
                     </div>
 
                     {day.activities && day.activities.length > 0 && (
-                      <div className="ml-14 mt-6 space-y-3">
+                      <div className="ml-14 mt-6 space-y-4">
                         {day.activities.map((act, aIdx) => (
                           <div
                             key={act.id ?? aIdx}
-                            className="flex items-start gap-3 bg-slate-50 rounded-xl p-4"
+                            className="bg-slate-50 rounded-[1.25rem] p-5 border border-slate-100"
                           >
-                            <Icon
-                              icon="heroicons:bolt"
-                              className="size-5 text-[#fa8b02] mt-0.5 shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-base font-medium text-slate-900">
-                                {act.title}
-                              </p>
-                              {act.note && (
-                                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                                  {act.note}
-                                </p>
-                              )}
+                            <div className="flex items-start gap-4">
+                              <div className="mt-1">
+                                {act.activityType === "Transportation" || act.activityType === "7" ? (
+                                  <Icon icon="heroicons:truck" className="size-5 text-blue-500" />
+                                ) : act.activityType === "Accommodation" || act.activityType === "8" ? (
+                                  <Icon icon="heroicons:home" className="size-5 text-indigo-500" />
+                                ) : (
+                                  <Icon icon="heroicons:bolt" className="size-5 text-[#fa8b02]" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <h4 className="text-base font-semibold text-slate-900">
+                                    {act.title}
+                                  </h4>
+                                  {(act.startTime || act.endTime) && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm">
+                                      <Icon icon="heroicons:clock" className="size-3.5" />
+                                      {act.startTime?.slice(0, 5) || "--"} - {act.endTime?.slice(0, 5) || "--"}
+                                    </span>
+                                  )}
+                                </div>
+                                {act.note && (
+                                  <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+                                    {act.note}
+                                  </p>
+                                )}
+                                
+                                {/* Transportation specific info */}
+                                {(act.fromLocation || act.toLocation || act.transportationName) && (
+                                  <div className="mt-3 flex items-center flex-wrap gap-2 text-sm text-slate-600 bg-white p-3 rounded-xl border border-slate-100">
+                                    <Icon icon="heroicons:map" className="size-4 text-slate-400" />
+                                    <span>
+                                      {act.fromLocation?.locationName || "N/A"} 
+                                      <Icon icon="heroicons:arrow-right" className="inline size-3 mx-2" /> 
+                                      {act.toLocation?.locationName || "N/A"}
+                                    </span>
+                                    {act.transportationName && (
+                                      <span className="ml-auto text-[11px] font-bold uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-md">
+                                        {act.transportationName}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Accommodation specific info */}
+                                {act.accommodation && (
+                                  <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 bg-white p-3 rounded-xl border border-slate-100">
+                                    <Icon icon="heroicons:building-office" className="size-4 text-slate-400" />
+                                    <span>{act.accommodation.supplierName || "N/A"} - {act.accommodation.roomType} (Số lượng: {act.accommodation.quantity})</span>
+                                  </div>
+                                )}
+                                
+                                {act.price != null && act.price > 0 && (
+                                  <div className="mt-3 text-sm font-bold text-slate-700">
+                                    Chi phí dự kiến: <span className="text-emerald-600">{formatCurrency(act.price)}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -417,11 +471,61 @@ export default function CustomTourRequestDetailPage({
                     <Icon icon={icon} className="size-3.5" />
                     {label}
                   </div>
-                  <p className="text-sm font-semibold text-slate-900 truncate">
+                  <p className="text-sm font-semibold text-slate-900 truncate" title={value}>
                     {value}
                   </p>
                 </div>
               ))}
+            </div>
+
+            {/* Policies & Managers */}
+            <div className="pt-6 border-t border-slate-100 space-y-5">
+              {data.depositPolicy && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <Icon icon="heroicons:shield-check" className="size-3.5" />
+                    Chính sách cọc
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {data.depositPolicy.depositType === "Percentage" || data.depositPolicy.depositType === 1
+                      ? `${data.depositPolicy.depositValue}%` 
+                      : formatCurrency(data.depositPolicy.depositValue)} (Trước {data.depositPolicy.minDaysBeforeDeparture} ngày)
+                  </p>
+                </div>
+              )}
+              {data.cancellationPolicy && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <Icon icon="heroicons:document-text" className="size-3.5" />
+                    Chính sách hủy
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {data.cancellationPolicy.policyCode || "Áp dụng theo quy định chung"}
+                  </p>
+                </div>
+              )}
+              {data.managers && data.managers.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <Icon icon="heroicons:users" className="size-3.5" />
+                    Điều hành viên
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {data.managers.map(m => (
+                      <div key={m.id} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full py-1 pr-3 pl-1 shadow-sm">
+                        {m.userAvatar ? (
+                          <img src={m.userAvatar} alt={m.userName} className="size-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="size-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                            {m.userName?.charAt(0)}
+                          </div>
+                        )}
+                        <span className="text-xs font-semibold text-slate-700">{m.userName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Included services */}

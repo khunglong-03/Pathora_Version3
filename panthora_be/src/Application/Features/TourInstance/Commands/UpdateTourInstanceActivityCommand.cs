@@ -17,7 +17,8 @@ public sealed record UpdateTourInstanceActivityCommand(
     [property: JsonPropertyName("note")] string? Note = null,
     [property: JsonPropertyName("startTime")] TimeOnly? StartTime = null,
     [property: JsonPropertyName("endTime")] TimeOnly? EndTime = null,
-    [property: JsonPropertyName("isOptional")] bool? IsOptional = null) : ICommand<ErrorOr<TourDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("price")] decimal? Price = null,
+    [property: JsonPropertyName("isOptional")] bool? IsOptional = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }
@@ -38,9 +39,9 @@ public sealed class UpdateTourInstanceActivityCommandValidator : AbstractValidat
 }
 
 public sealed class UpdateTourInstanceActivityCommandHandler(ITourInstanceService tourInstanceService)
-    : ICommandHandler<UpdateTourInstanceActivityCommand, ErrorOr<TourDayActivityDto>>
+    : ICommandHandler<UpdateTourInstanceActivityCommand, ErrorOr<TourInstanceDayActivityDto>>
 {
-    public async Task<ErrorOr<TourDayActivityDto>> Handle(UpdateTourInstanceActivityCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<TourInstanceDayActivityDto>> Handle(UpdateTourInstanceActivityCommand request, CancellationToken cancellationToken)
     {
         return await tourInstanceService.UpdateActivity(request);
     }

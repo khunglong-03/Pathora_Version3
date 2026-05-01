@@ -109,6 +109,7 @@ export interface UpdateInstanceActivityPayload {
   note?: string | null;
   startTime?: string | null;
   endTime?: string | null;
+  price?: number | null;
   isOptional?: boolean;
 }
 
@@ -435,6 +436,7 @@ export const tourInstanceService = {
       note?: string | null;
       startTime?: string | null;
       endTime?: string | null;
+      price?: number | null;
       isOptional?: boolean;
     },
   ) => {

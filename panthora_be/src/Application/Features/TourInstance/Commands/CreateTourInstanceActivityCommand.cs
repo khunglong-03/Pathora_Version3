@@ -20,6 +20,7 @@ public sealed record CreateTourInstanceActivityCommand(
     [property: JsonPropertyName("note")] string? Note = null,
     [property: JsonPropertyName("startTime")] TimeOnly? StartTime = null,
     [property: JsonPropertyName("endTime")] TimeOnly? EndTime = null,
+    [property: JsonPropertyName("price")] decimal? Price = null,
     [property: JsonPropertyName("isOptional")] bool IsOptional = false) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];

@@ -1492,8 +1492,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32">
       {/* Full-screen saving overlay */}
       {saving && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 max-w-sm mx-4">
+        <div className="fixed inset-0 z-[100] v-stack center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 v-stack items-center gap-4 max-w-sm mx-4">
             <Icon icon="heroicons:arrow-path" className="size-12 text-orange-500 animate-spin" />
             <p className="text-base font-semibold text-slate-900 dark:text-white">
               {isEditMode
@@ -1511,7 +1511,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
       {/* Top Bar */}
       <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between px-4 sm:px-6 h-16">
+        <div className="h-stack items-center justify-between px-4 sm:px-6 h-16">
           <div className="pl-12 lg:pl-0">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               {isEditMode
@@ -1522,7 +1522,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               {t("tourAdmin.createPage.stepOf", { current: currentStep + 1, total: WIZARD_STEPS.length })}
             </p>
           </div>
-          <div className="flex items-center gap-2 pr-16 lg:pr-20">
+          <div className="h-stack items-center gap-2 pr-16 lg:pr-20">
             <button
               onClick={() => onCancel?.()}
               disabled={saving}
@@ -1560,7 +1560,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
       {/* Stepper */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-4">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+        <div className="h-stack items-center gap-1 overflow-x-auto pb-1">
           {WIZARD_STEPS.map((step, i) => (
             <React.Fragment key={step.key}>
               {i > 0 && (
@@ -1576,7 +1576,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 onClick={() => {
                   if (i <= maxNavigableStep) setCurrentStep(i);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${i === currentStep
+                className={`h-stack items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${i === currentStep
                     ? "bg-orange-500 text-white"
                     : i < currentStep
                       ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
@@ -1588,7 +1588,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 {i < currentStep ? (
                   <Icon icon="heroicons:check" className="size-3.5" />
                 ) : (
-                  <span className="w-4 h-4 rounded-full border border-current flex items-center justify-center text-[10px]">
+                  <span className="w-4 h-4 rounded-full border border-current center text-[10px]">
                     {i + 1}
                   </span>
                 )}
@@ -1708,7 +1708,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 {t("tourAdmin.status.label", "Status")}
               </label>
-              <div className="flex items-center gap-3">
+              <div className="h-stack items-center gap-3">
                 {!isManagerOrAdmin ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -1721,7 +1721,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       onChange={(e) =>
                         setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
                       }
-                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      className="spacer px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                     >
                       <option value="1">{TourStatusMap[1]}</option>
                       <option value="2">{TourStatusMap[2]}</option>
@@ -1773,7 +1773,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     )}
                   </div>
                   {errors.tourName && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
                       <Icon icon="heroicons:exclamation-triangle" className="size-3" />
                       {errors.tourName}
                     </p>
@@ -1809,7 +1809,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     )}
                   </div>
                   {errors.shortDescription && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
                       <Icon icon="heroicons:exclamation-triangle" className="size-3" />
                       {errors.shortDescription}
                     </p>
@@ -1845,7 +1845,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                     )}
                   </div>
                   {errors.longDescription && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
                       <Icon icon="heroicons:exclamation-triangle" className="size-3" />
                       {errors.longDescription}
                     </p>
@@ -2022,7 +2022,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         {/* ── Step 2: Packages ─────────────────────────────── */}
         {currentStep === 1 && (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex items-center justify-between mb-1">
+            <div className="h-stack items-center justify-between mb-1">
               <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                 {t("tourAdmin.packages.sectionTitle")}
               </h2>
@@ -2034,7 +2034,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 {t("tourAdmin.buttons.addPackage")}
               </button>
             </div>
-            <div className="flex items-center gap-2 mb-6 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
+            <div className="h-stack items-center gap-2 mb-6 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
               <Icon
                 icon="heroicons:information-circle"
                 className="size-4 text-blue-500 shrink-0"
@@ -2050,9 +2050,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   key={clsI}
                   className="border border-stone-200 dark:border-stone-700 rounded-2xl p-5 relative overflow-hidden">
                   {/* Card header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="h-stack items-center justify-between mb-5">
+                    <div className="h-stack items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500 center text-white text-xs font-bold">
                         {clsI + 1}
                       </div>
                       <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300">
@@ -2099,11 +2099,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         {t("tourAdmin.packages.basePrice")}
                       </label>
                       <div className="relative group">
-                        <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 flex items-center justify-between">
+                        <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 h-stack items-center justify-between">
                           <span className="font-semibold text-stone-900 dark:text-white">
                             {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
                           </span>
-                          <div className="flex items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
+                          <div className="h-stack items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
                             <Icon icon="heroicons:sparkles" className="size-3" />
                             {t("tourAdmin.packages.basePriceAutoCalculated")}
                           </div>
@@ -2116,7 +2116,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* ── VI Column ── */}
                     <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="h-stack items-center gap-2 mb-1">
                         <span className="text-base">🇻🇳</span>
                         <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                           Tiếng Việt
@@ -2147,7 +2147,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           )}
                         </div>
                         {errors[`cls_${clsI}_name`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
                             <Icon icon="heroicons:exclamation-triangle" className="size-3" />
                             {errors[`cls_${clsI}_name`]}
                           </p>
@@ -2172,7 +2172,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
                     {/* ── EN Column ── */}
                     <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="h-stack items-center gap-2 mb-1">
                         <span className="text-base">🇬🇧</span>
                         <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                           English
@@ -2241,11 +2241,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       key={i}
                       type="button"
                       onClick={() => setSelectedPackageIndex(i)}
-                      className={`flex-1 min-w-45 p-4 rounded-xl border-2 text-left transition-all ${selectedPackageIndex === i
+                      className={`spacer min-w-45 p-4 rounded-xl border-2 text-left transition-all ${selectedPackageIndex === i
                           ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                         }`}>
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="h-stack items-center justify-between mb-2">
                         <span
                           className={`text-sm font-semibold ${selectedPackageIndex === i
                               ? "text-orange-600 dark:text-orange-400"
@@ -2254,7 +2254,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           {t("tourAdmin.packages.packageNumber", { number: i + 1 })}
                         </span>
                         {selectedPackageIndex === i && (
-                          <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                          <div className="w-5 h-5 bg-orange-500 rounded-full center">
                             <Icon
                               icon="heroicons:check"
                               className="size-3 text-white"
@@ -2276,7 +2276,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
             {/* Itinerary Editor */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center justify-between mb-5">
+              <div className="h-stack items-center justify-between mb-5">
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                   {t("tourAdmin.itineraries.itineraryForPackage", { number: ci + 1 })}
                 </h2>
@@ -2320,24 +2320,24 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         key={di}
                         className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                         {/* Day Header — Orange */}
-                        <div className="bg-orange-500 px-4 py-3 flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        <div className="bg-orange-500 px-4 py-3 h-stack items-center gap-3">
+                          <div className="w-8 h-8 bg-white/20 rounded-full center text-white text-sm font-bold shrink-0">
                             {day.dayNumber}
                           </div>
-                          <div className="flex-1 flex items-center gap-2">
+                          <div className="spacer h-stack items-center gap-2">
                             <input
                               type="text"
                               value={day.title}
                               onChange={(e) => updateDayPlan(ci, di, "title", e.target.value)}
                               placeholder={t("tourAdmin.itineraries.placeholderDayTitle", { number: day.dayNumber })}
-                              className="flex-1 px-2 py-1 text-sm bg-white/10 text-white rounded border border-white/20 placeholder:text-white/60 focus:ring-2 focus:ring-white/30 outline-none"
+                              className="spacer px-2 py-1 text-sm bg-white/10 text-white rounded border border-white/20 placeholder:text-white/60 focus:ring-2 focus:ring-white/30 outline-none"
                             />
                             <input
                               type="text"
                               value={day.enTitle}
                               onChange={(e) => updateDayPlan(ci, di, "enTitle", e.target.value)}
                               placeholder="Day title EN..."
-                              className="flex-1 px-2 py-1 text-sm bg-white/5 text-white/70 rounded border border-white/10 placeholder:text-white/30 focus:ring-2 focus:ring-white/20 outline-none"
+                              className="spacer px-2 py-1 text-sm bg-white/5 text-white/70 rounded border border-white/10 placeholder:text-white/30 focus:ring-2 focus:ring-white/20 outline-none"
                             />
                           </div>
                           {(errors[`plan_${di}_title`] || errors[`plan_${di}_enTitle`]) && (
@@ -2368,7 +2368,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         <div className="p-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                             <div className="space-y-1">
-                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                 🇻🇳 {t("tourAdmin.itineraries.dayDescription")} (VI)
                               </span>
                               <textarea
@@ -2380,7 +2380,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                               />
                             </div>
                             <div className="space-y-1">
-                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                 🇬🇧 Description (EN)
                               </span>
                               <textarea
@@ -2400,7 +2400,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
                           {/* Activities Section */}
                           <div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="h-stack items-center justify-between mb-3">
                               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 {t("tourAdmin.itineraries.activities")}
                               </span>
@@ -2433,7 +2433,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                               <div
                                 key={ai}
                                 className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 mb-3 border border-slate-100 dark:border-slate-700/50">
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="h-stack items-center justify-between mb-3">
                                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t("tourAdmin.itineraries.activityNumber", { number: ai + 1 })}
                                   </span>
@@ -2561,7 +2561,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                 {/* Title — VI / EN */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                   <div className="space-y-1">
-                                    <div className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-stone-400">
+                                    <div className="h-stack items-center gap-1 text-xs font-medium text-stone-500 dark:text-stone-400">
                                       <span>🇻🇳</span>
                                       <span>{t("tourAdmin.itineraries.title")} (VI)</span>
                                       <span className="text-red-500">*</span>
@@ -2575,7 +2575,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                                    <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                       🇬🇧 Title (EN)
                                     </span>
                                     <input
@@ -2827,8 +2827,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         {/* ── Step 3: Services ───────────────────────────────── */}
         {currentStep === 3 && (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
+            <div className="h-stack items-center justify-between mb-1">
+              <div className="h-stack items-center gap-2">
                 <Icon
                   icon="heroicons:wrench-screwdriver"
                   className="size-5 text-orange-500"
@@ -2854,9 +2854,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 <div
                   key={svcI}
                   className="border border-slate-200 dark:border-slate-700 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  <div className="h-stack items-center justify-between mb-4">
+                    <div className="h-stack items-center gap-2">
+                      <div className="w-6 h-6 bg-orange-500 rounded-full center text-white text-xs font-bold">
                         {svcI + 1}
                       </div>
                       <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -2974,7 +2974,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         {/* ── Step 4: Insurance ────────────────────────────── */}
         {currentStep === 4 && (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="h-stack items-center gap-2 mb-1">
               <Icon
                 icon="heroicons:shield-check"
                 className="size-5 text-orange-500"
@@ -2990,7 +2990,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             <div className="space-y-5">
               {classifications.map((cls, clsI) => (
                 <div key={clsI}>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="h-stack items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                       {activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 }))}
                     </h3>
@@ -3014,9 +3014,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       {(insurances[clsI] ?? []).map((ins, ii) => (
                         <div
                           key={ii}
-                          className="flex items-start justify-between border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                          className="h-stack items-start justify-between border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+                          <div className="spacer min-w-0">
+                            <div className="h-stack items-center gap-2 mb-1">
                               <span className="font-medium text-sm text-slate-900 dark:text-white">
                                 {activeLang === "vi" ? (ins.insuranceName || t("tourAdmin.review.untitled")) : (ins.enInsuranceName || ins.insuranceName || t("tourAdmin.review.untitled"))}
                               </span>
@@ -3032,7 +3032,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                 : ""}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3 ml-4">
+                          <div className="h-stack items-center gap-3 ml-4">
                             <span className="text-sm font-semibold text-orange-500 whitespace-nowrap">
                               {formatCurrency(Number(ins.coverageFee || 0))}
                             </span>
@@ -3074,7 +3074,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                       </label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
+                          <div className="h-stack items-center gap-1 text-xs">
                             <span>VN</span>
                             <span className="font-medium text-stone-500">Name (VI)</span>
                           </div>
@@ -3094,7 +3094,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           />
                         </div>
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
+                          <div className="h-stack items-center gap-1 text-xs">
                             <span>EN</span>
                             <span className="font-medium text-stone-500">Name (EN)</span>
                           </div>
@@ -3159,7 +3159,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                       />
                     </div>
-                    <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 self-end pb-2">
+                    <label className="h-stack items-center gap-2 text-sm text-slate-600 dark:text-slate-300 self-end pb-2">
                       <input
                         type="checkbox"
                         checked={ins.isOptional}
@@ -3310,7 +3310,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                   <div className="space-y-3">
                     {classifications.map((cls, ci) => (
                       <div key={cls.id ?? ci} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="h-stack items-center justify-between mb-1">
                           <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                             {cls.name || `Package #${ci + 1}`}
                           </span>
@@ -3347,7 +3347,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                 ) : (
                   <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 space-y-1">
                     {services.map((svc, i) => (
-                      <div key={i} className="text-sm text-slate-700 dark:text-slate-300 flex justify-between">
+                      <div key={i} className="text-sm text-slate-700 dark:text-slate-300 h-stack justify-between">
                         <span>{svc.serviceName || "—"}</span>
                         <span className="text-slate-500">{svc.price ? formatCurrency(Number(svc.price)) : ""}</span>
                       </div>
@@ -3381,7 +3381,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         )}
 
         {/* ── Navigation Buttons ───────────────────────────── */}
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-6 h-stack items-center justify-between">
           <button
             type="button"
             onClick={() =>

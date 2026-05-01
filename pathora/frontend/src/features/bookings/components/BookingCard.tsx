@@ -51,13 +51,13 @@ export function BookingCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className={cn("group overflow-hidden rounded-[2.5rem] border border-slate-200/50 bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]")}
+      className={cn("group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm")}
     >
       <div className={cn("v-stack gap-6 p-4 lg:p-6")}>
         {/* Image Box */}
-        <div className={cn("relative h-56 w-full shrink-0 overflow-hidden rounded-[1.5rem] sm:h-64")}>
+        <div className={cn("relative h-56 w-full shrink-0 overflow-hidden rounded-lg sm:h-64")}>
           <Image
             src={booking.image}
             alt={booking.tourName}
@@ -65,7 +65,7 @@ export function BookingCard({
             className={cn("object-cover transition-transform duration-700 group-hover:scale-105")}
             sizes="(max-width: 1024px) 100vw, 50vw"
           />
-          <div className={cn("absolute inset-0 bg-linear-to-b from-black/20 to-transparent")} />
+          <div className={cn("absolute inset-0 bg-linear-to-b from-black/10 to-transparent")} />
           <div className={cn("absolute left-4 top-4 z-10")}>
             <StatusOverlay status={booking.status} label={statusLabel} />
           </div>
@@ -78,7 +78,7 @@ export function BookingCard({
           <div className={cn("v-stack mb-6 justify-between gap-4 sm:h-stack sm:items-start")}>
             <div className={cn("min-w-0")}>
               <div className={cn("h-stack flex-wrap items-center gap-3")}>
-                <h3 className={cn("text-2xl font-bold leading-tight tracking-tight text-slate-900")}>
+                <h3 className={cn("text-xl font-bold leading-tight text-[#111111]")}>
                   {booking.tourName}
                 </h3>
                 <TierBadge tier={booking.tier} label={tierLabel} />
@@ -92,8 +92,8 @@ export function BookingCard({
             </div>
             
             {/* Payment Status */}
-            <div className={cn("shrink-0 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 sm:text-right")}>
-              <p className={cn("text-sm font-bold uppercase tracking-wide text-slate-900")}>
+            <div className={cn("shrink-0 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 sm:text-right")}>
+              <p className={cn("text-sm font-bold uppercase tracking-wide text-[#111111]")}>
                 {paymentStatusLabel}
               </p>
               <p className={cn("mt-0.5 text-xs font-medium text-slate-500")}>{paymentMethodLabel}</p>
@@ -120,7 +120,7 @@ export function BookingCard({
               <p className={cn("mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400")}>
                 {t("landing.bookings.totalAmount")}
               </p>
-              <p className={cn("text-3xl font-bold tracking-tighter text-slate-900")}>
+              <p className={cn("text-2xl font-bold text-[#111111]")}>
                 {formatCurrency(booking.totalAmount)}
               </p>
               {booking.remainingAmount && (
@@ -141,19 +141,19 @@ export function BookingCard({
               {(showPayRemaining || showAddParticipants || showVisaStatus) && (
                 <div className={cn("h-stack mr-2 items-center gap-2")}>
                   {showPayRemaining && (
-                    <button type="button" className={cn("h-stack items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-slate-800")}>
+                    <button type="button" className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
                       <CurrencyCircleDollar weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.payRemaining")}
                     </button>
                   )}
                   {showAddParticipants && (
-                    <Link href={`/bookings/${booking.id}/participants`} className={cn("h-stack items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
+                    <Link href={`/bookings/${booking.id}/participants`} className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
                       <UserPlus weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.addParticipants")}
                     </Link>
                   )}
                   {showVisaStatus && (
-                    <Link href="/visa" className={cn("h-stack items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
+                    <Link href="/visa" className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
                       <AirplaneTilt weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.visaStatus")}
                     </Link>
@@ -161,11 +161,11 @@ export function BookingCard({
                 </div>
               )}
 
-              <button type="button" className={cn("center size-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900")} title={t("landing.bookings.invoice")}>
+              <button type="button" className={cn("center size-10 rounded-md border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900")} title={t("landing.bookings.invoice")}>
                 <DownloadSimple weight="bold" className={cn("size-4")} />
               </button>
               
-              <Link href={`/bookings/${booking.id}`} className={cn("center size-10 rounded-xl bg-slate-900 text-white shadow-md shadow-slate-900/20 transition-all hover:scale-105 hover:bg-slate-800 active:scale-95")} title={t("landing.bookings.viewDetails")}>
+              <Link href={`/bookings/${booking.id}`} className={cn("center size-10 rounded-md bg-[#111111] text-white transition-all hover:bg-[#333333] active:scale-95")} title={t("landing.bookings.viewDetails")}>
                 <ArrowRight weight="bold" className={cn("size-4")} />
               </Link>
             </div>
@@ -180,7 +180,7 @@ export function BookingCard({
 function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className={cn("h-stack items-start gap-3")}>
-      <div className={cn("center size-8 shrink-0 rounded-lg border border-slate-100 bg-slate-50 text-slate-400")}>
+      <div className={cn("text-slate-400 pt-0.5")}>
         {icon}
       </div>
       <div>

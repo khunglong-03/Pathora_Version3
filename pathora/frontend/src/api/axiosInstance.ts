@@ -159,53 +159,62 @@ const attachInterceptors = (instance: AxiosInstance): void => {
       return response;
     },
     async (error: AxiosError<ApiErrorResponse>) => {
-      // --- DEV LOGGER: Bắt payload gửi đi khi API lỗi ---
-      try {
-        if (process.env.NODE_ENV === "development" && error.config) {
-          const { url, data, params } = error.config;
-          let parsedData: any = data;
+      const isAuthChallenge = error.response?.status === 401;
+      const isRefreshRequest = error.config?.url?.includes("/auth/refresh");
+      const isAlreadyRefreshing = (error.config as RetryableRequestConfig)?.__isAuthRequest;
 
-          // Nếu là FormData, phân tích thành object để dễ xem
-          if (data instanceof FormData) {
-            parsedData = {};
-            data.forEach((value, key) => {
-              if (value instanceof File) {
-                parsedData[key] = `[File: ${value.name} (${value.size} bytes)]`;
-              } else {
-                if (parsedData[key] !== undefined) {
-                  if (!Array.isArray(parsedData[key])) {
-                    parsedData[key] = [parsedData[key]];
-                  }
-                  parsedData[key].push(value);
+      // Skip dev logger for 401 errors that are about to trigger a silent token refresh
+      const isRefreshable401 = isAuthChallenge && !isRefreshRequest && !isAlreadyRefreshing;
+
+      if (!isRefreshable401) {
+        // --- DEV LOGGER: Bắt payload gửi đi khi API lỗi ---
+        try {
+          if (process.env.NODE_ENV === "development" && error.config) {
+            const { url, data, params } = error.config;
+            let parsedData: any = data;
+
+            // Nếu là FormData, phân tích thành object để dễ xem
+            if (data instanceof FormData) {
+              parsedData = {};
+              data.forEach((value, key) => {
+                if (value instanceof File) {
+                  parsedData[key] = `[File: ${value.name} (${value.size} bytes)]`;
                 } else {
-                  parsedData[key] = value;
+                  if (parsedData[key] !== undefined) {
+                    if (!Array.isArray(parsedData[key])) {
+                      parsedData[key] = [parsedData[key]];
+                    }
+                    parsedData[key].push(value);
+                  } else {
+                    parsedData[key] = value;
+                  }
                 }
+              });
+            } else if (typeof data === "string") {
+              try {
+                parsedData = JSON.parse(data);
+              } catch (e) {
+                // Bỏ qua nếu parse JSON lỗi
               }
-            });
-          } else if (typeof data === "string") {
-            try {
-              parsedData = JSON.parse(data);
-            } catch (e) {
-              // Bỏ qua nếu parse JSON lỗi
             }
-          }
 
-          // Ghép thêm query params (thường có ở GET requests) vào payload để xem cho rõ
-          if (params && Object.keys(params).length > 0) {
-            parsedData = parsedData ? { _body: parsedData, _queryParams: params } : params;
-          }
+            // Ghép thêm query params (thường có ở GET requests) vào payload để xem cho rõ
+            if (params && Object.keys(params).length > 0) {
+              parsedData = parsedData ? { _body: parsedData, _queryParams: params } : params;
+            }
 
-          // Bắn dữ liệu về API Route cục bộ để in ra Terminal
-          fetch("/api/dev-logger", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ method: error.config.method?.toUpperCase(), url, payload: parsedData }),
-          }).catch(() => {});
+            // Bắn dữ liệu về API Route cục bộ để in ra Terminal
+            fetch("/api/dev-logger", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ method: error.config.method?.toUpperCase(), url, payload: parsedData }),
+            }).catch(() => {});
+          }
+        } catch (e) {
+          // Chặn lỗi phát sinh từ logger để không ảnh hưởng luồng chính
         }
-      } catch (e) {
-        // Chặn lỗi phát sinh từ logger để không ảnh hưởng luồng chính
+        // ----------------------------------------------------
       }
-      // ----------------------------------------------------
 
       return handleResponseError(error, {
         request: (config) => {

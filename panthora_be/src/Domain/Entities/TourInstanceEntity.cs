@@ -217,6 +217,31 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    public void ExtendDateRangeIfNecessary(DateTimeOffset actualDate, string performedBy)
+    {
+        bool changed = false;
+        var actualDateOffset = new DateTimeOffset(actualDate.Date, TimeSpan.Zero);
+
+        if (actualDateOffset.Date < StartDate.Date)
+        {
+            StartDate = actualDateOffset;
+            changed = true;
+        }
+
+        if (actualDateOffset.Date > EndDate.Date)
+        {
+            EndDate = actualDateOffset;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            DurationDays = CalculateDurationDays(StartDate, EndDate);
+            LastModifiedBy = performedBy;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        }
+    }
+
     // ApproveByTransportProvider has been removed — transport approval is now per-activity.
     // Use TourInstanceDayActivityEntity.ApproveTransportation() / RejectTransportation() instead.
 

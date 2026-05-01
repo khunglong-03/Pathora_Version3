@@ -225,6 +225,9 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   if (errorMessage === "User.NotFound" || errorMessage === "User.InvalidPassword") {
     return "error_response.INVALID_CREDENTIALS";
   }
+  if (errorMessage === "User.Unauthorized") {
+    return "error_response.UNAUTHORIZED";
+  }
   if (errorMessage === "User.Disabled" || errorMessage === "User.IsDisabled") {
     return "error_response.USER_DISABLED";
   }

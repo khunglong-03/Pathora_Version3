@@ -39,8 +39,6 @@ export const handleResponseError = async (
   error: AxiosError,
   deps: ResponseErrorDependencies,
 ): Promise<AxiosResponse> => {
-  logApiError(error);
-
   const originalConfig = error.config as RetryableRequestConfig | undefined;
 
   const isAuthChallenge = error.response?.status === 401;
@@ -58,10 +56,13 @@ export const handleResponseError = async (
 
       return await deps.request(originalConfig!);
     } catch {
+      logApiError(error);
       deps.onUnauthorized();
       return Promise.reject(error);
     }
   }
+
+  logApiError(error);
 
   const retryConfig = createRetryConfig();
   const retryCount = originalConfig?.__retryCount ?? 0;

@@ -114,9 +114,14 @@ export function PrivateTourInstanceListPage() {
         if (!active) return;
         if (result) {
           const allInstances = result.data ?? [];
-          // Only private instances
+          // Only private instances that have been deposited/paid (exclude draft/pendingadjustment)
           const filtered = allInstances.filter(
-            (inst) => inst.instanceType?.toLowerCase() === "private",
+            (inst) => {
+              const st = inst.status?.toLowerCase() || "";
+              return inst.instanceType?.toLowerCase() === "private" && 
+                     st !== "draft" && 
+                     st !== "pendingadjustment";
+            }
           );
           setInstances(filtered);
           setTotalItems(filtered.length);
