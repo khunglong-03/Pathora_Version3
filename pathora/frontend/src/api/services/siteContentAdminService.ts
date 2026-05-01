@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/api";
+import type { ServiceResponse } from "@/types/api";
 import type {
   SiteContentAdminDetailItem,
   SiteContentAdminListItem,
@@ -31,7 +31,7 @@ export const siteContentAdminService = {
   getList: async (
     pageKey?: string,
     search?: string,
-  ): Promise<ApiResponse<SiteContentAdminListItem[]>> => {
+  ): Promise<ServiceResponse<SiteContentAdminListItem[]>> => {
     try {
       const response = await api.get(
         API_ENDPOINTS.SITE_CONTENT.ADMIN_LIST(pageKey, search),
@@ -49,7 +49,7 @@ export const siteContentAdminService = {
     }
   },
 
-  getById: async (id: string): Promise<ApiResponse<SiteContentAdminDetailItem>> => {
+  getById: async (id: string): Promise<ServiceResponse<SiteContentAdminDetailItem>> => {
     try {
       const response = await api.get(API_ENDPOINTS.SITE_CONTENT.ADMIN_DETAIL(id));
       const detail = extractDetailItem(response.data);
@@ -69,7 +69,7 @@ export const siteContentAdminService = {
   updateById: async (
     id: string,
     payload: UpdateAdminSiteContentRequest,
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ServiceResponse<unknown>> => {
     try {
       const response = await api.put(
         API_ENDPOINTS.SITE_CONTENT.ADMIN_UPSERT(id),

@@ -10,11 +10,13 @@ import {
   BoldReviewsSection
 } from "@/features/home/components";
 
+import { cn } from "@/lib/cn";
+
 const SectionSkeleton = ({ className }: { className: string }) => {
   return (
     <div
       aria-hidden="true"
-      className={`mx-auto w-full max-w-7xl rounded-2xl bg-black/5 animate-pulse ${className}`}
+      className={cn("mx-auto w-full max-w-7xl rounded-2xl bg-black/5 animate-pulse", className)}
     />
   );
 };

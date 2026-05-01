@@ -3,7 +3,7 @@
 
 import { api } from "@/api/axiosInstance";
 import { extractResult } from "@/utils/apiResponse";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 
 // ─── Supplier Info ────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ export interface ArrivalFilterParams {
 export const hotelProviderService = {
   // Hotel Accommodations (existing scoped endpoint)
   getAccommodations: async (): Promise<AccommodationItem[]> => {
-    const response = await api.get<ApiResponse<AccommodationItem[]>>(
+    const response = await api.get<ServiceResponse<AccommodationItem[]>>(
       "/hotel-provider/accommodations",
     );
     return extractResult<AccommodationItem[]>(response.data) ?? [];
@@ -162,7 +162,7 @@ export const hotelProviderService = {
   createAccommodation: async (
     data: CreateAccommodationDto,
   ): Promise<AccommodationItem> => {
-    const response = await api.post<ApiResponse<AccommodationItem>>(
+    const response = await api.post<ServiceResponse<AccommodationItem>>(
       "/hotel-provider/accommodations",
       data,
     );
@@ -175,7 +175,7 @@ export const hotelProviderService = {
     id: string,
     data: UpdateAccommodationDto,
   ): Promise<AccommodationItem> => {
-    const response = await api.put<ApiResponse<AccommodationItem>>(
+    const response = await api.put<ServiceResponse<AccommodationItem>>(
       `/hotel-provider/accommodations/${id}`,
       data,
     );
@@ -193,7 +193,7 @@ export const hotelProviderService = {
     fromDate: string,
     toDate: string,
   ): Promise<RoomAvailability[]> => {
-    const response = await api.get<ApiResponse<RoomAvailability[]>>(
+    const response = await api.get<ServiceResponse<RoomAvailability[]>>(
       "/hotel-room-availability",
       { params: { fromDate, toDate } },
     );
@@ -204,7 +204,7 @@ export const hotelProviderService = {
   getGuestArrivals: async (
     params: ArrivalFilterParams = {},
   ): Promise<GuestArrivalItem[]> => {
-    const response = await api.get<ApiResponse<GuestArrivalItem[]>>(
+    const response = await api.get<ServiceResponse<GuestArrivalItem[]>>(
       "/guest-arrivals",
       { params },
     );
@@ -214,7 +214,7 @@ export const hotelProviderService = {
   getGuestArrivalDetail: async (
     accommodationDetailId: string,
   ): Promise<GuestArrivalDetail> => {
-    const response = await api.get<ApiResponse<GuestArrivalDetail>>(
+    const response = await api.get<ServiceResponse<GuestArrivalDetail>>(
       `/guest-arrivals/accommodation/${accommodationDetailId}`,
     );
     return extractResult<GuestArrivalDetail>(
@@ -225,7 +225,7 @@ export const hotelProviderService = {
   submitGuestArrival: async (
     data: SubmitGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
-    const response = await api.post<ApiResponse<GuestArrivalItem>>(
+    const response = await api.post<ServiceResponse<GuestArrivalItem>>(
       "/guest-arrivals",
       data,
     );
@@ -238,7 +238,7 @@ export const hotelProviderService = {
     id: string,
     data: UpdateGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
-    const response = await api.put<ApiResponse<GuestArrivalItem>>(
+    const response = await api.put<ServiceResponse<GuestArrivalItem>>(
       `/guest-arrivals/${id}`,
       data,
     );
@@ -250,7 +250,7 @@ export const hotelProviderService = {
   // Supplier Info
   getSupplierInfo: async (): Promise<HotelSupplierInfo[]> => {
     try {
-      const response = await api.get<ApiResponse<HotelSupplierInfo[]>>("/api/hotel-supplier");
+      const response = await api.get<ServiceResponse<HotelSupplierInfo[]>>("/api/hotel-supplier");
       return extractResult<HotelSupplierInfo[]>(response.data) ?? [];
     } catch (error) {
       return [];
@@ -260,7 +260,7 @@ export const hotelProviderService = {
   createSupplierInfo: async (
     data: CreateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
-    const response = await api.post<ApiResponse<HotelSupplierInfo>>(
+    const response = await api.post<ServiceResponse<HotelSupplierInfo>>(
       "/api/hotel-supplier",
       data,
     );
@@ -271,7 +271,7 @@ export const hotelProviderService = {
     id: string,
     data: UpdateSupplierInfoDto,
   ): Promise<HotelSupplierInfo> => {
-    const response = await api.put<ApiResponse<HotelSupplierInfo>>(
+    const response = await api.put<ServiceResponse<HotelSupplierInfo>>(
       "/api/hotel-supplier/info",
       {
         ...data,

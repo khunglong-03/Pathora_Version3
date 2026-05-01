@@ -18,6 +18,7 @@ type FeaturedTile = {
 };
 
 import { getFallbackImage } from "@/utils/imageFallback";
+import { cn } from "@/lib/cn";
 
 const getValidImageUrl = (thumbnail: any, fallbackIndex: string | number) => {
   if (!thumbnail || thumbnail === "undefined") return getFallbackImage(fallbackIndex);
@@ -68,31 +69,31 @@ export const BoldFeaturedTrips = () => {
   }, [fetchFeaturedTours]);
 
   return (
-    <section className="py-24 md:py-32 bg-white">
-      <div className="max-w-[90rem] mx-auto px-6 md:px-12">
+    <section className={cn("py-24 md:py-32 bg-white")}>
+      <div className={cn("max-w-[90rem] mx-auto px-6 md:px-12")}>
         <div
           ref={titleRef}
           className={`text-center max-w-2xl mx-auto mb-20 transition-all duration-1000 ${
             titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <span suppressHydrationWarning className="inline-block px-4 py-1.5 rounded-full bg-stone-100 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-6 border border-stone-200/50 shadow-sm">
+          <span suppressHydrationWarning className={cn("inline-block px-4 py-1.5 rounded-full bg-stone-100 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-6 border border-stone-200/50 shadow-sm")}>
             {t("landing.featured.eyebrow") || "Handpicked"}
           </span>
           <h2
-            className="text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]"
+            className={cn("text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]")}
           >
             {t("landing.featured.title") || "Featured Adventures"}
           </h2>
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center max-w-2xl mx-auto">
-            <p className="text-red-800 font-medium">{error}</p>
+          <div className={cn("rounded-2xl border border-red-200 bg-red-50 p-8 text-center max-w-2xl mx-auto")}>
+            <p className={cn("text-red-800 font-medium")}>{error}</p>
             <button
               type="button"
               onClick={fetchFeaturedTours}
-              className="mt-4 inline-flex items-center rounded-xl bg-red-100 px-6 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 transition-colors"
+              className={cn("mt-4 inline-flex items-center rounded-xl bg-red-100 px-6 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 transition-colors")}
             >
               {t("landing.featured.retry") || "Retry"}
             </button>
@@ -113,13 +114,13 @@ export const BoldFeaturedTrips = () => {
                     : "";
               return (
                 <div key={idx} className={`${sizeClass} animate-pulse`}>
-                  <div className="h-full min-h-[350px] rounded-[1.5rem] bg-stone-100" />
+                  <div className={cn("h-full min-h-[350px] rounded-[1.5rem] bg-stone-100")} />
                 </div>
               );
             })}
           </div>
         ) : featuredTours.length === 0 ? (
-          <div className="rounded-[2rem] border border-stone-200 bg-stone-50 p-12 text-center text-stone-500 font-medium">
+          <div className={cn("rounded-[2rem] border border-stone-200 bg-stone-50 p-12 text-center text-stone-500 font-medium")}>
             {t("landing.featured.empty") || "No featured tours available at the moment."}
           </div>
         ) : (

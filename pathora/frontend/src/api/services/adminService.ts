@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import type {
   AdminDashboard,
   AdminOverview,
@@ -95,7 +95,7 @@ const normalizeAdminBookingStatus = (status: string | undefined): AdminBooking["
 
 export const adminService = {
   getOverview: async () => {
-    const response = await api.get<ApiResponse<AdminOverview>>(
+    const response = await api.get<ServiceResponse<AdminOverview>>(
       API_ENDPOINTS.ADMIN.GET_OVERVIEW,
     );
 
@@ -103,7 +103,7 @@ export const adminService = {
   },
 
   getDashboard: async () => {
-    const response = await api.get<ApiResponse<AdminDashboard>>(
+    const response = await api.get<ServiceResponse<AdminDashboard>>(
       API_ENDPOINTS.ADMIN.GET_DASHBOARD,
     );
 
@@ -120,7 +120,7 @@ export const adminService = {
   },
 
   getAllUsers: async (params: GetAllUsersParams = {}) => {
-    const response = await api.get<ApiResponse<PaginatedList<AdminUserListItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedList<AdminUserListItem>>>(
       API_ENDPOINTS.ADMIN.GET_ALL_USERS,
       { params: { page: 1, limit: 10, ...params } },
     );
@@ -128,7 +128,7 @@ export const adminService = {
   },
 
   getUserDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<AdminUserDetail>>(
+    const response = await api.get<ServiceResponse<AdminUserDetail>>(
       API_ENDPOINTS.ADMIN.GET_USER_DETAIL(id),
     );
     return extractResult<AdminUserDetail>(response.data);
@@ -151,7 +151,7 @@ export const adminService = {
       queryParams.append("continents", continent);
     });
 
-    const response = await api.get<ApiResponse<PaginatedList<TransportProviderListItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedList<TransportProviderListItem>>>(
       API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDERS,
       { params: queryParams },
     );
@@ -163,7 +163,7 @@ export const adminService = {
     if (params.search) queryParams.set("search", params.search);
     params.continents?.forEach((c) => queryParams.append("continents", c));
 
-    const response = await api.get<ApiResponse<TransportProviderStats>>(
+    const response = await api.get<ServiceResponse<TransportProviderStats>>(
       API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_STATS,
       { params: queryParams }
     );
@@ -171,7 +171,7 @@ export const adminService = {
   },
 
   getTransportProviderDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<TransportProviderDetail>>(
+    const response = await api.get<ServiceResponse<TransportProviderDetail>>(
       API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_DETAIL(id),
     );
     return extractResult<TransportProviderDetail>(response.data);
@@ -194,7 +194,7 @@ export const adminService = {
       queryParams.append("continents", continent);
     });
 
-    const response = await api.get<ApiResponse<PaginatedList<HotelProviderListItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedList<HotelProviderListItem>>>(
       API_ENDPOINTS.ADMIN.GET_HOTEL_PROVIDERS,
       { params: queryParams },
     );
@@ -202,14 +202,14 @@ export const adminService = {
   },
 
   getHotelProviderDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<HotelProviderDetail>>(
+    const response = await api.get<ServiceResponse<HotelProviderDetail>>(
       API_ENDPOINTS.ADMIN.GET_HOTEL_PROVIDER_DETAIL(id),
     );
     return extractResult<HotelProviderDetail>(response.data);
   },
 
   getTourManagerStaff: async (managerId: string) => {
-    const response = await api.get<ApiResponse<TourManagerStaffDto>>(
+    const response = await api.get<ServiceResponse<TourManagerStaffDto>>(
       API_ENDPOINTS.MANAGER.GET_TOUR_MANAGER_STAFF(managerId),
     );
     return extractResult<TourManagerStaffDto>(response.data);
@@ -224,7 +224,7 @@ export const adminService = {
   },
 
   createStaffUnderManager: async (managerId: string, data: CreateStaffRequest) => {
-    const response = await api.post<ApiResponse<StaffMemberDto>>(
+    const response = await api.post<ServiceResponse<StaffMemberDto>>(
       API_ENDPOINTS.ADMIN.CREATE_STAFF_UNDER_MANAGER(managerId),
       data,
     );
@@ -232,7 +232,7 @@ export const adminService = {
   },
 
   updateStaffUnderManager: async (managerId: string, staffId: string, data: UpdateStaffRequest) => {
-    const response = await api.put<ApiResponse<StaffMemberDto>>(
+    const response = await api.put<ServiceResponse<StaffMemberDto>>(
       API_ENDPOINTS.ADMIN.UPDATE_STAFF_UNDER_MANAGER(managerId, staffId),
       data,
     );
@@ -240,14 +240,14 @@ export const adminService = {
   },
 
   getDashboardOverview: async () => {
-    const response = await api.get<ApiResponse<AdminDashboardOverview>>(
+    const response = await api.get<ServiceResponse<AdminDashboardOverview>>(
       API_ENDPOINTS.ADMIN.GET_DASHBOARD_OVERVIEW,
     );
     return extractResult<AdminDashboardOverview>(response.data);
   },
 
   getAllManagers: async () => {
-    const response = await api.get<ApiResponse<TourManagerSummary[]>>(
+    const response = await api.get<ServiceResponse<TourManagerSummary[]>>(
       API_ENDPOINTS.ADMIN.GET_ALL_MANAGERS,
     );
     // Returns TourManagerSummary[] | null — null on error, extracted from ApiResponse
@@ -259,7 +259,7 @@ export const adminService = {
     page?: number;
     limit?: number;
   }): Promise<{ items: ManagerBankAccountDto[]; total: number; page: number; limit: number; totalPages: number } | null> => {
-    const response = await api.get<ApiResponse<{
+    const response = await api.get<ServiceResponse<{
       items: ManagerBankAccountDto[];
       total: number;
       page: number;
@@ -279,7 +279,7 @@ export const adminService = {
       bankAccountName?: string;
     }
   ) => {
-    const response = await api.put<ApiResponse<ManagerBankAccountDto>>(
+    const response = await api.put<ServiceResponse<ManagerBankAccountDto>>(
       API_ENDPOINTS.ADMIN.UPDATE_MANAGER_BANK_ACCOUNT(managerId),
       data
     );
@@ -287,7 +287,7 @@ export const adminService = {
   },
 
   verifyManagerBankAccount: async (managerId: string) => {
-    const response = await api.post<ApiResponse<null>>(
+    const response = await api.post<ServiceResponse<null>>(
       API_ENDPOINTS.ADMIN.VERIFY_MANAGER_BANK_ACCOUNT(managerId),
       {}
     );
@@ -296,7 +296,7 @@ export const adminService = {
 
   // Vehicle Management for Transport Providers (Admin-on-behalf)
   createAdminTransportVehicle: async (providerId: string, data: CreateVehicleDto) => {
-    const response = await api.post<ApiResponse<Vehicle>>(
+    const response = await api.post<ServiceResponse<Vehicle>>(
       API_ENDPOINTS.ADMIN.CREATE_TRANSPORT_PROVIDER_VEHICLE(providerId),
       data
     );
@@ -304,7 +304,7 @@ export const adminService = {
   },
 
   updateAdminTransportVehicle: async (providerId: string, plate: string, data: UpdateVehicleDto) => {
-    const response = await api.put<ApiResponse<Vehicle>>(
+    const response = await api.put<ServiceResponse<Vehicle>>(
       API_ENDPOINTS.ADMIN.UPDATE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate),
       data
     );
@@ -312,14 +312,14 @@ export const adminService = {
   },
 
   deleteAdminTransportVehicle: async (providerId: string, plate: string) => {
-    const response = await api.delete<ApiResponse<null>>(
+    const response = await api.delete<ServiceResponse<null>>(
       API_ENDPOINTS.ADMIN.DELETE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate)
     );
     return extractResult<null>(response.data);
   },
 
   getDriverActivities: async (providerId: string, driverId: string, params: { page?: number; limit?: number } = {}) => {
-    const response = await api.get<ApiResponse<PaginatedList<DriverActivity>>>(
+    const response = await api.get<ServiceResponse<PaginatedList<DriverActivity>>>(
       API_ENDPOINTS.ADMIN.GET_DRIVER_ACTIVITIES(providerId, driverId),
       { params: { pageNumber: params.page ?? 1, pageSize: params.limit ?? 50 } }
     );

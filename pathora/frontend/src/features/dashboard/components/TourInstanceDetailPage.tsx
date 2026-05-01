@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { cn } from "@/lib/cn";
 import { Icon, TourStatusBadge } from "@/components/ui";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import {
@@ -141,7 +142,11 @@ const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
 
 type InstanceDetailDataState = "loading" | "ready" | "error";
 
-export default function TourInstanceDetailPage() {
+export interface TourInstanceDetailPageProps {
+  readOnly?: boolean;
+}
+
+export default function TourInstanceDetailPage({ readOnly = false }: TourInstanceDetailPageProps = {}) {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
@@ -173,10 +178,10 @@ export default function TourInstanceDetailPage() {
   // Supplier reassignment modal state (task 3.10)
   const { user } = useAuth();
   const isManager = user?.roles?.some((r) => r.name === "Admin" || r.name === "Manager");
-  const canReassign = user?.roles?.some(
+  const canReassign = !readOnly && user?.roles?.some(
     (r) => r.name === "Admin" || r.name === "Manager" || r.name === "TourOperator",
   );
-  const canEditItinerary = user?.roles?.some(
+  const canEditItinerary = !readOnly && user?.roles?.some(
     (r) => r.name === "Admin" || r.name === "TourOperator",
   );
 
@@ -792,15 +797,15 @@ export default function TourInstanceDetailPage() {
           {dataState === "error" && errorMessage && (
             <p className="mt-2 text-sm text-stone-500">{errorMessage}</p>
           )}
-          <div className="mt-4 flex items-center justify-center gap-3">
+          <div className="mt-4 gap-3 center">
             <button
               onClick={() => setReloadToken((v) => v + 1)}
-              className="rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 active:scale-[0.98] transition-colors">
+              className="rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 active:scale-[0.98]">
               {t("common.retry", "Retry")}
             </button>
             <Link
               href="/manager/tour-instances"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-orange-500 hover:text-orange-600 active:-translate-y-[1px] transition-all">
+              className="inline-flex items-center gap-2 text-sm font-semibold text-orange-500 transition-all hover:text-orange-600 active:-translate-y-[1px]">
               <Icon icon="heroicons:arrow-left" className="size-4" />
               {t(
                 "tourInstance.backToInstances",
@@ -815,11 +820,11 @@ export default function TourInstanceDetailPage() {
 
   return (
     <>
-    <main className="p-6 md:p-8 pb-32 flex-1 outline-none">
+    <main className="p-6 pb-32 spacer outline-none md:p-8">
       {showCreatedBanner && (
         <div className="mx-auto max-w-[1440px] mb-4">
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-2">
+          <div className="items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm h-stack">
+            <div className="items-center gap-2 h-stack">
               <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600" />
               <span className="text-sm font-medium text-emerald-800">
                 {t("tourInstance.createdBanner.title", "Tour instance created successfully!")}
@@ -828,7 +833,7 @@ export default function TourInstanceDetailPage() {
             <button
               type="button"
               onClick={() => setShowCreatedBanner(false)}
-              className="text-emerald-600 hover:text-emerald-800 transition-colors"
+              className="text-emerald-600 transition-colors hover:text-emerald-800"
               aria-label={t("tourInstance.createdBanner.dismiss", "Dismiss")}
             >
               <Icon icon="heroicons:x-mark" className="size-4" />
@@ -836,8 +841,8 @@ export default function TourInstanceDetailPage() {
           </div>
         </div>
       )}
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
-        <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row relative">
+      <div className="mx-auto max-w-[1440px] gap-6 v-stack">
+        <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden relative v-stack md:flex-row">
           <button
             type="button"
             onClick={() => {
@@ -847,25 +852,25 @@ export default function TourInstanceDetailPage() {
                 router.push(isManager ? "/manager/tour-instances" : "/tour-operator/custom-tour-requests");
               }
             }}
-            className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 hover:bg-white hover:text-stone-900 shadow-sm border border-stone-200/50 transition-all">
+            className="absolute top-4 left-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-stone-600 shadow-sm border border-stone-200/50 transition-all hover:bg-white hover:text-stone-900">
             <Icon icon="heroicons:arrow-left" className="size-4" />
           </button>
 
           {data.thumbnail?.publicURL ? (
-            <div className="relative w-full md:w-80 lg:w-96 shrink-0 bg-stone-100">
+            <div className="relative w-full shrink-0 bg-stone-100 md:w-80 lg:w-96">
               <img src={data.thumbnail.publicURL} alt={data.title} className="h-full w-full object-cover min-h-[200px]" />
             </div>
           ) : (
-            <div className="relative w-full md:w-80 lg:w-96 shrink-0 bg-stone-100 flex items-center justify-center min-h-[200px] border-r border-stone-200">
+            <div className="relative w-full shrink-0 bg-stone-100 min-h-[200px] border-r border-stone-200 center md:w-80 lg:w-96">
               <Icon icon="heroicons:photo" className="size-10 text-stone-300" />
             </div>
           )}
 
-          <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-1.5 md:ml-6 mt-6 md:mt-0">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">{data.title}</h1>
-                <p className="text-sm font-medium text-stone-500 flex flex-wrap items-center gap-2">
+          <div className="p-6 spacer justify-between v-stack md:p-8">
+            <div className="flex-wrap items-start justify-between gap-4 h-stack">
+              <div className="space-y-1.5 mt-6 md:ml-6 md:mt-0">
+                <h1 className="text-2xl font-bold tracking-tight text-stone-900 md:text-3xl">{data.title}</h1>
+                <p className="text-sm font-medium text-stone-500 flex-wrap items-center gap-2 h-stack">
                   <span className="text-stone-700 font-semibold">{data.tourInstanceCode}</span>
                   <span className="text-stone-300">&bull;</span>
                   <span>{data.tourName}</span>
@@ -874,17 +879,19 @@ export default function TourInstanceDetailPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-start sm:justify-end">
+              <div className="items-center gap-3 w-full justify-start h-stack sm:w-auto sm:justify-end">
                 <TourStatusBadge status={data.status} />
-                {isManager && !hasAssignedOperator ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAssignOperatorModal(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98] transition-all focus:ring-2 focus:ring-orange-500/20">
-                    <Icon icon="heroicons:user-plus" className="size-4" />
-                    {t("tourInstance.assignOperator", "Assign Operator")}
-                  </button>
-                ) : isManager ? null : (
+                {!readOnly && (
+                  <>
+                    {isManager && !hasAssignedOperator ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowAssignOperatorModal(true)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-orange-600 active:scale-[0.98] focus:ring-2 focus:ring-orange-500/20">
+                        <Icon icon="heroicons:user-plus" className="size-4" />
+                        {t("tourInstance.assignOperator", "Assign Operator")}
+                      </button>
+                    ) : isManager ? null : (
                   !isEditing ? (
                     <>
                       {/* Operator Actions for their assigned custom tours */}
@@ -892,7 +899,7 @@ export default function TourInstanceDetailPage() {
                         <button
                           type="button"
                           onClick={() => setShowCancelConfirm(true)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 active:scale-[0.98] transition-all">
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]">
                           <Icon icon="heroicons:x-circle" className="size-4" />
                           {t("tourInstance.cancelTour", "Cancel Tour")}
                         </button>
@@ -900,7 +907,7 @@ export default function TourInstanceDetailPage() {
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800 active:scale-[0.98] transition-all focus:ring-2 focus:ring-stone-900/20">
+                        className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-stone-800 active:scale-[0.98] focus:ring-2 focus:ring-stone-900/20">
                         <Icon icon="heroicons:pencil-square" className="size-4" />
                         {t("tourInstance.edit", "Edit")}
                       </button>
@@ -910,14 +917,14 @@ export default function TourInstanceDetailPage() {
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-100 active:scale-[0.98] transition-all">
+                        className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 transition-all hover:bg-stone-100 active:scale-[0.98]">
                         {t("tourInstance.cancel", "Cancel")}
                       </button>
                       <button
                         type="button"
                         onClick={handleSaveEdit}
                         disabled={saving}
-                        className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition-all">
+                        className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]">
                         <Icon icon="heroicons:check" className="size-4" />
                         {saving
                           ? t("common.saving", "Saving...")
@@ -926,10 +933,12 @@ export default function TourInstanceDetailPage() {
                     </>
                   )
                 )}
+                </>
+              )}
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-stone-100 flex flex-wrap gap-3">
+            <div className="mt-6 pt-6 border-t border-stone-100 flex-wrap gap-3 h-stack">
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-50 px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200/60">
                 <Icon icon="heroicons:clock" className="size-4 text-stone-400" />
                 {data.durationDays || 0} {t("tourInstance.days", "days")}
@@ -964,11 +973,11 @@ export default function TourInstanceDetailPage() {
             <section className="grid gap-6 lg:grid-cols-[7fr_5fr]">
               {/* LEFT COLUMN: Info & Media */}
               <div className="space-y-6">
-                <article className="rounded-2xl border border-stone-200 bg-white p-5 md:p-6 shadow-sm">
+                <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm md:p-6">
                   <h2 className="text-sm font-bold uppercase tracking-wider text-stone-500 mb-5 pb-3 border-b border-stone-100">
                     {t("tourInstance.tourInformation", "Tour Information")}
                   </h2>
-                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                  <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
                     <div className="space-y-1">
                       <InfoRow label={t("tourInstance.startDate", "Start Date")} value={formatDate(data.startDate)} />
                       <InfoRow label={t("tourInstance.endDate", "End Date")} value={formatDate(data.endDate)} />
@@ -981,7 +990,7 @@ export default function TourInstanceDetailPage() {
                       <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-400">
                         {t("tourInstance.includedServices", "Included Services")}
                       </h3>
-                      <div className="flex flex-wrap gap-2.5">
+                      <div className="flex-wrap gap-2.5 h-stack">
                         {data.includedServices.map((service) => (
                           <span key={service} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/50 border border-emerald-100/60 px-3 py-1.5 text-xs font-semibold text-emerald-800">
                             <Icon icon="heroicons:check" className="size-3.5 text-emerald-500" />
@@ -1017,7 +1026,7 @@ export default function TourInstanceDetailPage() {
                   </h2>
                   <div className="space-y-4">
                     <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4">
-                      <div className="flex items-center gap-2">
+                      <div className="items-center gap-2 h-stack">
                         <Icon icon="heroicons:truck" className="size-4 text-cyan-600" />
                         <h3 className="text-sm font-bold text-cyan-900">
                           {t("tourInstance.transportApprovals", "Transportation")}
@@ -1032,7 +1041,7 @@ export default function TourInstanceDetailPage() {
                     </div>
 
                     <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
-                      <div className="flex items-center gap-2">
+                      <div className="items-center gap-2 h-stack">
                         <Icon icon="heroicons:building-office-2" className="size-4 text-amber-600" />
                         <h3 className="text-sm font-bold text-amber-900">
                           {t("tourInstance.hotelApprovals", "Accommodation")}
@@ -1071,14 +1080,14 @@ export default function TourInstanceDetailPage() {
 
             {/* Itinerary */}
             <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+              <div className="items-center justify-between mb-4 h-stack">
                 <h2 className="text-base font-bold text-stone-900">
                   {t("tourInstance.itinerary", "Itinerary")}
                 </h2>
                 <span className="text-xs text-stone-500">
                   {(data.days ?? []).length} {t("tourInstance.days", "days")}
                 </span>
-                {data.status === "available" && (
+                {data.status === "available" && !readOnly && (
                   <button
                     type="button"
                     onClick={() => setAddingDay(!addingDay)}
@@ -1131,7 +1140,7 @@ export default function TourInstanceDetailPage() {
                       placeholder={t("tourInstance.form.descriptionPlaceholder", "Mô tả ngày mới (tùy chọn)")}
                     />
                   </div>
-                  <div className="flex justify-end gap-2">
+                  <div className="justify-end gap-2 h-stack">
                     <button
                       type="button"
                       onClick={() => {
@@ -1158,14 +1167,14 @@ export default function TourInstanceDetailPage() {
                 <div className="relative border-l-2 border-stone-100 ml-4 pl-6 space-y-6 mt-2">
                   {data.days.map((day) => (
                     <div key={day.id} className="relative">
-                      <span className="absolute -left-[41px] mt-3 flex size-8 items-center justify-center rounded-full bg-stone-900 border-[3px] border-white text-xs font-bold text-white shadow-sm z-10">
+                      <span className="absolute -left-[41px] mt-3 size-8 rounded-full bg-stone-900 border-[3px] border-white text-xs font-bold text-white shadow-sm z-10 center">
                         {day.instanceDayNumber}
                       </span>
-                      <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm hover:border-stone-300 transition-colors focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500/20">
-                        <div className="flex items-center justify-between gap-3 p-4 bg-stone-50/50 border-b border-stone-100">
-                          <div className="flex flex-1 items-center gap-3">
+                      <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm transition-colors hover:border-stone-300 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500/20">
+                        <div className="items-center justify-between gap-3 p-4 bg-stone-50/50 border-b border-stone-100 h-stack">
+                          <div className="spacer items-center gap-3 h-stack">
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="items-center gap-2 h-stack">
                                 <h3 className="text-sm font-semibold text-stone-900">{day.title}</h3>
                               </div>
                               {day.actualDate && (
@@ -1178,7 +1187,7 @@ export default function TourInstanceDetailPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="items-center gap-2 h-stack">
                             {editingDayId === day.id ? (
                               <>
                                 <button
@@ -1194,7 +1203,7 @@ export default function TourInstanceDetailPage() {
                                   {t("common.save", "Save")}
                                 </button>
                               </>
-                            ) : (
+                            ) : !readOnly && (
                               <button
                                 type="button"
                                 onClick={() => startEditDay(day)}
@@ -1238,7 +1247,7 @@ export default function TourInstanceDetailPage() {
                                 {t("tourInstance.form.description", "Description")}
                               </label>
                               <textarea
-                                className={inputClassName + " resize-none"}
+                                className={cn(inputClassName, "resize-none")}
                                 rows={2}
                                 value={dayEditForm[day.id]?.description ?? ""}
                                 onChange={(e) => setDayEditForm((f) => ({ ...f, [day.id]: { ...f[day.id], description: e.target.value } }))}
@@ -1279,12 +1288,12 @@ export default function TourInstanceDetailPage() {
                               {t("tourInstance.activities", "Activities")}
                             </p>
                             {day.activities.map((activity) => (
-                              <div key={activity.id} className="rounded-xl border border-stone-100 p-3 hover:border-stone-300 transition-colors">
+                              <div key={activity.id} className="rounded-xl border border-stone-100 p-3 transition-colors hover:border-stone-300">
                                 {editingActivityId === activity.id && activityEditForm[activity.id] ? (
                                   <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
+                                    <div className="items-center justify-between h-stack">
                                       <p className="text-sm font-medium text-stone-900">{activity.title}</p>
-                                      <div className="flex items-center gap-2">
+                                      <div className="items-center gap-2 h-stack">
                                         <button
                                           type="button"
                                           onClick={cancelEditActivity}
@@ -1334,7 +1343,7 @@ export default function TourInstanceDetailPage() {
                                         placeholder={t("tourInstance.form.activityNotePlaceholder", "Admin note for this activity...")}
                                       />
                                     </div>
-                                    <label className="flex items-center gap-2 text-xs text-stone-600">
+                                    <label className="items-center gap-2 text-xs text-stone-600 h-stack">
                                       <input
                                         type="checkbox"
                                         checked={activityEditForm[activity.id]?.isOptional ?? false}
@@ -1345,12 +1354,12 @@ export default function TourInstanceDetailPage() {
                                     </label>
                                   </div>
                                 ) : (
-                                  <div className="flex items-start gap-3">
+                                  <div className="items-start gap-3 h-stack">
                                     <span className="mt-0.5 shrink-0 inline-flex items-center justify-center size-6 rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                                       {activity.order}
                                     </span>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2 flex-wrap">
+                                    <div className="spacer min-w-0">
+                                      <div className="items-center gap-2 flex-wrap h-stack">
                                         <p className="text-sm font-medium text-stone-900">{activity.title}</p>
                                         {activity.isOptional && (
                                           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
@@ -1361,21 +1370,21 @@ export default function TourInstanceDetailPage() {
                                       {activity.description && (
                                         <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">{activity.description}</p>
                                       )}
-                                      <div className="flex items-center gap-3 mt-1 text-xs text-stone-400">
+                                      <div className="items-center gap-3 mt-1 text-xs text-stone-400 h-stack">
                                         {activity.startTime && <span>{activity.startTime}</span>}
                                         {activity.endTime && <span> - {activity.endTime}</span>}
                                       </div>
 
                                       {isAccommodationActivity(activity.activityType) && (
                                         <div className="mt-2 space-y-2 rounded-lg border border-amber-100 bg-amber-50/70 p-3">
-                                          <div className="flex items-center justify-between gap-2">
-                                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                                          <div className="items-center justify-between gap-2 h-stack">
+                                            <p className="items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 h-stack">
                                               <Icon icon="heroicons:building-office-2" className="size-3" />
                                               {t("tourInstance.accommodation.approval", "Accommodation approval")}
                                             </p>
-                                            <div className="flex items-center gap-2">
+                                            <div className="items-center gap-2 h-stack">
                                               <span
-                                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).ringClassName}`}
+                                                className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).ringClassName)}
                                               >
                                                 <Icon icon={getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).icon} className="size-3" />
                                                 {getApprovalAppearance(activity.accommodation?.supplierApprovalStatus).label}
@@ -1441,14 +1450,14 @@ export default function TourInstanceDetailPage() {
 
                                       {isTransportationActivity(activity.activityType) && (
                                         <div className="mt-2 space-y-2 rounded-lg border border-cyan-100 bg-cyan-50/70 p-3">
-                                          <div className="flex items-center justify-between gap-2">
-                                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700">
+                                          <div className="items-center justify-between gap-2 h-stack">
+                                            <p className="items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700 h-stack">
                                               <Icon icon="heroicons:truck" className="size-3" />
                                               {t("tourInstance.transport.approval", "Transportation approval")}
                                             </p>
-                                            <div className="flex items-center gap-2">
+                                            <div className="items-center gap-2 h-stack">
                                               <span
-                                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getApprovalAppearance(activity.transportationApprovalStatus).ringClassName}`}
+                                                className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", getApprovalAppearance(activity.transportationApprovalStatus).ringClassName)}
                                               >
                                                 <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
                                                 {getApprovalAppearance(activity.transportationApprovalStatus).label}
@@ -1507,7 +1516,7 @@ export default function TourInstanceDetailPage() {
                                                       key={ta.id}
                                                       className="rounded-lg border border-stone-100 bg-white/80 px-2 py-1.5"
                                                     >
-                                                      <div className="flex flex-wrap items-center gap-2">
+                                                      <div className="flex-wrap items-center gap-2 h-stack">
                                                         <span className="text-xs font-semibold text-stone-800 font-mono">
                                                           {[ta.vehicleBrand, ta.vehicleModel].filter(Boolean).join(" ") || "—"}
                                                         </span>
@@ -1517,14 +1526,14 @@ export default function TourInstanceDetailPage() {
                                                           </span>
                                                         )}
                                                         {ta.vehicleSeatCapacity && (
-                                                          <span className="flex items-center gap-0.5 text-[10px] text-stone-500">
+                                                          <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
                                                             <Icon icon="heroicons:user-group" className="size-3" />
                                                             {ta.vehicleSeatCapacity}
                                                           </span>
                                                         )}
                                                       </div>
                                                       {(ta.driverName || ta.driverPhone) && (
-                                                        <div className="mt-1 flex items-center gap-2">
+                                                        <div className="mt-1 items-center gap-2 h-stack">
                                                           <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
                                                           <span className="text-xs text-stone-700">{ta.driverName}</span>
                                                           {ta.driverPhone && (
@@ -1536,7 +1545,7 @@ export default function TourInstanceDetailPage() {
                                                   ))}
                                                 </ul>
                                               ) : activity.vehicleType ? (
-                                                <div className="flex flex-wrap items-center gap-2">
+                                                <div className="flex-wrap items-center gap-2 h-stack">
                                                   <span className="text-xs font-semibold text-stone-800 font-mono">
                                                     {[activity.vehicleBrand, activity.vehicleModel].filter(Boolean).join(" ") || "—"}
                                                   </span>
@@ -1546,7 +1555,7 @@ export default function TourInstanceDetailPage() {
                                                     </span>
                                                   )}
                                                   {activity.seatCapacity && (
-                                                    <span className="flex items-center gap-0.5 text-[10px] text-stone-500">
+                                                    <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
                                                       <Icon icon="heroicons:user-group" className="size-3" />
                                                       {activity.seatCapacity}
                                                     </span>
@@ -1566,7 +1575,7 @@ export default function TourInstanceDetailPage() {
                                               && activity.transportAssignments.length > 0
                                             )
                                             && activity.driverName && (
-                                              <div className="flex items-center gap-2">
+                                              <div className="items-center gap-2 h-stack">
                                                 <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
                                                 <span className="text-xs text-stone-700">{activity.driverName}</span>
                                                 {activity.driverPhone && (
@@ -1577,7 +1586,7 @@ export default function TourInstanceDetailPage() {
                                             {(activity.pickupLocation || activity.dropoffLocation) && (
                                               <div className="space-y-0.5">
                                                 {activity.pickupLocation && (
-                                                  <div className="flex items-start gap-1.5">
+                                                  <div className="items-start gap-1.5 h-stack">
                                                     <Icon icon="heroicons:map-pin" className="size-3 text-emerald-600 mt-0.5 shrink-0" />
                                                     <div>
                                                       <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm đón: </span>
@@ -1586,7 +1595,7 @@ export default function TourInstanceDetailPage() {
                                                   </div>
                                                 )}
                                                 {activity.dropoffLocation && (
-                                                  <div className="flex items-start gap-1.5">
+                                                  <div className="items-start gap-1.5 h-stack">
                                                     <Icon icon="heroicons:map-pin" className="size-3 text-red-500 mt-0.5 shrink-0" />
                                                     <div>
                                                       <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm trả: </span>
@@ -1597,7 +1606,7 @@ export default function TourInstanceDetailPage() {
                                               </div>
                                             )}
                                             {(activity.departureTime || activity.arrivalTime) && (
-                                              <div className="flex items-center gap-3 text-[10px] text-stone-500">
+                                              <div className="items-center gap-3 text-[10px] text-stone-500 h-stack">
                                                 {activity.departureTime && (
                                                   <span>Khởi hành: {new Date(activity.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
                                                 )}
@@ -1633,20 +1642,22 @@ export default function TourInstanceDetailPage() {
                                         </p>
                                       )}
                                     </div>
-                                    <div className="flex flex-col gap-1 shrink-0">
-                                      <button
-                                        type="button"
-                                        onClick={() => startEditActivity(day.id, activity)}
-                                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
-                                        <Icon icon="heroicons:pencil" className="size-3" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteActivity(day.id, activity.id)}
-                                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-500 hover:bg-red-50 hover:text-red-700">
-                                        <Icon icon="heroicons:trash" className="size-3" />
-                                      </button>
-                                    </div>
+                                    {!readOnly && (
+                                      <div className="gap-1 shrink-0 v-stack">
+                                        <button
+                                          type="button"
+                                          onClick={() => startEditActivity(day.id, activity)}
+                                          className="inline-flex items-center justify-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700">
+                                          <Icon icon="heroicons:pencil" className="size-3" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteActivity(day.id, activity.id)}
+                                          className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-500 hover:bg-red-50 hover:text-red-700">
+                                          <Icon icon="heroicons:trash" className="size-3" />
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1725,14 +1736,14 @@ export default function TourInstanceDetailPage() {
                                     {t("tourInstance.form.description", "Description")}
                                   </label>
                                   <textarea
-                                    className={inputClassName + " resize-none"}
+                                    className={cn(inputClassName, "resize-none")}
                                     rows={2}
                                     value={newActivityForm.description}
                                     onChange={(e) => setNewActivityForm((f) => ({ ...f, description: e.target.value }))}
                                   />
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <label className="flex items-center gap-2 text-xs text-stone-600">
+                                <div className="items-center justify-between h-stack">
+                                  <label className="items-center gap-2 text-xs text-stone-600 h-stack">
                                     <input
                                       type="checkbox"
                                       checked={newActivityForm.isOptional}
@@ -1741,7 +1752,7 @@ export default function TourInstanceDetailPage() {
                                     />
                                     {t("tourInstance.optional", "Optional")}
                                   </label>
-                                  <div className="flex items-center gap-2">
+                                  <div className="items-center gap-2 h-stack">
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -1761,12 +1772,12 @@ export default function TourInstanceDetailPage() {
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            <div className="p-4 border-t border-stone-100 bg-stone-50/50 flex justify-center">
+                          ) : !readOnly && (
+                            <div className="p-4 border-t border-stone-100 bg-stone-50/50 justify-center h-stack">
                               <button
                                 type="button"
                                 onClick={() => setAddingActivityForDayId(day.id)}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-500 transition-colors hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50"
                               >
                                 <Icon icon="heroicons:plus" className="size-4" />
                                 {t("tourInstance.addActivity", "Thêm hoạt động")}
@@ -1861,14 +1872,14 @@ export default function TourInstanceDetailPage() {
           </>
         ) : (
           <form className="mt-8 space-y-8" onSubmit={handleSaveEdit}>
-            <div className="flex items-center justify-between">
+            <div className="items-center justify-between h-stack">
               <h2 className="text-2xl font-bold text-stone-900 tracking-tight">
                 {t("tourInstance.edit", "Edit Tour Instance")}
               </h2>
             </div>
 
             {data.wantsCustomization && (
-              <div className="flex items-start gap-3 rounded-2xl bg-amber-50/80 border border-amber-200/60 p-5 shadow-sm">
+              <div className="items-start gap-3 rounded-2xl bg-amber-50/80 border border-amber-200/60 p-5 shadow-sm h-stack">
                 <Icon icon="heroicons:information-circle" className="size-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-bold text-amber-800">
@@ -1882,7 +1893,7 @@ export default function TourInstanceDetailPage() {
             )}
 
             {/* Immutable fields — shown as read-only chips */}
-            <div className="flex flex-wrap gap-2.5 rounded-[1.5rem] border border-stone-200/50 bg-stone-50/50 p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+            <div className="flex-wrap gap-2.5 rounded-[1.5rem] border border-stone-200/50 bg-stone-50/50 p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] h-stack">
               <p className="w-full text-[11px] font-bold uppercase tracking-wider text-stone-400 mb-1">
                 {t("tourInstance.immutableFields.note", "This field is locked after the instance is created")}
               </p>
@@ -1960,7 +1971,7 @@ export default function TourInstanceDetailPage() {
                         {t("tourInstance.wizard.section.guides", "Guides")}
                       </label>
                       {selectedGuides.length > 0 && (
-                        <div className="mb-3 flex flex-wrap gap-2">
+                        <div className="mb-3 flex-wrap gap-2 h-stack">
                           {selectedGuides.map((guide) => (
                             <span
                               key={guide.id}
@@ -1983,7 +1994,7 @@ export default function TourInstanceDetailPage() {
                               <button
                                 type="button"
                                 onClick={() => toggleUser(guide.id, "guideUserIds")}
-                                className="ml-1 flex size-4 items-center justify-center rounded-full text-orange-400 hover:bg-orange-100 hover:text-orange-600 transition-colors">
+                                className="ml-1 size-4 rounded-full text-orange-400 transition-colors center hover:bg-orange-100 hover:text-orange-600">
                                 <Icon icon="heroicons:x-mark" className="size-3" />
                               </button>
                             </span>
@@ -2016,7 +2027,7 @@ export default function TourInstanceDetailPage() {
                         {t("tourInstance.wizard.section.managers", "Managers")}
                       </label>
                       {selectedManagers.length > 0 && (
-                        <div className="mb-3 flex flex-wrap gap-2">
+                        <div className="mb-3 flex-wrap gap-2 h-stack">
                           {selectedManagers.map((mgr) => (
                             <span
                               key={mgr.id}
@@ -2039,7 +2050,7 @@ export default function TourInstanceDetailPage() {
                               <button
                                 type="button"
                                 onClick={() => toggleUser(mgr.id, "managerUserIds")}
-                                className="ml-1 flex size-4 items-center justify-center rounded-full text-blue-400 hover:bg-blue-100 hover:text-blue-600 transition-colors">
+                                className="ml-1 size-4 rounded-full text-blue-400 transition-colors center hover:bg-blue-100 hover:text-blue-600">
                                 <Icon icon="heroicons:x-mark" className="size-3" />
                               </button>
                             </span>
@@ -2123,7 +2134,7 @@ export default function TourInstanceDetailPage() {
                         <input
                           type="number"
                           min={0}
-                          className={`${inputClassName} pl-14`}
+                          className={cn(inputClassName, "pl-14")}
                           value={form.basePrice}
                           onChange={(event) => updateField("basePrice", event.target.value)}
                         />
@@ -2158,7 +2169,7 @@ export default function TourInstanceDetailPage() {
                       </label>
                       <div className="space-y-2.5">
                         {form.includedServices.map((service, index) => (
-                          <div key={`service-${index}`} className="flex items-center gap-2">
+                          <div key={`service-${index}`} className="items-center gap-2 h-stack">
                             <input
                               className={inputClassName}
                               value={service}
@@ -2168,7 +2179,7 @@ export default function TourInstanceDetailPage() {
                             <button
                               type="button"
                               onClick={() => removeListItem("includedServices", index)}
-                              className="shrink-0 flex items-center justify-center rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
+                              className="shrink-0 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 transition-colors center hover:bg-red-50 hover:text-red-600 hover:border-red-200">
                               <Icon icon="heroicons:trash" className="size-4" />
                             </button>
                           </div>
@@ -2176,7 +2187,7 @@ export default function TourInstanceDetailPage() {
                         <button
                           type="button"
                           onClick={() => appendListItem("includedServices")}
-                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-400 transition-colors">
+                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 transition-colors hover:bg-stone-50 hover:border-stone-400">
                           <Icon icon="heroicons:plus" className="size-4" />
                           {t("tourInstance.form.addService", "Add service")}
                         </button>
@@ -2192,7 +2203,7 @@ export default function TourInstanceDetailPage() {
                       </label>
                       <div className="space-y-2.5">
                         {form.imageUrls.map((url, index) => (
-                          <div key={`image-${index}`} className="flex items-center gap-2">
+                          <div key={`image-${index}`} className="items-center gap-2 h-stack">
                             <input
                               className={inputClassName}
                               value={url}
@@ -2202,7 +2213,7 @@ export default function TourInstanceDetailPage() {
                             <button
                               type="button"
                               onClick={() => removeListItem("imageUrls", index)}
-                              className="shrink-0 flex items-center justify-center rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
+                              className="shrink-0 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 transition-colors center hover:bg-red-50 hover:text-red-600 hover:border-red-200">
                               <Icon icon="heroicons:trash" className="size-4" />
                             </button>
                           </div>
@@ -2210,7 +2221,7 @@ export default function TourInstanceDetailPage() {
                         <button
                           type="button"
                           onClick={() => appendListItem("imageUrls")}
-                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50 hover:border-stone-400 transition-colors">
+                          className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-600 transition-colors hover:bg-stone-50 hover:border-stone-400">
                           <Icon icon="heroicons:photo" className="size-4" />
                           {t("tourInstance.form.addImage", "Add image")}
                         </button>

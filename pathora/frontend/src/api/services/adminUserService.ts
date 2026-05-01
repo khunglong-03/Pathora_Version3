@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { extractResult } from "@/utils/apiResponse";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 
 export type UserStatus = "Active" | "Inactive" | "Banned";
 
@@ -12,7 +12,7 @@ export interface UpdateUserStatusRequest {
 class AdminUserService {
   async updateUserStatus(data: UpdateUserStatusRequest): Promise<boolean> {
     try {
-      const response = await api.put<ApiResponse<any>>(`/api/user/status`, data);
+      const response = await api.put<ServiceResponse<any>>(`/api/user/status`, data);
       const result = extractResult(response.data);
       return !!result;
     } catch (error) {

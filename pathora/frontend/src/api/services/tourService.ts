@@ -12,7 +12,7 @@ import {
 import { extractResult } from "@/utils/apiResponse";
 import type { CheckoutPriceResponse } from "@/api/services/paymentService";
 import { normalizeCheckoutPriceResponse } from "@/utils/checkoutPriceResponse";
-import { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 
 const normalizeClassification = (
   classification: TourClassificationDto,
@@ -79,7 +79,7 @@ export const tourService = {
       lang: normalizedLanguage,
     });
 
-    const response = await api.get<ApiResponse<PaginatedResponse<SearchTourVm>>>(url);
+    const response = await api.get<ServiceResponse<PaginatedResponse<SearchTourVm>>>(url);
     const result = extractResult<PaginatedResponse<SearchTourVm>>(response.data);
     return {
       total: result?.total ?? 0,
@@ -111,7 +111,7 @@ export const tourService = {
     }
     // Backend returns PaginatedList<T> mapped as { items: TourVm[], total: number } or { data: ..., totalCount: ... }
     type MyTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
-    const response = await api.get<ApiResponse<MyTourPage>>(
+    const response = await api.get<ServiceResponse<MyTourPage>>(
       `${API_ENDPOINTS.TOUR.GET_MY_TOURS}?${params.toString()}`,
     );
     const result = extractResult<MyTourPage>(response.data);
@@ -144,7 +144,7 @@ export const tourService = {
       params.append("continent", continent);
     }
     type AdminTourPage = { data?: TourVm[]; items?: TourVm[]; total?: number; totalCount?: number };
-    const response = await api.get<ApiResponse<AdminTourPage>>(
+    const response = await api.get<ServiceResponse<AdminTourPage>>(
       `${API_ENDPOINTS.TOUR.GET_ALL_ADMIN_TOUR_MANAGEMENT}?${params.toString()}`,
     );
     const result = extractResult<AdminTourPage>(response.data);
@@ -176,7 +176,7 @@ export const tourService = {
       rejected: number;
     };
 
-    const response = await api.get<ApiResponse<AdminTourStats>>(
+    const response = await api.get<ServiceResponse<AdminTourStats>>(
       `${API_ENDPOINTS.TOUR.GET_ALL_MANAGER_TOUR_MANAGEMENT_STATS}?${params.toString()}`,
     );
     return extractResult<AdminTourStats>(response.data) ?? {
@@ -188,7 +188,7 @@ export const tourService = {
   },
 
   getTourDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<TourDto>>(
+    const response = await api.get<ServiceResponse<TourDto>>(
       API_ENDPOINTS.TOUR.GET_DETAIL(id),
     );
     const result = extractResult<TourDto>(response.data);
@@ -196,7 +196,7 @@ export const tourService = {
   },
 
   getClassificationPricingTiers: async (classificationId: string) => {
-    const response = await api.get<ApiResponse<DynamicPricingDto[]>>(
+    const response = await api.get<ServiceResponse<DynamicPricingDto[]>>(
       API_ENDPOINTS.TOUR.GET_CLASSIFICATION_PRICING_TIERS(classificationId),
     );
     return extractResult<DynamicPricingDto[]>(response.data) ?? [];
@@ -206,7 +206,7 @@ export const tourService = {
     classificationId: string,
     tiers: DynamicPricingDto[],
   ) => {
-    const response = await api.put<ApiResponse<unknown>>(
+    const response = await api.put<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR.UPSERT_CLASSIFICATION_PRICING_TIERS(classificationId),
       tiers,
     );
@@ -217,7 +217,7 @@ export const tourService = {
     // NOTE: Do NOT set Content-Type header manually for FormData.
     // Axios must set it automatically with the correct boundary parameter,
     // otherwise ASP.NET Core [FromForm] will fail to parse IFormFile fields (null).
-    const response = await api.post<ApiResponse<string>>(
+    const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR.CREATE,
       formData,
     );
@@ -233,7 +233,7 @@ export const tourService = {
       headers["If-Unmodified-Since"] = lastModifiedOnUtc;
     }
 
-    const response = await api.put<ApiResponse<unknown>>(
+    const response = await api.put<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR.UPDATE,
       formData,
       { headers }
@@ -242,14 +242,14 @@ export const tourService = {
   },
 
   deleteTour: async (id: string) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR.DELETE(id),
     );
     return extractResult<unknown>(response.data);
   },
 
   updateTourStatus: async (tourId: string, status: number) => {
-    const response = await api.put<ApiResponse<unknown>>(
+    const response = await api.put<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR.UPDATE_STATUS(tourId),
       { status },
     );
@@ -257,7 +257,7 @@ export const tourService = {
   },
 
   reviewTour: async (tourId: string, action: "Approve" | "Reject", reason?: string) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR.REVIEW(tourId),
       { Action: action, Reason: reason },
     );
@@ -266,7 +266,7 @@ export const tourService = {
 
   getPublicTourDetail: async (id: string, language?: string) => {
     const url = buildPublicTourDetailUrl(id, language);
-    const response = await api.get<ApiResponse<TourDto>>(url);
+    const response = await api.get<ServiceResponse<TourDto>>(url);
     const result = extractResult<TourDto>(response.data);
     return result ? normalizeTourDetail(result) : null;
   },
@@ -293,7 +293,7 @@ export const tourService = {
       customizationNotes?: string;
     },
   ): Promise<CheckoutPriceResponse | null> => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.PUBLIC_TOUR.REQUEST_PRIVATE(tourId),
       payload,
     );

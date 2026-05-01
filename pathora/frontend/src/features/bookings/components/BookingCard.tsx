@@ -9,9 +9,7 @@ import {
   CalendarBlank, 
   Users, 
   CurrencyCircleDollar, 
-  UserPlus, 
-  AirplaneTilt, 
-  DownloadSimple, 
+  AirplaneTilt,
   ArrowRight,
   Receipt
 } from "@phosphor-icons/react";
@@ -39,7 +37,6 @@ export function BookingCard({
   t,
 }: BookingCardProps) {
   const showPayRemaining = booking.paymentStatus === "partial";
-  const showAddParticipants = booking.status === "pending";
   const showVisaStatus =
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&
@@ -138,19 +135,13 @@ export function BookingCard({
 
             {/* Actions */}
             <div className={cn("h-stack flex-wrap items-center gap-3")}>
-              {(showPayRemaining || showAddParticipants || showVisaStatus) && (
+              {(showPayRemaining || showVisaStatus) && (
                 <div className={cn("h-stack mr-2 items-center gap-2")}>
                   {showPayRemaining && (
                     <button type="button" className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
                       <CurrencyCircleDollar weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.payRemaining")}
                     </button>
-                  )}
-                  {showAddParticipants && (
-                    <Link href={`/bookings/${booking.id}/participants`} className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
-                      <UserPlus weight="bold" className={cn("size-4")} />
-                      {t("landing.bookings.addParticipants")}
-                    </Link>
                   )}
                   {showVisaStatus && (
                     <Link href="/visa" className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
@@ -160,10 +151,6 @@ export function BookingCard({
                   )}
                 </div>
               )}
-
-              <button type="button" className={cn("center size-10 rounded-md border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900")} title={t("landing.bookings.invoice")}>
-                <DownloadSimple weight="bold" className={cn("size-4")} />
-              </button>
               
               <Link href={`/bookings/${booking.id}`} className={cn("center size-10 rounded-md bg-[#111111] text-white transition-all hover:bg-[#333333] active:scale-95")} title={t("landing.bookings.viewDetails")}>
                 <ArrowRight weight="bold" className={cn("size-4")} />

@@ -1,5 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
+import type { ServiceResponse } from "@/types/api";
 import {
   ApiResponse,
   FeaturedTour,
@@ -128,7 +129,7 @@ export const homeService = {
   },
 
   getDestinations: async () => {
-    const response = await api.get<ApiResponse<string[]>>(
+    const response = await api.get<ServiceResponse<string[]>>(
       API_ENDPOINTS.PUBLIC_HOME.GET_DESTINATIONS,
     );
     return extractItems<string>(response.data);
@@ -151,7 +152,7 @@ export const homeService = {
     params.append("pageSize", pageSize.toString());
 
     const response = await api.get<
-      ApiResponse<PaginatedResponse<TourInstanceVm>>
+      ServiceResponse<PaginatedResponse<TourInstanceVm>>
     >(
       `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_AVAILABLE}?${params.toString()}&lang=${lang}`,
     );
@@ -170,7 +171,7 @@ export const homeService = {
 
   getPublicInstanceDetail: async (id: string, language?: string) => {
     const lang = language ?? i18n.resolvedLanguage ?? i18n.language ?? "en";
-    const response = await api.get<ApiResponse<TourInstanceDto>>(
+    const response = await api.get<ServiceResponse<TourInstanceDto>>(
       `${API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.GET_DETAIL(id)}?lang=${lang}`,
     );
     const result = extractResult<TourInstanceDto>(response.data);

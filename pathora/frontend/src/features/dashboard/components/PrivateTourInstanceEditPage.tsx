@@ -36,6 +36,18 @@ interface EditForm {
 }
 
 const fromDto = (data: NormalizedTourInstanceDto): EditForm => {
+  // Auto-calculate endDate based on itinerary days count for private tours
+  let computedStartDate = toDateInput(data.startDate);
+  let computedEndDate = toDateInput(data.endDate);
+
+  if (data.wantsCustomization && data.startDate && data.days && data.days.length > 0) {
+    // endDate = startDate + (number of days - 1)
+    const start = new Date(data.startDate);
+    const end = new Date(start);
+    end.setDate(end.getDate() + data.days.length - 1);
+    computedEndDate = end.toISOString().split("T")[0];
+  }
+
   // Auto-fill confirmation deadline for custom tour requests:
   // default to 3 days before start date when backend returns null
   let deadline = toDateInput(data.confirmationDeadline);
@@ -46,8 +58,8 @@ const fromDto = (data: NormalizedTourInstanceDto): EditForm => {
   }
   return {
     title: data.title ?? "",
-    startDate: toDateInput(data.startDate),
-    endDate: toDateInput(data.endDate),
+    startDate: computedStartDate,
+    endDate: computedEndDate,
     location: data.location ?? "",
     maxParticipation: String(data.maxParticipation ?? 0),
     confirmationDeadline: deadline,
@@ -90,7 +102,17 @@ export default function PrivateTourInstanceEditPage() {
       setDataState((prev) => prev === "ready" ? "ready" : "loading");
       const detail = await tourInstanceService.getInstanceDetail(id);
       setData(detail);
-      setForm((prev) => prev || (detail ? fromDto(detail) : null));
+      setForm((prev) => {
+        if (!prev) return detail ? fromDto(detail) : null;
+        // On refresh (after add/remove days), recalculate endDate from new data
+        if (detail && detail.wantsCustomization && detail.days && detail.days.length > 0 && detail.startDate) {
+          const start = new Date(detail.startDate);
+          const end = new Date(start);
+          end.setDate(end.getDate() + detail.days.length - 1);
+          return { ...prev, endDate: end.toISOString().split("T")[0] };
+        }
+        return prev;
+      });
       setDataState("ready");
     } catch (e: unknown) {
       setDataState((prev) => prev === "ready" ? "ready" : "error");
@@ -241,29 +263,7 @@ export default function PrivateTourInstanceEditPage() {
             {errors.title && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.title}</p>}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className={labelCls}>Ngày bắt đầu *</label>
-              <input
-                type="date"
-                className={`${inputCls} ${errors.startDate ? "border-red-300 ring-1 ring-red-200" : ""}`}
-                value={form.startDate}
-                onChange={(e) => set("startDate", e.target.value)}
-              />
-              {errors.startDate && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.startDate}</p>}
-            </div>
-            <div>
-              <label className={labelCls}>Ngày kết thúc *</label>
-              <input
-                type="date"
-                className={`${inputCls} ${errors.endDate ? "border-red-300 ring-1 ring-red-200" : ""}`}
-                value={form.endDate}
-                min={form.startDate}
-                onChange={(e) => set("endDate", e.target.value)}
-              />
-              {errors.endDate && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.endDate}</p>}
-            </div>
-          </div>
+          {/* Temporarily hidden: startDate and endDate inputs */}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>

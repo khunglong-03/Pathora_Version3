@@ -1,6 +1,6 @@
 import { apiSlice } from "./apiSlice";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { ApiResponse, PaginatedResponse } from "@/types/home";
+
 
 export interface MyBookingDto {
   id: string;
@@ -22,6 +22,7 @@ export interface MyBookingDto {
 }
 
 export const bookingApi = apiSlice.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getMyBookings: builder.query<
       { items: MyBookingDto[]; totalCount: number },

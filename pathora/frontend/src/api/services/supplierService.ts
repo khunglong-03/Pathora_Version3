@@ -1,5 +1,5 @@
 import { api } from "@/api/axiosInstance";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import { extractResult } from "@/utils/apiResponse";
 
 export interface SupplierItem {
@@ -37,7 +37,7 @@ export const supplierService = {
       params.append("supplierType", supplierType);
     }
 
-    const response = await api.get<ApiResponse<SupplierRaw[]>>(
+    const response = await api.get<ServiceResponse<SupplierRaw[]>>(
       `/api/suppliers?${params.toString()}`,
     );
     const raw = extractResult<SupplierRaw[]>(response.data) ?? [];

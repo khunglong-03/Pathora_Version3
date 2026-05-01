@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import { extractResult } from "@/utils/apiResponse";
 import { normalizeCheckoutPriceResponse } from "@/utils/checkoutPriceResponse";
 
@@ -132,7 +132,7 @@ export interface CheckoutPriceResponse {
 
 export const paymentService = {
   getQr: async (payload: GetQrPayload) => {
-    const response = await api.post<ApiResponse<string>>(
+    const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.PAYMENT.GET_QR,
       payload,
     );
@@ -150,7 +150,7 @@ export const paymentService = {
       // Backend will handle the conversion
     };
 
-    const response = await api.post<ApiResponse<PaymentTransaction>>(
+    const response = await api.post<ServiceResponse<PaymentTransaction>>(
       API_ENDPOINTS.PAYMENT.CREATE_TRANSACTION,
       apiPayload,
     );
@@ -159,7 +159,7 @@ export const paymentService = {
   },
 
   createPrivateCustomInitial: async (bookingId: string) => {
-    const response = await api.post<ApiResponse<PaymentTransaction>>(
+    const response = await api.post<ServiceResponse<PaymentTransaction>>(
       API_ENDPOINTS.PAYMENT.CREATE_PRIVATE_CUSTOM_INITIAL,
       { bookingId },
     );
@@ -168,7 +168,7 @@ export const paymentService = {
   },
 
   getTransaction: async (transactionCode: string) => {
-    const response = await api.get<ApiResponse<PaymentTransaction>>(
+    const response = await api.get<ServiceResponse<PaymentTransaction>>(
       API_ENDPOINTS.PAYMENT.GET_TRANSACTION(transactionCode),
     );
 
@@ -176,7 +176,7 @@ export const paymentService = {
   },
 
   getNormalizedStatus: async (transactionCode: string) => {
-    const response = await api.get<ApiResponse<PaymentStatusSnapshot>>(
+    const response = await api.get<ServiceResponse<PaymentStatusSnapshot>>(
       API_ENDPOINTS.PAYMENT.GET_TRANSACTION_STATUS(transactionCode),
     );
 
@@ -184,7 +184,7 @@ export const paymentService = {
   },
 
   checkPayment: async (transactionCode: string) => {
-    const response = await api.get<ApiResponse<PaymentStatusSnapshot>>(
+    const response = await api.get<ServiceResponse<PaymentStatusSnapshot>>(
       API_ENDPOINTS.PAYMENT.CHECK_PAYMENT(transactionCode),
     );
 
@@ -192,7 +192,7 @@ export const paymentService = {
   },
 
   reconcileReturn: async (transactionCode: string) => {
-    const response = await api.get<ApiResponse<PaymentStatusSnapshot>>(
+    const response = await api.get<ServiceResponse<PaymentStatusSnapshot>>(
       API_ENDPOINTS.PAYMENT.RECONCILE_RETURN,
       {
         params: { transactionCode },
@@ -203,7 +203,7 @@ export const paymentService = {
   },
 
   reconcileCancel: async (transactionCode: string) => {
-    const response = await api.get<ApiResponse<PaymentStatusSnapshot>>(
+    const response = await api.get<ServiceResponse<PaymentStatusSnapshot>>(
       API_ENDPOINTS.PAYMENT.RECONCILE_CANCEL,
       {
         params: { transactionCode },
@@ -214,7 +214,7 @@ export const paymentService = {
   },
 
   expireTransaction: async (transactionCode: string) => {
-    const response = await api.post<ApiResponse<PaymentTransaction>>(
+    const response = await api.post<ServiceResponse<PaymentTransaction>>(
       API_ENDPOINTS.PAYMENT.EXPIRE_TRANSACTION(transactionCode),
     );
 
@@ -222,7 +222,7 @@ export const paymentService = {
   },
 
   getPendingByBookingId: async (bookingId: string) => {
-    const response = await api.get<ApiResponse<PaymentTransaction>>(
+    const response = await api.get<ServiceResponse<PaymentTransaction>>(
       `/api/payment/pending-by-booking/${bookingId}`,
     );
 
@@ -236,7 +236,7 @@ export const paymentService = {
     const url = opts?.usePublicBookingEndpoint
       ? API_ENDPOINTS.PUBLIC_BOOKING.GET_CHECKOUT_PRICE(bookingId)
       : API_ENDPOINTS.BOOKING.GET_CUSTOMER_CHECKOUT_PRICE(bookingId);
-    const response = await api.get<ApiResponse<unknown>>(url);
+    const response = await api.get<ServiceResponse<unknown>>(url);
     const raw = extractResult<unknown>(response.data);
     return normalizeCheckoutPriceResponse(raw);
   },

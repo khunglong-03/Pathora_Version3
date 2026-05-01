@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 import { useCountUp } from "../hooks/useCountUp";
 import { homeService } from "@/api/services/homeService";
+import { cn } from "@/lib/cn";
 
 interface StatDisplayItem {
   value: number;
@@ -29,21 +30,21 @@ function StatItem({
 
   if (stat.isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-6 md:px-8 animate-pulse">
-        <div className="h-10 w-20 bg-stone-200 rounded mb-2" />
-        <div className="h-4 w-24 bg-stone-100 rounded" />
+      <div className={cn("v-stack items-center justify-center py-6 md:px-8 animate-pulse")}>
+        <div className={cn("h-10 w-20 bg-stone-200 rounded mb-2")} />
+        <div className={cn("h-4 w-24 bg-stone-100 rounded")} />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-6 md:px-8">
+    <div className={cn("v-stack items-center justify-center py-6 md:px-8")}>
       <span
-        className="text-4xl md:text-5xl font-black text-stone-900 mb-2 tracking-tighter"
+        className={cn("text-4xl md:text-5xl font-black text-stone-900 mb-2 tracking-tighter")}
       >
         {stat.isDecimal ? stat.value + stat.suffix : countValue}
       </span>
-      <span className="text-[11px] font-bold text-stone-500 uppercase tracking-[0.2em]">
+      <span className={cn("text-[11px] font-bold text-stone-500 uppercase tracking-[0.2em]")}>
         {t(stat.labelKey)}
       </span>
     </div>
@@ -95,8 +96,8 @@ export const BoldStatsStrip = () => {
   }, []);
 
   return (
-    <section className="relative py-8 bg-stone-50 border-b border-stone-200">
-      <div className="max-w-[90rem] mx-auto px-6 md:px-12">
+    <section className={cn("relative py-8 bg-stone-50 border-b border-stone-200")}>
+      <div className={cn("max-w-[90rem] mx-auto px-6 md:px-12")}>
         <div
           ref={ref}
           className={`grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x divide-stone-200/80 transition-all duration-1000 ${
@@ -104,7 +105,7 @@ export const BoldStatsStrip = () => {
           }`}
         >
           {error && stats.length === 0 ? (
-            <div className="col-span-4 flex items-center justify-center py-6 text-stone-400 text-sm font-medium">
+            <div className={cn("col-span-4 center py-6 text-stone-400 text-sm font-medium")}>
               {t("landing.stats.unavailable") || "Statistics temporarily unavailable"}
             </div>
           ) : (

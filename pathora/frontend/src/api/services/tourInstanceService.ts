@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import {
   DynamicPricingDto,
   DynamicPricingResolutionDto,
@@ -244,7 +244,7 @@ export const tourInstanceService = {
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
 
     try {
-      const response = await api.get<ApiResponse<TourInstancePage>>(
+      const response = await api.get<ServiceResponse<TourInstancePage>>(
         `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}?${params.toString()}`,
       );
 
@@ -264,7 +264,7 @@ export const tourInstanceService = {
   },
 
   getInstanceDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<TourInstanceDto>>(
+    const response = await api.get<ServiceResponse<TourInstanceDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.GET_DETAIL(id),
     );
 
@@ -273,14 +273,14 @@ export const tourInstanceService = {
   },
 
   getPricingTiers: async (id: string) => {
-    const response = await api.get<ApiResponse<DynamicPricingDto[]>>(
+    const response = await api.get<ServiceResponse<DynamicPricingDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.GET_PRICING_TIERS(id),
     );
     return extractResult<DynamicPricingDto[]>(response.data) ?? [];
   },
 
   upsertPricingTiers: async (id: string, tiers: DynamicPricingDto[]) => {
-    const response = await api.put<ApiResponse<unknown>>(
+    const response = await api.put<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPSERT_PRICING_TIERS(id),
       tiers,
     );
@@ -288,7 +288,7 @@ export const tourInstanceService = {
   },
 
   clearPricingTiers: async (id: string) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.CLEAR_PRICING_TIERS(id),
     );
     return extractResult<unknown>(response.data);
@@ -303,7 +303,7 @@ export const tourInstanceService = {
       ? API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.RESOLVE_PRICING(id, participants)
       : API_ENDPOINTS.TOUR_INSTANCE.RESOLVE_PRICING(id, participants);
 
-    const response = await api.get<ApiResponse<DynamicPricingResolutionDto>>(
+    const response = await api.get<ServiceResponse<DynamicPricingResolutionDto>>(
       endpoint,
     );
 
@@ -311,7 +311,7 @@ export const tourInstanceService = {
   },
 
   getStats: async () => {
-    const response = await api.get<ApiResponse<TourInstanceStats>>(
+    const response = await api.get<ServiceResponse<TourInstanceStats>>(
       API_ENDPOINTS.TOUR_INSTANCE.GET_STATS,
     );
     return extractResult<TourInstanceStats>(response.data);
@@ -349,7 +349,7 @@ export const tourInstanceService = {
         : undefined,
     };
 
-    const response = await api.post<ApiResponse<TourInstanceDto>>(
+    const response = await api.post<ServiceResponse<TourInstanceDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.CREATE,
       payload,
     );
@@ -362,7 +362,7 @@ export const tourInstanceService = {
       classificationId,
       startDate,
     });
-    const response = await api.get<ApiResponse<CheckDuplicateResult>>(
+    const response = await api.get<ServiceResponse<CheckDuplicateResult>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.CHECK_DUPLICATE}?${params.toString()}`,
     );
     return extractResult<CheckDuplicateResult>(response.data);
@@ -374,7 +374,7 @@ export const tourInstanceService = {
     params.append("startDate", startDate);
     params.append("endDate", endDate);
 
-    const response = await api.get<ApiResponse<GuideAvailabilityResult>>(
+    const response = await api.get<ServiceResponse<GuideAvailabilityResult>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.CHECK_GUIDE_AVAILABILITY}?${params.toString()}`,
     );
     return extractResult<GuideAvailabilityResult>(response.data);
@@ -396,7 +396,7 @@ export const tourInstanceService = {
       imageUrls: normalizeStringArray(data.imageUrls),
     };
 
-    const response = await api.put<ApiResponse<string>>(
+    const response = await api.put<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE,
       payload,
     );
@@ -404,7 +404,7 @@ export const tourInstanceService = {
   },
 
   deleteInstance: async (id: string) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.DELETE(id),
     );
     return extractResult<unknown>(response.data);
@@ -415,7 +415,7 @@ export const tourInstanceService = {
     dayId: string,
     data: UpdateInstanceDayPayload,
   ) => {
-    const response = await api.put<ApiResponse<TourInstanceDayDto>>(
+    const response = await api.put<ServiceResponse<TourInstanceDayDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE_INSTANCE_DAY(instanceId, dayId),
       data,
     );
@@ -436,7 +436,7 @@ export const tourInstanceService = {
       isOptional?: boolean;
     },
   ) => {
-    const response = await api.post<ApiResponse<TourDayActivityDto>>(
+    const response = await api.post<ServiceResponse<TourDayActivityDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.CREATE_INSTANCE_ACTIVITY(instanceId, dayId),
       data,
     );
@@ -449,7 +449,7 @@ export const tourInstanceService = {
     activityId: string,
     data: UpdateInstanceActivityPayload,
   ) => {
-    const response = await api.patch<ApiResponse<TourDayActivityDto>>(
+    const response = await api.patch<ServiceResponse<TourDayActivityDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE_INSTANCE_ACTIVITY(instanceId, dayId, activityId),
       data,
     );
@@ -461,14 +461,14 @@ export const tourInstanceService = {
     dayId: string,
     activityId: string,
   ) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.DELETE_INSTANCE_ACTIVITY(instanceId, dayId, activityId),
     );
     return extractResult<unknown>(response.data);
   },
 
   changeStatus: async (id: string, status: string | number) => {
-    const response = await api.patch<ApiResponse<string>>(
+    const response = await api.patch<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.CHANGE_STATUS(id),
       { status },
     );
@@ -479,7 +479,7 @@ export const tourInstanceService = {
     instanceId: string,
     payload: { title: string; actualDate: string; description?: string },
   ): Promise<string> => {
-    const response = await api.post<ApiResponse<string>>(
+    const response = await api.post<ServiceResponse<string>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_ALL}/${instanceId}/days`,
       payload,
     );
@@ -500,7 +500,7 @@ export const tourInstanceService = {
 
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
 
-    const response = await api.get<ApiResponse<TourInstancePage>>(
+    const response = await api.get<ServiceResponse<TourInstancePage>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_PROVIDER_ASSIGNED}?${params.toString()}`,
     );
 
@@ -526,7 +526,7 @@ export const tourInstanceService = {
 
     type TourInstancePage = { data?: TourInstanceVm[]; items?: TourInstanceVm[]; total?: number; totalCount?: number };
 
-    const response = await api.get<ApiResponse<TourInstancePage>>(
+    const response = await api.get<ServiceResponse<TourInstancePage>>(
       `${API_ENDPOINTS.TOUR_INSTANCE.GET_MY_ASSIGNMENTS}?${params.toString()}`,
     );
 
@@ -543,7 +543,7 @@ export const tourInstanceService = {
   },
 
   getMyAssignedInstanceDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<TourInstanceDto>>(
+    const response = await api.get<ServiceResponse<TourInstanceDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.GET_MY_ASSIGNMENT_DETAIL(id),
     );
 
@@ -552,7 +552,7 @@ export const tourInstanceService = {
   },
 
   approve: async (id: string, payload: ProviderApprovalPayload) => {
-    const response = await api.post<ApiResponse<string>>(
+    const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.APPROVE(id),
       payload,
     );
@@ -591,7 +591,7 @@ export const tourInstanceService = {
     activityId: string,
     data: { vehicleId: string; driverId: string },
   ) => {
-    const response = await api.put<ApiResponse<{
+    const response = await api.put<ServiceResponse<{
       success: boolean;
       seatCapacityWarning: boolean;
       vehicleSeatCapacity?: number | null;
@@ -613,7 +613,7 @@ export const tourInstanceService = {
     activityId: string,
     data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number }
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_TRANSPORT_SUPPLIER(instanceId, activityId),
       data
     );
@@ -644,7 +644,7 @@ export const tourInstanceService = {
             note: (data as { note?: string }).note,
           };
 
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.APPROVE_TRANSPORTATION(instanceId, activityId),
       body,
     );
@@ -656,7 +656,7 @@ export const tourInstanceService = {
     activityId: string,
     data: { note?: string }
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.REJECT_TRANSPORTATION(instanceId, activityId),
       data
     );
@@ -668,7 +668,7 @@ export const tourInstanceService = {
     activityId: string,
     data: { roomType: string; roomCount: number },
   ) => {
-    const response = await api.put<ApiResponse<{
+    const response = await api.put<ServiceResponse<{
       success: boolean;
       availabilityWarning: boolean;
       availableAfter: number;
@@ -690,7 +690,7 @@ export const tourInstanceService = {
     activityId: string,
     supplierId: string,
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_ACCOMMODATION_SUPPLIER(instanceId, activityId),
       { supplierId },
     );
@@ -702,7 +702,7 @@ export const tourInstanceService = {
     activityId: string,
     confirm: boolean = true,
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.CONFIRM_EXTERNAL_TRANSPORT(instanceId, activityId),
       { confirm },
     );
@@ -713,7 +713,7 @@ export const tourInstanceService = {
     instanceId: string,
     activityId: string,
   ): Promise<TicketImageDto[]> => {
-    const response = await api.get<ApiResponse<TicketImageDto[]>>(
+    const response = await api.get<ServiceResponse<TicketImageDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGES(instanceId, activityId),
     );
     return extractResult<TicketImageDto[]>(response.data) ?? [];
@@ -732,7 +732,7 @@ export const tourInstanceService = {
     }
     if (payload.note?.trim()) formData.append("note", payload.note.trim());
 
-    const response = await api.post<ApiResponse<TicketImageDto>>(
+    const response = await api.post<ServiceResponse<TicketImageDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGES(instanceId, activityId),
       formData,
     );
@@ -744,14 +744,14 @@ export const tourInstanceService = {
     activityId: string,
     imageId: string,
   ) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.TICKET_IMAGE_BY_ID(instanceId, activityId, imageId),
     );
     return extractResult<unknown>(response.data);
   },
 
   listItineraryFeedback: async (instanceId: string, dayId: string) => {
-    const response = await api.get<ApiResponse<TourItineraryFeedbackDto[]>>(
+    const response = await api.get<ServiceResponse<TourItineraryFeedbackDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.LIST_ITINERARY_FEEDBACK(instanceId, dayId),
     );
     return extractResult<TourItineraryFeedbackDto[]>(response.data) ?? [];
@@ -762,7 +762,7 @@ export const tourInstanceService = {
     dayId: string,
     body: { bookingId?: string | null; content: string; isFromCustomer: boolean },
   ) => {
-    const response = await api.post<ApiResponse<TourItineraryFeedbackDto>>(
+    const response = await api.post<ServiceResponse<TourItineraryFeedbackDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.CREATE_ITINERARY_FEEDBACK(instanceId, dayId),
       body,
     );
@@ -775,7 +775,7 @@ export const tourInstanceService = {
     feedbackId: string,
     content: string,
   ) => {
-    const response = await api.put<ApiResponse<TourItineraryFeedbackDto>>(
+    const response = await api.put<ServiceResponse<TourItineraryFeedbackDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
       { content },
     );
@@ -787,7 +787,7 @@ export const tourInstanceService = {
     dayId: string,
     feedbackId: string,
   ) => {
-    const response = await api.delete<ApiResponse<unknown>>(
+    const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.DELETE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
     );
     return extractResult<unknown>(response.data);
@@ -799,7 +799,7 @@ export const tourInstanceService = {
     feedbackId: string,
     rowVersion: string,
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR(instanceId, dayId, feedbackId),
       { rowVersion },
     );
@@ -812,7 +812,7 @@ export const tourInstanceService = {
     feedbackId: string,
     rowVersion: string,
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.MANAGER_APPROVE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
       { rowVersion },
     );
@@ -826,7 +826,7 @@ export const tourInstanceService = {
     reason: string,
     rowVersion: string,
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.MANAGER_REJECT_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
       { reason, rowVersion },
     );
@@ -834,7 +834,7 @@ export const tourInstanceService = {
   },
 
   setFinalSellPrice: async (instanceId: string, finalSellPrice: number) => {
-    const response = await api.patch<ApiResponse<unknown>>(
+    const response = await api.patch<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.SET_FINAL_SELL_PRICE(instanceId),
       { finalSellPrice },
     );
@@ -842,7 +842,7 @@ export const tourInstanceService = {
   },
 
   applyPrivateSettlement: async (instanceId: string, bookingId: string) => {
-    const response = await api.post<ApiResponse<PrivateTourSettlementResultDto>>(
+    const response = await api.post<ServiceResponse<PrivateTourSettlementResultDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.APPLY_PRIVATE_SETTLEMENT(instanceId),
       { bookingId },
     );
@@ -850,7 +850,7 @@ export const tourInstanceService = {
   },
 
   getBookingTickets: async (instanceId: string, activityId: string) => {
-    const response = await api.get<ApiResponse<any[]>>(
+    const response = await api.get<ServiceResponse<any[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
     );
     return extractResult<any[]>(response.data) ?? [];
@@ -870,7 +870,7 @@ export const tourInstanceService = {
       note?: string | null;
     },
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
       payload,
     );
@@ -881,7 +881,7 @@ export const tourInstanceService = {
     instanceId: string,
     activityId: string,
   ): Promise<BookingRoomAssignmentDto[]> => {
-    const response = await api.get<ApiResponse<BookingRoomAssignmentDto[]>>(
+    const response = await api.get<ServiceResponse<BookingRoomAssignmentDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_ROOM_ASSIGNMENTS(instanceId, activityId),
     );
     return extractResult<BookingRoomAssignmentDto[]>(response.data) ?? [];
@@ -898,7 +898,7 @@ export const tourInstanceService = {
       note?: string | null;
     },
   ) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_ROOM_ASSIGNMENTS(instanceId, activityId),
       payload,
     );

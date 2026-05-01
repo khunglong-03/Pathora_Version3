@@ -118,7 +118,7 @@ export default function CustomTourRequestDetailPage({
 
   // instanceHref is computed lazily after data loads — depends on wantsCustomization flag
   const instanceHref = useMemo(() => {
-    if (role !== "tour-operator") return `/manager/tour-instances/${id}`;
+    if (role !== "tour-operator") return `/manager/dashboard/custom-tour-requests/${id}/tour`;
     // wantsCustomization=true → operator must edit itinerary before confirming
     // wantsCustomization=false/null → customer already confirmed, just view detail
     return data?.wantsCustomization
