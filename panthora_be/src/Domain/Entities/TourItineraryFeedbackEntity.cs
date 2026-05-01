@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Domain.Entities;
 
 /// <summary>
@@ -17,6 +19,16 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
     public string Content { get; set; } = null!;
     public bool IsFromCustomer { get; set; }
 
+    public TourItineraryFeedbackStatus Status { get; set; }
+    public Guid? ForwardedByManagerId { get; set; }
+    public DateTimeOffset? ForwardedAt { get; set; }
+    public Guid? RespondedByOperatorId { get; set; }
+    public DateTimeOffset? RespondedAt { get; set; }
+    public Guid? ApprovedByManagerId { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+    public string? RejectionReason { get; set; }
+    public byte[] RowVersion { get; set; } = null!;
+
     public static TourItineraryFeedbackEntity Create(
         Guid tourInstanceId,
         Guid tourInstanceDayId,
@@ -33,6 +45,7 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
             BookingId = bookingId,
             Content = content,
             IsFromCustomer = isFromCustomer,
+            Status = isFromCustomer ? TourItineraryFeedbackStatus.Pending : TourItineraryFeedbackStatus.ManagerApproved,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
@@ -47,5 +60,44 @@ public class TourItineraryFeedbackEntity : Aggregate<Guid>
         Content = content.Trim();
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Forward(Guid managerUserId)
+    {
+        if (Status != TourItineraryFeedbackStatus.Pending)
+            throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
+        
+        Status = TourItineraryFeedbackStatus.ManagerForwarded;
+        ForwardedByManagerId = managerUserId;
+        ForwardedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void RecordOperatorResponse(Guid operatorUserId)
+    {
+        if (Status != TourItineraryFeedbackStatus.ManagerForwarded && Status != TourItineraryFeedbackStatus.ManagerRejected)
+            throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
+        
+        Status = TourItineraryFeedbackStatus.OperatorResponded;
+        RespondedByOperatorId = operatorUserId;
+        RespondedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Approve(Guid managerUserId)
+    {
+        if (Status != TourItineraryFeedbackStatus.OperatorResponded)
+            throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
+            
+        Status = TourItineraryFeedbackStatus.ManagerApproved;
+        ApprovedByManagerId = managerUserId;
+        ApprovedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Reject(Guid managerUserId, string? reason)
+    {
+        if (Status != TourItineraryFeedbackStatus.OperatorResponded)
+            throw new InvalidOperationException("TourItineraryFeedback.InvalidTransition");
+            
+        Status = TourItineraryFeedbackStatus.ManagerRejected;
+        RejectionReason = reason;
     }
 }

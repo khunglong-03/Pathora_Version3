@@ -14,7 +14,7 @@ export const BoldCtaSection = () => {
       ref={ref}
       className={`relative py-32 md:py-48 overflow-hidden transition-all duration-1000 ${
         isVisible ? "opacity-100" : "opacity-0"
-      } bg-stone-950 text-white`}
+      } bg-stone-950 text-white border-t border-white/5`}
     >
       {/* Background gradients for depth */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

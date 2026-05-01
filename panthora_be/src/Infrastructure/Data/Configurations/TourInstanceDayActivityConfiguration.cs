@@ -61,8 +61,7 @@ public class TourInstanceDayActivityConfiguration : IEntityTypeConfiguration<Tou
             .HasColumnType("numeric(18,2)");
 
 
-        builder.Property(a => a.TransportationApprovalStatus)
-            .HasDefaultValue(Domain.Enums.ProviderApprovalStatus.Pending);
+        builder.Property(a => a.TransportationApprovalStatus);
 
         builder.Property(a => a.TransportationApprovalNote)
             .HasMaxLength(1000);

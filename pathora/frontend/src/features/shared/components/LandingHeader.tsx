@@ -709,8 +709,9 @@ export const LandingHeader = () => {
               <div className="relative" ref={languageMenuRef}>
                 <Button
                   type="button"
+                  variant="ghost"
                   suppressHydrationWarning
-                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all text-white"
                   onClick={() => {
                     setLanguageMenuOpen((prev) => !prev);
                     setUserMenuOpen(false);
@@ -922,13 +923,15 @@ export const LandingHeader = () => {
                 <>
                   <Button
                     onClick={() => openAuth("login")}
+                    variant="ghost"
                     text={mounted ? t("common.signIn") : "Sign In"}
                     className="px-5 py-2.5 font-semibold text-sm text-white border border-white/20 rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-200"
                   />
                   <Button
                     onClick={() => openAuth("signup")}
+                    variant="primary"
                     text={mounted ? t("common.signUp") : "Sign Up"}
-                    className="px-6 py-2.5 bg-linear-to-r from-[#fa8b02] to-[#ff9f2d] text-white font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-[#fa8b02]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="px-6 py-2.5 border-0 bg-gradient-to-r from-[#fa8b02] to-[#ff9f2d] text-white font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-[#fa8b02]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                   />
                 </>
               )}

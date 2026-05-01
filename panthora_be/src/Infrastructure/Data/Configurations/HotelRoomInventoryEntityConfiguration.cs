@@ -67,5 +67,7 @@ public class HotelRoomInventoryEntityConfiguration : IEntityTypeConfiguration<Ho
             .WithMany()
             .HasForeignKey(x => x.SupplierId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(x => !x.Supplier.IsDeleted && x.Supplier.IsActive && (x.Supplier.Owner == null || x.Supplier.Owner.Status == Domain.Enums.UserStatus.Active));
     }
 }

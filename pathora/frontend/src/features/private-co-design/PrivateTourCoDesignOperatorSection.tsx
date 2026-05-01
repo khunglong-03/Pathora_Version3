@@ -312,31 +312,71 @@ export function PrivateTourCoDesignOperatorSection({
               <li
                 key={f.id}
                 data-operator-feedback={f.id}
-                className={`rounded-lg border px-2 py-1.5 text-sm ${
+                className={`rounded-lg border px-3 py-2 text-sm ${
                   f.isFromCustomer ? "border-stone-200 bg-white" : "border-orange-100 bg-orange-50/50"
                 }`}
               >
-                {f.content}
+                <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-stone-500">
+                  <span>
+                    {f.isFromCustomer
+                      ? t("landing.privateCoDesign.fromCustomer", "Customer")
+                      : t("landing.privateCoDesign.fromOperator", "Operator")}
+                  </span>
+                  {f.status && (
+                    <span
+                      className={`rounded px-1.5 py-0.5 ${
+                        f.status === "ManagerRejected"
+                          ? "bg-red-100 text-red-700"
+                          : f.status === "Pending"
+                            ? "bg-stone-200 text-stone-600"
+                            : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {t(`landing.privateCoDesign.status${f.status}`, f.status)}
+                    </span>
+                  )}
+                </div>
+                <p>{f.content}</p>
+                {f.status === "ManagerRejected" && f.rejectionReason && (
+                  <div className="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
+                    <span className="font-bold">Manager's Reason:</span> {f.rejectionReason}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         )}
-        <textarea
-          value={replyText}
-          onChange={(e) => setReplyText(e.target.value)}
-          placeholder={t("landing.privateCoDesign.operatorReplyPlaceholder")}
-          rows={2}
-          className="mb-2 w-full resize-none rounded-xl border border-stone-200 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-        />
-        <button
-          type="button"
-          data-action="send-operator-reply"
-          disabled={sending || !replyText.trim()}
-          onClick={() => void sendOperatorReply()}
-          className="h-9 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-        >
-          {t("landing.privateCoDesign.sendReply")}
-        </button>
+        
+        {(() => {
+          const canReply = items.some(f => f.status === "ManagerForwarded" || f.status === "ManagerRejected");
+          if (!canReply && items.length > 0) {
+            return (
+              <div className="rounded-lg bg-stone-100 p-3 text-center text-xs text-stone-500">
+                {t("landing.privateCoDesign.operatorCannotReply", "Bạn chỉ có thể phản hồi khi có yêu cầu được Forward hoặc bị Reject từ Manager.")}
+              </div>
+            );
+          }
+          return (
+            <>
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={t("landing.privateCoDesign.operatorReplyPlaceholder")}
+                rows={2}
+                className="mb-2 w-full resize-none rounded-xl border border-stone-200 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              />
+              <button
+                type="button"
+                data-action="send-operator-reply"
+                disabled={sending || !replyText.trim()}
+                onClick={() => void sendOperatorReply()}
+                className="h-9 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {t("landing.privateCoDesign.sendReply")}
+              </button>
+            </>
+          );
+        })()}
       </div>
     </section>
   );

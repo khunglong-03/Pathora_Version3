@@ -86,6 +86,22 @@ public static class ErrorConstants
         public const string InvalidDayCode = "ItineraryFeedback.InvalidDay";
         public static readonly LocalizedMessage InvalidDayDescription =
             new("Ngày lịch trình không thuộc tour instance.", "Tour day does not belong to this instance.");
+
+        public const string InvalidTransitionCode = "TourItineraryFeedback.InvalidTransition";
+        public static readonly LocalizedMessage InvalidTransitionDescription =
+            new("Chuyển đổi trạng thái không hợp lệ.", "Invalid status transition.");
+        
+        public const string ManagerOnlyCode = "TourItineraryFeedback.ManagerOnly";
+        public static readonly LocalizedMessage ManagerOnlyDescription =
+            new("Chỉ Manager mới được thực hiện thao tác này.", "Only Manager can perform this action.");
+
+        public const string NotForwardedYetCode = "TourItineraryFeedback.NotForwardedYet";
+        public static readonly LocalizedMessage NotForwardedYetDescription =
+            new("Phản hồi chưa được forward.", "Feedback has not been forwarded yet.");
+
+        public const string OperatorOnlyCode = "TourItineraryFeedback.OperatorOnly";
+        public static readonly LocalizedMessage OperatorOnlyDescription =
+            new("Chỉ Operator mới được thực hiện thao tác này.", "Only Operator can perform this action.");
     }
 
     public static class TourInstanceActivity
@@ -616,6 +632,10 @@ public static class ErrorConstants
             var value when value == TourRequest.AdminOnlyCode => TourRequest.AdminOnlyDescription,
             var value when value == TourRequest.ReviewerOnlyCode => TourRequest.ReviewerOnlyDescription,
             var value when value == TourRequest.InvalidStatusTransitionCode => TourRequest.InvalidStatusTransitionDescription,
+            var value when value == ItineraryFeedback.InvalidTransitionCode => ItineraryFeedback.InvalidTransitionDescription,
+            var value when value == ItineraryFeedback.ManagerOnlyCode => ItineraryFeedback.ManagerOnlyDescription,
+            var value when value == ItineraryFeedback.NotForwardedYetCode => ItineraryFeedback.NotForwardedYetDescription,
+            var value when value == ItineraryFeedback.OperatorOnlyCode => ItineraryFeedback.OperatorOnlyDescription,
             var value when value == User.DuplicateEmailCode => User.DuplicateEmailDescription,
             var value when value == Auth.EmailTemporarilyLockedCode => Auth.EmailTemporarilyLockedDescription,
             var value when value == Auth.InvalidCredentialsCode => Auth.InvalidCredentialsDescription,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { signalRService, type Notification, type BookingUpdate, type TourInstanceUpdate, type PaymentUpdate } from "@/api/services/signalRService";
+import { signalRService, type Notification, type BookingUpdate, type TourInstanceUpdate, type PaymentUpdate, type ItineraryFeedbackEvent } from "@/api/services/signalRService";
 
 interface UseSignalROptions {
   autoConnect?: boolean;
@@ -12,6 +12,7 @@ interface SignalREvents {
   onBookingUpdate: (handler: (update: BookingUpdate) => void) => () => void;
   onTourInstanceUpdate: (handler: (update: TourInstanceUpdate) => void) => () => void;
   onPaymentUpdate: (handler: (update: PaymentUpdate) => void) => () => void; // Task 4.3.2
+  onItineraryFeedbackEvent: (handler: (event: ItineraryFeedbackEvent) => void) => () => void;
   onConnected: (handler: () => void) => () => void;
   onDisconnected: (handler: () => void) => () => void;
 }
@@ -62,6 +63,7 @@ export function useSignalR(options: UseSignalROptions = {}): {
     onBookingUpdate: signalRService.onBookingUpdate.bind(signalRService),
     onTourInstanceUpdate: signalRService.onTourInstanceUpdate.bind(signalRService),
     onPaymentUpdate: signalRService.onPaymentUpdate.bind(signalRService), // Task 4.3.2
+    onItineraryFeedbackEvent: signalRService.onItineraryFeedbackEvent.bind(signalRService),
     onConnected: signalRService.onConnected.bind(signalRService),
     onDisconnected: signalRService.onDisconnected.bind(signalRService),
   };

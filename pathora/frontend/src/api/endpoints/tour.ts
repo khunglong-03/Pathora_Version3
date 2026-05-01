@@ -52,6 +52,9 @@ export interface TourInstanceEndpoints {
   CREATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string) => string;
   UPDATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
   DELETE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR: (instanceId: string, dayId: string, feedbackId: string) => string;
+  MANAGER_APPROVE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  MANAGER_REJECT_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
   SET_FINAL_SELL_PRICE: (instanceId: string) => string;
   APPLY_PRIVATE_SETTLEMENT: (instanceId: string) => string;
   BOOKING_TICKETS: (instanceId: string, activityId: string) => string;
@@ -147,6 +150,24 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     feedbackId: string,
   ): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}`,
+  FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/forward-to-operator`,
+  MANAGER_APPROVE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/manager-approve`,
+  MANAGER_REJECT_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/manager-reject`,
   SET_FINAL_SELL_PRICE: (instanceId: string): string =>
     `/api/tour-instance/${instanceId}/final-sell-price`,
   APPLY_PRIVATE_SETTLEMENT: (instanceId: string): string =>

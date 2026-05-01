@@ -26,6 +26,9 @@ public static class TourInstanceEndpoint
     /// <summary>Co-design feedback theo ngày (private tour).</summary>
     public const string DayFeedback = "{id:guid}/days/{dayId:guid}/itinerary-feedback";
     public const string DayFeedbackById = "{id:guid}/days/{dayId:guid}/itinerary-feedback/{feedbackId:guid}";
+    public const string FeedbackForwardToOperator = "{id:guid}/days/{dayId:guid}/itinerary-feedback/{feedbackId:guid}/forward-to-operator";
+    public const string FeedbackManagerApprove = "{id:guid}/days/{dayId:guid}/itinerary-feedback/{feedbackId:guid}/manager-approve";
+    public const string FeedbackManagerReject = "{id:guid}/days/{dayId:guid}/itinerary-feedback/{feedbackId:guid}/manager-reject";
 
     public const string FinalSellPrice = "{id:guid}/final-sell-price";
     public const string PrivateSettlement = "{id:guid}/private-settlement";

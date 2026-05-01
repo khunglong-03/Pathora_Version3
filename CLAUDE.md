@@ -317,3 +317,11 @@ Cleanup rules (ER-3):
   supplier's block when the supplier actually changes.
 
 Error code registry: `Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`.
+
+---
+
+## Domain note — Private Tour Co-Design workflow
+
+- **Role-based Gates:** `TourItineraryFeedbackEntity` tracks the lifecycle of customer requests. Customer adds feedback -> Manager forwards it (`ManagerForwarded`) -> Operator responds (`OperatorResponded`) -> Manager approves or rejects (`ManagerApproved` / `ManagerRejected`).
+- **Visibility Filter:** Customers CANNOT view operator responses until they are explicitly approved by a Manager.
+- **Idempotency & Concurrency:** The workflow uses `RowVersion` and catches `DbUpdateConcurrencyException` returning `Error.Conflict` to support safe concurrent edits. `SetPrivateTourFinalSellPrice` behaves similarly.

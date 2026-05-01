@@ -22,6 +22,9 @@ public sealed class TourInstanceCoDesignController : BaseApiController
 
     public sealed record PrivateSettlementBody([property: JsonPropertyName("bookingId")] Guid BookingId);
 
+    public sealed record FeedbackRejectBody([property: JsonPropertyName("reason")] string Reason, [property: JsonPropertyName("rowVersion")] string RowVersion);
+    
+    public sealed record FeedbackTransitionBody([property: JsonPropertyName("rowVersion")] string RowVersion);
     [HttpGet(TourInstanceEndpoint.DayFeedback)]
     public async Task<IActionResult> ListFeedback(Guid id, Guid dayId)
     {
@@ -49,6 +52,27 @@ public sealed class TourInstanceCoDesignController : BaseApiController
     {
         var result = await Sender.Send(new DeleteTourItineraryFeedbackCommand(id, dayId, feedbackId));
         return HandleDeleted(result);
+    }
+
+    [HttpPost(TourInstanceEndpoint.FeedbackForwardToOperator)]
+    public async Task<IActionResult> ForwardToOperator(Guid id, Guid dayId, Guid feedbackId, [FromBody] FeedbackTransitionBody body)
+    {
+        var result = await Sender.Send(new ForwardCustomerFeedbackToOperatorCommand(id, dayId, feedbackId, body.RowVersion));
+        return HandleResult(result);
+    }
+
+    [HttpPost(TourInstanceEndpoint.FeedbackManagerApprove)]
+    public async Task<IActionResult> ManagerApprove(Guid id, Guid dayId, Guid feedbackId, [FromBody] FeedbackTransitionBody body)
+    {
+        var result = await Sender.Send(new ApproveOperatorResponseCommand(id, dayId, feedbackId, body.RowVersion));
+        return HandleResult(result);
+    }
+
+    [HttpPost(TourInstanceEndpoint.FeedbackManagerReject)]
+    public async Task<IActionResult> ManagerReject(Guid id, Guid dayId, Guid feedbackId, [FromBody] FeedbackRejectBody body)
+    {
+        var result = await Sender.Send(new RejectOperatorResponseCommand(id, dayId, feedbackId, body.Reason, body.RowVersion));
+        return HandleResult(result);
     }
 
     [HttpPatch(TourInstanceEndpoint.FinalSellPrice)]

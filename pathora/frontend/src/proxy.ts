@@ -132,7 +132,7 @@ const clearAuthCookies = (response: NextResponse): void => {
   });
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (STATIC_MEDIA_REGEX.test(pathname)) {

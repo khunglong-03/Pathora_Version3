@@ -85,20 +85,12 @@ export const BoldHeroSection = () => {
 
   return (
     <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-stone-950 selection:bg-white/20 selection:text-white">
-      {/* Video background */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-90 scale-105"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
-        {/* Refined gradient overlay for better text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/90 via-stone-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-stone-950/30" />
+      {/* Premium dark gradient background */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-gradient-to-br from-stone-900 via-stone-950 to-black">
+        {/* Subtle radial glow for depth */}
+        <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px]" />
+        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-orange-500/5 blur-[100px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-[90rem] mx-auto px-6 md:px-12 py-32 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center h-full">
@@ -168,19 +160,20 @@ export const BoldHeroSection = () => {
           className="lg:col-span-6 h-full w-full relative pl-0 lg:pl-12 hidden md:block"
         >
           {tours.length >= 3 && (
-            <div className="grid grid-cols-2 gap-4 h-[650px]">
+            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[650px]">
               {/* Primary Large Card */}
               <motion.div variants={staggerItem} className="col-span-1 row-span-2 relative group h-full">
                 <div className="absolute inset-0 rounded-[2rem] overflow-hidden bg-stone-900 border border-white/10 shadow-2xl">
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-full flex flex-col justify-end">
                     <img src={tours[0].image} alt={tours[0].name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105 opacity-90 group-hover:opacity-100" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent" />
-                    <div className="absolute bottom-8 left-8 right-8">
-                      <div className="px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-max mb-4 border border-white/20">
+                    {/* Smoother gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
+                    <div className="relative z-10 p-8">
+                      <div className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-max mb-4 border border-white/20">
                         {tours[0].location}
                       </div>
                       <h3 className="text-3xl font-bold text-white tracking-tight leading-tight drop-shadow-md">
-                        {tours[0].name}
+                        {tours[0].name || "Exclusive Escape"}
                       </h3>
                     </div>
                   </div>
@@ -188,23 +181,21 @@ export const BoldHeroSection = () => {
               </motion.div>
 
               {/* Secondary Stacked Cards */}
-              <div className="col-span-1 row-span-2 flex flex-col gap-4 h-full">
-                {tours.slice(1, 3).map((tour) => (
-                  <motion.div variants={staggerItem} key={tour.id} className="relative group flex-1">
-                    <div className="absolute inset-0 rounded-[2rem] overflow-hidden bg-stone-900 border border-white/10 shadow-2xl">
-                      <div className="relative w-full h-full">
-                        <img src={tour.image} alt={tour.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105 opacity-90 group-hover:opacity-100" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent" />
-                        <div className="absolute bottom-6 left-6 right-6">
-                          <h3 className="text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md">
-                            {tour.name}
-                          </h3>
-                        </div>
+              {tours.slice(1, 3).map((tour) => (
+                <motion.div variants={staggerItem} key={tour.id} className="col-span-1 row-span-1 relative group h-full">
+                  <div className="absolute inset-0 rounded-[2rem] overflow-hidden bg-stone-900 border border-white/10 shadow-2xl">
+                    <div className="relative w-full h-full flex flex-col justify-end">
+                      <img src={tour.image} alt={tour.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105 opacity-90 group-hover:opacity-100" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
+                      <div className="relative z-10 p-6">
+                        <h3 className="text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md">
+                          {tour.name || "Discovery Expedition"}
+                        </h3>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </motion.div>

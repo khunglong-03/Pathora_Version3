@@ -3561,6 +3561,13 @@
       "statusExpired": "Hết hạn"
     },
     "privateCoDesign": {
+      "statusPending": "Đang chờ",
+      "statusManagerForwarded": "Đã chuyển cho Operator",
+      "statusOperatorResponded": "Operator đã phản hồi",
+      "statusManagerApproved": "Manager đã duyệt",
+      "statusManagerRejected": "Manager đã từ chối",
+      "statusCustomerAccepted": "Khách hàng đã chấp nhận",
+      "statusCustomerRejected": "Khách hàng đã từ chối",
       "pageTitle": "Đồng thiết kế lịch trình",
       "pageSubtitle": "Xem từng ngày và để lại ghi chú cho điều hành tour.",
       "operatorTitle": "Đồng thiết kế tour riêng (điều hành)",

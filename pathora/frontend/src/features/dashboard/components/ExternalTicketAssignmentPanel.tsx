@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * ExternalTicketAssignmentPanel
- *
- * Hiển thị danh sách bookings cho một activity vận chuyển ngoài (Flight/Train/Boat).
- * TourOperator nhập thông tin vé cho từng booking một lần — số lượng ghế tự tính
- * = numberAdult + numberChild (infant < 2 tuổi KHÔNG cần ghế riêng).
- *
- * Logic ghế:
- *   requiredSeats = numberAdult + numberChild
- *   infant không chiếm ghế → chỉ ghi chú "kẹp vé" với người lớn đi cùng
- */
-
 import React, { useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Icon } from "@/components/ui";
@@ -184,7 +172,7 @@ export default function ExternalTicketAssignmentPanel({
     };
   }, [activityId, instanceId]);
 
-  
+
   const updateEntry = useCallback(
     (bookingId: string, field: keyof BookingTicketEntry, value: string) => {
       setEntries((prev) => ({
@@ -300,8 +288,8 @@ export default function ExternalTicketAssignmentPanel({
         </div>
         <span
           className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${allSaved
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-              : "bg-orange-50 text-orange-700 border border-orange-200"
+            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            : "bg-orange-50 text-orange-700 border border-orange-200"
             }`}
         >
           <Icon
@@ -312,7 +300,7 @@ export default function ExternalTicketAssignmentPanel({
         </span>
       </div>
 
-      
+
       {/* Thông tin chuyến đi (Common) */}
       <div className="p-6 bg-stone-50 border-t border-stone-100">
         <h4 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
@@ -388,8 +376,8 @@ export default function ExternalTicketAssignmentPanel({
                 <div className="flex items-center gap-3 min-w-0">
                   <span
                     className={`size-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${isSaved
-                        ? "bg-emerald-500 text-white"
-                        : "bg-stone-100 text-stone-600"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-stone-100 text-stone-600"
                       }`}
                   >
                     {isSaved ? <Icon icon="heroicons:check" className="size-4" /> : index + 1}
@@ -489,8 +477,8 @@ export default function ExternalTicketAssignmentPanel({
                     onClick={() => handleSave(booking.id)}
                     disabled={isSaving}
                     className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${isSaved
-                        ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
-                        : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500"
+                      ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500"
                       }`}
                   >
                     {isSaving ? (
@@ -522,8 +510,8 @@ export default function ExternalTicketAssignmentPanel({
           onClick={handleConfirmAll}
           disabled={!allSaved || confirmingAll}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
-              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500"
-              : "bg-stone-100 text-stone-400 cursor-not-allowed"
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500"
+            : "bg-stone-100 text-stone-400 cursor-not-allowed"
             }`}
         >
           {confirmingAll ? (

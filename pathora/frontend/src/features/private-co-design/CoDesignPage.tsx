@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { useAuth } from "@/contexts/AuthContext";
 import { PrivateTourCoDesignCustomerSection } from "@/features/private-co-design/PrivateTourCoDesignCustomerSection";
+import { PrivateTourCoDesignManagerSection } from "@/features/private-co-design/PrivateTourCoDesignManagerSection";
 import { PrivateTourWalletCreditBanner } from "@/features/private-co-design/PrivateTourWalletCreditBanner";
 
 export function CoDesignPage() {
@@ -23,6 +24,8 @@ export function CoDesignPage() {
   const [err, setErr] = useState<string | null>(null);
   const [finalPrice, setFinalPrice] = useState<number | null | undefined>(undefined);
   const [days, setDays] = useState<NonNullable<Awaited<ReturnType<typeof tourInstanceService.getInstanceDetail>>>["days"]>([]);
+  const [tourStatus, setTourStatus] = useState<string>("");
+  const [isManager, setIsManager] = useState(false);
 
   useEffect(() => {
     if (!tourInstanceId) {
@@ -42,6 +45,11 @@ export function CoDesignPage() {
         }
         setDays(detail.days ?? []);
         setFinalPrice(detail.finalSellPrice ?? null);
+        setTourStatus(detail.status ?? "");
+        
+        const hasManagerRole = user?.roles?.some((r: any) => r.name === "Admin" || r.name === "Manager");
+        const isAssignedManager = detail.managers?.some((m: any) => m.id === user?.id);
+        setIsManager(Boolean(hasManagerRole || isAssignedManager));
       } catch {
         if (!cancelled) setErr("load_error");
       } finally {
@@ -58,17 +66,7 @@ export function CoDesignPage() {
     [creditedAmount],
   );
 
-  if (!tourInstanceId || !bookingId) {
-    return (
-      <main className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-slate-600">{t("landing.privateCoDesign.missingQuery")}</p>
-        <Link href="/tours" className="mt-4 inline-flex text-sm font-semibold text-[#fa8b02]">
-          {t("landing.checkout.backToTour")}
-        </Link>
-      </main>
-    );
-  }
-
+  // If user is loading, wait
   if (authLoading) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-16">
@@ -76,6 +74,21 @@ export function CoDesignPage() {
       </main>
     );
   }
+
+  // Check required params depending on role
+  const hasManagerPerms = user?.roles?.some((r: any) => r.name === "Admin" || r.name === "Manager");
+  if (!tourInstanceId || (!bookingId && !hasManagerPerms)) {
+    return (
+      <main className="mx-auto max-w-lg px-4 py-16 text-center">
+        <p className="text-slate-600">{t("landing.privateCoDesign.missingQuery", "Missing Tour or Booking details.")}</p>
+        <Link href="/tours" className="mt-4 inline-flex text-sm font-semibold text-[#fa8b02]">
+          {t("landing.checkout.backToTour", "Return to Tour list")}
+        </Link>
+      </main>
+    );
+  }
+
+
 
   if (!user) {
     return (
@@ -115,12 +128,18 @@ export function CoDesignPage() {
           <p className="text-red-600" data-co-design-page-error>
             {t("landing.privateCoDesign.loadFailed")}
           </p>
+        ) : isManager ? (
+          <PrivateTourCoDesignManagerSection
+            tourInstanceId={tourInstanceId}
+            days={days ?? []}
+          />
         ) : (
           <PrivateTourCoDesignCustomerSection
             tourInstanceId={tourInstanceId}
             bookingId={bookingId}
             days={days ?? []}
             finalSellPrice={finalPrice}
+            tourStatus={tourStatus}
           />
         )}
       </div>

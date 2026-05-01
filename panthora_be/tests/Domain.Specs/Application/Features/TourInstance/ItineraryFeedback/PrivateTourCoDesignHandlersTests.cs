@@ -51,7 +51,9 @@ public sealed class PrivateTourCoDesignHandlersTests
             _feedbackRepository,
             _ownershipValidator,
             _unitOfWork,
-            _user);
+            _user,
+            Substitute.For<Microsoft.Extensions.Logging.ILogger<CreateTourItineraryFeedbackCommandHandler>>(),
+            null);
 
         var result = await handler.Handle(
             new CreateTourItineraryFeedbackCommand(instance.Id, dayId, booking.Id, "Hello", true),
@@ -79,10 +81,13 @@ public sealed class PrivateTourCoDesignHandlersTests
         });
 
         var handler = new SetPrivateTourFinalSellPriceCommandHandler(
+            _feedbackRepository,
             _tourInstanceRepository,
             _ownershipValidator,
             _unitOfWork,
-            _user);
+            _user,
+            Substitute.For<Microsoft.Extensions.Logging.ILogger<SetPrivateTourFinalSellPriceCommandHandler>>(),
+            null);
 
         var result = await handler.Handle(
             new SetPrivateTourFinalSellPriceCommand(instance.Id, 12000m),

@@ -4,6 +4,7 @@ using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.ItineraryFeedback;
@@ -32,7 +33,9 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
     IBookingRepository bookingRepository,
     IOwnershipValidator ownershipValidator,
     Domain.UnitOfWork.IUnitOfWork unitOfWork,
-    global::Contracts.Interfaces.IUser user)
+    global::Contracts.Interfaces.IUser user,
+    Microsoft.Extensions.Logging.ILogger<UpdateTourItineraryFeedbackCommandHandler> logger,
+    ITourInstanceNotificationBroadcaster? notifications = null)
     : IRequestHandler<UpdateTourItineraryFeedbackCommand, ErrorOr<TourItineraryFeedbackDto>>
 {
     public async Task<ErrorOr<TourItineraryFeedbackDto>> Handle(
@@ -55,7 +58,9 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+#pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+#pragma warning restore CS0618
         var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
         if (!isAssignedManager && !isAdmin && !isGlobalManager)
@@ -69,6 +74,33 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
         }
 
         feedback.UpdateContent(request.Content, userId.ToString());
+
+        var isOperator = PrivateTourCoDesignAccess.EnsureInstanceOperatorOnly(instance, userId);
+        if (isOperator && !feedback.IsFromCustomer)
+        {
+            try
+            {
+                feedback.RecordOperatorResponse(userId);
+                
+                if (notifications != null)
+                {
+                    try
+                    {
+                        await notifications.NotifyItineraryFeedbackEventAsync(
+                            request.TourInstanceId, feedback.Id, "Responded", "admins", null, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Failed to broadcast Responded event for feedback {FeedbackId}", feedback.Id);
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidTransitionCode, ErrorConstants.ItineraryFeedback.InvalidTransitionDescription.Vi);
+            }
+        }
+
         await feedbackRepository.UpdateAsync(feedback, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
@@ -78,6 +110,15 @@ public sealed class UpdateTourItineraryFeedbackCommandHandler(
             feedback.BookingId,
             feedback.Content,
             feedback.IsFromCustomer,
-            feedback.CreatedOnUtc);
+            feedback.CreatedOnUtc,
+            feedback.Status,
+            feedback.ForwardedByManagerId,
+            feedback.ForwardedAt,
+            feedback.RespondedByOperatorId,
+            feedback.RespondedAt,
+            feedback.ApprovedByManagerId,
+            feedback.ApprovedAt,
+            feedback.RejectionReason,
+            Convert.ToBase64String(feedback.RowVersion));
     }
 }

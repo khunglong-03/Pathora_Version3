@@ -33,5 +33,7 @@ public class VehicleBlockEntityConfiguration : IEntityTypeConfiguration<VehicleB
         builder.HasIndex(x => x.VehicleId);
         builder.HasIndex(x => x.BlockedDate);
         builder.HasIndex(x => x.ExpiresAt);
+
+        builder.HasQueryFilter(x => !x.Vehicle.IsDeleted && x.Vehicle.IsActive && x.Vehicle.Owner.Status == Domain.Enums.UserStatus.Active);
     }
 }

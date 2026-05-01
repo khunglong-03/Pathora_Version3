@@ -26,9 +26,13 @@ public class TourItineraryFeedbackConfiguration : IEntityTypeConfiguration<TourI
             .HasForeignKey(f => f.BookingId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.Property(f => f.RowVersion)
+            .IsRowVersion();
+
         builder.HasIndex(f => f.TourInstanceId);
         builder.HasIndex(f => f.TourInstanceDayId);
         builder.HasIndex(f => f.BookingId);
+        builder.HasIndex(f => f.Status);
         builder.HasIndex(f => new { f.TourInstanceId, f.TourInstanceDayId });
     }
 }

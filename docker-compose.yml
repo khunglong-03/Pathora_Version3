@@ -14,11 +14,10 @@ services:
       ASPNETCORE_URLS: "${ASPNETCORE_URLS}"
       ASPNETCORE_HTTP_PORTS: "${ASPNETCORE_HTTP_PORTS}"
 
-      Auth__DisableAuthorization: "${Auth__DisableAuthorization}"
+      Auth__DisableAuthorization: "${Auth__DisableAuthorization:-false}"
 
-      Dev__EnableDevEndpoints: "${Dev__EnableDevEndpoints}"
-      Dev__DevApiKey: "${Dev__DevApiKey}"
-      Dev__ResetAndReseedOnStartup: "${Dev__ResetAndReseedOnStartup}"
+      Dev__EnableDevEndpoints: "${Dev__EnableDevEndpoints:-false}"
+      Dev__ResetAndReseedOnStartup: "${Dev__ResetAndReseedOnStartup:-false}"
 
       Serilog__MinimumLevel__Default: "${Serilog__MinimumLevel__Default}"
       Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Mvc: "${SERILOG_OVERRIDE_MICROSOFT_ASPNETCORE_MVC}"
@@ -33,7 +32,7 @@ services:
       Cors__AllowedOrigins__3: "${Cors__AllowedOrigins__3}"
       Cors__AllowedOrigins__4: "${Cors__AllowedOrigins__4}"
       Cors__AllowedOrigins__5: "${Cors__AllowedOrigins__5}"
-      Cors__AllowedOrigins__6: "${Cors__AllowedOrigins__6}"
+      Cors__AllowedOrigins__6: "${Cors__AllowedOrigins__6:-}"
 
       ConnectionStrings__Default: "${ConnectionStrings__Default}"
 

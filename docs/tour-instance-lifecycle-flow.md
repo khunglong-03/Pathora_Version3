@@ -101,6 +101,28 @@ stateDiagram-v2
 
 ---
 
+## 2.5 Sơ đồ trạng thái Private Tour Co-Design Feedback
+
+Với booking Private, khách hàng có thể tham gia co-design (tùy chỉnh lịch trình) thông qua việc tạo các yêu cầu (Feedback) trên từng ngày của lịch trình. Vòng đời của Feedback như sau:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending : Customer gửi yêu cầu
+    Pending --> ManagerForwarded : Manager duyệt & chuyển Operator
+    Pending --> ManagerRejected : Manager từ chối trực tiếp (nếu yêu cầu vô lý)
+    ManagerForwarded --> OperatorResponded : Operator phản hồi (có thể đổi final price)
+    OperatorResponded --> ManagerApproved : Manager duyệt phản hồi (Customer thấy được)
+    OperatorResponded --> ManagerRejected : Manager từ chối phản hồi (yêu cầu Operator làm lại)
+    ManagerRejected --> OperatorResponded : Operator phản hồi lại (vòng lặp)
+```
+
+**Quy tắc hiển thị (Visibility Gates):**
+- **Customer:** Chỉ thấy các feedback `Pending` của chính họ, và các phản hồi từ Operator ĐÃ được Manager duyệt (`ManagerApproved`).
+- **Manager:** Thấy toàn bộ, đóng vai trò kiểm duyệt nội dung và giá cả trước khi trình bày cho Customer.
+- **Operator:** Thấy các feedback đã được Manager chuyển (`ManagerForwarded`) và xử lý chúng.
+
+---
+
 ## 3. Luồng chi tiết từng bước
 
 ### BƯỚC 0: Manager tạo/sửa Tour (tiền điều kiện cho mọi instance)

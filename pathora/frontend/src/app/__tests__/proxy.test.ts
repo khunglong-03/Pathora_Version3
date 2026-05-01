@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 /**
- * Middleware routing logic tests.
+ * Proxy routing logic tests.
  *
- * These tests verify the routing decision logic used by middleware.
+ * These tests verify the routing decision logic used by proxy.
  * Since Next.js middleware runs in the Edge Runtime and cannot be directly
  * imported in vitest's jsdom environment, we test the routing helpers
- * from authRouting.ts which are what middleware uses for its decisions.
+ * from authRouting.ts which are what proxy uses for its decisions.
  *
- * The actual middleware() function should be tested via integration/E2E tests.
+ * The actual proxy() function should be tested via integration/E2E tests.
  */
 
 import {

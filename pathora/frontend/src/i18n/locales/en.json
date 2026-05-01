@@ -3533,6 +3533,13 @@
       "statusExpired": "Expired"
     },
     "privateCoDesign": {
+      "statusPending": "Pending",
+      "statusManagerForwarded": "Manager Forwarded",
+      "statusOperatorResponded": "Operator Responded",
+      "statusManagerApproved": "Manager Approved",
+      "statusManagerRejected": "Manager Rejected",
+      "statusCustomerAccepted": "Customer Accepted",
+      "statusCustomerRejected": "Customer Rejected",
       "pageTitle": "Itinerary co-design",
       "pageSubtitle": "Review each day and leave notes for your tour operator.",
       "operatorTitle": "Private tour co-design (operator)",

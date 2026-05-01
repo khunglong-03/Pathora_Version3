@@ -28,6 +28,16 @@ public sealed class TourItineraryFeedbackRepository(AppDbContext context) : ITou
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<TourItineraryFeedbackEntity>> ListByInstanceAsync(
+        Guid tourInstanceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.TourItineraryFeedbacks
+            .Where(f => f.TourInstanceId == tourInstanceId)
+            .OrderBy(f => f.CreatedOnUtc)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(TourItineraryFeedbackEntity entity, CancellationToken cancellationToken = default)
     {
         await _context.TourItineraryFeedbacks.AddAsync(entity, cancellationToken);

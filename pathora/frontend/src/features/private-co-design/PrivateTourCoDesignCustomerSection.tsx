@@ -19,6 +19,7 @@ export interface PrivateTourCoDesignCustomerSectionProps {
   bookingId: string;
   days: TourInstanceDayDto[];
   finalSellPrice?: number | null;
+  tourStatus?: string;
 }
 
 function fmtVnd(n: number) {
@@ -34,6 +35,7 @@ export function PrivateTourCoDesignCustomerSection({
   bookingId,
   days,
   finalSellPrice,
+  tourStatus,
 }: PrivateTourCoDesignCustomerSectionProps) {
   const { t } = useTranslation();
   const sortedDays = useMemo(
@@ -208,34 +210,59 @@ export function PrivateTourCoDesignCustomerSection({
                     ? "border-slate-200 bg-white"
                     : "border-orange-100 bg-orange-50/60"
                 }`}>
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    {f.isFromCustomer
+                      ? t("landing.privateCoDesign.fromYou", "Customer")
+                      : t("landing.privateCoDesign.fromOperator", "Operator")}
+                  </p>
+                  {f.isFromCustomer && f.status && (
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                        f.status === "Pending"
+                          ? "bg-stone-100 text-stone-600"
+                          : f.status === "ManagerApproved"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : f.status === "ManagerForwarded"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {t(`landing.privateCoDesign.status${f.status}`, f.status)}
+                    </span>
+                  )}
+                </div>
                 <p className="whitespace-pre-wrap text-slate-800">{f.content}</p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  {f.isFromCustomer
-                    ? t("landing.privateCoDesign.fromYou")
-                    : t("landing.privateCoDesign.fromOperator")}
-                </p>
               </li>
             ))}
           </ul>
         )}
 
         <div className="mt-4 flex flex-col gap-2">
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={t("landing.privateCoDesign.yourCommentPlaceholder")}
-            rows={3}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#fa8b02] focus:outline-none focus:ring-2 focus:ring-[#fa8b02]/25"
-          />
-          <button
-            type="button"
-            data-action="send-customer-feedback"
-            disabled={sending || !comment.trim()}
-            onClick={() => void submitCustomerComment()}
-            className="h-10 rounded-xl bg-zinc-900 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {t("landing.privateCoDesign.sendFeedback")}
-          </button>
+          {tourStatus && tourStatus !== "Draft" ? (
+            <div className="rounded-xl bg-slate-100 p-3 text-center text-xs text-slate-500">
+              {t("landing.privateCoDesign.lockedInput", "Tour đã chốt, bạn không thể gửi thêm phản hồi.")}
+            </div>
+          ) : (
+            <>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder={t("landing.privateCoDesign.yourCommentPlaceholder")}
+                rows={3}
+                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#fa8b02] focus:outline-none focus:ring-2 focus:ring-[#fa8b02]/25"
+              />
+              <button
+                type="button"
+                data-action="send-customer-feedback"
+                disabled={sending || !comment.trim()}
+                onClick={() => void submitCustomerComment()}
+                className="h-10 rounded-xl bg-zinc-900 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {t("landing.privateCoDesign.sendFeedback")}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </section>

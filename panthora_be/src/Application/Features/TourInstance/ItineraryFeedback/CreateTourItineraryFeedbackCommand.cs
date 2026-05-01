@@ -6,6 +6,7 @@ using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.ItineraryFeedback;
@@ -34,7 +35,9 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
     ITourItineraryFeedbackRepository feedbackRepository,
     IOwnershipValidator ownershipValidator,
     Domain.UnitOfWork.IUnitOfWork unitOfWork,
-    global::Contracts.Interfaces.IUser user)
+    global::Contracts.Interfaces.IUser user,
+    ILogger<CreateTourItineraryFeedbackCommandHandler> logger,
+    ITourInstanceNotificationBroadcaster? notifications = null)
     : IRequestHandler<CreateTourItineraryFeedbackCommand, ErrorOr<TourItineraryFeedbackDto>>
 {
     public async Task<ErrorOr<TourItineraryFeedbackDto>> Handle(
@@ -55,7 +58,9 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
             return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+#pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+#pragma warning restore CS0618
         var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
         if (request.IsFromCustomer)
@@ -91,9 +96,28 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
         await feedbackRepository.AddAsync(entity, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
+        if (request.IsFromCustomer && notifications != null)
+        {
+            try
+            {
+                await notifications.NotifyItineraryFeedbackEventAsync(
+                    request.TourInstanceId,
+                    entity.Id,
+                    "Pending",
+                    "admins", // Target admins or managers
+                    null,
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to broadcast notification for created feedback {FeedbackId}", entity.Id);
+            }
+        }
+
         return Map(entity);
     }
 
     private static TourItineraryFeedbackDto Map(TourItineraryFeedbackEntity f) =>
-        new(f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc);
+        new(f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc,
+            f.Status, f.ForwardedByManagerId, f.ForwardedAt, f.RespondedByOperatorId, f.RespondedAt, f.ApprovedByManagerId, f.ApprovedAt, f.RejectionReason, Convert.ToBase64String(f.RowVersion));
 }

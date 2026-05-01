@@ -3123,9 +3123,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(1000)");
 
                     b.Property<int>("TransportationApprovalStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasColumnType("integer");
 
                     b.Property<string>("TransportationName")
                         .HasMaxLength(300)
@@ -3622,6 +3620,12 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ApprovedByManagerId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("BookingId")
                         .HasColumnType("uuid");
 
@@ -3636,6 +3640,12 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedOnUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("ForwardedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ForwardedByManagerId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsFromCustomer")
                         .HasColumnType("boolean");
 
@@ -3644,6 +3654,24 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("LastModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RespondedByOperatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("TourInstanceDayId")
                         .HasColumnType("uuid");
@@ -3654,6 +3682,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("TourInstanceDayId");
 

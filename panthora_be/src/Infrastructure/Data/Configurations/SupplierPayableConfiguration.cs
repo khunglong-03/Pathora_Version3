@@ -50,5 +50,7 @@ public class SupplierPayableConfiguration : IEntityTypeConfiguration<SupplierPay
             .WithOne(x => x.SupplierPayable)
             .HasForeignKey(x => x.SupplierPayableId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(x => !x.Supplier.IsDeleted && x.Supplier.IsActive && (x.Supplier.Owner == null || x.Supplier.Owner.Status == Domain.Enums.UserStatus.Active));
     }
 }

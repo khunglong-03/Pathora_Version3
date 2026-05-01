@@ -50,11 +50,11 @@ export default function HomeClient() {
       <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
         <BoldWhyChooseUs />
       </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
-        <BoldCtaSection />
-      </Suspense>
       <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
         <BoldReviewsSection />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
+        <BoldCtaSection />
       </Suspense>
 
     </main>

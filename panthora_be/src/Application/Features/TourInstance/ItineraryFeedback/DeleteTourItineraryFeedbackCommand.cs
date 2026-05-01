@@ -54,7 +54,9 @@ public sealed class DeleteTourItineraryFeedbackCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+#pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+#pragma warning restore CS0618
         var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
         if (!isAssignedManager && !isAdmin && !isGlobalManager)

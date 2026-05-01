@@ -51,4 +51,12 @@ public interface ITourInstanceNotificationBroadcaster
         Guid tourInstanceId,
         string reason,
         CancellationToken ct = default);
+
+    Task NotifyItineraryFeedbackEventAsync(
+        Guid tourInstanceId,
+        Guid feedbackId,
+        string eventType,
+        string targetUserGroup,
+        string? reason = null,
+        CancellationToken ct = default);
 }

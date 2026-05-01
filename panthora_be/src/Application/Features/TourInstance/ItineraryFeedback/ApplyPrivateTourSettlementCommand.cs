@@ -60,7 +60,9 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
         var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+#pragma warning disable CS0618
         if (!isAdmin && !isGlobalManager && !PrivateTourCoDesignAccess.IsInstanceManager(instance, userId))
+#pragma warning restore CS0618
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
         if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Deposited && booking.Status != BookingStatus.Pending && booking.Status != BookingStatus.Confirmed && booking.Status != BookingStatus.PendingAdjustment)

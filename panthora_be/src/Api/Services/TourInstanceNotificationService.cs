@@ -142,4 +142,29 @@ public sealed class TourInstanceNotificationService(
             "Supplier released notification sent to supplier {SupplierId} for activity {ActivityId} of TourInstance {TourInstanceId} (reason: {Reason})",
             oldSupplierId, activityId, tourInstanceId, reason);
     }
+
+    public async Task NotifyItineraryFeedbackEventAsync(
+        Guid tourInstanceId,
+        Guid feedbackId,
+        string eventType,
+        string targetUserGroup,
+        string? reason = null,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            TourInstanceId = tourInstanceId,
+            FeedbackId = feedbackId,
+            Event = eventType,
+            Reason = reason
+        };
+
+        await _hubContext.Clients
+            .Group(targetUserGroup)
+            .SendAsync("ReceiveItineraryFeedbackEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Itinerary feedback event ({Event}) sent to {TargetGroup} for TourInstance {TourInstanceId}, Feedback {FeedbackId}",
+            eventType, targetUserGroup, tourInstanceId, feedbackId);
+    }
 }

@@ -36,10 +36,13 @@ public sealed class ListTourItineraryFeedbackQueryHandler(
             return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+#pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+#pragma warning restore CS0618
         var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
 
-        if (!isAssignedManager && !isAdmin && !isGlobalManager)
+        var isCustomer = !isAssignedManager && !isAdmin && !isGlobalManager;
+        if (isCustomer)
         {
             var onInstance = await bookingRepository.GetByTourInstanceIdAsync(request.TourInstanceId, cancellationToken);
             var ownsBooking = onInstance.Exists(b => b.UserId == userId);
@@ -52,8 +55,17 @@ public sealed class ListTourItineraryFeedbackQueryHandler(
             request.TourInstanceDayId,
             cancellationToken);
 
-        return items
-            .Select(f => new TourItineraryFeedbackDto(f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc))
+        var query = items.AsEnumerable();
+        if (isCustomer)
+        {
+            var currentUserIdStr = userId.ToString();
+            query = query.Where(f => f.Status >= TourItineraryFeedbackStatus.ManagerApproved || f.CreatedBy == currentUserIdStr);
+        }
+
+        return query
+            .Select(f => new TourItineraryFeedbackDto(
+                f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc,
+                f.Status, f.ForwardedByManagerId, f.ForwardedAt, f.RespondedByOperatorId, f.RespondedAt, f.ApprovedByManagerId, f.ApprovedAt, f.RejectionReason, Convert.ToBase64String(f.RowVersion)))
             .ToList();
     }
 }

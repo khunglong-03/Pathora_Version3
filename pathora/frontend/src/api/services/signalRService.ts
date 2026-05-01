@@ -36,6 +36,13 @@ export interface PaymentUpdate {
   paymentType?: string;
 }
 
+export interface ItineraryFeedbackEvent {
+  event: string;
+  tourInstanceId: string;
+  feedbackId: string;
+  reason: string;
+}
+
 type NotificationHandler = (notification: Notification) => void;
 type BookingUpdateHandler = (update: BookingUpdate) => void;
 type TourInstanceUpdateHandler = (update: TourInstanceUpdate) => void;
@@ -48,6 +55,7 @@ class SignalRService {
   private bookingUpdateHandlers: BookingUpdateHandler[] = [];
   private tourInstanceUpdateHandlers: TourInstanceUpdateHandler[] = [];
   private paymentUpdateHandlers: PaymentUpdateHandler[] = [];
+  private itineraryFeedbackHandlers: ((event: ItineraryFeedbackEvent) => void)[] = [];
   private connectedHandlers: ConnectionHandler[] = [];
   private disconnectedHandlers: ConnectionHandler[] = [];
   private isConnecting = false;
@@ -96,6 +104,10 @@ class SignalRService {
       // Task 4.3.1: ReceivePaymentUpdate event for real-time payment status
       this.connection.on("ReceivePaymentUpdate", (update: PaymentUpdate) => {
         this.paymentUpdateHandlers.forEach((handler) => handler(update));
+      });
+
+      this.connection.on("ReceiveItineraryFeedbackEvent", (event: ItineraryFeedbackEvent) => {
+        this.itineraryFeedbackHandlers.forEach((handler) => handler(event));
       });
 
       // Connection state handlers
@@ -177,6 +189,16 @@ class SignalRService {
       const index = this.paymentUpdateHandlers.indexOf(handler);
       if (index > -1) {
         this.paymentUpdateHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  onItineraryFeedbackEvent(handler: (event: ItineraryFeedbackEvent) => void): () => void {
+    this.itineraryFeedbackHandlers.push(handler);
+    return () => {
+      const index = this.itineraryFeedbackHandlers.indexOf(handler);
+      if (index > -1) {
+        this.itineraryFeedbackHandlers.splice(index, 1);
       }
     };
   }

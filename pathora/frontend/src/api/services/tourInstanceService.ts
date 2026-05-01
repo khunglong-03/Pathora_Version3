@@ -31,6 +31,9 @@ export interface TourItineraryFeedbackDto {
   bookingId?: string | null;
   content: string;
   isFromCustomer: boolean;
+  status: string;
+  rejectionReason?: string | null;
+  rowVersion: string;
   createdOnUtc: string;
 }
 
@@ -788,6 +791,46 @@ export const tourInstanceService = {
   ) => {
     const response = await api.delete<ApiResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.DELETE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  forwardItineraryFeedbackToOperator: async (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+    rowVersion: string,
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR(instanceId, dayId, feedbackId),
+      { rowVersion },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  managerApproveItineraryFeedback: async (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+    rowVersion: string,
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.MANAGER_APPROVE_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
+      { rowVersion },
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  managerRejectItineraryFeedback: async (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+    reason: string,
+    rowVersion: string,
+  ) => {
+    const response = await api.post<ApiResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.MANAGER_REJECT_ITINERARY_FEEDBACK(instanceId, dayId, feedbackId),
+      { reason, rowVersion },
     );
     return extractResult<unknown>(response.data);
   },
