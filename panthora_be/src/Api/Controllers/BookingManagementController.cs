@@ -352,7 +352,18 @@ public class BookingManagementController : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize));
+        Guid? managerId = null;
+        if (User.IsInRole("Manager") && !User.IsInRole("Admin"))
+        {
+            if (!Guid.TryParse(CurrentUserId, out var parsedManagerId))
+            {
+                return Unauthorized();
+            }
+
+            managerId = parsedManagerId;
+        }
+
+        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize, managerId));
         return HandleResult(result);
     }
 

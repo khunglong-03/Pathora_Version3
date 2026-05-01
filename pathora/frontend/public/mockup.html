@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-stone-100 p-8 flex items-center justify-center min-h-screen">
+
+    <!-- Modal Backdrop -->
+    <div class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        
+        <!-- Modal Container -->
+        <div class="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            
+            <!-- Modal Header -->
+            <div class="bg-stone-900 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Chi tiết yêu cầu tùy chỉnh</h2>
+                    <p class="text-stone-400 text-xs mt-1">Mã tour: <span class="text-amber-400 font-mono">T-2024-001</span></p>
+                </div>
+                <button class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                    <iconify-icon icon="heroicons:x-mark" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto text-stone-800">
+                
+                <!-- Basic Info Grid -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Tên Tour</label>
+                        <p class="text-stone-900 font-semibold">Khám phá Vịnh Hạ Long 3 ngày 2 đêm</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Trạng thái</label>
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Draft (Chờ xử lý)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Ngày khởi hành</label>
+                        <p class="text-stone-700 flex items-center gap-2">
+                            <iconify-icon icon="heroicons:calendar" class="text-stone-400"></iconify-icon>
+                            15/06/2026
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Số lượng khách</label>
+                        <p class="text-stone-700 flex items-center gap-2">
+                            <iconify-icon icon="heroicons:user-group" class="text-stone-400"></iconify-icon>
+                            06 người lớn, 02 trẻ em
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Customization Notes -->
+                <div class="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                        <iconify-icon icon="heroicons:chat-bubble-bottom-center-text" class="text-lg"></iconify-icon>
+                        Ghi chú từ khách hàng
+                    </div>
+                    <p class="text-stone-600 text-sm leading-relaxed italic">
+                        "Chúng tôi muốn yêu cầu thêm một bữa tối lãng mạn trên boong tàu vào đêm thứ 2. Ngoài ra, gia đình có người cao tuổi nên nhờ công ty sắp xếp phòng ở tầng thấp hoặc có thang máy thuận tiện. Vui lòng báo giá chi tiết phần phụ thu này."
+                    </p>
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-stone-900 flex items-center gap-2">
+                        <iconify-icon icon="heroicons:banknotes" class="text-stone-400 text-lg"></iconify-icon>
+                        Thông tin giá (Dự kiến)
+                    </h3>
+                    <div class="bg-stone-50 rounded-2xl p-4 space-y-3 border border-stone-100">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Giá cơ bản (Classification)</span>
+                            <span class="text-stone-900 font-medium">4.500.000 VND / khách</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-stone-500">Phụ phí tùy chỉnh</span>
+                            <span class="text-stone-900 font-medium">+ 1.200.000 VND</span>
+                        </div>
+                        <div class="pt-3 border-t border-stone-200 flex justify-between items-center">
+                            <span class="text-stone-900 font-bold">Tổng cộng</span>
+                            <span class="text-xl font-bold text-amber-600">37.200.000 VND</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-6 bg-stone-50 border-t border-stone-100 flex items-center justify-end gap-3">
+                <button class="px-6 py-2.5 rounded-xl text-sm font-bold text-stone-600 hover:bg-stone-200 transition-all">
+                    Đóng
+                </button>
+                <button class="px-8 py-2.5 rounded-xl text-sm font-bold bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center gap-2">
+                    Xử lý yêu cầu (Co-design)
+                    <iconify-icon icon="heroicons:arrow-right"></iconify-icon>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

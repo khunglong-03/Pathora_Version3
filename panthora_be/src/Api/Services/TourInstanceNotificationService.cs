@@ -167,4 +167,28 @@ public sealed class TourInstanceNotificationService(
             "Itinerary feedback event ({Event}) sent to {TargetGroup} for TourInstance {TourInstanceId}, Feedback {FeedbackId}",
             eventType, targetUserGroup, tourInstanceId, feedbackId);
     }
+
+    public async Task NotifyManagerNewCustomRequestAsync(
+        Guid tourInstanceId,
+        string tourName,
+        string customerName,
+        Guid targetManagerUserId,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            TourInstanceId = tourInstanceId,
+            TourName = tourName,
+            CustomerName = customerName,
+            Event = "NewCustomTourRequest"
+        };
+
+        await _hubContext.Clients
+            .Group($"user:{targetManagerUserId}")
+            .SendAsync("ReceiveCustomTourRequest", payload, ct);
+
+        _logger.LogDebug(
+            "New custom tour request notification sent to user {UserId} for TourInstance {TourInstanceId}",
+            targetManagerUserId, tourInstanceId);
+    }
 }

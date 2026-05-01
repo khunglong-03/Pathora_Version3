@@ -18,8 +18,8 @@ import {
 import { handleApiError } from "@/utils/apiResponse";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDate } from "@/utils/format";
-import { NormalizedTourInstanceVm, TourInstanceStats } from "@/types/tour";
-import { AdminSidebar, TopBar } from "./AdminSidebar";
+import { NormalizedTourInstanceDto, NormalizedTourInstanceVm } from "@/types/tour";
+import { getCookie } from "@/utils/cookie";
 
 /* ── Animation Variants ───────────────────────────────────── */
 const containerVariants = {
@@ -36,99 +36,11 @@ const itemVariants = {
   },
 };
 
-const AUTH_FAILURE_STATUSES = new Set([401, 403]);
 
-/* ══════════════════════════════════════════════════════════════
-   Stat Card
-   ══════════════════════════════════════════════════════════════ */
-interface StatCardProps {
-  label: string;
-  value: number;
-  accent: "stone" | "green" | "amber" | "red" | "purple";
-  icon: string;
-}
-
-function StatCard({ label, value, accent, icon }: StatCardProps) {
-  const configs = {
-    stone: {
-      bg: "bg-stone-100",
-      text: "text-stone-600",
-      border: "border-stone-300",
-    },
-    green: {
-      bg: "bg-emerald-50",
-      text: "text-emerald-600",
-      border: "border-emerald-400",
-    },
-    amber: {
-      bg: "bg-amber-50",
-      text: "text-amber-500",
-      border: "border-amber-400",
-    },
-    red: { bg: "bg-red-50", text: "text-red-500", border: "border-red-400" },
-    purple: {
-      bg: "bg-purple-50",
-      text: "text-purple-600",
-      border: "border-purple-400",
-    },
-  };
-  const c = configs[accent] || configs.stone;
-
-  return (
-    <motion.div
-      variants={itemVariants}
-      className={`relative overflow-hidden bg-white rounded-[2.5rem] border border-stone-200/50 p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] hover:-translate-y-1 shadow-[inset_0_1px_0_rgba(255,255,255,1)] group`}>
-      <div
-        className={`absolute -inset-1 blur-2xl opacity-10 transition-opacity duration-500 group-hover:opacity-30 ${c.bg} mix-blend-multiply`}
-      />
-      <div className="relative flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-stone-400">
-            {label}
-          </p>
-          <p className="text-4xl font-bold tracking-tight text-stone-900 mt-2 data-value">
-            {value}
-          </p>
-        </div>
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center ${c.bg} border border-white/50 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-          <Icon icon={icon} className={`size-6 ${c.text}`} />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 /* (TourStatusBadge imported from @/components/ui) */
 
-/* ══════════════════════════════════════════════════════════════
-   Participants Cell
-   ══════════════════════════════════════════════════════════════ */
-function ParticipantsCell({
-  registered,
-  max,
-}: {
-  registered: number;
-  max: number;
-}) {
-  const pct = max > 0 ? (registered / max) * 100 : 0;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <Icon icon="heroicons:user-group" className="size-4 text-stone-400" />
-        <span className="text-sm font-semibold text-stone-700 tracking-tight">
-          {registered}/{max}
-        </span>
-      </div>
-      <div className="w-24 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-500 rounded-full transition-all duration-300"
-          style={{ width: `${Math.min(pct, 100)}%` }}
-        />
-      </div>
-    </div>
-  );
-}
+const AUTH_FAILURE_STATUSES = new Set([401, 403]);
 
 /* ══════════════════════════════════════════════════════════════
    TourInstanceListPage - Main Export
@@ -153,32 +65,38 @@ export function CustomTourInstanceRequestListPage({
     [mounted, t],
   );
   const router = useRouter();
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [dataState, setDataState] = useState<InstanceListDataState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const debouncedSearchText = useDebounce(searchText, 300);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
   const [excludePast, setExcludePast] = useState(true);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [stats, setStats] = useState<TourInstanceStats>({
-    totalInstances: 0,
-    available: 0,
-    confirmed: 0,
-    soldOut: 0,
-    completed: 0,
-  });
   const pageSize = 10;
   const [reloadToken, setReloadToken] = useState(0);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [drawerDetail, setDrawerDetail] = useState<NormalizedTourInstanceDto | null>(null);
+  const [drawerLoading, setDrawerLoading] = useState(false);
 
   /* ── Fetch instances ─────────────────────────────────────── */
   useEffect(() => {
     let active = true;
     const doFetchInstances = async () => {
+      // Guard: skip if no auth tokens present at all (hard logout / expired session)
+      const hasToken = getCookie("access_token") || getCookie("refresh_token");
+      if (!hasToken) {
+        setInstances([]);
+        setDataState("error");
+        setErrorMessage(
+          safeT(
+            "tourInstance.form.error.authFailure",
+            "Your session does not have access to these tour instances. Please sign in again.",
+          ),
+        );
+        return;
+      }
       try {
         setDataState("loading");
         setErrorMessage(null);
@@ -194,13 +112,10 @@ export function CustomTourInstanceRequestListPage({
         if (!active) return;
         if (result) {
           const allInstances = result.data ?? [];
-          const filteredInstances =
-            visibilityFilter === "all"
-              ? allInstances
-              : allInstances.filter(
-                  (inst) =>
-                    inst.instanceType?.toLowerCase() === visibilityFilter,
-                );
+          // Force visibility to private since this is custom tour requests
+          const filteredInstances = allInstances.filter(
+            (inst) => inst.instanceType?.toLowerCase() === "private"
+          );
 
           setInstances(filteredInstances);
           setTotalItems(filteredInstances.length);
@@ -214,16 +129,19 @@ export function CustomTourInstanceRequestListPage({
         if (!active) return;
         const status = getTourInstanceRequestStatus(error);
         const handledError = handleApiError(error);
-        console.error("Failed to fetch tour instances:", handledError.message);
+        const isAuthError = AUTH_FAILURE_STATUSES.has(status ?? 0);
+        if (!isAuthError) {
+          console.error("Failed to fetch tour instances:", handledError.message);
+        }
         setInstances([]);
         setDataState("error");
         setErrorMessage(
-          AUTH_FAILURE_STATUSES.has(status ?? 0)
+          isAuthError
             ? safeT(
                 "tourInstance.form.error.authFailure",
                 "Your session does not have access to these tour instances. Please sign in again.",
               )
-            : handledError.message,
+            : safeT(handledError.message, "Unable to load tour instance data. Please try again."),
         );
       }
     };
@@ -234,30 +152,13 @@ export function CustomTourInstanceRequestListPage({
   }, [
     debouncedSearchText,
     statusFilter,
-    visibilityFilter,
     excludePast,
     pageSize,
     reloadToken,
-    safeT,
+    // safeT intentionally excluded: it changes on hydration (false→true) and
+    // would cause a duplicate fetch. It is only used for error display strings.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ]);
-
-  /* ── Fetch stats ──────────────────────────────────────────── */
-  useEffect(() => {
-    let statsActive = true;
-    const doFetchStats = async () => {
-      try {
-        const result = await tourInstanceService.getStats();
-        if (!statsActive) return;
-        if (result) setStats(result);
-      } catch {
-        /* Fallback */
-      }
-    };
-    void doFetchStats();
-    return () => {
-      statsActive = false;
-    };
-  }, [reloadToken]);
 
   /* ── Pagination ───────────────────────────────────────────── */
   const totalPages = Math.ceil(totalItems / pageSize);
@@ -282,51 +183,9 @@ export function CustomTourInstanceRequestListPage({
               Manage draft instances that have customer customization requests.
             </p>
           </div>
-          <button
-            onClick={() => router.push(role === "tour-operator" ? "/tour-operator/tour-instances/create" : "/manager/tour-instances/create")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 shrink-0">
-            <Icon icon="heroicons:plus" className="size-4" />
-            {safeT("tourInstance.createInstance", "Create Instance")}
-          </button>
         </motion.div>
 
-        {/* ── Stat Cards ─────────────────────────────────── */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard
-            label={safeT("tourInstance.totalInstances", "Total Instances")}
-            value={stats.totalInstances}
-            accent="stone"
-            icon="heroicons:calendar-days"
-          />
-          <StatCard
-            label={safeT("tourInstance.available", "Available")}
-            value={stats.available}
-            accent="green"
-            icon="heroicons:check-circle"
-          />
-          <StatCard
-            label={safeT("tourInstance.confirmed", "Confirmed")}
-            value={stats.confirmed}
-            accent="amber"
-            icon="heroicons:clipboard-document-check"
-          />
-          <StatCard
-            label={safeT("tourInstance.stats.soldOut", "Đã hết chỗ")}
-            value={stats.soldOut}
-            icon="heroicons:x-circle"
-            accent="red"
-          />
-          <StatCard
-            label={safeT("tourInstance.stats.completed", "Đã hoàn thành")}
-            value={stats.completed}
-            icon="heroicons:check-badge"
-            accent="purple"
-          />
-        </motion.div>
+
 
         {/* ── Search & Filter ────────────────────────────── */}
         <motion.div
@@ -370,15 +229,11 @@ export function CustomTourInstanceRequestListPage({
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">All Status</option>
-                <option value="draft">Draft / Request</option>
-                <option value="available">Available</option>
-                <option value="pendingapproval">Pending Approval</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="soldout">Sold Out</option>
-                <option value="inprogress">In Progress</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
+                <option value="all">Tất cả</option>
+                <option value="draft">Draft (Chờ xử lý)</option>
+                <option value="pendingadjustment">Pending Adjustment</option>
+                <option value="confirmed">Confirmed (Đã xác nhận)</option>
+                <option value="cancelled">Cancelled (Đã huỷ)</option>
               </select>
               <Icon
                 icon="heroicons:chevron-down"
@@ -390,24 +245,7 @@ export function CustomTourInstanceRequestListPage({
               />
             </div>
 
-            <div className="relative flex-1 md:flex-none min-w-[140px]">
-              <select
-                value={visibilityFilter}
-                onChange={(e) => setVisibilityFilter(e.target.value)}
-                className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
-                <option value="all">All Visibility</option>
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-              <Icon
-                icon="heroicons:chevron-down"
-                className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-              <Icon
-                icon="heroicons:eye"
-                className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
-              />
-            </div>
+
             
             <label className="flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
               <input 
@@ -524,178 +362,86 @@ export function CustomTourInstanceRequestListPage({
                   const isPublic =
                     inst.instanceType?.toLowerCase() === "public";
                   return (
-                    <motion.div
-                      variants={itemVariants}
-                      layout
-                      layoutId={`instance-${inst.id}`}
-                      key={inst.id}
-                      className="bg-white border border-stone-200/50 rounded-[2.5rem] p-4 sm:p-5 shadow-[0_12px_24px_-10px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col lg:flex-row gap-6 lg:items-center relative group filter-none">
-                      {/* 1. Media Zone */}
-                      <div className="relative w-full lg:w-32 h-44 lg:h-32 rounded-[1.5rem] overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0">
-                        {inst.thumbnail?.publicURL ? (
-                          <img
-                            src={inst.thumbnail.publicURL}
-                            alt={inst.title || inst.tourName}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Icon
-                              icon="heroicons:photo"
-                              className="size-8 text-stone-300"
-                            />
-                          </div>
-                        )}
-                        <div className="absolute top-2 left-2">
-                          <TourStatusBadge status={inst.status} />
-                        </div>
-                        <div className="absolute top-2 right-2 flex gap-1">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md ${isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"}`}>
-                            {isPublic
-                              ? safeT("tourInstance.public", "Public")
-                              : safeT("tourInstance.private", "Private")}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 2. Primary Info Node */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-center space-y-3">
-                        <div>
-                          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">
-                            {inst.tourInstanceCode}
-                          </p>
-                          <h3 className="text-lg md:text-xl font-bold text-stone-900 tracking-tight leading-tight line-clamp-2">
-                            {inst.title || inst.tourName}
-                          </h3>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-stone-600">
-                          <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1 rounded-lg border border-stone-200/60">
-                            <Icon
-                              icon="heroicons:map-pin"
-                              className="size-4 text-stone-400"
-                            />
-                            <span className="font-medium tracking-tight truncate max-w-[200px]">
-                              {inst.location || "N/A"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Icon
-                              icon="heroicons:swatch"
-                              className="size-4 text-stone-400"
-                            />
-                            <span className="truncate max-w-[150px]">
-                              {inst.tourName}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Icon
-                              icon="heroicons:tag"
-                              className="size-4 text-stone-400"
-                            />
-                            <span className="truncate max-w-[120px]">
-                              {inst.classificationName}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Provider Approval Badges */}
-                        {inst.status === "pendingapproval" && (
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
-                                inst.transportApprovalStatus === 2
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : inst.transportApprovalStatus === 3
-                                    ? "bg-red-50 text-red-700 border border-red-200"
-                                    : "bg-orange-50 text-orange-700 border border-orange-200"
-                              }`}>
-                              <Icon icon="heroicons:truck" className="size-3" />
-                              VT:{" "}
-                              {inst.transportApprovalStatus === 2
-                                ? "Đã duyệt"
-                                : inst.transportApprovalStatus === 3
-                                  ? "Từ chối"
-                                  : "Chờ duyệt"}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 3. Timeline / Meta Stack */}
-                      <div className="flex flex-row lg:flex-col gap-4 lg:gap-2 shrink-0 lg:w-48 xl:w-56 justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-stone-100 pt-4 lg:pt-0 lg:pl-6">
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
-                              <Icon
-                                icon="heroicons:calendar"
-                                className="size-3.5"
-                              />
-                              {safeT("tourInstance.departure", "Departure")}
-                            </span>
-                            <span className="font-semibold text-stone-800 tracking-tight">
-                              {formatDate(inst.startDate)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
-                              <Icon
-                                icon="heroicons:calendar-days"
-                                className="size-3.5"
-                              />
-                              {safeT("tourInstance.endDate", "End Date")}
-                            </span>
-                            <span className="font-semibold text-stone-800 tracking-tight">
-                              {formatDate(inst.endDate)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-stone-500">
-                            <span className="flex items-center gap-1.5">
-                              <Icon
-                                icon="heroicons:clock"
-                                className="size-3.5"
-                              />
-                              {safeT("tourInstance.duration", "Duration")}
-                            </span>
-                            <span className="font-medium text-stone-700">
-                              {inst.durationDays}{" "}
-                              {safeT("tourInstance.daysUnit", "ngày")}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mt-2 w-full">
-                          <ParticipantsCell
-                            registered={inst.currentParticipation}
-                            max={inst.maxParticipation}
-                          />
-                        </div>
-                      </div>
-
-                      {/* 4. Financial & CTA */}
-                      <div className="flex items-center justify-between lg:flex-col lg:items-end gap-4 shrink-0 lg:w-36 justify-center border-t lg:border-t-0 pt-4 lg:pt-0">
-                        <div className="text-left lg:text-right">
-                          <p className="text-xl md:text-2xl font-black text-amber-500 tracking-tighter leading-none mb-1">
-                            {formatCurrency(inst.basePrice)}
-                          </p>
-                          <p className="text-[10px] font-semibold tracking-wider text-stone-400 uppercase">
-                            {safeT("tourInstance.perPerson", "per person")}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() =>
-                            router.push(role === "tour-operator" ? `/tour-operator/tour-instances/${inst.id}` : `/manager/tour-instances/${inst.id}`)
+                      <motion.div
+                        variants={itemVariants}
+                        layout
+                        layoutId={`instance-${inst.id}`}
+                        key={inst.id}
+                        onClick={async () => {
+                          setSelectedInstanceId(inst.id);
+                          setDrawerDetail(null);
+                          setDrawerLoading(true);
+                          try {
+                            const detail = await tourInstanceService.getInstanceDetail(inst.id);
+                            setDrawerDetail(detail);
+                          } finally {
+                            setDrawerLoading(false);
                           }
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                          {safeT("common.viewDetails", "Details")}
-                          <Icon
-                            icon="heroicons:arrow-right"
-                            className="size-4 text-stone-400 group-hover/btn:text-amber-500 transition-colors"
-                          />
-                        </button>
-                      </div>
-                    </motion.div>
+                        }}
+                        className="bg-white border border-stone-200/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer group">
+                        
+                        <div className="flex items-start md:items-center gap-4 min-w-0">
+                          <div className="w-14 h-14 rounded-2xl shrink-0 overflow-hidden border border-stone-200/50 bg-amber-50">
+                            {inst.thumbnail?.publicURL ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={inst.thumbnail.publicURL}
+                                alt={inst.title || inst.tourName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-amber-600">
+                                <Icon icon="heroicons:document-text" className="w-7 h-7" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-3 mb-1.5">
+                              <h3 className="text-lg font-bold text-stone-900 truncate">
+                                {inst.title || inst.tourName}
+                              </h3>
+                              <TourStatusBadge status={inst.status} />
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
+                              <span className="font-medium text-stone-700">
+                                {inst.tourInstanceCode}
+                              </span>
+                              <span className="hidden sm:inline text-stone-300">•</span>
+                              <span className="flex items-center gap-1">
+                                <Icon icon="heroicons:calendar" className="w-4 h-4" />
+                                {formatDate(inst.startDate)}
+                              </span>
+                              <span className="hidden sm:inline text-stone-300">•</span>
+                              <span className="flex items-center gap-1">
+                                <Icon icon="heroicons:clock" className="w-4 h-4" />
+                                {inst.durationDays} ngày
+                              </span>
+                              <span className="hidden sm:inline text-stone-300">•</span>
+                              <span className="flex items-center gap-1">
+                                <Icon icon="heroicons:map-pin" className="w-4 h-4" />
+                                <span className="truncate max-w-[120px]">{inst.location || "N/A"}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between md:flex-col md:items-end gap-3 shrink-0 border-t md:border-t-0 border-stone-100 pt-3 md:pt-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-stone-600 bg-stone-50 px-3 py-1.5 rounded-lg border border-stone-200/50">
+                            <Icon icon="heroicons:user-group" className="w-4 h-4 text-stone-400" />
+                            {inst.maxParticipation} khách
+                          </div>
+                          
+                          <div className="text-sm font-semibold text-amber-600 flex items-center gap-1 group-hover:text-amber-700 transition-colors">
+                            {safeT("common.viewDetails", "Details")}
+                            <Icon
+                              icon="heroicons:arrow-right"
+                              className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
                   );
                 })}
               </AnimatePresence>
@@ -728,6 +474,148 @@ export function CustomTourInstanceRequestListPage({
           </div>
         )}
       </main>
+
+      {/* ── Detail Drawer ───────────────────────────────── */}
+      <AnimatePresence>
+        {selectedInstanceId && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+              onClick={() => { setSelectedInstanceId(null); setDrawerDetail(null); }}
+            />
+            {/* Panel */}
+            <motion.aside
+              key="drawer-panel"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed right-0 top-0 h-full w-full max-w-[480px] bg-white shadow-2xl z-50 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 shrink-0">
+                <span className="text-sm font-semibold text-stone-500 uppercase tracking-wider">Chi tiết yêu cầu</span>
+                <button
+                  onClick={() => { setSelectedInstanceId(null); setDrawerDetail(null); }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition-colors"
+                >
+                  <Icon icon="heroicons:x-mark" className="size-5 text-stone-500" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto">
+                {drawerLoading && (
+                  <div className="flex flex-col items-center justify-center h-64 gap-3">
+                    <div className="w-10 h-10 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm text-stone-400">Đang tải...</p>
+                  </div>
+                )}
+
+                {!drawerLoading && drawerDetail && (
+                  <div className="p-6 space-y-6">
+                    {/* Hero image */}
+                    <div className="w-full h-48 rounded-2xl overflow-hidden bg-stone-100">
+                      {drawerDetail.thumbnail?.publicURL ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={drawerDetail.thumbnail.publicURL} alt={drawerDetail.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-stone-300">
+                          <Icon icon="heroicons:photo" className="size-16" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Title + status */}
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3">
+                        <h2 className="text-xl font-bold text-stone-900 flex-1 leading-snug">{drawerDetail.title || drawerDetail.tourName}</h2>
+                        <TourStatusBadge status={drawerDetail.status} />
+                      </div>
+                      <p className="text-sm text-stone-400 font-mono">{drawerDetail.tourInstanceCode}</p>
+                    </div>
+
+                    {/* Info grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { icon: "heroicons:calendar", label: "Ngày khởi hành", value: formatDate(drawerDetail.startDate) },
+                        { icon: "heroicons:calendar-days", label: "Ngày kết thúc", value: formatDate(drawerDetail.endDate) },
+                        { icon: "heroicons:clock", label: "Thời gian", value: `${drawerDetail.durationDays} ngày` },
+                        { icon: "heroicons:user-group", label: "Số khách", value: `${drawerDetail.currentParticipation}/${drawerDetail.maxParticipation}` },
+                        { icon: "heroicons:map-pin", label: "Địa điểm", value: drawerDetail.location || "N/A" },
+                        { icon: "heroicons:banknotes", label: "Giá cơ bản", value: new Intl.NumberFormat("vi-VN").format(drawerDetail.basePrice) + " ₫" },
+                      ].map(({ icon, label, value }) => (
+                        <div key={label} className="bg-stone-50 rounded-xl p-3 space-y-1">
+                          <div className="flex items-center gap-1.5 text-xs text-stone-400">
+                            <Icon icon={icon} className="size-3.5" />
+                            {label}
+                          </div>
+                          <p className="text-sm font-semibold text-stone-800 truncate">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Customization notes */}
+                    {drawerDetail.customizationNotes && (
+                      <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                          <Icon icon="heroicons:chat-bubble-left-ellipsis" className="size-4" />
+                          Ghi chú tuỳ chỉnh từ khách
+                        </div>
+                        <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{drawerDetail.customizationNotes}</p>
+                      </div>
+                    )}
+
+                    {/* Final price */}
+                    {drawerDetail.finalSellPrice != null && (
+                      <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                        <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Giá chốt (co-design)</p>
+                        <p className="text-lg font-bold text-green-700">{new Intl.NumberFormat("vi-VN").format(drawerDetail.finalSellPrice)} ₫</p>
+                      </div>
+                    )}
+
+                    {/* Included services */}
+                    {drawerDetail.includedServices?.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Dịch vụ bao gồm</p>
+                        <div className="flex flex-wrap gap-2">
+                          {drawerDetail.includedServices.map((s) => (
+                            <span key={s} className="px-2.5 py-1 bg-stone-100 text-stone-700 text-xs rounded-lg">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {!drawerLoading && drawerDetail && (
+                <div className="shrink-0 border-t border-stone-100 p-4 flex gap-3">
+                  <button
+                    onClick={() => { setSelectedInstanceId(null); setDrawerDetail(null); }}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 text-sm font-medium text-stone-600 hover:bg-stone-50 transition-colors"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    onClick={() => router.push(role === "tour-operator" ? `/tour-operator/custom-tour-requests/${drawerDetail.id}` : `/manager/dashboard/custom-tour-requests/${drawerDetail.id}`)}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                  >
+                    Xem đầy đủ
+                    <Icon icon="heroicons:arrow-top-right-on-square" className="size-4" />
+                  </button>
+                </div>
+              )}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

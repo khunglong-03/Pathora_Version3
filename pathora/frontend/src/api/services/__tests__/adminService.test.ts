@@ -74,6 +74,44 @@ describe("adminService", () => {
     });
   });
 
+  describe("getBookings", () => {
+    it("returns bookings from wrapped result items and normalizes backend fields", async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        data: {
+          success: true,
+          result: {
+            items: [
+              {
+                id: "booking-1",
+                customerName: "Nguyen Van A",
+                tourName: "Ha Long Bay",
+                departureDate: "2026-05-10T00:00:00Z",
+                totalPrice: 2500,
+                status: "Confirmed",
+              },
+            ],
+            totalCount: 1,
+          },
+        },
+      } as never);
+
+      const result = await adminService.getBookings();
+
+      expect(result).toEqual([
+        {
+          id: "booking-1",
+          customerName: "Nguyen Van A",
+          tourName: "Ha Long Bay",
+          departureDate: "2026-05-10T00:00:00Z",
+          totalPrice: 2500,
+          amount: 2500,
+          status: "confirmed",
+        },
+      ]);
+      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.BOOKING.GET_LIST);
+    });
+  });
+
   describe("getTransportProviders", () => {
     it("returns paginated transport provider list", async () => {
       const mockData = {

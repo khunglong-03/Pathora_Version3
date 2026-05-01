@@ -2119,11 +2119,11 @@ export default function TourInstanceDetailPage() {
                         {t("tourInstance.basePrice", "Base Price")} *
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500">VND</span>
                         <input
                           type="number"
                           min={0}
-                          className={`${inputClassName} pl-7`}
+                          className={`${inputClassName} pl-14`}
                           value={form.basePrice}
                           onChange={(event) => updateField("basePrice", event.target.value)}
                         />

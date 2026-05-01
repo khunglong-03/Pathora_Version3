@@ -46,7 +46,9 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
-        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+        var isGlobalManager = user.Roles.Any(r => 
+            string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
         var isOperator = PrivateTourCoDesignAccess.EnsureInstanceOperatorOnly(instance, userId);
         
         if (!isAdmin && !isGlobalManager && !isOperator && !PrivateTourCoDesignAccess.EnsureInstanceManagerOnly(instance, userId))

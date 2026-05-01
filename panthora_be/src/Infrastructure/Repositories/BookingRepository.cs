@@ -1,5 +1,6 @@
 using Domain.Common.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,6 +82,56 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
+            .AsSplitQuery();
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(b => b.BookingDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedForManagerAsync(
+        Guid managerId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var designerIds = await _context.TourManagerAssignments
+            .AsNoTracking()
+            .Where(a => a.TourManagerId == managerId
+                        && a.AssignedEntityType == AssignedEntityType.TourOperator
+                        && a.AssignedUserId != null)
+            .Select(a => a.AssignedUserId!.Value)
+            .ToListAsync(cancellationToken);
+
+        if (!designerIds.Contains(managerId))
+        {
+            designerIds.Add(managerId);
+        }
+
+        var allowedTourIds = _context.Tours
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                        && t.TourOperatorId.HasValue
+                        && designerIds.Contains(t.TourOperatorId.Value))
+            .Select(t => t.Id);
+
+        var allowedInstanceIds = _context.TourInstanceManagers
+            .AsNoTracking()
+            .Where(m => m.UserId == managerId)
+            .Select(m => m.TourInstanceId);
+
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.TourInstance)
+            .Include(b => b.User)
+            .Where(b => !b.TourInstance.IsDeleted
+                        && (allowedTourIds.Contains(b.TourInstance.TourId)
+                            || allowedInstanceIds.Contains(b.TourInstanceId)))
             .AsSplitQuery();
 
         var totalCount = await query.CountAsync(cancellationToken);

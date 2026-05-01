@@ -18,7 +18,7 @@ import type {
   TransportProviderStats,
   DriverActivity,
 } from "@/types/admin";
-import { extractData, extractResult } from "@/utils/apiResponse";
+import { extractData, extractItems, extractResult } from "@/utils/apiResponse";
 import { type TourManagerSummary } from "./tourManagerAssignmentService";
 import type { CreateVehicleDto, UpdateVehicleDto, Vehicle } from "./transportProviderService";
 
@@ -43,6 +43,7 @@ export interface AdminBooking {
   departureDate?: string;
   departure?: string;
   amount?: number;
+  totalPrice?: number;
   status: string;
 }
 
@@ -78,6 +79,20 @@ export interface UpdateStaffRequest {
   password?: string;
 }
 
+const normalizeAdminBookingStatus = (status: string | undefined): AdminBooking["status"] => {
+  switch ((status ?? "pending").toLowerCase()) {
+    case "confirmed":
+    case "deposited":
+    case "paid":
+    case "completed":
+      return "confirmed";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "pending";
+  }
+};
+
 export const adminService = {
   getOverview: async () => {
     const response = await api.get<ApiResponse<AdminOverview>>(
@@ -97,8 +112,11 @@ export const adminService = {
 
   getBookings: async (): Promise<AdminBooking[]> => {
     const response = await api.get(API_ENDPOINTS.BOOKING.GET_LIST);
-    const items = (response.data as { items?: AdminBooking[] }).items;
-    return Array.isArray(items) ? items : [];
+    return extractItems<AdminBooking>(response.data).map((booking) => ({
+      ...booking,
+      amount: booking.amount ?? booking.totalPrice ?? 0,
+      status: normalizeAdminBookingStatus(booking.status),
+    }));
   },
 
   getAllUsers: async (params: GetAllUsersParams = {}) => {

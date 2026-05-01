@@ -39,7 +39,9 @@ public sealed class ListTourItineraryFeedbackQueryHandler(
 #pragma warning disable CS0618
         var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
 #pragma warning restore CS0618
-        var isGlobalManager = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+        var isGlobalManager = user.Roles.Any(r => 
+            string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
 
         var isCustomer = !isAssignedManager && !isAdmin && !isGlobalManager;
         if (isCustomer)

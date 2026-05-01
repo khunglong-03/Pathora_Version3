@@ -1239,7 +1239,7 @@ export function TourDetailPage() {
   };
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(amount);
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
 
   /* ── Collect all routes from selected package ─────────────── */
   const allRoutes =

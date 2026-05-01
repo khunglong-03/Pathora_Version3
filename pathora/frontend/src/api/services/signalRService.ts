@@ -43,10 +43,18 @@ export interface ItineraryFeedbackEvent {
   reason: string;
 }
 
+export interface CustomTourRequestUpdate {
+  tourInstanceId: string;
+  tourName: string;
+  customerName: string;
+  event: string;
+}
+
 type NotificationHandler = (notification: Notification) => void;
 type BookingUpdateHandler = (update: BookingUpdate) => void;
 type TourInstanceUpdateHandler = (update: TourInstanceUpdate) => void;
 type PaymentUpdateHandler = (update: PaymentUpdate) => void;
+type CustomTourRequestHandler = (update: CustomTourRequestUpdate) => void;
 type ConnectionHandler = () => void;
 
 class SignalRService {
@@ -56,6 +64,7 @@ class SignalRService {
   private tourInstanceUpdateHandlers: TourInstanceUpdateHandler[] = [];
   private paymentUpdateHandlers: PaymentUpdateHandler[] = [];
   private itineraryFeedbackHandlers: ((event: ItineraryFeedbackEvent) => void)[] = [];
+  private customTourRequestHandlers: CustomTourRequestHandler[] = [];
   private connectedHandlers: ConnectionHandler[] = [];
   private disconnectedHandlers: ConnectionHandler[] = [];
   private isConnecting = false;
@@ -108,6 +117,10 @@ class SignalRService {
 
       this.connection.on("ReceiveItineraryFeedbackEvent", (event: ItineraryFeedbackEvent) => {
         this.itineraryFeedbackHandlers.forEach((handler) => handler(event));
+      });
+
+      this.connection.on("ReceiveCustomTourRequest", (update: CustomTourRequestUpdate) => {
+        this.customTourRequestHandlers.forEach((handler) => handler(update));
       });
 
       // Connection state handlers
@@ -201,6 +214,20 @@ class SignalRService {
         this.itineraryFeedbackHandlers.splice(index, 1);
       }
     };
+  }
+
+  onCustomTourRequest(handler: CustomTourRequestHandler): () => void {
+    this.customTourRequestHandlers.push(handler);
+    return () => {
+      this.offCustomTourRequest(handler);
+    };
+  }
+
+  offCustomTourRequest(handler: CustomTourRequestHandler): void {
+    const index = this.customTourRequestHandlers.indexOf(handler);
+    if (index > -1) {
+      this.customTourRequestHandlers.splice(index, 1);
+    }
   }
 
   onConnected(handler: ConnectionHandler): () => void {

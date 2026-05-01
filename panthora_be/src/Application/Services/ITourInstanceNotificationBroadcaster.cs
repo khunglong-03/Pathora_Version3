@@ -59,4 +59,11 @@ public interface ITourInstanceNotificationBroadcaster
         string targetUserGroup,
         string? reason = null,
         CancellationToken ct = default);
+
+    Task NotifyManagerNewCustomRequestAsync(
+        Guid tourInstanceId,
+        string tourName,
+        string customerName,
+        Guid targetManagerUserId,
+        CancellationToken ct = default);
 }

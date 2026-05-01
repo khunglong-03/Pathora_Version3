@@ -33,6 +33,8 @@ import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
 import { AdminLogoutButton } from "./AdminLogoutButton";
 import { useTranslation } from "react-i18next";
+import { signalRService, CustomTourRequestUpdate } from "@/api/services/signalRService";
+import { toast } from "react-toastify";
 
 /* ══════════════════════════════════════════════════════════════
    Navigation Items - Single Source of Truth
@@ -364,6 +366,17 @@ export function AdminSidebar({
     if (variant === "manager") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadPendingCount();
+
+      const handleCustomRequest = (update: CustomTourRequestUpdate) => {
+        toast.info(`Yêu cầu Custom Tour mới từ ${update.customerName}`);
+        setPendingCount((prev) => prev + 1);
+        window.dispatchEvent(new CustomEvent("refresh-tour-requests"));
+      };
+
+      const unsubscribe = signalRService.onCustomTourRequest(handleCustomRequest);
+      return () => {
+        unsubscribe();
+      };
     }
     if (variant === "provider") {
       // eslint-disable-next-line react-hooks/set-state-in-effect

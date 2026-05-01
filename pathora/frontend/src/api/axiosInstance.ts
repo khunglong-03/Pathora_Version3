@@ -6,7 +6,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { ToastPosition } from "react-toastify";
-import { handleResponseError, waitForRetry } from "./responseInterceptor";
+import {
+  handleResponseError,
+  waitForRetry,
+  type RetryableRequestConfig,
+} from "./responseInterceptor";
 import { showErrorToast } from "./showErrorToast";
 import { getCurrentApiLanguage } from "./languageHeader";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
@@ -93,8 +97,13 @@ const attachInterceptors = (instance: AxiosInstance): void => {
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       const token = getCookie("access_token");
+      const isAuthRetry = (config as RetryableRequestConfig).__isAuthRequest === true;
 
-      if (token) {
+      // On post-refresh retry, responseInterceptor has already attached the freshly
+      // rotated bearer token. Don't overwrite it from the cookie — the cookie may
+      // still hold the stale token if the write hasn't propagated, which would cause
+      // the retry to 401 again and bounce the user to /?login=true&next=...
+      if (token && !isAuthRetry) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       config.headers["Accept-Language"] = getCurrentApiLanguage();

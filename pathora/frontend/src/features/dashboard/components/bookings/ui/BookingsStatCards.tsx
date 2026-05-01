@@ -3,6 +3,7 @@ import Card from "@/components/ui/Card";
 import { Icon } from "@/components/ui";
 import type { AdminBooking } from "@/api/services/adminService";
 import { CSS } from "../BookingsPageData";
+import { formatCurrency } from "@/utils/format";
 import { Reveal, SpringCard, CardShell, Eyebrow, BreathingDot } from "./BookingsShell";
 
 interface StatCardConfig {
@@ -91,11 +92,11 @@ export function buildStatCards(
     },
     {
       label: t("bookings.stat.totalRevenue"),
-      value: `$${totalRevenue.toLocaleString()}`,
+      value: formatCurrency(totalRevenue),
       accent: CSS.accent,
       accentMuted: "var(--accent-muted)",
       accentBorder: "var(--warning-border)",
-      icon: "heroicons:currency-dollar",
+      icon: "heroicons:banknotes",
       delay: 2,
       liveIndicator: true,
     },

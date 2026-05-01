@@ -58,8 +58,9 @@ export function createBaseQueryWithReauth(
       return result;
     }
 
+    let refreshedToken: string | null = null;
     try {
-      await refreshAccessToken();
+      refreshedToken = await refreshAccessToken();
     } catch {
       // Không xóa session — redirect về login để user re-authenticate.
       // Strip stale `login`/`next` so repeated 401s don't nest
@@ -84,7 +85,17 @@ export function createBaseQueryWithReauth(
       return result;
     }
 
-    result = await baseQuery(args, api, extraOptions);
+    // Force the freshly rotated bearer onto the retry rather than re-reading
+    // from the cookie — if the cookie write hasn't propagated, prepareHeaders
+    // would attach the stale token and the retry would 401 again, bouncing
+    // the user to /?login=true&next=...
+    const retryArgs: FetchArgs =
+      typeof args === "string" ? { url: args } : { ...args };
+    retryArgs.headers = {
+      ...(retryArgs.headers as Record<string, string> | undefined),
+      Authorization: `Bearer ${refreshedToken}`,
+    };
+    result = await baseQuery(retryArgs, api, extraOptions);
     return result;
   };
 }

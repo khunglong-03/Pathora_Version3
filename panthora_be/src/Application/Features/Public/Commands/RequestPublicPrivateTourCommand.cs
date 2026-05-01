@@ -114,7 +114,8 @@ public sealed class RequestPublicPrivateTourCommandHandler(
     IPricingPolicyRepository pricingPolicyRepository,
     IDepositPolicyRepository depositPolicyRepository,
     IUserRepository userRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ITourInstanceNotificationBroadcaster notificationBroadcaster)
     : ICommandHandler<RequestPublicPrivateTourCommand, ErrorOr<CheckoutPriceResponse>>
 {
     public async Task<ErrorOr<CheckoutPriceResponse>> Handle(
@@ -233,6 +234,16 @@ public sealed class RequestPublicPrivateTourCommandHandler(
 
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        if (tour.TourOperatorId.HasValue)
+        {
+            await notificationBroadcaster.NotifyManagerNewCustomRequestAsync(
+                tourInstance.Id,
+                tourInstance.TourName,
+                request.CustomerName,
+                tour.TourOperatorId.Value,
+                cancellationToken);
+        }
 
         var tourScope = tour.TourScope;
         var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);

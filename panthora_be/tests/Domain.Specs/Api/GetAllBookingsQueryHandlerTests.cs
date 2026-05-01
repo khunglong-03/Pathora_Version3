@@ -58,6 +58,25 @@ public sealed class GetAllBookingsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenManagerIdIsProvided_ShouldReturnManagerScopedBookings()
+    {
+        var managerId = Guid.CreateVersion7();
+        _bookingRepository.GetPagedForManagerAsync(managerId, 2, 10)
+            .Returns((new List<BookingEntity>(), 0));
+
+        var result = await _handler.Handle(
+            new GetAllBookingsQuery(Page: 2, PageSize: 10, ManagerId: managerId),
+            CancellationToken.None);
+
+        var listResult = Assert.IsType<ErrorOr<AdminBookingListResult>>(result);
+        Assert.False(listResult.IsError);
+        Assert.Empty(listResult.Value.Items);
+
+        await _bookingRepository.Received(1).GetPagedForManagerAsync(managerId, 2, 10);
+        await _bookingRepository.DidNotReceive().GetAllPagedAsync(Arg.Any<int>(), Arg.Any<int>());
+    }
+
+    [Fact]
     public async Task Handle_WhenPageSizeExceeds100_ShouldCapTo100()
     {
         _bookingRepository.GetAllPagedAsync(1, 100)
