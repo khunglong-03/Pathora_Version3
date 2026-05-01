@@ -52,23 +52,38 @@ export const SearchBar = ({
         <div className="flex items-center gap-3">
           {/* Search Input */}
           <form
-            className="relative flex-1"
+            className="relative flex-1 group"
             onSubmit={(e) => {
               e.preventDefault();
               onSearchSubmit();
             }}
           >
-            <Icon
-              icon="heroicons-outline:search"
-              className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-landing-body"
-            />
-            <TextInput
-              type="text"
-              value={searchText}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={safeT("landing.tourDiscovery.searchFullPlaceholder", "Search tours, destinations, activities...")}
-              className="!h-14 !bg-white/80 backdrop-blur-md !border-none !rounded-2xl !pl-14 !pr-6 text-base !text-landing-heading shadow-sm placeholder:!text-slate-400 focus:!ring-2 focus:!ring-[#fa8b02]/30 transition-all"
-            />
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-[1.5rem] blur opacity-0 group-hover:opacity-100 transition duration-500" />
+            <div className="relative flex items-center p-1.5 rounded-[1.25rem] border border-slate-200 bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-[#fa8b02]/30 focus-within:border-[#fa8b02] transition-all">
+              <div className="flex-1 w-full relative flex items-center h-11">
+                <Icon
+                  icon="heroicons-outline:search"
+                  className="absolute left-4 text-slate-400 w-5 h-5"
+                />
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder={safeT("landing.tourDiscovery.searchFullPlaceholder", "Search tours, destinations, activities...")}
+                  className="w-full h-full bg-transparent text-slate-900 placeholder:text-slate-400 pl-11 pr-4 outline-none border-none text-[15px] font-medium"
+                />
+              </div>
+
+              <div className="shrink-0">
+                <button
+                  type="submit"
+                  className="h-11 px-6 bg-[#fa8b02] text-white font-semibold rounded-xl hover:bg-[#e67a00] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span className="hidden sm:inline">{safeT("landing.hero.exploreTours", "Search")}</span>
+                  <Icon icon="heroicons-outline:arrow-right" className="w-4 h-4 sm:hidden" />
+                </button>
+              </div>
+            </div>
           </form>
 
           {/* Filter Button (Mobile only — sidebar always visible on desktop) */}

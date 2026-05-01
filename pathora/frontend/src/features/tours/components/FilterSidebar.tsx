@@ -4,7 +4,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
-import { CustomizeBanner } from "./CustomizeBanner";
 import type { TourDiscoveryInstanceType } from "@/utils/tourDiscoveryFilters";
 
 interface FilterOption {
@@ -248,10 +247,6 @@ export const FilterSidebar = ({
           />
         </FilterSection>
 
-        {/* Customize Banner */}
-        <div className="mt-6">
-          <CustomizeBanner />
-        </div>
       </div>
     </aside>
   );

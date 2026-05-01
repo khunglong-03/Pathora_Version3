@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Transition, TransitionChild } from "@headlessui/react";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
-import { CustomizeBanner } from "./CustomizeBanner";
 import type { TourDiscoveryInstanceType } from "@/utils/tourDiscoveryFilters";
 
 interface FilterOption {
@@ -185,10 +184,6 @@ export const FilterDrawer = ({
                 </div>
               </div>
 
-              {/* Customize Banner */}
-              <div className="mt-8">
-                <CustomizeBanner />
-              </div>
             </div>
 
             {/* Footer */}

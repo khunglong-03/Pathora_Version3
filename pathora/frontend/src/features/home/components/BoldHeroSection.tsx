@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { MapPinIcon, ArrowRight } from "@phosphor-icons/react";
+import { MapPinIcon, ArrowRightIcon } from "@phosphor-icons/react";
 import { motion, Variants } from "framer-motion";
 import { homeService } from "@/api/services/homeService";
 import { getFallbackImage } from "@/utils/imageFallback";
@@ -145,7 +145,7 @@ export const BoldHeroSection = () => {
                   className="w-full sm:w-auto h-12 px-8 bg-white text-stone-950 font-bold tracking-wide rounded-[1.5rem] hover:bg-stone-200 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:scale-[0.98]"
                 >
                   <span suppressHydrationWarning>{t("landing.hero.exploreTours") || "Explore"}</span>
-                  <ArrowRight size={16} weight="bold" />
+                  <ArrowRightIcon size={16} weight="bold" />
                 </button>
               </div>
             </div>
@@ -160,42 +160,59 @@ export const BoldHeroSection = () => {
           className="lg:col-span-6 h-full w-full relative pl-0 lg:pl-12 hidden md:block"
         >
           {tours.length >= 3 && (
-            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[650px]">
-              {/* Primary Large Card */}
-              <motion.div variants={staggerItem} className="col-span-1 row-span-2 relative group h-full">
-                <div className="absolute inset-0 rounded-[2rem] overflow-hidden bg-stone-900 border border-white/10 shadow-2xl">
-                  <div className="relative w-full h-full flex flex-col justify-end">
-                    <img src={tours[0].image} alt={tours[0].name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105 opacity-90 group-hover:opacity-100" />
-                    {/* Smoother gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
-                    <div className="relative z-10 p-8">
-                      <div className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-max mb-4 border border-white/20">
-                        {tours[0].location}
-                      </div>
-                      <h3 className="text-3xl font-bold text-white tracking-tight leading-tight drop-shadow-md">
-                        {tours[0].name || "Exclusive Escape"}
-                      </h3>
-                    </div>
+            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-[600px]">
+              
+              {/* Primary Large Card (Left) */}
+              <motion.div variants={staggerItem} className="col-span-1 row-span-2 relative group h-full rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900">
+                <img 
+                  src={tours[0].image} 
+                  alt={tours[0].name} 
+                  className="absolute inset-0 transition-transform duration-[3s] group-hover:scale-105"
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute bottom-8 left-0 w-full px-6 z-10">
+                  <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-max mb-3 border border-white/20">
+                    {tours[0].location}
                   </div>
+                  <h3 className="text-2xl lg:text-3xl font-bold text-white tracking-tight leading-tight drop-shadow-md">
+                    {tours[0].name}
+                  </h3>
                 </div>
               </motion.div>
 
-              {/* Secondary Stacked Cards */}
-              {tours.slice(1, 3).map((tour) => (
-                <motion.div variants={staggerItem} key={tour.id} className="col-span-1 row-span-1 relative group h-full">
-                  <div className="absolute inset-0 rounded-[2rem] overflow-hidden bg-stone-900 border border-white/10 shadow-2xl">
-                    <div className="relative w-full h-full flex flex-col justify-end">
-                      <img src={tour.image} alt={tour.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105 opacity-90 group-hover:opacity-100" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
-                      <div className="relative z-10 p-6">
-                        <h3 className="text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md">
-                          {tour.name || "Discovery Expedition"}
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              {/* Secondary Top Card (Right Top) */}
+              <motion.div variants={staggerItem} className="col-span-1 row-span-1 relative group h-full rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900">
+                <img 
+                  src={tours[1].image} 
+                  alt={tours[1].name} 
+                  className="absolute inset-0 transition-transform duration-[3s] group-hover:scale-105"
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute bottom-6 left-0 w-full px-5 z-10">
+                  <h3 className="text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md">
+                    {tours[1].name}
+                  </h3>
+                </div>
+              </motion.div>
+
+              {/* Secondary Bottom Card (Right Bottom) */}
+              <motion.div variants={staggerItem} className="col-span-1 row-span-1 relative group h-full rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900">
+                <img 
+                  src={tours[2].image} 
+                  alt={tours[2].name} 
+                  className="absolute inset-0 transition-transform duration-[3s] group-hover:scale-105"
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute bottom-6 left-0 w-full px-5 z-10">
+                  <h3 className="text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md">
+                    {tours[2].name}
+                  </h3>
+                </div>
+              </motion.div>
+
             </div>
           )}
         </motion.div>
