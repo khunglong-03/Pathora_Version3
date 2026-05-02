@@ -15,7 +15,7 @@ import Icon from "@/components/ui/Icon";
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   Admin: { bg: "#FEE2E2", text: "#DC2626" },
   Manager: { bg: "#FEF3C7", text: "#C9873A" },
-  TourDesigner: { bg: "#EDE9FE", text: "#7C3AED" },
+  TourOperator: { bg: "#EDE9FE", text: "#7C3AED" },
   TourGuide: { bg: "#DBEAFE", text: "#2563EB" },
   Customer: { bg: "#F3F4F6", text: "#6B7280" },
   Transport: { bg: "#CCFBF1", text: "#0D9488" },

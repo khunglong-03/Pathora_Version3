@@ -48,4 +48,5 @@ public interface ITourRepository
     Task<decimal> GetTotalDistanceKm(CancellationToken cancellationToken = default);
     Task<List<string>> GetAllDestinations(CancellationToken cancellationToken = default);
     Task<TourPlanLocationEntity?> FindLocationByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> HasActiveBookings(Guid tourId, CancellationToken cancellationToken = default);
 }

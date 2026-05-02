@@ -3,10 +3,11 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
 
-public sealed record DeleteRoleCommand(int RoleId)
+public sealed record DeleteRoleCommand([property: JsonPropertyName("roleId")] int RoleId)
     : ICommand<ErrorOr<Success>>;
 
 public sealed class DeleteRoleCommandHandler(IRoleService roleService)

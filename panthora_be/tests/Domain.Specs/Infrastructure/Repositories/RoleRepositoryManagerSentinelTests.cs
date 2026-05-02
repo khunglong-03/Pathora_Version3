@@ -1,9 +1,9 @@
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
+using global::Infrastructure.Data;
+using global::Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Specs.Infrastructure.Repositories;
@@ -151,7 +151,7 @@ public sealed class RoleRepositoryManagerSentinelTests : IDisposable
         await _context.TourManagerAssignments.AddRangeAsync(new[]
         {
             TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.Tour, null, null, null, "system"),
-            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourDesigner, staffId, null, null, "system")
+            TourManagerAssignmentEntity.Create(managerId, AssignedEntityType.TourOperator, staffId, null, null, "system")
         });
         await _context.UserRoles.AddAsync(new UserRoleEntity { UserId = managerId, RoleId = 2 });
         await _context.SaveChangesAsync();
@@ -248,7 +248,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelTests : IDi
         var newAssignments = new List<TourManagerAssignmentEntity>
         {
             TourManagerAssignmentEntity.Create(
-                managerId, AssignedEntityType.TourDesigner, staffId, null, null, "system")
+                managerId, AssignedEntityType.TourOperator, staffId, null, null, "system")
         };
 
         await _repository.BulkUpsertAsync(managerId, newAssignments, "test", CancellationToken.None);
@@ -264,7 +264,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelTests : IDi
         Assert.NotNull(sentinel);
         var staffAssignment = all.FirstOrDefault(a =>
             a.AssignedUserId == staffId &&
-            a.AssignedEntityType == AssignedEntityType.TourDesigner);
+            a.AssignedEntityType == AssignedEntityType.TourOperator);
         Assert.NotNull(staffAssignment);
     }
 
@@ -284,7 +284,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelTests : IDi
         var newAssignments = new List<TourManagerAssignmentEntity>
         {
             TourManagerAssignmentEntity.Create(
-                managerId, AssignedEntityType.TourDesigner, staffId1, null, null, "system"),
+                managerId, AssignedEntityType.TourOperator, staffId1, null, null, "system"),
             TourManagerAssignmentEntity.Create(
                 managerId, AssignedEntityType.TourGuide, staffId2, null, null, "system")
         };
@@ -327,7 +327,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelTests : IDi
         var sentinel = TourManagerAssignmentEntity.Create(
             managerId, AssignedEntityType.Tour, null, null, null, "system");
         var oldAssignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, oldStaffId, null, null, "system");
+            managerId, AssignedEntityType.TourOperator, oldStaffId, null, null, "system");
         await _context.TourManagerAssignments.AddRangeAsync(new[] { sentinel, oldAssignment });
         await _context.SaveChangesAsync();
 
@@ -345,7 +345,7 @@ public sealed class TourManagerAssignmentRepositoryBulkUpsertSentinelTests : IDi
         Assert.Equal(2, all.Count);
         Assert.Single(all, a => a.AssignedEntityType == AssignedEntityType.Tour);
         Assert.Single(all, a => a.AssignedEntityType == AssignedEntityType.TourGuide);
-        Assert.DoesNotContain(all, a => a.AssignedEntityType == AssignedEntityType.TourDesigner);
+        Assert.DoesNotContain(all, a => a.AssignedEntityType == AssignedEntityType.TourOperator);
     }
 
     #endregion

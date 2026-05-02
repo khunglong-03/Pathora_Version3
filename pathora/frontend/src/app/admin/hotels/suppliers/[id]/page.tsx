@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { adminService } from "@/api/services/adminService";
+import { adminUserService } from "@/api/services/adminUserService";
 import type { HotelProviderDetail, HotelAccommodationSummary } from "@/types/admin";
 import {
   AdminPageHeader,
@@ -11,9 +12,10 @@ import {
   AdminFilterTabs,
   AdminKpiStrip,
 } from "@/features/dashboard/components";
-import { Bed, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon, FileTextIcon, CheckCircleIcon } from "@phosphor-icons/react";
+import { Bed, PhoneIcon, EnvelopeSimpleIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, Prohibit, CheckCircle } from "@phosphor-icons/react";
 import { formatDate } from "@/utils/format";
 import { ContinentChip, ContinentChips } from "@/components/shared/ContinentChip";
+import { toast } from "react-toastify";
 
 // Tab type
 type TabValue = "overview" | "accommodations" | "bookings";
@@ -26,10 +28,12 @@ const TABS: Array<{ label: string; value: TabValue }> = [
 
 export default function HotelProviderDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const id = params?.id ?? "";
 
   const [entity, setEntity] = useState<HotelProviderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>("overview");
   const [reloadToken, setReloadToken] = useState(0);
@@ -57,6 +61,38 @@ export default function HotelProviderDetailPage() {
   }, [loadEntity]);
 
   const handleRefresh = () => setReloadToken((t) => t + 1);
+
+  const handleToggleStatus = async () => {
+    if (!entity || !entity.ownerUserId) return;
+
+    const isBanned = entity.userStatus === "Banned";
+    const newStatus = isBanned ? "Active" : "Banned";
+    
+    const confirmMessage = isBanned 
+      ? "Bạn có chắc chắn muốn mở khóa tài khoản này?" 
+      : "CẢNH BÁO: Khóa tài khoản này sẽ NGỪNG hoạt động tất cả khách sạn và phương tiện thuộc sở hữu của người dùng này. Bạn có chắc chắn muốn tiếp tục?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const success = await adminUserService.updateUserStatus({
+        userId: entity.ownerUserId,
+        newStatus: newStatus
+      });
+
+      if (success) {
+        toast.success(isBanned ? "Đã mở khóa tài khoản thành công" : "Đã khóa tài khoản thành công");
+        handleRefresh();
+      } else {
+        toast.error("Gặp lỗi khi cập nhật trạng thái tài khoản");
+      }
+    } catch (err) {
+      toast.error("Lỗi hệ thống");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -155,6 +191,31 @@ export default function HotelProviderDetailPage() {
         subtitle="Chi tiết nhà cung cấp khách sạn"
         backHref="/admin/hotels/suppliers"
         onRefresh={handleRefresh}
+        actionButtons={
+          entity.ownerUserId ? (
+            <button
+              onClick={handleToggleStatus}
+              disabled={isUpdatingStatus}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl text-white transition-all duration-200 ${
+                entity.userStatus === "Banned" 
+                  ? "bg-emerald-600 hover:bg-emerald-700" 
+                  : "bg-red-600 hover:bg-red-700"
+              } disabled:opacity-50`}
+            >
+              {entity.userStatus === "Banned" ? (
+                <>
+                  <CheckCircle size={18} weight="bold" />
+                  Mở khóa tài khoản
+                </>
+              ) : (
+                <>
+                  <Prohibit size={18} weight="bold" />
+                  Khóa tài khoản
+                </>
+              )}
+            </button>
+          ) : null
+        }
       />
 
       {/* Status Badge */}
@@ -164,6 +225,11 @@ export default function HotelProviderDetailPage() {
         >
           {getStatusLabel(entity.status)}
         </span>
+        {entity.userStatus === "Banned" && (
+          <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-800 border border-red-200">
+            <Prohibit size={14} className="mr-1" /> Tài khoản bị khóa
+          </span>
+        )}
       </div>
 
       {/* KPI Strip */}
@@ -246,6 +312,10 @@ export default function HotelProviderDetailPage() {
                   <p className="font-medium">{entity.supplierName}</p>
                 </div>
               )}
+              <div>
+                <p className="text-sm text-muted-foreground">Số cơ sở</p>
+                <p className="font-medium">{entity.propertyCount}</p>
+              </div>
             </div>
 
             {/* Active vs Completed */}
@@ -268,6 +338,21 @@ export default function HotelProviderDetailPage() {
 
         {activeTab === "accommodations" && (
           <div className="rounded-xl border bg-card overflow-hidden">
+            {entity.properties.length > 0 && (
+              <div className="grid gap-4 border-b p-6 md:grid-cols-2">
+                {entity.properties.map((property) => (
+                  <div key={property.id} className="rounded-xl border p-4">
+                    <div className="font-semibold">{property.supplierName}</div>
+                    <div className="text-sm text-muted-foreground">{property.supplierCode}</div>
+                    <div className="mt-2 text-sm">{property.address ?? "Không có địa chỉ"}</div>
+                    <div className="mt-3 flex gap-4 text-sm text-muted-foreground">
+                      <span>{property.accommodationCount} loại phòng</span>
+                      <span>{property.totalRooms} phòng</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {entity.accommodations.length === 0 ? (
               <div className="p-12 text-center">
                 <Bed size={40} className="mx-auto mb-3 text-muted-foreground" />
@@ -290,6 +375,7 @@ export default function HotelProviderDetailPage() {
                         <div className="flex items-center gap-2">
                           <Bed size={16} className="text-muted-foreground shrink-0" />
                           <div>
+                            <p className="text-xs text-muted-foreground">{acc.supplierName}</p>
                             <p className="text-sm font-medium">{acc.roomType}</p>
                             {acc.name && (
                               <p className="text-xs text-muted-foreground">{acc.name}</p>

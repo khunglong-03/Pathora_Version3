@@ -1,27 +1,27 @@
-namespace Application.Features.TransportProvider.Drivers.Validators;
-
 using Application.Features.TransportProvider.Drivers.DTOs;
 using Domain.Common.Repositories;
 using FluentValidation;
+
+namespace Application.Features.TransportProvider.Drivers.Validators;
 
 public sealed class UpdateDriverRequestDtoValidator : AbstractValidator<UpdateDriverRequestDto>
 {
     public UpdateDriverRequestDtoValidator(IDriverRepository driverRepository)
     {
         RuleFor(x => x.FullName)
-            .MaximumLength(100).WithMessage("Full name must not exceed 100 characters.")
+            .MaximumLength(100).WithMessage(DriverRequestValidationMessages.FullNameMaxLength)
             .When(x => !string.IsNullOrEmpty(x.FullName));
 
         RuleFor(x => x.LicenseNumber)
-            .MaximumLength(50).WithMessage("License number must not exceed 50 characters.")
+            .MaximumLength(50).WithMessage(DriverRequestValidationMessages.LicenseNumberMaxLength)
             .When(x => !string.IsNullOrEmpty(x.LicenseNumber));
 
         RuleFor(x => x.LicenseType)
             .IsInEnum().When(x => x.LicenseType.HasValue)
-            .WithMessage("Invalid license type.");
+            .WithMessage(DriverRequestValidationMessages.LicenseTypeInvalid);
 
         RuleFor(x => x.PhoneNumber)
-            .Matches(@"^(?:\+84|0)\d{9,10}$").When(x => !string.IsNullOrEmpty(x.PhoneNumber))
-            .WithMessage("Phone number must be a valid Vietnamese format.");
+            .Matches(DriverRequestValidationMessages.PhonePattern).When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+            .WithMessage(DriverRequestValidationMessages.PhoneInvalid);
     }
 }

@@ -1,10 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.Manager.DTOs;
 
 public sealed record ManagerBankAccountDto(
-    Guid UserId,
-    string? BankAccountNumber,
-    string? BankCode,
-    string? BankAccountName,
-    bool BankAccountVerified,
-    DateTimeOffset? BankAccountVerifiedAt
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("bankAccountNumber")] string? BankAccountNumber,
+    [property: JsonPropertyName("bankCode")] string? BankCode,
+    [property: JsonPropertyName("bankAccountName")] string? BankAccountName,
+    [property: JsonPropertyName("bankAccountVerified")] bool BankAccountVerified,
+    [property: JsonPropertyName("bankAccountVerifiedAt")] DateTimeOffset? BankAccountVerifiedAt
 );

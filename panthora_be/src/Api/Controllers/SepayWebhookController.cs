@@ -83,10 +83,11 @@ public sealed class SepayWebhookController(
         }
 
         if (!AuthenticationHeaderValue.TryParse(authorizationHeader, out var parsedAuthorization)
-            || !string.Equals(parsedAuthorization.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
+            || !(string.Equals(parsedAuthorization.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
+                 || string.Equals(parsedAuthorization.Scheme, "Apikey", StringComparison.OrdinalIgnoreCase))
             || string.IsNullOrWhiteSpace(parsedAuthorization.Parameter))
         {
-            _logger.LogWarning("Rejected SePay webhook because Authorization header is not a valid Bearer token.");
+            _logger.LogWarning("Rejected SePay webhook because Authorization header is not a valid Bearer/Apikey token.");
             return false;
         }
 
@@ -105,13 +106,13 @@ public sealed class SepayWebhookController(
 
     private string GetConfiguredWebhookToken()
     {
-        var apiKey = NormalizeConfigValue(_sePayOptions.ApiKey);
-        if (!string.IsNullOrWhiteSpace(apiKey))
+        var webhookSecret = NormalizeConfigValue(_sePayOptions.WebhookSecret);
+        if (!string.IsNullOrWhiteSpace(webhookSecret))
         {
-            return apiKey;
+            return webhookSecret;
         }
 
-        return NormalizeConfigValue(_sePayOptions.WebhookSecret);
+        return NormalizeConfigValue(_sePayOptions.ApiKey);
     }
 
     private bool IsCallerIpAllowed()

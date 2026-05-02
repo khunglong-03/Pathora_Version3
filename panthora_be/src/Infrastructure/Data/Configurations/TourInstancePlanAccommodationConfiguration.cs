@@ -12,6 +12,24 @@ public class TourInstancePlanAccommodationConfiguration : IEntityTypeConfigurati
 
         builder.HasKey(e => e.Id);
 
+        // Supplier (Hotel Provider) — per-accommodation activity
+        builder.Property(e => e.SupplierId);
+
+        builder.HasOne(e => e.Supplier)
+            .WithMany()
+            .HasForeignKey(e => e.SupplierId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.SupplierId);
+
+        builder.Property(e => e.SupplierApprovalStatus)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(Domain.Enums.ProviderApprovalStatus.NotAssigned);
+
+        builder.Property(e => e.SupplierApprovalNote)
+            .HasMaxLength(500);
+
         builder.Property(e => e.RoomType)
             .HasConversion<string>()
             .HasMaxLength(50);

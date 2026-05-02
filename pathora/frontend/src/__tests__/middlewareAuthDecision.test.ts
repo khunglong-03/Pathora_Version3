@@ -53,24 +53,33 @@ describe("public path detection", () => {
 });
 
 describe("auth session detection", () => {
-  it("authenticated when auth_status cookie present", () => {
+  it("unauthenticated when only auth_status cookie present", () => {
     const authStatus = "1";
     const accessToken = undefined;
-    const authenticated = Boolean(authStatus || accessToken);
-    expect(authenticated).toBe(true);
+    const refreshToken = undefined;
+    const authenticated = Boolean(accessToken || refreshToken);
+    expect(authStatus).toBe("1");
+    expect(authenticated).toBe(false);
   });
 
   it("authenticated when access_token cookie present", () => {
-    const authStatus = undefined;
     const accessToken = "some-jwt";
-    const authenticated = Boolean(authStatus || accessToken);
+    const refreshToken = undefined;
+    const authenticated = Boolean(accessToken || refreshToken);
+    expect(authenticated).toBe(true);
+  });
+
+  it("authenticated when refresh_token cookie present", () => {
+    const accessToken = undefined;
+    const refreshToken = "some-refresh-token";
+    const authenticated = Boolean(accessToken || refreshToken);
     expect(authenticated).toBe(true);
   });
 
   it("unauthenticated when neither cookie present", () => {
-    const authStatus = undefined;
     const accessToken = undefined;
-    const authenticated = Boolean(authStatus || accessToken);
+    const refreshToken = undefined;
+    const authenticated = Boolean(accessToken || refreshToken);
     expect(authenticated).toBe(false);
   });
 });

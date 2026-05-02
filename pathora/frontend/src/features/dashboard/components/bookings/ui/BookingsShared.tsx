@@ -19,6 +19,7 @@ export function StatusBadge({ status }: { status: string }) {
 /* ── Table Row ─────────────────────────────────────────────────── */
 import { motion } from "framer-motion";
 import type { AdminBooking } from "@/api/services/adminService";
+import { formatCurrency } from "@/utils/format";
 import { rowVariants } from "../BookingsPageData";
 
 export const TableRow = React.memo(function TableRow({
@@ -59,7 +60,7 @@ export const TableRow = React.memo(function TableRow({
       </td>
       <td className="px-6 py-4">
         <span className="text-sm font-semibold data-value" style={{ color: CSS.textPrimary }}>
-          ${(booking.amount ?? 0).toLocaleString()}
+          {formatCurrency(booking.amount ?? 0)}
         </span>
       </td>
       <td className="px-6 py-4">

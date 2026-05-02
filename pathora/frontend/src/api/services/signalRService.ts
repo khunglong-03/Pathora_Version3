@@ -36,10 +36,25 @@ export interface PaymentUpdate {
   paymentType?: string;
 }
 
+export interface ItineraryFeedbackEvent {
+  event: string;
+  tourInstanceId: string;
+  feedbackId: string;
+  reason: string;
+}
+
+export interface CustomTourRequestUpdate {
+  tourInstanceId: string;
+  tourName: string;
+  customerName: string;
+  event: string;
+}
+
 type NotificationHandler = (notification: Notification) => void;
 type BookingUpdateHandler = (update: BookingUpdate) => void;
 type TourInstanceUpdateHandler = (update: TourInstanceUpdate) => void;
 type PaymentUpdateHandler = (update: PaymentUpdate) => void;
+type CustomTourRequestHandler = (update: CustomTourRequestUpdate) => void;
 type ConnectionHandler = () => void;
 
 class SignalRService {
@@ -48,6 +63,8 @@ class SignalRService {
   private bookingUpdateHandlers: BookingUpdateHandler[] = [];
   private tourInstanceUpdateHandlers: TourInstanceUpdateHandler[] = [];
   private paymentUpdateHandlers: PaymentUpdateHandler[] = [];
+  private itineraryFeedbackHandlers: ((event: ItineraryFeedbackEvent) => void)[] = [];
+  private customTourRequestHandlers: CustomTourRequestHandler[] = [];
   private connectedHandlers: ConnectionHandler[] = [];
   private disconnectedHandlers: ConnectionHandler[] = [];
   private isConnecting = false;
@@ -98,6 +115,14 @@ class SignalRService {
         this.paymentUpdateHandlers.forEach((handler) => handler(update));
       });
 
+      this.connection.on("ReceiveItineraryFeedbackEvent", (event: ItineraryFeedbackEvent) => {
+        this.itineraryFeedbackHandlers.forEach((handler) => handler(event));
+      });
+
+      this.connection.on("ReceiveCustomTourRequest", (update: CustomTourRequestUpdate) => {
+        this.customTourRequestHandlers.forEach((handler) => handler(update));
+      });
+
       // Connection state handlers
       this.connection.onclose(() => {
         this.disconnectedHandlers.forEach((handler) => handler());
@@ -127,6 +152,15 @@ class SignalRService {
       await this.connection.stop();
       this.connection = null;
       console.log("[SignalR] Disconnected");
+    }
+  }
+
+  async invoke(method: string, ...args: unknown[]): Promise<void> {
+    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+      await this.connect();
+    }
+    if (this.connection?.state === signalR.HubConnectionState.Connected) {
+      await this.connection.invoke(method, ...args);
     }
   }
 
@@ -170,6 +204,30 @@ class SignalRService {
         this.paymentUpdateHandlers.splice(index, 1);
       }
     };
+  }
+
+  onItineraryFeedbackEvent(handler: (event: ItineraryFeedbackEvent) => void): () => void {
+    this.itineraryFeedbackHandlers.push(handler);
+    return () => {
+      const index = this.itineraryFeedbackHandlers.indexOf(handler);
+      if (index > -1) {
+        this.itineraryFeedbackHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  onCustomTourRequest(handler: CustomTourRequestHandler): () => void {
+    this.customTourRequestHandlers.push(handler);
+    return () => {
+      this.offCustomTourRequest(handler);
+    };
+  }
+
+  offCustomTourRequest(handler: CustomTourRequestHandler): void {
+    const index = this.customTourRequestHandlers.indexOf(handler);
+    if (index > -1) {
+      this.customTourRequestHandlers.splice(index, 1);
+    }
   }
 
   onConnected(handler: ConnectionHandler): () => void {

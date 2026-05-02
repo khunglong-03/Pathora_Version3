@@ -8,11 +8,10 @@ import type {
   TourInstanceDto,
   TourInstanceDayDto,
   TourInstanceDayActivityDto,
-  TourInstancePlanAccommodationDto,
 } from "../tour";
 
 describe("TourInstanceDto — provider fields", () => {
-  it("supports hotelProvider fields", () => {
+  it("supports transportProvider fields at instance level", () => {
     const dto: TourInstanceDto = {
       id: "inst-001",
       tourId: "tour-001",
@@ -40,64 +39,19 @@ describe("TourInstanceDto — provider fields", () => {
       confirmationDeadline: null,
       managers: [],
       includedServices: ["shuttle"],
-      hotelApprovalStatus: 1, // Pending
       transportApprovalStatus: 2, // Approved
-      hotelApprovalNote: null,
       transportApprovalNote: null,
-      hotelProviderId: "hp-001",
-      hotelProviderName: "Grand Hotel Saigon",
-      transportProviderId: "tp-001",
-      transportProviderName: "Vietransport Co.",
+
       days: [],
     };
 
-    expect(dto.hotelProviderId).toBe("hp-001");
-    expect(dto.hotelProviderName).toBe("Grand Hotel Saigon");
-    expect(dto.hotelApprovalStatus).toBe(1);
-    expect(dto.transportProviderId).toBe("tp-001");
-    expect(dto.transportProviderName).toBe("Vietransport Co.");
+
     expect(dto.transportApprovalStatus).toBe(2);
   });
 
-  it("supports null provider fields when no provider assigned", () => {
-    const dto: TourInstanceDto = {
-      id: "inst-002",
-      tourId: "tour-001",
-      tourInstanceCode: "TI-002",
-      title: "Private Tour",
-      tourName: "Private",
-      tourCode: "PR001",
-      classificationId: "cls-001",
-      classificationName: "Economy",
-      location: null,
-      thumbnail: null,
-      images: [],
-      startDate: "2025-07-01T00:00:00Z",
-      endDate: "2025-07-02T00:00:00Z",
-      durationDays: 2,
-      currentParticipation: 0,
-      maxParticipation: 10,
-      basePrice: 500000,
-      status: "Available",
-      instanceType: "Private",
-      managers: [],
-      includedServices: [],
-      hotelApprovalStatus: 2,
-      transportApprovalStatus: 2,
-      hotelProviderId: null,
-      hotelProviderName: null,
-      transportProviderId: null,
-      transportProviderName: null,
-      days: [],
-    };
 
-    expect(dto.hotelProviderId).toBeNull();
-    expect(dto.hotelProviderName).toBeNull();
-    expect(dto.transportProviderId).toBeNull();
-    expect(dto.transportProviderName).toBeNull();
-  });
 
-  it("supports approval notes", () => {
+  it("supports transport approval notes", () => {
     const dto: TourInstanceDto = {
       id: "inst-003",
       tourId: "tour-001",
@@ -118,22 +72,20 @@ describe("TourInstanceDto — provider fields", () => {
       basePrice: 800000,
       status: "PendingApproval",
       instanceType: "Public",
-      hotelApprovalStatus: 3, // Rejected
+      rating: 0,
+      totalBookings: 0,
+      revenue: 0,
+      confirmationDeadline: null,
       transportApprovalStatus: 1, // Pending
-      hotelApprovalNote: "Không đủ phòng cho ngày này",
       transportApprovalNote: null,
-      hotelProviderId: "hp-002",
-      hotelProviderName: "Budget Hotel",
-      transportProviderId: "tp-002",
-      transportProviderName: "Local Bus",
+
       managers: [],
       includedServices: [],
       days: [],
     };
 
-    expect(dto.hotelApprovalStatus).toBe(3);
-    expect(dto.hotelApprovalNote).toBe("Không đủ phòng cho ngày này");
     expect(dto.transportApprovalStatus).toBe(1);
+
   });
 });
 
@@ -306,10 +258,109 @@ describe("TourInstanceDayActivityDto — flattened transport fields", () => {
     expect(activity.pickupLocation).toBeNull();
     expect(activity.dropoffLocation).toBeNull();
   });
+
+  it("supports per-activity transport planning and approval fields", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-transport-004",
+      order: 4,
+      activityType: "Transportation",
+      title: "Mountain transfer",
+      description: null,
+      startTime: "06:00",
+      endTime: "10:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
+      requestedVehicleType: "Coach",
+      requestedSeatCount: 28,
+      transportSupplierId: "supplier-transport-1",
+      transportSupplierName: "Sapa Mountain Transit",
+      transportationApprovalStatus: "Pending",
+      transportationApprovalNote: "Need luggage compartment space",
+    };
+
+    expect(activity.requestedVehicleType).toBe("Coach");
+    expect(activity.requestedSeatCount).toBe(28);
+    expect(activity.transportSupplierId).toBe("supplier-transport-1");
+    expect(activity.transportSupplierName).toBe("Sapa Mountain Transit");
+    expect(activity.transportationApprovalStatus).toBe("Pending");
+    expect(activity.transportationApprovalNote).toBe(
+      "Need luggage compartment space",
+    );
+  });
+});
+
+describe("TourInstanceDayActivityDto — multi-vehicle transportAssignments", () => {
+  it("supports multiple rows with snapshots alongside legacy primary vehicle fields", () => {
+    const activity: TourInstanceDayActivityDto = {
+      id: "act-mv-001",
+      order: 1,
+      activityType: "Transportation",
+      title: "Convoy",
+      description: null,
+      startTime: "07:00",
+      endTime: "12:00",
+      isOptional: false,
+      note: null,
+      accommodation: null,
+      requestedVehicleType: "Coach",
+      requestedSeatCount: 50,
+      transportSupplierId: "sup-1",
+      transportSupplierName: "Fleet Co",
+      transportationApprovalStatus: "Approved",
+      transportationApprovalNote: null,
+      vehicleId: "v-primary",
+      vehiclePlate: "30A-00001",
+      vehicleType: "Coach",
+      vehicleBrand: "Hyundai",
+      vehicleModel: "Universe",
+      seatCapacity: 45,
+      driverId: "d-primary",
+      driverName: "Lead Driver",
+      driverPhone: "0900000000",
+      pickupLocation: "Depot",
+      dropoffLocation: "Site",
+      transportAssignments: [
+        {
+          id: "asg-1",
+          vehicleId: "v-1",
+          driverId: "d-1",
+          seatCountSnapshot: 25,
+          vehiclePlate: "30A-11111",
+          vehicleType: "Coach",
+          vehicleBrand: "Hyundai",
+          vehicleModel: "County",
+          vehicleSeatCapacity: 29,
+          driverName: "Driver One",
+          driverPhone: "0911111111",
+        },
+        {
+          id: "asg-2",
+          vehicleId: "v-2",
+          driverId: "d-2",
+          seatCountSnapshot: 30,
+          vehiclePlate: "30A-22222",
+          vehicleType: "Coach",
+          vehicleBrand: "Isuzu",
+          vehicleModel: "Samco",
+          vehicleSeatCapacity: 35,
+          driverName: "Driver Two",
+          driverPhone: "0922222222",
+        },
+      ],
+    };
+
+    expect(activity.transportAssignments).toHaveLength(2);
+    const sum =
+      (activity.transportAssignments![0].seatCountSnapshot ?? 0) +
+      (activity.transportAssignments![1].seatCountSnapshot ?? 0);
+    expect(sum).toBe(55);
+    expect(activity.vehicleId).toBe("v-primary");
+  });
 });
 
 describe("TourInstanceDayActivityDto — accommodation field", () => {
-  it("maps accommodation with room type and quantity", () => {
+  it("maps accommodation with room type, quantity, and supplier fields", () => {
     const activity: TourInstanceDayActivityDto = {
       id: "act-accommodation-001",
       order: 1,
@@ -324,6 +375,10 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
         id: "acc-001",
         roomType: "Double",
         quantity: 5,
+        supplierId: "sup-hotel-001",
+        supplierName: "Grand Hotel Saigon",
+        supplierApprovalStatus: "Approved",
+        supplierApprovalNote: null,
       },
     };
 
@@ -331,6 +386,9 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
     expect(activity.accommodation).not.toBeNull();
     expect(activity.accommodation!.roomType).toBe("Double");
     expect(activity.accommodation!.quantity).toBe(5);
+    expect(activity.accommodation!.supplierId).toBe("sup-hotel-001");
+    expect(activity.accommodation!.supplierName).toBe("Grand Hotel Saigon");
+    expect(activity.accommodation!.supplierApprovalStatus).toBe("Approved");
   });
 
   it("supports null accommodation for non-accommodation activities", () => {
@@ -383,6 +441,7 @@ describe("TourInstanceDayActivityDto — accommodation field", () => {
     };
 
     expect(activity.accommodation).not.toBeNull();
+    expect(activity.accommodation!.supplierId).toBeUndefined();
     expect(activity.vehiclePlate).toBe("60A-11111");
     expect(activity.driverName).toBe("Tran Thi C");
   });

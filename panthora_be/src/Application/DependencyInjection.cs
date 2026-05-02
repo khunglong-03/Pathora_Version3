@@ -1,6 +1,7 @@
 using System.Reflection;
 using Application.Common.Behaviors;
 using Application.Services;
+using Application.Services.PrivateTour;
 using BuildingBlocks.Behaviors;
 using FluentValidation;
 using MediatR;
@@ -53,6 +54,8 @@ public static class DependencyInjection
         services.AddScoped<IPricingPolicyService, PricingPolicyService>();
         services.AddScoped<ICancellationPolicyService, CancellationPolicyService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IPrivateTourPolicyMetrics, LoggingPrivateTourPolicyMetrics>();
+        services.AddScoped<PrivateTourTopUpDeadlineProcessor>();
 
         return services;
     }

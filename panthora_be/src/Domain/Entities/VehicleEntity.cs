@@ -2,41 +2,25 @@ namespace Domain.Entities;
 
 using Domain.Enums;
 
-/// <summary>
-/// Phương tiện vận chuyển (xe khách, xe buýt, xe limousine...) dùng trong tour.
-/// Thuộc về một chủ xe (User) và có biển số, loại xe, số ghế, khu vực hoạt động.
-/// </summary>
 public class VehicleEntity : Aggregate<Guid>
 {
-    /// <summary>Biển số xe, được chuẩn hóa in hoa khi tạo.</summary>
-    public string VehiclePlate { get; set; } = null!;
-    /// <summary>Loại phương tiện: Bus, Coach, Limousine, Minibus, v.v.</summary>
     public VehicleType VehicleType { get; set; }
-    /// <summary>Hãng sản xuất xe (VD: Hyundai, Isuzu).</summary>
     public string? Brand { get; set; }
-    /// <summary>Dòng xe cụ thể.</summary>
     public string? Model { get; set; }
-    /// <summary>Số ghế ngồi (1–100).</summary>
     public int SeatCapacity { get; set; }
-    /// <summary>Khu vực hoạt động: Châu Á, Châu Âu, v.v. (dùng cho lọc/tìm kiếm).</summary>
+    public int Quantity { get; set; } = 1;
     public Continent? LocationArea { get; set; }
-    /// <summary>Danh sách mã quốc gia cho phép hoạt động, phân cách bằng dấu phẩy (VD: VN, TH, KH).</summary>
     public string? OperatingCountries { get; set; }
-    /// <summary>URL hình ảnh phương tiện (nhiều URL phân cách bằng dấu phẩy).</summary>
     public string? VehicleImageUrls { get; set; }
-    /// <summary>ID của User sở hữu phương tiện.</summary>
     public Guid OwnerId { get; set; }
-    /// <summary>Chủ sở hữu phương tiện.</summary>
     public virtual UserEntity Owner { get; set; } = null!;
-    /// <summary>Trạng thái hoạt động: true = đang hoạt động, false = bị vô hiệu hóa.</summary>
+    public Guid? SupplierId { get; set; }
+    public virtual SupplierEntity? Supplier { get; set; }
     public bool IsActive { get; set; } = true;
-    /// <summary>Đánh dấu đã xóa mềm.</summary>
     public bool IsDeleted { get; set; } = false;
-    /// <summary>Ghi chú bổ sung về phương tiện.</summary>
     public string? Notes { get; set; }
 
     public static VehicleEntity Create(
-        string vehiclePlate,
         VehicleType vehicleType,
         int seatCapacity,
         Guid ownerId,
@@ -46,7 +30,8 @@ public class VehicleEntity : Aggregate<Guid>
         Continent? locationArea = null,
         string? operatingCountries = null,
         string? vehicleImageUrls = null,
-        string? notes = null)
+        string? notes = null,
+        int quantity = 1)
     {
         EnsureValidSeatCapacity(seatCapacity);
         EnsureValidOperatingCountries(operatingCountries);
@@ -54,11 +39,11 @@ public class VehicleEntity : Aggregate<Guid>
         return new VehicleEntity
         {
             Id = Guid.CreateVersion7(),
-            VehiclePlate = vehiclePlate.Trim().ToUpperInvariant(),
             VehicleType = vehicleType,
             Brand = brand?.Trim(),
             Model = model?.Trim(),
             SeatCapacity = seatCapacity,
+            Quantity = quantity < 1 ? 1 : quantity,
             LocationArea = locationArea,
             OperatingCountries = operatingCountries?.Trim().ToUpperInvariant(),
             VehicleImageUrls = vehicleImageUrls,
@@ -82,7 +67,8 @@ public class VehicleEntity : Aggregate<Guid>
         string? operatingCountries,
         string? vehicleImageUrls,
         string? notes,
-        string performedBy)
+        string performedBy,
+        int? quantity = null)
     {
         if (seatCapacity.HasValue)
             EnsureValidSeatCapacity(seatCapacity.Value);
@@ -94,6 +80,7 @@ public class VehicleEntity : Aggregate<Guid>
         Brand = brand?.Trim();
         Model = model?.Trim();
         SeatCapacity = seatCapacity ?? SeatCapacity;
+        Quantity = quantity.HasValue && quantity.Value >= 1 ? quantity.Value : Quantity;
         LocationArea = locationArea;
         OperatingCountries = operatingCountries?.Trim().ToUpperInvariant();
         VehicleImageUrls = vehicleImageUrls;

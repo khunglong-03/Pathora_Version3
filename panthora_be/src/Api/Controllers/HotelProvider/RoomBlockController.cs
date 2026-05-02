@@ -26,7 +26,8 @@ public class RoomBlockController(ISupplierRepository supplierRepository) : BaseA
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(userId);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(userId);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return HandleResult<List<RoomBlockDto>>(new List<RoomBlockDto>());
 
@@ -49,7 +50,8 @@ public class RoomBlockController(ISupplierRepository supplierRepository) : BaseA
         if (userId == Guid.Empty)
             return Unauthorized();
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(userId);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(userId);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null || supplier.SupplierType != SupplierType.Accommodation)
             return StatusCode(403, "You do not have an accommodation supplier.");
 

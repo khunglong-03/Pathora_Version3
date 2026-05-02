@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { MagnifyingGlass, MapPinIcon, CalendarBlankIcon, ArrowUpRight } from "@phosphor-icons/react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { MapPinIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { motion, Variants } from "framer-motion";
 import { homeService } from "@/api/services/homeService";
 import { getFallbackImage } from "@/utils/imageFallback";
+import { cn } from "@/lib/cn";
 
 type HeroTour = {
   id: string;
@@ -29,13 +30,21 @@ export const BoldHeroSection = () => {
     let cancelled = false;
     homeService.getFeaturedTours(3, i18n.resolvedLanguage).then((data) => {
       if (cancelled) return;
-      const mapped = (data || []).slice(0, 3).map((t, i) => ({
-        id: t.id,
-        name: t.tourName,
-        location: `${t.durationDays} Days`,
-        image: t.thumbnail || getFallbackImage(t.id + i),
-      }));
-      // If backend fails to return 3 tours, we mock it via Unsplash for the high-end UI preview
+      const mapped = (data || []).slice(0, 3).map((t, i) => {
+        let imageUrl = null;
+        if (typeof t.thumbnail === "string" && t.thumbnail !== "undefined") {
+          imageUrl = t.thumbnail;
+        } else if (t.thumbnail && typeof t.thumbnail === "object" && (t.thumbnail as any).publicURL) {
+          imageUrl = (t.thumbnail as any).publicURL;
+        }
+        return {
+          id: t.id,
+          name: t.tourName,
+          location: `${t.durationDays} Days`,
+          image: imageUrl || getFallbackImage(t.id + i),
+        };
+      });
+      // Mock if < 3
       if (mapped.length < 3) {
         setTours([
           ...mapped,
@@ -66,75 +75,59 @@ export const BoldHeroSection = () => {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+      transition: { staggerChildren: 0.15, delayChildren: 0.3 },
     },
   } as Variants;
   
   const staggerItem = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
-    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 200, damping: 20 } },
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } },
   } as Variants;
 
   return (
-    <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-black">
-      {/* Video background */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-100"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/30" />
+    <section className={cn("relative w-full min-h-[100dvh] overflow-hidden flex items-center bg-stone-950 selection:bg-white/20 selection:text-white")}>
+      {/* Premium dark gradient background */}
+      <div className={cn("absolute inset-0 z-0 pointer-events-none overflow-hidden bg-gradient-to-br from-stone-900 via-stone-950 to-black")}>
+        {/* Subtle radial glow for depth */}
+        <div className={cn("absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px]")} />
+        <div className={cn("absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-orange-500/5 blur-[100px]")} />
+        <div className={cn("absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]")} />
       </div>
 
-      {/* Soft ambient gradients removed for crisper video display */}
-
-      {/* Subtle texture */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] mix-blend-multiply"
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }}
-      />
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center h-full">
+      <div className={cn("relative z-10 w-full max-w-[90rem] mx-auto px-6 md:px-12 py-32 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center h-full")}>
         
         {/* Left Side: Typography & Search */}
         <motion.div 
-          initial={{ opacity: 0, x: -24 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
-          className="lg:col-span-5 flex flex-col justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className={cn("lg:col-span-6 v-stack justify-center")}
         >
           {/* Eyebrow */}
-          <div className="mb-8 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-md w-max">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#fb8b02] animate-pulse" />
-            <span suppressHydrationWarning className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/90">
+          <div className={cn("mb-8 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md w-max shadow-2xl")}>
+            <span className={cn("w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.6)]")} />
+            <span suppressHydrationWarning className={cn("text-[11px] uppercase tracking-[0.2em] font-bold text-stone-200")}>
               {t("landing.hero.eyebrow") || "Curated Travel"}
             </span>
           </div>
 
           <h1
             suppressHydrationWarning
-            className="text-5xl md:text-7xl lg:text-7xl font-bold text-white leading-[1.02] tracking-tight mb-6"
-            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+            className={cn("text-5xl md:text-7xl lg:text-[5.5rem] font-black text-white leading-[1.05] tracking-tighter mb-8 drop-shadow-sm")}
           >
             {t("landing.hero.title") || "Discover Amazing Tours"}
           </h1>
 
-          <p suppressHydrationWarning className="text-lg text-white/90 mb-10 leading-relaxed font-medium max-w-lg">
+          <p suppressHydrationWarning className={cn("text-lg md:text-xl text-stone-300 mb-12 leading-relaxed font-medium max-w-xl")}>
             {t("landing.hero.subtitle") || "Explore hand-crafted itineraries and breathtaking locations. Your next agency-level experience is one search away."}
           </p>
 
           {/* Search Bar */}
-          <div className="p-2 rounded-[2rem] border border-slate-200 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl relative overflow-hidden group/search hover:border-[#fb8b02]/30 transition-colors duration-500">
-            <div className="inset-0 absolute bg-gradient-to-r from-[#fb8b02]/0 via-[#fb8b02]/0 to-[#fb8b02]/0 group-hover/search:via-[#fb8b02]/8 transition-all duration-700" />
-            <div className="flex flex-col md:flex-row items-center gap-2 relative z-10 w-full bg-white rounded-[calc(2rem-0.5rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] border border-slate-100">
-              
-              <div className="flex-1 w-full relative flex items-center">
-                <MapPinIcon className="absolute left-4 text-slate-400" size={20} weight="light" />
+          <div className={cn("relative max-w-xl group")}>
+            <div className={cn("absolute -inset-1 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200")} />
+            <div className={cn("relative v-stack sm:h-stack items-center p-2 rounded-[2rem] border border-white/20 bg-stone-950/40 backdrop-blur-xl shadow-2xl overflow-hidden")}>
+              <div className={cn("spacer w-full relative flex items-center h-14")}>
+                <MapPinIcon className={cn("absolute left-6 text-stone-400")} size={24} weight="bold" />
                 <input
                   suppressHydrationWarning
                   type="text"
@@ -142,20 +135,18 @@ export const BoldHeroSection = () => {
                   onChange={(e) => setHeroSearchText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleHeroSearch(); }}
                   placeholder={t("landing.hero.searchPlaceholder") || "Where to next?"}
-                  className="w-full bg-transparent text-slate-900 placeholder:text-slate-400 pl-12 pr-4 py-4 outline-none border-none text-base"
+                  className={cn("w-full h-full bg-transparent text-white placeholder:text-stone-500 pl-16 pr-4 outline-none border-none text-[17px] font-medium")}
                 />
               </div>
 
-              <div className="w-full md:w-auto p-1.5 flex gap-2">
+              <div className={cn("w-full sm:w-auto shrink-0 p-1 mt-2 sm:mt-0")}>
                 <button
                   type="button"
                   onClick={handleHeroSearch}
-                  className="flex-1 md:flex-none h-12 px-6 bg-[#fb8b02] text-white font-semibold rounded-[1.25rem] hover:bg-[#e67d00] transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-[#fb8b02]/25"
+                  className={cn("w-full sm:w-auto h-12 px-8 bg-white text-stone-950 font-bold tracking-wide rounded-[1.5rem] hover:bg-stone-200 transition-all duration-300 center gap-3 shadow-lg hover:scale-[0.98] whitespace-nowrap")}
                 >
                   <span suppressHydrationWarning>{t("landing.hero.exploreTours") || "Explore"}</span>
-                  <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center">
-                    <ArrowUpRight size={14} weight="bold" />
-                  </div>
+                  <ArrowRightIcon size={16} weight="bold" />
                 </button>
               </div>
             </div>
@@ -167,46 +158,62 @@ export const BoldHeroSection = () => {
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="lg:col-span-7 h-full w-full relative pl-0 lg:pl-10"
+          className={cn("lg:col-span-6 h-full w-full relative pl-0 lg:pl-12 hidden md:block")}
         >
           {tours.length >= 3 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 h-[600px]">
-              {/* Primary Large Card */}
-              <motion.div variants={staggerItem} className="md:col-span-1 md:row-span-2 relative group h-full">
-                <div className="absolute inset-0 p-1.5 rounded-[2.5rem] border border-slate-200 bg-white/75 backdrop-blur-xl transition-all duration-700 hover:border-[#fb8b02]/25 shadow-[0_20px_60px_rgba(15,23,42,0.1)]">
-                  <div className="relative w-full h-full rounded-[calc(2.5rem-0.375rem)] overflow-hidden group-active:scale-[0.98] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                    <img src={tours[0].image} alt={tours[0].name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent" />
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <div className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-xs font-semibold text-[#fb8b02] w-max mb-3 border border-white/60">
-                        {tours[0].location}
-                      </div>
-                      <h3 className="text-2xl font-semibold text-white tracking-tight leading-tight drop-shadow-[0_2px_10px_rgba(15,23,42,0.35)]">
-                        {tours[0].name}
-                      </h3>
-                    </div>
+            <div className={cn("grid grid-cols-2 grid-rows-2 gap-4 h-[600px]")}>
+              
+              {/* Primary Large Card (Left) */}
+              <motion.div variants={staggerItem} className={cn("col-span-1 row-span-2 relative group h-full rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900")}>
+                <img 
+                  src={tours[0].image} 
+                  alt={tours[0].name} 
+                  className={cn("absolute inset-0 transition-transform duration-[3s] group-hover:scale-105")}
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className={cn("absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none")} />
+                <div className={cn("absolute bottom-8 left-0 w-full px-6 z-10")}>
+                  <div className={cn("inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-max mb-3 border border-white/20")}>
+                    {tours[0].location}
                   </div>
+                  <h3 className={cn("text-2xl lg:text-3xl font-bold text-white tracking-tight leading-tight drop-shadow-md")}>
+                    {tours[0].name}
+                  </h3>
                 </div>
               </motion.div>
 
-              {/* Secondary Stacked Cards */}
-              <div className="md:col-span-1 md:row-span-2 flex flex-col gap-5 h-full">
-                {tours.slice(1, 3).map((tour) => (
-                  <motion.div variants={staggerItem} key={tour.id} className="relative group flex-1">
-                    <div className="absolute inset-0 p-1.5 rounded-[2rem] border border-slate-200 bg-white/75 backdrop-blur-xl transition-all duration-700 hover:border-[#fb8b02]/25 shadow-[0_20px_60px_rgba(15,23,42,0.1)]">
-                      <div className="relative w-full h-full rounded-[calc(2rem-0.375rem)] overflow-hidden group-active:scale-[0.98] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                        <img src={tour.image} alt={tour.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-900/10 to-transparent" />
-                        <div className="absolute bottom-5 left-5 right-5">
-                          <h3 className="text-xl font-semibold text-white tracking-tight leading-snug drop-shadow-[0_2px_10px_rgba(15,23,42,0.35)]">
-                            {tour.name}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              {/* Secondary Top Card (Right Top) */}
+              <motion.div variants={staggerItem} className={cn("col-span-1 row-span-1 relative group h-full rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900")}>
+                <img 
+                  src={tours[1].image} 
+                  alt={tours[1].name} 
+                  className={cn("absolute inset-0 transition-transform duration-[3s] group-hover:scale-105")}
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className={cn("absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none")} />
+                <div className={cn("absolute bottom-6 left-0 w-full px-5 z-10")}>
+                  <h3 className={cn("text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md")}>
+                    {tours[1].name}
+                  </h3>
+                </div>
+              </motion.div>
+
+              {/* Secondary Bottom Card (Right Bottom) */}
+              <motion.div variants={staggerItem} className={cn("col-span-1 row-span-1 relative group h-full rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-stone-900")}>
+                <img 
+                  src={tours[2].image} 
+                  alt={tours[2].name} 
+                  className={cn("absolute inset-0 transition-transform duration-[3s] group-hover:scale-105")}
+                  style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }} 
+                />
+                <div className={cn("absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none")} />
+                <div className={cn("absolute bottom-6 left-0 w-full px-5 z-10")}>
+                  <h3 className={cn("text-xl font-bold text-white tracking-tight leading-snug drop-shadow-md")}>
+                    {tours[2].name}
+                  </h3>
+                </div>
+              </motion.div>
+
             </div>
           )}
         </motion.div>

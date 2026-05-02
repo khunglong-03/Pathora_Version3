@@ -10,6 +10,10 @@ ASP.NET Core backend for the Panthora travel/tour platform.
 - GitLab CI
 
 
+## Documentation
+
+- [Private tour — luồng thanh toán hai giai đoạn (co-design)](docs/private-custom-tour-payment-flow.md) — mô tả nghiệp vụ (VI), route/identifier (EN).
+
 ## Local Development
 
 Run from `D:/DoAn/panthora_be`.
@@ -28,6 +32,8 @@ dotnet build LocalService.slnx -c Release
 dotnet test LocalService.slnx
 dotnet test tests/Domain.Specs/Domain.Specs.csproj
 ```
+
+Regression scope cho change **private-custom-tour** (thanh toán 2 pha, webhook, ví): có thể lọc test theo namespace/feature liên quan thay vì chạy toàn bộ `Domain.Specs` nếu môi trường có test legacy đỏ — xem `docs/private-custom-tour-payment-flow.md`.
 
 ### Run API
 

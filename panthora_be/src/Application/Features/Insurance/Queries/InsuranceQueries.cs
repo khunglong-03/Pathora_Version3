@@ -3,9 +3,9 @@ using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using ErrorOr;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Insurance.Queries;
-
 // GetAll
 public sealed record GetAllInsurancesQuery : IQuery<ErrorOr<IReadOnlyList<InsuranceDto>>>;
 
@@ -36,7 +36,7 @@ public sealed class GetAllInsurancesQueryHandler(IInsuranceRepository insuranceR
 }
 
 // GetById
-public sealed record GetInsuranceByIdQuery(Guid Id) : IQuery<ErrorOr<InsuranceDto?>>;
+public sealed record GetInsuranceByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<InsuranceDto?>>;
 
 public sealed class GetInsuranceByIdQueryHandler(IInsuranceRepository insuranceRepository)
     : IRequestHandler<GetInsuranceByIdQuery, ErrorOr<InsuranceDto?>>
@@ -65,7 +65,7 @@ public sealed class GetInsuranceByIdQueryHandler(IInsuranceRepository insuranceR
 }
 
 // GetByClassification
-public sealed record GetInsurancesByClassificationQuery(Guid ClassificationId) : IQuery<ErrorOr<IReadOnlyList<InsuranceDto>>>;
+public sealed record GetInsurancesByClassificationQuery([property: JsonPropertyName("classificationId")] Guid ClassificationId) : IQuery<ErrorOr<IReadOnlyList<InsuranceDto>>>;
 
 public sealed class GetInsurancesByClassificationQueryHandler(IInsuranceRepository insuranceRepository)
     : IRequestHandler<GetInsurancesByClassificationQuery, ErrorOr<IReadOnlyList<InsuranceDto>>>

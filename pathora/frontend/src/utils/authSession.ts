@@ -2,7 +2,7 @@ import { deleteCookie, getCookie, setCookie } from "./cookie";
 import { isJwtExpired } from "./jwt";
 import { resolveAuthPortal } from "./authRouting";
 
-const DAY_SECONDS = 60 * 60 * 24;
+export const DAY_SECONDS = 60 * 60 * 24;
 const WEEK_SECONDS = DAY_SECONDS * 7;
 
 export const persistAuthSession = (
@@ -54,8 +54,11 @@ export const getValidAccessToken = (
   if (!token) return null;
 
   if (isJwtExpired(token)) {
+    // Only clear the expired access_token — keep refresh_token and auth_status
+    // so the auto-refresh interceptor in responseInterceptor.ts can still
+    // rotate tokens when the next API call triggers a 401.
     if (typeof window !== "undefined") {
-      clearAuthSession();
+      deleteCookie("access_token");
     }
     return null;
   }

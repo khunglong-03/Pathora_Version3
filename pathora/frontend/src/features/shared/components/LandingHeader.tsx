@@ -24,6 +24,7 @@ import useWidth from "@/hooks/useWidth";
 import type { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
 import { handleCustomizer } from "@/store/layout";
+import { logOut } from "@/store/infrastructure/authSlice";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
 import {
   FiGlobe,
@@ -40,7 +41,6 @@ import {
   FiSettings,
   FiLock,
 } from "react-icons/fi";
-import { bookingService, RecentBooking } from "@/api/services/bookingService";
 
 const languages = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -221,7 +221,8 @@ const MobileSidebar = ({
           enterTo="opacity-100"
           leave="transition-opacity duration-200 ease-in"
           leaveFrom="opacity-100"
-          leaveTo="opacity-0">
+          leaveTo="opacity-0"
+        >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
         </TransitionChild>
 
@@ -232,7 +233,8 @@ const MobileSidebar = ({
           enterTo="translate-x-0"
           leave="transform transition duration-200 ease-in"
           leaveFrom="translate-x-0"
-          leaveTo="translate-x-full">
+          leaveTo="translate-x-full"
+        >
           <div
             ref={panelRef}
             id={dialogId}
@@ -240,13 +242,15 @@ const MobileSidebar = ({
             role="dialog"
             aria-modal="true"
             aria-labelledby={menuTitleId}
-            tabIndex={-1}>
+            tabIndex={-1}
+          >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
               <Link
                 href="/"
                 onClick={onClose}
-                className="flex items-center gap-3">
+                className="flex items-center gap-3"
+              >
                 {logoVariant === "text" ? (
                   <span className="text-xl font-bold text-white font-['Space_Grotesk']">
                     Pathora
@@ -308,7 +312,8 @@ const MobileSidebar = ({
                   <Link
                     href={item.href}
                     onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
                     <Icon
                       icon={item.icon}
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
@@ -323,15 +328,30 @@ const MobileSidebar = ({
               {isAuth && (
                 <div>
                   <Link
+                    href="/bookings"
+                    onClick={onClose}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
+                    <Icon
+                      icon="heroicons-outline:calendar-days"
+                      className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
+                    />
+                    <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
+                      {t("booking.myBookings") || "Tour đã đặt"}
+                    </span>
+                  </Link>
+                  <Link
                     href="/tours/my-requests"
                     onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
+                  >
                     <Icon
                       icon="heroicons-outline:clipboard-document-list"
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("tourRequest.page.myRequests.title")}
+                      {t("tourRequest.page.myRequests.title") ||
+                        "Yêu cầu thiết kế tour"}
                     </span>
                   </Link>
                 </div>
@@ -355,7 +375,8 @@ const MobileSidebar = ({
                           : "text-gray-300 hover:text-white"
                       } min-h-9 min-w-14`}
                       onClick={() => i18n.changeLanguage(lang.code)}
-                      aria-pressed={normalizedLanguage === lang.code}>
+                      aria-pressed={normalizedLanguage === lang.code}
+                    >
                       {lang.code.toUpperCase()}
                     </Button>
                   ))}
@@ -454,21 +475,73 @@ export const LandingHeader = () => {
   const [authView, setAuthView] = useState<"signup" | "login" | "forgot">(
     "signup",
   );
-  const loginRequested = searchParams.get("login") === "true";
-  const effectiveAuthOpen = authOpen || loginRequested;
-  const effectiveAuthView = loginRequested ? "login" : authView;
+
+  // Strip a stale, self-referencing `next` (e.g. `/?next=%2F%3Fnext%3D%252F...`)
+  // whenever it shows up at the home route. Without this the URL keeps the
+  // corrupted query string forever, even after the login flow that produced it
+  // has finished, and the address bar reads `?next=…` instead of clean `/`.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const rawNext = searchParams.get("next");
+    if (!rawNext) return;
+    const isSelfReferencing =
+      rawNext === "/" ||
+      rawNext.includes("?next=") ||
+      rawNext.includes("?login=true");
+    if (!isSelfReferencing) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("next");
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
+  }, [searchParams, router]);
 
   useEffect(() => {
-    if (loginRequested) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("login");
-      router.replace(url.pathname, { scroll: false });
+    if (searchParams.get("login") !== "true") return;
+
+    // Clean up the URL regardless of auth state to prevent stuck URL param.
+    // Also drop any leftover `next` so the modal flow starts from a clean slate.
+    const url = new URL(window.location.href);
+    url.searchParams.delete("login");
+    const staleNext = url.searchParams.get("next");
+    if (staleNext && (staleNext === "/" || staleNext.includes("?next=") || staleNext.includes("?login=true"))) {
+      url.searchParams.delete("next");
     }
-  }, [loginRequested, router]);
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
+
+    // Check actual auth cookies — they survive longer than the JWT and prove
+    // the user has a refreshable session.  ?login=true can arrive from
+    // TourInstanceInfoCard (hydration race) as well as middleware, so we
+    // must NOT blindly dispatch(logOut()) when cookies are still present.
+    const hasAuthCookie =
+      typeof document !== "undefined" &&
+      document.cookie
+        .split("; ")
+        .some(
+          (c) => c.startsWith("auth_status=") || c.startsWith("refresh_token="),
+        );
+
+    if (clientIsAuth || hasAuthCookie) {
+      // User is still authenticated — do NOT wipe Redux or open the modal.
+      return;
+    }
+
+    // Truly unauthenticated: sync Redux and show login modal
+    dispatch(logOut());
+    setAuthOpen(true);
+    setAuthView("login");
+  }, [searchParams, clientIsAuth, router, dispatch]);
+
+  // If user becomes authenticated while modal is open, close it
+  useEffect(() => {
+    if (clientIsAuth && authOpen) {
+      setAuthOpen(false);
+    }
+  }, [clientIsAuth, authOpen]);
+
+  const effectiveAuthOpen = authOpen;
+  const effectiveAuthView = authView;
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
+
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -547,50 +620,14 @@ export const LandingHeader = () => {
     !user?.roles?.length ||
     user.roles.every((r) => r.name.toLowerCase() === "customer");
 
-  // Fetch recent bookings when user menu opens (Only for Customers)
-  useEffect(() => {
-    if (!clientIsAuth || !userMenuOpen || !isCustomer) return;
 
-    const fetchRecentBookings = async () => {
-      setBookingsLoading(true);
-      try {
-        const bookings = await bookingService.getRecentBookings(3);
-        setRecentBookings(bookings);
-      } catch (err) {
-        console.error("[LandingHeader] getRecentBookings error:", err);
-        setRecentBookings([]);
-      } finally {
-        setBookingsLoading(false);
-      }
-    };
-
-    fetchRecentBookings();
-  }, [clientIsAuth, userMenuOpen, user?.roles]);
-
-  // Helper to get status color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
-      case "approved":
-        return "bg-green-500/20 text-green-400";
-      case "completed":
-        return "bg-blue-500/20 text-blue-400";
-      case "pending":
-      case "pending_approval":
-        return "bg-yellow-500/20 text-yellow-400";
-      case "cancelled":
-      case "rejected":
-        return "bg-red-500/20 text-red-400";
-      default:
-        return "bg-gray-500/20 text-gray-400";
-    }
-  };
 
   return (
     <>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-md focus:bg-[#fa8b02] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg">
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-md focus:bg-[#fa8b02] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      >
         Skip to main content
       </a>
       <header
@@ -600,13 +637,15 @@ export const LandingHeader = () => {
             : scrolled
               ? "bg-[rgba(26,26,26,0.95)] backdrop-blur-xl shadow-lg shadow-black/20"
               : "bg-[rgba(26,26,26,0.7)] backdrop-blur-md"
-        } ${scrolled ? "py-3" : "py-5"}`}>
+        } ${scrolled ? "py-3" : "py-5"}`}
+      >
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0 group">
               <div
-                className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}>
+                className={`relative transition-all duration-300 ${scrolled ? "h-10 w-24" : "h-12 w-28"}`}
+              >
                 <Image
                   src={LOGO}
                   alt="Pathora logo"
@@ -621,7 +660,8 @@ export const LandingHeader = () => {
             {/* Desktop Navigation */}
             <nav
               className="hidden lg:flex items-center gap-1"
-              aria-label="Main navigation">
+              aria-label="Main navigation"
+            >
               {navLinks.map((link) => {
                 const isActive =
                   link.href === "/"
@@ -639,7 +679,8 @@ export const LandingHeader = () => {
                         ? "text-[#fa8b02]"
                         : "text-white hover:text-[#fa8b02]"
                     }`}
-                    aria-current={isActive ? "page" : undefined}>
+                    aria-current={isActive ? "page" : undefined}
+                  >
                     {mounted
                       ? t(link.labelKey)
                       : link.labelKey === "landing.nav.home"
@@ -668,8 +709,9 @@ export const LandingHeader = () => {
               <div className="relative" ref={languageMenuRef}>
                 <Button
                   type="button"
+                  variant="ghost"
                   suppressHydrationWarning
-                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all text-white"
                   onClick={() => {
                     setLanguageMenuOpen((prev) => !prev);
                     setUserMenuOpen(false);
@@ -677,7 +719,8 @@ export const LandingHeader = () => {
                   aria-label={`${t("landing.a11y.changeLanguage")} (${mounted ? normalizedLanguage.toUpperCase() : "EN"})`}
                   aria-haspopup="menu"
                   aria-expanded={languageMenuOpen}
-                  aria-controls={languageMenuId}>
+                  aria-controls={languageMenuId}
+                >
                   <FiGlobe
                     suppressHydrationWarning
                     className="w-4 h-4 text-white/70"
@@ -698,7 +741,8 @@ export const LandingHeader = () => {
                     languageMenuOpen
                       ? "visible opacity-100 translate-y-0"
                       : "invisible opacity-0 translate-y-2 pointer-events-none"
-                  }`}>
+                  }`}
+                >
                   {languages.map((lang) => {
                     const isActive =
                       mounted && lang.code === normalizedLanguage;
@@ -714,7 +758,8 @@ export const LandingHeader = () => {
                           isActive
                             ? "text-[#fa8b02] bg-[#fa8b02]/10"
                             : "text-white"
-                        }`}>
+                        }`}
+                      >
                         <span className="text-lg">{lang.flag}</span>
                         <span className="font-medium">{lang.label}</span>
                         {isActive && <FiCheck className="w-4 h-4 ml-auto" />}
@@ -737,7 +782,8 @@ export const LandingHeader = () => {
                     aria-label="User menu"
                     aria-haspopup="menu"
                     aria-expanded={userMenuOpen}
-                    aria-controls={userMenuId}>
+                    aria-controls={userMenuId}
+                  >
                     {user?.avatar ? (
                       <AvatarImage
                         src={user.avatar}
@@ -759,7 +805,8 @@ export const LandingHeader = () => {
                       userMenuOpen
                         ? "visible opacity-100 translate-y-0"
                         : "invisible opacity-0 translate-y-2 pointer-events-none"
-                    }`}>
+                    }`}
+                  >
                     {/* User Info Header */}
                     <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
                       <div className="w-10 h-10 rounded-full bg-linear-to-r from-[#fa8b02] to-[#ff9f2d] flex items-center justify-center shrink-0 overflow-hidden">
@@ -785,81 +832,17 @@ export const LandingHeader = () => {
                       </div>
                     </div>
 
-                    {/* Recent Bookings */}
-                    {recentBookings.length > 0 && (
+                    {/* My Bookings quick link */}
+                    {clientIsAuth && isCustomer && (
                       <div className="border-t border-white/10">
-                        <div className="px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          {t("booking.recentBookings") || "Tour đã đặt"}
-                        </div>
-                        <div className="max-h-48 overflow-y-auto">
-                          {recentBookings.map((booking) => (
-                            <Link
-                              key={booking.bookingId}
-                              href={`/bookings/${booking.bookingId}`}
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex w-full items-start gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
-                              <FiCalendar className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate font-medium">
-                                  {booking.tourName}
-                                </p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs text-gray-400">
-                                    {new Date(
-                                      booking.departureDate,
-                                    ).toLocaleDateString(
-                                      i18n.language === "vi"
-                                        ? "vi-VN"
-                                        : "en-US",
-                                      { day: "numeric", month: "short" },
-                                    )}
-                                  </span>
-                                  <span
-                                    className={`text-xs px-1.5 py-0.5 rounded ${getStatusColor(
-                                      booking.status,
-                                    )}`}>
-                                    {booking.status}
-                                  </span>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                          <Link
-                            href="/bookings"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors">
-                            <span>{t("booking.viewAll") || "Xem tất cả"}</span>
-                            <FiArrowRight className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Empty bookings state */}
-                    {recentBookings.length === 0 &&
-                      !bookingsLoading &&
-                      clientIsAuth &&
-                      isCustomer && (
-                        <div className="border-t border-white/10 px-4 py-3">
-                          <p className="text-xs text-gray-400">
-                            {t("booking.noBookings") || "Bạn chưa có tour nào"}
-                          </p>
-                          <Link
-                            href="/tours"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="text-xs text-[#fa8b02] hover:underline mt-1 block">
-                            {t("booking.browseTours") || "Khám phá tour ngay"}
-                          </Link>
-                        </div>
-                      )}
-
-                    {/* Loading state */}
-                    {bookingsLoading && (
-                      <div className="border-t border-white/10 px-4 py-3">
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <div className="w-3 h-3 border-2 border-gray-400 border-t-[#fa8b02] rounded-full animate-spin" />
-                          {t("booking.loading") || "Đang tải..."}
-                        </div>
+                        <Link
+                          href="/bookings"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors"
+                        >
+                          <span>{t("booking.viewAll") || "Xem tất cả"}</span>
+                          <FiArrowRight className="w-4 h-4" />
+                        </Link>
                       </div>
                     )}
 
@@ -869,7 +852,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiUser className="w-4 h-4" />
                         <span>
                           {t("common.profile") || "Thông tin cá nhân"}
@@ -880,7 +864,8 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile?tab=password"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiLock className="w-4 h-4" />
                         <span>
                           {t("common.changePassword") || "Đổi mật khẩu"}
@@ -891,23 +876,40 @@ export const LandingHeader = () => {
                       <Link
                         href="/profile?tab=settings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiSettings className="w-4 h-4" />
                         <span>{t("common.settings") || "Cài đặt"}</span>
                       </Link>
 
+                      {/* My Bookings */}
+                      <Link
+                        href="/bookings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
+                        <FiCalendar className="w-4 h-4" />
+                        <span>{t("booking.myBookings") || "Tour đã đặt"}</span>
+                      </Link>
+
+                      {/* Custom Tour Requests */}
                       <Link
                         href="/tours/my-requests"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors">
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                      >
                         <FiClipboard className="w-4 h-4" />
-                        <span>{t("tourRequest.page.myRequests.title")}</span>
+                        <span>
+                          {t("tourRequest.page.myRequests.title") ||
+                            "Yêu cầu thiết kế tour"}
+                        </span>
                       </Link>
 
                       <Button
                         type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
                         <FiLogOut className="w-4 h-4" />
                         <span>{t("common.signOut") || "Đăng xuất"}</span>
                       </Button>
@@ -921,13 +923,15 @@ export const LandingHeader = () => {
                 <>
                   <Button
                     onClick={() => openAuth("login")}
+                    variant="ghost"
                     text={mounted ? t("common.signIn") : "Sign In"}
                     className="px-5 py-2.5 font-semibold text-sm text-white border border-white/20 rounded-full hover:bg-white/10 hover:border-white/40 transition-all duration-200"
                   />
                   <Button
                     onClick={() => openAuth("signup")}
+                    variant="primary"
                     text={mounted ? t("common.signUp") : "Sign Up"}
-                    className="px-6 py-2.5 bg-linear-to-r from-[#fa8b02] to-[#ff9f2d] text-white font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-[#fa8b02]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="px-6 py-2.5 border-0 bg-gradient-to-r from-[#fa8b02] to-[#ff9f2d] text-white font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-[#fa8b02]/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                   />
                 </>
               )}
@@ -941,7 +945,8 @@ export const LandingHeader = () => {
               onClick={() => setMobileMenuOpen(true)}
               aria-label={t("landing.a11y.openMenu")}
               aria-expanded={mobileMenuOpen}
-              aria-controls="landing-mobile-menu">
+              aria-controls="landing-mobile-menu"
+            >
               {mobileMenuOpen ? (
                 <FiX suppressHydrationWarning className="w-6 h-6" />
               ) : (
@@ -952,10 +957,7 @@ export const LandingHeader = () => {
         </div>
       </header>
 
-      {/* Spacer to prevent content overlap */}
-      <div
-        className={`${scrolled ? "h-16" : "h-20"} transition-all duration-300`}
-      />
+      {/* Spacer removed (duplicate) */}
 
       <MobileSidebar
         open={mobileMenuOpen}
@@ -973,7 +975,12 @@ export const LandingHeader = () => {
         }}
         initialView={effectiveAuthView}
       />
-      {isSolid && <div className="h-[88px] md:h-[96px] w-full shrink-0" aria-hidden="true" />}
+      {isSolid && (
+        <div
+          className="h-[88px] md:h-[96px] w-full shrink-0"
+          aria-hidden="true"
+        />
+      )}
     </>
   );
 };

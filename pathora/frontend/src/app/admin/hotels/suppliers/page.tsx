@@ -171,6 +171,12 @@ export default function HotelSuppliersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {suppliers.map((supplier) => {
               const isActive = supplier.status === "Active";
+              const propertyCount = supplier.propertyCount ?? supplier.accommodationCount ?? 0;
+              const continentCount = supplier.continents.length > 0
+                ? supplier.continents.length
+                : supplier.primaryContinent
+                  ? 1
+                  : 0;
               return (
                 <Link
                   href={`/admin/hotels/suppliers/${supplier.id}`}
@@ -209,6 +215,17 @@ export default function HotelSuppliersPage() {
                             />
                             {isActive ? "Hoạt động" : "Ngừng"}
                           </span>
+                          {supplier.status !== "Active" && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold"
+                              style={{
+                                backgroundColor: supplier.status === "Banned" ? "#FEE2E2" : "#FEF3C7",
+                                color: supplier.status === "Banned" ? "#DC2626" : "#D97706",
+                              }}
+                            >
+                              {supplier.status === "Banned" ? "Đã khóa" : "Không hoạt động"}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <ArrowRightIcon size={16} style={{ color: "#9CA3AF" }} className="shrink-0 mt-1" />
@@ -260,10 +277,10 @@ export default function HotelSuppliersPage() {
                     <div className="flex gap-3 pt-3" style={{ borderTop: "1px solid #F3F4F6" }}>
                       <div className="flex-1 text-center">
                         <p className="text-lg font-bold" style={{ color: "#111827" }}>
-                          {supplier.accommodationCount ?? 0}
+                          {propertyCount}
                         </p>
                         <p className="text-xs" style={{ color: "#9CA3AF" }}>
-                          Cơ sở lưu trú
+                          Cơ sở
                         </p>
                       </div>
                       <div className="flex-1 text-center">
@@ -272,6 +289,14 @@ export default function HotelSuppliersPage() {
                         </p>
                         <p className="text-xs" style={{ color: "#9CA3AF" }}>
                           Phòng
+                        </p>
+                      </div>
+                      <div className="flex-1 text-center">
+                        <p className="text-lg font-bold" style={{ color: "#111827" }}>
+                          {continentCount}
+                        </p>
+                        <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                          Khu vực
                         </p>
                       </div>
                       {supplier.createdOnUtc && (

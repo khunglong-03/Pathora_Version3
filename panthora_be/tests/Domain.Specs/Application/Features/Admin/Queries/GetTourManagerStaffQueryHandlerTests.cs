@@ -1,8 +1,8 @@
-using Application.Features.Admin.DTOs;
-using Application.Features.Admin.Queries.GetTourManagerStaff;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.Admin.DTOs;
+using global::Application.Features.Admin.Queries.GetTourManagerStaff;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 using Xunit;
@@ -65,7 +65,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         };
 
         var designerAssignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, designerId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, designerId, null, AssignedRoleInTeam.Member, "system");
         var guideAssignment = TourManagerAssignmentEntity.Create(
             managerId, AssignedEntityType.TourGuide, guideId, null, AssignedRoleInTeam.Lead, "system");
 
@@ -84,7 +84,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
         Assert.False(result.IsError);
         Assert.Equal("Manager One", result.Value.Manager.FullName);
         Assert.Equal(2, result.Value.Staff.Count);
-        Assert.Contains(result.Value.Staff, s => s.Role == "Tour Designer");
+        Assert.Contains(result.Value.Staff, s => s.Role == "Tour Operator");
         Assert.Contains(result.Value.Staff, s => s.Role == "Tour Guide");
     }
 
@@ -144,7 +144,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
             IsDeleted = false
         };
         var designerAssignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, Guid.NewGuid(), null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, Guid.NewGuid(), null, AssignedRoleInTeam.Member, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
@@ -214,7 +214,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
             IsDeleted = false
         };
         var assignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
@@ -257,7 +257,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
             IsDeleted = true
         };
         var assignment = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         _userRepository.FindById(managerId).Returns(manager);
         _assignmentRepository.GetByManagerIdAsync(managerId, Arg.Any<CancellationToken>())
@@ -308,7 +308,7 @@ public sealed class GetTourManagerStaffQueryHandlerTests
             IsDeleted = true
         };
         var assignment1 = TourManagerAssignmentEntity.Create(
-            managerId, AssignedEntityType.TourDesigner, activeId, null, AssignedRoleInTeam.Member, "system");
+            managerId, AssignedEntityType.TourOperator, activeId, null, AssignedRoleInTeam.Member, "system");
         var assignment2 = TourManagerAssignmentEntity.Create(
             managerId, AssignedEntityType.TourGuide, deletedId, null, AssignedRoleInTeam.Lead, "system");
 

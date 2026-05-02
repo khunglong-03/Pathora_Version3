@@ -1,4 +1,4 @@
-using Api.Middleware;
+using global::Api.Middleware;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;

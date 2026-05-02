@@ -1,6 +1,6 @@
-using Api.Controllers.Public;
-using Application.Dtos;
-using Application.Features.Public.Queries;
+using global::Api.Controllers.Public;
+using global::Application.Dtos;
+using global::Application.Features.Public.Queries;
 using Contracts;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -30,9 +30,9 @@ public sealed class PublicTourInstanceControllerTests
             MaxParticipation: 20,
             BasePrice: 1000m,
             Status: "Available",
-            InstanceType: "Public",
-            HotelApprovalStatus: 2,
-            TransportApprovalStatus: 2);
+            WantsCustomization: false,
+            CustomizationNotes: null,
+            InstanceType: "Public");
 
         var response = new PaginatedList<TourInstanceVm>(1, [vm], 1, 10);
         var (controller, probe) = ApiControllerTestHelper
@@ -41,14 +41,14 @@ public sealed class PublicTourInstanceControllerTests
                 "/api/public/tour-instances/available");
         var languageContext = new TestLanguageContext { CurrentLanguage = "en" };
 
-        var actionResult = await controller.GetAvailable("ha", null, 2, 5, languageContext);
+        var actionResult = await controller.GetAvailable("ha", null, 2, 5, null, languageContext);
 
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
             expectedInstance: "/api/public/tour-instances/available",
             expectedData: response);
-        Assert.Equal(new GetPublicTourInstancesQuery("ha", null, 2, 5, "en"), probe.CapturedRequest);
+        Assert.Equal(new GetPublicTourInstancesQuery("ha", null, 2, 5, "en", null), probe.CapturedRequest);
     }
 
     [Fact]
@@ -82,14 +82,13 @@ public sealed class PublicTourInstanceControllerTests
             ConfirmationDeadline: null,
             Managers: [],
             IncludedServices: [],
-            HotelApprovalStatus: 2,
-            TransportApprovalStatus: 2,
-            HotelApprovalNote: null,
-            TransportApprovalNote: null,
-            HotelProviderId: null,
-            HotelProviderName: null,
-            TransportProviderId: null,
-            TransportProviderName: null);
+            PricingPolicy: null,
+            CancellationPolicy: null,
+            DepositPolicy: null,
+            FinalSellPrice: null,
+            WantsCustomization: false,
+            CustomizationNotes: null,
+            Days: null);
 
         var (controller, probe) = ApiControllerTestHelper
             .BuildController<PublicTourInstanceController, GetPublicTourInstanceDetailQuery, TourInstanceDto>(

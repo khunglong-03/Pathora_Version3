@@ -1,4 +1,4 @@
-import { Icon } from "@/components/ui";
+import React from "react";
 
 interface InfoFieldProps {
   label: string;
@@ -8,10 +8,10 @@ interface InfoFieldProps {
 
 export function InfoField({ label, value, mono }: InfoFieldProps) {
   return (
-    <div>
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
+    <div className="flex flex-col">
+      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">{label}</p>
       <p
-        className={`text-sm font-semibold text-gray-700 ${mono ? "font-mono text-[#05073c]" : ""}`}
+        className={`text-sm font-bold text-slate-900 leading-tight ${mono ? "font-mono bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200/50 w-fit" : ""}`}
       >
         {value}
       </p>
@@ -20,7 +20,7 @@ export function InfoField({ label, value, mono }: InfoFieldProps) {
 }
 
 interface QuickInfoItemProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
 }
@@ -28,14 +28,14 @@ interface QuickInfoItemProps {
 export function QuickInfoItem({ icon, label, value }: QuickInfoItemProps) {
   return (
     <div className="flex items-start gap-3">
-      <div className="size-10 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
-        <Icon icon={icon} className="size-4 text-[#fa8b02]" />
+      <div className="flex items-center justify-center size-10 rounded-[0.8rem] bg-slate-50 border border-slate-100 text-slate-500 shrink-0 shadow-sm">
+        {icon}
       </div>
-      <div>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+      <div className="flex flex-col justify-center min-h-[40px]">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
           {label}
         </p>
-        <p className="text-sm font-bold text-[#05073c]">{value}</p>
+        <p className="text-sm font-bold text-slate-900 leading-none">{value}</p>
       </div>
     </div>
   );

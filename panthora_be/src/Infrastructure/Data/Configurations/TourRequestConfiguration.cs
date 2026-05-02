@@ -80,6 +80,9 @@ public class TourRequestConfiguration : IEntityTypeConfiguration<TourRequestEnti
         builder.Property(t => t.AdminNote)
             .HasMaxLength(2000);
 
+        builder.Property(t => t.ReviewerRole)
+            .HasMaxLength(100);
+
         // Indexes
         builder.HasIndex(t => t.Status);
         builder.HasIndex(t => t.UserId);

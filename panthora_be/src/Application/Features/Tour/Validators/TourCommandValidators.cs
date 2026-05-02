@@ -1,5 +1,5 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
 using Domain.Enums;
@@ -345,10 +345,6 @@ public sealed class ServiceDtoValidator : AbstractValidator<ServiceDto>
             .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ServicePriceNonNegative)
             .When(x => x.Price.HasValue);
 
-        RuleFor(x => x.SalePrice)
-            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ServiceSalePriceNonNegative)
-            .When(x => x.SalePrice.HasValue);
-
         RuleFor(x => x.Email)
             .EmailAddress().WithMessage(ValidationMessages.ServiceEmailInvalid)
             .When(x => !string.IsNullOrEmpty(x.Email));
@@ -404,6 +400,14 @@ public sealed class UpdateTourCommandValidator : AbstractValidator<UpdateTourCom
         RuleFor(x => x.Continent)
             .NotNull().WithMessage("Châu lục là bắt buộc khi phạm vi tour là Quốc tế")
             .When(x => x.TourScope == TourScope.International);
+
+        RuleFor(x => x.Continent)
+            .Null().WithMessage("Tour trong nước không được chọn châu lục")
+            .When(x => x.TourScope == TourScope.Domestic);
+
+        RuleFor(x => x.IsVisa)
+            .Equal(false).WithMessage("Tour trong nước không yêu cầu visa")
+            .When(x => x.TourScope == TourScope.Domestic);
 
         // Thumbnail - Optional but must be valid if provided
         RuleFor(x => x.Thumbnail)

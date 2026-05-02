@@ -1,22 +1,23 @@
+using Application.Common.Constant;
 using Application.Contracts.PricingPolicy;
 using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts;
 using Domain.Entities.Translations;
 using Domain.ValueObjects;
-using Contracts;
-using Application.Common.Constant;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
 
 public sealed record UpdatePricingPolicyCommand(
-    Guid Id,
-    string Name,
-    Domain.Enums.TourType TourType,
-    List<Domain.ValueObjects.PricingPolicyTier> Tiers,
-    Domain.Enums.PricingPolicyStatus? Status = null,
-    Dictionary<string, PricingPolicyTranslationData>? Translations = null) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("tourType")] Domain.Enums.TourType TourType,
+    [property: JsonPropertyName("tiers")] List<Domain.ValueObjects.PricingPolicyTier> Tiers,
+    [property: JsonPropertyName("status")] Domain.Enums.PricingPolicyStatus? Status = null,
+    [property: JsonPropertyName("translations")] Dictionary<string, PricingPolicyTranslationData>? Translations = null) : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdatePricingPolicyCommandValidator : AbstractValidator<UpdatePricingPolicyCommand>
 {

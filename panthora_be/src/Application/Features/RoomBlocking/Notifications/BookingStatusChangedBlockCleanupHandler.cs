@@ -1,10 +1,10 @@
-namespace Application.Features.RoomBlocking.Notifications;
-
 using Domain.Common.Repositories;
 using Domain.Enums;
 using Domain.Events;
 using Domain.UnitOfWork;
 using MediatR;
+
+namespace Application.Features.RoomBlocking.Notifications;
 
 public sealed class BookingStatusChangedBlockCleanupHandler(
     IRoomBlockRepository roomBlockRepository,

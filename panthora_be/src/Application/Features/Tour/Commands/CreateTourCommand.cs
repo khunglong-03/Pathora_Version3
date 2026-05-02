@@ -1,35 +1,39 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using Application.Features.Tour.Validators;
+using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Entities.Translations;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Tour.Commands;
 
 public sealed record CreateTourCommand(
-    string TourName,
-    string ShortDescription,
-    string LongDescription,
-    string? SEOTitle,
-    string? SEODescription,
-    TourStatus Status,
-    ImageInputDto? Thumbnail = null,
-    List<ImageInputDto>? Images = null,
-    Dictionary<string, TourTranslationData>? Translations = null,
-    List<ClassificationDto>? Classifications = null,
-    List<AccommodationDto>? Accommodations = null,
-    List<LocationDto>? Locations = null,
-    List<TransportationDto>? Transportations = null,
-    List<ServiceDto>? Services = null,
-    TourScope TourScope = TourScope.Domestic,
-    Continent? Continent = null,
-    CustomerSegment CustomerSegment = CustomerSegment.Group) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("shortDescription")] string ShortDescription,
+    [property: JsonPropertyName("longDescription")] string LongDescription,
+    [property: JsonPropertyName("seoTitle")] string? SEOTitle,
+    [property: JsonPropertyName("seoDescription")] string? SEODescription,
+    [property: JsonPropertyName("status")] TourStatus Status,
+    [property: JsonPropertyName("thumbnail")] ImageInputDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageInputDto>? Images = null,
+    [property: JsonPropertyName("translations")] Dictionary<string, TourTranslationData>? Translations = null,
+    [property: JsonPropertyName("classifications")] List<ClassificationDto>? Classifications = null,
+    [property: JsonPropertyName("accommodations")] List<AccommodationDto>? Accommodations = null,
+    [property: JsonPropertyName("locations")] List<LocationDto>? Locations = null,
+    [property: JsonPropertyName("transportations")] List<TransportationDto>? Transportations = null,
+    [property: JsonPropertyName("services")] List<ServiceDto>? Services = null,
+    [property: JsonPropertyName("tourScope")] TourScope TourScope = TourScope.Domestic,
+    [property: JsonPropertyName("continent")] Continent? Continent = null,
+    [property: JsonPropertyName("customerSegment")] CustomerSegment CustomerSegment = CustomerSegment.Group,
+    [property: JsonPropertyName("isVisa")] bool IsVisa = false,
+    /// <summary>Set by TourController — not deserialized from multipart. Manager/Admin can set Pending→Active directly.</summary>
+    bool IsManager = false) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Tour];
 }
@@ -79,6 +83,14 @@ public sealed class CreateTourCommandValidator : AbstractValidator<CreateTourCom
         RuleFor(x => x.Continent)
             .NotNull().WithMessage("Châu lục là bắt buộc khi phạm vi tour là Quốc tế")
             .When(x => x.TourScope == TourScope.International);
+
+        RuleFor(x => x.Continent)
+            .Null().WithMessage("Tour trong nước không được chọn châu lục")
+            .When(x => x.TourScope == TourScope.Domestic);
+
+        RuleFor(x => x.IsVisa)
+            .Equal(false).WithMessage("Tour trong nước không yêu cầu visa")
+            .When(x => x.TourScope == TourScope.Domestic);
 
         // Thumbnail - Required
         RuleFor(x => x.Thumbnail)
@@ -147,9 +159,8 @@ public sealed class CreateTourCommandHandler(ITourService tourService)
 {
     public async Task<ErrorOr<Guid>> Handle(CreateTourCommand request, CancellationToken cancellationToken)
     {
-        return await tourService.Create(request, isManager: false);
+        return await tourService.Create(request, request.IsManager);
     }
 }
-
 
 

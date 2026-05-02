@@ -1,7 +1,7 @@
-using Domain.Entities;
-using Domain.Entities.Translations;
-using Domain.Enums;
-using Domain.ValueObjects;
+using global::Domain.Entities;
+using global::Domain.Entities.Translations;
+using global::Domain.Enums;
+using global::Domain.ValueObjects;
 
 namespace Domain.Specs.Application.Validators;
 

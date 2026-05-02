@@ -1,21 +1,24 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common.Interfaces;
+using Application.Common;
 using Application.Dtos;
+using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
-using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record AssignVehicleToRouteCommand(
-    Guid InstanceId,
-    Guid RouteId,
-    Guid VehicleId,
-    Guid DriverId) : ICommand<ErrorOr<AssignVehicleToRouteResponseDto>>;
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("routeId")] Guid RouteId,
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid DriverId) : ICommand<ErrorOr<AssignVehicleToRouteResponseDto>>;
 
 public sealed class AssignVehicleToRouteCommandValidator : AbstractValidator<AssignVehicleToRouteCommand>
 {
@@ -33,6 +36,9 @@ public sealed class AssignVehicleToRouteCommandHandler(
     IVehicleRepository vehicleRepository,
     IDriverRepository driverRepository,
     ISupplierRepository supplierRepository,
+    IVehicleBlockRepository vehicleBlockRepository,
+    IResourceAvailabilityService availabilityService,
+    IUnitOfWork unitOfWork,
     IUser currentUser)
     : ICommandHandler<AssignVehicleToRouteCommand, ErrorOr<AssignVehicleToRouteResponseDto>>
 {
@@ -41,7 +47,8 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (!Guid.TryParse(currentUser.Id, out var currentUserId))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
-        var supplier = await supplierRepository.FindByOwnerUserIdAsync(currentUserId, cancellationToken);
+        var suppliers = await supplierRepository.FindAllByOwnerUserIdAsync(currentUserId, cancellationToken);
+        var supplier = suppliers.FirstOrDefault();
         if (supplier is null)
             return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, "Current user is not associated with any supplier.");
 
@@ -53,37 +60,66 @@ public sealed class AssignVehicleToRouteCommandHandler(
         if (activity is null)
             return Error.NotFound("TourInstanceDayActivity.NotFound", "Activity not found for the specified tour instance.");
 
-        if (instance.TransportProviderId != supplier.Id)
-            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this tour instance.");
+        if (activity.TransportSupplierId != supplier.Id)
+            return Error.Validation("TourInstance.ProviderNotAssigned", "You are not assigned as the Transport provider for this activity.");
 
         var vehicle = await vehicleRepository.GetByIdAsync(request.VehicleId, cancellationToken);
-        if (vehicle is null)
-            return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
-
-        if (vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
+        if (vehicle is null || vehicle.IsDeleted || vehicle.OwnerId != currentUserId)
             return Error.Validation("Vehicle.NotOwned", "Vehicle does not belong to the current provider.");
 
         if (!vehicle.IsActive)
             return Error.Validation("Vehicle.Inactive", "Vehicle is inactive.");
 
-        var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
-        if (driver is null)
-            return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
+        // Hard capacity check (seats)
+        if (vehicle.SeatCapacity < instance.MaxParticipation)
+        {
+            return Error.Validation("Vehicle.InsufficientCapacity", $"Sức chứa của xe ({vehicle.SeatCapacity}) không đủ cho số khách tối đa của tour ({instance.MaxParticipation}).");
+        }
 
-        if (driver.UserId != currentUserId)
+        // Availability check (overlap)
+        var availabilityCheck = await availabilityService.CheckVehicleAvailabilityAsync(
+            request.VehicleId,
+            activity.TourInstanceDay.ActualDate,
+            request.RouteId,
+            cancellationToken);
+
+        if (availabilityCheck.IsError) return availabilityCheck.Errors;
+        if (!availabilityCheck.Value)
+        {
+            return Error.Validation("Vehicle.Unavailable", "Xe đã được gán cho một lịch trình khác trong cùng ngày.");
+        }
+
+        var driver = await driverRepository.GetByIdAsync(request.DriverId, cancellationToken);
+        if (driver is null || driver.UserId != currentUserId)
             return Error.Validation("Driver.NotOwned", "Driver does not belong to the current provider.");
 
         if (!driver.IsActive)
             return Error.Validation("Driver.Inactive", "Driver is inactive.");
 
-        activity.VehicleId = request.VehicleId;
-        activity.DriverId = request.DriverId;
+        await unitOfWork.ExecuteTransactionAsync(async () =>
+        {
+            // Remove existing block for this activity if any
+            await vehicleBlockRepository.DeleteByActivityAsync(request.RouteId, cancellationToken);
 
-        await tourInstanceRepository.Update(instance, cancellationToken);
+            activity.VehicleId = request.VehicleId;
+            activity.DriverId = request.DriverId;
+
+            // Create new hard hold block
+            var block = VehicleBlockEntity.Create(
+                request.VehicleId,
+                activity.TourInstanceDay.ActualDate,
+                currentUserId.ToString(),
+                tourInstanceDayActivityId: request.RouteId,
+                holdStatus: HoldStatus.Hard);
+
+            await vehicleBlockRepository.AddAsync(block, cancellationToken);
+            await tourInstanceRepository.Update(instance, cancellationToken);
+            await unitOfWork.SaveChangeAsync(cancellationToken);
+        });
 
         return new AssignVehicleToRouteResponseDto(
             Success: true,
-            SeatCapacityWarning: vehicle.SeatCapacity < instance.MaxParticipation,
+            SeatCapacityWarning: false, // Hardened to error
             VehicleSeatCapacity: vehicle.SeatCapacity,
             TourMaxParticipation: instance.MaxParticipation);
     }

@@ -1,19 +1,20 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.ActivityStatus;
 
-public sealed record InitializeActivityStatusCommand(Guid BookingId) : ICommand<ErrorOr<int>>, ICacheInvalidator
+public sealed record InitializeActivityStatusCommand([property: JsonPropertyName("bookingId")] Guid BookingId) : ICommand<ErrorOr<int>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -30,12 +31,14 @@ public sealed class InitializeActivityStatusCommandHandler(
     IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<InitializeActivityStatusCommand, ErrorOr<int>>
 {
     public async Task<ErrorOr<int>> Handle(InitializeActivityStatusCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -64,7 +67,7 @@ public sealed class InitializeActivityStatusCommandHandler(
                 continue;
             }
 
-            var status = TourDayActivityStatusEntity.Create(request.BookingId, tourDay.Id, "system");
+            var status = TourDayActivityStatusEntity.Create(request.BookingId, tourDay.Id, performedBy);
             await tourDayActivityStatusRepository.AddAsync(status);
             createdCount++;
         }
@@ -78,7 +81,10 @@ public sealed class InitializeActivityStatusCommandHandler(
     }
 }
 
-public sealed record StartActivityCommand(Guid BookingId, Guid TourDayId, DateTimeOffset? ActualStartTime)
+public sealed record StartActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("actualStartTime")] DateTimeOffset? ActualStartTime)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -140,7 +146,8 @@ public sealed class StartActivityCommandHandler(
 
         try
         {
-            status.Start("system", request.ActualStartTime);
+            var performedBy = user.Id ?? "system";
+            status.Start(performedBy, request.ActualStartTime);
         }
         catch (InvalidOperationException ex)
         {
@@ -154,7 +161,10 @@ public sealed class StartActivityCommandHandler(
     }
 }
 
-public sealed record CompleteActivityCommand(Guid BookingId, Guid TourDayId, DateTimeOffset? ActualEndTime)
+public sealed record CompleteActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("actualEndTime")] DateTimeOffset? ActualEndTime)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -216,7 +226,8 @@ public sealed class CompleteActivityCommandHandler(
 
         try
         {
-            status.Complete("system", request.ActualEndTime);
+            var performedBy = user.Id ?? "system";
+            status.Complete(performedBy, request.ActualEndTime);
         }
         catch (InvalidOperationException ex)
         {
@@ -230,7 +241,10 @@ public sealed class CompleteActivityCommandHandler(
     }
 }
 
-public sealed record CancelActivityCommand(Guid BookingId, Guid TourDayId, string Reason)
+public sealed record CancelActivityCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("reason")] string Reason)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
@@ -297,7 +311,8 @@ public sealed class CancelActivityCommandHandler(
 
         try
         {
-            status.Cancel(reason, "system");
+            var performedBy = user.Id ?? "system";
+            status.Cancel(reason, performedBy);
         }
         catch (InvalidOperationException ex)
         {
@@ -311,7 +326,7 @@ public sealed class CancelActivityCommandHandler(
     }
 }
 
-public sealed record GetActivityStatusesQuery(Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
+public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-statuses:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -383,7 +398,9 @@ public sealed class GetActivityStatusesQueryHandler(
     }
 }
 
-public sealed record GetActivityStatusByTourDayQuery(Guid BookingId, Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
+public sealed record GetActivityStatusByTourDayQuery(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-status:{BookingId}:{TourDayId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -458,13 +475,13 @@ public sealed class GetActivityStatusByTourDayQueryHandler(
 }
 
 public sealed record AssignGuideToActivityCommand(
-    Guid BookingId,
-    Guid TourDayId,
-    Guid UserId,
-    GuideRole Role,
-    DateTimeOffset? CheckInTime,
-    DateTimeOffset? CheckOutTime,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("role")] GuideRole Role,
+    [property: JsonPropertyName("checkInTime")] DateTimeOffset? CheckInTime,
+    [property: JsonPropertyName("checkOutTime")] DateTimeOffset? CheckOutTime,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -486,12 +503,14 @@ public sealed class AssignGuideToActivityCommandHandler(
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
     ITourDayActivityGuideRepository tourDayActivityGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<AssignGuideToActivityCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(AssignGuideToActivityCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var status = await tourDayActivityStatusRepository.GetByBookingIdAndTourDayIdAsync(request.BookingId, request.TourDayId);
         if (status is null)
         {
@@ -511,7 +530,7 @@ public sealed class AssignGuideToActivityCommandHandler(
             status.Id,
             request.UserId,
             request.Role,
-            performedBy: "system",
+            performedBy: performedBy,
             request.CheckInTime,
             request.CheckOutTime,
             request.Note);

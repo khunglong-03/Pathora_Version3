@@ -33,6 +33,11 @@ public class RoomBlockEntity : Aggregate<Guid>
     /// <summary>Số phòng bị block trong ngày này.</summary>
     public int RoomCountBlocked { get; set; }
 
+    /// <summary>Trạng thái giữ chỗ (Soft/Hard).</summary>
+    public HoldStatus HoldStatus { get; set; } = HoldStatus.Hard;
+    /// <summary>Thời điểm hết hạn (nếu là Soft hold).</summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
+
     public static RoomBlockEntity Create(
         Guid supplierId,
         RoomType roomType,
@@ -41,7 +46,9 @@ public class RoomBlockEntity : Aggregate<Guid>
         string performedBy,
         Guid? bookingAccommodationDetailId = null,
         Guid? bookingId = null,
-        Guid? tourInstanceDayActivityId = null)
+        Guid? tourInstanceDayActivityId = null,
+        HoldStatus holdStatus = HoldStatus.Hard,
+        DateTimeOffset? expiresAt = null)
     {
         if (roomCountBlocked <= 0)
             throw new ArgumentOutOfRangeException(nameof(roomCountBlocked), "RoomCountBlocked must be greater than 0.");
@@ -56,11 +63,21 @@ public class RoomBlockEntity : Aggregate<Guid>
             TourInstanceDayActivityId = tourInstanceDayActivityId,
             BlockedDate = blockedDate,
             RoomCountBlocked = roomCountBlocked,
+            HoldStatus = holdStatus,
+            ExpiresAt = expiresAt,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
+    }
+
+    public void UpdateHold(HoldStatus status, DateTimeOffset? expiresAt, string performedBy)
+    {
+        HoldStatus = status;
+        ExpiresAt = expiresAt;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
     public void UpdateRoomCount(int roomCountBlocked, string performedBy)

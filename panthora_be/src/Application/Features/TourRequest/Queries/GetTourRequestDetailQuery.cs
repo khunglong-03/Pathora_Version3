@@ -1,15 +1,18 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
 
-public sealed record GetTourRequestDetailQuery(Guid Id, string CurrentUserId) : IQuery<ErrorOr<TourRequestDetailDto>>, ICacheable
+public sealed record GetTourRequestDetailQuery(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("currentUserId")] string CurrentUserId) : IQuery<ErrorOr<TourRequestDetailDto>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourRequest}:detail:{CurrentUserId}:{Id}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);

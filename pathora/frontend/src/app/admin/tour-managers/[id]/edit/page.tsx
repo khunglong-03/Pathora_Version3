@@ -97,7 +97,7 @@ export default function EditTourManagerPage() {
         if (!active) return;
         const designers = (allUsers as FilteredUser[]).filter((u: unknown) => {
           const user = u as FilteredUser;
-          return user.roles?.some((r) => r.name === "TourDesigner");
+          return user.roles?.some((r) => r.name === "TourOperator");
         });
         const guides = (allUsers as FilteredUser[]).filter((u: unknown) => {
           const user = u as FilteredUser;
@@ -144,7 +144,7 @@ export default function EditTourManagerPage() {
         isNew: true,
       },
     ]);
-    if (entityType === ASSIGNED_ENTITY_TYPE.TourDesigner) {
+    if (entityType === ASSIGNED_ENTITY_TYPE.TourOperator) {
       setDesignerSearch("");
       setShowDesignerDropdown(false);
     } else {
@@ -224,7 +224,7 @@ export default function EditTourManagerPage() {
   };
 
   const designerMembers = selectedMembers.filter(
-    (m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourDesigner,
+    (m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourOperator,
   );
   const guideMembers = selectedMembers.filter(
     (m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourGuide,
@@ -305,7 +305,7 @@ export default function EditTourManagerPage() {
         </div>
       </motion.div>
 
-      {/* Tour Designers section */}
+      {/* Tour Operators section */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -316,7 +316,7 @@ export default function EditTourManagerPage() {
           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-bold">
             {designerMembers.length}
           </span>
-          Tour Designers
+          Tour Operators
         </h2>
         <div className="relative mb-3">
           <div className="relative">
@@ -329,7 +329,7 @@ export default function EditTourManagerPage() {
                 setShowDesignerDropdown(true);
               }}
               onFocus={() => setShowDesignerDropdown(true)}
-              placeholder="Tìm kiếm Tour Designer..."
+              placeholder="Tìm kiếm Tour Operator..."
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
@@ -339,7 +339,7 @@ export default function EditTourManagerPage() {
                 <button
                   key={user.id}
                   type="button"
-                  onClick={() => addMember(user, ASSIGNED_ENTITY_TYPE.TourDesigner)}
+                  onClick={() => addMember(user, ASSIGNED_ENTITY_TYPE.TourOperator)}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors"
                 >
                   <span className="font-medium text-stone-900">{user.fullName ?? "—"}</span>
@@ -375,7 +375,7 @@ export default function EditTourManagerPage() {
             </div>
           ))}
           {designerMembers.length === 0 && (
-            <p className="text-xs text-stone-400 italic">Chưa có Tour Designer nào</p>
+            <p className="text-xs text-stone-400 italic">Chưa có Tour Operator nào</p>
           )}
         </div>
       </motion.div>

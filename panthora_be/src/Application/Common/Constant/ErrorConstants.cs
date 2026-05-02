@@ -75,6 +75,107 @@ public static class ErrorConstants
                 "This tour instance was modified by another user. Please refresh and try again.");
     }
 
+    public static class ItineraryFeedback
+    {
+        public const string NotFoundCode = "ItineraryFeedback.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy phản hồi lịch trình.", "Itinerary feedback not found.");
+        public const string ForbiddenCode = "ItineraryFeedback.Forbidden";
+        public static readonly LocalizedMessage ForbiddenDescription =
+            new("Bạn không có quyền thực hiện thao tác này.", "You are not allowed to perform this action.");
+        public const string InvalidDayCode = "ItineraryFeedback.InvalidDay";
+        public static readonly LocalizedMessage InvalidDayDescription =
+            new("Ngày lịch trình không thuộc tour instance.", "Tour day does not belong to this instance.");
+
+        public const string InvalidTransitionCode = "TourItineraryFeedback.InvalidTransition";
+        public static readonly LocalizedMessage InvalidTransitionDescription =
+            new("Chuyển đổi trạng thái không hợp lệ.", "Invalid status transition.");
+        
+        public const string ManagerOnlyCode = "TourItineraryFeedback.ManagerOnly";
+        public static readonly LocalizedMessage ManagerOnlyDescription =
+            new("Chỉ Manager mới được thực hiện thao tác này.", "Only Manager can perform this action.");
+
+        public const string NotForwardedYetCode = "TourItineraryFeedback.NotForwardedYet";
+        public static readonly LocalizedMessage NotForwardedYetDescription =
+            new("Phản hồi chưa được forward.", "Feedback has not been forwarded yet.");
+
+        public const string OperatorOnlyCode = "TourItineraryFeedback.OperatorOnly";
+        public static readonly LocalizedMessage OperatorOnlyDescription =
+            new("Chỉ Operator mới được thực hiện thao tác này.", "Only Operator can perform this action.");
+    }
+
+    public static class TourInstanceActivity
+    {
+        public const string NotFoundCode = "TourInstanceActivity.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Hoạt động không tồn tại trong tour instance này.", "Activity not found in this tour instance.");
+
+        public const string NotTransportationCode = "TourInstanceActivity.NotTransportation";
+        public static readonly LocalizedMessage NotTransportationDescription =
+            new("Chỉ có thể xác nhận vận chuyển External cho hoạt động loại Transportation.", "External transport confirmation is only allowed for Transportation activities.");
+
+        public const string InvalidTypeCode = "TourInstanceActivity.InvalidType";
+        public static readonly LocalizedMessage InvalidTypeDescription =
+            new("Hoạt động này không phải loại vận chuyển.", "This activity is not a transportation type.");
+
+        public const string NoAssignmentsCode = "TourInstanceActivity.NoAssignments";
+        public static readonly LocalizedMessage NoAssignmentsDescription =
+            new("Danh sách xe duyệt không được rỗng.", "The list of approved vehicles cannot be empty.");
+
+        public const string NoSupplierCode = "TourInstanceActivity.NoSupplier";
+        public static readonly LocalizedMessage NoSupplierDescription =
+            new("Hoạt động chưa được gán nhà cung cấp vận chuyển.", "Activity has not been assigned a transport supplier.");
+
+        public const string NotExternalTransportCode = "TourInstanceActivity.NotExternalTransport";
+        public static readonly LocalizedMessage NotExternalTransportDescription =
+            new("Hoạt động này đã gán nhà xe trong app (Ground transport). Dùng flow approve thay vì confirm external.", "This activity is assigned to an in-app supplier (Ground transport). Use the approve flow instead of confirm external.");
+    }
+
+    public static class Vehicle
+    {
+        public const string NotOwnedCode = "Vehicle.NotOwned";
+        public static readonly LocalizedMessage NotOwnedDescription =
+            new("Phương tiện không thuộc quyền sở hữu của bạn.", "Vehicle does not belong to your account.");
+
+        public const string InactiveCode = "Vehicle.Inactive";
+        public static readonly LocalizedMessage InactiveDescription =
+            new("Phương tiện đang ngừng hoạt động.", "Vehicle is currently inactive.");
+
+        public const string UnavailableCode = "Vehicle.Unavailable";
+        public static readonly LocalizedMessage UnavailableDescription =
+            new("Hệ thống đang bận; vui lòng thử lại.", "System is busy; please try again later.");
+
+        public const string ExhaustedCode = "Vehicle.Exhausted";
+        public static readonly LocalizedMessage ExhaustedDescription =
+            new("Không thể duyệt phương tiện sau nhiều lần thử.", "Failed to approve vehicle after multiple attempts.");
+    }
+
+    public static class VehicleAvailability
+    {
+        public const string NoSupplierCode = "VehicleAvailability.NoSupplier";
+        public static readonly LocalizedMessage NoSupplierDescription =
+            new("Bạn chưa có nhà cung cấp vận chuyển nào.", "You do not have any transport supplier.");
+
+        public const string ActivityNotOwnedCode = "VehicleAvailability.ActivityNotOwned";
+        public static readonly LocalizedMessage ActivityNotOwnedDescription =
+            new("Hoạt động không thuộc nhà cung cấp của bạn.", "Activity does not belong to your supplier.");
+    }
+
+    public static class Driver
+    {
+        public const string RequiredCode = "Driver.Required";
+        public static readonly LocalizedMessage RequiredDescription =
+            new("Mỗi xe phải có tài xế.", "Each vehicle must have a driver.");
+
+        public const string NotOwnedCode = "Driver.NotOwned";
+        public static readonly LocalizedMessage NotOwnedDescription =
+            new("Tài xế không thuộc quyền sở hữu của bạn.", "Driver does not belong to your account.");
+
+        public const string InactiveCode = "Driver.Inactive";
+        public static readonly LocalizedMessage InactiveDescription =
+            new("Tài xế đang ngừng hoạt động.", "Driver is currently inactive.");
+    }
+
     public static class TourRequest
     {
         public const string NotFoundCode = "TourRequest.NotFound";
@@ -92,6 +193,12 @@ public static class ErrorConstants
             new(
                 "Chỉ quản trị viên mới có quyền thực hiện thao tác này",
                 "Only administrators can perform this action");
+
+        public const string ReviewerOnlyCode = "TourRequest.ReviewerOnly";
+        public static readonly LocalizedMessage ReviewerOnlyDescription =
+            new(
+                "Chỉ quản trị viên hoặc quản lý mới có quyền thực hiện thao tác này",
+                "Only administrators or managers can perform this action");
 
         public const string InvalidStatusTransitionCode = "TourRequest.InvalidStatusTransition";
         public static readonly LocalizedMessage InvalidStatusTransitionDescription =
@@ -315,6 +422,36 @@ public static class ErrorConstants
         public const string CodeExistsCode = "Supplier.CodeExists";
         public static readonly LocalizedMessage CodeExistsDescription =
             new("Mã nhà cung cấp đã tồn tại.", "Supplier code already exists.");
+
+        public const string AccommodationNotFoundCode = "Supplier.AccommodationNotFound";
+        public static readonly LocalizedMessage AccommodationNotFoundDescription =
+            new("Không tìm thấy nhà cung cấp lưu trú cho tài khoản của bạn.", "No accommodation supplier found for your account.");
+
+        public const string NotAccommodationSupplierCode = "Supplier.NotAccommodationSupplier";
+        public static readonly LocalizedMessage NotAccommodationSupplierDescription =
+            new("Bạn không có nhà cung cấp lưu trú.", "You do not have an accommodation supplier.");
+    }
+
+    public static class Accommodation
+    {
+        public const string DuplicateCode = "Accommodation.Duplicate";
+        public static readonly LocalizedMessage DuplicateDescription =
+            new("Đã tồn tại một mục lưu trú cho loại phòng này.", "An accommodation entry for this room type already exists.");
+
+        public const string NotFoundCode = "Accommodation.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy mục lưu trú.", "Accommodation not found.");
+    }
+
+    public static class GuestArrival
+    {
+        public const string NotFoundCode = "GuestArrival.NotFound";
+        public static readonly LocalizedMessage NotFoundDescription =
+            new("Không tìm thấy thông tin nhận phòng.", "Guest arrival record not found.");
+
+        public const string ExistsCode = "GuestArrival.Exists";
+        public static readonly LocalizedMessage ExistsDescription =
+            new("Thông tin nhận phòng đã tồn tại cho chi tiết lưu trú này.", "A guest arrival record already exists for this accommodation detail.");
     }
 
     public static class SupplierPayable
@@ -493,7 +630,12 @@ public static class ErrorConstants
             var value when value == TourRequest.NotFoundCode => TourRequest.NotFoundDescription,
             var value when value == TourRequest.ForbiddenCode => TourRequest.ForbiddenDescription,
             var value when value == TourRequest.AdminOnlyCode => TourRequest.AdminOnlyDescription,
+            var value when value == TourRequest.ReviewerOnlyCode => TourRequest.ReviewerOnlyDescription,
             var value when value == TourRequest.InvalidStatusTransitionCode => TourRequest.InvalidStatusTransitionDescription,
+            var value when value == ItineraryFeedback.InvalidTransitionCode => ItineraryFeedback.InvalidTransitionDescription,
+            var value when value == ItineraryFeedback.ManagerOnlyCode => ItineraryFeedback.ManagerOnlyDescription,
+            var value when value == ItineraryFeedback.NotForwardedYetCode => ItineraryFeedback.NotForwardedYetDescription,
+            var value when value == ItineraryFeedback.OperatorOnlyCode => ItineraryFeedback.OperatorOnlyDescription,
             var value when value == User.DuplicateEmailCode => User.DuplicateEmailDescription,
             var value when value == Auth.EmailTemporarilyLockedCode => Auth.EmailTemporarilyLockedDescription,
             var value when value == Auth.InvalidCredentialsCode => Auth.InvalidCredentialsDescription,
@@ -523,6 +665,12 @@ public static class ErrorConstants
             var value when value == BookingAccommodationDetail.NotFoundCode => BookingAccommodationDetail.NotFoundDescription,
             var value when value == Supplier.NotFoundCode => Supplier.NotFoundDescription,
             var value when value == Supplier.CodeExistsCode => Supplier.CodeExistsDescription,
+            var value when value == Supplier.AccommodationNotFoundCode => Supplier.AccommodationNotFoundDescription,
+            var value when value == Supplier.NotAccommodationSupplierCode => Supplier.NotAccommodationSupplierDescription,
+            var value when value == Accommodation.DuplicateCode => Accommodation.DuplicateDescription,
+            var value when value == Accommodation.NotFoundCode => Accommodation.NotFoundDescription,
+            var value when value == GuestArrival.NotFoundCode => GuestArrival.NotFoundDescription,
+            var value when value == GuestArrival.ExistsCode => GuestArrival.ExistsDescription,
             var value when value == SupplierPayable.NotFoundCode => SupplierPayable.NotFoundDescription,
             var value when value == ActivityStatus.NotFoundCode => ActivityStatus.NotFoundDescription,
             var value when value == ActivityStatus.CancelledCode => ActivityStatus.CancelledDescription,

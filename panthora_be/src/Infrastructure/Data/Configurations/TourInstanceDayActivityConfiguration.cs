@@ -57,14 +57,31 @@ public class TourInstanceDayActivityConfiguration : IEntityTypeConfiguration<Tou
         builder.Property(a => a.TransportationName)
             .HasMaxLength(300);
 
+        builder.Property(a => a.ExternalTransportReference)
+            .HasMaxLength(64);
+
         builder.Property(a => a.Price)
             .HasColumnType("numeric(18,2)");
 
-        builder.Property(a => a.DistanceKm)
-            .HasColumnType("numeric(10,2)");
 
-        builder.Property(a => a.BookingReference)
-            .HasMaxLength(200);
+        builder.Property(a => a.TransportationApprovalStatus);
+
+        builder.Property(a => a.TransportationApprovalNote)
+            .HasMaxLength(1000);
+
+        // Transport Plan fields (per-activity, analogous to PlanAccommodation for Hotel)
+        builder.Property(a => a.RequestedVehicleType)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder.Property(a => a.RequestedSeatCount);
+
+        builder.HasOne(a => a.TransportSupplier)
+            .WithMany()
+            .HasForeignKey(a => a.TransportSupplierId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => a.TransportSupplierId);
 
         builder.HasOne(a => a.Accommodation)
             .WithOne(acc => acc.TourInstanceDayActivity)

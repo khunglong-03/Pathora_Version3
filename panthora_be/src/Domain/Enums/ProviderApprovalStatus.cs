@@ -4,6 +4,9 @@ namespace Domain.Enums;
 
 public enum ProviderApprovalStatus
 {
+    [Description("Chưa gán")]
+    NotAssigned = 0,
+
     [Description("Chờ duyệt")]
     Pending = 1,
 

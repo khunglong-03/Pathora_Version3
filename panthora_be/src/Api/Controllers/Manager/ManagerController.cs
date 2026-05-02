@@ -10,6 +10,8 @@ using Application.Features.Admin.Queries.GetHotelProviderById;
 using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
 using Application.Features.Admin.Queries.GetTransportProviderById;
+using Application.Features.Admin.Commands.ManageTransportVehicles;
+using Application.Features.TransportProvider.Vehicles.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -77,10 +79,41 @@ public sealed class ManagerController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpGet(ManagerEndpoint.TransportProviderStats)]
+    public async Task<IActionResult> GetTransportProviderStats([FromQuery] string? search = null)
+    {
+        var result = await Sender.Send(new GetTransportProviderStatsQuery(search));
+        return HandleResult(result);
+    }
+
     [HttpGet(ManagerEndpoint.TransportProviderById)]
     public async Task<IActionResult> GetTransportProviderById(Guid id)
     {
         var result = await Sender.Send(new GetTransportProviderByIdQuery(id));
+        return HandleResult(result);
+    }
+
+    [HttpPost(ManagerEndpoint.AdminTransportVehicles)]
+    public async Task<IActionResult> CreateAdminTransportVehicle(Guid id, [FromBody] CreateVehicleRequestDto request)
+    {
+        var adminId = Guid.Parse(CurrentUserId);
+        var result = await Sender.Send(new AdminCreateVehicleCommand(adminId, id, request));
+        return HandleResult(result);
+    }
+
+    [HttpPut(ManagerEndpoint.AdminTransportVehicleByPlate)]
+    public async Task<IActionResult> UpdateAdminTransportVehicle(Guid id, Guid vehicleId, [FromBody] UpdateVehicleRequestDto request)
+    {
+        var adminId = Guid.Parse(CurrentUserId);
+        var result = await Sender.Send(new AdminUpdateVehicleCommand(adminId, id, vehicleId, request));
+        return HandleResult(result);
+    }
+
+    [HttpDelete(ManagerEndpoint.AdminTransportVehicleByPlate)]
+    public async Task<IActionResult> DeleteAdminTransportVehicle(Guid id, Guid vehicleId)
+    {
+        var adminId = Guid.Parse(CurrentUserId);
+        var result = await Sender.Send(new AdminDeleteVehicleCommand(adminId, id, vehicleId));
         return HandleResult(result);
     }
 

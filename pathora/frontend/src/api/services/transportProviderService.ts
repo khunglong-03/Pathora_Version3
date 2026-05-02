@@ -1,19 +1,85 @@
 import axiosInstance from "@/api/axiosInstance";
 import { extractData, extractItems, extractResult, handleApiError } from "@/utils/apiResponse";
 
+/**
+ * Produces a stable `yyyy-MM-dd` for GET query params. Axios drops keys whose value is `undefined`;
+ * long ISO strings can also be mishandled by some proxies. Accepts ISO strings, `Date`, and dayjs-like inputs.
+ */
+function toDateOnlyQueryParam(value: unknown, paramName: string): string {
+  if (value == null) {
+    throw new TypeError(`${paramName} is required`);
+  }
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new TypeError(`${paramName} is an invalid Date`);
+    }
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (!s) {
+      throw new TypeError(`${paramName} is required`);
+    }
+    const day = /^(\d{4}-\d{2}-\d{2})/.exec(s);
+    if (day) {
+      return day[1]!;
+    }
+  }
+  const d = new Date(value as string | number | Date);
+  if (Number.isNaN(d.getTime())) {
+    throw new TypeError(`${paramName} is not a valid date`);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 export interface Vehicle {
   id: string;
-  vehiclePlate: string;
   vehicleType: string;
   brand?: string;
   model?: string;
   seatCapacity: number;
+  quantity: number;
   locationArea?: string;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
   isActive: boolean;
+  isDeleted: boolean;
   notes?: string;
   createdOnUtc: string;
+}
+
+/**
+ * Vehicle with real-time availability for a specific date.
+ * Uses `Pick<Vehicle, ...>` plus the computed `availableQuantity` field.
+ *
+ * @example
+ * ```ts
+ * const available = await transportProviderService.getAvailableVehicles("2026-05-01");
+ * available?.forEach(v => console.log(`${v.brand} ${v.model}: ${v.availableQuantity}/${v.quantity} free`));
+ * ```
+ */
+export type AvailableVehicle = Pick<Vehicle, "id" | "vehicleType" | "brand" | "model" | "seatCapacity" | "quantity" | "notes"> & {
+  /** How many units are currently free on the queried date. */
+  availableQuantity: number;
+};
+
+/**
+ * A single vehicle-block entry for the schedule dashboard calendar.
+ */
+export interface VehicleScheduleItem {
+  blockId: string;
+  vehicleId: string;
+  vehicleType: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  seatCapacity: number;
+  blockedDate: string;
+  holdStatus: string;
+  tourInstanceName?: string;
+  tourInstanceCode?: string;
+  activityTitle?: string;
+  fromLocationName?: string;
+  toLocationName?: string;
 }
 
 export interface Driver {
@@ -29,11 +95,11 @@ export interface Driver {
 }
 
 export interface CreateVehicleDto {
-  vehiclePlate: string;
   vehicleType: number;
   brand?: string;
   model?: string;
   seatCapacity: number;
+  quantity?: number;
   locationArea?: number;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
@@ -45,6 +111,7 @@ export interface UpdateVehicleDto {
   brand?: string;
   model?: string;
   seatCapacity?: number;
+  quantity?: number;
   locationArea?: number;
   operatingCountries?: string;
   vehicleImageUrls?: string[];
@@ -77,7 +144,7 @@ export interface TripAssignment {
   bookingReference: string;
   route: string;
   tripDate: string;
-  vehiclePlate: string;
+  vehicleType: string;
   driverName: string;
   status: TripStatus;
   createdOnUtc: string;
@@ -119,7 +186,6 @@ export interface TripHistoryItem {
   bookingReference: string;
   route: string;
   completedDate: string;
-  vehiclePlate: string;
   driverName: string;
   revenue: number;
 }
@@ -142,20 +208,28 @@ export interface UpdateCompanyProfileDto {
 
 class TransportProviderService {
   // Vehicles
-  async getVehicles(locationArea?: number): Promise<Vehicle[]> {
+  async getVehicles(
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    isActive?: boolean,
+    locationArea?: number,
+    isDeleted: boolean = false
+  ): Promise<PaginatedResponse<Vehicle> | null> {
     try {
-      const params = locationArea !== undefined ? { locationArea } : {};
-      const response = await axiosInstance.get<Vehicle[]>("/transport-provider/vehicles", { params });
-      return extractItems(response.data);
+      const params: any = { pageNumber, pageSize, isDeleted };
+      if (locationArea !== undefined) params.locationArea = locationArea;
+      if (isActive !== undefined) params.isActive = isActive;
+      const response = await axiosInstance.get<PaginatedResponse<Vehicle>>("/transport-provider/vehicles", { params });
+      return extractResult(response.data);
     } catch (error) {
       handleApiError(error);
-      return [];
+      return null;
     }
   }
 
-  async getVehicleByPlate(plate: string): Promise<Vehicle | null> {
+  async getVehicleById(id: string): Promise<Vehicle | null> {
     try {
-      const response = await axiosInstance.get<Vehicle>(`/transport-provider/vehicles/${plate}`);
+      const response = await axiosInstance.get<Vehicle>(`/transport-provider/vehicles/${id}`);
       return extractData(response.data);
     } catch (error) {
       handleApiError(error);
@@ -173,9 +247,9 @@ class TransportProviderService {
     }
   }
 
-  async updateVehicle(plate: string, data: UpdateVehicleDto): Promise<Vehicle | null> {
+  async updateVehicle(id: string, data: UpdateVehicleDto): Promise<Vehicle | null> {
     try {
-      const response = await axiosInstance.put<Vehicle>(`/transport-provider/vehicles/${plate}`, data);
+      const response = await axiosInstance.put<Vehicle>(`/transport-provider/vehicles/${id}`, data);
       return extractData(response.data);
     } catch (error) {
       handleApiError(error);
@@ -183,9 +257,9 @@ class TransportProviderService {
     }
   }
 
-  async deleteVehicle(plate: string): Promise<boolean> {
+  async deleteVehicle(id: string): Promise<boolean> {
     try {
-      await axiosInstance.delete(`/transport-provider/vehicles/${plate}`);
+      await axiosInstance.delete(`/transport-provider/vehicles/${id}`);
       return true;
     } catch (error) {
       handleApiError(error);
@@ -193,14 +267,109 @@ class TransportProviderService {
     }
   }
 
-  // Drivers
-  async getDrivers(): Promise<Driver[]> {
+  /**
+   * Returns vehicles with real-time available quantity for a specific date.
+   * Use this for the approve form to show "Còn trống X/Y" per vehicle.
+   *
+   * **Note:** `getVehicles` returns the full paginated fleet inventory;
+   * this endpoint only returns vehicles with `availableQuantity > 0`.
+   *
+   * @param date      ISO date string, e.g. "2026-05-01"
+   * @param vehicleType  Numeric enum value (0=Bus, 1=Coach, etc.)
+   * @param excludeActivityId  Pass during re-approval so the current vehicle still shows as available
+   *
+   * @example
+   * ```ts
+   * const available = await transportProviderService.getAvailableVehicles("2026-05-01", 0);
+   * // → [{ id: "...", brand: "Hyundai", availableQuantity: 3, quantity: 5, ... }]
+   * ```
+   */
+  async getAvailableVehicles(
+    date: string,
+    vehicleType?: number,
+    excludeActivityId?: string
+  ): Promise<AvailableVehicle[] | null> {
     try {
-      const response = await axiosInstance.get<Driver[]>("/transport-provider/drivers");
-      return extractItems(response.data);
+      const params: Record<string, string | number> = { date: toDateOnlyQueryParam(date, "date") };
+      if (vehicleType !== undefined) params.vehicleType = vehicleType;
+      if (excludeActivityId) params.excludeActivityId = excludeActivityId;
+      const response = await axiosInstance.get<AvailableVehicle[]>(
+        "/transport-provider/vehicles/available",
+        { params }
+      );
+      return extractItems<AvailableVehicle>(response.data);
     } catch (error) {
       handleApiError(error);
-      return [];
+      return null;
+    }
+  }
+
+  /**
+   * Returns vehicle block schedule for the calendar dashboard.
+   *
+   * @param fromDate  ISO date string, e.g. "2026-05-01"
+   * @param toDate    ISO date string, e.g. "2026-05-31"
+   * @param vehicleId Filter to a single vehicle (optional)
+   *
+   * @example
+   * ```ts
+   * const schedule = await transportProviderService.getVehicleSchedule("2026-05-01", "2026-05-31");
+   * // → [{ blockId: "...", blockedDate: "2026-05-03", holdStatus: "Hard", ... }]
+   * ```
+   */
+  async getVehicleSchedule(
+    fromDate: string,
+    toDate: string,
+    vehicleId?: string
+  ): Promise<VehicleScheduleItem[] | null> {
+    try {
+      const params: Record<string, string> = {
+        from: toDateOnlyQueryParam(fromDate, "from"),
+        to: toDateOnlyQueryParam(toDate, "to"),
+      };
+      if (vehicleId) params.vehicleId = vehicleId;
+      const response = await axiosInstance.get<VehicleScheduleItem[]>(
+        "/transport-provider/vehicles/schedule",
+        { params }
+      );
+      return extractItems<VehicleScheduleItem>(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
+    }
+  }
+
+  async getDrivers(
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    isActive?: boolean
+  ): Promise<PaginatedResponse<Driver> | null> {
+    try {
+      const params: any = { pageNumber, pageSize };
+      if (isActive !== undefined) params.isActive = isActive;
+      const response = await axiosInstance.get<PaginatedResponse<Driver>>("/transport-provider/drivers", { params });
+      return extractResult(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
+    }
+  }
+
+  async getAvailableDrivers(
+    date: string,
+    excludeActivityId?: string
+  ): Promise<Driver[] | null> {
+    try {
+      const params: Record<string, string | number> = { date: toDateOnlyQueryParam(date, "date") };
+      if (excludeActivityId) params.excludeActivityId = excludeActivityId;
+      const response = await axiosInstance.get<Driver[]>(
+        "/transport-provider/drivers/available",
+        { params }
+      );
+      return extractItems<Driver>(response.data);
+    } catch (error) {
+      handleApiError(error);
+      return null;
     }
   }
 

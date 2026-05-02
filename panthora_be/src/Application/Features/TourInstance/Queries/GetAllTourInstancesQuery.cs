@@ -1,22 +1,28 @@
 using Application.Common;
-using Contracts;
-using Contracts.Interfaces;
 using Application.Dtos;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
 using Domain.Enums;
 using ErrorOr;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Queries;
 
 public sealed record GetAllTourInstancesQuery(
-    string? SearchText,
-    TourInstanceStatus? Status = null,
-    int PageNumber = 1,
-    int PageSize = 10,
-    bool ExcludePast = false) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
+    [property: JsonPropertyName("searchText")] string? SearchText,
+    [property: JsonPropertyName("status")] TourInstanceStatus? Status = null,
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("excludePast")] bool ExcludePast = false,
+    [property: JsonPropertyName("wantsCustomization")] bool? WantsCustomization = null,
+    [property: JsonPropertyName("currentUserId")] string? CurrentUserId = null) : IQuery<ErrorOr<PaginatedList<TourInstanceVm>>>, ICacheable
 {
-    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{SearchText}";
+    private string PrincipalCacheKey =>
+        Guid.TryParse(CurrentUserId, out var principalId) ? principalId.ToString("D") : "anon";
+
+    public string CacheKey => $"{Common.CacheKey.TourInstance}:all:{PrincipalCacheKey}:{PageNumber}:{PageSize}:{Status}:{ExcludePast}:{WantsCustomization}:{SearchText}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
 }
 
@@ -28,4 +34,3 @@ public sealed class GetAllTourInstancesQueryHandler(ITourInstanceService tourIns
         return await tourInstanceService.GetAll(request);
     }
 }
-

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminAndTourDesigner")]
+[Authorize(Policy = "AdminAndTourOperator")]
 [Route(PricingPolicyEndpoint.Base)]
 public class PricingPolicyController : BaseApiController
 {

@@ -1,5 +1,33 @@
 # Codex Agent Instructions
 
+## Project-Specific Commands
+
+Commands tailored for the Pathora workspace (Next.js 16 frontend + .NET 10 backend).
+
+| Command | Description |
+|---------|-------------|
+| `/plan` | Create implementation plan. WAIT for user confirmation before coding. |
+| `/feature-dev` | Guided end-to-end feature development (Domain → API → Frontend) |
+| `/investigate` | Debug and trace errors, find root causes, suggest fixes |
+| `/code-review` | Review local changes or GitHub PR for security/quality/correctness |
+| `/validate` | Run lint, build, and test gates for frontend and/or backend |
+| `/commit` | Stage and commit with conventional commit message |
+| `/aside` | Answer a quick side question without losing current task context |
+| `/autoplan` | Auto-review pipeline — runs CEO, Design, Eng, and DX reviews with auto-decisions. One command, fully reviewed plan out. |
+
+## OpenSpec Workflow Commands
+
+Structured change management: propose → explore → apply → archive.
+
+> **Language rule (bắt buộc):** Trước khi chạy bất kỳ lệnh `/opsx-*` nào hoặc khi chạm vào file trong `openspec/`, đọc và tuân theo `openspec/AGENTS.md`. File đó yêu cầu mọi artifact OpenSpec (proposal, design, specs, tasks, ...) viết bằng **tiếng Việt**, ngoại trừ schema headers, identifier kỹ thuật, code block và các phần liệt kê trong file.
+
+| Command | Description |
+|---------|-------------|
+| `/opsx-explore` | Think through ideas, investigate problems, clarify requirements (no code) |
+| `/opsx-propose` | Create a full change proposal with design, specs, and task list |
+| `/opsx-apply` | Implement tasks from an OpenSpec change |
+| `/opsx-archive` | Archive a completed change |
+
 ## gstack — Web Browsing & Design Tools
 
 This workspace is configured to use **gstack** for all web browsing and design tasks. The `/browse` skill replaces any `mcp__claude-in-chrome__*` tools.
@@ -12,34 +40,25 @@ This workspace is configured to use **gstack** for all web browsing and design t
 |-------|---------|
 | `/browse` | Browse websites and retrieve content |
 | `/office-hours` | Schedule and manage office hours |
-| `/plan-ceo-review` | Plan CEO review sessions |
-| `/plan-eng-review` | Plan engineering reviews |
-| `/plan-design-review` | Plan design reviews |
-| `/design-consultation` | Get design consultation |
-| `/design-shotgun` | Rapid design exploration |
-| `/design-html` | Generate HTML from designs |
 | `/review` | Conduct reviews |
 | `/ship` | Ship/deploy features |
-| `/land-and-deploy` | Land and deploy changes |
-| `/canary` | Manage canary releases |
-| `/benchmark` | Performance benchmarking |
-| `/connect-chrome` | Connect to Chrome browser |
 | `/qa` | Quality assurance testing |
 | `/qa-only` | QA-focused testing only |
-| `/design-review` | Design review process |
-| `/setup-browser-cookies` | Configure browser cookies |
-| `/setup-deploy` | Setup deployment |
-| `/retro` | Retrospective meetings |
 | `/investigate` | Investigate issues |
-| `/document-release` | Document releases |
-| `/codex` | Code documentation |
-| `/cso` | Customer success operations |
-| `/autoplan` | Auto-generate plans |
-| `/plan-devex-review` | Plan developer experience reviews |
-| `/devex-review` | Developer experience review |
+| `/design-consultation` | Get design consultation |
+| `/design-review` | Design review process |
+| `/design-html` | Generate HTML from designs |
+| `/benchmark` | Performance benchmarking |
+| `/connect-chrome` | Connect to Chrome browser |
 | `/careful` | Caution mode for risky operations |
-| `/freeze` | Freeze changes |
-| `/guard` | Guard/protect resources |
-| `/unfreeze` | Unfreeze changes |
-| `/gstack-upgrade` | Upgrade gstack itself |
 | `/learn` | Learning resources |
+| `/gstack-upgrade` | Upgrade gstack itself |
+
+## Workspace Conventions
+
+- **Frontend**: `pathora/frontend/` — Next.js 16, port 3003, React 18.3.1
+- **Backend**: `panthora_be/` — .NET 10, Clean Architecture, CQRS
+- **Validation gate**: Always lint → build (FE) or build → test (BE) before completing a task
+- **i18n**: Use `useTranslation()` — never hardcode UI strings
+- **Data fetching**: Extend existing layer (RTK Query or Axios services), don't add a third pattern
+- **Error handling**: `ErrorOr<T>` on backend, `handleApiError()` on frontend

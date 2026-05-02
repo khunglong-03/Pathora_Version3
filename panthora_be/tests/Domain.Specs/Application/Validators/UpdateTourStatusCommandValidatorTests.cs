@@ -1,5 +1,5 @@
-using Application.Features.Tour.Commands;
-using Domain.Enums;
+using global::Application.Features.Tour.Commands;
+using global::Domain.Enums;
 
 namespace Domain.Specs.Application.Validators;
 

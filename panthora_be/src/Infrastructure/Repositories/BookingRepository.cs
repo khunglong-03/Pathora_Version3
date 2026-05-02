@@ -1,5 +1,6 @@
 using Domain.Common.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,10 +23,12 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     {
         return await _context.Bookings
             .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti.Thumbnail)
             .Include(b => b.User)
             .Include(b => b.TourRequest)
             .Include(b => b.Deposits)
             .Include(b => b.Payments)
+            .Include(b => b.PaymentTransactions)
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
@@ -91,6 +94,56 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         return (items, totalCount);
     }
 
+    public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedForManagerAsync(
+        Guid managerId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var designerIds = await _context.TourManagerAssignments
+            .AsNoTracking()
+            .Where(a => a.TourManagerId == managerId
+                        && a.AssignedEntityType == AssignedEntityType.TourOperator
+                        && a.AssignedUserId != null)
+            .Select(a => a.AssignedUserId!.Value)
+            .ToListAsync(cancellationToken);
+
+        if (!designerIds.Contains(managerId))
+        {
+            designerIds.Add(managerId);
+        }
+
+        var allowedTourIds = _context.Tours
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                        && t.TourOperatorId.HasValue
+                        && designerIds.Contains(t.TourOperatorId.Value))
+            .Select(t => t.Id);
+
+        var allowedInstanceIds = _context.TourInstanceManagers
+            .AsNoTracking()
+            .Where(m => m.UserId == managerId)
+            .Select(m => m.TourInstanceId);
+
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.TourInstance)
+            .Include(b => b.User)
+            .Where(b => !b.TourInstance.IsDeleted
+                        && (allowedTourIds.Contains(b.TourInstance.TourId)
+                            || allowedInstanceIds.Contains(b.TourInstanceId)))
+            .AsSplitQuery();
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(b => b.BookingDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(BookingEntity booking, CancellationToken cancellationToken = default)
     {
         await _context.Bookings.AddAsync(booking, cancellationToken);
@@ -108,5 +161,43 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.PaymentTransactions)
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.PaymentTransactions.Any(pt => pt.TransactionCode == transactionCode), cancellationToken);
+    }
+
+    public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(
+        string userIdStr,
+        string? statusFilter,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti.Thumbnail)
+            .Include(b => b.PaymentTransactions)
+            .Where(b => b.CreatedBy == userIdStr || (b.UserId != null && b.UserId.ToString() == userIdStr));
+
+        if (!string.IsNullOrWhiteSpace(statusFilter))
+        {
+            if (statusFilter.Equals("pending_approval", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(b => b.TourInstance != null && b.TourInstance.Status == Domain.Enums.TourInstanceStatus.PendingCustomerApproval);
+            }
+            else if (Enum.TryParse<Domain.Enums.BookingStatus>(statusFilter, true, out var parsedStatus))
+            {
+                query = query.Where(b => b.Status == parsedStatus);
+            }
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(b => b.CreatedOnUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 }

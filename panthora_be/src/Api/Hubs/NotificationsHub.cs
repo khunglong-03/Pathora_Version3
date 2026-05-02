@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Hubs;
 
-[Authorize]
+[AllowAnonymous]
 public class NotificationsHub : Hub
 {
     private readonly IHubContext<NotificationsHub> _hubContext;
@@ -120,5 +120,26 @@ public class NotificationsHub : Hub
     {
         await _hubContext.Clients.Group("admins").SendAsync("ReceivePaymentUpdate", paymentUpdate);
         _logger.LogDebug("Payment update sent to all admins");
+    }
+
+    /// <summary>
+    /// Anonymous-friendly: client joins a transaction-scoped group to receive
+    /// payment updates without needing a JWT (used for public/guest checkout).
+    /// </summary>
+    public async Task JoinTransactionGroup(string transactionCode)
+    {
+        if (string.IsNullOrWhiteSpace(transactionCode))
+            return;
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"tx:{transactionCode}");
+        _logger.LogInformation("Connection {Cid} joined tx:{Code}", Context.ConnectionId, transactionCode);
+    }
+
+    public async Task LeaveTransactionGroup(string transactionCode)
+    {
+        if (string.IsNullOrWhiteSpace(transactionCode))
+            return;
+
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"tx:{transactionCode}");
     }
 }

@@ -2,6 +2,8 @@
 
 Instructional context for Gemini CLI in the `Pathora_Version3` workspace.
 
+> **OpenSpec language rule:** Bất kỳ thao tác phân tích hay tạo artifact trong `openspec/` (gồm `proposal.md`, `design.md`, `specs/**/*.md`, `tasks.md`, ...) **phải** tuân theo `openspec/AGENTS.md`. File đó yêu cầu nội dung viết bằng **tiếng Việt** và liệt kê các phần giữ nguyên tiếng Anh (schema headers, identifier, code block, ...).
+
 ---
 
 ## Project Overview

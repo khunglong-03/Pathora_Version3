@@ -1,11 +1,11 @@
 namespace Domain.Specs.Application.Features.HotelRoomInventory;
 
-using Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
-using Application.Features.HotelRoomInventory.DTOs;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Application.Features.HotelRoomInventory.Commands.CreateHotelRoomInventory;
+using global::Application.Features.HotelRoomInventory.DTOs;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using global::Contracts.Interfaces;
 using NSubstitute;
 using Xunit;

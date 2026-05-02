@@ -75,11 +75,121 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpPost(BookingManagementEndpoint.TransportDetails)]
+    public async Task<IActionResult> CreateTransportDetail(Guid id, [FromBody] CreateTransportDetailRequest request)
+    {
+        var command = new CreateTransportDetailCommand(
+            request.BookingActivityReservationId,
+            request.BookingParticipantId,
+            request.PassengerName,
+            request.SupplierId,
+            request.TransportType,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.TicketNumber,
+            request.ETicketNumber,
+            request.SeatNumber,
+            request.SeatCapacity,
+            request.SeatClass,
+            request.VehicleNumber,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
+    [HttpPut(BookingManagementEndpoint.TransportDetailId)]
+    public async Task<IActionResult> UpdateTransportDetail(Guid id, Guid detailId, [FromBody] UpdateTransportDetailRequest request)
+    {
+        var command = new UpdateTransportDetailCommand(
+            detailId,
+            request.BookingParticipantId,
+            request.PassengerName,
+            request.SupplierId,
+            request.TransportType,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.TicketNumber,
+            request.ETicketNumber,
+            request.SeatNumber,
+            request.SeatCapacity,
+            request.SeatClass,
+            request.VehicleNumber,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Status,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleUpdated(result);
+    }
+
     [HttpGet(BookingManagementEndpoint.AccommodationDetails)]
     public async Task<IActionResult> GetAccommodationDetails(Guid id)
     {
         var result = await Sender.Send(new GetBookingAccommodationDetailsQuery(id));
         return HandleResult(result);
+    }
+
+    [HttpPost(BookingManagementEndpoint.AccommodationDetails)]
+    public async Task<IActionResult> CreateAccommodationDetail(Guid id, [FromBody] CreateAccommodationDetailRequest request)
+    {
+        var command = new CreateAccommodationDetailCommand(
+            request.BookingActivityReservationId,
+            request.SupplierId,
+            request.AccommodationName,
+            request.RoomType,
+            request.RoomCount,
+            request.BedType,
+            request.Address,
+            request.ContactPhone,
+            request.CheckInAt,
+            request.CheckOutAt,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.ConfirmationCode,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleCreated(result);
+    }
+
+    [HttpPut(BookingManagementEndpoint.AccommodationDetailId)]
+    public async Task<IActionResult> UpdateAccommodationDetail(Guid id, Guid detailId, [FromBody] UpdateAccommodationDetailRequest request)
+    {
+        var command = new UpdateAccommodationDetailCommand(
+            detailId,
+            request.SupplierId,
+            request.AccommodationName,
+            request.RoomType,
+            request.RoomCount,
+            request.BedType,
+            request.Address,
+            request.ContactPhone,
+            request.CheckInAt,
+            request.CheckOutAt,
+            request.BuyPrice,
+            request.TaxRate,
+            request.IsTaxable,
+            request.ConfirmationCode,
+            request.FileUrl,
+            request.SpecialRequest,
+            request.Status,
+            request.Note);
+
+        var result = await Sender.Send(command);
+        return HandleUpdated(result);
     }
 
     [HttpGet(BookingManagementEndpoint.Participants)]
@@ -225,10 +335,10 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
-    [HttpGet(BookingManagementEndpoint.TeamTourDesigners)]
-    public async Task<IActionResult> GetTourDesigners(Guid id)
+    [HttpGet(BookingManagementEndpoint.TeamTourOperators)]
+    public async Task<IActionResult> GetTourOperators(Guid id)
     {
-        var result = await Sender.Send(new GetBookingTourDesignersQuery(id));
+        var result = await Sender.Send(new GetBookingTourOperatorsQuery(id));
         return HandleResult(result);
     }
 
@@ -242,7 +352,18 @@ public class BookingManagementController : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize));
+        Guid? managerId = null;
+        if (User.IsInRole("Manager") && !User.IsInRole("Admin"))
+        {
+            if (!Guid.TryParse(CurrentUserId, out var parsedManagerId))
+            {
+                return Unauthorized();
+            }
+
+            managerId = parsedManagerId;
+        }
+
+        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize, managerId));
         return HandleResult(result);
     }
 
@@ -253,13 +374,6 @@ public class BookingManagementController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpGet("by-tour-instance/{tourInstanceId:guid}")]
-    public async Task<IActionResult> GetByTourInstance(Guid tourInstanceId)
-    {
-        var result = await Sender.Send(new GetBookingsByTourInstanceQuery(tourInstanceId));
-        return HandleResult(result);
-    }
 }
 
 public sealed record CreateBookingActivityReservationRequest(
@@ -296,4 +410,88 @@ public sealed record CreateSupplierPayableRequest(
 public sealed record UpdateTeamMemberRequest(
     AssignedRole AssignedRole,
     bool IsLead,
+    string? Note);
+
+// ---- BƯỚC 7a: Transport Detail (vé vận chuyển) ----
+
+public sealed record CreateTransportDetailRequest(
+    Guid BookingActivityReservationId,
+    Guid? BookingParticipantId,
+    string? PassengerName,
+    Guid? SupplierId,
+    TransportType TransportType,
+    DateTimeOffset? DepartureAt,
+    DateTimeOffset? ArrivalAt,
+    string? TicketNumber,
+    string? ETicketNumber,
+    string? SeatNumber,
+    int SeatCapacity,
+    string? SeatClass,
+    string? VehicleNumber,
+    decimal BuyPrice,
+    decimal TaxRate,
+    bool IsTaxable,
+    string? FileUrl,
+    string? SpecialRequest,
+    string? Note);
+
+public sealed record UpdateTransportDetailRequest(
+    Guid? BookingParticipantId,
+    string? PassengerName,
+    Guid? SupplierId,
+    TransportType TransportType,
+    DateTimeOffset? DepartureAt,
+    DateTimeOffset? ArrivalAt,
+    string? TicketNumber,
+    string? ETicketNumber,
+    string? SeatNumber,
+    int? SeatCapacity,
+    string? SeatClass,
+    string? VehicleNumber,
+    decimal? BuyPrice,
+    decimal? TaxRate,
+    bool? IsTaxable,
+    string? FileUrl,
+    string? SpecialRequest,
+    ReservationStatus? Status,
+    string? Note);
+
+// ---- BƯỚC 7b: Accommodation Detail (phòng lưu trú) ----
+
+public sealed record CreateAccommodationDetailRequest(
+    Guid BookingActivityReservationId,
+    Guid? SupplierId,
+    string AccommodationName,
+    RoomType RoomType,
+    int RoomCount,
+    string? BedType,
+    string? Address,
+    string? ContactPhone,
+    DateTimeOffset? CheckInAt,
+    DateTimeOffset? CheckOutAt,
+    decimal BuyPrice,
+    decimal TaxRate,
+    bool IsTaxable,
+    string? ConfirmationCode,
+    string? FileUrl,
+    string? SpecialRequest,
+    string? Note);
+
+public sealed record UpdateAccommodationDetailRequest(
+    Guid? SupplierId,
+    string AccommodationName,
+    RoomType RoomType,
+    int? RoomCount,
+    string? BedType,
+    string? Address,
+    string? ContactPhone,
+    DateTimeOffset? CheckInAt,
+    DateTimeOffset? CheckOutAt,
+    decimal? BuyPrice,
+    decimal? TaxRate,
+    bool? IsTaxable,
+    string? ConfirmationCode,
+    string? FileUrl,
+    string? SpecialRequest,
+    ReservationStatus? Status,
     string? Note);

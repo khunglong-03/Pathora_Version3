@@ -1,12 +1,13 @@
 using Application.Common.Constant;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Department;
 
 public sealed record UpdateDepartmentRequest(
-    Guid DepartmentId,
-    Guid? DepartmentParentId,
-    string DepartmentName);
+    [property: JsonPropertyName("departmentId")] Guid DepartmentId,
+    [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,
+    [property: JsonPropertyName("departmentName")] string DepartmentName);
 
 public sealed class UpdateDepartmentRequestValidator : AbstractValidator<UpdateDepartmentRequest>
 {

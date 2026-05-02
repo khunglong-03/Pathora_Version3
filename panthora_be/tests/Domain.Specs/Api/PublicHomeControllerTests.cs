@@ -1,6 +1,6 @@
-using Api.Controllers.Public;
-using Application.Contracts.Public;
-using Application.Features.Public.Queries;
+using global::Api.Controllers.Public;
+using global::Application.Contracts.Public;
+using global::Application.Features.Public.Queries;
 using Contracts;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Http;

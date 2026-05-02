@@ -1,21 +1,22 @@
-using Application.Common;
 using Application.Common.Localization;
+using Application.Common;
 using Application.Contracts.Public;
-using Contracts;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
+using Contracts;
 using Domain.Common.Repositories;
-using Domain.Entities;
 using Domain.Entities.Translations;
+using Domain.Entities;
+using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
 public sealed record GetPublicToursQuery(
-    string? SearchText,
-    int PageNumber = 1,
-    int PageSize = 10,
-    string? Language = null)
+    [property: JsonPropertyName("searchText")] string? SearchText,
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("language")] string? Language = null)
     : IQuery<ErrorOr<PaginatedList<SearchTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
@@ -56,7 +57,8 @@ public sealed class GetPublicToursQueryHandler(ITourRepository tourRepository)
                 classification?.NumberOfDay ?? 0,
                 classification?.BasePrice ?? 0,
                 classification?.Name,
-                0m);
+                0m,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<SearchTourVm>(totalCount, result, request.PageNumber, request.PageSize);

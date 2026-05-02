@@ -1,8 +1,8 @@
-using Api.Controllers.Manager;
-using Application.Features.Manager.Commands.UpdateMyBankAccount;
-using Application.Features.Manager.DTOs;
-using Application.Features.Manager.Queries.GetMyBankAccount;
-using Application.Contracts.Manager;
+using global::Api.Controllers.Manager;
+using global::Application.Features.Manager.Commands.UpdateMyBankAccount;
+using global::Application.Features.Manager.DTOs;
+using global::Application.Features.Manager.Queries.GetMyBankAccount;
+using global::Application.Contracts.Manager;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

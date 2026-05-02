@@ -105,7 +105,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -115,7 +115,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query
@@ -161,7 +161,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -171,7 +171,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(principalId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -207,7 +207,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == managerId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -217,7 +217,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query
@@ -260,7 +260,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == managerId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -270,7 +270,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 designerIds.Add(managerId.Value);
             }
 
-            query = query.Where(t => t.TourDesignerId != null && designerIds.Contains(t.TourDesignerId.Value));
+            query = query.Where(t => t.TourOperatorId != null && designerIds.Contains(t.TourOperatorId ?? Guid.Empty));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -338,12 +338,15 @@ public class TourRepository(AppDbContext context) : ITourRepository
 
     public async Task<List<TourEntity>> FindFeaturedTours(int limit, CancellationToken cancellationToken = default)
     {
-        return await _context.Tours
-            .AsNoTracking()
-            .Include(t => t.Thumbnail)
-            .Include(t => t.Classifications)
-            .Include(t => t.PlanLocations)
-            .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
+        // Chỉ tour có ít nhất một instance public đang mở bán (Available). Tránh home hiển thị tour
+        // còn PendingApproval / chưa kích hoạt — đồng bộ với FindPublicAvailable.
+        return await WhereHasPublicAvailableInstance(
+                _context.Tours
+                    .AsNoTracking()
+                    .Include(t => t.Thumbnail)
+                    .Include(t => t.Classifications)
+                    .Include(t => t.PlanLocations)
+                    .Where(t => t.Status == TourStatus.Active && !t.IsDeleted))
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)
             .AsSplitQuery()
@@ -352,15 +355,27 @@ public class TourRepository(AppDbContext context) : ITourRepository
 
     public async Task<List<TourEntity>> FindLatestTours(int limit, CancellationToken cancellationToken = default)
     {
-        return await _context.Tours
-            .AsNoTracking()
-            .Include(t => t.Thumbnail)
-            .Where(t => t.Status == TourStatus.Active && !t.IsDeleted)
+        return await WhereHasPublicAvailableInstance(
+                _context.Tours
+                    .AsNoTracking()
+                    .Include(t => t.Thumbnail)
+                    .Where(t => t.Status == TourStatus.Active && !t.IsDeleted))
             .OrderByDescending(t => t.CreatedOnUtc)
             .Take(limit)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Giới hạn catalog public theo cùng rule list instance: public + Available
+    /// (xem <see cref="TourInstanceRepository.FindPublicAvailable" />).
+    /// </summary>
+    private IQueryable<TourEntity> WhereHasPublicAvailableInstance(IQueryable<TourEntity> query) =>
+        query.Where(t => _context.TourInstances.Any(i =>
+            i.TourId == t.Id
+            && !i.IsDeleted
+            && i.InstanceType == TourType.Public
+            && (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)));
 
     public async Task<List<TourEntity>> SearchTours(
         string? q,
@@ -590,5 +605,22 @@ public class TourRepository(AppDbContext context) : ITourRepository
     {
         return await _context.TourPlanLocations
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
+    }
+
+    public async Task<bool> HasActiveBookings(Guid tourId, CancellationToken cancellationToken = default)
+    {
+        var activeBookingStatuses = new[]
+        {
+            BookingStatus.Pending,
+            BookingStatus.Confirmed,
+            BookingStatus.Deposited,
+            BookingStatus.Paid
+        };
+
+        return await _context.Bookings
+            .AnyAsync(b => b.TourInstance != null
+                        && b.TourInstance.TourId == tourId
+                        && activeBookingStatuses.Contains(b.Status),
+                        cancellationToken);
     }
 }

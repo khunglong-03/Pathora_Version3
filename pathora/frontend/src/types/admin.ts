@@ -148,9 +148,9 @@ export interface BookingSummaryItem {
 // ─── Transport Provider ─────────────────────────────────────────
 export interface TransportProviderListItem {
   id: string;
-  name: string;
+  fullName: string;
   email?: string;
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
   status: string;
   bookingCount?: number;
@@ -160,10 +160,18 @@ export interface TransportProviderListItem {
   continents: string[];
 }
 
+// ─── Transport Provider Stats ───────────────────────────────────
+export interface TransportProviderStats {
+  total: number;
+  active: number;
+  inactive: number;
+  pending: number;
+  banned: number;
+}
+
 // ─── Transport Provider Detail ──────────────────────────────────
 export interface VehicleSummary {
   id: string;
-  vehiclePlate: string;
   vehicleType: string;
   brand?: string;
   model?: string;
@@ -182,6 +190,24 @@ export interface DriverSummary {
   isActive: boolean;
 }
 
+export interface DriverActivity {
+  id: string;
+  bookingActivityReservationId: string;
+  bookingTitle: string;
+  bookingNote?: string;
+  tourDayActivityId: string;
+  activityTitle: string;
+  activityDescription?: string;
+  startTime?: string;
+  endTime?: string;
+  fromLocation?: string;
+  toLocation?: string;
+  status?: number;
+  rejectionReason?: string;
+  updatedAt: string;
+  vehicleType?: string;
+}
+
 export interface TransportProviderDetail {
   id: string;
   supplierName: string;
@@ -192,6 +218,8 @@ export interface TransportProviderDetail {
   email?: string;
   avatarUrl?: string;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   userCreatedAt?: string;
   primaryContinent?: string | null;
   vehicles: VehicleSummary[];
@@ -211,15 +239,33 @@ export interface HotelProviderListItem {
   phone?: string;
   address?: string;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   accommodationCount?: number;
+  propertyCount?: number;
   roomCount?: number;
   createdOnUtc?: string | null;
   primaryContinent?: string | null;
   continents: string[];
 }
 
+export interface HotelPropertySummary {
+  id: string;
+  supplierCode: string;
+  supplierName: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  primaryContinent: string | null;
+  continents: string[];
+  accommodationCount: number;
+  totalRooms: number;
+}
+
 export interface HotelAccommodationSummary {
   id: string;
+  supplierId: string;
+  supplierName: string;
   roomType: string;
   totalRooms: number;
   name: string | null;
@@ -242,12 +288,16 @@ export interface HotelProviderDetail {
   email: string | null;
   avatarUrl: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   createdOnUtc: string | null;
   primaryContinent: string | null;
   continents: string[];
+  properties: HotelPropertySummary[];
   accommodations: HotelAccommodationSummary[];
   roomOptions?: HotelProviderRoomOption[];
   accommodationCount: number;
+  propertyCount: number;
   totalRooms: number;
   bookingCount: number;
   activeBookingCount: number;
@@ -302,7 +352,7 @@ export interface AdminDashboardOverview {
   totalUsers: number;
   activeUsers: number;
   totalManagers: number;
-  totalTourDesigners: number;
+  totalTourOperators: number;
   totalTourGuides: number;
   totalTransportProviders: number;
   activeTransportProviders: number;

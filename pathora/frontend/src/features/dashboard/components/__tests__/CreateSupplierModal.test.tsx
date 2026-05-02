@@ -47,10 +47,7 @@ describe("CreateSupplierModal", () => {
       />
     );
 
-    // Fill in required fields
-    fireEvent.change(screen.getByLabelText("adminSupplierModal.fields.supplierCode *"), {
-      target: { value: "TR-001" },
-    });
+    // Fill in required fields (supplierCode is now auto-generated)
     fireEvent.change(screen.getByLabelText("adminSupplierModal.fields.supplierName *"), {
       target: { value: "Transport Supplier" },
     });

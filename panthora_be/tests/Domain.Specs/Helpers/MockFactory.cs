@@ -1,6 +1,6 @@
 using NSubstitute;
-using Domain.UnitOfWork;
-using Domain.Common.Repositories;
+using global::Domain.UnitOfWork;
+using global::Domain.Common.Repositories;
 
 namespace Domain.Specs.Helpers;
 

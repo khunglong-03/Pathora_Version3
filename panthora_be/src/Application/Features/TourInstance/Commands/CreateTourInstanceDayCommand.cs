@@ -1,19 +1,20 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using FluentValidation;
-using ErrorOr;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
+using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record CreateTourInstanceDayCommand(
-    Guid InstanceId,
-    string Title,
-    DateOnly ActualDate,
-    string? Description = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("instanceId")] Guid InstanceId,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("actualDate")] DateOnly ActualDate,
+    [property: JsonPropertyName("description")] string? Description = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }

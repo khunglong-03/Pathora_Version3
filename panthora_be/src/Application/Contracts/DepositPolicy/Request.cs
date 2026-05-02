@@ -1,36 +1,34 @@
 using BuildingBlocks.CORS;
 using Domain.Entities.Translations;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.DepositPolicy;
 
 public sealed record DepositPolicyResponse(
-    Guid Id,
-    int TourScope,
-    string TourScopeName,
-    int DepositType,
-    string DepositTypeName,
-    decimal DepositValue,
-    int MinDaysBeforeDeparture,
-    bool IsActive,
-    Dictionary<string, DepositPolicyTranslationData> Translations,
-    DateTimeOffset CreatedOnUtc,
-    DateTimeOffset? LastModifiedOnUtc
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("tourScope")] int TourScope,
+    [property: JsonPropertyName("tourScopeName")] string TourScopeName,
+    [property: JsonPropertyName("depositType")] int DepositType,
+    [property: JsonPropertyName("depositTypeName")] string DepositTypeName,
+    [property: JsonPropertyName("depositValue")] decimal DepositValue,
+    [property: JsonPropertyName("minDaysBeforeDeparture")] int MinDaysBeforeDeparture,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("translations")] Dictionary<string, DepositPolicyTranslationData> Translations,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc,
+    [property: JsonPropertyName("lastModifiedOnUtc")] DateTimeOffset? LastModifiedOnUtc);
 
 public sealed record CreateDepositPolicyRequest(
-    int TourScope,
-    int DepositType,
-    decimal DepositValue,
-    int MinDaysBeforeDeparture,
-    Dictionary<string, DepositPolicyTranslationData>? Translations = null
-);
+    [property: JsonPropertyName("tourScope")] int TourScope,
+    [property: JsonPropertyName("depositType")] int DepositType,
+    [property: JsonPropertyName("depositValue")] decimal DepositValue,
+    [property: JsonPropertyName("minDaysBeforeDeparture")] int MinDaysBeforeDeparture,
+    [property: JsonPropertyName("translations")] Dictionary<string, DepositPolicyTranslationData>? Translations = null);
 
 public sealed record UpdateDepositPolicyRequest(
-    Guid Id,
-    int TourScope,
-    int DepositType,
-    decimal DepositValue,
-    int MinDaysBeforeDeparture,
-    bool IsActive,
-    Dictionary<string, DepositPolicyTranslationData>? Translations = null
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("tourScope")] int TourScope,
+    [property: JsonPropertyName("depositType")] int DepositType,
+    [property: JsonPropertyName("depositValue")] decimal DepositValue,
+    [property: JsonPropertyName("minDaysBeforeDeparture")] int MinDaysBeforeDeparture,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("translations")] Dictionary<string, DepositPolicyTranslationData>? Translations = null);

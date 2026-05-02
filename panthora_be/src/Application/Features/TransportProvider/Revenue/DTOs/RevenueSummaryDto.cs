@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.Revenue.DTOs;
 
 public sealed record RevenueSummaryDto(
-    long TotalRevenue,
-    int CompletedTrips,
-    decimal AvgRevenuePerTrip,
-    List<MonthlyRevenueDto> MonthlyBreakdown
+    [property: JsonPropertyName("totalRevenue")] long TotalRevenue,
+    [property: JsonPropertyName("completedTrips")] int CompletedTrips,
+    [property: JsonPropertyName("avgRevenuePerTrip")] decimal AvgRevenuePerTrip,
+    [property: JsonPropertyName("monthlyBreakdown")] List<MonthlyRevenueDto> MonthlyBreakdown
 );

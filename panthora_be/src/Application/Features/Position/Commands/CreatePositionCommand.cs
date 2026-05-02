@@ -1,15 +1,20 @@
-using Application.Common;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
-using FluentValidation;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Position;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
+using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Commands;
 
-public sealed record CreatePositionCommand(string Name, int Level, string? Note, int? Type) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record CreatePositionCommand(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("level")] int Level,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("type")] int? Type) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Position];
 }

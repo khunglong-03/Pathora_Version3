@@ -1,9 +1,9 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Api.Controllers;
+using global::Api.Controllers;
 using Contracts.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -87,7 +87,7 @@ public sealed class SiteContentControllerTests
             new { id = "booking", icon = "heroicons-outline:document-text", title = new { en = "Booking & Payment", vi = "Dat cho" }, items = new { en = new[] { "Pay now" }, vi = new[] { "Thanh toan ngay" } } }
         };
 
-        Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
+        global::Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
             JsonSerializer.Serialize(enContent),
             JsonSerializer.Serialize(enContent),
             out var localizedValue,
@@ -127,7 +127,7 @@ public sealed class SiteContentControllerTests
             new { id = "booking", icon = "heroicons-outline:document-text", title = new { en = "Booking & Payment", vi = "Dat cho" }, items = new { en = new[] { "Pay now" }, vi = new[] { "Thanh toan ngay" } } }
         };
 
-        Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
+        global::Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
             JsonSerializer.Serialize(enContent),
             JsonSerializer.Serialize(enContent),
             out var localizedValue,
@@ -160,7 +160,7 @@ public sealed class SiteContentControllerTests
             new { id = "booking", icon = "heroicons-outline:document-text", title = new { en = "Booking", vi = "Dat cho" }, items = new { en = new[] { "Item 1" }, vi = new[] { "Muc 1" } } }
         };
 
-        Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
+        global::Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
             JsonSerializer.Serialize(enContent),
             JsonSerializer.Serialize(enContent),
             out var localizedValue,
@@ -216,7 +216,7 @@ public sealed class SiteContentControllerTests
             new { id = "liability-disclaimer", icon = "heroicons-outline:exclamation-circle", title = new { en = "Liability Disclaimer", vi = "Mien trac" }, items = new { en = new[] { "Item1" }, vi = new[] { "Muc 1" } } }
         };
 
-        Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
+        global::Domain.Entities.SiteContentValueCodec.TryCreateLocalizedContentValue(
             JsonSerializer.Serialize(enContent),
             JsonSerializer.Serialize(enContent),
             out var localizedValue,

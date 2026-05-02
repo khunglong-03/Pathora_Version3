@@ -35,15 +35,15 @@
   },
   {
     "Id": "019527b1-0000-7000-8000-000000000003",
-    "Name": "Nhân Viên Thiết Kế Tour",
-    "PositionCode": "TOUR_DESIGNER",
+    "Name": "Người Điều Phối Tour",
+    "PositionCode": "TOUR_OPERATOR",
     "Level": 3,
-    "Note": "Thiết kế và xây dựng lịch trình tour",
+    "Note": "Điều phối và xây dựng lịch trình tour",
     "Type": 1,
     "IsDeleted": false,
     "Translations": {
-      "vi": { "name": "Nhân Viên Thiết Kế Tour", "note": "Thiết kế và xây dựng lịch trình tour" },
-      "en": { "name": "Tour Designer", "note": "Designs and builds tour itineraries" }
+      "vi": { "name": "Người Điều Phối Tour", "note": "Điều phối và xây dựng lịch trình tour" },
+      "en": { "name": "Tour Operator", "note": "Coordinates and builds tour itineraries" }
     },
     "CreatedBy": "system",
     "CreatedOnUtc": "2026-04-05T00:00:00Z",

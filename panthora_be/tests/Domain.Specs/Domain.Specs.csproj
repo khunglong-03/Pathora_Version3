@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -38,7 +38,6 @@
         <Compile Remove="Application/Features/HotelRoomInventory/**" />
         <Compile Remove="Application/Features/HotelServiceProvider/**" />
         <Compile Remove="Application/Validators/CreateHotelRoomInventoryCommandValidatorTests.cs" />
-        <Compile Remove="Domain/**" />
     </ItemGroup>
 
     <ItemGroup>

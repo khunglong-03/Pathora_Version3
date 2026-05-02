@@ -2,10 +2,11 @@ using Application.Contracts.TourManagerAssignment;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourManagerAssignment.Queries;
 
-public sealed record GetTourManagerAssignmentByIdQuery(Guid ManagerId)
+public sealed record GetTourManagerAssignmentByIdQuery([property: JsonPropertyName("managerId")] Guid ManagerId)
     : IQuery<ErrorOr<TourManagerAssignmentDetailVm>>;
 
 public sealed class GetTourManagerAssignmentByIdQueryHandler(

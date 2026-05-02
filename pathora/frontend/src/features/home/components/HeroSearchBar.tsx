@@ -2,6 +2,7 @@
 import Button from "@/components/ui/Button";
 import React, { useState } from "react";
 import { Icon } from "@/components/ui";
+import { cn } from "@/lib/cn";
 
 /* ── Calendar helpers ──────────────────────────────────────── */
 
@@ -78,47 +79,47 @@ export const CalendarDropdown = ({
     weekdayLabels.length === 7 ? weekdayLabels : DEFAULT_WEEKDAYS;
 
   return (
-    <div className="p-4 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 rounded-xl">
+    <div className={cn("p-4 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 rounded-xl")}>
       {/* Month navigation */}
-      <div className="flex items-center justify-between mb-3">
+      <div className={cn("flex items-center justify-between mb-3")}>
         <Button
           type="button"
           onClick={prevMonth}
           aria-label={previousMonthLabel}
-          className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer">
+          className={cn("w-11 h-11 center rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer")}>
           <Icon
             icon="heroicons-outline:chevron-left"
-            className="w-4 h-4 text-gray-600 dark:text-gray-300"
+            className={cn("w-4 h-4 text-gray-600 dark:text-gray-300")}
           />
         </Button>
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+        <span className={cn("text-sm font-semibold text-gray-900 dark:text-white")}>
           {monthLabel} {viewYear}
         </span>
         <Button
           type="button"
           onClick={nextMonth}
           aria-label={nextMonthLabel}
-          className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer">
+          className={cn("w-11 h-11 center rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer")}>
           <Icon
             icon="heroicons-outline:chevron-right"
-            className="w-4 h-4 text-gray-600 dark:text-gray-300"
+            className={cn("w-4 h-4 text-gray-600 dark:text-gray-300")}
           />
         </Button>
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 mb-1">
+      <div className={cn("grid grid-cols-7 mb-1")}>
         {resolvedWeekdayLabels.map((wd) => (
           <span
             key={wd}
-            className="text-[11px] text-center text-gray-400 font-medium">
+            className={cn("text-[11px] text-center text-gray-400 font-medium")}>
             {wd}
           </span>
         ))}
       </div>
 
       {/* Day grid */}
-      <div className="grid grid-cols-7 gap-y-0.5">
+      <div className={cn("grid grid-cols-7 gap-y-0.5")}>
         {Array.from({ length: firstDay }).map((_, i) => (
           <span key={`e-${i}`} />
         ))}
@@ -127,7 +128,7 @@ export const CalendarDropdown = ({
             type="button"
             key={day}
             onClick={() => onChange(new Date(viewYear, viewMonth, day))}
-            className={`w-11 h-11 mx-auto rounded-full text-sm flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${
+            className={`w-11 h-11 mx-auto rounded-full text-sm center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${
               isSelected(day)
                 ? "bg-landing-accent text-white font-bold shadow-md shadow-landing-accent/30"
                 : "text-gray-700 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -150,7 +151,7 @@ export const ListDropdown = ({
   value: string;
   onChange: (v: string) => void;
 }) => (
-  <div className="py-2 min-w-50 max-h-60 overflow-y-auto">
+  <div className={cn("py-2 min-w-50 max-h-60 overflow-y-auto")}>
     {items.map((item) => (
       <Button
         type="button"
@@ -179,7 +180,7 @@ export const NumberDropdown = ({
   singleLabel: string;
   pluralLabel: string;
 }) => (
-  <div className="py-2 min-w-45 max-h-60 overflow-y-auto">
+  <div className={cn("py-2 min-w-45 max-h-60 overflow-y-auto")}>
     {PEOPLE_OPTIONS.map((num) => (
       <Button
         type="button"
@@ -218,7 +219,7 @@ export const SelectField = ({
   displayValue,
   children,
 }: SelectFieldProps) => (
-  <div className="relative w-full h-full">
+  <div className={cn("relative w-full h-full")}>
     <Button
       type="button"
       onClick={onToggle}
@@ -227,17 +228,17 @@ export const SelectField = ({
       className={`flex items-center gap-3 p-3 md:p-3.5 min-h-[3.5rem] bg-transparent hover:bg-white/[0.06] rounded-2xl transition-colors w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-landing-accent cursor-pointer ${rounded ?? ""} ${
         isOpen ? "ring-2 ring-landing-accent/30 bg-white/[0.06]" : ""
       }`}>
-      <div className="relative w-4 h-4 md:w-6 md:h-6 shrink-0 flex items-center justify-center text-landing-accent">
+      <div className={cn("relative w-4 h-4 md:w-6 md:h-6 shrink-0 center text-landing-accent")}>
         {icon}
       </div>
-      <div className="flex min-w-0 flex-col gap-0.5 md:gap-1 w-full">
-        <span suppressHydrationWarning className="text-white font-semibold text-xs md:text-sm leading-tight truncate w-full block">
+      <div className={cn("flex min-w-0 flex-col gap-0.5 md:gap-1 w-full")}>
+        <span suppressHydrationWarning className={cn("text-white font-semibold text-xs md:text-sm leading-tight truncate w-full block")}>
           {label}
         </span>
-        <div className="flex min-w-0 items-center justify-between gap-1 w-full opacity-70">
+        <div className={cn("flex min-w-0 items-center justify-between gap-1 w-full opacity-70")}>
           <span
             suppressHydrationWarning
-            className={`text-[10px] md:text-xs font-normal truncate flex-1 ${
+            className={`text-[10px] md:text-xs font-normal truncate spacer ${
               displayValue ? "text-white/80" : "text-white/50"
             }`}>
             {displayValue || placeholder}
@@ -254,7 +255,7 @@ export const SelectField = ({
 
     {/* Dropdown panel */}
     {isOpen && children && (
-      <div className="absolute top-full left-0 right-0 md:left-auto md:right-auto md:min-w-full mt-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-black/10 border border-gray-100 dark:border-slate-700 z-[60] overflow-hidden">
+      <div className={cn("absolute top-full left-0 right-0 md:left-auto md:right-auto md:min-w-full mt-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-black/10 border border-gray-100 dark:border-slate-700 z-[60] overflow-hidden")}>
         {children}
       </div>
     )}

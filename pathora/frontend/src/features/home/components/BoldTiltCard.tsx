@@ -1,14 +1,17 @@
 "use client";
-import React, { useRef, useState, useCallback } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPinIcon } from "@phosphor-icons/react";
+import { MapPinIcon, ArrowRight } from "@phosphor-icons/react";
+import { cn } from "@/lib/cn";
 
 interface BoldTiltCardProps {
   image: string;
   title: string;
   subtitle?: string;
   badge?: string;
+  visaRequired?: boolean;
+  visaLabel?: string;
   price?: string;
   href: string;
   height?: string;
@@ -20,43 +23,21 @@ export const BoldTiltCard = ({
   title,
   subtitle,
   badge,
+  visaRequired = false,
+  visaLabel,
   price,
   href,
   height = "h-[360px]",
   width = "w-[280px]",
 }: BoldTiltCardProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const card = cardRef.current;
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -8;
-    const rotateY = ((x - centerX) / centerX) * 8;
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
-    setIsHovered(false);
-  }, []);
-
   return (
-    <Link href={href}>
+    <Link href={href} className={cn("block group")}>
       <div
-        ref={cardRef}
-        className={`${width} ${height} relative rounded-2xl overflow-hidden cursor-pointer group`}
-        style={{ transformStyle: "preserve-3d", transition: "transform 0.3s ease, box-shadow 0.3s ease" }}
-        onMouseMove={handleMouseMove}
+        className={`${width} ${height} relative rounded-[1.5rem] overflow-hidden bg-stone-100 transition-all duration-500`}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={handleMouseLeave}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Background Image */}
         {image ? (
@@ -64,63 +45,58 @@ export const BoldTiltCard = ({
             src={image}
             alt={title}
             fill
-            sizes="280px"
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, 400px"
+            className={cn("object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105")}
           />
         ) : (
-          <div className="absolute inset-0 bg-white/5 transition-transform duration-700 group-hover:scale-110" />
+          <div className={cn("absolute inset-0 bg-stone-200 transition-transform duration-[1.5s] group-hover:scale-105")} />
         )}
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+        {/* Gradient Overlay for legibility */}
+        <div className={cn("absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/20 to-transparent transition-opacity duration-500 group-hover:opacity-90")} />
 
-        {/* Hover Glassmorphism Overlay */}
-        <div
-          className={`absolute inset-0 backdrop-blur-sm transition-opacity duration-300 ${
-            isHovered ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-        />
-
-        {/* Glow border on hover */}
-        <div
-          className={`absolute inset-0 rounded-2xl transition-opacity duration-300 pointer-events-none ${
-            isHovered ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ boxShadow: "inset 0 0 20px rgba(251,139,2,0.15)" }}
-        />
-
-        {/* Badge */}
-        {badge && (
-          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[#fb8b02]/90 text-white text-xs font-semibold backdrop-blur-sm">
-            {badge}
+        {/* Top Badges */}
+        <div className={cn("absolute top-4 left-4 right-4 flex justify-between items-start")}>
+          <div className={cn("v-stack gap-2")}>
+            {badge && (
+              <span className={cn("inline-flex items-center px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-stone-900 text-[11px] font-bold uppercase tracking-wider shadow-sm")}>
+                {badge}
+              </span>
+            )}
+            {visaRequired && visaLabel && (
+              <span className={cn("inline-flex items-center px-3 py-1 rounded-full bg-orange-50/95 backdrop-blur-md text-orange-700 text-[11px] font-bold uppercase tracking-wider shadow-sm")}>
+                {visaLabel}
+              </span>
+            )}
           </div>
-        )}
-
-        {/* Price */}
-        {price && (
-          <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-semibold">
-            {price}
-          </div>
-        )}
+          {price && (
+            <span className={cn("inline-flex items-center px-3 py-1 rounded-full bg-stone-900/80 backdrop-blur-md text-white text-[11px] font-bold tracking-wider border border-white/10 shadow-sm")}>
+              {price}
+            </span>
+          )}
+        </div>
 
         {/* Content */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="text-xl font-bold text-white mb-1" style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}>
+        <div className={cn("absolute bottom-0 left-0 right-0 p-6 v-stack justify-end")}>
+          <h3 className={cn("text-2xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-sm")}>
             {title}
           </h3>
-          {subtitle && (
-            <p className="text-white/60 text-sm flex items-center gap-1">
-              <MapPinIcon size={14} weight="fill" className="text-[#fb8b02]/70" /> {subtitle}
-            </p>
-          )}
-          {/* CTA reveal on hover */}
-          <div
-            className={`transition-all duration-300 ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
-          >
-            <span className="inline-flex items-center gap-2 mt-3 text-[#fb8b02] text-sm font-semibold">
-              Explore <span>→</span>
-            </span>
+          
+          <div className={cn("flex items-center justify-between")}>
+            {subtitle && (
+              <p className={cn("text-stone-300 text-[13px] font-medium flex items-center gap-1.5 uppercase tracking-wide")}>
+                <MapPinIcon size={14} weight="bold" className={cn("text-stone-400")} /> {subtitle}
+              </p>
+            )}
+            
+            {/* CTA Arrow */}
+            <div
+              className={`center w-8 h-8 rounded-full bg-white text-stone-900 transition-all duration-300 ease-out ${
+                isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+              }`}
+            >
+              <ArrowRight size={14} weight="bold" />
+            </div>
           </div>
         </div>
       </div>

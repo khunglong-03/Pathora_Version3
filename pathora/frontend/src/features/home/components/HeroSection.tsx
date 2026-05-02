@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import Button from "@/components/ui/Button";
 import { homeService } from "@/api/services/homeService";
+import { cn } from "@/lib/cn";
 import {
   SelectField,
   CalendarDropdown,
@@ -17,15 +18,15 @@ import {
 
 /* ── Hero Background SVG (abstract travel pattern) ─────────── */
 const HeroBgPattern = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+  <div className={cn("absolute inset-0 overflow-hidden pointer-events-none")}>
     {/* Warm gradient overlay */}
-    <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]" />
+    <div className={cn("absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]")} />
     {/* Radial accent glow */}
-    <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-[#fa8b02]/8 blur-[120px]" />
-    <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-[#e67a00]/5 blur-[100px]" />
+    <div className={cn("absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-[#fa8b02]/8 blur-[120px]")} />
+    <div className={cn("absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-[#e67a00]/5 blur-[100px]")} />
     {/* Subtle grid pattern */}
     <div
-      className="absolute inset-0 opacity-[0.03]"
+      className={cn("absolute inset-0 opacity-[0.03]")}
       style={{
         backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
         backgroundSize: "60px 60px",
@@ -90,20 +91,20 @@ const HeroSection = () => {
   return (
     <section
       id="hero"
-      className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden"
+      className={cn("relative min-h-[100dvh] v-stack items-center justify-center overflow-hidden")}
     >
       <HeroBgPattern />
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-16 md:pt-40 md:pb-24 flex flex-col items-center text-center">
+      <div className={cn("relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-16 md:pt-40 md:pb-24 v-stack items-center text-center")}>
         {/* Eyebrow */}
         <div
           className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] uppercase tracking-[0.15em] font-semibold bg-white/10 text-white/80 backdrop-blur-sm border border-white/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#fa8b02] animate-pulse" />
+          <span className={cn("inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] uppercase tracking-[0.15em] font-semibold bg-white/10 text-white/80 backdrop-blur-sm border border-white/10")}>
+            <span className={cn("w-1.5 h-1.5 rounded-full bg-[#fa8b02] animate-pulse")} />
             {mounted ? t("landing.hero.publicTours") : "Public Tours"}
           </span>
         </div>
@@ -135,18 +136,18 @@ const HeroSection = () => {
           }`}
         >
           {/* Outer shell */}
-          <div className="rounded-[1.5rem] md:rounded-[2rem] bg-white/[0.06] backdrop-blur-xl border border-white/[0.12] p-1.5 md:p-2 shadow-2xl shadow-black/20">
+          <div className={cn("rounded-[1.5rem] md:rounded-[2rem] bg-white/[0.06] backdrop-blur-xl border border-white/[0.12] p-1.5 md:p-2 shadow-2xl shadow-black/20")}>
             {/* Inner core */}
             <div
-              className="rounded-[calc(1.5rem-0.375rem)] md:rounded-[calc(2rem-0.5rem)] bg-white/[0.08] backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] grid grid-cols-1 md:grid-cols-5 gap-0 md:divide-x md:divide-white/10"
+              className={cn("rounded-[calc(1.5rem-0.375rem)] md:rounded-[calc(2rem-0.5rem)] bg-white/[0.08] backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] grid grid-cols-1 md:grid-cols-5 gap-0 md:divide-x md:divide-white/10")}
               role="search"
               aria-label={t("landing.hero.searchAria")}
             >
               {/* Destination */}
-              <div className="md:col-span-1 border-b md:border-b-0 border-white/10">
+              <div className={cn("md:col-span-1 border-b md:border-b-0 border-white/10")}>
                 <SelectField
                   icon={
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className={cn("w-5 h-5")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                       <circle cx="12" cy="9" r="2.5" />
                     </svg>
@@ -166,10 +167,10 @@ const HeroSection = () => {
               </div>
 
               {/* Date */}
-              <div className="md:col-span-1 border-b md:border-b-0 border-white/10">
+              <div className={cn("md:col-span-1 border-b md:border-b-0 border-white/10")}>
                 <SelectField
                   icon={
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className={cn("w-5 h-5")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="4" width="18" height="18" rx="2" />
                       <path d="M16 2v4M8 2v4M3 10h18" />
                     </svg>
@@ -196,10 +197,10 @@ const HeroSection = () => {
               </div>
 
               {/* Classification */}
-              <div className="md:col-span-1 border-b md:border-b-0 border-white/10">
+              <div className={cn("md:col-span-1 border-b md:border-b-0 border-white/10")}>
                 <SelectField
                   icon={
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className={cn("w-5 h-5")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   }
@@ -218,10 +219,10 @@ const HeroSection = () => {
               </div>
 
               {/* People */}
-              <div className="md:col-span-1 border-b md:border-b-0 border-white/10">
+              <div className={cn("md:col-span-1 border-b md:border-b-0 border-white/10")}>
                 <SelectField
                   icon={
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className={cn("w-5 h-5")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />
                       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -248,18 +249,18 @@ const HeroSection = () => {
               </div>
 
               {/* Search Button */}
-              <div className="md:col-span-1 flex items-center justify-center p-2 md:p-1.5">
+              <div className={cn("md:col-span-1 center p-2 md:p-1.5")}>
                 <Button
                   type="button"
                   onClick={handleSearch}
-                  className="w-full md:w-auto h-12 md:h-full px-6 md:px-0 md:aspect-square rounded-2xl md:rounded-[calc(2rem-1rem)] bg-gradient-to-r from-[#fa8b02] to-[#e67a00] hover:from-[#e67a00] hover:to-[#d06e00] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-lg hover:shadow-[#fa8b02]/30 active:scale-[0.97] cursor-pointer"
+                  className={cn("w-full md:w-auto h-12 md:h-full px-6 md:px-0 md:aspect-square rounded-2xl md:rounded-[calc(2rem-1rem)] bg-gradient-to-r from-[#fa8b02] to-[#e67a00] hover:from-[#e67a00] hover:to-[#d06e00] text-white font-semibold text-sm center gap-2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-lg hover:shadow-[#fa8b02]/30 active:scale-[0.97] cursor-pointer")}
                   ariaLabel={mounted ? t("landing.hero.exploreTours") : "Explore Tours"}
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className={cn("w-5 h-5")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.35-4.35" />
                   </svg>
-                  <span className="md:hidden">{mounted ? t("landing.hero.exploreTours") : "Explore Tours"}</span>
+                  <span className={cn("md:hidden")}>{mounted ? t("landing.hero.exploreTours") : "Explore Tours"}</span>
                 </Button>
               </div>
             </div>
@@ -272,25 +273,25 @@ const HeroSection = () => {
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#fa8b02]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <div className={cn("flex items-center gap-2")}>
+            <svg className={cn("w-4 h-4 text-[#fa8b02]")} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
             <span>Verified Tours</span>
           </div>
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#fa8b02]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          <div className={cn("flex items-center gap-2")}>
+            <svg className={cn("w-4 h-4 text-[#fa8b02]")} viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
             <span>Safe & Insured</span>
           </div>
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#fa8b02]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          <div className={cn("flex items-center gap-2")}>
+            <svg className={cn("w-4 h-4 text-[#fa8b02]")} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
             <span>50+ Countries</span>
           </div>
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce">
-        <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-1.5">
-          <div className="w-1 h-2.5 rounded-full bg-white/40 animate-pulse" />
+      <div className={cn("absolute bottom-8 left-1/2 -translate-x-1/2 z-10 v-stack items-center gap-2 animate-bounce")}>
+        <div className={cn("w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-1.5")}>
+          <div className={cn("w-1 h-2.5 rounded-full bg-white/40 animate-pulse")} />
         </div>
       </div>
     </section>

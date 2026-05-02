@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
 import type { TourFormValues } from "@/schemas/tour-form";
+import { formatCurrency } from "@/utils/format";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClassificationForm {
@@ -121,16 +122,16 @@ export function InsuranceSection({
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t("tourAdmin.insurance.coverage")}: ${ins.coverageAmount || "0"} &bull;
+                        {t("tourAdmin.insurance.coverage")}: {formatCurrency(Number(ins.coverageAmount || 0))} &bull;
                         {t("tourAdmin.insurance.durationOfTour")}
                         {ins.coverageFee
-                          ? ` • ${t("tourAdmin.insurance.fee")}: $${ins.coverageFee}`
+                          ? ` • ${t("tourAdmin.insurance.fee")}: ${formatCurrency(Number(ins.coverageFee))}`
                           : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <span className="text-sm font-semibold text-orange-500 whitespace-nowrap">
-                        ${ins.coverageFee || "0"}
+                        {formatCurrency(Number(ins.coverageFee || 0))}
                       </span>
                       <button
                         type="button"

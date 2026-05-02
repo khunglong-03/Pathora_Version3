@@ -1,9 +1,10 @@
 using Application.Common;
 using Application.Services;
-using Contracts;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Contracts;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Position.Queries;
 

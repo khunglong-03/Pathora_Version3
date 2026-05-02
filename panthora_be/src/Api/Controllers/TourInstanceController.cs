@@ -8,22 +8,25 @@ using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Api.Controllers;
 
 [Route(TourInstanceEndpoint.Base)]
 public class TourInstanceController : BaseApiController
 {
-    [AllowAnonymous]
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? searchText,
         [FromQuery] TourInstanceStatus? status,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] bool excludePast = false)
+        [FromQuery] bool excludePast = false,
+        [FromQuery] bool? wantsCustomization = null)
     {
-        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast));
+        var result = await Sender.Send(new GetAllTourInstancesQuery(searchText, status, pageNumber, pageSize, excludePast, wantsCustomization, CurrentUserId));
         return HandleResult(result);
     }
 
@@ -67,7 +70,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize]
     [HttpPatch(TourInstanceEndpoint.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request)
     {
@@ -97,7 +100,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
@@ -106,7 +109,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPost(TourInstanceEndpoint.Days)]
     public async Task<IActionResult> CreateDay(Guid id, [FromBody] CreateTourInstanceDayCommand command)
     {
@@ -115,12 +118,30 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPatch(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> UpdateActivity(Guid id, Guid dayId, Guid activityId, [FromBody] UpdateTourInstanceActivityCommand command)
     {
         var updatedCommand = command with { InstanceId = id, DayId = dayId, ActivityId = activityId };
         var result = await Sender.Send(updatedCommand);
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.DayId + "/activities")]
+    public async Task<IActionResult> CreateActivity(Guid id, Guid dayId, [FromBody] CreateTourInstanceActivityCommand command)
+    {
+        var updatedCommand = command with { InstanceId = id, DayId = dayId };
+        var result = await Sender.Send(updatedCommand);
+        return HandleCreated(result);
+    }
+
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpDelete(TourInstanceEndpoint.ActivityId)]
+    public async Task<IActionResult> DeleteActivity(Guid id, Guid dayId, Guid activityId)
+    {
+        var command = new DeleteTourInstanceActivityCommand(id, dayId, activityId);
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 
@@ -136,18 +157,69 @@ public class TourInstanceController : BaseApiController
     }
 
     [AllowAnonymous]
-    [HttpPost(TourInstanceEndpoint.HotelApprove)]
-    public async Task<IActionResult> HotelApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    [HttpPost(TourInstanceEndpoint.Approve)]
+    public async Task<IActionResult> Approve(Guid id, [FromBody] ProviderApproveRequest request)
     {
-        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Hotel"));
+        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(
+            id,
+            request.IsApproved,
+            request.Note,
+            request.ProviderType,
+            request.AccommodationActivityIds,
+            request.TransportationActivityIds));
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
-    [HttpPost(TourInstanceEndpoint.TransportApprove)]
-    public async Task<IActionResult> TransportApprove(Guid id, [FromBody] ProviderApproveRequest request)
+    // Private tour itinerary review workflow.
+    // Operator submits the edited itinerary for Manager approval.
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost("{id:guid}/private/submit-for-review")]
+    public async Task<IActionResult> SubmitPrivateForManagerReview(Guid id)
     {
-        var result = await Sender.Send(new ProviderApproveTourInstanceCommand(id, request.IsApproved, request.Note, "Transport"));
+        var result = await Sender.Send(new SubmitPrivateTourForManagerReviewCommand(id));
+        return HandleResult(result);
+    }
+
+    // Manager approves → moves to PendingCustomerApproval (forwarded to customer).
+    [Authorize(Roles = "Admin,Manager")]
+    [HttpPost("{id:guid}/private/manager-approve")]
+    public async Task<IActionResult> ManagerApprovePrivate(Guid id)
+    {
+        var result = await Sender.Send(new ManagerApprovePrivateTourCommand(id));
+        return HandleResult(result);
+    }
+
+    // Manager rejects → returns to PendingAdjustment with note for Operator.
+    [Authorize(Roles = "Admin,Manager")]
+    [HttpPost("{id:guid}/private/manager-reject")]
+    public async Task<IActionResult> ManagerRejectPrivate(Guid id, [FromBody] ManagerRejectPrivateRequest request)
+    {
+        var result = await Sender.Send(new ManagerRejectPrivateTourCommand(id, request.Reason));
+        return HandleResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/customer-approve")]
+    public async Task<IActionResult> CustomerApprovePrivate(Guid id)
+    {
+        var result = await Sender.Send(new CustomerApprovePrivateTourCommand(id));
+        return HandleResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/customer-reject")]
+    public async Task<IActionResult> CustomerRejectPrivate(Guid id, [FromBody] CustomerRejectPrivateRequest request)
+    {
+        var result = await Sender.Send(new CustomerRejectPrivateTourCommand(id, request.Reason));
+        return HandleResult(result);
+    }
+
+    // ER-12: manager-level assignment requires Admin/Manager/TourOperator.
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost("{instanceId:guid}/accommodations/{activityId:guid}/assign-supplier")]
+    public async Task<IActionResult> AssignAccommodationSupplier(Guid instanceId, Guid activityId, [FromBody] AssignSupplierRequest request)
+    {
+        var result = await Sender.Send(new AssignAccommodationSupplierCommand(instanceId, activityId, request.SupplierId));
         return HandleResult(result);
     }
 
@@ -161,9 +233,85 @@ public class TourInstanceController : BaseApiController
 
     [AllowAnonymous]
     [HttpPut("{instanceId:guid}/activities/{activityId:guid}/assign")]
+    [Obsolete("Use POST .../transportation/{activityId}/approve instead. Kept for one release.")]
     public async Task<IActionResult> AssignVehicleToActivity(Guid instanceId, Guid activityId, [FromBody] AssignVehicleToRouteRequest request)
     {
         var result = await Sender.Send(new AssignVehicleToRouteCommand(instanceId, activityId, request.VehicleId, request.DriverId));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Assign (or change) the transport supplier for a transportation activity.
+    /// Sets plan fields (vehicle type, seat count) and resets approval to Pending.
+    /// </summary>
+    // ER-12: only management roles can (re)assign a supplier.
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/assign-supplier")]
+    public async Task<IActionResult> AssignTransportSupplier(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] AssignTransportSupplierRequest request)
+    {
+        var result = await Sender.Send(new AssignTransportSupplierCommand(
+            instanceId,
+            activityId,
+            request.SupplierId,
+            request.RequestedVehicleType,
+            request.RequestedSeatCount,
+            request.RequestedVehicleCount));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Provider approves transportation — confirms vehicle + driver for an activity.
+    /// Creates a Hard VehicleBlock hold and may activate the instance if all approvals are complete.
+    /// </summary>
+    // ER-12: only provider roles (plus Admin) can approve their own activities.
+    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/approve")]
+    public async Task<IActionResult> ApproveTransportationActivity(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] ApproveTransportationRequest request)
+    {
+        List<TransportApprovalAssignmentDto>? assignments = null;
+        if (request.Assignments is { Count: > 0 })
+        {
+            assignments = request.Assignments!
+                .Where(static a =>
+                    a is not null
+                    && a.VehicleId != Guid.Empty
+                    && a.DriverId.HasValue
+                    && a.DriverId.Value != Guid.Empty)
+                .Select(static a => new TransportApprovalAssignmentDto(a!.VehicleId, a!.DriverId))
+                .ToList();
+            if (assignments.Count == 0)
+                assignments = null;
+        }
+
+        var result = await Sender.Send(new ApproveTransportationActivityCommand(
+            instanceId,
+            activityId,
+            assignments,
+            request.VehicleId,
+            request.DriverId,
+            request.Note));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// Provider rejects transportation — declines the assignment for an activity.
+    /// Deletes any VehicleBlock and moves instance back to PendingApproval.
+    /// </summary>
+    [Authorize(Roles = "TransportProvider,HotelProvider,Admin")]
+    [HttpPost("{instanceId:guid}/transportation/{activityId:guid}/reject")]
+    public async Task<IActionResult> RejectTransportationActivity(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] RejectTransportationRequest request)
+    {
+        var result = await Sender.Send(new RejectTransportationActivityCommand(
+            instanceId, activityId, request.Note));
         return HandleResult(result);
     }
 
@@ -183,12 +331,190 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    /// <summary>
+    /// Manager confirms/unconfirms external transport (flights, trains, ferries).
+    /// External transport = Transportation activity WITHOUT a TransportSupplierId.
+    /// Required for instance activation per BƯỚC 4 in lifecycle doc.
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.ConfirmExternalTransport)]
+    public async Task<IActionResult> ConfirmExternalTransport(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] ConfirmExternalTransportRequest request)
+    {
+        var result = await Sender.Send(new ConfirmExternalTransportCommand(
+            instanceId, activityId, request.Confirm));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// TourOperator/Manager upload ticket image cho hoạt động vận chuyển ngoài (Flight/Train/Boat/Other).
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.TicketImages)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadTicketImage(
+        Guid instanceId,
+        Guid activityId,
+        [FromForm] IFormFile file,
+        [FromForm] Guid? bookingId = null,
+        [FromForm] string? bookingReference = null,
+        [FromForm] string? note = null)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("File is empty");
+
+        await using var stream = file.OpenReadStream();
+        var result = await Sender.Send(new UploadTicketImageCommand(
+            instanceId,
+            activityId,
+            stream,
+            file.FileName,
+            file.ContentType ?? "application/octet-stream",
+            file.Length,
+            bookingId,
+            bookingReference,
+            note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet(TourInstanceEndpoint.TicketImages)]
+    public async Task<IActionResult> GetTicketImages(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetTicketImagesQuery(instanceId, activityId));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpDelete(TourInstanceEndpoint.TicketImageById)]
+    public async Task<IActionResult> DeleteTicketImage(Guid instanceId, Guid activityId, Guid imageId)
+    {
+        var result = await Sender.Send(new DeleteTicketImageCommand(activityId, imageId));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.BookingTickets)]
+    public async Task<IActionResult> SaveBookingTicket(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] SaveBookingTicketRequest request)
+    {
+        var result = await Sender.Send(new SaveBookingTicketCommand(
+            instanceId,
+            activityId,
+            request.BookingId,
+            request.FlightNumber,
+            request.DepartureAt,
+            request.ArrivalAt,
+            request.SeatNumbers,
+            request.ETicketNumbers,
+            request.SeatClass,
+            request.Note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet(TourInstanceEndpoint.BookingTickets)]
+    public async Task<IActionResult> GetBookingTickets(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetBookingTicketsQuery(activityId));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPost(TourInstanceEndpoint.BookingRoomAssignments)]
+    public async Task<IActionResult> SaveBookingRoomAssignment(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] SaveBookingRoomAssignmentRequest request)
+    {
+        var result = await Sender.Send(new SaveBookingRoomAssignmentCommand(
+            instanceId,
+            activityId,
+            request.BookingId,
+            request.RoomType,
+            request.RoomCount,
+            request.RoomNumbers,
+            request.Note));
+        return HandleResult(result);
+    }
+
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet(TourInstanceEndpoint.BookingRoomAssignments)]
+    public async Task<IActionResult> GetBookingRoomAssignments(Guid instanceId, Guid activityId)
+    {
+        var result = await Sender.Send(new GetBookingRoomAssignmentsQuery(activityId));
+        return HandleResult(result);
+    }
 }
 
-public sealed record ProviderApproveRequest(bool IsApproved, string? Note);
+public sealed record SaveBookingRoomAssignmentRequest(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("roomNumbers")] string? RoomNumbers,
+    [property: JsonPropertyName("note")] string? Note);
 
-public sealed record AssignVehicleToRouteRequest(Guid VehicleId, Guid DriverId);
+public sealed record SaveBookingTicketRequest(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("flightNumber")] string? FlightNumber,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("seatNumbers")] string? SeatNumbers,
+    [property: JsonPropertyName("eTicketNumbers")] string? ETicketNumbers,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("note")] string? Note);
 
-public sealed record AssignRoomRequest(string RoomType, int RoomCount);
+public sealed record ProviderApproveRequest(
+    [property: JsonPropertyName("isApproved")] bool IsApproved,
+    [property: JsonPropertyName("providerType")] string ProviderType,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("accommodationActivityIds")] List<Guid>? AccommodationActivityIds = null,
+    [property: JsonPropertyName("transportationActivityIds")] List<Guid>? TransportationActivityIds = null);
 
-public sealed record ChangeTourInstanceStatusRequest(TourInstanceStatus Status);
+public sealed record AssignSupplierRequest(
+    [property: JsonPropertyName("supplierId")] Guid SupplierId);
+
+public sealed record AssignTransportSupplierRequest(
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("requestedVehicleType")] VehicleType RequestedVehicleType,
+    [property: JsonPropertyName("requestedSeatCount")] int RequestedSeatCount,
+    // Scope addendum 2026-04-23 — manager-specified vehicle count (nullable).
+    [property: JsonPropertyName("requestedVehicleCount")] int? RequestedVehicleCount = null);
+
+public sealed record TransportAssignmentRequest(
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid? DriverId);
+
+/// <summary>Approve with <see cref="Assignments"/> (preferred) or legacy <see cref="VehicleId"/> + <see cref="DriverId"/>.</summary>
+public sealed record ApproveTransportationRequest(
+    [property: JsonPropertyName("assignments")] List<TransportAssignmentRequest>? Assignments = null,
+    [property: JsonPropertyName("vehicleId")] Guid? VehicleId = null,
+    [property: JsonPropertyName("driverId")] Guid? DriverId = null,
+    [property: JsonPropertyName("note")] string? Note = null);
+
+public sealed record RejectTransportationRequest(
+    [property: JsonPropertyName("note")] string? Note = null);
+
+public sealed record AssignVehicleToRouteRequest(
+    [property: JsonPropertyName("vehicleId")] Guid VehicleId,
+    [property: JsonPropertyName("driverId")] Guid DriverId);
+
+public sealed record AssignRoomRequest(
+    [property: JsonPropertyName("roomType")] string RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount);
+
+public sealed record ChangeTourInstanceStatusRequest(
+    [property: JsonPropertyName("status")] TourInstanceStatus Status);
+
+public sealed record ConfirmExternalTransportRequest(
+    [property: JsonPropertyName("confirm")] bool Confirm = true);
+
+public sealed record ManagerRejectPrivateRequest(
+    [property: JsonPropertyName("reason")] string Reason);
+
+public sealed record CustomerRejectPrivateRequest(
+    [property: JsonPropertyName("reason")] string Reason);

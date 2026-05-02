@@ -11,6 +11,15 @@ public class BookingTransportDetailEntity : Aggregate<Guid>
     public Guid BookingActivityReservationId { get; set; }
     /// <summary>BookingActivityReservation cha.</summary>
     public virtual BookingActivityReservationEntity BookingActivityReservation { get; set; } = null!;
+    /// <summary>
+    /// ID của BookingParticipant mà vé này được gán (nullable).
+    /// Chỉ dùng cho loại vé per-participant: Airplane, Train, Ship.
+    /// </summary>
+    public Guid? BookingParticipantId { get; set; }
+    /// <summary>Participant được gán vé (nullable navigation).</summary>
+    public virtual BookingParticipantEntity? BookingParticipant { get; set; }
+    /// <summary>Tên hành khách (denormalized để hiển thị, dùng khi không cần join participant).</summary>
+    public string? PassengerName { get; set; }
     /// <summary>ID nhà cung cấp vận chuyển (hãng xe, hãng bay, v.v.).</summary>
     public Guid? SupplierId { get; set; }
     /// <summary>Nhà cung cấp vận chuyển.</summary>
@@ -56,6 +65,8 @@ public class BookingTransportDetailEntity : Aggregate<Guid>
         TransportType transportType,
         string performedBy,
         Guid? supplierId = null,
+        Guid? bookingParticipantId = null,
+        string? passengerName = null,
         DateTimeOffset? departureAt = null,
         DateTimeOffset? arrivalAt = null,
         string? ticketNumber = null,
@@ -82,6 +93,8 @@ public class BookingTransportDetailEntity : Aggregate<Guid>
         {
             Id = Guid.CreateVersion7(),
             BookingActivityReservationId = bookingActivityReservationId,
+            BookingParticipantId = bookingParticipantId,
+            PassengerName = passengerName?.Trim(),
             SupplierId = supplierId,
             TransportType = transportType,
             DepartureAt = departureAt,
@@ -111,6 +124,8 @@ public class BookingTransportDetailEntity : Aggregate<Guid>
         TransportType transportType,
         string performedBy,
         Guid? supplierId = null,
+        Guid? bookingParticipantId = null,
+        string? passengerName = null,
         DateTimeOffset? departureAt = null,
         DateTimeOffset? arrivalAt = null,
         string? ticketNumber = null,
@@ -149,6 +164,8 @@ public class BookingTransportDetailEntity : Aggregate<Guid>
 
         TransportType = transportType;
         SupplierId = supplierId;
+        BookingParticipantId = bookingParticipantId;
+        PassengerName = passengerName?.Trim();
         DepartureAt = departureAt;
         ArrivalAt = arrivalAt;
         TicketNumber = ticketNumber;

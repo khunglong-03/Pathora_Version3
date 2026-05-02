@@ -11,7 +11,7 @@ interface CreateStaffModalProps {
 }
 
 const ROLES: Array<{ value: 1 | 2; label: string; bg: string; text: string }> = [
-  { value: 1, label: "Tour Designer", bg: "#EDE9FE", text: "#7C3AED" },
+  { value: 1, label: "Tour Operator", bg: "#EDE9FE", text: "#7C3AED" },
   { value: 2, label: "Tour Guide", bg: "#DBEAFE", text: "#2563EB" },
 ];
 
@@ -19,17 +19,27 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
   const [staffType, setStaffType] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ fullName?: string; email?: string }>({});
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; password?: string; confirmPassword?: string }>({});
   const [apiError, setApiError] = useState<string | null>(null);
 
   const validate = () => {
-    const errs: { fullName?: string; email?: string } = {};
+    const errs: { fullName?: string; email?: string; password?: string; confirmPassword?: string } = {};
     if (!fullName.trim()) errs.fullName = "Họ tên không được để trống.";
     if (!email.trim()) {
       errs.email = "Email không được để trống.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       errs.email = "Email không hợp lệ.";
+    }
+    if (!password) {
+      errs.password = "Mật khẩu không được để trống.";
+    } else if (password.length < 6) {
+      errs.password = "Mật khẩu phải có ít nhất 6 ký tự.";
+    }
+    if (password !== confirmPassword) {
+      errs.confirmPassword = "Mật khẩu xác nhận không khớp.";
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -41,10 +51,12 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
     setIsSubmitting(true);
     setApiError(null);
     try {
-      await onSubmit({ staffType, email: email.trim(), fullName: fullName.trim() });
+      await onSubmit({ staffType, email: email.trim(), fullName: fullName.trim(), password });
       // Reset form on success
       setFullName("");
       setEmail("");
+      setPassword("");
+      setConfirmPassword("");
       setStaffType(1);
       setErrors({});
       setApiError(null);
@@ -65,6 +77,8 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
     if (!isSubmitting) {
       setFullName("");
       setEmail("");
+      setPassword("");
+      setConfirmPassword("");
       setStaffType(1);
       setErrors({});
       setApiError(null);
@@ -202,6 +216,64 @@ export function CreateStaffModal({ isOpen, onClose, onSubmit }: CreateStaffModal
               {errors.email && (
                 <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
                   {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="create-staff-password"
+                className="block text-sm font-medium mb-2"
+                style={{ color: "#374151" }}
+              >
+                Mật khẩu
+              </label>
+              <input
+                id="create-staff-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu"
+                className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                style={
+                  errors.password
+                    ? { borderColor: "#DC2626", color: "#111827" }
+                    : { borderColor: "#E5E7EB", color: "#111827" }
+                }
+              />
+              {errors.password && (
+                <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="create-staff-confirm-password"
+                className="block text-sm font-medium mb-2"
+                style={{ color: "#374151" }}
+              >
+                Xác nhận mật khẩu
+              </label>
+              <input
+                id="create-staff-confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu"
+                className="w-full px-3 py-2.5 rounded-lg border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                style={
+                  errors.confirmPassword
+                    ? { borderColor: "#DC2626", color: "#111827" }
+                    : { borderColor: "#E5E7EB", color: "#111827" }
+                }
+              />
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
+                  {errors.confirmPassword}
                 </p>
               )}
             </div>

@@ -62,13 +62,13 @@ export const ADMIN_ROLE_DEFAULT_PATH = "/admin/users";
 export const MANAGER_ROLE_DEFAULT_PATH = "/manager";
 export const HOTELSERVICEPROVIDER_ROLE_DEFAULT_PATH = "/hotel";
 export const TRANSPORTPROVIDER_ROLE_DEFAULT_PATH = "/transport";
-export const TOURDESIGNER_ROLE_DEFAULT_PATH = "/tour-designer";
+export const TOUROPERATOR_ROLE_DEFAULT_PATH = "/tour-operator";
 export const TOURGUIDE_ROLE_DEFAULT_PATH = "/tour-guide";
 
-export const TOURDESIGNER_ROLE_NAMES = new Set(["TourDesigner"]);
+export const TOUROPERATOR_ROLE_NAMES = new Set(["TourOperator"]);
 export const TOURGUIDE_ROLE_NAMES = new Set(["TourGuide"]);
 
-export const TOURDESIGNER_ROUTE_PREFIXES = ["/tour-designer"];
+export const TOUROPERATOR_ROUTE_PREFIXES = ["/tour-operator"];
 export const TOURGUIDE_ROUTE_PREFIXES = ["/tour-guide"];
 
 export type AuthPortal = "admin" | "user";
@@ -166,8 +166,8 @@ export const resolveRoleDefaultPath = (
   if (roles.some((role) => role.name === "TransportProvider")) {
     return TRANSPORTPROVIDER_ROLE_DEFAULT_PATH;
   }
-  if (roles.some((role) => TOURDESIGNER_ROLE_NAMES.has(role.name))) {
-    return TOURDESIGNER_ROLE_DEFAULT_PATH;
+  if (roles.some((role) => TOUROPERATOR_ROLE_NAMES.has(role.name))) {
+    return TOUROPERATOR_ROLE_DEFAULT_PATH;
   }
   if (roles.some((role) => TOURGUIDE_ROLE_NAMES.has(role.name))) {
     return TOURGUIDE_ROLE_DEFAULT_PATH;
@@ -230,10 +230,11 @@ export const isSafeNextPath = (next?: string | null): next is string => {
   }
 
   // Must be a relative path (no protocol, no host)
+  let parsed: URL;
   try {
-    const url = new URL(next, "http://localhost");
+    parsed = new URL(next, "http://localhost");
     // If it has a different origin, it's not safe
-    if (url.origin !== "http://localhost") {
+    if (parsed.origin !== "http://localhost") {
       return false;
     }
   } catch {
@@ -245,12 +246,24 @@ export const isSafeNextPath = (next?: string | null): next is string => {
     return false;
   }
 
+  // Reject self-referencing redirect chains (e.g. `/?next=/?next=/...`) so
+  // post-login routing can't trap the user on the home page forever.
+  if (parsed.searchParams.has("next") || parsed.searchParams.has("login")) {
+    return false;
+  }
+
   return true;
 };
 
 /**
- * Resolves the post-login destination, prioritizing a valid `next` parameter
- * for non-admin users when present.
+ * Resolves the post-login destination.
+ *
+ * Role-specific `defaultPath` (e.g. `/admin/users`, `/manager`, `/tour-operator`,
+ * `/tour-guide`, `/hotel`, `/transport`) wins over `next`, otherwise the unauthorized
+ * redirect (which sets `next=<currentPath>`) traps role users on whichever page they
+ * came from instead of their portal home. `next` is still honored when it lives under
+ * the role's portal root so deep links within the same portal survive re-login, and
+ * when the role has no dedicated portal (Customer → defaultPath `/`).
  */
 export const resolveLoginDestination = ({
   next,
@@ -265,11 +278,19 @@ export const resolveLoginDestination = ({
   roles?: RoleWithName[] | null;
   fallbackPath?: string;
 }): string => {
-  // First priority: valid next parameter for non-admin users
+  if (isValidPath(defaultPath)) {
+    if (isSafeNextPath(next)) {
+      const portalRoot = `/${defaultPath.split("/").filter(Boolean)[0] ?? ""}`;
+      if (portalRoot.length > 1 && (next === portalRoot || next.startsWith(`${portalRoot}/`))) {
+        return next;
+      }
+    }
+    return defaultPath;
+  }
+
   if (isSafeNextPath(next) && !isAdminPortal(portal) && !hasAdminRole(roles)) {
     return next;
   }
 
-  // Fall back to existing resolvePostLoginPath logic
   return resolvePostLoginPath({ defaultPath, portal, roles, fallbackPath });
 };

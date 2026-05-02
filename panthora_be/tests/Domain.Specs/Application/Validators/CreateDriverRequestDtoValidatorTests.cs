@@ -1,7 +1,7 @@
-using Application.Features.TransportProvider.Drivers.DTOs;
-using Application.Features.TransportProvider.Drivers.Validators;
-using Domain.Common.Repositories;
-using Domain.Enums;
+using global::Application.Features.TransportProvider.Drivers.DTOs;
+using global::Application.Features.TransportProvider.Drivers.Validators;
+using global::Domain.Common.Repositories;
+using global::Domain.Enums;
 using FluentValidation.TestHelper;
 using NSubstitute;
 using Xunit;

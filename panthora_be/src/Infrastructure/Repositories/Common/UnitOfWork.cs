@@ -1,3 +1,4 @@
+using System.Data;
 using Domain.Abstractions;
 using Domain.Common.Repositories;
 using Domain.Events;
@@ -100,6 +101,29 @@ public class UnitOfWork : IUnitOfWork
         await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await ContextDb.Database.BeginTransactionAsync();
+            try
+            {
+                await action();
+
+                await ContextDb.SaveChangesAsync();
+                await transaction.CommitAsync();
+                await DispatchDomainEventsAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
+    }
+
+    public async Task ExecuteTransactionAsync(IsolationLevel isolationLevel, Func<Task> action)
+    {
+        var strategy = ContextDb.Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await ContextDb.Database.BeginTransactionAsync(isolationLevel);
             try
             {
                 await action();

@@ -17,6 +17,7 @@ using Application.Features.Admin.Queries.GetTourManagerStaff;
 using Application.Features.Admin.Queries.GetTransportProviders;
 using Application.Features.Admin.Queries.GetTransportProviderById;
 using Application.Features.Admin.Queries.GetUserDetail;
+using Application.Features.TransportProvider.Drivers.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -130,6 +131,39 @@ public class AdminController : BaseApiController
     public async Task<IActionResult> ReassignStaff(Guid managerId, Guid staffId, [FromBody] ReassignStaffRequest request)
     {
         var result = await Sender.Send(new ReassignStaffCommand(managerId, staffId, request.TargetManagerId));
+        return HandleResult(result);
+    }
+
+    // Group 9: Transport Provider Vehicles (Admin Management)
+    [HttpPost("transport-providers/{providerId}/vehicles")]
+    public async Task<IActionResult> CreateVehicleForProvider(Guid providerId, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.CreateVehicleRequestDto request)
+    {
+        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.CreateVehicleCommand(providerId, request));
+        return HandleResult(result);
+    }
+
+    [HttpPut("transport-providers/{providerId}/vehicles/{vehicleId:guid}")]
+    public async Task<IActionResult> UpdateVehicleForProvider(Guid providerId, Guid vehicleId, [FromBody] Application.Features.TransportProvider.Vehicles.DTOs.UpdateVehicleRequestDto request)
+    {
+        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.UpdateVehicleCommand(providerId, vehicleId, request));
+        return HandleResult(result);
+    }
+
+    [HttpDelete("transport-providers/{providerId}/vehicles/{vehicleId:guid}")]
+    public async Task<IActionResult> DeleteVehicleForProvider(Guid providerId, Guid vehicleId)
+    {
+        var result = await Sender.Send(new Application.Features.TransportProvider.Vehicles.Commands.DeleteVehicleCommand(providerId, vehicleId));
+        return HandleResult(result);
+    }
+
+    [HttpGet(AdminEndpoint.DriverActivities)]
+    public async Task<IActionResult> GetDriverActivities(
+        Guid providerId,
+        Guid driverId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 50)
+    {
+        var result = await Sender.Send(new GetDriverActivitiesQuery(providerId, driverId, pageNumber, pageSize));
         return HandleResult(result);
     }
 }

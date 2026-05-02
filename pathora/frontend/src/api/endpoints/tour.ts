@@ -34,18 +34,47 @@ export interface TourInstanceEndpoints {
   CHECK_DUPLICATE: string;
   CHECK_GUIDE_AVAILABILITY: string;
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string) => string;
+  CREATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string) => string;
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
+  DELETE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
   GET_PROVIDER_ASSIGNED: string;
-  HOTEL_APPROVE: (id: string) => string;
-  TRANSPORT_APPROVE: (id: string) => string;
+  APPROVE: (id: string) => string;
+  PRIVATE_SUBMIT_FOR_REVIEW: (id: string) => string;
+  PRIVATE_MANAGER_APPROVE: (id: string) => string;
+  PRIVATE_MANAGER_REJECT: (id: string) => string;
+  CUSTOMER_APPROVE: (id: string) => string;
+  CUSTOMER_REJECT: (id: string) => string;
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
+  ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
+  ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string) => string;
+  APPROVE_TRANSPORTATION: (instanceId: string, activityId: string) => string;
+  REJECT_TRANSPORTATION: (instanceId: string, activityId: string) => string;
+  CONFIRM_EXTERNAL_TRANSPORT: (instanceId: string, activityId: string) => string;
+  TICKET_IMAGES: (instanceId: string, activityId: string) => string;
+  TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string) => string;
+  LIST_ITINERARY_FEEDBACK: (instanceId: string, dayId: string) => string;
+  CREATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string) => string;
+  UPDATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  DELETE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR: (instanceId: string, dayId: string, feedbackId: string) => string;
+  MANAGER_APPROVE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  MANAGER_REJECT_ITINERARY_FEEDBACK: (instanceId: string, dayId: string, feedbackId: string) => string;
+  SET_FINAL_SELL_PRICE: (instanceId: string) => string;
+  APPLY_PRIVATE_SETTLEMENT: (instanceId: string) => string;
+  BOOKING_TICKETS: (instanceId: string, activityId: string) => string;
+  BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string) => string;
 }
 
 export interface PublicTourInstanceEndpoints {
   GET_AVAILABLE: string;
   GET_DETAIL: EndpointWithId;
   RESOLVE_PRICING: (id: string, participants: number) => string;
+}
+
+/** Anonymous public tour catalog actions */
+export interface PublicTourEndpoints {
+  REQUEST_PRIVATE: EndpointWithId;
 }
 
 export const TOUR: TourEndpoints = {
@@ -84,15 +113,84 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   CHECK_GUIDE_AVAILABILITY: "/api/tour-instance/check-guide-availability",
   UPDATE_INSTANCE_DAY: (instanceId: string, dayId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}`,
+  CREATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/activities`,
   UPDATE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
+  DELETE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
   GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
-  HOTEL_APPROVE: (id: string): string => `/api/tour-instance/${id}/hotel-approve`,
-  TRANSPORT_APPROVE: (id: string): string => `/api/tour-instance/${id}/transport-approve`,
+  APPROVE: (id: string): string => `/api/tour-instance/${id}/approve`,
+  PRIVATE_SUBMIT_FOR_REVIEW: (id: string): string =>
+    `/api/tour-instance/${id}/private/submit-for-review`,
+  PRIVATE_MANAGER_APPROVE: (id: string): string =>
+    `/api/tour-instance/${id}/private/manager-approve`,
+  PRIVATE_MANAGER_REJECT: (id: string): string =>
+    `/api/tour-instance/${id}/private/manager-reject`,
+  CUSTOMER_APPROVE: (id: string): string =>
+    `/api/tour-instance/${id}/customer-approve`,
+  CUSTOMER_REJECT: (id: string): string =>
+    `/api/tour-instance/${id}/customer-reject`,
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/activities/${activityId}/assign`,
+  ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-supplier`,
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-rooms`,
+  ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/assign-supplier`,
+  APPROVE_TRANSPORTATION: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/approve`,
+  REJECT_TRANSPORTATION: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/reject`,
+  CONFIRM_EXTERNAL_TRANSPORT: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/transportation/${activityId}/confirm-external`,
+  TICKET_IMAGES: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images`,
+  TICKET_IMAGE_BY_ID: (instanceId: string, activityId: string, imageId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/ticket-images/${imageId}`,
+  LIST_ITINERARY_FEEDBACK: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback`,
+  CREATE_ITINERARY_FEEDBACK: (instanceId: string, dayId: string): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback`,
+  UPDATE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}`,
+  DELETE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}`,
+  FORWARD_ITINERARY_FEEDBACK_TO_OPERATOR: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/forward-to-operator`,
+  MANAGER_APPROVE_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/manager-approve`,
+  MANAGER_REJECT_ITINERARY_FEEDBACK: (
+    instanceId: string,
+    dayId: string,
+    feedbackId: string,
+  ): string =>
+    `/api/tour-instance/${instanceId}/days/${dayId}/itinerary-feedback/${feedbackId}/manager-reject`,
+  SET_FINAL_SELL_PRICE: (instanceId: string): string =>
+    `/api/tour-instance/${instanceId}/final-sell-price`,
+  APPLY_PRIVATE_SETTLEMENT: (instanceId: string): string =>
+    `/api/tour-instance/${instanceId}/private-settlement`,
+  BOOKING_TICKETS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/booking-tickets`,
+  BOOKING_ROOM_ASSIGNMENTS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/activities/${activityId}/booking-room-assignments`,
 };
 
 export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {
@@ -100,4 +198,8 @@ export const PUBLIC_TOUR_INSTANCE: PublicTourInstanceEndpoints = {
   GET_DETAIL: (id: string): string => `/api/public/tour-instances/${id}`,
   RESOLVE_PRICING: (id: string, participants: number): string =>
     `/api/public/tour-instances/${id}/pricing/resolve?participants=${participants}`,
+};
+
+export const PUBLIC_TOUR: PublicTourEndpoints = {
+  REQUEST_PRIVATE: (id: string): string => `/api/public/tours/${id}/request-private`,
 };

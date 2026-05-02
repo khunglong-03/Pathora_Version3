@@ -1,16 +1,17 @@
+using Domain.Enums;
+using System.Text.Json.Serialization;
+
 namespace Application.Features.GuestArrival.DTOs;
 
-using Domain.Enums;
-
 public sealed record CreateGuestArrivalRequestDto(
-    Guid BookingAccommodationDetailId,
-    List<Guid> ParticipantIds);
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("participantIds")] List<Guid> ParticipantIds);
 
 public sealed record UpdateGuestArrivalRequestDto(
-    GuestArrivalSubmissionStatus? SubmissionStatus,
-    GuestStayStatus? Status,
-    Guid? CheckedInByUserId,
-    DateTimeOffset? ActualCheckInAt,
-    Guid? CheckedOutByUserId,
-    DateTimeOffset? ActualCheckOutAt,
-    string? Note);
+    [property: JsonPropertyName("submissionStatus")] GuestArrivalSubmissionStatus? SubmissionStatus,
+    [property: JsonPropertyName("status")] GuestStayStatus? Status,
+    [property: JsonPropertyName("checkedInByUserId")] Guid? CheckedInByUserId,
+    [property: JsonPropertyName("actualCheckInAt")] DateTimeOffset? ActualCheckInAt,
+    [property: JsonPropertyName("checkedOutByUserId")] Guid? CheckedOutByUserId,
+    [property: JsonPropertyName("actualCheckOutAt")] DateTimeOffset? ActualCheckOutAt,
+    [property: JsonPropertyName("note")] string? Note);

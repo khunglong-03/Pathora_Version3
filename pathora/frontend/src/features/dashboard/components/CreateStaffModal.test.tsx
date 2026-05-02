@@ -34,14 +34,14 @@ describe("CreateStaffModal", () => {
   });
 
   describe("Role tabs", () => {
-    it("opens with TourDesigner tab selected by default", () => {
+    it("opens with TourOperator tab selected by default", () => {
       renderComponent({
         isOpen: true,
         onClose: vi.fn(),
         onSubmit: vi.fn(),
       });
 
-      expect(screen.getByRole("button", { name: "Tour Designer" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Tour Operator" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Tour Guide" })).toBeInTheDocument();
     });
 
@@ -164,7 +164,7 @@ describe("CreateStaffModal", () => {
 
       await vi.waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith({
-          role: "TourDesigner",
+          role: "TourOperator",
           fullName: "Nguyen Van A",
           email: "nguyenvana@example.com",
         });

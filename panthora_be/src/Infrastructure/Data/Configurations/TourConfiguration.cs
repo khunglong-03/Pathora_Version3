@@ -53,6 +53,10 @@ public class TourConfiguration : IEntityTypeConfiguration<TourEntity>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(t => t.IsVisa)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(t => t.Continent)
             .HasConversion<string>()
             .HasMaxLength(50)
@@ -68,7 +72,7 @@ public class TourConfiguration : IEntityTypeConfiguration<TourEntity>
 
         builder.HasIndex(t => new { t.Status, t.IsDeleted });
         builder.HasIndex(t => t.CreatedOnUtc);
-        builder.HasIndex(t => t.TourDesignerId);
+        builder.HasIndex(t => t.TourOperatorId);
         builder.HasIndex(t => t.IsDeleted)
             .HasFilter("\"IsDeleted\" = false");
 
@@ -107,10 +111,10 @@ public class TourConfiguration : IEntityTypeConfiguration<TourEntity>
 
 
 
-        // TourDesigner relationship
-        builder.HasOne(t => t.TourDesigner)
+        // TourOperator relationship
+        builder.HasOne(t => t.TourOperator)
             .WithMany()
-            .HasForeignKey(t => t.TourDesignerId)
+            .HasForeignKey(t => t.TourOperatorId)
             .OnDelete(DeleteBehavior.SetNull);
 
     }

@@ -88,7 +88,11 @@ export interface AdminEndpoints {
   GET_ALL_USERS: string;
   GET_USER_DETAIL: EndpointWithId;
   GET_TRANSPORT_PROVIDERS: string;
+  GET_TRANSPORT_PROVIDER_STATS: string;
   GET_TRANSPORT_PROVIDER_DETAIL: EndpointWithId;
+  CREATE_TRANSPORT_PROVIDER_VEHICLE: (id: string) => string;
+  UPDATE_TRANSPORT_PROVIDER_VEHICLE: (id: string, plate: string) => string;
+  DELETE_TRANSPORT_PROVIDER_VEHICLE: (id: string, plate: string) => string;
   GET_HOTEL_PROVIDERS: string;
   GET_HOTEL_PROVIDER_DETAIL: EndpointWithId;
   GET_TOUR_MANAGER_STAFF: EndpointWithId;
@@ -100,6 +104,7 @@ export interface AdminEndpoints {
   GET_MANAGERS_BANK_ACCOUNTS: string;
   UPDATE_MANAGER_BANK_ACCOUNT: (managerId: string) => string;
   VERIFY_MANAGER_BANK_ACCOUNT: (managerId: string) => string;
+  GET_DRIVER_ACTIVITIES: (providerId: string, driverId: string) => string;
 }
 
 export interface SiteContentEndpoints {
@@ -210,7 +215,11 @@ export const ADMIN: AdminEndpoints = {
   GET_ALL_USERS: "/api/admin/users",
   GET_USER_DETAIL: (id: string): string => `/api/admin/users/${id}`,
   GET_TRANSPORT_PROVIDERS: "/api/manager/transport-providers",
+  GET_TRANSPORT_PROVIDER_STATS: "/api/manager/transport-providers/stats",
   GET_TRANSPORT_PROVIDER_DETAIL: (id: string): string => `/api/manager/transport-providers/${id}`,
+  CREATE_TRANSPORT_PROVIDER_VEHICLE: (id: string): string => `/api/manager/transport-providers/${id}/vehicles`,
+  UPDATE_TRANSPORT_PROVIDER_VEHICLE: (id: string, plate: string): string => `/api/manager/transport-providers/${id}/vehicles/${plate}`,
+  DELETE_TRANSPORT_PROVIDER_VEHICLE: (id: string, plate: string): string => `/api/manager/transport-providers/${id}/vehicles/${plate}`,
   GET_HOTEL_PROVIDERS: "/api/manager/hotel-providers",
   GET_HOTEL_PROVIDER_DETAIL: (id: string): string => `/api/manager/hotel-providers/${id}`,
   GET_TOUR_MANAGER_STAFF: (id: string): string => `/api/admin/tour-managers/${id}/staff`,
@@ -227,6 +236,8 @@ export const ADMIN: AdminEndpoints = {
     `/api/admin/managers/${managerId}/bank-account`,
   VERIFY_MANAGER_BANK_ACCOUNT: (managerId: string): string =>
     `/api/admin/managers/${managerId}/bank-account/verify`,
+  GET_DRIVER_ACTIVITIES: (providerId: string, driverId: string): string =>
+    `/api/admin/transport-providers/${providerId}/drivers/${driverId}/activities`,
 };
 
 export const SITE_CONTENT: SiteContentEndpoints = {

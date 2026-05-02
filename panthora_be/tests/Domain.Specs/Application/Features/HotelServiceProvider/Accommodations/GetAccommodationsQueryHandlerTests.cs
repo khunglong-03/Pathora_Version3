@@ -1,10 +1,10 @@
 namespace Domain.Specs.Application.Features.HotelServiceProvider.Accommodations;
 
-using Application.Features.HotelServiceProvider.Accommodations.DTOs;
-using Application.Features.HotelServiceProvider.Accommodations.Queries;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.HotelServiceProvider.Accommodations.DTOs;
+using global::Application.Features.HotelServiceProvider.Accommodations.Queries;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using global::Contracts.Interfaces;
 using NSubstitute;
 using Xunit;

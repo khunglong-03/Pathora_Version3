@@ -1,0 +1,147 @@
+name: pathora-stack
+
+x-frontend-remote-image-hosts: &frontend-remote-image-hosts "${NEXT_PUBLIC_REMOTE_IMAGE_HOSTS}"
+
+services:
+  backend:
+    container_name: pathora-backend
+    build:
+      context: ./panthora_be
+      dockerfile: src/Api/Dockerfile
+    environment:
+      # Port/CORS values are adjusted for this root compose stack.
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT}"
+      ASPNETCORE_URLS: "${ASPNETCORE_URLS}"
+      ASPNETCORE_HTTP_PORTS: "${ASPNETCORE_HTTP_PORTS}"
+
+      Auth__DisableAuthorization: "${Auth__DisableAuthorization:-false}"
+
+      Dev__EnableDevEndpoints: "${Dev__EnableDevEndpoints:-false}"
+      Dev__ResetAndReseedOnStartup: "${Dev__ResetAndReseedOnStartup:-false}"
+
+      Serilog__MinimumLevel__Default: "${Serilog__MinimumLevel__Default}"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Mvc: "${SERILOG_OVERRIDE_MICROSOFT_ASPNETCORE_MVC}"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Routing: "${SERILOG_OVERRIDE_MICROSOFT_ASPNETCORE_ROUTING}"
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Hosting: "${SERILOG_OVERRIDE_MICROSOFT_ASPNETCORE_HOSTING}"
+      Serilog__MinimumLevel__Override__ZiggyCreatures.Caching.Fusion: "${SERILOG_OVERRIDE_ZIGGYCREATURES_CACHING_FUSION}"
+      Serilog__MinimumLevel__Override__System.Net.Http: "${SERILOG_OVERRIDE_SYSTEM_NET_HTTP}"
+
+      Cors__AllowedOrigins__0: "${Cors__AllowedOrigins__0}"
+      Cors__AllowedOrigins__1: "${Cors__AllowedOrigins__1}"
+      Cors__AllowedOrigins__2: "${Cors__AllowedOrigins__2}"
+      Cors__AllowedOrigins__3: "${Cors__AllowedOrigins__3}"
+      Cors__AllowedOrigins__4: "${Cors__AllowedOrigins__4}"
+      Cors__AllowedOrigins__5: "${Cors__AllowedOrigins__5}"
+      Cors__AllowedOrigins__6: "${Cors__AllowedOrigins__6:-}"
+
+      ConnectionStrings__Default: "${ConnectionStrings__Default}"
+
+      AppConfig__ServiceName: "${AppConfig__ServiceName}"
+      AppConfig__FrontendBaseUrl: "${AppConfig__FrontendBaseUrl}"
+      AppConfig__IncludeInnerException: "${AppConfig__IncludeInnerException}"
+      AppConfig__IncludeExceptionStackTrace: "${AppConfig__IncludeExceptionStackTrace}"
+
+      SwaggerGen__Title: "${SwaggerGen__Title}"
+      SwaggerGen__Version: "${SwaggerGen__Version}"
+      SwaggerGen__Description: "${SwaggerGen__Description}"
+      SwaggerGen__ContactName: "${SwaggerGen__ContactName}"
+      SwaggerGen__ContactEmail: "${SwaggerGen__ContactEmail}"
+      SwaggerGen__dev: "${SwaggerGen__dev}"
+      SwaggerGen__ContactUrl: "${SwaggerGen__ContactUrl}"
+
+      Redis__ConnectionString: "${Redis__ConnectionString}"
+
+      Cloudinary__CloudName: "${Cloudinary__CloudName}"
+      Cloudinary__ApiKey: "${Cloudinary__ApiKey}"
+      Cloudinary__ApiSecret: "${Cloudinary__ApiSecret}"
+      Cloudinary__DefaultFolder: "${Cloudinary__DefaultFolder}"
+
+      Jwt__Secret: "${Jwt__Secret}"
+      Jwt__Issuer: "${Jwt__Issuer}"
+      Jwt__ValidIssuers__0: "${Jwt__ValidIssuers__0}"
+      Jwt__ValidIssuers__1: "${Jwt__ValidIssuers__1}"
+      Jwt__Audience: "${Jwt__Audience}"
+      Jwt__ValidAudiences__0: "${Jwt__ValidAudiences__0}"
+      Jwt__ValidAudiences__1: "${Jwt__ValidAudiences__1}"
+      Jwt__ValidAudiences__2: "${Jwt__ValidAudiences__2}"
+      Jwt__ValidAudiences__3: "${Jwt__ValidAudiences__3}"
+      Jwt__ExpireInMinutes: "${Jwt__ExpireInMinutes}"
+
+      Mail__Host: "${Mail__Host}"
+      Mail__Port: "${Mail__Port}"
+      Mail__UseAuthentication: "${Mail__UseAuthentication}"
+      Mail__UserName: "${Mail__UserName}"
+      Mail__Password: "${Mail__Password}"
+
+      Authentication__Google__ClientId: "${Authentication__Google__ClientId}"
+      Authentication__Google__ClientSecret: "${Authentication__Google__ClientSecret}"
+
+      OpenTelemetry__Endpoint: "${OpenTelemetry__Endpoint}"
+
+      VietQR__ApiUrl: "${VietQR__ApiUrl}"
+      VietQR__BankBin: "${VietQR__BankBin}"
+      VietQR__AccountNo: "${VietQR__AccountNo}"
+      VietQR__AccountName: "${VietQR__AccountName}"
+      VietQR__TemplateId: "${VietQR__TemplateId}"
+
+      SePay__ApiUrl: "${SePay__ApiUrl}"
+      SePay__AccountNumber: "${SePay__AccountNumber}"
+      SePay__ApiKey: "${SePay__ApiKey}"
+      SePay__WebhookSecret: "${SEPAY_WEBHOOK_SECRET}"
+      SePay__AllowedIps: "${SePay__AllowedIps}"
+      SePay__WebhookPath: "${SePay__WebhookPath}"
+      SePay__CallbackBaseUrl: "${SePay__CallbackBaseUrl}"
+      SePay__CallbackUrl: "${SePay__CallbackUrl}"
+      SePay__NgrokAuthtoken: "${SePay__NgrokAuthtoken}"
+
+      Payment__AuthenticationKey: "${Payment__AuthenticationKey}"
+      Payment__Account: "${Payment__Account}"
+      Payment__ApiBaseUrl: "${Payment__ApiBaseUrl}"
+      Payment__Bank: "${Payment__Bank}"
+      Payment__QrBaseUrl: "${Payment__QrBaseUrl}"
+      Payment__PollingLimit: "${Payment__PollingLimit}"
+      Payment__PollingIntervalSeconds: "${Payment__PollingIntervalSeconds}"
+      Payment__SepayWebhookSecret: "${SEPAY_WEBHOOK_SECRET}"
+      Payment__RateLimitSeconds: "${Payment__RateLimitSeconds}"
+
+      OutboxWorker__PollingIntervalMs: "${OutboxWorker__PollingIntervalMs}"
+      OutboxWorker__BatchSize: "${OutboxWorker__BatchSize}"
+      OutboxWorker__MaxRetries: "${OutboxWorker__MaxRetries}"
+
+      ProviderAssignment__SoftHoldHours: "${ProviderAssignment__SoftHoldHours}"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    container_name: pathora-frontend
+    build:
+      context: ./pathora/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
+        NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
+        NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
+    environment:
+      NODE_ENV: "${FRONTEND_NODE_ENV}"
+      NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
+      NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
+      NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
+    ports:
+      - "3003:3003"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

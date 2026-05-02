@@ -1,15 +1,18 @@
-using Application.Common;
-using Contracts.Interfaces;
-using BuildingBlocks.CORS;
-using ErrorOr;
-using FluentValidation;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Department;
 using Application.Services;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using ErrorOr;
+using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Department.Commands;
 
-public sealed record CreateDepartmentCommand(Guid? DepartmentParentId, string DepartmentName) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+public sealed record CreateDepartmentCommand(
+    [property: JsonPropertyName("departmentParentId")] Guid? DepartmentParentId,
+    [property: JsonPropertyName("departmentName")] string DepartmentName) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Department];
 }

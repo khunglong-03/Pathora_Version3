@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Policy = "AdminAndTourDesigner")]
+[Authorize(Policy = "AdminAndTourOperator")]
 [Route(InsuranceEndpoint.Base)]
 public sealed class InsuranceController : BaseApiController
 {

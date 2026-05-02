@@ -1,24 +1,25 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Payable;
 
 public sealed record CreateSupplierPayableCommand(
-    Guid BookingId,
-    Guid SupplierId,
-    decimal ExpectedAmount,
-    DateTimeOffset? DueAt,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("expectedAmount")] decimal ExpectedAmount,
+    [property: JsonPropertyName("dueAt")] DateTimeOffset? DueAt,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -39,12 +40,14 @@ public sealed class CreateSupplierPayableCommandHandler(
     ISupplierPayableRepository supplierPayableRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateSupplierPayableCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateSupplierPayableCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -72,7 +75,7 @@ public sealed class CreateSupplierPayableCommandHandler(
             request.BookingId,
             request.SupplierId,
             request.ExpectedAmount,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DueAt,
             request.Note);
 
@@ -84,11 +87,11 @@ public sealed class CreateSupplierPayableCommandHandler(
 }
 
 public sealed record UpdateSupplierPayableCommand(
-    Guid SupplierPayableId,
-    decimal ExpectedAmount,
-    decimal PaidAmount,
-    DateTimeOffset? DueAt,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("expectedAmount")] decimal ExpectedAmount,
+    [property: JsonPropertyName("paidAmount")] decimal PaidAmount,
+    [property: JsonPropertyName("dueAt")] DateTimeOffset? DueAt,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -111,12 +114,14 @@ public sealed class UpdateSupplierPayableCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateSupplierPayableCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateSupplierPayableCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await supplierPayableRepository.GetByIdAsync(request.SupplierPayableId);
         if (entity is null)
         {
@@ -135,7 +140,7 @@ public sealed class UpdateSupplierPayableCommandHandler(
 
         entity.Update(
             request.ExpectedAmount,
-            performedBy: "system",
+            performedBy: performedBy,
             request.DueAt,
             request.Note,
             request.PaidAmount);
@@ -148,12 +153,12 @@ public sealed class UpdateSupplierPayableCommandHandler(
 }
 
 public sealed record RecordSupplierPaymentCommand(
-    Guid SupplierPayableId,
-    decimal Amount,
-    DateTimeOffset PaidAt,
-    PaymentMethod PaymentMethod,
-    string? TransactionRef,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("amount")] decimal Amount,
+    [property: JsonPropertyName("paidAt")] DateTimeOffset PaidAt,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("transactionRef")] string? TransactionRef,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -173,12 +178,14 @@ public sealed class RecordSupplierPaymentCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<RecordSupplierPaymentCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(RecordSupplierPaymentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var payable = await supplierPayableRepository.GetByIdAsync(request.SupplierPayableId);
         if (payable is null)
         {
@@ -200,11 +207,11 @@ public sealed class RecordSupplierPaymentCommandHandler(
             request.Amount,
             request.PaidAt,
             request.PaymentMethod,
-            performedBy: "system",
+            performedBy: performedBy,
             request.TransactionRef,
             request.Note);
 
-        payable.RecordPayment(request.Amount, "system");
+        payable.RecordPayment(request.Amount, performedBy);
 
         await supplierReceiptRepository.AddAsync(receipt);
         supplierPayableRepository.Update(payable);
@@ -214,7 +221,7 @@ public sealed class RecordSupplierPaymentCommandHandler(
     }
 }
 
-public sealed record GetSupplierPayablesQuery(Guid BookingId) : IQuery<ErrorOr<List<SupplierPayableDto>>>, ICacheable
+public sealed record GetSupplierPayablesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<SupplierPayableDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:supplier-payables:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

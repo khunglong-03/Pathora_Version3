@@ -1,15 +1,18 @@
-using Application.Common;
 using Application.Common.Localization;
-using Contracts.Interfaces;
+using Application.Common;
 using Application.Contracts.Public;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities.Translations;
+using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetLatestToursQuery(int Limit = 6, string? Language = null) : IQuery<ErrorOr<List<LatestTourVm>>>, ICacheable
+public sealed record GetLatestToursQuery(
+    [property: JsonPropertyName("limit")] int Limit = 6,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<LatestTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 
@@ -36,9 +39,9 @@ public sealed class GetLatestToursQueryHandler(ITourRepository tourRepository)
             t.TourName,
             t.Thumbnail?.PublicURL,
             t.ShortDescription,
-            t.CreatedOnUtc)).ToList();
+            t.CreatedOnUtc,
+            t.IsVisa)).ToList();
 
         return result;
     }
 }
-

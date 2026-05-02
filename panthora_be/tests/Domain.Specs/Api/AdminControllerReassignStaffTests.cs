@@ -1,7 +1,7 @@
-using Api.Controllers.Admin;
-using Api.Controllers.Manager;
-using Application.Features.Admin.Commands.ReassignStaff;
-using Application.Features.Admin.DTOs;
+using global::Api.Controllers.Admin;
+using global::Api.Controllers.Manager;
+using global::Application.Features.Admin.Commands.ReassignStaff;
+using global::Application.Features.Admin.DTOs;
 using Contracts.ModelResponse;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;

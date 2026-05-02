@@ -56,5 +56,13 @@ public class SupplierConfiguration : IEntityTypeConfiguration<SupplierEntity>
         builder.HasIndex(s => s.IsActive);
         builder.HasIndex(s => s.IsDeleted);
         builder.HasIndex(s => s.OwnerUserId);
+
+        builder.HasOne(s => s.Owner)
+            .WithMany()
+            .HasForeignKey(s => s.OwnerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Global query filter to exclude inactive suppliers or those owned by banned users
+        builder.HasQueryFilter(s => !s.IsDeleted && s.IsActive && (s.Owner == null || s.Owner.Status == Domain.Enums.UserStatus.Active));
     }
 }

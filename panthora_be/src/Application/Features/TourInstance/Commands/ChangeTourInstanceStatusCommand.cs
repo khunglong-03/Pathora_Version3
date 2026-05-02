@@ -1,15 +1,18 @@
-using Application.Common;
 using Application.Common.Constant;
-using Contracts.Interfaces;
+using Application.Common;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
-public sealed record ChangeTourInstanceStatusCommand(Guid Id, TourInstanceStatus NewStatus)
+public sealed record ChangeTourInstanceStatusCommand(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("newStatus")] TourInstanceStatus NewStatus)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];

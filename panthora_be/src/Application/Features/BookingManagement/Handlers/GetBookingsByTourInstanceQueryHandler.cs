@@ -11,7 +11,7 @@ namespace Application.Features.BookingManagement.Handlers;
 public sealed class GetBookingsByTourInstanceQueryHandler(
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,
-    IOwnershipValidator ownershipValidator,
+    ITourRepository tourRepository,
     IUser user)
     : IQueryHandler<GetBookingsByTourInstanceQuery, ErrorOr<List<AdminBookingListResponse>>>
 {
@@ -25,20 +25,33 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
         }
 
         // Check access: admin/manager can access all; guides can only access if assigned to this instance
-        var canAccess = await ownershipValidator.CanAccessAsync(tourInstance.Managers.FirstOrDefault()?.UserId ?? Guid.Empty, cancellationToken);
-        if (!canAccess)
+        var isAdminOrManager = user.Roles.Any(r =>
+            string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
+
+        if (!isAdminOrManager)
         {
-            if (Guid.TryParse(user.Id, out var currentUserId))
+            if (!Guid.TryParse(user.Id, out var currentUserId))
             {
-                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(request.TourInstanceId, currentUserId, cancellationToken);
-                if (!isAssignedGuide)
+                return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+            }
+
+            var isTourOperator = user.Roles.Any(r => string.Equals(r, "TourOperator", StringComparison.OrdinalIgnoreCase));
+            if (isTourOperator)
+            {
+                var tour = await tourRepository.FindById(tourInstance.TourId, asNoTracking: true, cancellationToken);
+                if (tour is null || tour.TourOperatorId != currentUserId)
                 {
                     return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
                 }
             }
             else
             {
-                return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(request.TourInstanceId, currentUserId, cancellationToken);
+                if (!isAssignedGuide)
+                {
+                    return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
+                }
             }
         }
 
@@ -49,7 +62,10 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             b.TourInstance.TourName,
             b.TourInstance.StartDate,
             b.TotalPrice,
-            b.Status.ToString()
+            b.Status.ToString(),
+            b.NumberAdult,
+            b.NumberChild,
+            b.NumberInfant
         )).ToList();
 
         return result;

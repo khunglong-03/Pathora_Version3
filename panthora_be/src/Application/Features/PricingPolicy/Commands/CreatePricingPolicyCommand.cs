@@ -1,18 +1,19 @@
+using Application.Common.Constant;
 using Application.Contracts.PricingPolicy;
 using Application.Services;
 using BuildingBlocks.CORS;
 using Domain.ValueObjects;
-using Application.Common.Constant;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.PricingPolicy.Commands;
 
 public sealed record CreatePricingPolicyCommand(
-    string Name,
-    Domain.Enums.TourType TourType,
-    List<Domain.ValueObjects.PricingPolicyTier> Tiers,
-    bool IsDefault = false) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("tourType")] Domain.Enums.TourType TourType,
+    [property: JsonPropertyName("tiers")] List<Domain.ValueObjects.PricingPolicyTier> Tiers,
+    [property: JsonPropertyName("isDefault")] bool IsDefault = false) : ICommand<ErrorOr<Guid>>;
 
 public sealed class CreatePricingPolicyCommandValidator : AbstractValidator<CreatePricingPolicyCommand>
 {

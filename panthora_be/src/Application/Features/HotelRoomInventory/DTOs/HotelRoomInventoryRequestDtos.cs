@@ -1,10 +1,17 @@
+using Application.Dtos;
+using Domain.Enums;
+using System.Text.Json.Serialization;
+
 namespace Application.Features.HotelRoomInventory.DTOs;
 
-using Domain.Enums;
-
 public sealed record CreateHotelRoomInventoryRequestDto(
-    Guid SupplierId,
-    RoomType RoomType,
-    int TotalRooms);
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("totalRooms")] int TotalRooms,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images = null);
 
-public sealed record UpdateHotelRoomInventoryRequestDto(int TotalRooms);
+public sealed record UpdateHotelRoomInventoryRequestDto(
+    [property: JsonPropertyName("totalRooms")] int TotalRooms,
+    [property: JsonPropertyName("thumbnail")] ImageDto? Thumbnail = null,
+    [property: JsonPropertyName("images")] List<ImageDto>? Images = null);

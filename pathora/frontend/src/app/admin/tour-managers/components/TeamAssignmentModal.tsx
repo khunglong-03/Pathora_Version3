@@ -63,7 +63,7 @@ export function TeamAssignmentModal({
         const usersArray = Array.isArray(allUsers) ? allUsers : [];
         
         setAvailableDesigners(
-          (usersArray as unknown as FilteredUser[]).filter((u) => u.roles?.some((r) => r.name === "TourDesigner") || u.role === "TourDesigner")
+          (usersArray as unknown as FilteredUser[]).filter((u) => u.roles?.some((r) => r.name === "TourOperator") || u.role === "TourOperator")
         );
         setAvailableGuides(
           (usersArray as unknown as FilteredUser[]).filter((u) => u.roles?.some((r) => r.name === "TourGuide") || u.role === "TourGuide")
@@ -120,7 +120,7 @@ export function TeamAssignmentModal({
         roleInTeam: null,
       },
     ]);
-    if (entityType === ASSIGNED_ENTITY_TYPE.TourDesigner) {
+    if (entityType === ASSIGNED_ENTITY_TYPE.TourOperator) {
       setDesignerSearch("");
       setShowDesignerDropdown(false);
     } else {
@@ -168,7 +168,7 @@ export function TeamAssignmentModal({
 
   if (!isOpen) return null;
 
-  const designerMembers = selectedMembers.filter((m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourDesigner);
+  const designerMembers = selectedMembers.filter((m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourOperator);
   const guideMembers = selectedMembers.filter((m) => m.entityType === ASSIGNED_ENTITY_TYPE.TourGuide);
 
   return (
@@ -216,13 +216,13 @@ export function TeamAssignmentModal({
           ) : (
             <div className="flex flex-col gap-6">
               
-              {/* Tour Designers */}
+              {/* Tour Operators */}
               <div>
                 <h3 className="text-sm font-medium text-stone-700 mb-2 flex items-center gap-2">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold">
                     {designerMembers.length}
                   </span>
-                  Tour Designers
+                  Tour Operators
                 </h3>
                 
                 {/* Designer Dropdown search */}
@@ -236,7 +236,7 @@ export function TeamAssignmentModal({
                       setShowDesignerDropdown(true);
                     }}
                     onFocus={() => setShowDesignerDropdown(true)}
-                    placeholder="Thêm Tour Designer..."
+                    placeholder="Thêm Tour Operator..."
                     className="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                   {showDesignerDropdown && filteredDesigners.length > 0 && (
@@ -245,7 +245,7 @@ export function TeamAssignmentModal({
                         <button
                           key={user.id}
                           type="button"
-                          onClick={() => addMember(user, ASSIGNED_ENTITY_TYPE.TourDesigner)}
+                          onClick={() => addMember(user, ASSIGNED_ENTITY_TYPE.TourOperator)}
                           className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50 transition-colors flex items-center justify-between"
                         >
                           <span className="font-medium text-stone-900">{user.fullName ?? user.username ?? "—"}</span>
@@ -283,7 +283,7 @@ export function TeamAssignmentModal({
                     </div>
                   ))}
                   {designerMembers.length === 0 && (
-                    <p className="text-xs text-stone-400 italic mt-1">Chưa chọn Tour Designer nào</p>
+                    <p className="text-xs text-stone-400 italic mt-1">Chưa chọn Tour Operator nào</p>
                   )}
                 </div>
               </div>

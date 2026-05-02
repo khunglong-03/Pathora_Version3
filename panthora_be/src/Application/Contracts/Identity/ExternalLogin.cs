@@ -1,10 +1,17 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.Identity;
 
-public sealed record ExternalLoginRequest(string Provider, string ProviderKey, string ProviderEmail, string FullName, string? Picture = null);
+public sealed record ExternalLoginRequest(
+    [property: JsonPropertyName("provider")] string Provider,
+    [property: JsonPropertyName("providerKey")] string ProviderKey,
+    [property: JsonPropertyName("providerEmail")] string ProviderEmail,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("picture")] string? Picture = null);
 
 public sealed record ExternalLoginResponse(
-    string AccessToken,
-    string RefreshToken,
-    string Portal,
-    string DefaultPath);
+    [property: JsonPropertyName("accessToken")] string AccessToken,
+    [property: JsonPropertyName("refreshToken")] string RefreshToken,
+    [property: JsonPropertyName("portal")] string Portal,
+    [property: JsonPropertyName("defaultPath")] string DefaultPath);
 

@@ -19,6 +19,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 using Application.Services;
 using Application.Options;
+using Application.Common.Interfaces;
 
 namespace Infrastructure;
 
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Database));
         services.Configure<CacheOptions>(configuration.GetSection(CacheOptions.Cache));
         services.Configure<TourOptions>(configuration.GetSection(TourOptions.Tour));
+        services.Configure<ProviderAssignmentOptions>(configuration.GetSection(ProviderAssignmentOptions.ProviderAssignment));
         services.Configure<LoggingOptions>(configuration.GetSection("Logging"));
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.Database).Get<DatabaseOptions>() ?? new DatabaseOptions();
@@ -53,6 +55,7 @@ public static class DependencyInjection
             .AddFileService(configuration)
             .AddCacheService(configuration, cacheOptions)
             .AddScoped<ILanguageContext, LanguageContext>()
+            .AddScoped<IResourceAvailabilityService, ResourceAvailabilityService>()
             .AddRepositories(configuration)
             .AddSePayServices(configuration);
     }
@@ -98,7 +101,7 @@ public static class DependencyInjection
         {
             var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection);
             services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexer);
-            
+
             services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
             fusionCacheBuilder.WithRegisteredDistributedCache();
         }

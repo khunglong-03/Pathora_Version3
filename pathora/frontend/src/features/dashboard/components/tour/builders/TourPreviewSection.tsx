@@ -4,6 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import type { ImageDto } from "@/types/tour";
 import { TourStatusMap } from "@/types/tour";
+import { formatCurrency } from "@/utils/format";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface BasicInfoForm {
@@ -94,7 +95,6 @@ interface ServiceForm {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -260,7 +260,7 @@ export function TourPreviewSection({
                       {cls.name || `Package #${ci + 1}`}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {cls.basePrice ? `$${cls.basePrice}` : ""} / {cls.durationDays || "?"} days
+                      {cls.basePrice ? formatCurrency(Number(cls.basePrice)) : ""} / {cls.durationDays || "?"} days
                     </span>
                   </div>
                   {/* Day plans preview */}
@@ -294,7 +294,7 @@ export function TourPreviewSection({
               {services.map((svc, i) => (
                 <div key={i} className="text-sm text-slate-700 dark:text-slate-300 flex justify-between">
                   <span>{svc.serviceName || "—"}</span>
-                  <span className="text-slate-500">{svc.price ? `$${svc.price}` : ""}</span>
+                  <span className="text-slate-500">{svc.price ? formatCurrency(Number(svc.price)) : ""}</span>
                 </div>
               ))}
             </div>
@@ -314,7 +314,7 @@ export function TourPreviewSection({
                 (insurances[ci] ?? []).map((ins, ii) => (
                   <div key={`${ci}-${ii}`} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm">
                     <span className="font-medium text-slate-800 dark:text-slate-200">{ins.insuranceName}</span>
-                    <span className="ml-2 text-slate-500">{ins.coverageFee ? `$${ins.coverageFee}` : ""}</span>
+                    <span className="ml-2 text-slate-500">{ins.coverageFee ? formatCurrency(Number(ins.coverageFee)) : ""}</span>
                   </div>
                 )),
               )}

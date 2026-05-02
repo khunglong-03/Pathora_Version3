@@ -12,14 +12,21 @@ using Microsoft.AspNetCore.Mvc;
 [Authorize(Policy = "HotelServiceProviderOnly")]
 public class HotelServiceProviderSupplierController : BaseApiController
 {
+    [HttpPost(HotelServiceProviderSupplierEndpoint.Base)]
+    public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierInfoRequestDto request)
+    {
+        var result = await Sender.Send(new CreateSupplierInfoCommand(request));
+        return HandleResult(result);
+    }
+
     [HttpGet(HotelServiceProviderSupplierEndpoint.Base)]
-    public async Task<IActionResult> GetSupplier()
+    public async Task<IActionResult> GetSuppliers()
     {
         var result = await Sender.Send(new GetHotelSupplierForProviderQuery());
         return HandleResult(result);
     }
 
-    /// <summary>Update supplier info for the current user's accommodation supplier.</summary>
+    /// <summary>Update supplier info for one of the current owner's accommodation suppliers.</summary>
     [HttpPut($"{HotelServiceProviderSupplierEndpoint.Base}/{HotelServiceProviderSupplierEndpoint.Info}")]
     public async Task<IActionResult> UpdateSupplierInfo([FromBody] UpdateSupplierInfoRequestDto request)
     {

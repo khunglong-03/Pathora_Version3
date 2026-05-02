@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Image from "@/features/shared/components/LandingImage";
 import { homeService } from "@/api/services/homeService";
 import { TrendingDestination, TopAttraction } from "@/types/home";
+import { cn } from "@/lib/cn";
 import {
   SectionContainer,
   ScrollReveal,
@@ -42,22 +43,22 @@ const DestinationsSection = () => {
   }, []);
 
   return (
-    <section className="py-24 md:py-32">
+    <section className={cn("py-24 md:py-32")}>
       <SectionContainer>
         {/* Section header */}
-        <ScrollReveal className="text-center mb-14 md:mb-20">
+        <ScrollReveal className={cn("text-center mb-14 md:mb-20")}>
           <EyebrowTag>Destinations</EyebrowTag>
-          <h2 className="mt-4 text-3xl md:text-5xl font-bold text-gray-900 dark:text-white font-['Outfit',_system-ui] tracking-tight">
+          <h2 className={cn("mt-4 text-3xl md:text-5xl font-bold text-gray-900 dark:text-white font-['Outfit',_system-ui] tracking-tight")}>
             {t("landing.destinations.trendingTitle")}
           </h2>
-          <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-sm md:text-base">
+          <p className={cn("mt-4 text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-sm md:text-base")}>
             {t("landing.stats.description")}
           </p>
         </ScrollReveal>
 
         {/* Bento grid — asymmetric */}
         {destinations.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
+          <div className={cn("grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5")}>
             {destinations.slice(0, 6).map((dest, idx) => {
               // First card: wide (8 cols, 2 rows), others: normal (4 cols)
               const isLarge = idx === 0;
@@ -70,7 +71,7 @@ const DestinationsSection = () => {
                   delay={idx * 80}
                 >
                   {/* Double-Bezel card */}
-                  <div className="group rounded-[1.25rem] bg-gray-100/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 h-full">
+                  <div className={cn("group rounded-[1.25rem] bg-gray-100/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 h-full")}>
                     <div
                       className={`relative rounded-[calc(1.25rem-0.25rem)] overflow-hidden h-full ${
                         isLarge ? "min-h-[280px] md:min-h-full" : "min-h-[200px] md:min-h-[220px]"
@@ -83,7 +84,7 @@ const DestinationsSection = () => {
                           alt={`${dest.city}, ${dest.country}`}
                           fill
                           sizes={isLarge ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
-                          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105"
+                          className={cn("object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105")}
                         />
                       ) : (
                         <div
@@ -92,10 +93,10 @@ const DestinationsSection = () => {
                       )}
 
                       {/* Overlay gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className={cn("absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent")} />
 
                       {/* Content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
+                      <div className={cn("absolute bottom-0 left-0 right-0 p-5 md:p-6")}>
                         <h3
                           className={`font-bold text-white font-['Outfit',_system-ui] tracking-tight ${
                             isLarge ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
@@ -103,9 +104,9 @@ const DestinationsSection = () => {
                         >
                           {dest.city}
                         </h3>
-                        <div className="flex items-center justify-between mt-1.5">
-                          <span className="text-white/70 text-sm">{dest.country}</span>
-                          <span className="text-xs bg-white/15 backdrop-blur-sm text-white px-3 py-1 rounded-full font-medium">
+                        <div className={cn("flex items-center justify-between mt-1.5")}>
+                          <span className={cn("text-white/70 text-sm")}>{dest.country}</span>
+                          <span className={cn("text-xs bg-white/15 backdrop-blur-sm text-white px-3 py-1 rounded-full font-medium")}>
                             {t("landing.destinations.tours", { count: dest.toursCount })}
                           </span>
                         </div>
@@ -121,37 +122,37 @@ const DestinationsSection = () => {
         {/* Top Attractions */}
         {attractions.length > 0 && (
           <>
-            <ScrollReveal className="text-center mt-24 md:mt-32 mb-14">
+            <ScrollReveal className={cn("text-center mt-24 md:mt-32 mb-14")}>
               <EyebrowTag>Attractions</EyebrowTag>
-              <h2 className="mt-4 text-3xl md:text-5xl font-bold text-gray-900 dark:text-white font-['Outfit',_system-ui] tracking-tight">
+              <h2 className={cn("mt-4 text-3xl md:text-5xl font-bold text-gray-900 dark:text-white font-['Outfit',_system-ui] tracking-tight")}>
                 {t("landing.destinations.topAttractionsTitle")}
               </h2>
             </ScrollReveal>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5")}>
               {attractions.map((attr, idx) => (
                 <ScrollReveal key={`${attr.name}-${idx}`} delay={idx * 100}>
-                  <div className="group rounded-[1.25rem] bg-gray-100/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1">
-                    <div className="relative rounded-[calc(1.25rem-0.25rem)] overflow-hidden min-h-[240px]">
+                  <div className={cn("group rounded-[1.25rem] bg-gray-100/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 p-1 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1")}>
+                    <div className={cn("relative rounded-[calc(1.25rem-0.25rem)] overflow-hidden min-h-[240px]")}>
                       {attr.imageUrl ? (
                         <Image
                           src={attr.imageUrl}
                           alt={attr.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105"
+                          className={cn("object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105")}
                         />
                       ) : (
                         <div
                           className={`absolute inset-0 bg-gradient-to-br ${DEST_GRADIENTS[(idx + 3) % DEST_GRADIENTS.length]}`}
                         />
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5">
-                        <h3 className="font-bold text-white text-base font-['Outfit',_system-ui]">
+                      <div className={cn("absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent")} />
+                      <div className={cn("absolute bottom-0 left-0 right-0 p-5")}>
+                        <h3 className={cn("font-bold text-white text-base font-['Outfit',_system-ui]")}>
                           {attr.name}
                         </h3>
-                        <p className="text-white/60 text-xs mt-1">
+                        <p className={cn("text-white/60 text-xs mt-1")}>
                           {attr.city}, {attr.country}
                         </p>
                       </div>

@@ -1,6 +1,14 @@
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const refreshAccessTokenMock = vi.hoisted(() =>
+  vi.fn<[], Promise<string>>(),
+);
+
+vi.mock("../tokenRefreshCoordinator", () => ({
+  refreshAccessToken: () => refreshAccessTokenMock(),
+}));
+
 import { handleResponseError } from "../responseInterceptor";
 
 const toAxiosError = (partial: Partial<AxiosError>): AxiosError => {
@@ -15,6 +23,7 @@ const toConfig = (
 
 describe("responseInterceptor", () => {
   beforeEach(() => {
+    refreshAccessTokenMock.mockReset();
     vi.spyOn(console, "warn").mockImplementation(() => {
       return;
     });
@@ -90,7 +99,9 @@ describe("responseInterceptor", () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
-  it("invokes unauthorized callback on 401 errors", async () => {
+  it("invokes unauthorized callback on 401 when token refresh fails", async () => {
+    refreshAccessTokenMock.mockRejectedValue(new Error("refresh failed"));
+
     const request = vi
       .fn<[InternalAxiosRequestConfig], Promise<AxiosResponse>>()
       .mockResolvedValue({ data: { ok: true } } as AxiosResponse);
@@ -118,6 +129,44 @@ describe("responseInterceptor", () => {
     ).rejects.toBe(error);
 
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("retries request with new bearer token after refresh succeeds on 401", async () => {
+    refreshAccessTokenMock.mockResolvedValue("fresh-token");
+
+    const okResponse = { data: { ok: true } } as AxiosResponse;
+    const request = vi
+      .fn<[InternalAxiosRequestConfig], Promise<AxiosResponse>>()
+      .mockResolvedValue(okResponse);
+    const showError = vi.fn();
+    const onUnauthorized = vi.fn();
+
+    const error = toAxiosError({
+      config: toConfig({
+        url: "/api/orders",
+        method: "get",
+        headers: {},
+      }),
+      response: {
+        status: 401,
+        data: {},
+      } as never,
+    });
+
+    const result = await handleResponseError(error, {
+      request,
+      wait: vi.fn().mockResolvedValue(undefined),
+      showError,
+      onUnauthorized,
+    });
+
+    expect(refreshAccessTokenMock).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0].headers.Authorization).toBe("Bearer fresh-token");
+    expect(request.mock.calls[0][0].__isAuthRequest).toBe(true);
+    expect(result).toBe(okResponse);
+    expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
   it("stops retrying after max attempts and emits server error toast", async () => {

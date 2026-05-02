@@ -32,31 +32,44 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<VehicleEntity?> FindByPlateAsync(string plate, CancellationToken cancellationToken = default)
+    public async Task<List<VehicleEntity>> FindAllByOwnerIdPaginatedAsync(Guid ownerId, int pageNumber, int pageSize, bool? isActive, Continent? locationArea, bool? isDeleted = false, CancellationToken cancellationToken = default)
     {
-        return await _context.Vehicles
+        var query = _context.Vehicles
             .AsNoTracking()
-            .Include(v => v.Owner)
-            .FirstOrDefaultAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && !v.IsDeleted, cancellationToken);
+            .Where(v => v.OwnerId == ownerId);
+
+        if (isDeleted.HasValue)
+            query = query.Where(v => v.IsDeleted == isDeleted.Value);
+
+        if (isActive.HasValue)
+            query = query.Where(v => v.IsActive == isActive.Value);
+
+        if (locationArea.HasValue)
+            query = query.Where(v => v.LocationArea == locationArea.Value);
+
+        return await query
+            .OrderByDescending(v => v.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<VehicleEntity?> FindByPlateAndOwnerIdAsync(string plate, Guid ownerId, CancellationToken cancellationToken = default)
+    public async Task<int> CountAllByOwnerIdAsync(Guid ownerId, bool? isActive, Continent? locationArea, bool? isDeleted = false, CancellationToken cancellationToken = default)
     {
-        return await _context.Vehicles
+        var query = _context.Vehicles
             .AsNoTracking()
-            .FirstOrDefaultAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && v.OwnerId == ownerId && !v.IsDeleted, cancellationToken);
-    }
+            .Where(v => v.OwnerId == ownerId);
 
-    public async Task<bool> ExistsByPlateAsync(string plate, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AnyAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && !v.IsDeleted, cancellationToken);
-    }
+        if (isDeleted.HasValue)
+            query = query.Where(v => v.IsDeleted == isDeleted.Value);
 
-    public async Task<bool> ExistsByPlateAndOwnerIdAsync(string plate, Guid ownerId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Vehicles
-            .AnyAsync(v => v.VehiclePlate == plate.Trim().ToUpperInvariant() && v.OwnerId == ownerId && !v.IsDeleted, cancellationToken);
+        if (isActive.HasValue)
+            query = query.Where(v => v.IsActive == isActive.Value);
+
+        if (locationArea.HasValue)
+            query = query.Where(v => v.LocationArea == locationArea.Value);
+
+        return await query.CountAsync(cancellationToken);
     }
 
     public async Task<List<VehicleEntity>> FindAllAsync(string? searchText, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
@@ -70,7 +83,6 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         {
             var search = searchText.ToLower();
             query = query.Where(v =>
-                v.VehiclePlate.ToLower().Contains(search) ||
                 (v.Brand != null && v.Brand.ToLower().Contains(search)) ||
                 (v.Model != null && v.Model.ToLower().Contains(search)));
         }
@@ -91,7 +103,6 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         {
             var search = searchText.ToLower();
             query = query.Where(v =>
-                v.VehiclePlate.ToLower().Contains(search) ||
                 (v.Brand != null && v.Brand.ToLower().Contains(search)) ||
                 (v.Model != null && v.Model.ToLower().Contains(search)));
         }
@@ -125,7 +136,7 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
     {
         return await _context.Vehicles
             .AsNoTracking()
-            .Where(v => v.LocationArea.HasValue && continents.Contains(v.LocationArea.Value) && !v.IsDeleted)
+            .Where(v => v.LocationArea.HasValue && continents.Contains(v.LocationArea ?? default) && !v.IsDeleted)
             .Select(v => v.OwnerId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -152,5 +163,101 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
         return groups.ToDictionary(
             g => g.OwnerId,
             g => (g.Count, g.Continents));
+    }
+
+    public async Task<HashSet<Guid>> FindActiveIdsByOwnerAsync(
+        IEnumerable<Guid> vehicleIds, Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        var ids = vehicleIds.ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var matched = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.Id) && v.OwnerId == ownerId && v.IsActive && !v.IsDeleted)
+            .Select(v => v.Id)
+            .ToListAsync(cancellationToken);
+
+        return [.. matched];
+    }
+
+    public Task<int> CountActiveByOwnerAndTypeAsync(
+        Guid ownerId, Domain.Enums.VehicleType vehicleType, CancellationToken cancellationToken = default)
+    {
+        return _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.OwnerId == ownerId && v.VehicleType == vehicleType && v.IsActive && !v.IsDeleted)
+            .SumAsync(v => (int)v.Quantity, cancellationToken);
+    }
+
+    public Task<int> CountActiveByTransportSupplierFleetAsync(
+        Guid transportSupplierId,
+        Guid? fleetOwnerUserId,
+        VehicleType vehicleType,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Vehicles
+            .AsNoTracking()
+            .Where(v => !v.IsDeleted
+                     && v.IsActive
+                     && v.VehicleType == vehicleType
+                     && (
+                         v.SupplierId == transportSupplierId
+                         || (v.SupplierId == null && fleetOwnerUserId.HasValue && v.OwnerId == fleetOwnerUserId.Value)))
+            .SumAsync(v => (int)v.Quantity, cancellationToken);
+    }
+
+    public async Task DeactivateAllByOwnerAsync(Guid ownerId, string performedBy, CancellationToken cancellationToken = default)
+    {
+        await _context.Vehicles
+            .Where(v => v.OwnerId == ownerId && v.IsActive && !v.IsDeleted)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(v => v.IsActive, false)
+                .SetProperty(v => v.LastModifiedBy, performedBy)
+                .SetProperty(v => v.LastModifiedOnUtc, DateTimeOffset.UtcNow),
+                cancellationToken);
+    }
+
+    public async Task<List<VehicleAvailabilityResult>> GetAvailableBySupplierAsync(
+        IReadOnlyCollection<Guid> ownedSupplierIds,
+        Guid ownerUserId,
+        VehicleType? vehicleType,
+        DateOnly date,
+        Guid? excludeActivityId,
+        CancellationToken cancellationToken = default)
+    {
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        var query = _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.IsActive && !v.IsDeleted)
+            // Scoping: matches approve-time ownership check (Choice 5)
+            .Where(v => (v.SupplierId != null && ownedSupplierIds.Contains(v.SupplierId ?? Guid.Empty))
+                     || (v.SupplierId == null && v.OwnerId == ownerUserId));
+
+        if (vehicleType.HasValue)
+            query = query.Where(v => v.VehicleType == vehicleType.Value);
+
+        // Subquery: count active holds per vehicle on the target date,
+        // excluding the caller's own activity block (for re-approval flow)
+        var results = await query
+            .Select(v => new
+            {
+                Vehicle = v,
+                ActiveBlockCount = _context.VehicleBlocks
+                    .Count(b => b.VehicleId == v.Id
+                             && b.BlockedDate == date
+                             && (b.HoldStatus == HoldStatus.Hard
+                                 || (b.HoldStatus == HoldStatus.Soft && b.ExpiresAt > nowUtc))
+                             && (!excludeActivityId.HasValue
+                                 || b.TourInstanceDayActivityId != excludeActivityId.Value))
+            })
+            .Where(r => r.Vehicle.Quantity - r.ActiveBlockCount > 0)
+            .Select(r => new VehicleAvailabilityResult(
+                r.Vehicle,
+                r.Vehicle.Quantity - r.ActiveBlockCount))
+            .ToListAsync(cancellationToken);
+
+        return results;
     }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { adminService } from "@/api/services/adminService";
 import type { HotelProviderListItem, PaginatedList } from "@/types/admin";
@@ -12,9 +13,11 @@ import {
   AdminErrorCard,
 } from "@/features/dashboard/components";
 import { HotelProviderCard } from "@/features/dashboard/components/HotelProviderCard";
+import { CreateSupplierModal } from "@/features/dashboard/components/CreateSupplierModal";
 import TextInput from "@/components/ui/TextInput";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
 import Pagination from "@/components/ui/Pagination";
+import { MultiSelectContinentDropdown } from "@/components/ui/MultiSelectContinentDropdown";
 
 type StatusFilter = "all" | "Active" | "Inactive";
 
@@ -37,6 +40,8 @@ export default function HotelProvidersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
+  const [selectedContinents, setSelectedContinents] = useState<string[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const loadProviders = useCallback(async () => {
     setIsLoading(true);
@@ -47,6 +52,7 @@ export default function HotelProvidersPage() {
       limit: 12,
       search: debouncedSearch || undefined,
       ...(statusFilter !== "all" && { status: statusFilter }),
+      ...(selectedContinents.length > 0 && { continents: selectedContinents }),
     };
 
     const result = await adminService.getHotelProviders(params);
@@ -60,13 +66,17 @@ export default function HotelProvidersPage() {
       setProviders([]);
     }
     setIsLoading(false);
-  }, [currentPage, debouncedSearch, statusFilter]);
+  }, [currentPage, debouncedSearch, statusFilter, selectedContinents, reloadToken]);
 
   useEffect(() => {
     void loadProviders();
   }, [loadProviders]);
 
   const handleRefresh = () => setReloadToken((t) => t + 1);
+  const handleContinentsChange = (continents: string[]) => {
+    setSelectedContinents(continents);
+    setCurrentPage(1);
+  };
 
   const activeCount = providers.filter((p) => p.status === "Active").length;
 
@@ -102,26 +112,45 @@ export default function HotelProvidersPage() {
         title="Nhà cung cấp Khách sạn"
         subtitle="Quản lý các đối tác lưu trú"
         onRefresh={handleRefresh}
+        actionButtons={
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#EA580C" }}
+          >
+            <PlusIcon size={16} weight="bold" />
+            Tạo nhà cung cấp
+          </button>
+        }
       />
 
       {/* KPI Strip */}
       <AdminKpiStrip kpis={kpis} />
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <AdminFilterTabs
-          tabs={tabsWithCounts}
-          activeValue={statusFilter}
-          onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
-        />
-        <div className="w-full md:w-72">
-          <TextInput
-            type="text"
-            placeholder="Tìm kiếm nhà cung cấp..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            icon="MagnifyingGlass"
-            hasicon={false}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <AdminFilterTabs
+            tabs={tabsWithCounts}
+            activeValue={statusFilter}
+            onChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1); }}
+          />
+          <div className="w-full md:w-72">
+            <TextInput
+              type="text"
+              placeholder="Tìm kiếm nhà cung cấp..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              icon="MagnifyingGlass"
+              hasicon={false}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium" style={{ color: "#6B7280" }}>Châu lục:</span>
+          <MultiSelectContinentDropdown
+            selected={selectedContinents}
+            onChange={handleContinentsChange}
           />
         </div>
       </div>
@@ -141,7 +170,7 @@ export default function HotelProvidersPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {providers.map((provider) => (
-              <HotelProviderCard key={provider.id} provider={provider} />
+              <HotelProviderCard key={provider.id} provider={provider} onRefresh={handleRefresh} />
             ))}
           </div>
           {totalPages > 1 && (
@@ -157,6 +186,19 @@ export default function HotelProvidersPage() {
       )}
 
       {isLoading && <SkeletonTable rows={6} columns={3} />}
+
+      <CreateSupplierModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          void loadProviders();
+        }}
+        supplierType="Accommodation"
+        supplierTypeLabel="Khách sạn"
+        iconBg="#FFEDD5"
+        iconColor="#EA580C"
+      />
     </div>
   );
 }

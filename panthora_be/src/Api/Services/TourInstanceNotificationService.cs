@@ -94,4 +94,101 @@ public sealed class TourInstanceNotificationService(
             "TourInstance status change to {NewStatus} sent to admins for TourInstance {TourInstanceId}",
             newStatus, tourInstanceId);
     }
+
+    public async Task NotifyProviderAssignedAsync(
+        Guid supplierId,
+        Guid activityId,
+        Guid tourInstanceId,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            SupplierId = supplierId,
+            ActivityId = activityId,
+            TourInstanceId = tourInstanceId,
+            Event = "Assigned"
+        };
+
+        await _hubContext.Clients
+            .Group($"supplier:{supplierId}")
+            .SendAsync("ReceiveSupplierAssignmentEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Supplier assigned notification sent to supplier {SupplierId} for activity {ActivityId} of TourInstance {TourInstanceId}",
+            supplierId, activityId, tourInstanceId);
+    }
+
+    public async Task NotifyProviderReleasedAsync(
+        Guid oldSupplierId,
+        Guid activityId,
+        Guid tourInstanceId,
+        string reason,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            SupplierId = oldSupplierId,
+            ActivityId = activityId,
+            TourInstanceId = tourInstanceId,
+            Reason = reason,
+            Event = "Released"
+        };
+
+        await _hubContext.Clients
+            .Group($"supplier:{oldSupplierId}")
+            .SendAsync("ReceiveSupplierAssignmentEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Supplier released notification sent to supplier {SupplierId} for activity {ActivityId} of TourInstance {TourInstanceId} (reason: {Reason})",
+            oldSupplierId, activityId, tourInstanceId, reason);
+    }
+
+    public async Task NotifyItineraryFeedbackEventAsync(
+        Guid tourInstanceId,
+        Guid feedbackId,
+        string eventType,
+        string targetUserGroup,
+        string? reason = null,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            TourInstanceId = tourInstanceId,
+            FeedbackId = feedbackId,
+            Event = eventType,
+            Reason = reason
+        };
+
+        await _hubContext.Clients
+            .Group(targetUserGroup)
+            .SendAsync("ReceiveItineraryFeedbackEvent", payload, ct);
+
+        _logger.LogDebug(
+            "Itinerary feedback event ({Event}) sent to {TargetGroup} for TourInstance {TourInstanceId}, Feedback {FeedbackId}",
+            eventType, targetUserGroup, tourInstanceId, feedbackId);
+    }
+
+    public async Task NotifyManagerNewCustomRequestAsync(
+        Guid tourInstanceId,
+        string tourName,
+        string customerName,
+        Guid targetManagerUserId,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            TourInstanceId = tourInstanceId,
+            TourName = tourName,
+            CustomerName = customerName,
+            Event = "NewCustomTourRequest"
+        };
+
+        await _hubContext.Clients
+            .Group($"user:{targetManagerUserId}")
+            .SendAsync("ReceiveCustomTourRequest", payload, ct);
+
+        _logger.LogDebug(
+            "New custom tour request notification sent to user {UserId} for TourInstance {TourInstanceId}",
+            targetManagerUserId, tourInstanceId);
+    }
 }

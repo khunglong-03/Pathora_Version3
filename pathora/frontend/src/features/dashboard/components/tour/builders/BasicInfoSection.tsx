@@ -4,6 +4,7 @@ import React from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import Icon from "@/components/ui/Icon";
+import Checkbox from "@/components/ui/Checkbox";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import TourImageUpload from "@/components/ui/TourImageUpload";
 import LanguageTabs from "@/components/ui/LanguageTabs";
@@ -23,6 +24,7 @@ interface BasicInfoForm {
   seoDescription?: string;
   status: string;
   tourScope: string;
+  isVisa: boolean;
   continent?: string;
   customerSegment: string;
 }
@@ -49,7 +51,7 @@ interface BasicInfoSectionProps {
 
   activeLang: SupportedLanguage;
   isEditMode: boolean;
-  setBasicInfo: (field: keyof BasicInfoForm, value: string) => void;
+  setBasicInfo: (field: keyof BasicInfoForm, value: string | boolean) => void;
   setEnTranslation: (field: keyof TranslationFields, value: string) => void;
   setThumbnail: React.Dispatch<React.SetStateAction<File | null>>;
   setExistingThumbnail: React.Dispatch<React.SetStateAction<ImageDto | null>>;
@@ -152,7 +154,12 @@ export function BasicInfoSection({
           <select
             value={basicInfo.tourScope}
             onChange={(e) =>
-              handleBasicInfoChange("tourScope", e.target.value)
+              handleBasicInfoChange((prev: BasicInfoForm) => ({
+                ...prev,
+                tourScope: e.target.value,
+                continent: e.target.value === "1" ? "" : prev.continent,
+                isVisa: e.target.value === "1" ? false : prev.isVisa,
+              }))
             }
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           >
@@ -200,6 +207,22 @@ export function BasicInfoSection({
             <option value="5">{t("tourAdmin.continent.oceania")}</option>
             <option value="6">{t("tourAdmin.continent.antarctica")}</option>
           </select>
+          <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50/70 px-3 py-2.5 dark:border-orange-500/30 dark:bg-orange-500/10">
+            <Checkbox
+              id="tour-builder-is-visa"
+              name="isVisa"
+              value={basicInfo.isVisa}
+              onChange={() =>
+                handleBasicInfoChange("isVisa", !basicInfo.isVisa)
+              }
+              activeClass="ring-orange-500 bg-orange-500 dark:bg-orange-500 dark:ring-orange-400"
+              label={
+                <span className="font-medium text-slate-700 dark:text-slate-200">
+                  {t("tourAdmin.visa.label")}
+                </span>
+              }
+            />
+          </div>
         </div>
       )}
 

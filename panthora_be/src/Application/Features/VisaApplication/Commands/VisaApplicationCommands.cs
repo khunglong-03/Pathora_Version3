@@ -6,17 +6,16 @@ using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.VisaApplication.Commands;
-
 // Create
 public sealed record CreateVisaApplicationCommand(
-    Guid BookingParticipantId,
-    Guid PassportId,
-    string DestinationCountry,
-    DateTimeOffset? MinReturnDate = null,
-    string? VisaFileUrl = null
-) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate = null,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null) : ICommand<ErrorOr<Guid>>;
 
 public sealed class CreateVisaApplicationCommandValidator : AbstractValidator<CreateVisaApplicationCommand>
 {
@@ -52,11 +51,10 @@ public sealed class CreateVisaApplicationCommandHandler(
 
 // UpdateStatus
 public sealed record UpdateVisaApplicationStatusCommand(
-    Guid Id,
-    VisaStatus Status,
-    string? RefusalReason = null,
-    string? VisaFileUrl = null
-) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("status")] VisaStatus Status,
+    [property: JsonPropertyName("refusalReason")] string? RefusalReason = null,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null) : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateVisaApplicationStatusCommandValidator : AbstractValidator<UpdateVisaApplicationStatusCommand>
 {

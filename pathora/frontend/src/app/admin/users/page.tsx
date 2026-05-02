@@ -15,13 +15,13 @@ import { AdminUserTable } from "@/features/dashboard/components/AdminUserTable";
 import TextInput from "@/components/ui/TextInput";
 import Icon from "@/components/ui/Icon";
 
-type RoleFilter = "all" | "Admin" | "Manager" | "TourDesigner" | "TourGuide" | "TransportProvider" | "HotelServiceProvider" | "Customer";
+type RoleFilter = "all" | "Admin" | "Manager" | "TourOperator" | "TourGuide" | "TransportProvider" | "HotelServiceProvider" | "Customer";
 
 const ROLE_TABS: Array<{ label: string; value: RoleFilter }> = [
   { label: "Tất cả", value: "all" },
   { label: "Admin", value: "Admin" },
   { label: "Manager", value: "Manager" },
-  { label: "TourDesigner", value: "TourDesigner" },
+  { label: "TourOperator", value: "TourOperator" },
   { label: "TourGuide", value: "TourGuide" },
   { label: "TransportProvider", value: "TransportProvider" },
   { label: "HotelServiceProvider", value: "HotelServiceProvider" },
@@ -44,6 +44,10 @@ export default function AdminUsersPage() {
   const debouncedSearch = useDebounce(searchInput, 300);
 
   const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -124,8 +128,8 @@ export default function AdminUsersPage() {
       accent: "#C9873A",
     },
     {
-      label: "TourDesigner",
-      value: (roleCounts["TourDesigner"] ?? 0).toString(),
+      label: "TourOperator",
+      value: (roleCounts["TourOperator"] ?? 0).toString(),
       icon: "PaintBrush",
       accent: "#7C3AED",
     },
@@ -156,7 +160,7 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-7xl mx-auto">
       <AdminPageHeader
         title="Quản lý người dùng"
         subtitle="Danh sách người dùng hệ thống"

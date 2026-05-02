@@ -6,7 +6,7 @@ import {
   BookingDetail,
 } from "./BookingDetailData";
 
-export const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+export const formatCurrency = (amount: number) => `${amount.toLocaleString('vi-VN')} VND`;
 
 export const getStatusLabel = (t: (key: string) => string, s: BookingStatus) => {
   const map: Record<BookingStatus, string> = {
@@ -50,7 +50,7 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
 
 export const getBookingDerivedState = (booking: BookingDetail) => ({
   totalGuests: booking.adults + booking.children,
-  showPayRemaining: booking.paymentStatus === "partial",
+  showPayRemaining: (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") && booking.status !== "cancelled" && booking.status !== "rejected",
   showVisaStatus:
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&

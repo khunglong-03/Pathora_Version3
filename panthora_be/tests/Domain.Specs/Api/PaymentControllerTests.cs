@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Api.Controllers;
-using Application.Contracts.Payment;
-using Application.Services;
+using global::Api.Controllers;
+using global::Application.Contracts.Payment;
+using global::Application.Services;
 using Contracts.ModelResponse;
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

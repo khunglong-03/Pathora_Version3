@@ -40,10 +40,16 @@ public class DriverEntityConfiguration : IEntityTypeConfiguration<DriverEntity>
 
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.IsActive);
+        builder.HasIndex(x => x.SupplierId);
 
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Supplier)
+            .WithMany()
+            .HasForeignKey(x => x.SupplierId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

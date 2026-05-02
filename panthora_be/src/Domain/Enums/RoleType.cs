@@ -20,7 +20,7 @@ public enum RoleType
     [Description("Manager")]
     OperationsManager = 1,
 
-    /// <summary>Content Creator (Type=2 in role.json). Shared by TourDesigner, TourGuide, TransportProvider, and HotelServiceProvider.</summary>
+    /// <summary>Content Creator (Type=2 in role.json). Shared by TourOperator, TourGuide, TransportProvider, and HotelServiceProvider.</summary>
     [Description("ContentCreator")]
     ContentCreator = 2,
 

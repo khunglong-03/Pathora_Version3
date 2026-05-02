@@ -2,6 +2,8 @@
 
 export interface PublicBookingEndpoints {
   CREATE: string;
+  /** Anonymous: private custom tour pending booking + draft instance only. */
+  GET_CHECKOUT_PRICE: (id: string) => string;
 }
 
 export interface BookingEndpoints {
@@ -9,6 +11,7 @@ export interface BookingEndpoints {
   GET_DETAIL: (id: string) => string;
   GET_BY_TOUR_INSTANCE: (tourInstanceId: string) => string;
   GET_CHECKOUT_PRICE: (id: string) => string;
+  GET_CUSTOMER_CHECKOUT_PRICE: (id: string) => string;
   GET_ACTIVITIES: (id: string) => string;
   GET_ACTIVITY_DETAIL: (id: string, activityId: string) => string;
   GET_TRANSPORT_DETAILS: (id: string) => string;
@@ -27,6 +30,7 @@ export interface BookingEndpoints {
   SET_TOUR_OPERATORS: (id: string) => string;
   SET_TOUR_GUIDES: (id: string) => string;
   GET_MY_RECENT: string;
+  GET_MY_BOOKINGS: string;
 }
 
 export interface TourRequestEndpoints {
@@ -41,6 +45,8 @@ export interface TourRequestEndpoints {
 export interface PaymentEndpoints {
   GET_QR: string;
   CREATE_TRANSACTION: string;
+  /** Server creates Sepay/VietQR for 100% private custom base payment. */
+  CREATE_PRIVATE_CUSTOM_INITIAL: string;
   GET_TRANSACTION: (code: string) => string;
   GET_TRANSACTION_STATUS: (code: string) => string;
   CHECK_PAYMENT: (code: string) => string;
@@ -51,14 +57,17 @@ export interface PaymentEndpoints {
 
 export const PUBLIC_BOOKING: PublicBookingEndpoints = {
   CREATE: "/api/public/bookings",
+  GET_CHECKOUT_PRICE: (id: string): string => `/api/public/bookings/${id}/checkout-price`,
 };
 
 export const BOOKING: BookingEndpoints = {
   GET_LIST: "/api/bookings",
   GET_BY_TOUR_INSTANCE: (tourInstanceId: string): string => `/api/bookings/by-tour-instance/${tourInstanceId}`,
   GET_MY_RECENT: "/api/public/bookings/my-recent-bookings",
+  GET_MY_BOOKINGS: "/api/public/bookings/my-bookings",
   GET_DETAIL: (id: string): string => `/api/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/bookings/${id}/checkout-price`,
+  GET_CUSTOMER_CHECKOUT_PRICE: (id: string): string => `/api/public/bookings/${id}/customer-checkout-price`,
   GET_ACTIVITIES: (id: string): string => `/api/bookings/${id}/activities`,
   GET_ACTIVITY_DETAIL: (id: string, activityId: string): string =>
     `/api/bookings/${id}/activities/${activityId}`,
@@ -96,6 +105,7 @@ export const TOUR_REQUESTS: TourRequestEndpoints = {
 export const PAYMENT: PaymentEndpoints = {
   GET_QR: "/api/payment/getQR",
   CREATE_TRANSACTION: "/api/payment/create-transaction",
+  CREATE_PRIVATE_CUSTOM_INITIAL: "/api/payment/create-transaction/private-custom-initial",
   GET_TRANSACTION: (code: string): string => `/api/payment/transaction/${code}`,
   GET_TRANSACTION_STATUS: (code: string): string =>
     `/api/payment/transaction/${code}/status`,

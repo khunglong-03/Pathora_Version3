@@ -66,9 +66,13 @@ public class UserEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    public void LinkGoogle(string googleId, string performedBy)
+    public void LinkGoogle(string googleId, string? avatarUrl, string performedBy)
     {
         GoogleId = googleId;
+        if (string.IsNullOrEmpty(AvatarUrl) && !string.IsNullOrEmpty(avatarUrl))
+        {
+            AvatarUrl = avatarUrl;
+        }
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
@@ -93,10 +97,27 @@ public class UserEntity : Aggregate<Guid>
 
     public UserSettingEntity? UserSetting { get; set; }
 
+    public virtual List<TransactionHistoryEntity> TransactionHistories { get; set; } = [];
+
+    public void UpdateStatus(UserStatus status, string performedBy)
+    {
+        Status = status;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
     public void SoftDelete(string performedBy)
     {
         IsDeleted = true;
         LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void CreditBalance(decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Credit amount must be greater than 0.");
+        Balance += amount;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 }

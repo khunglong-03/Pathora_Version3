@@ -106,7 +106,7 @@ public class IdentityService(
                 {
                     Email = request.Email,
                     Username = request.Username,
-                    FullName = request.FullName,
+                    FullName = request.Username,
                     Password = hashedPassword
                 };
                 await registerRepo.AddAsync(userEntity);
@@ -238,7 +238,7 @@ public class IdentityService(
                 // User exists by email - link GoogleId if not already linked
                 if (string.IsNullOrEmpty(userEntity.GoogleId))
                 {
-                    userEntity.LinkGoogle(request.ProviderKey, AuthProviderConstants.Google);
+                    userEntity.LinkGoogle(request.ProviderKey, request.Picture, AuthProviderConstants.Google);
                     _userRepository.Update(userEntity);
                     await _unitOfWork.SaveChangeAsync();
                     _logger?.LogDebug("Linked GoogleId to existing user");
@@ -316,6 +316,12 @@ public class IdentityService(
         var result = await _tokenManager.RefreshToken(request.RefreshToken);
         if (result.IsError)
             return result.Errors;
+
+        var userEntity = await _userRepository.FindById(result.Value.UserId);
+        if (userEntity is null || userEntity.IsDeleted || userEntity.Status != UserStatus.Active)
+        {
+            return Error.Forbidden(ErrorConstants.Auth.AccountForbiddenCode, ErrorConstants.Auth.AccountForbiddenDescription);
+        }
 
         var portalResult = await ResolvePortalAsync(result.Value.UserId);
         if (portalResult.IsError)

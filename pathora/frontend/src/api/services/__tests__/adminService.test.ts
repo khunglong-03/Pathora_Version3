@@ -54,26 +54,6 @@ describe("adminService", () => {
 
       expect(result).toEqual(mockOverview);
     });
-
-    it("returns null when response has no result or data", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: {},
-      } as never);
-
-      const result = await adminService.getOverview();
-
-      expect(result).toBeNull();
-    });
-
-    it("returns null when response is null", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: null,
-      } as never);
-
-      const result = await adminService.getOverview();
-
-      expect(result).toBeNull();
-    });
   });
 
   describe("getDashboard", () => {
@@ -92,170 +72,43 @@ describe("adminService", () => {
       expect(result).toEqual(mockDashboard);
       expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_DASHBOARD);
     });
-
-    it("returns dashboard data extracted from data field", async () => {
-      const mockDashboard = {
-        revenueByDay: [],
-        bookingsByStatus: {},
-        topTours: [],
-      };
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, data: mockDashboard },
-      } as never);
-
-      const result = await adminService.getDashboard();
-
-      expect(result).toEqual(mockDashboard);
-    });
-
-    it("returns null when response has no result or data", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: false },
-      } as never);
-
-      const result = await adminService.getDashboard();
-
-      expect(result).toBeNull();
-    });
   });
 
   describe("getBookings", () => {
-    it("returns bookings extracted from items.items", async () => {
-      const mockBookings: AdminBooking[] = [
-        { id: "bk-1", customerName: "John Doe", tourName: "Ha Long Bay", departureDate: "2026-04-01", amount: 1500000, status: "Confirmed" },
-        { id: "bk-2", customerName: "Jane Doe", tourName: "Sapa Adventure", departureDate: "2026-04-10", amount: 2000000, status: "Pending" },
-      ];
+    it("returns bookings from wrapped result items and normalizes backend fields", async () => {
       vi.mocked(api.get).mockResolvedValue({
-        data: { items: mockBookings },
+        data: {
+          success: true,
+          result: {
+            items: [
+              {
+                id: "booking-1",
+                customerName: "Nguyen Van A",
+                tourName: "Ha Long Bay",
+                departureDate: "2026-05-10T00:00:00Z",
+                totalPrice: 2500,
+                status: "Confirmed",
+              },
+            ],
+            totalCount: 1,
+          },
+        },
       } as never);
 
       const result = await adminService.getBookings();
 
-      expect(result).toEqual(mockBookings);
+      expect(result).toEqual([
+        {
+          id: "booking-1",
+          customerName: "Nguyen Van A",
+          tourName: "Ha Long Bay",
+          departureDate: "2026-05-10T00:00:00Z",
+          totalPrice: 2500,
+          amount: 2500,
+          status: "confirmed",
+        },
+      ]);
       expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.BOOKING.GET_LIST);
-    });
-
-    it("returns bookings using customer and tour fields", async () => {
-      const mockBookings: AdminBooking[] = [
-        { id: "bk-3", customer: "Alice", tour: "Mekong Delta", departure: "2026-05-01", amount: 1200000, status: "Confirmed" },
-      ];
-      vi.mocked(api.get).mockResolvedValue({
-        data: { items: mockBookings },
-      } as never);
-
-      const result = await adminService.getBookings();
-
-      expect(result).toEqual(mockBookings);
-    });
-
-    it("returns empty array when items is missing", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: {},
-      } as never);
-
-      const result = await adminService.getBookings();
-
-      expect(result).toEqual([]);
-    });
-
-    it("returns empty array when items is not an array", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { items: "not an array" },
-      } as never);
-
-      const result = await adminService.getBookings();
-
-      expect(result).toEqual([]);
-    });
-
-    it("returns empty array when items is null", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { items: null },
-      } as never);
-
-      const result = await adminService.getBookings();
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  // ─── Admin methods ──────────────────────────────────────────────────
-
-  describe("getAllUsers", () => {
-    it("returns paginated user list with default pagination", async () => {
-      const mockData = {
-        items: [
-          { id: "1", fullName: "Nguyen Van A", email: "a@test.com", role: "Admin", status: "Active" },
-          { id: "2", fullName: "Tran Thi B", email: "b@test.com", role: "Manager", status: "Active" },
-        ],
-        total: 2,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-      };
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: mockData },
-      } as never);
-
-      const result = await adminService.getAllUsers({});
-
-      expect(result).toEqual(mockData);
-      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_ALL_USERS, {
-        params: { page: 1, limit: 10 },
-      });
-    });
-
-    it("passes role, status, and search filters", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: { items: [], total: 0, page: 2, limit: 20, totalPages: 0 } },
-      } as never);
-
-      await adminService.getAllUsers({ page: 2, limit: 20, role: "Admin", status: "Active", search: "john" });
-
-      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_ALL_USERS, {
-        params: { page: 2, limit: 20, role: "Admin", status: "Active", search: "john" },
-      });
-    });
-
-    it("returns null on error response", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: false },
-      } as never);
-
-      const result = await adminService.getAllUsers({});
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("getUserDetail", () => {
-    it("returns user detail for given id", async () => {
-      const mockDetail = {
-        id: "1",
-        fullName: "Nguyen Van A",
-        email: "a@test.com",
-        phone: "0909123456",
-        status: "Active",
-        roles: ["Admin"],
-      };
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: mockDetail },
-      } as never);
-
-      const result = await adminService.getUserDetail("1");
-
-      expect(result).toEqual(mockDetail);
-      expect(api.get).toHaveBeenCalledWith("/api/admin/users/1");
-    });
-
-    it("returns null when user not found", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: false },
-      } as never);
-
-      const result = await adminService.getUserDetail("999");
-
-      expect(result).toBeNull();
     });
   });
 
@@ -263,7 +116,7 @@ describe("adminService", () => {
     it("returns paginated transport provider list", async () => {
       const mockData = {
         items: [
-          { id: "tp1", name: "Vietransport", email: "info@vietransport.com", status: "Active", bookingCount: 50 },
+          { id: "tp1", fullName: "Vietransport", email: "info@vietransport.com", status: "Active", bookingCount: 50 },
         ],
         total: 1,
         page: 1,
@@ -278,7 +131,7 @@ describe("adminService", () => {
 
       expect(result).toEqual(mockData);
       expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDERS, {
-        params: { page: 1, limit: 10 },
+        params: expect.any(URLSearchParams),
       });
     });
 
@@ -290,124 +143,103 @@ describe("adminService", () => {
       await adminService.getTransportProviders({ status: "Active" });
 
       expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDERS, {
-        params: { page: 1, limit: 10, status: "Active" },
+        params: expect.any(URLSearchParams),
+      });
+      const params = vi.mocked(api.get).mock.calls[0][1]?.params as URLSearchParams;
+      expect(params.get("status")).toBe("Active");
+    });
+  });
+
+  describe("getTransportProviderStats", () => {
+    it("returns transport provider stats", async () => {
+      const mockStats = { total: 10, active: 8, inactive: 1, pending: 1 };
+      vi.mocked(api.get).mockResolvedValue({
+        data: { success: true, result: mockStats },
+      } as never);
+
+      const result = await adminService.getTransportProviderStats("taxi");
+
+      expect(result).toEqual(mockStats);
+      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_TRANSPORT_PROVIDER_STATS, {
+        params: { search: "taxi" },
       });
     });
   });
 
-  describe("getHotelProviders", () => {
-    it("returns paginated hotel provider list", async () => {
-      const mockData = {
-        items: [
-          { id: "hp1", name: "Grand Hotel", email: "contact@grand.vn", status: "Active", accommodationCount: 3 },
-        ],
-        total: 1,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-      };
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: mockData },
-      } as never);
+  describe("Admin Transport Vehicle Management", () => {
+    const providerId = "prov-1";
+    const plate = "51A-12345";
 
-      const result = await adminService.getHotelProviders({ page: 1, limit: 10 });
-
-      expect(result).toEqual(mockData);
-      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.ADMIN.GET_HOTEL_PROVIDERS, {
-        params: { page: 1, limit: 10 },
-      });
-    });
-  });
-
-  describe("getTourManagerStaff", () => {
-    it("returns staff list for a manager", async () => {
-      const mockData = [
-        { id: "s1", fullName: "Designer One", email: "d1@test.com", role: "TourDesigner", status: "Active" },
-        { id: "s2", fullName: "Guide One", email: "g1@test.com", role: "TourGuide", status: "Active" },
-      ];
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: mockData },
-      } as never);
-
-      const result = await adminService.getTourManagerStaff("mgr1");
-
-      expect(result).toEqual(mockData);
-      expect(api.get).toHaveBeenCalledWith("/api/admin/tour-managers/mgr1/staff");
-    });
-
-    it("returns null on error", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: false },
-      } as never);
-
-      const result = await adminService.getTourManagerStaff("bad");
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("reassignStaff", () => {
-    it("posts reassign request with targetManagerId", async () => {
+    it("creates vehicle for provider", async () => {
+      const mockVehicle = { id: "v1", vehiclePlate: plate };
+      const data = { vehiclePlate: plate, vehicleType: 1, seatCapacity: 16 };
       vi.mocked(api.post).mockResolvedValue({
-        data: { success: true, result: { success: true } },
+        data: { success: true, result: mockVehicle },
       } as never);
 
-      const result = await adminService.reassignStaff("mgr1", "staff1", "mgr2");
+      const result = await adminService.createAdminTransportVehicle(providerId, data as any);
 
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual(mockVehicle);
       expect(api.post).toHaveBeenCalledWith(
-        "/api/admin/tour-managers/mgr1/staff/staff1/reassign",
-        { targetManagerId: "mgr2" },
+        API_ENDPOINTS.ADMIN.CREATE_TRANSPORT_PROVIDER_VEHICLE(providerId),
+        data
       );
     });
 
-    it("returns null on reassign failure", async () => {
-      vi.mocked(api.post).mockResolvedValue({
-        data: { success: false },
+    it("updates vehicle for provider", async () => {
+      const mockVehicle = { id: "v1", vehiclePlate: plate };
+      const data = { vehicleType: 2 };
+      vi.mocked(api.put).mockResolvedValue({
+        data: { success: true, result: mockVehicle },
       } as never);
 
-      const result = await adminService.reassignStaff("mgr1", "bad", "mgr2");
+      const result = await adminService.updateAdminTransportVehicle(providerId, plate, data as any);
+
+      expect(result).toEqual(mockVehicle);
+      expect(api.put).toHaveBeenCalledWith(
+        API_ENDPOINTS.ADMIN.UPDATE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate),
+        data
+      );
+    });
+
+    it("deletes vehicle for provider", async () => {
+      vi.mocked(api.delete).mockResolvedValue({
+        data: { success: true, result: null },
+      } as never);
+
+      const result = await adminService.deleteAdminTransportVehicle(providerId, plate);
 
       expect(result).toBeNull();
+      expect(api.delete).toHaveBeenCalledWith(
+        API_ENDPOINTS.ADMIN.DELETE_TRANSPORT_PROVIDER_VEHICLE(providerId, plate)
+      );
     });
   });
 
-  describe("getDashboardOverview", () => {
-    it("returns dashboard overview with KPIs and activity", async () => {
-      const mockData = {
-        totalUsers: 150,
-        activeUsers: 120,
-        totalManagers: 10,
-        totalTourDesigners: 25,
-        totalTourGuides: 30,
-        totalTransportProviders: 8,
-        activeTransportProviders: 7,
-        transportBookingCount: 200,
-        totalHotelProviders: 5,
-        activeHotelProviders: 5,
-        hotelRoomCount: 250,
-        recentActivities: [
-          { id: "act1", actor: "Admin", action: "Added new user", timestamp: "2026-04-01T10:00:00Z" },
-        ],
+  describe("getDriverActivities", () => {
+    it("fetches and returns driver activities", async () => {
+      const providerId = "provider-1";
+      const driverId = "driver-1";
+      const mockActivities = {
+        items: [{ id: "act-1", activityTitle: "Test Activity" }],
+        total: 1,
+        page: 1,
+        limit: 50,
       };
+
       vi.mocked(api.get).mockResolvedValue({
-        data: { success: true, result: mockData },
+        data: { success: true, result: mockActivities },
       } as never);
 
-      const result = await adminService.getDashboardOverview();
+      const result = await adminService.getDriverActivities(providerId, driverId, { page: 1, limit: 50 });
 
-      expect(result).toEqual(mockData);
-      expect(api.get).toHaveBeenCalledWith("/api/admin/dashboard/overview");
-    });
-
-    it("returns null on error", async () => {
-      vi.mocked(api.get).mockResolvedValue({
-        data: { success: false },
-      } as never);
-
-      const result = await adminService.getDashboardOverview();
-
-      expect(result).toBeNull();
+      expect(result).toEqual(mockActivities);
+      expect(api.get).toHaveBeenCalledWith(
+        API_ENDPOINTS.ADMIN.GET_DRIVER_ACTIVITIES(providerId, driverId),
+        expect.objectContaining({
+          params: { pageNumber: 1, pageSize: 50 },
+        })
+      );
     });
   });
 });

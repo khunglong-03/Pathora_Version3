@@ -1,18 +1,18 @@
+using Domain.Enums;
+using System.Text.Json.Serialization;
+
 namespace Application.Features.VisaApplication.DTOs;
 
-using Domain.Enums;
-
 public sealed record VisaApplicationDto(
-    Guid Id,
-    Guid BookingParticipantId,
-    string? ParticipantName,
-    Guid PassportId,
-    string? PassportNumber,
-    string DestinationCountry,
-    VisaStatus Status,
-    DateTimeOffset? MinReturnDate,
-    string? RefusalReason,
-    string? VisaFileUrl,
-    DateTimeOffset CreatedOnUtc,
-    DateTimeOffset? LastModifiedOnUtc
-);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("participantName")] string? ParticipantName,
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("passportNumber")] string? PassportNumber,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("status")] VisaStatus Status,
+    [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
+    [property: JsonPropertyName("refusalReason")] string? RefusalReason,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc,
+    [property: JsonPropertyName("lastModifiedOnUtc")] DateTimeOffset? LastModifiedOnUtc);

@@ -1,0 +1,12 @@
+--- src/features/dashboard/components/ExternalTicketAssignmentPanel.tsx
++++ src/features/dashboard/components/ExternalTicketAssignmentPanel.tsx
+@@ -87,8 +87,8 @@
+     const init: Record<string, BookingTicketEntry> = {};
+     for (const b of bookings) {
+       const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0);
+-      init[b.id] = {
+-        bookingId: b.id,
++      init[b.id.toLowerCase()] = {
++        bookingId: b.id.toLowerCase(),
+         customerName: b.customerName,
+...

@@ -1,10 +1,13 @@
 using Application.Common.Constant;
 using Application.Features.Identity.Commands;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Identity;
 
-public record ChangePasswordRequest(string OldPassword, string NewPassword);
+public record ChangePasswordRequest(
+    [property: JsonPropertyName("oldPassword")] string OldPassword,
+    [property: JsonPropertyName("newPassword")] string NewPassword);
 
 public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
 {
@@ -37,4 +40,3 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
             .NotEmpty().WithMessage(ValidationMessages.OldPasswordRequired);
     }
 }
-

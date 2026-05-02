@@ -1,5 +1,5 @@
-using Api.Controllers;
-using Application.Features.DepositPolicy.Commands;
+using global::Api.Controllers;
+using global::Application.Features.DepositPolicy.Commands;
 using Contracts.ModelResponse;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;

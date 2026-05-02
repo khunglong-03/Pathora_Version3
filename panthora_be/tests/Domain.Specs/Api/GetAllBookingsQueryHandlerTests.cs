@@ -1,8 +1,8 @@
-using Application.Contracts.Booking;
-using Application.Features.BookingManagement.Queries;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Contracts.Booking;
+using global::Application.Features.BookingManagement.Queries;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 
@@ -55,6 +55,25 @@ public sealed class GetAllBookingsQueryHandlerTests
         Assert.Equal(5000m, item.TotalPrice);
         Assert.Equal("Confirmed", item.Status);
         Assert.Equal(1, listResult.Value.TotalCount);
+    }
+
+    [Fact]
+    public async Task Handle_WhenManagerIdIsProvided_ShouldReturnManagerScopedBookings()
+    {
+        var managerId = Guid.CreateVersion7();
+        _bookingRepository.GetPagedForManagerAsync(managerId, 2, 10)
+            .Returns((new List<BookingEntity>(), 0));
+
+        var result = await _handler.Handle(
+            new GetAllBookingsQuery(Page: 2, PageSize: 10, ManagerId: managerId),
+            CancellationToken.None);
+
+        var listResult = Assert.IsType<ErrorOr<AdminBookingListResult>>(result);
+        Assert.False(listResult.IsError);
+        Assert.Empty(listResult.Value.Items);
+
+        await _bookingRepository.Received(1).GetPagedForManagerAsync(managerId, 2, 10);
+        await _bookingRepository.DidNotReceive().GetAllPagedAsync(Arg.Any<int>(), Arg.Any<int>());
     }
 
     [Fact]

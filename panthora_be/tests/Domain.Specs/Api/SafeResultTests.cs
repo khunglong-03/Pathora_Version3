@@ -1,4 +1,4 @@
-using Application.Contracts.Public;
+using global::Application.Contracts.Public;
 using ErrorOr;
 using MediatR;
 using Microsoft.AspNetCore.Http;

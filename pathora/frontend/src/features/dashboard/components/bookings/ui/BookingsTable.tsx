@@ -6,6 +6,7 @@ import { CSS } from "../BookingsPageData";
 import { TableRow, StatusBadge } from "./BookingsShared";
 import { rowVariants } from "../BookingsPageData";
 import type { AdminBooking } from "@/api/services/adminService";
+import { formatCurrency } from "@/utils/format";
 
 interface BookingsTableProps {
   bookings: AdminBooking[];
@@ -84,7 +85,7 @@ export function BookingsTable({ bookings, t }: BookingsTableProps) {
                 </p>
               </div>
               <p className="text-base font-bold data-value" style={{ color: CSS.textPrimary }}>
-                ${(booking.amount ?? 0).toLocaleString()}
+                {formatCurrency(booking.amount ?? 0)}
               </p>
             </div>
           </motion.div>

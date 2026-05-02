@@ -42,8 +42,12 @@ public class RoomBlockEntityConfiguration : IEntityTypeConfiguration<RoomBlockEn
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(x => x.TourInstanceDayActivityId);
+        builder.HasIndex(x => x.HoldStatus);
+        builder.HasIndex(x => x.ExpiresAt);
         builder.HasIndex(x => new { x.TourInstanceDayActivityId, x.RoomType })
             .IsUnique()
             .HasFilter("\"TourInstanceDayActivityId\" IS NOT NULL");
+
+        builder.HasQueryFilter(x => !x.Supplier.IsDeleted && x.Supplier.IsActive && (x.Supplier.Owner == null || x.Supplier.Owner.Status == Domain.Enums.UserStatus.Active));
     }
 }

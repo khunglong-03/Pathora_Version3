@@ -182,6 +182,7 @@ export interface TourDto {
   longDescription: string;
   status: number | string;
   tourScope?: number | string;
+  isVisa: boolean;
   continent?: string;
   customerSegment?: number;
   seoTitle: string | null;
@@ -198,6 +199,7 @@ export interface TourDto {
   lastModifiedBy: string | null;
   lastModifiedOnUtc: string | null;
   services?: ServiceDto[];
+  depositPolicy?: DepositPolicyDto | null;
 }
 
 export interface TourTranslationData {
@@ -217,6 +219,7 @@ export interface TourVm {
   status: string;
   thumbnail: ImageDto | null;
   createdOnUtc: string;
+  isVisa: boolean;
 }
 
 // Public tour list view model (used for By Tour view)
@@ -231,6 +234,7 @@ export interface SearchTourVm {
   salePrice: number;
   classificationName: string | null;
   rating: number | null;
+  isVisa: boolean;
   // Optional fields for admin page
   tourCode?: string;
   status?: string;
@@ -308,6 +312,52 @@ export const TransportationTypeMap: Record<number, string> = {
   8: "Taxi",
   99: "Other",
 };
+
+// Phương tiện đặc thù không có in-app supplier (vé máy bay/tàu/du thuyền/khác) —
+// Manager phải tự book bên ngoài và confirm sau khi khách thanh toán
+// (xem TourInstanceDayActivityEntity.IsExternalOnlyTransportationType).
+const EXTERNAL_ONLY_TRANSPORTATION_NAMES = new Set(["Flight", "Train", "Boat", "Other"]);
+const EXTERNAL_ONLY_TRANSPORTATION_KEYS = new Set([2, 3, 4, 99]); // Train, Flight, Boat, Other
+
+export const isExternalOnlyTransportation = (
+  transportationType: string | number | null | undefined,
+): boolean => {
+  if (transportationType === null || transportationType === undefined) return false;
+  if (typeof transportationType === "number") {
+    return EXTERNAL_ONLY_TRANSPORTATION_KEYS.has(transportationType);
+  }
+  const numeric = Number(transportationType);
+  if (Number.isInteger(numeric) && EXTERNAL_ONLY_TRANSPORTATION_KEYS.has(numeric)) {
+    return true;
+  }
+  return EXTERNAL_ONLY_TRANSPORTATION_NAMES.has(transportationType);
+};
+
+// Boundary map between the Vehicle Type picker and the backend payload
+// (`TourInstanceDayActivityEntity.RequestedVehicleType : VehicleType`).
+// Keys MUST stay 1:1 with `panthora_be/src/Domain/Enums/VehicleType.cs`.
+// If BE adds a value (e.g. Limousine = 7), update this map too.
+// NOTE: do NOT use this on read paths — BE returns the enum name as a string
+// via global JsonStringEnumConverter; use it only when the UI sends a numeric key.
+export const VehicleTypeMap: Record<number, string> = {
+  1: "Car",
+  2: "Bus",
+  3: "Minibus",
+  4: "Van",
+  5: "Coach",
+  6: "Motorbike",
+};
+
+export function vehicleTypeNameToKey(name: string): number | undefined {
+  const entry = Object.entries(VehicleTypeMap).find(([, label]) => label === name);
+  if (!entry) {
+    console.warn(
+      `[VehicleTypeMap] Unknown vehicle type name "${name}". Known: ${Object.values(VehicleTypeMap).join(", ")}.`,
+    );
+    return undefined;
+  }
+  return Number(entry[0]);
+}
 
 export const LegacyRoomTypeMap: Record<number, string> = {
   0: "Single (Legacy)",
@@ -396,7 +446,7 @@ export interface TourInstanceVm {
   basePrice: number;
   status: string;
   instanceType: string;
-  hotelApprovalStatus: number;
+  /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. Used by the rollup pill (section 1) only as a downscope pending backend DTO enrichment. */
   transportApprovalStatus: number;
 }
 
@@ -410,6 +460,20 @@ export interface TourInstanceDayDto {
   endTime: string | null;
   note: string | null;
   activities: TourInstanceDayActivityDto[];
+}
+
+/** One concrete vehicle (and driver) row for a transportation activity; mirrors backend `TourInstanceTransportAssignmentDto`. */
+export interface TourInstanceTransportAssignmentDto {
+  id: string;
+  vehicleId: string;
+  driverId?: string | null;
+  seatCountSnapshot?: number | null;
+  vehicleType?: string | null;
+  vehicleBrand?: string | null;
+  vehicleModel?: string | null;
+  vehicleSeatCapacity?: number | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
 }
 
 export interface TourInstanceDayActivityDto {
@@ -430,13 +494,20 @@ export interface TourInstanceDayActivityDto {
   fromLocation?: TourPlanLocationDto | null;
   toLocation?: TourPlanLocationDto | null;
   durationMinutes?: number | null;
-  distanceKm?: number | null;
   price?: number | null;
-  bookingReference?: string | null;
+
+  // Transport Plan fields (per-activity)
+  requestedVehicleType?: string | null;
+  requestedSeatCount?: number | null;
+  /** Scope addendum 2026-04-23 — manager-requested vehicle count (nullable for legacy). */
+  requestedVehicleCount?: number | null;
+  transportSupplierId?: string | null;
+  transportSupplierName?: string | null;
+  transportationApprovalStatus?: string | null;
+  transportationApprovalNote?: string | null;
 
   // Instance-specific vehicle assignment (flattened)
   vehicleId?: string | null;
-  vehiclePlate?: string | null;
   vehicleType?: string | null;
   vehicleBrand?: string | null;
   vehicleModel?: string | null;
@@ -448,6 +519,33 @@ export interface TourInstanceDayActivityDto {
   dropoffLocation?: string | null;
   departureTime?: string | null;
   arrivalTime?: string | null;
+  /** Multi-vehicle rows when present; legacy flattened `vehicleId` / `driverId` may still reflect the primary row. */
+  transportAssignments?: TourInstanceTransportAssignmentDto[];
+
+  // External transport confirmation (Flight/Train/Boat) — Manager confirms manually post-payment
+  externalTransportConfirmed?: boolean | null;
+  externalTransportConfirmedAt?: string | null;
+  externalTransportConfirmedBy?: string | null;
+  externalTransportReference?: string | null;
+}
+
+export interface TicketImageDto {
+  id: string;
+  tourInstanceDayActivityId: string;
+  imageUrl?: string | null;
+  originalFileName?: string | null;
+  uploadedBy: string;
+  uploadedAt: string;
+  bookingId?: string | null;
+  bookingReference?: string | null;
+  note?: string | null;
+}
+
+export interface UploadTicketImagePayload {
+  file: File;
+  bookingId?: string | null;
+  bookingReference?: string | null;
+  note?: string | null;
 }
 
 export interface TourInstancePlanAccommodationDto {
@@ -455,9 +553,46 @@ export interface TourInstancePlanAccommodationDto {
   roomType: string;
   quantity: number;
   roomBlocksTotal?: number;
+  supplierId?: string | null;
+  supplierName?: string | null;
+  supplierApprovalStatus?: string | null;
+  supplierApprovalNote?: string | null;
 }
 
 // TourInstancePlanRouteDto removed — vehicle/driver data is now flattened onto TourInstanceDayActivityDto
+
+export interface PricingPolicyTierDto {
+  label: string;
+  ageFrom: number;
+  ageTo?: number | null;
+  pricePercentage: number;
+}
+
+export interface PricingPolicyDto {
+  id: string;
+  policyCode: string;
+  name: string;
+  tiers: PricingPolicyTierDto[];
+}
+
+export interface CancellationPolicyTierDto {
+  minDaysBeforeDeparture: number;
+  maxDaysBeforeDeparture: number;
+  penaltyPercentage: number;
+}
+
+export interface CancellationPolicyDto {
+  id: string;
+  policyCode: string;
+  tiers: CancellationPolicyTierDto[];
+}
+
+export interface DepositPolicyDto {
+  id: string;
+  depositType: string | number;
+  depositValue: number;
+  minDaysBeforeDeparture: number;
+}
 
 export interface TourInstanceDto {
   id: string;
@@ -486,15 +621,22 @@ export interface TourInstanceDto {
   confirmationDeadline: string | null;
   managers: TourInstanceManagerDto[];
   includedServices: string[];
-  hotelApprovalStatus: number;
+  /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. */
   transportApprovalStatus: number;
-  hotelApprovalNote?: string | null;
+  /** @deprecated Instance-level approval note is a transition artifact. Per-activity note on days[].activities[].transportationApprovalNote is authoritative. */
   transportApprovalNote?: string | null;
-  hotelProviderId?: string | null;
-  hotelProviderName?: string | null;
-  transportProviderId?: string | null;
-  transportProviderName?: string | null;
   days?: TourInstanceDayDto[];
+  pricingPolicy?: PricingPolicyDto | null;
+  cancellationPolicy?: CancellationPolicyDto | null;
+  depositPolicy?: DepositPolicyDto | null;
+  /** Giá chốt sau co-design (private tour); từ API khi đã set. */
+  finalSellPrice?: number | null;
+  /** Khách muốn tùy chỉnh lịch trình (private custom tour). */
+  wantsCustomization?: boolean;
+  /** Ghi chú tùy chỉnh từ khách. */
+  customizationNotes?: string | null;
+  /** Lý do Manager từ chối lịch trình; chỉ có khi status = PendingAdjustment. */
+  managerReviewNote?: string | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {
@@ -537,4 +679,8 @@ export const TourInstanceStatusMap: Record<string, { label: string; bg: string; 
   cancelled: { label: "Cancelled", bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
   completed: { label: "Completed", bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
   pendingapproval: { label: "Pending Approval", bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500" },
+  pendingadjustment: { label: "Cần điều chỉnh", bg: "bg-rose-100", text: "text-rose-700", dot: "bg-rose-500" },
+  pendingmanagerreview: { label: "Chờ Manager duyệt", bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
+  pendingcustomerapproval: { label: "Chờ khách duyệt", bg: "bg-sky-100", text: "text-sky-700", dot: "bg-sky-500" },
+  draft: { label: "Bản nháp", bg: "bg-slate-100", text: "text-slate-700", dot: "bg-slate-500" },
 };

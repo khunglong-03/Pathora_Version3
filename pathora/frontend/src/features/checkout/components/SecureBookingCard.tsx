@@ -7,25 +7,25 @@ export function SecureBookingCard() {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="size-10 rounded-xl bg-green-50 flex items-center justify-center">
-          <Icon icon="heroicons:shield-check" className="size-5 text-green-500" />
+    <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] p-8">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="size-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+          <Icon icon="heroicons:shield-check" className="size-6 text-emerald-600" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-900">{t("landing.checkout.secureBooking")}</p>
-          <p className="text-[10px] text-gray-400">{t("landing.checkout.dataProtected")}</p>
+          <p className="text-base font-semibold tracking-tight text-slate-900">{t("landing.checkout.secureBooking")}</p>
+          <p className="text-xs text-slate-500">{t("landing.checkout.dataProtected")}</p>
         </div>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {[
           t("landing.checkout.sslEncrypted"),
           t("landing.checkout.noPaymentUntilConfirmed"),
           t("landing.checkout.support247"),
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Icon icon="heroicons:check" className="size-3.5 text-green-500 shrink-0" />
-            <span className="text-xs text-gray-600">{item}</span>
+          <div key={i} className="flex items-center gap-3">
+            <Icon icon="heroicons:check-circle" className="size-5 text-emerald-500 shrink-0" />
+            <span className="text-sm font-medium text-slate-600">{item}</span>
           </div>
         ))}
       </div>

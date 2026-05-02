@@ -30,6 +30,16 @@ public class HotelRoomInventoryRepository(AppDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<HotelRoomInventoryEntity>> GetByHotelIdsAsync(List<Guid> supplierIds, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Include(x => x.Supplier)
+            .Where(x => supplierIds.Contains(x.SupplierId))
+            .OrderBy(x => x.Supplier.Name)
+            .ThenBy(x => x.RoomType)
+            .ToListAsync(cancellationToken);
+    }
+
     public override async Task AddAsync(HotelRoomInventoryEntity entity, CancellationToken cancellationToken = default)
     {
         await base.AddAsync(entity, cancellationToken);

@@ -8,4 +8,6 @@ public static class DriverEndpoint
 public static class VehicleEndpoint
 {
     public const string Base = "transport-provider/vehicles";
+    public const string Available = "transport-provider/vehicles/available";
+    public const string Schedule = "transport-provider/vehicles/schedule";
 }

@@ -22,6 +22,8 @@ public class OutboxWorkerService(
     private readonly OutboxWorkerOptions _options = options.Value;
     private Timer? _expirationTimer;
     private Timer? _sweepPollTimer;
+    private readonly SemaphoreSlim _expirationGate = new(1, 1);
+    private readonly SemaphoreSlim _sweepGate = new(1, 1);
 
     private static readonly TimeSpan[] RetryDelays =
     [
@@ -53,14 +55,14 @@ public class OutboxWorkerService(
 
         // Start the expiration sweep timer (auto-expire stale pending transactions)
         _expirationTimer = new Timer(
-            _ => _ = ExpireStaleTransactionsAsync(stoppingToken),
+            _ => _ = GuardedExpireAsync(stoppingToken),
             null,
             TimeSpan.FromSeconds(30),      // First run after 30s (warmup)
             ExpirationCheckInterval);       // Then every 5 minutes
 
         // Start the SePay sweep poll timer (poll for incoming payments every 5 minutes)
         _sweepPollTimer = new Timer(
-            _ => _ = SweepPendingPaymentsAsync(stoppingToken),
+            _ => _ = GuardedSweepAsync(stoppingToken),
             null,
             TimeSpan.FromSeconds(60),      // First run after 60s (wait for warmup)
             TimeSpan.FromMinutes(5));      // Then every 5 minutes
@@ -92,9 +94,31 @@ public class OutboxWorkerService(
         {
             _expirationTimer?.Dispose();
             _sweepPollTimer?.Dispose();
+            _expirationGate.Dispose();
+            _sweepGate.Dispose();
         }
 
         logger.LogInformation("Outbox Worker stopped");
+    }
+
+    /// <summary>
+    /// Guards ExpireStaleTransactionsAsync so overlapping Timer ticks are skipped.
+    /// </summary>
+    private async Task GuardedExpireAsync(CancellationToken ct)
+    {
+        if (!_expirationGate.Wait(0)) return; // skip if previous run still active
+        try { await ExpireStaleTransactionsAsync(ct); }
+        finally { _expirationGate.Release(); }
+    }
+
+    /// <summary>
+    /// Guards SweepPendingPaymentsAsync so overlapping Timer ticks are skipped.
+    /// </summary>
+    private async Task GuardedSweepAsync(CancellationToken ct)
+    {
+        if (!_sweepGate.Wait(0)) return; // skip if previous run still active
+        try { await SweepPendingPaymentsAsync(ct); }
+        finally { _sweepGate.Release(); }
     }
 
     /// <summary>

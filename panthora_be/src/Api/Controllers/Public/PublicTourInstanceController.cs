@@ -16,9 +16,10 @@ public class PublicTourInstanceController : BaseApiController
         [FromQuery] string? sortBy,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] string? instanceType = null,
         [FromServices] ILanguageContext? languageContext = null)
     {
-        var result = await Sender.Send(new GetPublicTourInstancesQuery(destination, sortBy, page, pageSize, languageContext?.CurrentLanguage));
+        var result = await Sender.Send(new GetPublicTourInstancesQuery(destination, sortBy, page, pageSize, languageContext?.CurrentLanguage, instanceType));
         return HandleResult(result);
     }
 

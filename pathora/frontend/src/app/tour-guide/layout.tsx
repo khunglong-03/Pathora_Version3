@@ -7,10 +7,11 @@ const TOURGUIDE_ROLE_NAMES = new Set(["TourGuide"]);
 
 export default async function TourGuideLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
-  const authStatus = cookieStore.get("auth_status")?.value;
+  const accessToken = cookieStore.get("access_token")?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
   const authRolesRaw = cookieStore.get("auth_roles")?.value;
 
-  const authenticated = Boolean(authStatus);
+  const authenticated = Boolean(accessToken || refreshToken);
   let roles: string[] = [];
   if (authRolesRaw) {
     try {

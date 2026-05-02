@@ -1,16 +1,16 @@
-using Api.Controllers.Admin;
-using Api.Endpoint;
-using Application.Features.Admin.Commands.ReassignStaff;
-using Application.Features.Admin.DTOs;
-using Application.Features.Admin.Queries;
-using Application.Features.Admin.Queries.GetAllUsers;
-using Application.Features.Admin.Queries.GetAdminDashboardOverview;
-using Application.Features.Admin.Queries.GetHotelProviders;
-using Application.Features.Admin.Queries.GetTourManagerStaff;
-using Application.Features.Admin.Queries.GetTransportProviders;
-using Application.Features.Admin.Queries.GetUserDetail;
+using global::Api.Controllers.Admin;
+using global::Api.Endpoint;
+using global::Application.Features.Admin.Commands.ReassignStaff;
+using global::Application.Features.Admin.DTOs;
+using global::Application.Features.Admin.Queries;
+using global::Application.Features.Admin.Queries.GetAllUsers;
+using global::Application.Features.Admin.Queries.GetAdminDashboardOverview;
+using global::Application.Features.Admin.Queries.GetHotelProviders;
+using global::Application.Features.Admin.Queries.GetTourManagerStaff;
+using global::Application.Features.Admin.Queries.GetTransportProviders;
+using global::Application.Features.Admin.Queries.GetUserDetail;
 using global::Contracts;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -271,7 +271,7 @@ public sealed class AdminControllerTests
             new UserSummaryDto(managerId, "Manager One", "manager@example.com", null),
             new List<StaffMemberDto>
             {
-                new(Guid.NewGuid(), "Designer One", "designer@example.com", null, "TourDesigner", "Member", "Hoạt động"),
+                new(Guid.NewGuid(), "Designer One", "designer@example.com", null, "TourOperator", "Member", "Hoạt động"),
                 new(Guid.NewGuid(), "Guide One", "guide@example.com", null, "TourGuide", "Lead", "Hoạt động")
             });
 

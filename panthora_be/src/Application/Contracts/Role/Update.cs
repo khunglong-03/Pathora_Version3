@@ -1,14 +1,15 @@
 using Application.Common.Constant;
 using Domain.Enums;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Role;
 
 public sealed record UpdateRoleRequest(
-    int RoleId,
-    string Name,
-    string Description,
-    RoleStatus Status);
+    [property: JsonPropertyName("roleId")] int RoleId,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("status")] RoleStatus Status);
 
 public sealed class UpdateRoleRequestValidator : AbstractValidator<UpdateRoleRequest>
 {

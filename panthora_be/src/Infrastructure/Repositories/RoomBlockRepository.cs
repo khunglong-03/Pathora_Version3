@@ -38,13 +38,27 @@ public class RoomBlockRepository(AppDbContext context)
         await base.AddRangeAsync(entities, cancellationToken);
     }
 
-    public async Task<int> GetBlockedRoomCountAsync(Guid supplierId, RoomType roomType, DateOnly date, CancellationToken cancellationToken = default)
+    public async Task<int> GetBlockedRoomCountAsync(Guid supplierId, RoomType roomType, DateOnly date, HoldStatus? holdStatus = null, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        var now = DateTimeOffset.UtcNow;
+        var query = _dbSet
             .Where(x => x.SupplierId == supplierId
                 && x.RoomType == roomType
-                && x.BlockedDate == date)
-            .SumAsync(x => x.RoomCountBlocked, cancellationToken);
+                && x.BlockedDate == date);
+
+        if (holdStatus.HasValue)
+        {
+            if (holdStatus == HoldStatus.Hard)
+                query = query.Where(x => x.HoldStatus == HoldStatus.Hard);
+            else
+                query = query.Where(x => x.HoldStatus == HoldStatus.Soft && x.ExpiresAt > now);
+        }
+        else
+        {
+            query = query.Where(x => x.HoldStatus == HoldStatus.Hard || (x.HoldStatus == HoldStatus.Soft && x.ExpiresAt > now));
+        }
+
+        return await query.SumAsync(x => x.RoomCountBlocked, cancellationToken);
     }
 
     public async Task DeleteByBookingAccommodationDetailIdAsync(Guid bookingAccommodationDetailId, CancellationToken cancellationToken = default)
@@ -97,7 +111,17 @@ public class RoomBlockRepository(AppDbContext context)
     {
         var ids = tourInstanceDayActivityIds.ToList();
         return await _dbSet
-            .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId.Value))
+            .Where(x => x.TourInstanceDayActivityId != null && ids.Contains(x.TourInstanceDayActivityId ?? Guid.Empty))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default)
+    {
+        var blocks = await _dbSet
+            .Where(x => x.TourInstanceDayActivity != null
+                        && x.TourInstanceDayActivity.TourInstanceDay.TourInstanceId == tourInstanceId)
+            .ToListAsync(cancellationToken);
+
+        _dbSet.RemoveRange(blocks);
     }
 }

@@ -12,6 +12,7 @@ interface BasicInfoPayload {
   seoDescription: string;
   status: string;
   tourScope?: string;
+  isVisa?: boolean;
   continent?: string;
   customerSegment?: string;
 }
@@ -65,6 +66,7 @@ interface ActivityPayloadInput {
   enTransportationName: string;
   durationMinutes: string;
   price: string;
+  bookingReference?: string;
 }
 
 interface DayPlanPayloadInput {
@@ -138,7 +140,6 @@ interface ServicePayloadInput {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -363,16 +364,17 @@ const buildClassificationsPayload = (
           locationAddress: activity.locationAddress ?? "",
           enLocationAddress: activity.enLocationAddress ?? "",
           locationEntranceFee: activity.locationEntranceFee ?? "",
-          fromLocation: activity.activityType === "7" ? (activity.fromLocation || null) : null,
-          enFromLocation: activity.activityType === "7" ? (activity.enFromLocation || null) : null,
-          toLocation: activity.activityType === "7" ? (activity.toLocation || null) : null,
-          enToLocation: activity.activityType === "7" ? (activity.enToLocation || null) : null,
+          fromLocationName: activity.activityType === "7" ? (activity.fromLocation || null) : null,
+          enFromLocationName: activity.activityType === "7" ? (activity.enFromLocation || null) : null,
+          toLocationName: activity.activityType === "7" ? (activity.toLocation || null) : null,
+          enToLocationName: activity.activityType === "7" ? (activity.enToLocation || null) : null,
           transportationType: activity.activityType === "7" ? (activity.transportationType || null) : null,
           enTransportationType: activity.activityType === "7" ? (activity.enTransportationType || null) : null,
           transportationName: activity.activityType === "7" ? (activity.transportationName || null) : null,
           enTransportationName: activity.activityType === "7" ? (activity.enTransportationName || null) : null,
           durationMinutes: activity.activityType === "7" ? parseIntValue(activity.durationMinutes, 0) : null,
-          price: activity.activityType === "7" ? parseDecimal(activity.price, 0) : null,
+          price: activity.activityType === "7" ? parseDecimal(activity.price || activity.estimatedCost, 0) : null,
+          bookingReference: activity.activityType === "7" ? (activity.bookingReference || null) : null,
           accommodation: isAccommodation ? {
             accommodationName: activity.locationName || activity.title,
             address: activity.locationAddress || "",
@@ -464,7 +466,6 @@ export const buildServicesPayload = (services: ServicePayloadInput[], mode: "cre
       serviceName: svc.serviceName,
       pricingType: toOptionalString(svc.pricingType),
       price: parseDecimal(svc.price, 0),
-      salePrice: parseDecimal(svc.salePrice, 0),
       email: toOptionalString(svc.email),
       contactNumber: toOptionalString(svc.contactNumber),
       translations: svc.enServiceName.trim().length > 0
@@ -496,6 +497,7 @@ export const buildTourFormData = ({
       seoDescription: basicInfo.seoDescription ?? "",
       status: basicInfo.status,
       tourScope: basicInfo.tourScope ?? "",
+      isVisa: basicInfo.tourScope === "2" ? Boolean(basicInfo.isVisa) : false,
       continent: basicInfo.continent ?? "",
       customerSegment: basicInfo.customerSegment ?? "",
     },
@@ -543,6 +545,7 @@ export const buildTourFormData = ({
   if (basicInfo.tourScope) {
     formData.append("tourScope", basicInfo.tourScope);
   }
+  formData.append("isVisa", basicInfo.tourScope === "2" && basicInfo.isVisa ? "true" : "false");
   if (basicInfo.continent) {
     formData.append("continent", basicInfo.continent);
   }

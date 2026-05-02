@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { UserInfo } from "@/types/tour";
+import { UserInfo } from "@/types";
 import { extractResult } from "@/utils/apiResponse";
 
 type PaginatedUsersResponse = {
@@ -33,12 +33,19 @@ export const userService = {
     return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
   },
 
+  getTourOperators: async (): Promise<UserInfo[]> => {
+    const response = await api.get(API_ENDPOINTS.USER.GET_ALL, {
+      params: { role: "TourOperator", pageSize: 100 },
+    });
+    return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
+  },
+
   /** PUT /api/user/status — Admin-only. Ban/unban a user account. */
   updateStatus: async (payload: UpdateUserStatusPayload) => {
     const response = await api.put(API_ENDPOINTS.USER.UPDATE_STATUS, {
       userId: payload.userId,
       newStatus: payload.newStatus,
     });
-    return extractResult<{ success: boolean }>(response.data);
+    return { success: response.status >= 200 && response.status < 300 };
   },
 };

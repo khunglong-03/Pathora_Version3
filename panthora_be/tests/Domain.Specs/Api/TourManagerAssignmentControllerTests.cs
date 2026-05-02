@@ -1,10 +1,10 @@
-using Api.Controllers;
-using Api.Endpoint;
-using Application.Contracts.TourManagerAssignment;
-using Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
-using Application.Features.TourManagerAssignment.Commands.BulkAssignTourManagerTeam;
-using Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
-using Application.Features.TourManagerAssignment.Queries;
+using global::Api.Controllers;
+using global::Api.Endpoint;
+using global::Application.Contracts.TourManagerAssignment;
+using global::Application.Features.TourManagerAssignment.Commands.AssignTourManagerTeam;
+using global::Application.Features.TourManagerAssignment.Commands.BulkAssignTourManagerTeam;
+using global::Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
+using global::Application.Features.TourManagerAssignment.Queries;
 using Contracts.ModelResponse;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;

@@ -1,37 +1,40 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Common;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateTransportDetailCommand(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -47,6 +50,9 @@ public sealed class TransportDetailValidator : AbstractValidator<CreateTransport
         RuleFor(x => x.ArrivalAt)
             .GreaterThan(x => x.DepartureAt)
             .When(x => x.DepartureAt.HasValue && x.ArrivalAt.HasValue);
+        // Per-participant ticket: for external transport types, passengerName is recommended
+        RuleFor(x => x.PassengerName)
+            .MaximumLength(200);
     }
 }
 
@@ -57,12 +63,14 @@ public sealed class CreateTransportDetailCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateTransportDetailCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateTransportDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var activity = await bookingActivityReservationRepository.GetByIdAsync(request.BookingActivityReservationId);
         if (activity is null)
         {
@@ -98,8 +106,10 @@ public sealed class CreateTransportDetailCommandHandler(
         var entity = BookingTransportDetailEntity.Create(
             request.BookingActivityReservationId,
             request.TransportType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.DepartureAt,
             request.ArrivalAt,
             request.TicketNumber,
@@ -123,24 +133,26 @@ public sealed class CreateTransportDetailCommandHandler(
 }
 
 public sealed record UpdateTransportDetailCommand(
-    Guid BookingTransportDetailId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int? SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal? BuyPrice,
-    decimal? TaxRate,
-    bool? IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus? Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingTransportDetailId")] Guid BookingTransportDetailId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int? SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal? BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal? TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool? IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus? Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -166,12 +178,14 @@ public sealed class UpdateTransportDetailCommandHandler(
     IBookingRepository bookingRepository,
     IUnitOfWork unitOfWork,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTransportDetailCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTransportDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingTransportDetailRepository.GetByIdAsync(request.BookingTransportDetailId);
         if (entity is null)
         {
@@ -215,8 +229,10 @@ public sealed class UpdateTransportDetailCommandHandler(
 
         entity.Update(
             request.TransportType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.SupplierId,
+            request.BookingParticipantId,
+            request.PassengerName,
             request.DepartureAt,
             request.ArrivalAt,
             request.TicketNumber,
@@ -240,7 +256,8 @@ public sealed class UpdateTransportDetailCommandHandler(
     }
 }
 
-public sealed record GetBookingTransportDetailsQuery(Guid BookingId) : IQuery<ErrorOr<List<TransportDetailDto>>>, ICacheable
+public sealed record GetBookingTransportDetailsQuery(
+    [property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TransportDetailDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:transport-details:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -283,6 +300,8 @@ public sealed class GetBookingTransportDetailsQueryHandler(
         return new TransportDetailDto(
             entity.Id,
             entity.BookingActivityReservationId,
+            entity.BookingParticipantId,
+            entity.PassengerName,
             entity.SupplierId,
             entity.TransportType,
             entity.DepartureAt,

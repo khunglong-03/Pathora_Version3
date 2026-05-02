@@ -19,6 +19,7 @@ namespace Api.Controllers;
 [EnableRateLimiting("auth-strict")]
 public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 {
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Login)]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
@@ -32,6 +33,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return base.HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.LoginWithRoles)]
     public async Task<IActionResult> LoginWithRoles([FromBody] LoginWithRolesCommand command)
     {
@@ -45,6 +47,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return base.HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Register)]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
@@ -52,10 +55,15 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.Refresh)]
     public async Task<IActionResult> Refresh([FromBody] RefreshCommand command)
     {
-        var result = await Sender.Send(command);
+        var refreshToken = string.IsNullOrWhiteSpace(command.RefreshToken)
+            ? Request.Cookies["refresh_token"] ?? string.Empty
+            : command.RefreshToken;
+
+        var result = await Sender.Send(command with { RefreshToken = refreshToken });
 
         if (!result.IsError)
         {
@@ -65,7 +73,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
                 IsEssential = true,
                 MaxAge = TimeSpan.FromHours(jwtOptions.Value.AccessTokenCookieExpirationHours),
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                 Secure = Request.IsHttps
             });
             Response.Cookies.Append("refresh_token", result.Value.RefreshToken, new CookieOptions
@@ -74,7 +82,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
                 IsEssential = true,
                 MaxAge = TimeSpan.FromHours(jwtOptions.Value.RefreshTokenExpirationHours),
                 Path = "/",
-                SameSite = SameSiteMode.Lax,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                 Secure = Request.IsHttps
             });
             AuthCookieWriter.WriteAuthStatusCookie(Response, Request.IsHttps);
@@ -93,6 +101,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
         return HandleResult(result);
     }
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ConfirmRegister)]
     public async Task<IActionResult> ConfirmRegister([FromBody] ConfirmCommand command)
     {
@@ -100,6 +109,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ForgotPassword)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
@@ -107,6 +117,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         return HandleResult(result);
     }
 
+    [AllowAnonymous]
     [HttpPost(AuthEndpoint.ResetPassword)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
@@ -310,7 +321,7 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
     [AllowAnonymous]
     [HttpGet(AuthEndpoint.GoogleLogin)]
-    public IActionResult GoogleLogin([FromServices] IConfiguration configuration)
+    public IActionResult GoogleLogin([FromServices] IConfiguration configuration, [FromQuery] string? returnUrl = null)
     {
         if (!IsGoogleConfigured(configuration))
             return Redirect(GetFrontendUrl(configuration) + "/auth/callback?error=google_auth_not_configured");
@@ -319,6 +330,12 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
         {
             RedirectUri = Url.Action(nameof(GoogleCallback))
         };
+
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            properties.Items.Add("returnUrl", returnUrl);
+        }
+
         return Challenge(properties, GoogleDefaults.AuthenticationScheme);
     }
 
@@ -357,7 +374,14 @@ public class AuthController(IOptions<JwtOptions> jwtOptions) : BaseApiController
 
         var response = result.Value;
         AuthCookieWriter.WriteAuthCookies(Response, response, Request.IsHttps, jwtOptions.Value);
-        return Redirect($"{frontendUrl}/auth/callback");
+
+        var returnUrl = authenticateResult.Properties?.Items.TryGetValue("returnUrl", out var url) == true ? url : null;
+        var redirectUrl = $"{frontendUrl}/auth/callback";
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            redirectUrl += $"?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        }
+        return Redirect(redirectUrl);
     }
 
     private static string GetFrontendUrl(IConfiguration configuration)

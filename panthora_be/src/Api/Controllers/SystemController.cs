@@ -36,7 +36,7 @@ public class SystemController : ControllerBase
                 _logger.LogInformation("Redis cache cleared successfully.");
                 return Ok(new { message = "Redis cache cleared successfully." });
             }
-            
+
             _logger.LogInformation("Redis multiplexer not found, using memory cache or Redis is disabled.");
             return Ok(new { message = "No Redis cache to clear." });
         }

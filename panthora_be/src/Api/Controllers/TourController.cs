@@ -53,6 +53,7 @@ public class TourController(
     };
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetMyTours(
         [FromQuery] string? searchText,
         [FromQuery] TourStatus? status,
@@ -61,7 +62,8 @@ public class TourController(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await Sender.Send(new GetMyToursQuery(searchText, status, tourScope, continent, pageNumber, pageSize));
+        Guid? userId = Guid.TryParse(CurrentUserId, out var guid) ? guid : null;
+        var result = await Sender.Send(new GetMyToursQuery(searchText, status, tourScope, continent, pageNumber, pageSize, userId));
         return HandleResult(result);
     }
 
@@ -92,7 +94,8 @@ public class TourController(
         [FromForm] string? services = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
-        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
+        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group,
+        [FromForm] bool isVisa = false)
     {
         // Validate JSON fields before processing
         var validationErrors = new Dictionary<string, string[]>();
@@ -145,6 +148,7 @@ public class TourController(
 
         try
         {
+            var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
             var command = new CreateTourCommand(
                 tourName,
                 shortDescription ?? string.Empty,
@@ -162,10 +166,12 @@ public class TourController(
                 serviceData,
                 tourScope,
                 continent,
-                customerSegment);
+                customerSegment,
+                isVisa,
+                isManager);
 
-            var isManager = User.IsInRole("Manager") || User.IsInRole("Admin");
-            var result = await tourService.Create(command, isManager);
+            // MediatR runs ValidationBehavior + CreateTourCommandValidator (controller bypassed validation before).
+            var result = await Sender.Send(command);
             return HandleResult(result);
         }
         catch
@@ -206,10 +212,12 @@ public class TourController(
         [FromForm] string? transportations = null,
         [FromForm] string? services = null,
         [FromForm] string? deletedClassificationIds = null,
+        [FromForm] string? deletedPlanIds = null,
         [FromForm] string? deletedActivityIds = null,
         [FromForm] TourScope tourScope = TourScope.Domestic,
         [FromForm] Domain.Enums.Continent? continent = null,
-        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group)
+        [FromForm] CustomerSegment customerSegment = CustomerSegment.Group,
+        [FromForm] bool isVisa = false)
     {
         DateTimeOffset? parsedClientTimestamp = null;
         if (Request.Headers.TryGetValue("If-Unmodified-Since", out var unmodifiedSinceHeader)
@@ -281,6 +289,20 @@ public class TourController(
             }
         }
 
+        List<Guid>? parsedDeletedPlanIds = null;
+        if (!string.IsNullOrEmpty(deletedPlanIds))
+        {
+            try
+            {
+                parsedDeletedPlanIds = System.Text.Json.JsonSerializer
+                    .Deserialize<List<Guid>>(deletedPlanIds);
+            }
+            catch
+            {
+                // Ignore malformed JSON — service handles gracefully
+            }
+        }
+
         List<Guid>? parsedDeletedActivityIds = null;
         if (!string.IsNullOrEmpty(deletedActivityIds))
         {
@@ -299,8 +321,8 @@ public class TourController(
             id, tourName, shortDescription, longDescription,
             seoTitle, seoDescription, status, thumbnailDto, imageDtos, translationData,
             classificationData, accommodationData, locationData, transportationData, serviceData,
-            parsedDeletedClassificationIds, parsedDeletedActivityIds,
-            tourScope, continent, customerSegment, parsedClientTimestamp);
+            parsedDeletedClassificationIds, parsedDeletedPlanIds, parsedDeletedActivityIds,
+            tourScope, continent, customerSegment, isVisa, parsedClientTimestamp);
 
         var isManager = false;
         if (User.IsInRole("Admin") || User.IsInRole("Manager"))

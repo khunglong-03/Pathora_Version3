@@ -1,5 +1,8 @@
+using Api.Infrastructure;
 using Contracts.Interfaces;
+using Microsoft.AspNetCore.DataProtection;
 using Serilog;
+using StackExchange.Redis;
 
 namespace Api;
 
@@ -13,7 +16,11 @@ public static class DependencyInjection
         services.AddSwaggerServices(configuration);
 
         // Add case-insensitive JSON deserialization
-        services.AddControllers()
+        services.AddControllers(options =>
+            {
+                // Accept yyyy-MM-dd and ISO-8601 (e.g. 2026-05-28T00:00:00.000Z) for [FromQuery] DateOnly — default binder often yields 0001-01-01.
+                options.ModelBinderProviders.Insert(0, new DateOnlyModelBinderProvider());
+            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
@@ -35,6 +42,25 @@ public static class DependencyInjection
         services.AddResponseCompressionServices();
         services.AddSingleton<IDatabaseStartupLifecycle, EfCoreDatabaseStartupLifecycle>();
         services.AddSingleton<DatabaseStartupInitializer>();
+
+        // Background Workers
+        services.AddHostedService<OutboxWorkerService>();
+        services.AddHostedService<SoftHoldCleanupWorkerService>();
+        services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
+
+        // Data Protection: persist keys to Redis so OAuth correlation cookies and
+        // any encrypted cookies survive container restarts and stay consistent
+        // across multiple instances behind a load balancer (fixes "Correlation failed").
+        // Falls back to the default in-memory ephemeral keyring when Redis is not
+        // configured (Development).
+        var dpBuilder = services.AddDataProtection().SetApplicationName("Panthora");
+        var redisConnection = configuration["Redis:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(redisConnection))
+        {
+            dpBuilder.PersistKeysToStackExchangeRedis(
+                ConnectionMultiplexer.Connect(redisConnection),
+                "DataProtection-Keys");
+        }
 
         return services;
     }
@@ -177,10 +203,10 @@ public static class DependencyInjection
             options.AddPolicy("AdminOnly", policy =>
                 policy.RequireRole("Admin"));
 
-            // AdminAndTourDesigner: Admin OR Manager OR TourDesigner (access to read-only policies for tour creation/editing)
-            options.AddPolicy("AdminAndTourDesigner", policy =>
+            // AdminAndTourOperator: Admin OR Manager OR TourOperator (access to read-only policies for tour creation/editing)
+            options.AddPolicy("AdminAndTourOperator", policy =>
                 policy.RequireAssertion(context =>
-                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourDesigner")));
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourOperator")));
 
             // ManagerOnly: Admin is included because seed data admin users have role "Admin",
             // not "Manager". Admin is a superuser with full access including manager operations.
@@ -213,10 +239,10 @@ public static class DependencyInjection
                 policy.RequireAssertion(context =>
                     context.User.IsInRole("Admin") || context.User.IsInRole("Manager")));
 
-            // TourManagerOnly: Admin OR Manager OR TourDesigner (tour lifecycle management)
+            // TourManagerOnly: Admin OR Manager OR TourOperator (tour lifecycle management)
             options.AddPolicy("TourManagerOnly", policy =>
                 policy.RequireAssertion(context =>
-                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourDesigner")));
+                    context.User.IsInRole("Admin") || context.User.IsInRole("Manager") || context.User.IsInRole("TourOperator")));
 
             // TourGuideOnly: Admin OR TourGuide (tour guide specific operations)
             options.AddPolicy("TourGuideOnly", policy =>

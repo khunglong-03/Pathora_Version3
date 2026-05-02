@@ -19,6 +19,8 @@ export interface CreateSupplierPayload {
   address?: string;
   note?: string;
   primaryContinent?: SupportedContinentCode;
+  /** Owner account password — if omitted, defaults to 'password123' */
+  password?: string;
 }
 
 export interface CreateSupplierResponse {

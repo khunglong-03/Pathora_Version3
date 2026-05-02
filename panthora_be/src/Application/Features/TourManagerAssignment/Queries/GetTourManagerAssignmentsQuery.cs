@@ -4,10 +4,11 @@ using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourManagerAssignment.Queries;
 
-public sealed record GetTourManagerAssignmentsQuery(Guid? ManagerId = null)
+public sealed record GetTourManagerAssignmentsQuery([property: JsonPropertyName("managerId")] Guid? ManagerId = null)
     : IQuery<ErrorOr<List<TourManagerSummaryVm>>>, ICacheable
 {
     public string CacheKey => $"{Common.CacheKey.TourManagerAssignment}:all:{ManagerId}";
@@ -33,7 +34,7 @@ public sealed class GetTourManagerAssignmentsQueryHandler(
                     g.Key,
                     manager.FullName ?? manager.Username,
                     manager.Email,
-                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourDesigner),
+                    g.Count(a => a.AssignedEntityType == AssignedEntityType.TourOperator),
                     g.Count(a => a.AssignedEntityType == AssignedEntityType.TourGuide),
                     g.Count(a => a.AssignedEntityType == AssignedEntityType.Tour));
             })

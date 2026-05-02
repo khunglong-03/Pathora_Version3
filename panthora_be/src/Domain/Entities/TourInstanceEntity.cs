@@ -1,6 +1,7 @@
 namespace Domain.Entities;
 
 using Domain.Entities.Translations;
+using Domain.Enums;
 
 /// <summary>
 /// Một đợt/kỳ chạy cụ thể của một tour. TourInstance đại diện cho một lịch trình tour
@@ -10,56 +11,24 @@ using Domain.Entities.Translations;
 /// </summary>
 public class TourInstanceEntity : Aggregate<Guid>
 {
-    // Foreign keys
-    /// <summary>ID của Tour cha.</summary>
     public Guid TourId { get; set; }
-    /// <summary>Tour cha.</summary>
     public virtual TourEntity Tour { get; set; } = null!;
-    /// <summary>ID của Classification (phân loại ngày/giá) được sử dụng.</summary>
     public Guid ClassificationId { get; set; }
-    /// <summary>Classification được sử dụng cho instance này.</summary>
     public virtual TourClassificationEntity Classification { get; set; } = null!;
-
-    // Provider Assignment & Approval
-    /// <summary>ID của Hotel Provider (Accommodation Supplier).</summary>
-    public Guid? HotelProviderId { get; set; }
-    /// <summary>Khách sạn/nhà cung cấp chỗ ở cho đợt tour này.</summary>
-    public virtual SupplierEntity? HotelProvider { get; set; }
-    /// <summary>Trạng thái duyệt của Hotel Provider.</summary>
-    public ProviderApprovalStatus HotelApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
-    /// <summary>Ghi chú/lý do từ chối của Hotel Provider.</summary>
-    public string? HotelApprovalNote { get; set; }
-
-    /// <summary>ID của Transport Provider.</summary>
-    public Guid? TransportProviderId { get; set; }
-    /// <summary>Đơn vị vận chuyển cho đợt tour này.</summary>
-    public virtual SupplierEntity? TransportProvider { get; set; }
-    /// <summary>Trạng thái duyệt của Transport Provider.</summary>
-    public ProviderApprovalStatus TransportApprovalStatus { get; set; } = ProviderApprovalStatus.Pending;
-    /// <summary>Ghi chú/lý do từ chối của Transport Provider.</summary>
-    public string? TransportApprovalNote { get; set; }
-
-    // Instance identity
-    /// <summary>Mã đợt tour tự sinh (format: TI-YYYYMMDDHHMMSS-NNNN).</summary>
     public string TourInstanceCode { get; set; } = null!;
-    /// <summary>Tiêu đề instance (tên hiển thị).</summary>
     public string Title { get; set; } = null!;
 
-    // Denormalized from Tour
-    /// <summary>Tên tour (tảo bằng từ Tour cha — để truy vấn nhanh).</summary>
     public string TourName { get; set; } = null!;
-    /// <summary>Mã tour (tạo bằng từ Tour cha).</summary>
     public string TourCode { get; set; } = null!;
-    /// <summary>Tên phân loại (tạo bằng từ Classification cha).</summary>
     public string ClassificationName { get; set; } = null!;
 
-    // Status & Type
-    /// <summary>Loại tour: Public (mở bán) hoặc Private (riêng).</summary>
     public TourType InstanceType { get; set; } = TourType.Public;
-    /// <summary>Trạng thái instance: Available → Confirmed → InProgress → Completed, hoặc SoldOut/Cancelled.</summary>
     public TourInstanceStatus Status { get; set; } = TourInstanceStatus.Available;
-    /// <summary>Lý do hủy (nếu bị hủy).</summary>
     public string? CancellationReason { get; set; }
+    /// <summary>Lý do Manager từ chối lịch trình lúc review (Private tour). Reset khi Operator re-submit.</summary>
+    public string? ManagerReviewNote { get; set; }
+    public bool WantsCustomization { get; set; } = false;
+    public string? CustomizationNotes { get; set; }
 
     // Schedule
     /// <summary>Ngày khởi hành.</summary>
@@ -81,6 +50,9 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Giá cơ bản tại thời điểm tạo instance (snapshot từ Classification).</summary>
     public decimal BasePrice { get; set; }
 
+    /// <summary>Giá chốt do operator nhập sau co-design (private). Không thay thế <see cref="BasePrice"/>.</summary>
+    public decimal? FinalSellPrice { get; set; }
+
     // Media & Location
     /// <summary>Địa điểm xuất phát/tour.</summary>
     public string? Location { get; set; }
@@ -100,9 +72,23 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Danh sách các ngày cụ thể của instance (TourInstanceDay).</summary>
     public virtual List<TourInstanceDayEntity> InstanceDays { get; set; } = [];
 
+    /// <summary>Các booking gắn với instance này.</summary>
+    public virtual List<BookingEntity> Bookings { get; set; } = [];
+
+    /// <summary>Phản hồi co-design theo ngày (private tour).</summary>
+    public virtual List<TourItineraryFeedbackEntity> ItineraryFeedbacks { get; set; } = [];
+
     // Soft delete
     /// <summary>Cờ xóa mềm.</summary>
     public bool IsDeleted { get; set; }
+
+    /// <summary>
+    /// Concurrency token (ER-2). EF is configured with <c>IsRowVersion()</c> so that
+    /// concurrent status transitions throw <c>DbUpdateConcurrencyException</c>, which the
+    /// service layer catches and converts into an idempotent success (or a re-read retry).
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Timestamp]
+    public byte[] RowVersion { get; set; } = [];
 
     // Translations (vi/en)
     /// <summary>Bản dịch đa ngôn ngữ (en/vi) cho instance.</summary>
@@ -133,13 +119,14 @@ public class TourInstanceEntity : Aggregate<Guid>
         int maxParticipation,
         decimal basePrice,
         string performedBy,
-        Guid? hotelProviderId = null,
-        Guid? transportProviderId = null,
         string? location = null,
         ImageEntity? thumbnail = null,
         List<ImageEntity>? images = null,
         DateTimeOffset? confirmationDeadline = null,
-        List<string>? includedServices = null)
+        List<string>? includedServices = null,
+        bool requiresApproval = false,
+        bool wantsCustomization = false,
+        string? customizationNotes = null)
     {
         EnsureValidDateRange(startDate, endDate);
         EnsureValidMaxParticipation(maxParticipation);
@@ -149,17 +136,15 @@ public class TourInstanceEntity : Aggregate<Guid>
             Id = Guid.CreateVersion7(),
             TourId = tourId,
             ClassificationId = classificationId,
-            HotelProviderId = hotelProviderId,
-            TransportProviderId = transportProviderId,
-            HotelApprovalStatus = hotelProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
-            TransportApprovalStatus = transportProviderId.HasValue ? ProviderApprovalStatus.Pending : ProviderApprovalStatus.Approved,
             TourInstanceCode = GenerateInstanceCode(),
             Title = title,
             TourName = tourName,
             TourCode = tourCode,
             ClassificationName = classificationName,
             InstanceType = instanceType,
-            Status = (hotelProviderId.HasValue || transportProviderId.HasValue) ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available,
+            Status = instanceType == TourType.Private
+                ? TourInstanceStatus.Draft
+                : (requiresApproval ? TourInstanceStatus.PendingApproval : TourInstanceStatus.Available),
             StartDate = startDate,
             EndDate = endDate,
             DurationDays = CalculateDurationDays(startDate, endDate),
@@ -175,7 +160,9 @@ public class TourInstanceEntity : Aggregate<Guid>
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
-            LastModifiedOnUtc = DateTimeOffset.UtcNow
+            LastModifiedOnUtc = DateTimeOffset.UtcNow,
+            WantsCustomization = wantsCustomization,
+            CustomizationNotes = customizationNotes
         };
     }
 
@@ -232,30 +219,156 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    public void ApproveByProvider(Guid providerId, bool isApproved, string? reason)
+    public void ExtendDateRangeIfNecessary(DateTimeOffset actualDate, string performedBy)
     {
-        if (HotelProviderId == providerId)
+        bool changed = false;
+        var actualDateOffset = new DateTimeOffset(actualDate.Date, TimeSpan.Zero);
+
+        if (actualDateOffset.Date < StartDate.Date)
         {
-            HotelApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
-            HotelApprovalNote = reason;
-        }
-        else if (TransportProviderId == providerId)
-        {
-            TransportApprovalStatus = isApproved ? ProviderApprovalStatus.Approved : ProviderApprovalStatus.Rejected;
-            TransportApprovalNote = reason;
+            StartDate = actualDateOffset;
+            changed = true;
         }
 
-        CheckAndActivateTourInstance();
+        if (actualDateOffset.Date > EndDate.Date)
+        {
+            EndDate = actualDateOffset;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            DurationDays = CalculateDurationDays(StartDate, EndDate);
+            LastModifiedBy = performedBy;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        }
     }
 
-    private void CheckAndActivateTourInstance()
+    // ApproveByTransportProvider has been removed — transport approval is now per-activity.
+    // Use TourInstanceDayActivityEntity.ApproveTransportation() / RejectTransportation() instead.
+
+    /// <summary>
+    /// Check if all accommodations with assigned suppliers are approved.
+    /// Filters out soft-deleted days (ER-16).
+    /// </summary>
+    public bool AreAllAccommodationsApproved()
+    {
+        var accommodations = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.Accommodation is not null && a.Accommodation.SupplierId.HasValue)
+            .Select(a => a.Accommodation!)
+            .ToList();
+
+        return accommodations.Count == 0 || accommodations.All(a => a.SupplierApprovalStatus == ProviderApprovalStatus.Approved);
+    }
+
+    /// <summary>
+    /// Check if all transportation activities with assigned suppliers are approved.
+    /// Mirrors <see cref="AreAllAccommodationsApproved"/>.
+    /// Filters out soft-deleted days (ER-16).
+    /// </summary>
+    /// <summary>
+    /// True when every transportation activity that has a supplier is <see cref="ProviderApprovalStatus.Approved"/>.
+    /// Seat totals and vehicle rows are enforced at approve time; activation does not re-sum capacity.
+    /// </summary>
+    public bool AreAllTransportationApproved()
+    {
+        var transportActivities = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportSupplierId.HasValue
+                        && !a.TransportationType.IsExternalOnly()
+                        && (!a.TransportationType.HasValue
+                            || a.TransportationType.Value.GetApprovalCategory() != TransportApprovalCategory.NoApproval))
+            .ToList();
+
+        return transportActivities.Count == 0 || transportActivities.All(a => a.TransportationApprovalStatus == ProviderApprovalStatus.Approved);
+    }
+
+    /// <summary>
+    /// True when every External transportation activity (Flight/Train/Boat/Other — vé ngoài)
+    /// has been manually confirmed by Manager via <see cref="TourInstanceDayActivityEntity.ConfirmExternalTransport"/>.
+    /// Identification uses <see cref="TransportApprovalCategory.ExternalTicket"/> (deterministic) thay vì
+    /// heuristic <c>TransportSupplierId == null</c>. Walking (NoApproval) bị loại trừ.
+    /// Filters out soft-deleted days (ER-16).
+    /// </summary>
+    public bool AreAllExternalTransportConfirmed()
+    {
+        var externalTransportActivities = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportationType.HasValue
+                        && a.TransportationType.Value.GetApprovalCategory() == TransportApprovalCategory.ExternalTicket)
+            .ToList();
+
+        return externalTransportActivities.Count == 0 || externalTransportActivities.All(a => a.ExternalTransportConfirmed);
+    }
+
+    /// <summary>
+    /// Guards <see cref="MaxParticipation"/> increases: for every transportation activity that has
+    /// already been Approved with a concrete vehicle, the resolved vehicle seat capacity must
+    /// be at least <paramref name="newMaxParticipation"/> (ER-7).
+    /// </summary>
+    /// <param name="newMaxParticipation">The proposed new MaxParticipation.</param>
+    /// <param name="resolveVehicleCapacity">Function (typically wired to a repo lookup) returning SeatCapacity for a VehicleId.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if any approved activity's assigned vehicle cannot accommodate the new size.
+    /// The caller should translate to <c>TourInstance.CapacityExceeded</c>.
+    /// </exception>
+    public void EnsureCapacityCoversAllApprovedTransports(
+        int newMaxParticipation,
+        Func<Guid, int> resolveVehicleCapacity)
+    {
+        if (resolveVehicleCapacity is null) throw new ArgumentNullException(nameof(resolveVehicleCapacity));
+        if (newMaxParticipation <= MaxParticipation) return;
+
+        var approvedTransportActivities = InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                        && a.TransportationApprovalStatus == ProviderApprovalStatus.Approved)
+            .ToList();
+
+        foreach (var activity in approvedTransportActivities)
+        {
+            int totalSeats;
+            if (activity.TransportAssignments.Count > 0)
+            {
+                totalSeats = activity.TransportAssignments.Sum(t =>
+                    t.SeatCountSnapshot ?? resolveVehicleCapacity(t.VehicleId));
+            }
+            else if (activity.VehicleId.HasValue)
+            {
+                totalSeats = resolveVehicleCapacity(activity.VehicleId.Value);
+            }
+            else
+            {
+                continue;
+            }
+
+            if (totalSeats < newMaxParticipation)
+            {
+                throw new InvalidOperationException(
+                    $"Tổng sức chỗ xe đã duyệt cho hoạt động '{activity.Title}' là {totalSeats} ghế, không đủ cho MaxParticipation mới ({newMaxParticipation}).");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check readiness: ALL Ground transport approved → Available.
+    /// External transport (flight/train/ferry) is NOT a gate here — Manager confirms it
+    /// post-payment via <see cref="TourInstanceDayActivityEntity.ConfirmExternalTransport"/>
+    /// after customers have paid (vé chỉ mua sau khi có người book).
+    /// Accommodation is NOT a gate — lazy-assign per booking at BƯỚC 7.
+    /// </summary>
+    public void CheckAndActivateTourInstance()
     {
         if (Status != TourInstanceStatus.PendingApproval) return;
 
-        bool hotelOk = !HotelProviderId.HasValue || HotelApprovalStatus == ProviderApprovalStatus.Approved;
-        bool transportOk = !TransportProviderId.HasValue || TransportApprovalStatus == ProviderApprovalStatus.Approved;
-
-        if (hotelOk && transportOk)
+        if (AreAllTransportationApproved())
         {
             Status = TourInstanceStatus.Available;
             LastModifiedOnUtc = DateTimeOffset.UtcNow;
@@ -296,6 +409,23 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Operator nhập giá chốt sau co-design; chỉ tour riêng đang <see cref="TourInstanceStatus.Draft"/>.
+    /// </summary>
+    public void SetFinalSellPrice(decimal finalSellPrice, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới có FinalSellPrice.");
+        if (Status != TourInstanceStatus.Draft)
+            throw new InvalidOperationException("Chỉ được set FinalSellPrice khi instance đang Draft.");
+        if (finalSellPrice < 0)
+            throw new ArgumentOutOfRangeException(nameof(finalSellPrice), "Giá chốt không được âm.");
+
+        FinalSellPrice = finalSellPrice;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
     private static void EnsureValidDateRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
         if (startDate > endDate)
@@ -317,10 +447,98 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.InProgress => next is TourInstanceStatus.Completed,
+            TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingManagerReview => next is TourInstanceStatus.PendingCustomerApproval or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingCustomerApproval => next is TourInstanceStatus.Confirmed or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.Completed => false,
+            TourInstanceStatus.Cancelled => false,
             _ => false
         };
 
         if (!valid)
             throw new InvalidOperationException($"Không thể chuyển trạng thái từ {current} sang {next}.");
+    }
+
+    /// <summary>
+    /// True khi status không cho phép Operator chỉnh sửa lịch trình/thông tin
+    /// (đang chờ Manager hoặc Customer duyệt).
+    /// </summary>
+    public bool IsLockedForOperatorEdit() =>
+        Status == TourInstanceStatus.PendingManagerReview
+        || Status == TourInstanceStatus.PendingCustomerApproval;
+
+    /// <summary>
+    /// Operator nộp lịch trình Private tour cho Manager duyệt.
+    /// Cho phép từ <see cref="TourInstanceStatus.Draft"/> hoặc <see cref="TourInstanceStatus.PendingAdjustment"/>.
+    /// Reset <see cref="ManagerReviewNote"/> để clear lý do từ chối cũ.
+    /// </summary>
+    public void SubmitForManagerReview(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới gửi Manager duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingManagerReview);
+        Status = TourInstanceStatus.PendingManagerReview;
+        ManagerReviewNote = null;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager đồng ý lịch trình → chuyển sang <see cref="TourInstanceStatus.PendingCustomerApproval"/>.
+    /// </summary>
+    public void ManagerApproveItinerary(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Manager duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingCustomerApproval);
+        Status = TourInstanceStatus.PendingCustomerApproval;
+        ManagerReviewNote = null;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager từ chối lịch trình → trả về Operator chỉnh sửa (<see cref="TourInstanceStatus.PendingAdjustment"/>).
+    /// Lý do bắt buộc, lưu vào <see cref="ManagerReviewNote"/>.
+    /// </summary>
+    public void ManagerRejectItinerary(string reason, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Manager duyệt.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Lý do từ chối không được để trống.", nameof(reason));
+        EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
+        Status = TourInstanceStatus.PendingAdjustment;
+        ManagerReviewNote = reason.Trim();
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Customer đồng ý lịch trình → <see cref="TourInstanceStatus.Confirmed"/>.
+    /// </summary>
+    public void CustomerApproveItinerary(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Customer duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.Confirmed);
+        Status = TourInstanceStatus.Confirmed;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Customer yêu cầu chỉnh sửa thêm → trả về Operator (<see cref="TourInstanceStatus.PendingAdjustment"/>).
+    /// </summary>
+    public void CustomerRequestAdjustment(string reason, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Customer duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
+        Status = TourInstanceStatus.PendingAdjustment;
+        ManagerReviewNote = string.IsNullOrWhiteSpace(reason) ? null : $"[Customer] {reason.Trim()}";
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 }

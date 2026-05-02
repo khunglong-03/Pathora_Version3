@@ -1,25 +1,26 @@
+using Domain.Enums;
+using System.Text.Json.Serialization;
+
 namespace Application.Features.AdminHotelBookings.DTOs;
 
-using Domain.Enums;
-
 public sealed record AdminHotelBookingDto(
-    Guid BookingId,
-    string CustomerName,
-    string CustomerPhone,
-    string? CustomerEmail,
-    string TourName,
-    DateTimeOffset DepartureDate,
-    int DurationDays,
-    BookingStatus Status,
-    List<AdminAccommodationDetailDto> AccommodationDetails);
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("customerPhone")] string CustomerPhone,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail,
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("departureDate")] DateTimeOffset DepartureDate,
+    [property: JsonPropertyName("durationDays")] int DurationDays,
+    [property: JsonPropertyName("status")] BookingStatus Status,
+    [property: JsonPropertyName("accommodationDetails")] List<AdminAccommodationDetailDto> AccommodationDetails);
 
 public sealed record AdminAccommodationDetailDto(
-    Guid DetailId,
-    Guid BookingActivityReservationId,
-    string AccommodationName,
-    RoomType RoomType,
-    int RoomCount,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal BuyPrice,
-    ReservationStatus Status);
+    [property: JsonPropertyName("detailId")] Guid DetailId,
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("status")] ReservationStatus Status);

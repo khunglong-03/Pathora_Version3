@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/api";
+import type { ServiceResponse } from "@/types/api";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
 import type { DepositPolicy } from "@/types/depositPolicy";
 import type { PricingPolicy } from "@/types/pricingPolicy";
@@ -13,7 +13,7 @@ export interface DashboardPoliciesPayload {
 }
 
 export const dashboardPoliciesService = {
-  getAll: async (): Promise<ApiResponse<DashboardPoliciesPayload>> => {
+  getAll: async (): Promise<ServiceResponse<DashboardPoliciesPayload>> => {
     try {
       const [pricingResponse, depositResponse, cancellationResponse] =
         await Promise.all([

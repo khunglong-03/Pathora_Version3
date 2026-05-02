@@ -4,6 +4,7 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.DepositPolicy.Queries;
 
@@ -20,7 +21,7 @@ public sealed class GetAllDepositPoliciesQueryHandler(IDepositPolicyService depo
     }
 }
 
-public sealed record GetDepositPolicyByIdQuery(Guid Id) : IQuery<ErrorOr<DepositPolicyResponse?>>;
+public sealed record GetDepositPolicyByIdQuery([property: JsonPropertyName("id")] Guid Id) : IQuery<ErrorOr<DepositPolicyResponse?>>;
 
 public sealed class GetDepositPolicyByIdQueryValidator : AbstractValidator<GetDepositPolicyByIdQuery>
 {

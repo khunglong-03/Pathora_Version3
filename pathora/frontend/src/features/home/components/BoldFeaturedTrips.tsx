@@ -13,19 +13,29 @@ type FeaturedTile = {
   price: string;
   rating: number;
   image: string;
+  isVisa: boolean;
   size: "large" | "medium" | "wide";
 };
 
 import { getFallbackImage } from "@/utils/imageFallback";
+import { cn } from "@/lib/cn";
+
+const getValidImageUrl = (thumbnail: any, fallbackIndex: string | number) => {
+  if (!thumbnail || thumbnail === "undefined") return getFallbackImage(fallbackIndex);
+  if (typeof thumbnail === "string") return thumbnail;
+  if (typeof thumbnail === "object" && thumbnail.publicURL) return thumbnail.publicURL;
+  return getFallbackImage(fallbackIndex);
+};
 
 const mapFeaturedTours = (tours: FeaturedTour[]): FeaturedTile[] =>
   tours.map((tour, index) => ({
     id: tour.id,
     name: tour.tourName,
     duration: `${tour.durationDays} ${tour.durationDays > 1 ? "days" : "day"}`,
-    price: `$${tour.basePrice.toLocaleString()}`,
+    price: `${tour.basePrice.toLocaleString()} VND`,
     rating: Number((tour.rating ?? 4.8).toFixed(1)),
-    image: tour.thumbnail || getFallbackImage(index),
+    image: getValidImageUrl(tour.thumbnail, index),
+    isVisa: tour.isVisa,
     size: index === 0 ? "large" : index === 3 ? "wide" : "medium",
   }));
 
@@ -59,32 +69,31 @@ export const BoldFeaturedTrips = () => {
   }, [fetchFeaturedTours]);
 
   return (
-    <section className="py-20 md:py-28 bg-white">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className={cn("py-24 md:py-32 bg-white")}>
+      <div className={cn("max-w-[90rem] mx-auto px-6 md:px-12")}>
         <div
           ref={titleRef}
-          className={`text-center mb-14 transition-all duration-700 ${
-            titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          className={`text-center max-w-2xl mx-auto mb-20 transition-all duration-1000 ${
+            titleVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <span suppressHydrationWarning className="text-sm font-medium text-[#fb8b02] uppercase tracking-widest">
+          <span suppressHydrationWarning className={cn("inline-block px-4 py-1.5 rounded-full bg-stone-100 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-6 border border-stone-200/50 shadow-sm")}>
             {t("landing.featured.eyebrow") || "Handpicked"}
           </span>
           <h2
-            className="mt-3 text-4xl md:text-5xl font-bold text-slate-900"
-            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+            className={cn("text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]")}
           >
             {t("landing.featured.title") || "Featured Adventures"}
           </h2>
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-5 text-center text-sm text-red-200">
-            <p>{error}</p>
+          <div className={cn("rounded-2xl border border-red-200 bg-red-50 p-8 text-center max-w-2xl mx-auto")}>
+            <p className={cn("text-red-800 font-medium")}>{error}</p>
             <button
               type="button"
               onClick={fetchFeaturedTours}
-              className="mt-3 inline-flex items-center rounded-full border border-red-300/30 px-4 py-2 text-xs font-medium text-red-100 hover:bg-red-500/20 transition-colors"
+              className={cn("mt-4 inline-flex items-center rounded-xl bg-red-100 px-6 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 transition-colors")}
             >
               {t("landing.featured.retry") || "Retry"}
             </button>
@@ -92,8 +101,8 @@ export const BoldFeaturedTrips = () => {
         ) : isLoading ? (
           <div
             ref={gridRef}
-            className={`grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[300px] transition-all duration-1000 ${
-              gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            className={`grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[350px] transition-all duration-1000 ${
+              gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
             }`}
           >
             {Array.from({ length: 4 }).map((_, idx) => {
@@ -105,20 +114,20 @@ export const BoldFeaturedTrips = () => {
                     : "";
               return (
                 <div key={idx} className={`${sizeClass} animate-pulse`}>
-                  <div className="h-full min-h-[300px] rounded-2xl bg-slate-100" />
+                  <div className={cn("h-full min-h-[350px] rounded-[1.5rem] bg-stone-100")} />
                 </div>
               );
             })}
           </div>
         ) : featuredTours.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+          <div className={cn("rounded-[2rem] border border-stone-200 bg-stone-50 p-12 text-center text-stone-500 font-medium")}>
             {t("landing.featured.empty") || "No featured tours available at the moment."}
           </div>
         ) : (
           <div
             ref={gridRef}
-            className={`grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[300px] transition-all duration-1000 ${
-              gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            className={`grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[350px] transition-all duration-1000 ${
+              gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
             }`}
           >
             {featuredTours.map((tour) => {
@@ -136,9 +145,11 @@ export const BoldFeaturedTrips = () => {
                     title={tour.name}
                     subtitle={tour.duration}
                     badge={`${tour.rating}★`}
+                    visaRequired={tour.isVisa}
+                    visaLabel={t("landing.tourDetail.visaRequired", "Visa Required")}
                     price={tour.price}
-                    href="/tours"
-                    height={tour.size === "large" ? "h-full" : "h-[300px]"}
+                    href={`/tours/${tour.id}`}
+                    height="h-full"
                     width="w-full"
                   />
                 </div>

@@ -1,9 +1,9 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Common.Models;
-using Infrastructure.Exceptions;
-using Infrastructure.Files;
-using Infrastructure.Options;
+using global::Infrastructure.Exceptions;
+using global::Infrastructure.Files;
+using global::Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

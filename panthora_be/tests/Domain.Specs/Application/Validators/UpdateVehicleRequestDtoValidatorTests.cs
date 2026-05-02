@@ -1,6 +1,6 @@
-using Application.Features.TransportProvider.Vehicles.DTOs;
-using Application.Features.TransportProvider.Vehicles.Validators;
-using Domain.Enums;
+using global::Application.Features.TransportProvider.Vehicles.DTOs;
+using global::Application.Features.TransportProvider.Vehicles.Validators;
+using global::Domain.Enums;
 using FluentValidation.TestHelper;
 using Xunit;
 
@@ -15,6 +15,7 @@ public sealed class UpdateVehicleRequestDtoValidatorTests
         Brand: "Toyota",
         Model: "Camry",
         SeatCapacity: 5,
+        Quantity: 1,
         LocationArea: (int?)Continent.Asia,
         OperatingCountries: "VN,TH",
         VehicleImageUrls: null,
@@ -173,6 +174,7 @@ public sealed class UpdateVehicleRequestDtoValidatorTests
             Brand: null,
             Model: null,
             SeatCapacity: null,
+            Quantity: null,
             LocationArea: null,
             OperatingCountries: null,
             VehicleImageUrls: null,

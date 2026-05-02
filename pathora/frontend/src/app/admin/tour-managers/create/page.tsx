@@ -13,6 +13,7 @@ interface CreateManagerRequest {
   roleIds: number[];
   departments: never[];
   avatar: string;
+  password?: string;
 }
 
 const MANAGER_ROLE_ID = 2;
@@ -23,6 +24,8 @@ export default function CreateTourManagerPage() {
   // Manager account fields
   const [managerEmail, setManagerEmail] = useState("");
   const [managerFullName, setManagerFullName] = useState("");
+  const [managerPassword, setManagerPassword] = useState("");
+  const [managerConfirmPassword, setManagerConfirmPassword] = useState("");
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
 
@@ -31,6 +34,12 @@ export default function CreateTourManagerPage() {
     if (!managerEmail.trim() || !managerFullName.trim()) {
       setAccountError("Vui lòng nhập đầy đủ thông tin.");
       return;
+    }
+    if (managerPassword.trim() || managerConfirmPassword.trim()) {
+      if (managerPassword.trim() !== managerConfirmPassword.trim()) {
+        setAccountError("Mật khẩu và Xác nhận mật khẩu không khớp.");
+        return;
+      }
     }
     setIsCreatingAccount(true);
     setAccountError(null);
@@ -41,6 +50,7 @@ export default function CreateTourManagerPage() {
         roleIds: [MANAGER_ROLE_ID],
         departments: [],
         avatar: "",
+        ...(managerPassword.trim() ? { password: managerPassword.trim() } : {}),
       };
       await api.post(API_ENDPOINTS.USER.GET_ALL, payload);
       
@@ -88,6 +98,28 @@ export default function CreateTourManagerPage() {
               placeholder="Nguyễn Văn B"
               className="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="flex flex-col gap-1 w-full">
+              <label className="text-sm font-medium text-stone-600">Mật khẩu (Tùy chọn)</label>
+              <input
+                type="password"
+                value={managerPassword}
+                onChange={(e) => setManagerPassword(e.target.value)}
+                placeholder="Nhập mật khẩu"
+                className="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <div className="flex flex-col gap-1 w-full">
+              <label className="text-sm font-medium text-stone-600">Xác nhận mật khẩu</label>
+              <input
+                type="password"
+                value={managerConfirmPassword}
+                onChange={(e) => setManagerConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu"
+                className="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
           </div>
           
           {accountError && (

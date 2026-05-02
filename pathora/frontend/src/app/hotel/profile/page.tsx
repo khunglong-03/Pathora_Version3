@@ -12,7 +12,8 @@ import HotelProfileForm from "@/components/hotel/HotelProfileForm";
 
 export default function HotelProfilePage() {
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
-  const [supplierInfo, setSupplierInfo] = useState<HotelSupplierInfo | null>(null);
+  const [suppliers, setSuppliers] = useState<HotelSupplierInfo[]>([]);
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -26,7 +27,12 @@ export default function HotelProfilePage() {
         hotelProviderService.getSupplierInfo(),
       ]);
       setAccommodations(accData);
-      setSupplierInfo(infoData);
+      setSuppliers(infoData);
+      setSelectedSupplierId((current) =>
+        current && infoData.some((supplier) => supplier.id === current)
+          ? current
+          : (infoData[0]?.id ?? "")
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
@@ -37,6 +43,11 @@ export default function HotelProfilePage() {
   useEffect(() => {
     void loadData();
   }, []);
+
+  const supplierInfo = suppliers.find((supplier) => supplier.id === selectedSupplierId) ?? null;
+  const visibleAccommodations = supplierInfo
+    ? accommodations.filter((acc) => acc.supplierId === supplierInfo.id)
+    : accommodations;
 
   const handleSave = async (data: { name: string; address?: string; phone?: string; email?: string; notes?: string }) => {
     if (!supplierInfo) return;
@@ -51,7 +62,7 @@ export default function HotelProfilePage() {
     await loadData();
   };
 
-  const totalRooms = accommodations.reduce(
+  const totalRooms = visibleAccommodations.reduce(
     (sum, acc) => sum + acc.totalRooms,
     0,
   );
@@ -76,6 +87,23 @@ export default function HotelProfilePage() {
 
       {!error && !isLoading && supplierInfo && (
         <>
+          {suppliers.length > 1 && (
+            <div className="mb-4 rounded-xl border bg-white p-4">
+              <label className="mb-2 block text-sm font-semibold">Cơ sở đang xem</label>
+              <select
+                value={selectedSupplierId}
+                onChange={(event) => setSelectedSupplierId(event.target.value)}
+                className="w-full rounded-lg border px-3 py-2"
+              >
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Edit Button */}
           {!isEditing && (
             <div className="flex justify-end mb-4">
@@ -141,7 +169,7 @@ export default function HotelProfilePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs" style={{ color: "#9CA3AF" }}>Tổng số loại phòng</p>
-                    <p className="text-lg font-semibold">{accommodations.length}</p>
+                    <p className="text-lg font-semibold">{visibleAccommodations.length}</p>
                   </div>
                   <div>
                     <p className="text-xs" style={{ color: "#9CA3AF" }}>Tổng số phòng</p>
@@ -149,13 +177,13 @@ export default function HotelProfilePage() {
                   </div>
                 </div>
 
-                {accommodations.length > 0 && (
+                {visibleAccommodations.length > 0 && (
                   <>
                     <h4 className="text-xs font-semibold mt-6 mb-2" style={{ color: "#9CA3AF" }}>
                       CÁC LOẠI PHÒNG
                     </h4>
                     <div className="space-y-2">
-                      {accommodations.map((acc) => (
+                      {visibleAccommodations.map((acc) => (
                         <div
                           key={acc.id}
                           className="flex items-center justify-between p-3 rounded-lg"
@@ -174,7 +202,7 @@ export default function HotelProfilePage() {
                   </>
                 )}
 
-                {accommodations.length === 0 && (
+                {visibleAccommodations.length === 0 && (
                   <p className="text-sm mt-4" style={{ color: "#9CA3AF" }}>
                     Chưa có loại phòng nào.
                   </p>

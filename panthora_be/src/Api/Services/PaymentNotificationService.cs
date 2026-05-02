@@ -97,5 +97,13 @@ public sealed class PaymentNotificationService(
         _logger.LogDebug(
             "Payment update broadcast to admins for transaction {TransactionCode}",
             snapshot.TransactionCode);
+
+        // Broadcast to anonymous transaction-scoped group (public/guest checkout)
+        await _hubContext.Clients
+            .Group($"tx:{snapshot.TransactionCode}")
+            .SendAsync("ReceivePaymentUpdate", paymentEvent, ct);
+        _logger.LogDebug(
+            "Payment update broadcast to tx:{TransactionCode}",
+            snapshot.TransactionCode);
     }
 }

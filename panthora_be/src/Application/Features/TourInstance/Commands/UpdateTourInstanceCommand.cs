@@ -1,28 +1,29 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record UpdateTourInstanceCommand(
-    Guid Id,
-    string Title,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate,
-    int MaxParticipation,
-    decimal BasePrice,
-    string? Location = null,
-    DateTimeOffset? ConfirmationDeadline = null,
-    List<string>? IncludedServices = null,
-    List<Guid>? GuideUserIds = null,
-    List<Guid>? ManagerUserIds = null,
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset EndDate,
+    [property: JsonPropertyName("maxParticipation")] int MaxParticipation,
+    [property: JsonPropertyName("basePrice")] decimal BasePrice,
+    [property: JsonPropertyName("location")] string? Location = null,
+    [property: JsonPropertyName("confirmationDeadline")] DateTimeOffset? ConfirmationDeadline = null,
+    [property: JsonPropertyName("includedServices")] List<string>? IncludedServices = null,
+    [property: JsonPropertyName("guideUserIds")] List<Guid>? GuideUserIds = null,
+    [property: JsonPropertyName("managerUserIds")] List<Guid>? ManagerUserIds = null,
     ImageEntity? Thumbnail = null,
     List<ImageEntity>? Images = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {

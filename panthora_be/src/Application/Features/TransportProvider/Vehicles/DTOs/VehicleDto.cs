@@ -1,39 +1,43 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TransportProvider.Vehicles.DTOs;
 
 public sealed record VehicleResponseDto(
-    Guid Id,
-    string VehiclePlate,
-    string VehicleType,
-    string? Brand,
-    string? Model,
-    int SeatCapacity,
-    string? LocationArea,
-    string? OperatingCountries,
-    List<string>? VehicleImageUrls,
-    bool IsActive,
-    string? Notes,
-    DateTimeOffset CreatedOnUtc
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("vehicleType")] string VehicleType,
+    [property: JsonPropertyName("brand")] string? Brand,
+    [property: JsonPropertyName("model")] string? Model,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("quantity")] int Quantity,
+    [property: JsonPropertyName("locationArea")] string? LocationArea,
+    [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
+    [property: JsonPropertyName("vehicleImageUrls")] List<string>? VehicleImageUrls,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("isDeleted")] bool IsDeleted,
+    [property: JsonPropertyName("notes")] string? Notes,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc
 );
 
 public sealed record CreateVehicleRequestDto(
-    string VehiclePlate,
-    int VehicleType,
-    string? Brand,
-    string? Model,
-    int SeatCapacity,
-    int? LocationArea,
-    string? OperatingCountries,
-    List<string>? VehicleImageUrls,
-    string? Notes
+    [property: JsonPropertyName("vehicleType")] int VehicleType,
+    [property: JsonPropertyName("brand")] string? Brand,
+    [property: JsonPropertyName("model")] string? Model,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("locationArea")] int? LocationArea,
+    [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
+    [property: JsonPropertyName("vehicleImageUrls")] List<string>? VehicleImageUrls,
+    [property: JsonPropertyName("notes")] string? Notes,
+    [property: JsonPropertyName("quantity")] int Quantity = 1
 );
 
 public sealed record UpdateVehicleRequestDto(
-    int VehicleType,
-    string? Brand,
-    string? Model,
-    int? SeatCapacity,
-    int? LocationArea,
-    string? OperatingCountries,
-    List<string>? VehicleImageUrls,
-    string? Notes
+    [property: JsonPropertyName("vehicleType")] int VehicleType,
+    [property: JsonPropertyName("brand")] string? Brand,
+    [property: JsonPropertyName("model")] string? Model,
+    [property: JsonPropertyName("seatCapacity")] int? SeatCapacity,
+    [property: JsonPropertyName("quantity")] int? Quantity,
+    [property: JsonPropertyName("locationArea")] int? LocationArea,
+    [property: JsonPropertyName("operatingCountries")] string? OperatingCountries,
+    [property: JsonPropertyName("vehicleImageUrls")] List<string>? VehicleImageUrls,
+    [property: JsonPropertyName("notes")] string? Notes
 );

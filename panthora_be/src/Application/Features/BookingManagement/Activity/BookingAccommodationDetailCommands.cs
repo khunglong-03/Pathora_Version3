@@ -1,39 +1,40 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Common;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
-using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
 using IHotelRoomInventoryRepository = Domain.Common.Repositories.IHotelRoomInventoryRepository;
+using IRoomBlockRepository = Domain.Common.Repositories.IRoomBlockRepository;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.Activity;
 
 public sealed record CreateAccommodationDetailCommand(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -62,12 +63,14 @@ public sealed class CreateAccommodationDetailCommandHandler(
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<CreateAccommodationDetailCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(CreateAccommodationDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var activity = await bookingActivityReservationRepository.GetByIdAsync(request.BookingActivityReservationId);
         if (activity is null)
         {
@@ -102,7 +105,7 @@ public sealed class CreateAccommodationDetailCommandHandler(
             request.BookingActivityReservationId,
             request.AccommodationName,
             request.RoomType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.RoomCount,
             request.SupplierId,
             request.BedType,
@@ -136,7 +139,9 @@ public sealed class CreateAccommodationDetailCommandHandler(
                     var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
                         request.SupplierId.Value,
                         request.RoomType,
-                        date);
+                        date,
+                        null,
+                        cancellationToken);
 
                     if (inventory.TotalRooms - blockedCount < request.RoomCount)
                     {
@@ -159,7 +164,7 @@ public sealed class CreateAccommodationDetailCommandHandler(
                         request.RoomType,
                         date,
                         request.RoomCount,
-                        "system",
+                        performedBy,
                         entity.Id,
                         activity.BookingId);
 
@@ -179,24 +184,24 @@ public sealed class CreateAccommodationDetailCommandHandler(
 }
 
 public sealed record UpdateAccommodationDetailCommand(
-    Guid BookingAccommodationDetailId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int? RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal? BuyPrice,
-    decimal? TaxRate,
-    bool? IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus? Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int? RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal? BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal? TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool? IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus? Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -225,12 +230,14 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     IRoomBlockRepository roomBlockRepository,
     IHotelRoomInventoryRepository hotelRoomInventoryRepository,
     IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateAccommodationDetailCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateAccommodationDetailCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var entity = await bookingAccommodationDetailRepository.GetByIdAsync(request.BookingAccommodationDetailId);
         if (entity is null)
         {
@@ -273,7 +280,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
         entity.Update(
             request.AccommodationName,
             request.RoomType,
-            performedBy: "system",
+            performedBy: performedBy,
             request.RoomCount,
             request.SupplierId,
             request.BedType,
@@ -321,7 +328,9 @@ public sealed class UpdateAccommodationDetailCommandHandler(
                         var blockedCount = await roomBlockRepository.GetBlockedRoomCountAsync(
                             effectiveSupplierId.Value,
                             effectiveRoomType,
-                            date);
+                            date,
+                            null,
+                            cancellationToken);
 
                         if (inventory.TotalRooms - blockedCount < effectiveRoomCountForBlocks)
                         {
@@ -343,7 +352,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
                             effectiveRoomType,
                             date,
                             effectiveRoomCountForBlocks,
-                            "system",
+                            performedBy,
                             entity.Id,
                             activity.BookingId);
 
@@ -363,7 +372,7 @@ public sealed class UpdateAccommodationDetailCommandHandler(
     }
 }
 
-public sealed record GetBookingAccommodationDetailsQuery(Guid BookingId) : IQuery<ErrorOr<List<AccommodationDetailDto>>>, ICacheable
+public sealed record GetBookingAccommodationDetailsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<AccommodationDetailDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:accommodation-details:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);

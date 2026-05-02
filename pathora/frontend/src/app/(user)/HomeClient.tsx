@@ -6,17 +6,17 @@ import {
   BoldStatsStrip,
   BoldTrendingDestinations,
   BoldFeaturedTrips,
-  BoldLatestTours,
-  BoldWhyChooseUs,
   BoldCtaSection,
   BoldReviewsSection
 } from "@/features/home/components";
+
+import { cn } from "@/lib/cn";
 
 const SectionSkeleton = ({ className }: { className: string }) => {
   return (
     <div
       aria-hidden="true"
-      className={`mx-auto w-full max-w-7xl rounded-2xl bg-black/5 animate-pulse ${className}`}
+      className={cn("mx-auto w-full max-w-7xl rounded-2xl bg-black/5 animate-pulse", className)}
     />
   );
 };
@@ -44,17 +44,12 @@ export default function HomeClient() {
       <Suspense fallback={<SectionSkeleton className="h-[800px] mt-16" />}>
         <BoldFeaturedTrips />
       </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-72 mt-16" />}>
-        <BoldLatestTours />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
-        <BoldWhyChooseUs />
+
+      <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
+        <BoldReviewsSection />
       </Suspense>
       <Suspense fallback={<SectionSkeleton className="h-64 mt-16" />}>
         <BoldCtaSection />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton className="h-80 mt-16" />}>
-        <BoldReviewsSection />
       </Suspense>
 
     </main>

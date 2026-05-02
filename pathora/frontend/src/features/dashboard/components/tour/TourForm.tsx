@@ -46,7 +46,9 @@ export interface TourFormProps {
   onSubmit: (
     formData: FormData,
     deletedClassificationIds?: string[],
+    deletedPlanIds?: string[],
     deletedActivityIds?: string[],
+    lastModifiedOnUtc?: string
   ) => Promise<void>;
   onCancel?: () => void;
 }
@@ -148,7 +150,6 @@ interface ServiceForm {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -161,6 +162,7 @@ interface BasicInfoForm {
   seoDescription: string;
   status: string;
   tourScope: string;
+  isVisa: boolean;
   continent: string;
   customerSegment: string;
 }
@@ -328,7 +330,6 @@ const emptyService = (): ServiceForm => ({
   enServiceName: "",
   pricingType: "",
   price: "",
-  salePrice: "",
   email: "",
   contactNumber: "",
 });
@@ -374,6 +375,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         seoDescription: "",
         status: "3",
         tourScope: "1",
+        isVisa: false,
         continent: "",
         customerSegment: "2",
       },
@@ -388,9 +390,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       dayPlans: [[]],
       insurances: [[]],
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" }] as any,
+      services: [{ serviceName: "", enServiceName: "", pricingType: "", price: "", email: "", contactNumber: "" }] as any,
       activeLang: "vi",
       deletedClassificationIds: [],
+      deletedPlanIds: [],
       deletedActivityIds: [],
     },
     mode: "onBlur",
@@ -461,6 +464,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     seoDescription: "",
     status: "3",
     tourScope: "1",
+    isVisa: false,
     continent: "",
     customerSegment: "2",
   });
@@ -523,6 +527,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     initialExistingImages ?? [],
   );
   const [deletedClassificationIds, setDeletedClassificationIds] = useState<string[]>([]);
+  const [deletedPlanIds, setDeletedPlanIds] = useState<string[]>([]);
   const [deletedActivityIds, setDeletedActivityIds] = useState<string[]>([]);
 
   /* ── Auto-save draft ────────────────────────────────────────── */
@@ -569,7 +574,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         t("toast.draftRestoreConfirm", "A draft was found from your previous session. Do you want to restore it?"),
       );
       if (confirmed) {
-        setBasicInfo(draft.basicInfo);
+        setBasicInfo({ ...draft.basicInfo, isVisa: Boolean(draft.basicInfo.isVisa) });
         if (draft.selectedPricingPolicyId) setSelectedPricingPolicyId(draft.selectedPricingPolicyId);
         if (draft.selectedDepositPolicyId) setSelectedDepositPolicyId(draft.selectedDepositPolicyId);
         if (draft.selectedCancellationPolicyId) setSelectedCancellationPolicyId(draft.selectedCancellationPolicyId);
@@ -599,6 +604,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       seoDescription: tour.seoDescription ?? "",
       status: statusStr,
       tourScope: tour.tourScope != null ? String(tour.tourScope) : "1",
+      isVisa: tour.tourScope != null && String(tour.tourScope) === "2" ? Boolean(tour.isVisa) : false,
       continent: tour.continent != null ? String(tour.continent) : "",
       customerSegment: tour.customerSegment != null ? String(tour.customerSegment) : "2",
     });
@@ -711,12 +717,11 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
 
     if (tour.services && tour.services.length > 0) {
-      const svcForms: ServiceForm[] = tour.services.map((svc) => ({
+        const svcForms: ServiceForm[] = tour.services.map((svc) => ({
         serviceName: svc.serviceName ?? "",
         enServiceName: svc.translations?.en?.name ?? "",
         pricingType: svc.pricingType ?? "",
         price: svc.price != null ? String(svc.price) : "",
-        salePrice: svc.salePrice != null ? String(svc.salePrice) : "",
         email: svc.email ?? "",
         contactNumber: svc.contactNumber ?? "",
       }));
@@ -845,11 +850,15 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   };
 
   const removeDayPlan = (clsIndex: number, dayIndex: number) => {
-    setDayPlans((prev) =>
-      prev.map((plans, i) =>
+    setDayPlans((prev) => {
+      const removedPlan = prev[clsIndex][dayIndex];
+      if (removedPlan.id) {
+        setDeletedPlanIds((ids) => [...ids, removedPlan.id!]);
+      }
+      return prev.map((plans, i) =>
         i === clsIndex ? plans.filter((_, j) => j !== dayIndex) : plans,
-      ),
-    );
+      );
+    });
   };
 
   const updateDayPlan = (
@@ -1033,7 +1042,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   /* ── Service CRUD ─────────────────────────────────────────── */
   const addService = () => {
     const current = form.getValues("services");
-    const newSvc = { serviceName: "", enServiceName: "", pricingType: "", price: "", salePrice: "", email: "", contactNumber: "" };
+    const newSvc = { serviceName: "", enServiceName: "", pricingType: "", price: "", email: "", contactNumber: "" };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form.setValue("services", [...current, newSvc] as any);
   };
@@ -1100,12 +1109,21 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (deletedClassificationIds.length > 0) {
           formData.append("deletedClassificationIds", JSON.stringify(deletedClassificationIds));
         }
+        if (deletedPlanIds.length > 0) {
+          formData.append("deletedPlanIds", JSON.stringify(deletedPlanIds));
+        }
         if (deletedActivityIds.length > 0) {
           formData.append("deletedActivityIds", JSON.stringify(deletedActivityIds));
         }
       }
 
-      await onSubmit(formData, deletedClassificationIds, deletedActivityIds);
+      await onSubmit(
+        formData, 
+        deletedClassificationIds, 
+        deletedPlanIds, 
+        deletedActivityIds,
+        isEditMode ? initialData?.lastModifiedOnUtc : undefined
+      );
 
       if (!isEditMode) {
         localStorage.removeItem(AUTOSAVE_KEY);

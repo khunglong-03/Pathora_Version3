@@ -1,24 +1,25 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
 using BuildingBlocks.CORS;
-using Contracts;
 using Contracts.Interfaces;
+using Contracts;
 using Domain.Common.Repositories;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Queries;
 
 public sealed record GetAllTourRequestsQuery(
-    string CurrentUserId,
-    TourRequestStatus? Status = null,
-    DateTimeOffset? FromDate = null,
-    DateTimeOffset? ToDate = null,
-    string? SearchText = null,
-    int PageNumber = 1,
-    int PageSize = 10) : IQuery<ErrorOr<PaginatedList<TourRequestVm>>>, ICacheable
+    [property: JsonPropertyName("currentUserId")] string CurrentUserId,
+    [property: JsonPropertyName("status")] TourRequestStatus? Status = null,
+    [property: JsonPropertyName("fromDate")] DateTimeOffset? FromDate = null,
+    [property: JsonPropertyName("toDate")] DateTimeOffset? ToDate = null,
+    [property: JsonPropertyName("searchText")] string? SearchText = null,
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10) : IQuery<ErrorOr<PaginatedList<TourRequestVm>>>, ICacheable
 {
     private string FromDateKey => FromDate?.ToString("O") ?? "null";
     private string ToDateKey => ToDate?.ToString("O") ?? "null";

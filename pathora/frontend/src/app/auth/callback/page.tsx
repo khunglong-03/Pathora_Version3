@@ -3,10 +3,13 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { logOut, setUser } from "@/store/infrastructure/authSlice";
 import { authApiSlice } from "@/store/api/auth/authApiSlice";
 import type { AppDispatch, RootState } from "@/store";
 import { resolveRoleDefaultPath } from "@/utils/authRouting";
+import { markAuthenticatedSession } from "@/utils/authSession";
+import { setCookie } from "@/utils/cookie";
 
 function CallbackHandler() {
   const router = useRouter();
@@ -23,10 +26,30 @@ function CallbackHandler() {
 
   useEffect(() => {
     const error = searchParams.get("error");
+    const returnUrl = searchParams.get("returnUrl");
 
     if (error) {
       if (cancelledRef.current) return;
       dispatch(logOut());
+      
+      // Handle different error types with appropriate messages
+      switch (error) {
+        case "google_auth_not_configured":
+          toast.error("Google authentication is not configured on the server.");
+          break;
+        case "google_auth_failed":
+          toast.error("Google authentication failed. Please try again.");
+          break;
+        case "missing_claims":
+          toast.error("Missing required information from Google profile.");
+          break;
+        case "login_failed":
+          toast.error("Failed to log in with Google. Please try another method.");
+          break;
+        default:
+          toast.error(`Authentication error: ${error}`);
+      }
+      
       router.replace("/");
       return;
     }
@@ -34,7 +57,11 @@ function CallbackHandler() {
     // Use Redux store first (populated by login mutation)
     if (user?.roles && user.roles.length > 0) {
       if (cancelledRef.current) return;
-      router.replace(resolveRoleDefaultPath(user.roles));
+      if (returnUrl) {
+        router.replace(returnUrl);
+      } else {
+        router.replace(resolveRoleDefaultPath(user.roles));
+      }
       return;
     }
 
@@ -48,7 +75,24 @@ function CallbackHandler() {
       if ("data" in result && result.data?.data) {
         const userInfo = result.data.data;
         dispatch(setUser(userInfo));
-        router.replace(resolveRoleDefaultPath(userInfo.roles));
+
+        // Sync auth cookies onto the frontend domain so Next.js Edge middleware
+        // can detect authenticated state. Without this, middleware reads no cookies
+        // (backend set them on a different domain) and redirects to /?login=true.
+        markAuthenticatedSession();
+
+        const roleNames = userInfo.roles.map((r) => r.name);
+        setCookie("auth_roles", encodeURIComponent(JSON.stringify(roleNames)), 7 * 24 * 60 * 60);
+
+        const portal = userInfo.portal ?? (roleNames.some((r) => r === "Admin" || r === "Manager") ? "admin" : "user");
+        setCookie("auth_portal", portal, 7 * 24 * 60 * 60);
+
+        toast.success("Successfully logged in with Google!");
+        if (returnUrl) {
+          router.replace(returnUrl);
+        } else {
+          router.replace(resolveRoleDefaultPath(userInfo.roles));
+        }
       } else {
         dispatch(logOut());
         router.replace("/");

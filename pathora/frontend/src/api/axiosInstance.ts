@@ -6,7 +6,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { ToastPosition } from "react-toastify";
-import { handleResponseError, waitForRetry } from "./responseInterceptor";
+import {
+  handleResponseError,
+  waitForRetry,
+  type RetryableRequestConfig,
+} from "./responseInterceptor";
 import { showErrorToast } from "./showErrorToast";
 import { getCurrentApiLanguage } from "./languageHeader";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
@@ -58,25 +62,48 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 const onUnauthorized = (): void => {
-  if (typeof document !== "undefined") {
-    // Clear all auth-related cookies
-    const cookies = ["access_token", "auth_status", "refresh_token"];
-    cookies.forEach((name) => {
-      document.cookie =
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-    });
+  if (typeof window === "undefined") return;
+
+  // Skip the redirect when no session marker exists. Public pages call protected
+  // endpoints opportunistically (e.g. getUserInfo on mount); without this guard
+  // the 401 from those calls bounces the browser to /?login=true&next=... before
+  // the user can submit the login form, making the login/refresh requests vanish
+  // from the Network tab.
+  if (!getCookie("auth_status")) return;
+
+  // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
+  // để user re-login và giữ nguyên context (booking history, etc.)
+  //
+  // Strip `login`/`next` from current URL before reusing it as the new `next`,
+  // otherwise repeated 401s would nest `?next=%2F%3Fnext%3D%252F...` infinitely.
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete("login");
+  currentUrl.searchParams.delete("next");
+  const cleanSearch = currentUrl.searchParams.toString();
+  const currentPath = currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+
+  const loginUrl = new URL("/", window.location.origin);
+  loginUrl.searchParams.set("login", "true");
+  if (currentPath !== "/") {
+    loginUrl.searchParams.set("next", currentPath);
   }
-  if (typeof window !== "undefined") {
-    window.location.href = "/";
+  if (window.location.href === loginUrl.toString()) {
+    return;
   }
+  window.location.href = loginUrl.toString();
 };
 
 const attachInterceptors = (instance: AxiosInstance): void => {
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       const token = getCookie("access_token");
+      const isAuthRetry = (config as RetryableRequestConfig).__isAuthRequest === true;
 
-      if (token) {
+      // On post-refresh retry, responseInterceptor has already attached the freshly
+      // rotated bearer token. Don't overwrite it from the cookie — the cookie may
+      // still hold the stale token if the write hasn't propagated, which would cause
+      // the retry to 401 again and bounce the user to /?login=true&next=...
+      if (token && !isAuthRetry) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       config.headers["Accept-Language"] = getCurrentApiLanguage();
@@ -91,7 +118,7 @@ const attachInterceptors = (instance: AxiosInstance): void => {
           console.log("Params:", config.params);
         }
         
-        let parsedData = config.data;
+        const parsedData = config.data;
         if (config.data instanceof FormData) {
           const obj: Record<string, any> = {};
           config.data.forEach((value, key) => {
@@ -132,53 +159,62 @@ const attachInterceptors = (instance: AxiosInstance): void => {
       return response;
     },
     async (error: AxiosError<ApiErrorResponse>) => {
-      // --- DEV LOGGER: Bắt payload gửi đi khi API lỗi ---
-      try {
-        if (process.env.NODE_ENV === "development" && error.config) {
-          const { url, data, params } = error.config;
-          let parsedData: any = data;
+      const isAuthChallenge = error.response?.status === 401;
+      const isRefreshRequest = error.config?.url?.includes("/auth/refresh");
+      const isAlreadyRefreshing = (error.config as RetryableRequestConfig)?.__isAuthRequest;
 
-          // Nếu là FormData, phân tích thành object để dễ xem
-          if (data instanceof FormData) {
-            parsedData = {};
-            data.forEach((value, key) => {
-              if (value instanceof File) {
-                parsedData[key] = `[File: ${value.name} (${value.size} bytes)]`;
-              } else {
-                if (parsedData[key] !== undefined) {
-                  if (!Array.isArray(parsedData[key])) {
-                    parsedData[key] = [parsedData[key]];
-                  }
-                  parsedData[key].push(value);
+      // Skip dev logger for 401 errors that are about to trigger a silent token refresh
+      const isRefreshable401 = isAuthChallenge && !isRefreshRequest && !isAlreadyRefreshing;
+
+      if (!isRefreshable401) {
+        // --- DEV LOGGER: Bắt payload gửi đi khi API lỗi ---
+        try {
+          if (process.env.NODE_ENV === "development" && error.config) {
+            const { url, data, params } = error.config;
+            let parsedData: any = data;
+
+            // Nếu là FormData, phân tích thành object để dễ xem
+            if (data instanceof FormData) {
+              parsedData = {};
+              data.forEach((value, key) => {
+                if (value instanceof File) {
+                  parsedData[key] = `[File: ${value.name} (${value.size} bytes)]`;
                 } else {
-                  parsedData[key] = value;
+                  if (parsedData[key] !== undefined) {
+                    if (!Array.isArray(parsedData[key])) {
+                      parsedData[key] = [parsedData[key]];
+                    }
+                    parsedData[key].push(value);
+                  } else {
+                    parsedData[key] = value;
+                  }
                 }
+              });
+            } else if (typeof data === "string") {
+              try {
+                parsedData = JSON.parse(data);
+              } catch (e) {
+                // Bỏ qua nếu parse JSON lỗi
               }
-            });
-          } else if (typeof data === "string") {
-            try {
-              parsedData = JSON.parse(data);
-            } catch (e) {
-              // Bỏ qua nếu parse JSON lỗi
             }
-          }
 
-          // Ghép thêm query params (thường có ở GET requests) vào payload để xem cho rõ
-          if (params && Object.keys(params).length > 0) {
-            parsedData = parsedData ? { _body: parsedData, _queryParams: params } : params;
-          }
+            // Ghép thêm query params (thường có ở GET requests) vào payload để xem cho rõ
+            if (params && Object.keys(params).length > 0) {
+              parsedData = parsedData ? { _body: parsedData, _queryParams: params } : params;
+            }
 
-          // Bắn dữ liệu về API Route cục bộ để in ra Terminal
-          fetch("/api/dev-logger", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ method: error.config.method?.toUpperCase(), url, payload: parsedData }),
-          }).catch(() => {});
+            // Bắn dữ liệu về API Route cục bộ để in ra Terminal
+            fetch("/api/dev-logger", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ method: error.config.method?.toUpperCase(), url, payload: parsedData }),
+            }).catch(() => {});
+          }
+        } catch (e) {
+          // Chặn lỗi phát sinh từ logger để không ảnh hưởng luồng chính
         }
-      } catch (e) {
-        // Chặn lỗi phát sinh từ logger để không ảnh hưởng luồng chính
+        // ----------------------------------------------------
       }
-      // ----------------------------------------------------
 
       return handleResponseError(error, {
         request: (config) => {

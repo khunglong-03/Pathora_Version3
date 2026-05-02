@@ -10,7 +10,13 @@ import {
   AdminErrorCard,
   AdminFilterTabs,
   AdminKpiStrip,
+  DriverActivityDrawer,
 } from "@/features/dashboard/components";
+import { PlusIcon, PencilSimpleIcon, TrashIcon, ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import VehicleForm from "@/components/transport/VehicleForm";
+import { toast } from "react-toastify";
+import type { CreateVehicleDto, UpdateVehicleDto, Vehicle } from "@/api/services/transportProviderService";
+import type { DriverSummary } from "@/types/admin";
 
 // Tab type
 type TabValue = "overview" | "vehicles" | "drivers" | "bookings";
@@ -31,6 +37,15 @@ export default function TransportProviderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>("overview");
   const [reloadToken, setReloadToken] = useState(0);
+
+  // Vehicle management state
+  const [isVehicleFormOpen, setIsVehicleFormOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [isDeletingVehicle, setIsDeletingVehicle] = useState<string | null>(null);
+
+  // Driver activity state
+  const [selectedDriverForActivity, setSelectedDriverForActivity] = useState<DriverSummary | null>(null);
+  const [isActivityDrawerOpen, setIsActivityDrawerOpen] = useState(false);
 
   const loadEntity = useCallback(async () => {
     if (!id) return;
@@ -55,6 +70,56 @@ export default function TransportProviderDetailPage() {
   }, [loadEntity]);
 
   const handleRefresh = () => setReloadToken((t) => t + 1);
+
+  const handleViewDriverActivity = (driver: DriverSummary) => {
+    setSelectedDriverForActivity(driver);
+    setIsActivityDrawerOpen(true);
+  };
+
+  const handleAddVehicle = () => {
+    setEditingVehicle(null);
+    setIsVehicleFormOpen(true);
+  };
+
+  const handleEditVehicle = (vehicleSummary: any) => {
+    // Map VehicleSummary to Vehicle for the form
+    const vehicle: Vehicle = {
+      ...vehicleSummary,
+      createdOnUtc: vehicleSummary.createdAt,
+    };
+    setEditingVehicle(vehicle);
+    setIsVehicleFormOpen(true);
+  };
+
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!window.confirm(`Xóa phương tiện này?`)) return;
+    setIsDeletingVehicle(vehicleId);
+    try {
+      await adminService.deleteAdminTransportVehicle(id, vehicleId);
+      toast.success("Xóa phương tiện thành công");
+      handleRefresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Xóa thất bại");
+    } finally {
+      setIsDeletingVehicle(null);
+    }
+  };
+
+  const handleVehicleFormSave = async (data: CreateVehicleDto | UpdateVehicleDto) => {
+    try {
+      if (editingVehicle) {
+        await adminService.updateAdminTransportVehicle(id, editingVehicle.id, data);
+        toast.success("Cập nhật phương tiện thành công");
+      } else {
+        await adminService.createAdminTransportVehicle(id, data as CreateVehicleDto);
+        toast.success("Thêm phương tiện thành công");
+      }
+      setIsVehicleFormOpen(false);
+      handleRefresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Thao tác thất bại");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -230,6 +295,16 @@ export default function TransportProviderDetailPage() {
 
         {activeTab === "vehicles" && (
           <div className="rounded-xl border bg-card overflow-hidden">
+            <div className="p-4 flex justify-end border-b">
+              <button
+                onClick={handleAddVehicle}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg text-white transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#0D9488" }}
+              >
+                <PlusIcon size={16} weight="bold" />
+                Thêm phương tiện
+              </button>
+            </div>
             {entity.vehicles.length === 0 ? (
               <div className="p-12 text-center">
                 <p className="text-muted-foreground">Chưa có phương tiện nào</p>
@@ -238,17 +313,16 @@ export default function TransportProviderDetailPage() {
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Biển số</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Loại xe</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Số ghế</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Khu vực</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {entity.vehicles.map((v) => (
                     <tr key={v.id}>
-                      <td className="px-4 py-3 font-mono text-sm">{v.vehiclePlate}</td>
                       <td className="px-4 py-3 text-sm">{v.vehicleType}</td>
                       <td className="px-4 py-3 text-sm">{v.seatCapacity}</td>
                       <td className="px-4 py-3 text-sm">{v.locationArea ?? "-"}</td>
@@ -262,6 +336,25 @@ export default function TransportProviderDetailPage() {
                         >
                           {v.isActive ? "Hoạt động" : "Ngừng"}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEditVehicle(v)}
+                            className="p-1.5 rounded-lg transition-colors hover:bg-gray-100 text-gray-500"
+                            title="Sửa"
+                          >
+                            <PencilSimpleIcon size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVehicle(v.id)}
+                            disabled={isDeletingVehicle === v.id}
+                            className="p-1.5 rounded-lg transition-colors hover:bg-red-50 text-red-500 disabled:opacity-50"
+                            title="Xóa"
+                          >
+                            <TrashIcon size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -286,6 +379,7 @@ export default function TransportProviderDetailPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium">Loại GPLX</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Điện thoại</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -306,6 +400,15 @@ export default function TransportProviderDetailPage() {
                           {d.isActive ? "Hoạt động" : "Ngừng"}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleViewDriverActivity(d)}
+                          className="p-1.5 rounded-lg transition-colors hover:bg-orange-50 text-orange-500"
+                          title="Xem hoạt động"
+                        >
+                          <ClockCounterClockwiseIcon size={18} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -322,6 +425,27 @@ export default function TransportProviderDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Vehicle Form Modal */}
+      {isVehicleFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end" aria-modal="true" role="dialog">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsVehicleFormOpen(false)} />
+          <div className="relative w-full max-w-md h-full overflow-y-auto bg-white shadow-2xl" style={{ borderLeft: "1px solid var(--border)" }}>
+            <VehicleForm
+              vehicle={editingVehicle ?? undefined}
+              onSave={handleVehicleFormSave}
+              onCancel={() => setIsVehicleFormOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+      {/* Driver Activity Drawer */}
+      <DriverActivityDrawer
+        isOpen={isActivityDrawerOpen}
+        onClose={() => setIsActivityDrawerOpen(false)}
+        driver={selectedDriverForActivity}
+        providerId={id}
+      />
     </div>
   );
 }

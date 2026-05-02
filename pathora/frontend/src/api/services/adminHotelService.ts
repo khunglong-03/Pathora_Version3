@@ -2,7 +2,7 @@
 
 import { api } from "@/api/axiosInstance";
 import { ADMIN_HOTEL } from "@/api/endpoints/adminHotel";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import { extractData, extractResult } from "@/utils/apiResponse";
 
 // ─── Hotel Supplier ────────────────────────────────────────────────
@@ -15,9 +15,12 @@ export interface HotelSupplierItem {
   email: string | null;
   address: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   primaryContinent: string | null;
   continents: string[];
   accommodationCount: number;
+  propertyCount?: number;
   roomCount: number;
   createdOnUtc: string | null;
 }
@@ -30,6 +33,8 @@ export interface HotelSupplierDetail {
   email: string | null;
   address: string | null;
   status: string;
+  userStatus?: string;
+  ownerUserId?: string;
   notes: string | null;
   createdAt: string | null;
   updatedAt: string | null;
@@ -238,7 +243,7 @@ export const adminHotelService = {
       queryParams.append("continents", continent);
     });
 
-    const response = await api.get<ApiResponse<PaginatedHotelList<HotelSupplierItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedHotelList<HotelSupplierItem>>>(
       ADMIN_HOTEL.GET_SUPPLIERS,
       { params: queryParams },
     );
@@ -246,7 +251,7 @@ export const adminHotelService = {
   },
 
   getSupplierDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<HotelSupplierDetail>>(
+    const response = await api.get<ServiceResponse<HotelSupplierDetail>>(
       ADMIN_HOTEL.GET_SUPPLIER_DETAIL(id),
     );
     return extractResult<HotelSupplierDetail>(response.data);
@@ -254,7 +259,7 @@ export const adminHotelService = {
 
   // Room Inventory
   getRoomInventory: async (params: RoomInventoryFilterParams = {}) => {
-    const response = await api.get<ApiResponse<PaginatedHotelList<RoomInventoryItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedHotelList<RoomInventoryItem>>>(
       ADMIN_HOTEL.GET_ROOM_INVENTORY,
       { params: { page: 1, limit: 20, ...params } },
     );
@@ -262,14 +267,14 @@ export const adminHotelService = {
   },
 
   getRoomInventoryDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<RoomInventoryDetail>>(
+    const response = await api.get<ServiceResponse<RoomInventoryDetail>>(
       ADMIN_HOTEL.GET_ROOM_INVENTORY_DETAIL(id),
     );
     return extractResult<RoomInventoryDetail>(response.data);
   },
 
   createRoomInventory: async (data: CreateRoomInventoryDto) => {
-    const response = await api.post<ApiResponse<RoomInventoryItem>>(
+    const response = await api.post<ServiceResponse<RoomInventoryItem>>(
       ADMIN_HOTEL.CREATE_ROOM_INVENTORY,
       data,
     );
@@ -277,7 +282,7 @@ export const adminHotelService = {
   },
 
   updateRoomInventory: async (id: string, data: UpdateRoomInventoryDto) => {
-    const response = await api.put<ApiResponse<RoomInventoryItem>>(
+    const response = await api.put<ServiceResponse<RoomInventoryItem>>(
       ADMIN_HOTEL.UPDATE_ROOM_INVENTORY(id),
       data,
     );
@@ -291,7 +296,7 @@ export const adminHotelService = {
 
   // Room Blocks
   getRoomBlocks: async (params: RoomBlockFilterParams = {}) => {
-    const response = await api.get<ApiResponse<PaginatedHotelList<RoomBlockItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedHotelList<RoomBlockItem>>>(
       ADMIN_HOTEL.GET_ROOM_BLOCKS,
       { params: { page: 1, limit: 20, ...params } },
     );
@@ -299,14 +304,14 @@ export const adminHotelService = {
   },
 
   getRoomBlockDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<RoomBlockItem>>(
+    const response = await api.get<ServiceResponse<RoomBlockItem>>(
       ADMIN_HOTEL.GET_ROOM_BLOCK_DETAIL(id),
     );
     return extractResult<RoomBlockItem>(response.data);
   },
 
   createRoomBlock: async (data: CreateRoomBlockDto) => {
-    const response = await api.post<ApiResponse<RoomBlockItem>>(
+    const response = await api.post<ServiceResponse<RoomBlockItem>>(
       ADMIN_HOTEL.CREATE_ROOM_BLOCK,
       data,
     );
@@ -314,7 +319,7 @@ export const adminHotelService = {
   },
 
   updateRoomBlock: async (id: string, data: UpdateRoomBlockDto) => {
-    const response = await api.put<ApiResponse<RoomBlockItem>>(
+    const response = await api.put<ServiceResponse<RoomBlockItem>>(
       ADMIN_HOTEL.UPDATE_ROOM_BLOCK(id),
       data,
     );
@@ -328,7 +333,7 @@ export const adminHotelService = {
 
   // Booking Accommodation Details
   getBookingAccommodationDetails: async (params: BookingAccommodationFilterParams = {}) => {
-    const response = await api.get<ApiResponse<PaginatedHotelList<BookingAccommodationDetailItem>>>(
+    const response = await api.get<ServiceResponse<PaginatedHotelList<BookingAccommodationDetailItem>>>(
       ADMIN_HOTEL.GET_BOOKING_ACCOMMODATION_DETAILS,
       { params: { page: 1, limit: 20, ...params } },
     );
@@ -336,7 +341,7 @@ export const adminHotelService = {
   },
 
   getBookingAccommodationDetail: async (id: string) => {
-    const response = await api.get<ApiResponse<BookingAccommodationDetailFull>>(
+    const response = await api.get<ServiceResponse<BookingAccommodationDetailFull>>(
       ADMIN_HOTEL.GET_BOOKING_ACCOMMODATION_DETAIL(id),
     );
     return extractResult<BookingAccommodationDetailFull>(response.data);

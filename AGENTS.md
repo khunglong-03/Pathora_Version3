@@ -1,5 +1,7 @@
 # Workspace Agent Guide
 
+> **OpenSpec language rule (mọi agent: Claude, Gemini, Codex, Cursor, ...):** Khi phân tích yêu cầu hoặc tạo / chỉnh sửa artifact trong `openspec/` (proposal, design, specs, tasks, ...), **bắt buộc** đọc và tuân theo `openspec/AGENTS.md`. File đó yêu cầu nội dung viết bằng **tiếng Việt**, đồng thời liệt kê các phần phải giữ nguyên tiếng Anh (OpenSpec schema headers, identifier, code, route, ...).
+
 - Actual source trees are `pathora/frontend` and `panthora_be`. Do not assume the root-level `backend/` folder is the active backend.
 - `pathora/package.json` is effectively empty. Real frontend commands live in `pathora/frontend/package.json`.
 - Checked-in docs and scripts still often say `D:\DoAn`; this harness runs the workspace at `D:\Doan2`.
@@ -76,7 +78,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 relationships, 71 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (8459 symbols, 11778 relationships, 84 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -88,44 +90,12 @@ This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 
 - When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
 - When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
 
-## When Debugging
-
-1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
-2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/Pathora_Version3/process/{processName}` — trace the full execution flow step by step
-4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
-
-## When Refactoring
-
-- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text_search edits need manual review. Then run with `dry_run: false`.
-- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
-- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
-
 ## Never Do
 
 - NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
 - NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
 - NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
 - NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-
-## Tools Quick Reference
-
-| Tool | When to use | Command |
-|------|-------------|---------|
-| `query` | Find code by concept | `gitnexus_query({query: "auth validation"})` |
-| `context` | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})` |
-| `impact` | Blast radius before editing | `gitnexus_impact({target: "X", direction: "upstream"})` |
-| `detect_changes` | Pre-commit scope check | `gitnexus_detect_changes({scope: "staged"})` |
-| `rename` | Safe multi-file rename | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
-| `cypher` | Custom graph queries | `gitnexus_cypher({query: "MATCH ..."})` |
-
-## Impact Risk Levels
-
-| Depth | Meaning | Action |
-|-------|---------|--------|
-| d=1 | WILL BREAK — direct callers/importers | MUST update these |
-| d=2 | LIKELY AFFECTED — indirect deps | Should test |
-| d=3 | MAY NEED TESTING — transitive | Test if critical path |
 
 ## Resources
 
@@ -135,32 +105,6 @@ This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 
 | `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
 | `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
 | `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
-
-## Self-Check Before Finishing
-
-Before completing any code modification task, verify:
-1. `gitnexus_impact` was run for all modified symbols
-2. No HIGH/CRITICAL risk warnings were ignored
-3. `gitnexus_detect_changes()` confirms changes match expected scope
-4. All d=1 (WILL BREAK) dependents were updated
-
-## Keeping the Index Fresh
-
-After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
-
-```bash
-npx gitnexus analyze
-```
-
-If the index previously included embeddings, preserve them by adding `--embeddings`:
-
-```bash
-npx gitnexus analyze --embeddings
-```
-
-To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without `--embeddings` will delete any previously generated embeddings.**
-
-> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
 
 ## CLI
 
@@ -179,13 +123,13 @@ To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.
 <claude-mem-context>
 # Memory Context
 
-# [Pathora_Version3] recent context, 2026-04-21 10:02pm GMT+7
+# [Pathora_Version3] recent context, 2026-04-23 5:12am GMT+7
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 7 obs (3,232t read) | 901,032t work | 100% savings
+Stats: 45 obs (22,373t read) | 2,041,330t work | 99% savings
 
 ### Apr 21, 2026
 15 2:57a 🔵 CEO Plan Review Reveals Missing Tasks and Ordering Gaps in remove-tour-policy-fk
@@ -195,6 +139,45 @@ Stats: 7 obs (3,232t read) | 901,032t work | 100% savings
 20 " 🔵 Five Test Files Contain Policy FK References Not Covered by tasks.md
 21 " 🔵 Two Duplicate TourForm.tsx Files Exist — Legacy and Refactored Versions Both Have Policy Code
 22 " 🔵 CalculateRefund Should Use FindByTourScopeAndDays Not FindByTourScope — Task 4.1 Picks Wrong Method
+### Apr 22, 2026
+91 2:04a 🔵 Pathora_Version3 multi-hotel-per-instance audit: project structure and pending work identified
+92 " 🔵 multi-hotel-per-instance OpenSpec change: full spec, design, and pending task list located
+93 " 🔵 Pathora_Version3 project layout: active backend is panthora_be, not backend/; no panthora_be/AGENTS.md exists
+94 3:13a ✅ multi-hotel-per-instance OpenSpec Docs Refined
+95 3:14a 🔵 multi-hotel-per-instance Implementation Progress: 37/66 Tasks Done
+96 5:04a 🔵 fix-tour-edit-bugs openspec directory structure confirmed
+97 " 🔵 fix-tour-edit-bugs: 5 critical Tour Builder edit bugs fully documented
+98 5:05a 🔵 Tour edit form has two TourForm.tsx files — dashboard and tour-designer paths
+99 5:11a 🔵 fix-tour-edit-bugs Task Structure in Pathora_Version3
+100 " 🔵 fix-tour-edit-bugs: Five Critical Bugs Identified in Tour Edit Workflow
+101 " 🔵 fix-tour-edit-bugs Task List: 9 Tasks Across 3 Groups
+102 " 🔵 Pathora_Version3 Project Architecture and Agent Instructions
+103 5:12a 🔵 Transportation Location Mapping Already Fixed in Main TourForm.tsx (lines 669-672)
+104 " 🔵 Image Retention Bug: existingImages Sent as JSON Object Array, Not retainedImageIds
+105 " 🔵 Validation UI: TourForm.tsx Already Has Red Border Logic; BasicInfoSection.tsx Also Has It
+106 " 🔵 TourDayActivityDto Type: fromLocationName/toLocationName Are Optional Fields on Backend DTO
+107 5:13a 🔵 Backend Tour Update API: existingImages Key Confirmed; Concurrency Check Has 1-Second Tolerance
+108 " 🔵 buildTourFormData Does NOT Append retainedImageIds — Image Retention Handled Separately in TourForm.tsx
+109 " 🔵 Autoplan Investigation Complete: Tasks 1.1 and 2.1-2.2 Already Partially Implemented
+110 " 🔵 TourImageUpload.tsx: imagesError IS Displayed; showExistingThumbnail Uses Computed Value (No useState Bug)
+111 " 🔵 Autoplan Full Audit Summary: All fix-tour-edit-bugs Tasks Appear Pre-Implemented; Focus Needed on Verification
+112 5:18a ⚖️ Adversarial CEO Review: Admin-Manage-Transport-Vehicles OpenSpec
+113 " 🔵 KPI Bug Confirmed: activeCount Computed from Current Page Slice
+114 " 🔵 Vehicles Tab is Read-Only; No Admin CRUD UI or Service Methods Exist
+115 " 🔵 Admin Vehicle Endpoints to Reuse Existing CQRS Commands via Provider ID Injection
+116 5:19a 🔵 Backend KPI Bug: total Is Filter-Scoped; pendingCount IS Global; activeCount Missing Entirely
+117 " 🔵 Security Gap: UpdateVehicle and DeleteVehicle Commands Use FindByPlateAndOwnerId — Incompatible with Admin Flow
+118 " 🔵 Transport Provider Admin Endpoints Served by ManagerController (ManagerOnly Policy), Not AdminController
+119 5:20a 🔵 Critical: pendingCount Is Also Broken — "Pending" Falls Through UserStatus Filter, Returns Total Count
+120 " 🔵 GetTransportProviderByIdQueryHandler Uses Dual Lookup Path: User ID or Supplier ID
+121 " 🔵 TransportProviderListItemDto Exposes UserStatus Enum (Not VerifyStatus) — No Pending State Representable
+122 6:35p 🔵 OpenSpec change "transport-per-activity-request-and-approval" ready for implementation
+123 6:42p 🟣 Transport Per-Activity Request and Approval — 55/131 Tasks Complete
+124 6:43p 🔵 Exact File Inventory for transport-per-activity-request-and-approval Change
+125 " 🔵 17 Engineering Review Gaps Identified Post-Plan in design.md
+126 6:44p 🔵 TransportTourAssignmentPage Still Uses Deprecated assignVehicleToActivity — Task 7.4 Not Done
+127 " 🔵 ApproveTransportationActivityCommand Handler Implementation Details
+128 6:45p 🔵 CreateTourInstancePage Has Per-Activity Transport UI but Still Sends Legacy transportProviderId
 
-Access 901k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 2041k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

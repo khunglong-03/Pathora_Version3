@@ -12,3 +12,4 @@ export { AdminRecentActivity } from "./AdminRecentActivity";
 export { TourManagerCard } from "./TourManagerCard";
 export { StaffList } from "./StaffList";
 export { StaffReassignModal } from "./StaffReassignModal";
+export { DriverActivityDrawer } from "./DriverActivityDrawer";

@@ -1,3 +1,4 @@
+using System.Data;
 using Domain.Common.Repositories;
 using ErrorOr;
 
@@ -12,6 +13,14 @@ public interface IUnitOfWork : IDisposable
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();
     Task ExecuteTransactionAsync(Func<Task> action);
+
+    /// <summary>
+    /// Executes the supplied work inside a DB transaction at the specified
+    /// <paramref name="isolationLevel"/>. Use <see cref="IsolationLevel.RepeatableRead"/>
+    /// (or higher) for inventory-hold approve flows to prevent cross-tour
+    /// double-booking races (ER-1/ER-11).
+    /// </summary>
+    Task ExecuteTransactionAsync(IsolationLevel isolationLevel, Func<Task> action);
     void MarkAsAdded(object entity);
 }
 public static class UnitOfWorkExtensions

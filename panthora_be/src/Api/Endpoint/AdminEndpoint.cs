@@ -23,4 +23,7 @@ public static class AdminEndpoint
     public const string CreateStaffUnderManager = "tour-managers/{managerId:guid}/staff/create";
     public const string UpdateStaffUnderManager = "tour-managers/{managerId:guid}/staff/{staffId:guid}/update";
     public const string ReassignStaff = "tour-managers/{managerId:guid}/staff/{staffId:guid}/reassign";
+
+    // Transport Provider
+    public const string DriverActivities = "transport-providers/{providerId:guid}/drivers/{driverId:guid}/activities";
 }

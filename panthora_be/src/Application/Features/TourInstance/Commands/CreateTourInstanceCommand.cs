@@ -1,33 +1,38 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Dtos;
-using Contracts.Interfaces;
+using Application.Services;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
+using Domain.Entities.Translations;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.Commands;
 
 public sealed record CreateTourInstanceCommand(
-    Guid TourId,
-    Guid ClassificationId,
-    string Title,
-    TourType InstanceType,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate,
-    int MaxParticipation,
-    decimal BasePrice,
-    List<string>? IncludedServices = null,
-    List<Guid>? GuideUserIds = null,
-    string? ThumbnailUrl = null,
-    Guid? TourRequestId = null,
-    List<string>? ImageUrls = null,
-    Guid? HotelProviderId = null,
-    Guid? TransportProviderId = null,
-    List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("tourId")] Guid TourId,
+    [property: JsonPropertyName("classificationId")] Guid ClassificationId,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("instanceType")] TourType InstanceType,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset EndDate,
+    [property: JsonPropertyName("maxParticipation")] int MaxParticipation,
+    [property: JsonPropertyName("basePrice")] decimal BasePrice,
+    [property: JsonPropertyName("includedServices")] List<string>? IncludedServices = null,
+    [property: JsonPropertyName("location")] string? Location = null,
+    [property: JsonPropertyName("guideUserIds")] List<Guid>? GuideUserIds = null,
+    [property: JsonPropertyName("thumbnailUrl")] string? ThumbnailUrl = null,
+    [property: JsonPropertyName("tourRequestId")] Guid? TourRequestId = null,
+    [property: JsonPropertyName("imageUrls")] List<string>? ImageUrls = null,
+    [property: JsonPropertyName("translations")] Dictionary<string, TourInstanceTranslationData>? Translations = null,
+    [property: JsonPropertyName("activityAssignments")] List<CreateTourInstanceActivityAssignmentDto>? ActivityAssignments = null,
+    [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization = false,
+    [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
 }
@@ -63,6 +68,38 @@ public sealed class CreateTourInstanceCommandValidator : AbstractValidator<Creat
 
         RuleFor(x => x.InstanceType)
             .IsInEnum().WithMessage(ValidationMessages.TourInstanceInstanceTypeInvalid);
+
+        RuleForEach(x => x.ActivityAssignments)
+            .SetValidator(new CreateTourInstanceActivityAssignmentDtoValidator());
+
+        // When a per-activity transport plan specifies seat count, it must cover the tour size (TC1.3)
+        RuleFor(x => x)
+            .Must(cmd => cmd.ActivityAssignments is null
+                || !cmd.ActivityAssignments.Any(a =>
+                    a.RequestedSeatCount.HasValue
+                    && (a.RequestedSeatCount.Value * (a.RequestedVehicleCount ?? 1)) < cmd.MaxParticipation))
+            .WithMessage("Tổng số ghế yêu cầu (RequestedSeatCount * RequestedVehicleCount) phải lớn hơn hoặc bằng MaxParticipation khi được chỉ định.");
+    }
+}
+
+public sealed class CreateTourInstanceActivityAssignmentDtoValidator : AbstractValidator<CreateTourInstanceActivityAssignmentDto>
+{
+    public CreateTourInstanceActivityAssignmentDtoValidator()
+    {
+        RuleFor(x => x.OriginalActivityId).NotEmpty();
+
+        RuleFor(x => x.RequestedSeatCount)
+            .GreaterThan(0).When(x => x.RequestedSeatCount.HasValue)
+            .WithMessage("Requested seat count must be greater than zero.");
+
+        RuleFor(x => x.RequestedVehicleType)
+            .IsInEnum().When(x => x.RequestedVehicleType.HasValue)
+            .WithMessage("Invalid vehicle type requested.");
+
+        RuleFor(x => x.RequestedVehicleType)
+            .Must(vt => vt.HasValue)
+            .When(x => x.TransportSupplierId.HasValue)
+            .WithMessage("Phải chọn loại xe khi đã chọn nhà cung cấp vận chuyển.");
     }
 }
 

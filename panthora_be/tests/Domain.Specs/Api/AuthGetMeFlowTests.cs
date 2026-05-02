@@ -1,13 +1,13 @@
-using Api.Controllers;
-using Api.Infrastructure;
-using Application.Common.Constant;
-using Application.Contracts.Identity;
-using Application.Features.Identity.Commands;
-using Application.Features.Identity.Queries;
+using global::Api.Controllers;
+using global::Api.Infrastructure;
+using global::Application.Common.Constant;
+using global::Application.Contracts.Identity;
+using global::Application.Features.Identity.Commands;
+using global::Application.Features.Identity.Queries;
 using Contracts.ModelResponse;
-using Domain.Entities;
+using global::Domain.Entities;
 using ErrorOr;
-using Infrastructure.Identity;
+using global::Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -313,12 +313,12 @@ public sealed class AuthGetMeFlowTests
         var userId = Guid.NewGuid().ToString();
         var sender = Substitute.For<ISender>();
         sender
-            .Send(Arg.Any<Application.Features.Identity.Commands.UpdateMyProfileCommand>(), Arg.Any<CancellationToken>())
+            .Send(Arg.Any<global::Application.Features.Identity.Commands.UpdateMyProfileCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success);
 
         var controller = BuildAuthenticatedController(sender, userId, "/api/auth/me");
 
-        var command = new Application.Features.Identity.Commands.UpdateMyProfileCommand(
+        var command = new global::Application.Features.Identity.Commands.UpdateMyProfileCommand(
             "Hung Nguyen Updated",
             "0123456789",
             "123 Main Street, HCMC");

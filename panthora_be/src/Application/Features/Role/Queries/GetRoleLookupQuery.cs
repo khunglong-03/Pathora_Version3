@@ -1,8 +1,9 @@
 using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
-using ErrorOr;
 using Contracts;
+using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Queries;
 

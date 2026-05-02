@@ -1,3 +1,4 @@
+using System.Linq;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Entities;
@@ -11,9 +12,7 @@ public sealed class TourInstanceProfile : Profile
     {
         CreateMap<TourInstanceEntity, TourInstanceVm>()
             .ForCtorParam(nameof(TourInstanceVm.Status), opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()))
-            .ForCtorParam(nameof(TourInstanceVm.HotelApprovalStatus), opt => opt.MapFrom(src => (int)src.HotelApprovalStatus))
-            .ForCtorParam(nameof(TourInstanceVm.TransportApprovalStatus), opt => opt.MapFrom(src => (int)src.TransportApprovalStatus));
+            .ForCtorParam(nameof(TourInstanceVm.InstanceType), opt => opt.MapFrom(src => src.InstanceType.ToString()));
 
         CreateMap<TourInstanceEntity, DuplicateInstanceSummaryDto>()
             .ForCtorParam(nameof(DuplicateInstanceSummaryDto.Id), opt => opt.MapFrom(src => src.Id))
@@ -27,12 +26,11 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.Rating), opt => opt.MapFrom(_ => 0m))
             .ForCtorParam(nameof(TourInstanceDto.TotalBookings), opt => opt.MapFrom(_ => 0))
             .ForCtorParam(nameof(TourInstanceDto.Revenue), opt => opt.MapFrom(_ => 0m))
-            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()))
-            .ForCtorParam(nameof(TourInstanceDto.HotelProviderId), opt => opt.MapFrom(src => src.HotelProviderId))
-            .ForCtorParam(nameof(TourInstanceDto.HotelProviderName), opt => opt.MapFrom(src => src.HotelProvider != null ? src.HotelProvider.Name : null))
-            .ForCtorParam(nameof(TourInstanceDto.TransportProviderId), opt => opt.MapFrom(src => src.TransportProviderId))
-            .ForCtorParam(nameof(TourInstanceDto.TransportProviderName), opt => opt.MapFrom(src => src.TransportProvider != null ? src.TransportProvider.Name : null));
-
+            .ForCtorParam(nameof(TourInstanceDto.FinalSellPrice), opt => opt.MapFrom(src => src.FinalSellPrice))
+            .ForCtorParam(nameof(TourInstanceDto.WantsCustomization), opt => opt.MapFrom(src => src.WantsCustomization))
+            .ForCtorParam(nameof(TourInstanceDto.CustomizationNotes), opt => opt.MapFrom(src => src.CustomizationNotes))
+            .ForCtorParam(nameof(TourInstanceDto.ManagerReviewNote), opt => opt.MapFrom(src => src.ManagerReviewNote))
+            .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()));
         CreateMap<TourInstanceManagerEntity, TourInstanceManagerDto>()
             .ForCtorParam(nameof(TourInstanceManagerDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstanceManagerDto.UserId), opt => opt.MapFrom(src => src.UserId))
@@ -45,6 +43,10 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Id), opt => opt.MapFrom(src => src.Id))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomType), opt => opt.MapFrom(src => src.RoomType.ToString()))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.Quantity), opt => opt.MapFrom(src => src.Quantity))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierId), opt => opt.MapFrom(src => src.SupplierId))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierName), opt => opt.MapFrom(src => src.Supplier != null ? src.Supplier.Name : null))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierApprovalStatus), opt => opt.MapFrom(src => src.SupplierApprovalStatus.ToString()))
+            .ForCtorParam(nameof(TourInstancePlanAccommodationDto.SupplierApprovalNote), opt => opt.MapFrom(src => src.SupplierApprovalNote))
             .ForCtorParam(nameof(TourInstancePlanAccommodationDto.RoomBlocksTotal), opt => opt.MapFrom(src => src.TourInstanceDayActivity != null && src.TourInstanceDayActivity.RoomBlocks != null ? src.TourInstanceDayActivity.RoomBlocks.Sum(b => b.RoomCountBlocked) : 0));
 
         CreateMap<TourInstanceDayActivityEntity, TourInstanceDayActivityDto>()
@@ -63,11 +65,18 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayActivityDto.FromLocation), opt => opt.MapFrom(src => src.FromLocation))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.ToLocation), opt => opt.MapFrom(src => src.ToLocation))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.DurationMinutes), opt => opt.MapFrom(src => src.DurationMinutes))
-            .ForCtorParam(nameof(TourInstanceDayActivityDto.DistanceKm), opt => opt.MapFrom(src => src.DistanceKm))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.Price), opt => opt.MapFrom(src => src.Price))
-            .ForCtorParam(nameof(TourInstanceDayActivityDto.BookingReference), opt => opt.MapFrom(src => src.BookingReference))
+            // Transport Plan fields (per-activity)
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.RequestedVehicleType), opt => opt.MapFrom(src => src.RequestedVehicleType != null ? src.RequestedVehicleType.ToString() : null))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.RequestedSeatCount), opt => opt.MapFrom(src => src.RequestedSeatCount))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.RequestedVehicleCount), opt => opt.MapFrom(src => src.RequestedVehicleCount))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportSupplierId), opt => opt.MapFrom(src => src.TransportSupplierId))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportSupplierName), opt => opt.MapFrom(src => src.TransportSupplier != null ? src.TransportSupplier.Name : null))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalStatus), opt => opt.MapFrom(src => src.TransportationApprovalStatus.ToString()))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalNote), opt => opt.MapFrom(src => src.TransportationApprovalNote))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.ExternalTransportReference), opt => opt.MapFrom(src => src.ExternalTransportReference))
+            // Instance-specific Vehicle Assignment info
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleId), opt => opt.MapFrom(src => src.VehicleId))
-            .ForCtorParam(nameof(TourInstanceDayActivityDto.VehiclePlate), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehiclePlate : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleType), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehicleType.ToString() : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleBrand), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Brand : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleModel), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.Model : null))
@@ -78,7 +87,21 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayActivityDto.PickupLocation), opt => opt.MapFrom(src => src.PickupLocation))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.DropoffLocation), opt => opt.MapFrom(src => src.DropoffLocation))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.DepartureTime), opt => opt.MapFrom(src => src.DepartureTime))
-            .ForCtorParam(nameof(TourInstanceDayActivityDto.ArrivalTime), opt => opt.MapFrom(src => src.ArrivalTime));
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.ArrivalTime), opt => opt.MapFrom(src => src.ArrivalTime))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportAssignments), opt => opt.MapFrom(src =>
+                src.TransportAssignments.Count == 0
+                    ? new List<TourInstanceTransportAssignmentDto>()
+                    : src.TransportAssignments.OrderBy(t => t.VehicleId).Select(t => new TourInstanceTransportAssignmentDto(
+                        t.Id,
+                        t.VehicleId,
+                        t.DriverId,
+                        t.SeatCountSnapshot,
+                        t.Vehicle != null ? t.Vehicle.VehicleType.ToString() : null,
+                        t.Vehicle != null ? t.Vehicle.Brand : null,
+                        t.Vehicle != null ? t.Vehicle.Model : null,
+                        t.Vehicle != null ? (int?)t.Vehicle.SeatCapacity : null,
+                        t.Driver != null ? t.Driver.FullName : null,
+                        t.Driver != null ? t.Driver.PhoneNumber : null)).ToList()));
 
         CreateMap<TourInstanceDayEntity, TourInstanceDayDto>()
             .ForCtorParam(nameof(TourInstanceDayDto.Id), opt => opt.MapFrom(src => src.Id))

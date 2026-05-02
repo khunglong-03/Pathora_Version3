@@ -1,9 +1,5 @@
-using System.Globalization;
-using Microsoft.Extensions.Logging;
-using ErrorOr;
-using FluentValidation;
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -11,13 +7,18 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Mails;
 using Domain.UnitOfWork;
+using ErrorOr;
+using FluentValidation;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
 
 public sealed record ReviewTourRequestCommand(
-    Guid Id,
-    TourRequestStatus Status,
-    string? AdminNote = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("status")] TourRequestStatus Status,
+    [property: JsonPropertyName("adminNote")] string? AdminNote = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourRequest];
 }
@@ -57,10 +58,10 @@ public sealed class ReviewTourRequestCommandHandler(
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
         }
 
-        var adminCheck = await EnsureAdminAsync(currentUserId);
-        if (adminCheck.IsError)
+        var reviewerCheck = await EnsureReviewerAsync(currentUserId);
+        if (reviewerCheck.IsError)
         {
-            return adminCheck.Errors;
+            return reviewerCheck.Errors;
         }
 
         var requestEntity = await tourRequestRepository.GetByIdAsync(request.Id);
@@ -69,15 +70,17 @@ public sealed class ReviewTourRequestCommandHandler(
             return Error.NotFound(ErrorConstants.TourRequest.NotFoundCode, ErrorConstants.TourRequest.NotFoundDescription);
         }
 
+        var reviewerRole = user.Roles.FirstOrDefault() ?? "Admin";
+
         try
         {
             if (request.Status == TourRequestStatus.Approved)
             {
-                requestEntity.Approve(currentUserId, currentUserId.ToString(), adminNote: request.AdminNote);
+                requestEntity.Approve(currentUserId, currentUserId.ToString(), reviewerRole, adminNote: request.AdminNote);
             }
             else
             {
-                requestEntity.Reject(currentUserId, currentUserId.ToString(), request.AdminNote);
+                requestEntity.Reject(currentUserId, currentUserId.ToString(), reviewerRole, request.AdminNote);
             }
         }
         catch (InvalidOperationException)
@@ -159,7 +162,7 @@ public sealed class ReviewTourRequestCommandHandler(
         return requestOwner?.Email;
     }
 
-    private async Task<ErrorOr<Success>> EnsureAdminAsync(Guid currentUserId)
+    private async Task<ErrorOr<Success>> EnsureReviewerAsync(Guid currentUserId)
     {
         var rolesResult = await roleRepository.FindByUserId(currentUserId.ToString());
         if (rolesResult.IsError)
@@ -167,11 +170,12 @@ public sealed class ReviewTourRequestCommandHandler(
             return rolesResult.Errors;
         }
 
-        var isAdmin = rolesResult.Value.Any(role =>
-            string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase));
+        var isReviewer = rolesResult.Value.Any(role =>
+            string.Equals(role.Name, RoleConstants.Admin, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role.Name, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
 
-        return isAdmin
+        return isReviewer
             ? Result.Success
-            : Error.Forbidden(ErrorConstants.TourRequest.AdminOnlyCode, ErrorConstants.TourRequest.AdminOnlyDescription);
+            : Error.Forbidden(ErrorConstants.TourRequest.ReviewerOnlyCode, ErrorConstants.TourRequest.ReviewerOnlyDescription);
     }
 }

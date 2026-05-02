@@ -1,28 +1,29 @@
-using System.Globalization;
-using Microsoft.Extensions.Logging;
-using ErrorOr;
-using FluentValidation;
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Mails;
 using Domain.UnitOfWork;
+using ErrorOr;
+using FluentValidation;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TourRequest.Commands;
 
 public sealed record CreateTourRequestCommand(
-    string Destination,
-    DateTimeOffset StartDate,
-    DateTimeOffset? EndDate,
-    int NumberOfParticipants,
-    decimal? BudgetPerPersonUsd,
-    List<string>? TravelInterests,
-    string? PreferredAccommodation = null,
-    string? TransportationPreference = null,
-    string? SpecialRequests = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("destination")] string Destination,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset? EndDate,
+    [property: JsonPropertyName("numberOfParticipants")] int NumberOfParticipants,
+    [property: JsonPropertyName("budgetPerPersonUsd")] decimal? BudgetPerPersonUsd,
+    [property: JsonPropertyName("travelInterests")] List<string>? TravelInterests,
+    [property: JsonPropertyName("preferredAccommodation")] string? PreferredAccommodation = null,
+    [property: JsonPropertyName("transportationPreference")] string? TransportationPreference = null,
+    [property: JsonPropertyName("specialRequests")] string? SpecialRequests = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourRequest];
 }

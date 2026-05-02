@@ -1,17 +1,18 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Role;
 using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Commands;
 
 public sealed record CreateRoleCommand(
-    string Name,
-    string Description)
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string Description)
     : ICommand<ErrorOr<int>>;
 
 public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>

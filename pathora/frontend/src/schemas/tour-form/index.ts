@@ -22,7 +22,37 @@ const dayPlanSchemaForCombo = z.object({
   enTitle: z.string().optional(),
   description: z.string().optional(),
   enDescription: z.string().optional(),
-  activities: z.array(activitySchema).optional().default([]),
+  activities: z.array(activitySchema).optional().default([]).superRefine((activities, ctx) => {
+    let previousEndTime: string | undefined;
+
+    activities.forEach((activity, index) => {
+      if (activity.startTime && activity.endTime) {
+        if (activity.endTime < activity.startTime) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Thời gian kết thúc không được trước thời gian bắt đầu",
+            path: [index, "endTime"],
+          });
+        }
+      }
+
+      if (index > 0 && activity.startTime && previousEndTime) {
+        if (activity.startTime < previousEndTime) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Thời gian bắt đầu không được trước thời gian kết thúc của hoạt động trước",
+            path: [index, "startTime"],
+          });
+        }
+      }
+
+      if (activity.endTime) {
+        previousEndTime = activity.endTime;
+      } else if (activity.startTime) {
+        previousEndTime = activity.startTime;
+      }
+    });
+  }),
 });
 
 const classificationSchemaForCombo = z.object({
@@ -35,7 +65,7 @@ const classificationSchemaForCombo = z.object({
     .string()
     .min(1, "Giá không được để trống")
     .transform((v) => (v === "" ? 0 : Number(v)))
-    .pipe(z.number().nonnegative("Giá không được âm"))
+    .pipe(z.number().positive("Giá phải lớn hơn 0"))
     .or(z.string()),
   durationDays: z
     .string()
@@ -75,6 +105,7 @@ export const tourFormSchema = z.object({
   // UI state that travels with form
   activeLang: z.enum(["vi", "en"]).default("vi"),
   deletedClassificationIds: z.array(z.string()).optional().default([]),
+  deletedPlanIds: z.array(z.string()).optional().default([]),
   deletedActivityIds: z.array(z.string()).optional().default([]),
 });
 

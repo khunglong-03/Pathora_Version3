@@ -1,21 +1,23 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Contracts.TourManagerAssignment;
 
 public sealed record AssignmentItem(
-    Guid? AssignedUserId,
-    Guid? AssignedTourId,
-    int AssignedEntityType,
-    int? AssignedRoleInTeam);
+    [property: JsonPropertyName("assignedUserId")] Guid? AssignedUserId,
+    [property: JsonPropertyName("assignedTourId")] Guid? AssignedTourId,
+    [property: JsonPropertyName("assignedEntityType")] int AssignedEntityType,
+    [property: JsonPropertyName("assignedRoleInTeam")] int? AssignedRoleInTeam);
 
 public sealed record AssignTourManagerTeamRequest(
-    string TourManagerUserId,
-    List<AssignmentItem> Assignments);
+    [property: JsonPropertyName("tourManagerUserId")] string TourManagerUserId,
+    [property: JsonPropertyName("assignments")] List<AssignmentItem> Assignments);
 
 public sealed record BulkAssignRequest(
-    string ManagerId,
-    List<AssignmentItem> Assignments);
+    [property: JsonPropertyName("managerId")] string ManagerId,
+    [property: JsonPropertyName("assignments")] List<AssignmentItem> Assignments);
 
 public sealed record RemoveAssignmentRequest(
-    string ManagerId,
-    Guid? AssignedUserId,
-    Guid? AssignedTourId,
-    int AssignedEntityType);
+    [property: JsonPropertyName("managerId")] string ManagerId,
+    [property: JsonPropertyName("assignedUserId")] Guid? AssignedUserId,
+    [property: JsonPropertyName("assignedTourId")] Guid? AssignedTourId,
+    [property: JsonPropertyName("assignedEntityType")] int AssignedEntityType);

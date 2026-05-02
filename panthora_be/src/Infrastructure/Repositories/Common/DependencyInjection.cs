@@ -60,6 +60,8 @@ internal static class DependencyInjection
         services.AddScoped<ICustomerPaymentRepository, CustomerPaymentRepository>();
         services.AddScoped<ICustomerDepositRepository, CustomerDepositRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        services.AddScoped<ITourItineraryFeedbackRepository, TourItineraryFeedbackRepository>();
+        services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
         services.AddScoped<IOutboxRepository, OutboxRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -75,11 +77,16 @@ internal static class DependencyInjection
 
         services.AddScoped<IHotelRoomInventoryRepository, HotelRoomInventoryRepository>();
         services.AddScoped<IRoomBlockRepository, RoomBlockRepository>();
+        services.AddScoped<IVehicleBlockRepository, VehicleBlockRepository>();
         services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
 
         services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
 
         services.AddScoped<IInsuranceRepository, InsuranceRepository>();
+
+        services.AddScoped<ITicketImageRepository, TicketImageRepository>();
+        services.AddScoped<ITourInstanceBookingTicketRepository, TourInstanceBookingTicketRepository>();
+        services.AddScoped<ITourInstanceBookingRoomAssignmentRepository, TourInstanceBookingRoomAssignmentRepository>();
 
         return services;
     }

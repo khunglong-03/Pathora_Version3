@@ -17,4 +17,18 @@ public class CustomerBookingController : BaseApiController
         var result = await Sender.Send(new GetRecentBookingsQuery(count));
         return HandleResult(result);
     }
+
+    [HttpGet("{bookingId:guid}")]
+    public async Task<IActionResult> GetById(Guid bookingId)
+    {
+        var result = await Sender.Send(new Application.Features.BookingManagement.Queries.GetBookingDetail.GetBookingDetailQuery(bookingId));
+        return HandleResult(result);
+    }
+
+    [HttpGet("{bookingId:guid}/customer-checkout-price")]
+    public async Task<IActionResult> GetCustomerCheckoutPrice(Guid bookingId)
+    {
+        var result = await Sender.Send(new Application.Features.BookingManagement.Queries.GetCheckoutPriceQuery(bookingId));
+        return HandleResult(result);
+    }
 }

@@ -21,6 +21,7 @@ import { transportProviderService } from "@/api/services/transportProviderServic
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import type { NormalizedTourInstanceVm } from "@/types/tour";
 import UpcomingToursSection from "@/features/dashboard/components/UpcomingToursSection";
+import VehicleScheduleSection from "@/features/dashboard/components/VehicleScheduleSection";
 import dayjs from "dayjs";
 import type {
   Vehicle,
@@ -225,10 +226,12 @@ function FleetHeroCard({ total, active }: { total: number; active: number }) {
 
 // --- Main Page ---
 export default function TransportDashboardPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [activeVehicles, setActiveVehicles] = useState(0);
   const [trips, setTrips] = useState<TripAssignment[]>([]);
   const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
   const [upcomingTours, setUpcomingTours] = useState<NormalizedTourInstanceVm[]>([]);
+  const [vehiclesList, setVehiclesList] = useState<Vehicle[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -237,13 +240,17 @@ export default function TransportDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [vehiclesData, tripsData, revenueData] = await Promise.all([
-        transportProviderService.getVehicles(),
+      const [vehiclesData, activeVehiclesData, tripsData, revenueData, allVehiclesData] = await Promise.all([
+        transportProviderService.getVehicles(1, 1),
+        transportProviderService.getVehicles(1, 1, true),
         transportProviderService.getTripAssignments(),
         transportProviderService.getRevenueSummary(new Date().getFullYear()),
+        transportProviderService.getVehicles(1, 100),
       ]);
-      setVehicles(vehiclesData || []);
+      setTotalVehicles(vehiclesData?.total || 0);
+      setActiveVehicles(activeVehiclesData?.total || 0);
       setTrips((tripsData || []).sort((a, b) => new Date(b.tripDate).getTime() - new Date(a.tripDate).getTime()));
+      setVehiclesList(allVehiclesData?.items || []);
       setRevenue(revenueData);
 
       // Fetch upcoming tours separately to avoid cascading failures
@@ -273,8 +280,6 @@ export default function TransportDashboardPage() {
   }, [loadData]);
 
   // Derived Stats
-  const activeVehicles = vehicles.filter(v => v.isActive).length;
-  
   const todayStr = new Date().toISOString().split("T")[0];
   const tripsToday = trips.filter(t => t.tripDate.startsWith(todayStr)).length;
   const tripsInProgress = trips.filter(t => t.status === "InProgress").length;
@@ -360,7 +365,7 @@ export default function TransportDashboardPage() {
             
             {/* Upper Grid (4 Columns) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
-              <FleetHeroCard total={vehicles.length} active={activeVehicles} />
+              <FleetHeroCard total={totalVehicles} active={activeVehicles} />
               
               <StatCard
                 label="Số chuyến chạy tiếp"
@@ -378,6 +383,12 @@ export default function TransportDashboardPage() {
                 bg={T.accentSoft}
               />
             </div>
+
+            {/* Vehicle Schedule Calendar (6.3) */}
+            <VehicleScheduleSection
+              vehicles={vehiclesList}
+              itemVariants={variants.item}
+            />
 
             {/* Lower Grid (Trips Table) */}
             <motion.div
@@ -444,7 +455,7 @@ export default function TransportDashboardPage() {
                                 {formatDate(trip.tripDate)}
                               </td>
                               <td style={{ padding: "16px", borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`}}>
-                                <div style={{ fontSize: "14px", color: T.text, fontWeight: 500 }}>{trip.vehiclePlate}</div>
+                                <div style={{ fontSize: "14px", color: T.text, fontWeight: 500 }}>{trip.vehicleType}</div>
                                 <div style={{ fontSize: "12px", color: T.textMuted }}>{trip.driverName}</div>
                               </td>
                               <td style={{ padding: "16px", borderRadius: "0 12px 12px 0", border: `1px solid ${T.border}`, borderLeft: "none", textAlign: "right" }}>

@@ -1,26 +1,27 @@
-using Application.Common;
 using Application.Common.Interfaces;
+using Application.Common;
 using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.UnitOfWork;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
 public sealed record UploadAvatarCommand(
-    Stream FileStream,
-    string FileName,
-    string ContentType,
-    long FileSize,
-    string CurrentUserId)
+    [property: JsonPropertyName("fileStream")] Stream FileStream,
+    [property: JsonPropertyName("fileName")] string FileName,
+    [property: JsonPropertyName("contentType")] string ContentType,
+    [property: JsonPropertyName("fileSize")] long FileSize,
+    [property: JsonPropertyName("currentUserId")] string CurrentUserId)
     : ICommand<ErrorOr<AvatarUploadResponse>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [$"{Common.CacheKey.User}:info:{CurrentUserId}"];
 }
 
-public sealed record AvatarUploadResponse(string AvatarUrl);
+public sealed record AvatarUploadResponse([property: JsonPropertyName("avatarUrl")] string AvatarUrl);
 
 public sealed class UploadAvatarCommandHandler(
     IFileManager fileManager,
@@ -145,13 +146,18 @@ public sealed class UploadAvatarCommandHandler(
                 cancellationToken);
             uploadedPublicId = uploadResult.PublicId;
 
-            // 7. Update UserEntity.AvatarUrl in the same transaction
+            string? oldPublicId = null;
+
+            // 7. Update UserEntity.AvatarUrl and capture oldPublicId in the same transaction
             await unitOfWork.ExecuteTransactionAsync(async () =>
             {
                 var userRepo = unitOfWork.GenericRepository<Domain.Entities.UserEntity>();
                 var userEntity = (await userRepo.GetListAsync(u => u.Id == userId)).FirstOrDefault();
                 if (userEntity is not null)
                 {
+                    // Extract old publicId before updating URL
+                    oldPublicId = CloudinaryUtils.ExtractPublicIdFromUrl(userEntity.AvatarUrl);
+
                     userEntity.UpdateProfile(
                         userEntity.FullName,
                         userEntity.PhoneNumber,
@@ -160,6 +166,19 @@ public sealed class UploadAvatarCommandHandler(
                     userRepo.Update(userEntity);
                 }
             });
+
+            // 8. Physical deletion of OLD avatar from Cloudinary after DB success
+            if (!string.IsNullOrEmpty(oldPublicId))
+            {
+                try
+                {
+                    await fileManager.DeleteUploadedFilesAsync([oldPublicId], cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogWarning(ex, "UploadAvatar: failed to delete old avatar {PublicId}", oldPublicId);
+                }
+            }
 
             sw.Stop();
             logger?.LogInformation(

@@ -14,6 +14,7 @@ import {
   buildTourDiscoverySearchParams,
   parseTourDiscoveryFilters,
   TourDiscoveryView,
+  type TourDiscoveryInstanceType,
 } from "@/utils/tourDiscoveryFilters";
 
 import { FilterDrawer } from "./FilterDrawer";
@@ -88,6 +89,7 @@ export const TourDiscoveryPage = () => {
     classifications?: string[];
     page?: number;
     view?: TourDiscoveryView;
+    instanceType?: TourDiscoveryInstanceType;
     [key: string]: unknown;
   }) => {
     const nextFilters = {
@@ -161,6 +163,7 @@ export const TourDiscoveryPage = () => {
           PAGE_SIZE,
           apiLanguage,
           sortBy,
+          filters.instanceType === "private" ? "private" : undefined,
         );
 
         if (!isActive) {
@@ -200,6 +203,7 @@ export const TourDiscoveryPage = () => {
     viewType,
     selectedClassifications,
     sortBy,
+    filters.instanceType,
   ]);
 
   const handleSearchSubmit = () => {
@@ -219,6 +223,11 @@ export const TourDiscoveryPage = () => {
 
   const handleClearFilters = () => {
     setSelectedClassifications([]);
+    syncFilters({ instanceType: null, page: 1 });
+  };
+
+  const handleCatalogInstanceTypeChange = (value: TourDiscoveryInstanceType) => {
+    syncFilters({ instanceType: value, page: 1 });
   };
 
   const handleSortChange = (value: string) => {
@@ -250,7 +259,7 @@ export const TourDiscoveryPage = () => {
   const handleResetAll = () => {
     setSelectedClassifications([]);
     setSearchText("");
-    syncFilters({ destination: "", page: 1 });
+    syncFilters({ destination: "", page: 1, instanceType: null });
   };
 
   return (
@@ -275,6 +284,9 @@ export const TourDiscoveryPage = () => {
                 selectedClassifications={selectedClassifications}
                 onClassificationToggle={handleClassificationToggle}
                 onClearFilters={handleClearFilters}
+                showDepartureTypeFilter={viewType === "instances"}
+                catalogInstanceType={filters.instanceType}
+                onCatalogInstanceTypeChange={handleCatalogInstanceTypeChange}
               />
             </div>
 
@@ -558,6 +570,9 @@ export const TourDiscoveryPage = () => {
         selectedClassifications={selectedClassifications}
         onClassificationToggle={handleClassificationToggle}
         onClearFilters={handleClearFilters}
+        showDepartureTypeFilter={viewType === "instances"}
+        catalogInstanceType={filters.instanceType}
+        onCatalogInstanceTypeChange={handleCatalogInstanceTypeChange}
       />
     </>
   );

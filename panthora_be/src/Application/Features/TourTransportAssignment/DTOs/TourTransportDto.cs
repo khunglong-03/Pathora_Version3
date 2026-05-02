@@ -1,34 +1,30 @@
+using System.Text.Json.Serialization;
+
 namespace Application.Features.TourTransportAssignment.DTOs;
 
 public sealed record RouteTransportAssignmentRequestDto(
-    Guid BookingActivityReservationId,
-    Guid TourDayActivityId,
-    Guid? DriverId,
-    Guid? VehicleId
-);
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("tourDayActivityId")] Guid TourDayActivityId,
+    [property: JsonPropertyName("driverId")] Guid? DriverId,
+    [property: JsonPropertyName("vehicleId")] Guid? VehicleId);
 
 public sealed record TransportInfoDto(
-    Guid TourDayActivityId,
-    int RouteOrder,
-    DriverInfoDto? Driver,
-    VehicleInfoDto? Vehicle
-);
+    [property: JsonPropertyName("tourDayActivityId")] Guid TourDayActivityId,
+    [property: JsonPropertyName("routeOrder")] int RouteOrder,
+    [property: JsonPropertyName("driver")] DriverInfoDto? Driver,
+    [property: JsonPropertyName("vehicle")] VehicleInfoDto? Vehicle);
 
 public sealed record DriverInfoDto(
-    string FullName,
-    string PhoneNumber,
-    string MaskedLicenseNumber
-);
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("phoneNumber")] string PhoneNumber,
+    [property: JsonPropertyName("maskedLicenseNumber")] string MaskedLicenseNumber);
 
 public sealed record VehicleInfoDto(
-    string VehiclePlate,
-    string VehicleType,
-    string? Brand,
-    string? Model,
-    int SeatCapacity
-);
+    [property: JsonPropertyName("vehicleType")] string VehicleType,
+    [property: JsonPropertyName("brand")] string? Brand,
+    [property: JsonPropertyName("model")] string? Model,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity);
 
 public sealed record BookingTransportInfoDto(
-    Guid BookingId,
-    List<TransportInfoDto> Routes
-);
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("routes")] List<TransportInfoDto> Routes);

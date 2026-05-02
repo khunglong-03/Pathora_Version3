@@ -1,6 +1,6 @@
-using Application.Contracts.Admin;
-using Application.Features.Admin.Commands.CreateStaffUnderManager;
-using Application.Features.Admin.Validators;
+using global::Application.Contracts.Admin;
+using global::Application.Features.Admin.Commands.CreateStaffUnderManager;
+using global::Application.Features.Admin.Validators;
 using FluentValidation.TestHelper;
 using Xunit;
 
@@ -11,11 +11,11 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     private readonly CreateStaffUnderManagerCommandValidator _validator = new();
 
     [Fact]
-    public void Validate_ValidTourDesignerStaffType_Passes()
+    public void Validate_ValidTourOperatorStaffType_Passes()
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", 1));
 
         var result = _validator.TestValidate(command);
 
@@ -27,7 +27,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("guide@example.com", "Guide User", 2));
+            new CreateStaffUnderManagerRequest(null, "guide@example.com", "Guide User", 2));
 
         var result = _validator.TestValidate(command);
 
@@ -39,7 +39,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.Empty,
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", 1));
 
         var result = _validator.TestValidate(command);
 
@@ -51,7 +51,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "", "Test User", 1));
 
         var result = _validator.TestValidate(command);
 
@@ -63,7 +63,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("not-an-email", "Test User", 1));
+            new CreateStaffUnderManagerRequest(null, "not-an-email", "Test User", 1));
 
         var result = _validator.TestValidate(command);
 
@@ -75,7 +75,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("test@example.com", "", 1));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "", 1));
 
         var result = _validator.TestValidate(command);
 
@@ -87,7 +87,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", 0));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", 0));
 
         var result = _validator.TestValidate(command);
 
@@ -99,7 +99,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", 3));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", 3));
 
         var result = _validator.TestValidate(command);
 
@@ -111,7 +111,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.NewGuid(),
-            new CreateStaffUnderManagerRequest("test@example.com", "Test User", -1));
+            new CreateStaffUnderManagerRequest(null, "test@example.com", "Test User", -1));
 
         var result = _validator.TestValidate(command);
 
@@ -123,7 +123,7 @@ public sealed class CreateStaffUnderManagerCommandValidatorTests
     {
         var command = new CreateStaffUnderManagerCommand(
             Guid.Empty,
-            new CreateStaffUnderManagerRequest("", "", 0));
+            new CreateStaffUnderManagerRequest(null, "", "", 0));
 
         var result = _validator.TestValidate(command);
 

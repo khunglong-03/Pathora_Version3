@@ -2,6 +2,8 @@
 
 Hướng dẫn vận hành cho Claude khi làm việc với workspace `D:\DoAn`.
 
+> **OpenSpec language rule:** Khi thực hiện bất kỳ lệnh OpenSpec nào (`/opsx:explore`, `/opsx:propose`, `/opsx:apply`, `/opsx:archive`) hoặc khi tạo / chỉnh sửa file trong `openspec/`, **bắt buộc** đọc và tuân thủ `openspec/AGENTS.md`. File đó quy định ngôn ngữ artifact (tiếng Việt) và các phần được giữ nguyên tiếng Anh.
+
 ---
 
 ## Cấu Trúc Workspace
@@ -121,6 +123,15 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 
 ---
 
+## Frontend Components & Utils
+
+- **`approvalStatusHelper` (`src/utils/approvalStatusHelper.ts`)**: Standardizes the normalization and appearance (colors, icons) of transportation approval statuses.
+- **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
+- **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
+- **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
+
+---
+
 ## OpenSpec Changes (Active)
 
 Có **~17 active changes** trong `openspec/changes/`:
@@ -208,7 +219,7 @@ This workspace is configured to use **gstack** for all web browsing and design t
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 relationships, 71 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **Pathora_Version3** (8459 symbols, 11778 relationships, 84 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -220,44 +231,12 @@ This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 
 - When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
 - When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
 
-## When Debugging
-
-1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
-2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
-3. `READ gitnexus://repo/Pathora_Version3/process/{processName}` — trace the full execution flow step by step
-4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
-
-## When Refactoring
-
-- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text_search edits need manual review. Then run with `dry_run: false`.
-- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
-- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
-
 ## Never Do
 
 - NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
 - NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
 - NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
 - NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-
-## Tools Quick Reference
-
-| Tool | When to use | Command |
-|------|-------------|---------|
-| `query` | Find code by concept | `gitnexus_query({query: "auth validation"})` |
-| `context` | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})` |
-| `impact` | Blast radius before editing | `gitnexus_impact({target: "X", direction: "upstream"})` |
-| `detect_changes` | Pre-commit scope check | `gitnexus_detect_changes({scope: "staged"})` |
-| `rename` | Safe multi-file rename | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
-| `cypher` | Custom graph queries | `gitnexus_cypher({query: "MATCH ..."})` |
-
-## Impact Risk Levels
-
-| Depth | Meaning | Action |
-|-------|---------|--------|
-| d=1 | WILL BREAK — direct callers/importers | MUST update these |
-| d=2 | LIKELY AFFECTED — indirect deps | Should test |
-| d=3 | MAY NEED TESTING — transitive | Test if critical path |
 
 ## Resources
 
@@ -267,32 +246,6 @@ This project is indexed by GitNexus as **Pathora_Version3** (5014 symbols, 7740 
 | `gitnexus://repo/Pathora_Version3/clusters` | All functional areas |
 | `gitnexus://repo/Pathora_Version3/processes` | All execution flows |
 | `gitnexus://repo/Pathora_Version3/process/{name}` | Step-by-step execution trace |
-
-## Self-Check Before Finishing
-
-Before completing any code modification task, verify:
-1. `gitnexus_impact` was run for all modified symbols
-2. No HIGH/CRITICAL risk warnings were ignored
-3. `gitnexus_detect_changes()` confirms changes match expected scope
-4. All d=1 (WILL BREAK) dependents were updated
-
-## Keeping the Index Fresh
-
-After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
-
-```bash
-npx gitnexus analyze
-```
-
-If the index previously included embeddings, preserve them by adding `--embeddings`:
-
-```bash
-npx gitnexus analyze --embeddings
-```
-
-To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without `--embeddings` will delete any previously generated embeddings.**
-
-> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
 
 ## CLI
 
@@ -326,3 +279,49 @@ Key routing rules:
 - Architecture review → invoke plan-eng-review
 - Save progress, checkpoint, resume → invoke checkpoint
 - Code quality, health check → invoke health
+
+---
+
+## Domain note — per-activity transport approval
+
+Transport approval is **per-activity**, not per-instance. This was moved out of
+`TourInstance.TransportProviderId` (now `[Obsolete]`, kept as a derived getter for
+one release) onto `TourInstanceDayActivityEntity`:
+
+- `RequestedVehicleType`, `RequestedSeatCount`, `TransportSupplierId` — the plan
+  fields the Manager picks at creation time.
+- `ApproveTransportation(vehicleId, driverId, note)` — called by the Transport
+  provider. Caller is responsible for inserting a `VehicleBlock` (Hard hold).
+- `RejectTransportation(note)` — caller deletes the `VehicleBlock`.
+- `AreAllTransportationApproved()` + `AreAllAccommodationsApproved()` drive
+  `CheckAndActivateTourInstance()` — the tour transitions to `Available` only
+  when **every** per-activity supplier has approved.
+
+Concurrency rules (ER-1/ER-2/ER-4/ER-8):
+
+- Approve paths run inside `IUnitOfWork.ExecuteTransactionAsync(IsolationLevel.RepeatableRead, …)`
+  and re-check availability inside the transaction before INSERT.
+- `TourInstanceEntity.RowVersion` is an EF `IsRowVersion()` token — handlers catch
+  `DbUpdateConcurrencyException`, reload, and return idempotent success if the
+  target state was reached by another request.
+- Bulk transport approve (`ProviderApproveTourInstanceCommand` Transport branch)
+  is all-or-nothing: a mid-loop failure throws `BulkApproveValidationException`
+  mapped to `TourInstance.BulkApproveFailed`.
+
+Cleanup rules (ER-3):
+
+- `TourInstanceService.Delete` and `ChangeStatus(Cancelled)` call both
+  `IRoomBlockRepository.DeleteByTourInstanceAsync` and
+  `IVehicleBlockRepository.DeleteByTourInstanceAsync` so inventory is freed.
+- `AssignTransportSupplier` and `AssignAccommodationSupplier` delete the prior
+  supplier's block when the supplier actually changes.
+
+Error code registry: `Application/Common/Constant/ErrorConstants.TourInstanceTransport.cs`.
+
+---
+
+## Domain note — Private Tour Co-Design workflow
+
+- **Role-based Gates:** `TourItineraryFeedbackEntity` tracks the lifecycle of customer requests. Customer adds feedback -> Manager forwards it (`ManagerForwarded`) -> Operator responds (`OperatorResponded`) -> Manager approves or rejects (`ManagerApproved` / `ManagerRejected`).
+- **Visibility Filter:** Customers CANNOT view operator responses until they are explicitly approved by a Manager.
+- **Idempotency & Concurrency:** The workflow uses `RowVersion` and catches `DbUpdateConcurrencyException` returning `Error.Conflict` to support safe concurrent edits. `SetPrivateTourFinalSellPrice` behaves similarly.

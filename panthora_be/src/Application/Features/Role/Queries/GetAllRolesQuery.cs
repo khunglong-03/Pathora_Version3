@@ -4,13 +4,15 @@ using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Contracts;
 using ErrorOr;
+using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Queries;
 
 public sealed record GetAllRolesQuery(
-    int PageNumber = 1,
-    int PageSize = 10,
-    string? SearchText = null)
+    [property: JsonPropertyName("pageNumber")] int PageNumber = 1,
+    [property: JsonPropertyName("pageSize")] int PageSize = 10,
+    [property: JsonPropertyName("searchText")] string? SearchText = null)
     : IQuery<ErrorOr<PaginatedListWithPermissions<RoleVm>>>;
 
 public sealed class GetAllRolesQueryHandler(IRoleService roleService)
@@ -19,5 +21,22 @@ public sealed class GetAllRolesQueryHandler(IRoleService roleService)
     public async Task<ErrorOr<PaginatedListWithPermissions<RoleVm>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
     {
         return await roleService.GetAllAsync(new GetAllRoleRequest(request.PageNumber, request.PageSize, request.SearchText));
+    }
+}
+
+
+public sealed class GetAllRolesQueryValidator : AbstractValidator<GetAllRolesQuery>
+{
+    public GetAllRolesQueryValidator()
+    {
+        RuleFor(x => x.PageNumber)
+            .GreaterThan(0);
+
+        RuleFor(x => x.PageSize)
+            .InclusiveBetween(1, 100);
+
+        RuleFor(x => x.SearchText)
+            .MaximumLength(200)
+            .When(x => !string.IsNullOrWhiteSpace(x.SearchText));
     }
 }

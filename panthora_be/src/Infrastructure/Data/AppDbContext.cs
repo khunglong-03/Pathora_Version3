@@ -82,6 +82,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CustomerDepositEntity> CustomerDeposits => Set<CustomerDepositEntity>();
     public DbSet<PaymentEntity> Payments => Set<PaymentEntity>();
     public DbSet<PaymentTransactionEntity> PaymentTransactions => Set<PaymentTransactionEntity>();
+    public DbSet<TransactionHistoryEntity> TransactionHistories => Set<TransactionHistoryEntity>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();
     public DbSet<SiteContentEntity> SiteContents => Set<SiteContentEntity>();
@@ -92,6 +93,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourInstanceManagerEntity> TourInstanceManagers => Set<TourInstanceManagerEntity>();
     public DbSet<TourInstanceDayEntity> TourInstanceDays => Set<TourInstanceDayEntity>();
     public DbSet<TourInstanceDayActivityEntity> TourInstanceDayActivities => Set<TourInstanceDayActivityEntity>();
+    public DbSet<TourItineraryFeedbackEntity> TourItineraryFeedbacks => Set<TourItineraryFeedbackEntity>();
+    public DbSet<TourInstanceTransportAssignmentEntity> TourInstanceTransportAssignments => Set<TourInstanceTransportAssignmentEntity>();
     public DbSet<TourInstancePlanAccommodationEntity> TourInstancePlanAccommodations => Set<TourInstancePlanAccommodationEntity>();
     public DbSet<UserSettingEntity> UserSettings => Set<UserSettingEntity>();
     public DbSet<TourManagerAssignmentEntity> TourManagerAssignments => Set<TourManagerAssignmentEntity>();
@@ -100,9 +103,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourDayActivityRouteTransportEntity> TourDayActivityRouteTransports => Set<TourDayActivityRouteTransportEntity>();
     public DbSet<HotelRoomInventoryEntity> HotelRoomInventories => Set<HotelRoomInventoryEntity>();
     public DbSet<RoomBlockEntity> RoomBlocks => Set<RoomBlockEntity>();
+    public DbSet<VehicleBlockEntity> VehicleBlocks => Set<VehicleBlockEntity>();
     public DbSet<GuestArrivalEntity> GuestArrivals => Set<GuestArrivalEntity>();
     public DbSet<GuestArrivalParticipantEntity> GuestArrivalParticipants => Set<GuestArrivalParticipantEntity>();
     public DbSet<ManagerBankAccountEntity> ManagerBankAccounts => Set<ManagerBankAccountEntity>();
+    public DbSet<TourInstanceBookingTicketEntity> TourInstanceBookingTickets => Set<TourInstanceBookingTicketEntity>();
+    public DbSet<TourInstanceBookingRoomAssignmentEntity> TourInstanceBookingRoomAssignments => Set<TourInstanceBookingRoomAssignmentEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

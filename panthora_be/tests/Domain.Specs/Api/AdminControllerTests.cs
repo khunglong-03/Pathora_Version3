@@ -1,17 +1,17 @@
-using Api.Controllers.Admin;
-using Api.Controllers.Manager;
-using Api.Endpoint;
-using Application.Contracts.User;
-using Application.Features.Admin.DTOs;
-using Application.Features.Admin.Queries.GetAllUsers;
-using Application.Features.Admin.Queries.GetUserDetail;
-using Application.Features.Admin.Queries.GetTransportProviders;
-using Application.Features.Admin.Queries.GetHotelProviders;
-using Application.Features.Admin.Queries.GetTourManagerStaff;
-using Application.Features.Admin.Queries.GetAdminDashboardOverview;
+using global::Api.Controllers.Admin;
+using global::Api.Controllers.Manager;
+using global::Api.Endpoint;
+using global::Application.Contracts.User;
+using global::Application.Features.Admin.DTOs;
+using global::Application.Features.Admin.Queries.GetAllUsers;
+using global::Application.Features.Admin.Queries.GetUserDetail;
+using global::Application.Features.Admin.Queries.GetTransportProviders;
+using global::Application.Features.Admin.Queries.GetHotelProviders;
+using global::Application.Features.Admin.Queries.GetTourManagerStaff;
+using global::Application.Features.Admin.Queries.GetAdminDashboardOverview;
 using Contracts;
 using Contracts.ModelResponse;
-using Domain.Enums;
+using global::Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -125,7 +125,22 @@ public sealed class AdminControllerTests
     {
         var providers = new List<HotelProviderListItemDto>
         {
-            new(Guid.NewGuid(), "Hotel Co", "SUP-001", "hotel@example.com", "0123456789", null, null, UserStatus.Active, 3, 20, null, null, [])
+            new(
+                Guid.NewGuid(),
+                "Hotel Co",
+                "SUP-001",
+                "hotel@example.com",
+                "0123456789",
+                null,
+                null,
+                UserStatus.Active,
+                Guid.NewGuid(), // OwnerUserId
+                3,              // AccommodationCount
+                3,              // PropertyCount
+                20,             // RoomCount
+                null,           // CreatedOnUtc
+                null,           // PrimaryContinent
+                new List<string>()) // Continents
         };
         var response = new PaginatedList<HotelProviderListItemDto>(
             providers.Count, providers, 1, 10);

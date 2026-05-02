@@ -1,6 +1,6 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/home";
+import type { ServiceResponse } from "@/types/api";
 import type {
   CreateTourRequestPayload,
   PaginatedTourRequestResponse,
@@ -36,7 +36,7 @@ const appendPaginationParams = (
 
 export const tourRequestService = {
   createTourRequest: async (data: CreateTourRequestPayload) => {
-    const response = await api.post<ApiResponse<string>>(
+    const response = await api.post<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_REQUESTS.CREATE,
       data,
     );
@@ -50,7 +50,7 @@ export const tourRequestService = {
     const queryParams = new URLSearchParams();
     appendPaginationParams(queryParams, params);
 
-    const response = await api.get<ApiResponse<PaginatedTourRequestResponse<TourRequestVm>>>(
+    const response = await api.get<ServiceResponse<PaginatedTourRequestResponse<TourRequestVm>>>(
       `${API_ENDPOINTS.TOUR_REQUESTS.MY}?${queryParams.toString()}`,
     );
 
@@ -66,7 +66,7 @@ export const tourRequestService = {
       ? API_ENDPOINTS.TOUR_REQUESTS.ADMIN_DETAIL(id)
       : API_ENDPOINTS.TOUR_REQUESTS.DETAIL(id);
 
-    const response = await api.get<ApiResponse<TourRequestDetailDto>>(endpoint);
+    const response = await api.get<ServiceResponse<TourRequestDetailDto>>(endpoint);
     return extractResult<TourRequestDetailDto>(response.data);
   },
 
@@ -93,7 +93,7 @@ export const tourRequestService = {
 
     appendPaginationParams(queryParams, params);
 
-    const response = await api.get<ApiResponse<PaginatedTourRequestResponse<TourRequestVm>>>(
+    const response = await api.get<ServiceResponse<PaginatedTourRequestResponse<TourRequestVm>>>(
       `${API_ENDPOINTS.TOUR_REQUESTS.ADMIN_LIST}?${queryParams.toString()}`,
     );
 
@@ -102,7 +102,7 @@ export const tourRequestService = {
   },
 
   reviewTourRequest: async (id: string, data: ReviewTourRequestPayload) => {
-    const response = await api.patch<ApiResponse<unknown>>(
+    const response = await api.patch<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_REQUESTS.REVIEW(id),
       data,
     );

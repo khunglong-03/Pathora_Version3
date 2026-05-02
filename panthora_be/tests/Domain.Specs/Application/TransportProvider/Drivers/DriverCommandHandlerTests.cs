@@ -1,9 +1,9 @@
-using Application.Features.TransportProvider.Drivers.Commands;
-using Application.Features.TransportProvider.Drivers.DTOs;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.UnitOfWork;
+using global::Application.Features.TransportProvider.Drivers.Commands;
+using global::Application.Features.TransportProvider.Drivers.DTOs;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Domain.UnitOfWork;
 using ErrorOr;
 using NSubstitute;
 using Xunit;
@@ -73,12 +73,14 @@ public sealed class CreateDriverCommandHandlerTests
 public sealed class UpdateDriverCommandHandlerTests
 {
     private readonly IDriverRepository _driverRepository;
+    private readonly global::Application.Common.Interfaces.ICloudinaryService _cloudinaryService;
     private readonly UpdateDriverCommandHandler _handler;
 
     public UpdateDriverCommandHandlerTests()
     {
         _driverRepository = Substitute.For<IDriverRepository>();
-        _handler = new UpdateDriverCommandHandler(_driverRepository);
+        _cloudinaryService = Substitute.For<global::Application.Common.Interfaces.ICloudinaryService>();
+        _handler = new UpdateDriverCommandHandler(_driverRepository, _cloudinaryService);
     }
 
     private static UpdateDriverCommand ValidCommand(Guid driverId) => new(

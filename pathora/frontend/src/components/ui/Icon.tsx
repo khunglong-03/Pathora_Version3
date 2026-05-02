@@ -6,11 +6,12 @@ import {
   ChatCircleDotsIcon, CheckIcon, CheckCircleIcon, CertificateIcon, ClipboardTextIcon, CheckSquareIcon, ClockIcon,
   CalculatorIcon, CreditCardIcon, CubeIcon, CurrencyDollarIcon, CurrencyDollarSimpleIcon, DesktopIcon, DeviceMobileIcon, EnvelopeIcon,
   EyeIcon, EyeSlashIcon, FileIcon, FileTextIcon, FunnelIcon, GearIcon, GlobeIcon, GraduationCapIcon, HeartIcon,
-  ImageIcon, InfoIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, MinusIcon, MoneyIcon, MoonIcon, NoteIcon,
+  IdentificationCardIcon, ImageIcon, InfoIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, MinusIcon, MoneyIcon, MoonIcon, NoteIcon,
   PaperPlaneTiltIcon, PencilSimpleIcon, PercentIcon, PhoneIcon, PlusIcon, PuzzlePieceIcon, QuestionIcon,
   QrCodeIcon, ReceiptIcon, ShareNetworkIcon, ShieldCheckIcon, SignOutIcon, SparkleIcon, SquaresFourIcon, StarIcon, SunIcon,
   TagIcon, TicketIcon, TrashIcon, TruckIcon, UserIcon, UserCircleIcon, UserCircleGearIcon, UsersIcon, UsersThreeIcon,
   WalletIcon, WarningIcon, WarningCircleIcon, WrenchIcon, XIcon, XCircleIcon,
+  TrainIcon, BusIcon, CarIcon, TaxiIcon, BoatIcon, BicycleIcon, AirplaneTiltIcon, PersonSimpleWalkIcon, MotorcycleIcon
 } from "@phosphor-icons/react";
 
 type IconProps = {
@@ -46,6 +47,7 @@ const iconMap: Record<string, React.ElementType> = {
   "heroicons-outline:eye": EyeIcon,
   "heroicons-outline:eye-off": EyeSlashIcon,
   "heroicons-outline:home": BuildingsIcon,
+  "heroicons-outline:identification": IdentificationCardIcon,
   "heroicons-outline:information-circle": InfoIcon,
   "heroicons-outline:key": KeyIcon,
   "heroicons-outline:magnifying-glass": MagnifyingGlassIcon,
@@ -118,6 +120,7 @@ const iconMap: Record<string, React.ElementType> = {
   "heroicons:heart": HeartIcon,
   "heroicons:home": BuildingsIcon,
   "heroicons:home-modern": BuildingsIcon,
+  "heroicons:identification": IdentificationCardIcon,
   "heroicons:information-circle": InfoIcon,
   "heroicons:magnifying-glass": MagnifyingGlassIcon,
   "heroicons:map": MapTrifoldIcon,
@@ -154,6 +157,15 @@ const iconMap: Record<string, React.ElementType> = {
   "mdi:facebook": BuildingsIcon,
   "ri:facebook-fill": BuildingsIcon,
   "ph:question": QuestionIcon,
+  "mdi:train": TrainIcon,
+  "mdi:bus": BusIcon,
+  "mdi:car": CarIcon,
+  "mdi:taxi": TaxiIcon,
+  "mdi:sail-boat": BoatIcon,
+  "mdi:ferry": BoatIcon,
+  "mdi:motorbike": MotorcycleIcon,
+  "mdi:bicycle": BicycleIcon,
+  "mdi:walk": PersonSimpleWalkIcon,
 };
 
 export const Icon = ({

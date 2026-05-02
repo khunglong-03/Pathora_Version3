@@ -2,10 +2,20 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Button from "@/components/ui/Button";
-import { Icon } from "@/components/ui";
+import { motion } from "framer-motion";
+import { 
+  MapPin, 
+  Clock, 
+  CalendarBlank, 
+  Users, 
+  CurrencyCircleDollar, 
+  AirplaneTilt,
+  ArrowRight,
+  Receipt
+} from "@phosphor-icons/react";
 import { Booking } from "./BookingHistoryData";
-import { StatusOverlay, TierBadge, InfoItem } from "./BookingHistorySubComponents";
+import { StatusOverlay, TierBadge } from "./BookingHistorySubComponents";
+import { cn } from "@/lib/cn";
 
 interface BookingCardProps {
   booking: Booking;
@@ -27,154 +37,148 @@ export function BookingCard({
   t,
 }: BookingCardProps) {
   const showPayRemaining = booking.paymentStatus === "partial";
-  const showAddParticipants = booking.status === "pending";
   const showVisaStatus =
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&
     booking.status !== "rejected";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="flex flex-col md:flex-row">
-        {/* Image */}
-        <div className="relative w-full md:w-64 h-48 md:h-auto shrink-0">
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{ y: -2 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      className={cn("group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm")}
+    >
+      <div className={cn("v-stack gap-6 p-4 lg:p-6")}>
+        {/* Image Box */}
+        <div className={cn("relative h-56 w-full shrink-0 overflow-hidden rounded-lg sm:h-64")}>
           <Image
             src={booking.image}
             alt={booking.tourName}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 256px"
+            className={cn("object-cover transition-transform duration-700 group-hover:scale-105")}
+            sizes="(max-width: 1024px) 100vw, 50vw"
           />
-          <div className="absolute top-3 left-3">
+          <div className={cn("absolute inset-0 bg-linear-to-b from-black/10 to-transparent")} />
+          <div className={cn("absolute left-4 top-4 z-10")}>
             <StatusOverlay status={booking.status} label={statusLabel} />
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 p-5">
-          {/* Header: Title + Tier + Payment badge */}
-          <div className="flex items-start justify-between gap-3 mb-1">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg font-bold text-slate-900">
+        {/* Content Box */}
+        <div className={cn("v-stack spacer justify-between py-2")}>
+          
+          {/* Header row */}
+          <div className={cn("v-stack mb-6 justify-between gap-4 sm:h-stack sm:items-start")}>
+            <div className={cn("min-w-0")}>
+              <div className={cn("h-stack flex-wrap items-center gap-3")}>
+                <h3 className={cn("text-xl font-bold leading-tight text-[#111111]")}>
                   {booking.tourName}
                 </h3>
                 <TierBadge tier={booking.tier} label={tierLabel} />
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Icon
-                  icon="heroicons:document-text"
-                  className="size-3.5 text-gray-400"
-                />
-                <span className="text-xs text-gray-500 font-mono">
+              <div className={cn("h-stack mt-2 items-center gap-2")}>
+                <Receipt weight="bold" className={cn("size-4 text-slate-400")} />
+                <span className={cn("rounded-md bg-slate-100 px-2 py-0.5 font-mono text-sm font-medium text-slate-500")}>
                   {booking.reference}
                 </span>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs font-semibold text-slate-700">
+            
+            {/* Payment Status */}
+            <div className={cn("shrink-0 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 sm:text-right")}>
+              <p className={cn("text-sm font-bold uppercase tracking-wide text-[#111111]")}>
                 {paymentStatusLabel}
               </p>
-              <p className="text-[11px] text-gray-400">{paymentMethodLabel}</p>
+              <p className={cn("mt-0.5 text-xs font-medium text-slate-500")}>{paymentMethodLabel}</p>
             </div>
           </div>
 
-          {/* Info row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-            <InfoItem
-              icon="heroicons:map-pin"
-              label={t("landing.bookings.location")}
-              value={booking.location}
-            />
-            <InfoItem
-              icon="heroicons:clock"
-              label={t("landing.bookings.duration")}
-              value={booking.duration}
-            />
-            <InfoItem
-              icon="heroicons:calendar"
-              label={t("landing.bookings.departure")}
-              value={booking.departure}
-            />
-            <InfoItem
-              icon="heroicons:users"
-              label={t("landing.bookings.guests")}
-              value={`${booking.guests} ${
-                booking.guests === 1
-                  ? t("landing.bookings.guest")
-                  : t("landing.bookings.guestsLabel")
-              }`}
+          {/* Info grid */}
+          <div className={cn("mb-8 grid grid-cols-2 gap-x-4 gap-y-6")}>
+            <InfoItem icon={<MapPin weight="bold" />} label={t("landing.bookings.location")} value={booking.location} />
+            <InfoItem icon={<Clock weight="bold" />} label={t("landing.bookings.duration")} value={booking.duration} />
+            <InfoItem icon={<CalendarBlank weight="bold" />} label={t("landing.bookings.departure")} value={booking.departure} />
+            <InfoItem 
+              icon={<Users weight="bold" />} 
+              label={t("landing.bookings.guests")} 
+              value={`${booking.guests} ${booking.guests === 1 ? t("landing.bookings.guest") : t("landing.bookings.guestsLabel")}`} 
             />
           </div>
 
-          {/* Action buttons */}
-          {(showPayRemaining || showAddParticipants || showVisaStatus) && (
-            <div className="flex items-center gap-2 flex-wrap mt-4">
-              {showPayRemaining && (
-                <Button
-                  type="button"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-linear-to-r from-[#fa8b02] to-[#eb662b] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-                >
-                  <Icon icon="heroicons:currency-dollar" className="size-4" />
-                  {t("landing.bookings.payRemaining")}
-                </Button>
-              )}
-              {showAddParticipants && (
-                <Button
-                  type="button"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-slate-700 text-xs font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  <Icon icon="heroicons:users" className="size-4" />
-                  {t("landing.bookings.addParticipants")}
-                </Button>
-              )}
-              {showVisaStatus && (
-                <Link
-                  href="/visa"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-slate-700 text-xs font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  <Icon icon="heroicons:paper-airplane" className="size-4" />
-                  {t("landing.bookings.visaStatus")}
-                </Link>
-              )}
-            </div>
-          )}
-
-          {/* Footer: Total + Actions */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mt-5 pt-4 border-t border-gray-100">
+          {/* Footer actions */}
+          <div className={cn("v-stack justify-between gap-6 border-t border-dashed border-slate-100 pt-6 md:h-stack md:items-end")}>
+            
+            {/* Price */}
             <div>
-              <p className="text-xs text-gray-500">
+              <p className={cn("mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400")}>
                 {t("landing.bookings.totalAmount")}
               </p>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className={cn("text-2xl font-bold text-[#111111]")}>
                 {formatCurrency(booking.totalAmount)}
               </p>
               {booking.remainingAmount && (
-                <p className="text-xs text-orange-500 font-medium">
-                  {t("landing.bookings.remaining")}:{" "}
-                  {formatCurrency(booking.remainingAmount)}
-                </p>
+                <div className={cn("h-stack mt-2 inline-flex items-center gap-1.5 rounded-lg border border-orange-100 bg-orange-50 px-2.5 py-1")}>
+                  <span className={cn("relative flex size-2")}>
+                    <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75")}></span>
+                    <span className={cn("relative inline-flex size-2 rounded-full bg-orange-500")}></span>
+                  </span>
+                  <p className={cn("text-xs font-bold text-orange-600")}>
+                    {t("landing.bookings.remaining")}: {formatCurrency(booking.remainingAmount)}
+                  </p>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-slate-700 hover:bg-gray-50 transition-colors"
-              >
-                <Icon icon="heroicons:arrow-down-tray" className="size-3.5" />
-                {t("landing.bookings.invoice")}
-              </Button>
-              <Link
-                href={`/bookings/${booking.id}`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#05073c] text-white text-xs font-semibold hover:bg-[#05073c]/90 transition-colors"
-              >
-                <Icon icon="heroicons:eye" className="size-3.5" />
-                {t("landing.bookings.viewDetails")}
-                <Icon icon="heroicons:chevron-right" className="size-3.5" />
+
+            {/* Actions */}
+            <div className={cn("h-stack flex-wrap items-center gap-3")}>
+              {(showPayRemaining || showVisaStatus || booking.status === "pending_approval") && (
+                <div className={cn("h-stack mr-2 items-center gap-2")}>
+                  {booking.status === "pending_approval" && (
+                    <Link href={`/bookings/${booking.id}`} className={cn("h-stack items-center gap-2 rounded-md bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-600 active:scale-95")}>
+                      <CalendarBlank weight="bold" className={cn("size-4")} />
+                      Duyệt lịch trình
+                    </Link>
+                  )}
+                  {showPayRemaining && (
+                    <button type="button" className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
+                      <CurrencyCircleDollar weight="bold" className={cn("size-4")} />
+                      {t("landing.bookings.payRemaining")}
+                    </button>
+                  )}
+                  {showVisaStatus && (
+                    <Link href="/visa" className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
+                      <AirplaneTilt weight="bold" className={cn("size-4")} />
+                      {t("landing.bookings.visaStatus")}
+                    </Link>
+                  )}
+                </div>
+              )}
+              
+              <Link href={`/bookings/${booking.id}`} className={cn("center size-10 rounded-md bg-[#111111] text-white transition-all hover:bg-[#333333] active:scale-95")} title={t("landing.bookings.viewDetails")}>
+                <ArrowRight weight="bold" className={cn("size-4")} />
               </Link>
             </div>
+
           </div>
         </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className={cn("h-stack items-start gap-3")}>
+      <div className={cn("text-slate-400 pt-0.5")}>
+        {icon}
+      </div>
+      <div>
+        <p className={cn("mb-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400")}>{label}</p>
+        <p className={cn("text-sm font-bold leading-tight text-slate-700")}>{value}</p>
       </div>
     </div>
   );

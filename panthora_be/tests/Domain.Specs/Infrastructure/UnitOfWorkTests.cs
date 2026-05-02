@@ -1,5 +1,5 @@
-using Infrastructure.Data;
-using Infrastructure.Repositories.Common;
+using global::Infrastructure.Data;
+using global::Infrastructure.Repositories.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;

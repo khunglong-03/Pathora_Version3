@@ -1,6 +1,7 @@
 using Contracts;
 using Contracts.Interfaces;
 using Application.Common;
+using Application.Common.Interfaces;
 using Application.Common.Constant;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
@@ -38,6 +39,7 @@ public class TourService(
     IUser user,
     IUnitOfWork unitOfWork,
     IMapper mapper,
+    ICloudinaryService cloudinaryService,
     ILogger<TourService>? logger = null,
     ILanguageContext? languageContext = null) : ITourService
 {
@@ -45,6 +47,7 @@ public class TourService(
     private readonly IUser _user = user;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
+    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
     private readonly ILogger<TourService>? _logger = logger;
     private readonly ILanguageContext _languageContext = languageContext ?? new FallbackLanguageContext();
 
@@ -80,11 +83,11 @@ public class TourService(
             var thumbnail = request.Thumbnail is not null ? ToImageEntity(request.Thumbnail) : new ImageEntity();
             var images = request.Images?.Select(ToImageEntity).ToList() ?? [];
 
-            var tourDesignerId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
+            var tourOperatorId = _user.Id is not null && Guid.TryParse(_user.Id, out var userIdGuid)
                 ? (Guid?)userIdGuid
                 : null;
 
-            // Non-managers (TourDesigners) cannot set the status themselves —
+            // Non-managers (TourOperators) cannot set the status themselves —
             // tours must always start as Pending and go through the Manager review workflow.
             var effectiveStatus = isManager ? request.Status : TourStatus.Pending;
 
@@ -100,8 +103,9 @@ public class TourService(
             seoDescription: request.SEODescription,
             thumbnail: thumbnail,
             images: images,
-            tourDesignerId: tourDesignerId,
-            continent: request.Continent);
+            tourOperatorId: tourOperatorId,
+            continent: request.Continent,
+            isVisa: request.IsVisa);
 
             const int maxTourCodeGenerationAttempts = 10;
             var tourCodeGenerationAttempts = 0;
@@ -136,7 +140,7 @@ public class TourService(
                     classification.Translations = NormalizeTranslationsFromPayload(cls.Translations);
 
                     // Add Plans (Days)
-                    foreach (var plan in cls.Plans)
+                    foreach (var plan in cls.Plans ?? [])
                     {
                         var day = TourDayEntity.Create(
                             classification.Id,
@@ -147,9 +151,11 @@ public class TourService(
                         day.Translations = NormalizeTranslationsFromPayload(plan.Translations);
 
                         // Add Activities
-                        foreach (var act in plan.Activities)
+                        var activityOrdinal = 0;
+                        foreach (var act in plan.Activities ?? [])
                         {
-                            var activityOrder = plan.Activities.IndexOf(act) + 1;
+                            activityOrdinal++;
+                            var activityOrder = activityOrdinal;
                             var activityType = Enum.TryParse<TourDayActivityType>(act.ActivityType, out var at) ? at : TourDayActivityType.Other;
                             TimeOnly? startTime = null;
                             TimeOnly? endTime = null;
@@ -164,9 +170,16 @@ public class TourService(
                             }
 
                             var enTranslation = act.Translations?.GetValueOrDefault("en");
-                            var fromLocationName = enTranslation?.FromLocationName;
-                            var toLocationName = enTranslation?.ToLocationName;
-                            
+                            var viTranslation = act.Translations?.GetValueOrDefault("vi");
+
+                            var fromLocationName = enTranslation?.FromLocationName
+                                ?? viTranslation?.FromLocationName
+                                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
+
+                            var toLocationName = enTranslation?.ToLocationName
+                                ?? viTranslation?.ToLocationName
+                                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
+
                             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
                             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 
@@ -245,7 +258,7 @@ public class TourService(
                     }
 
                     // Add Insurances
-                    foreach (var ins in cls.Insurances)
+                    foreach (var ins in cls.Insurances ?? [])
                     {
                         var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
 
@@ -264,6 +277,8 @@ public class TourService(
                         classification.Insurances.Add(insurance);
                     }
 
+                    // BasePrice is auto-derived from activity costs — DTO value is ignored.
+                    classification.RecalculateBasePrice();
                     tour.Classifications.Add(classification);
                 }
             }
@@ -341,8 +356,9 @@ public class TourService(
                         _user.Id ?? string.Empty,
                         contactEmail: svc.Email,
                         contactPhone: svc.ContactNumber,
-                        price: svc.Price ?? svc.SalePrice,
+                        price: svc.Price,
                         pricingType: svc.PricingType);
+                    resource.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                     tour.Resources.Add(resource);
                 }
             }
@@ -383,11 +399,11 @@ public class TourService(
             && (tour.Status == TourStatus.Rejected || tour.Status == TourStatus.Active)
             && request.Status == TourStatus.Pending;
 
-        // Access control for TourDesigners
+        // Access control for TourOperators
         if (!isManager)
         {
             var currentUserIdGuid = Guid.TryParse(_user.Id, out var userIdGuid) ? userIdGuid : Guid.Empty;
-            if (tour.TourDesignerId != currentUserIdGuid)
+            if (tour.TourOperatorId != currentUserIdGuid)
             {
                 return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
             }
@@ -398,10 +414,28 @@ public class TourService(
             isResubmission ? TourStatus.Pending :
             tour.Status;
 
+        // TC: Retroactive lock policy
+        // Block changing policy fields (TourScope, Continent, IsVisa) if there are active bookings
+        if (tour.TourScope != request.TourScope || tour.Continent != request.Continent || tour.IsVisa != request.IsVisa)
+        {
+            if (await _tourRepository.HasActiveBookings(tour.Id))
+            {
+                return Error.Validation(
+                    "Tour.PolicyLock",
+                    "Không thể thay đổi phạm vi, châu lục hoặc chính sách visa khi tour đang có booking hoạt động. Vui lòng clone tour mới.");
+            }
+        }
+
+        var publicIdsToDelete = new List<string>();
+
         // Update thumbnail in-place if provided (avoids shared-type EF Core issue)
-        // Update images in-place — EF Core can track owned entities this way
         if (request.Thumbnail is not null)
         {
+            if (!string.IsNullOrEmpty(tour.Thumbnail?.FileId) && tour.Thumbnail.FileId != request.Thumbnail.FileId)
+            {
+                publicIdsToDelete.Add(tour.Thumbnail.FileId);
+            }
+
             tour.Thumbnail ??= new ImageEntity();
             tour.Thumbnail.FileId = request.Thumbnail.FileId;
             tour.Thumbnail.OriginalFileName = request.Thumbnail.OriginalFileName;
@@ -413,9 +447,19 @@ public class TourService(
         if (request.Images is not null)
         {
             var newFileIds = request.Images.Where(i => i.FileId is not null).Select(i => i.FileId!).ToHashSet();
+
+            // Collect FileIds to delete from Cloudinary
+            var removedImages = tour.Images
+                .Where(i => !string.IsNullOrEmpty(i.FileId) && !newFileIds.Contains(i.FileId))
+                .ToList();
+
+            publicIdsToDelete.AddRange(removedImages.Select(i => i.FileId!));
+
             // Remove images not in the new list
-            var toRemove = tour.Images.Where(i => i.FileId is null || !newFileIds.Contains(i.FileId)).ToList();
-            foreach (var img in toRemove) tour.Images.Remove(img);
+            foreach (var img in removedImages)
+            {
+                tour.Images.Remove(img);
+            }
 
             // Update or add images
             foreach (var dto in request.Images)
@@ -450,8 +494,9 @@ public class TourService(
             customerSegment: request.CustomerSegment,
             seoTitle: request.SEOTitle,
             seoDescription: request.SEODescription,
-            tourDesignerId: tour.TourDesignerId,
-            continent: request.Continent);
+            tourOperatorId: tour.TourOperatorId,
+            continent: request.Continent,
+            isVisa: request.IsVisa);
 
         if (isResubmission)
         {
@@ -476,6 +521,12 @@ public class TourService(
         if (request.DeletedActivityIds != null && request.DeletedActivityIds.Count > 0)
         {
             await CascadeDeleteActivitiesAsync(tour, request.DeletedActivityIds);
+        }
+
+        // Cascade soft-delete removed plans and their nested activities
+        if (request.DeletedPlanIds != null && request.DeletedPlanIds.Count > 0)
+        {
+            await CascadeDeletePlansAsync(tour, request.DeletedPlanIds);
         }
 
         // Standalone Accommodations, Locations, Transportations and Services are merged as TourResources
@@ -565,7 +616,7 @@ public class TourService(
                             _user.Id ?? string.Empty,
                             contactEmail: svc.Email,
                             contactPhone: svc.ContactNumber,
-                            price: svc.Price ?? svc.SalePrice,
+                            price: svc.Price,
                             pricingType: svc.PricingType);
                         existingSvc.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                         continue;
@@ -579,7 +630,7 @@ public class TourService(
                     _user.Id ?? string.Empty,
                     contactEmail: svc.Email,
                     contactPhone: svc.ContactNumber,
-                    price: svc.Price ?? svc.SalePrice,
+                    price: svc.Price,
                     pricingType: svc.PricingType);
                 resource.Translations = NormalizeTranslationsFromPayload(svc.Translations);
                 tour.Resources.Add(resource);
@@ -590,6 +641,20 @@ public class TourService(
         try
         {
             await _unitOfWork.SaveChangeAsync();
+
+            // Physical deletion from Cloudinary after DB success
+            if (publicIdsToDelete.Count > 0)
+            {
+                try
+                {
+                    await _cloudinaryService.DeleteFilesAsync(publicIdsToDelete);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Failed to delete old images from Cloudinary for Tour {TourId}", tour.Id);
+                }
+            }
+
             return Result.Success;
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
@@ -718,7 +783,8 @@ public class TourService(
                 translated.ShortDescription,
                 t.Status.ToString(),
                 ToImageDto(t.Thumbnail),
-                t.CreatedOnUtc);
+                t.CreatedOnUtc,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);
@@ -740,7 +806,8 @@ public class TourService(
                 translated.ShortDescription,
                 t.Status.ToString(),
                 ToImageDto(t.Thumbnail),
-                t.CreatedOnUtc);
+                t.CreatedOnUtc,
+                t.IsVisa);
         }).ToList();
 
         return new PaginatedList<TourVm>(total, tourVms, request.PageNumber, request.PageSize);
@@ -974,10 +1041,10 @@ public class TourService(
                 tour.Classifications.Add(classification);
             }
 
-            await UpdatePlansAsync(tour, classification, cls.Plans);
+            await UpdatePlansAsync(tour, classification, cls.Plans ?? []);
 
             // Update Insurances (replace-on-submit)
-            var providedInsuranceIds = cls.Insurances.Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
+            var providedInsuranceIds = (cls.Insurances ?? []).Where(i => i.Id.HasValue).Select(i => i.Id!.Value).ToHashSet();
             foreach (var existingIns in classification.Insurances.Where(i => !i.IsDeleted))
             {
                 if (!providedInsuranceIds.Contains(existingIns.Id))
@@ -986,7 +1053,7 @@ public class TourService(
                 }
             }
 
-            foreach (var ins in cls.Insurances)
+            foreach (var ins in cls.Insurances ?? [])
             {
                 var insuranceType = Enum.TryParse<InsuranceType>(ins.InsuranceType, out var it) ? it : InsuranceType.None;
 
@@ -1025,6 +1092,9 @@ public class TourService(
 
                 classification.Insurances.Add(insurance);
             }
+
+            // BasePrice is auto-derived from activity costs — DTO value is ignored.
+            classification.RecalculateBasePrice();
         }
     }
 
@@ -1055,7 +1125,7 @@ public class TourService(
                 classification.Plans.Add(day);
             }
 
-            await UpdateActivitiesAsync(tour, day, plan.Activities);
+            await UpdateActivitiesAsync(tour, day, plan.Activities ?? []);
         }
     }
 
@@ -1079,9 +1149,16 @@ public class TourService(
             if (!string.IsNullOrWhiteSpace(act.EndTime) && TimeOnly.TryParse(act.EndTime, out var et)) endTime = et;
 
             var enTranslation = act.Translations?.GetValueOrDefault("en");
-            var fromLocationName = enTranslation?.FromLocationName;
-            var toLocationName = enTranslation?.ToLocationName;
-            
+            var viTranslation = act.Translations?.GetValueOrDefault("vi");
+
+            var fromLocationName = enTranslation?.FromLocationName
+                ?? viTranslation?.FromLocationName
+                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.FromLocationName))?.FromLocationName;
+
+            var toLocationName = enTranslation?.ToLocationName
+                ?? viTranslation?.ToLocationName
+                ?? act.Translations?.Values.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.ToLocationName))?.ToLocationName;
+
             var fromLocation = await ResolveLocationAsync(act.FromLocationId, fromLocationName, tour);
             var toLocation = await ResolveLocationAsync(act.ToLocationId, toLocationName, tour);
 
@@ -1252,6 +1329,25 @@ public class TourService(
     }
 
     /// <summary>
+    /// Cascade soft-deletes plans and all their nested activities.
+    /// </summary>
+    private async Task CascadeDeletePlansAsync(TourEntity tour, List<Guid> deletedIds)
+    {
+        var deletedSet = new HashSet<Guid>(deletedIds);
+        foreach (var classification in tour.Classifications)
+        {
+            var toDelete = classification.Plans.Where(p => deletedSet.Contains(p.Id)).ToList();
+            if (toDelete.Count == 0) continue;
+            foreach (var plan in toDelete)
+            {
+                CascadeSoftDeletePlan(plan, _user.Id ?? string.Empty);
+            }
+            classification.RecalculateBasePrice();
+        }
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Cascade soft-deletes standalone activities (from day plans) and their
     /// nested routes and accommodations.
     /// </summary>
@@ -1260,13 +1356,20 @@ public class TourService(
         var deletedSet = new HashSet<Guid>(deletedActivityIds);
         foreach (var classification in tour.Classifications)
         {
+            var anyDeleted = false;
             foreach (var plan in classification.Plans)
             {
                 var toDelete = plan.Activities.Where(a => deletedSet.Contains(a.Id)).ToList();
+                if (toDelete.Count == 0) continue;
                 foreach (var activity in toDelete)
                 {
                     CascadeSoftDeleteActivity(activity, _user.Id ?? string.Empty);
                 }
+                anyDeleted = true;
+            }
+            if (anyDeleted)
+            {
+                classification.RecalculateBasePrice();
             }
         }
         await Task.CompletedTask;

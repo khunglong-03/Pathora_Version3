@@ -1,7 +1,7 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { extractItems, extractResult } from "@/utils/apiResponse";
-import type { ApiResponse } from "@/types/api";
+import type { ServiceResponse } from "@/types/api";
 import type { CheckoutPriceResponse } from "./paymentService";
 
 // Tour Day Activity Status (for guide portal)
@@ -62,6 +62,12 @@ export interface AdminBookingListResponse {
   departureDate: string;
   totalPrice: number;
   status: string;
+  /** Người lớn — mỗi người cần 1 ghế */
+  numberAdult: number;
+  /** Trẻ em — mỗi người cần 1 ghế */
+  numberChild: number;
+  /** Em bé (< 2 tuổi) — KHÔNG cần ghế riêng */
+  numberInfant: number;
 }
 
 export const bookingService = {
@@ -73,21 +79,21 @@ export const bookingService = {
   },
 
   getBookingsByTourInstance: async (tourInstanceId: string) => {
-    const response = await api.get<ApiResponse<AdminBookingListResponse[]>>(
+    const response = await api.get<ServiceResponse<AdminBookingListResponse[]>>(
       API_ENDPOINTS.BOOKING.GET_BY_TOUR_INSTANCE(tourInstanceId),
     );
     return extractItems<AdminBookingListResponse>(response.data);
   },
 
   getActivityStatuses: async (bookingId: string) => {
-    const response = await api.get<ApiResponse<TourDayActivityStatus[]>>(
+    const response = await api.get<ServiceResponse<TourDayActivityStatus[]>>(
       API_ENDPOINTS.BOOKING.GET_ACTIVITY_STATUSES(bookingId),
     );
     return extractItems<TourDayActivityStatus>(response.data);
   },
 
   startActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.BOOKING.START_ACTIVITY(bookingId, tourDayId),
       { actualTime },
     );
@@ -95,7 +101,7 @@ export const bookingService = {
   },
 
   completeActivity: async (bookingId: string, tourDayId: string, actualTime?: string) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.BOOKING.COMPLETE_ACTIVITY(bookingId, tourDayId),
       { actualTime },
     );
@@ -103,7 +109,7 @@ export const bookingService = {
   },
 
   cancelActivity: async (bookingId: string, tourDayId: string, reason?: string) => {
-    const response = await api.post<ApiResponse<unknown>>(
+    const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.BOOKING.CANCEL_ACTIVITY(bookingId, tourDayId),
       { reason },
     );
@@ -118,5 +124,12 @@ export const bookingService = {
       payload,
     );
     return extractResult<CheckoutPriceResponse>(response.data);
+  },
+
+  getBookingDetail: async (bookingId: string) => {
+    const response = await api.get<ServiceResponse<any>>(
+      `/api/public/bookings/${bookingId}`,
+    );
+    return extractResult<any>(response.data);
   },
 };

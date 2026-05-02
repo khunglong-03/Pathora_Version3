@@ -57,7 +57,7 @@ internal sealed class TourPurgeExecutor : ITourPurgeExecutor
                 if (instanceIds.Count > 0)
                 {
                     await _context.TourRequests
-                        .Where(r => r.TourInstanceId.HasValue && instanceIds.Contains(r.TourInstanceId.Value))
+                        .Where(r => r.TourInstanceId.HasValue && instanceIds.Contains(r.TourInstanceId ?? Guid.Empty))
                         .ExecuteUpdateAsync(
                             s => s.SetProperty(r => r.TourInstanceId, (Guid?)null),
                             cancellationToken);
@@ -141,7 +141,7 @@ internal sealed class TourPurgeExecutor : ITourPurgeExecutor
                 if (classificationIds.Count > 0)
                 {
                     var dayIds = await _context.TourDays
-                        .Where(d => d.ClassificationId.HasValue && classificationIds.Contains(d.ClassificationId.Value))
+                        .Where(d => d.ClassificationId.HasValue && classificationIds.Contains(d.ClassificationId ?? Guid.Empty))
                         .Select(d => d.Id)
                         .ToListAsync(cancellationToken);
 
@@ -153,7 +153,7 @@ internal sealed class TourPurgeExecutor : ITourPurgeExecutor
                     }
 
                     await _context.TourDays
-                        .Where(d => d.ClassificationId.HasValue && classificationIds.Contains(d.ClassificationId.Value))
+                        .Where(d => d.ClassificationId.HasValue && classificationIds.Contains(d.ClassificationId ?? Guid.Empty))
                         .ExecuteDeleteAsync(cancellationToken);
 
                     await _context.TourClassifications

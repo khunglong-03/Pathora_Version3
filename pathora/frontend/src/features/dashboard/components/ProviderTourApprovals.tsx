@@ -5,14 +5,30 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
-import { Icon } from "@/components/ui";
+import { Icon, Pagination } from "@/components/ui";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import { NormalizedTourInstanceVm } from "@/types/tour";
 import dayjs from "dayjs";
 import { handleApiError } from "@/utils/apiResponse";
+import { getInstanceApprovalAppearance, type ApprovalAppearance } from "@/utils/approvalStatusHelper";
 
 interface ProviderTourApprovalsProps {
   providerType: "hotel" | "transport";
+}
+
+/** Map instance.status (normalized string) → approval badge for hotel portal */
+function getHotelApprovalAppearance(instanceStatus: string): ApprovalAppearance {
+  const s = instanceStatus?.trim().toLowerCase() ?? "";
+  if (s === "pendingapproval") {
+    return { state: "pending", label: "Chờ duyệt phòng", icon: "heroicons:clock", ringClassName: "bg-amber-50 text-amber-700 ring-1 ring-amber-500/20" };
+  }
+  if (s === "available" || s === "confirmed" || s === "soldout" || s === "inprogress" || s === "completed") {
+    return { state: "approved", label: "Đã duyệt", icon: "heroicons:check-circle", ringClassName: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20" };
+  }
+  if (s === "cancelled") {
+    return { state: "rejected", label: "Đã từ chối/Huỷ", icon: "heroicons:x-circle", ringClassName: "bg-rose-50 text-rose-700 ring-1 ring-rose-500/20" };
+  }
+  return { state: "unassigned", label: "Chưa giao", icon: "heroicons:information-circle", ringClassName: "bg-slate-100 text-slate-600 ring-1 ring-slate-500/10" };
 }
 
 export default function ProviderTourApprovals({ providerType }: ProviderTourApprovalsProps) {
@@ -20,21 +36,24 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
   const { t } = useTranslation();
   const [instances, setInstances] = useState<NormalizedTourInstanceVm[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const isHotel = providerType === "hotel";
+  const [approvalStatus, setApprovalStatus] = useState<number | undefined>(undefined);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 50;
 
   const fetchAssignments = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await tourInstanceService.getProviderAssigned(1, 50);
+      const result = await tourInstanceService.getProviderAssigned(page, pageSize, approvalStatus);
       setInstances(result?.data ?? []);
+      setTotal(result?.total ?? 0);
     } catch (error) {
       handleApiError(error);
       toast.error(t("common.errorFetch", "Gặp lỗi khi tải dữ liệu"));
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, page, approvalStatus]);
 
   useEffect(() => {
     void fetchAssignments();
@@ -42,12 +61,26 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
 
   return (
     <>
-
       <div className="p-4 md:p-6 lg:p-8 xl:p-10 w-full">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900">Danh sách Tour được chỉ định</h2>
             <p className="mt-1 text-sm text-slate-500">Các tour đang chờ bạn tiếp nhận và sắp xếp dịch vụ</p>
+          </div>
+          <div>
+            <select
+              className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              value={approvalStatus ?? ""}
+              onChange={(e) => {
+                setApprovalStatus(e.target.value ? Number(e.target.value) : undefined);
+                setPage(1);
+              }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="1">Đang chờ duyệt</option>
+              <option value="2">Đã duyệt</option>
+              <option value="3">Đã từ chối</option>
+            </select>
           </div>
         </div>
 
@@ -64,7 +97,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
              </div>
             <h3 className="text-xl font-bold text-slate-900">Không có yêu cầu nào</h3>
             <p className="mt-2 text-base text-slate-500 max-w-md">
-              Hiện tại bạn chưa được chỉ định vào đợt tour nào đang chờ phê duyệt. Trở lại sau nhé.
+              Hiện tại bạn chưa được chỉ định vào đợt tour nào với trạng thái này.
             </p>
           </div>
         ) : (
@@ -72,12 +105,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             {instances.map((instance) => {
               const startDate = dayjs(instance.startDate).format("DD/MM/YYYY");
               const endDate = dayjs(instance.endDate).format("DD/MM/YYYY");
-              const myApprovalStatus =
-                providerType === "hotel"
-                  ? instance.hotelApprovalStatus
-                  : instance.transportApprovalStatus;
-              const isApproved = myApprovalStatus === 2;
-              const isRejected = myApprovalStatus === 3;
+              const appearance = providerType === "hotel"
+                ? getHotelApprovalAppearance(instance.status)
+                : getInstanceApprovalAppearance(instance.transportApprovalStatus);
 
               return (
                 <div 
@@ -96,15 +126,9 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                        <span className="inline-flex rounded-xl bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-indigo-600 ring-1 ring-indigo-500/10 inset-ring">
                           {instance.tourCode}
                        </span>
-                       <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                         isApproved ? "bg-emerald-50 text-emerald-700" :
-                         isRejected ? "bg-rose-50 text-rose-700" :
-                         "bg-amber-50 text-amber-700"
-                       }`}>
-                         {isApproved ? <Icon icon="heroicons:check-circle-solid" className="size-3.5" /> : 
-                          isRejected ? <Icon icon="heroicons:x-circle-solid" className="size-3.5" /> : 
-                          <Icon icon="heroicons:clock-solid" className="size-3.5" />}
-                         {isApproved ? "Đã duyệt" : isRejected ? "Đã từ chối" : "Đang chờ"}
+                       <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${appearance.ringClassName}`}>
+                         <Icon icon={appearance.icon} className="size-3.5" />
+                         {appearance.label}
                        </div>
                     </div>
                     
@@ -140,7 +164,18 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
             })}
           </div>
         )}
+        
+        {!loading && total > pageSize && (
+          <div className="mt-8 flex justify-center">
+            <Pagination
+              currentPage={page}
+              totalPages={Math.ceil(total / pageSize)}
+              handlePageChange={setPage}
+            />
+          </div>
+        )}
       </div>
     </>
   );
 }
+

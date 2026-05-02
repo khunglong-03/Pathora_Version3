@@ -1,28 +1,32 @@
-using System.Globalization;
-using ErrorOr;
-using FluentValidation;
 using Application.Common.Constant;
 using Application.Contracts.Booking;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using Domain.ValueObjects;
+using ErrorOr;
+using FluentValidation;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Commands;
 
 public sealed record CreatePublicBookingCommand(
-    Guid TourInstanceId,
-    string CustomerName,
-    string CustomerPhone,
-    string? CustomerEmail,
-    int NumberAdult,
-    int NumberChild,
-    int NumberInfant,
-    PaymentMethod PaymentMethod,
-    bool IsFullPay
-) : ICommand<ErrorOr<CheckoutPriceResponse>>;
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("customerPhone")] string CustomerPhone,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("isFullPay")] bool IsFullPay) : ICommand<ErrorOr<CheckoutPriceResponse>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [Application.Common.CacheKey.TourInstance];
+}
 
 public sealed class CreatePublicBookingCommandValidator : AbstractValidator<CreatePublicBookingCommand>
 {
@@ -59,10 +63,14 @@ public sealed class CreatePublicBookingCommandValidator : AbstractValidator<Crea
 }
 
 public sealed class CreatePublicBookingCommandHandler(
+    IUser user,
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,
     ITaxConfigRepository taxConfigRepository,
     IPricingPolicyRepository pricingPolicyRepository,
+    ITourRepository tourRepository,
+    IDepositPolicyRepository depositPolicyRepository,
+    IUserRepository userRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreatePublicBookingCommand, ErrorOr<CheckoutPriceResponse>>
 {
@@ -81,16 +89,20 @@ public sealed class CreatePublicBookingCommandHandler(
 
         if (tourInstance.Status != TourInstanceStatus.Available)
         {
-            return Error.Conflict(
-                "TourInstance.NotAvailable",
-                "Tour hiện không có sẵn để đặt.");
+            var allowPrivateDraft = tourInstance.InstanceType == TourType.Private
+                && tourInstance.Status == TourInstanceStatus.Draft;
+            if (!allowPrivateDraft)
+            {
+                return Error.Conflict(
+                    "TourInstance.NotAvailable",
+                    "Tour hiện không có sẵn để đặt.");
+            }
         }
 
-        // Check capacity
-        var currentBookings = await bookingRepository.CountByTourInstanceIdAsync(request.TourInstanceId);
+        // Check capacity using CurrentParticipation to stay consistent with frontend
         var totalParticipants = request.NumberAdult + request.NumberChild + request.NumberInfant;
 
-        if (currentBookings + totalParticipants > tourInstance.MaxParticipation)
+        if (tourInstance.CurrentParticipation + totalParticipants > tourInstance.MaxParticipation)
         {
             return Error.Conflict(
                 "TourInstance.NotEnoughCapacity",
@@ -119,6 +131,22 @@ public sealed class CreatePublicBookingCommandHandler(
         var taxAmount = subtotal * taxRate / 100m;
         var totalPrice = subtotal + taxAmount;
 
+        // Extract User ID if authenticated
+        Guid? currentUserId = null;
+        if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        if (currentUserId == null && !string.IsNullOrWhiteSpace(request.CustomerEmail))
+        {
+            var matchedByEmail = await userRepository.GetByEmailAsync(request.CustomerEmail, cancellationToken);
+            if (matchedByEmail != null)
+            {
+                currentUserId = matchedByEmail.Id;
+            }
+        }
+
         // Create booking entity
         var booking = BookingEntity.Create(
             tourInstanceId: request.TourInstanceId,
@@ -128,16 +156,44 @@ public sealed class CreatePublicBookingCommandHandler(
             totalPrice: totalPrice,
             paymentMethod: request.PaymentMethod,
             isFullPay: request.IsFullPay,
-            performedBy: "PUBLIC_USER",
+            performedBy: currentUserId?.ToString() ?? "PUBLIC_USER",
+            userId: currentUserId,
             customerEmail: request.CustomerEmail,
             numberChild: request.NumberChild,
             numberInfant: request.NumberInfant);
 
+        // No longer reserve capacity here. Capacity will be reserved upon successful payment.
+
         await bookingRepository.AddAsync(booking);
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        // Phase 5.1.4: Always use 30% deposit regardless of IsFullPay (aligned with GetCheckoutPrice)
-        var depositPercentage = 30m;
+        // Phase 5.1.4: Use 100% deposit if IsFullPay is true, else calculate from DepositPolicy
+        var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
+        var tourScope = tour?.TourScope ?? Domain.Enums.TourScope.Domestic;
+
+        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
+        var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tourScope);
+
+        var depositPercentage = 30m; // Fallback default
+        if (policy != null)
+        {
+            if (policy.DepositType == Domain.Enums.DepositType.Percentage)
+            {
+                depositPercentage = policy.DepositValue;
+            }
+            else
+            {
+                // If it's a fixed amount, calculate percentage equivalent or use the amount directly.
+                // We'll calculate the exact percentage of the total.
+                depositPercentage = totalPrice > 0 ? (policy.DepositValue / totalPrice) * 100m : 0m;
+            }
+        }
+
+        if (request.IsFullPay)
+        {
+            depositPercentage = 100m;
+        }
+
         var depositAmount = totalPrice * depositPercentage / 100m;
         var remainingBalance = totalPrice - depositAmount;
 

@@ -1,11 +1,11 @@
 import { api } from "@/api/axiosInstance";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import type { ApiResponse } from "@/types/api";
+import type { ServiceResponse } from "@/types/api";
 import { executeApiRequest } from "./serviceExecutor";
 
 // Entity type constants matching backend AssignedEntityType enum
 export const ASSIGNED_ENTITY_TYPE = {
-  TourDesigner: 1,
+  TourOperator: 1,
   TourGuide: 2,
   Tour: 3,
 } as const;
@@ -68,7 +68,7 @@ export interface RemoveParams {
 }
 
 export const tourManagerAssignmentService = {
-  getAll: (managerId?: string): Promise<ApiResponse<TourManagerSummary[]>> => {
+  getAll: (managerId?: string): Promise<ServiceResponse<TourManagerSummary[]>> => {
     const params = managerId ? new URLSearchParams({ managerId }) : undefined;
     const url = params
       ? `${API_ENDPOINTS.TOUR_MANAGER_ASSIGNMENT.GET_ALL}?${params.toString()}`
@@ -76,26 +76,26 @@ export const tourManagerAssignmentService = {
     return executeApiRequest<TourManagerSummary[]>(() => api.get(url));
   },
 
-  getById: (managerId: string): Promise<ApiResponse<TourManagerAssignmentDetail>> => {
+  getById: (managerId: string): Promise<ServiceResponse<TourManagerAssignmentDetail>> => {
     return executeApiRequest<TourManagerAssignmentDetail>(() =>
       api.get(API_ENDPOINTS.TOUR_MANAGER_ASSIGNMENT.GET_BY_ID(managerId)),
     );
   },
 
-  assign: (data: AssignRequest): Promise<ApiResponse<string>> => {
+  assign: (data: AssignRequest): Promise<ServiceResponse<string>> => {
     return executeApiRequest<string>(() =>
       api.post(API_ENDPOINTS.TOUR_MANAGER_ASSIGNMENT.ASSIGN, data),
     );
   },
 
-  bulkAssign: (managerId: string, assignments: AssignmentItem[]): Promise<ApiResponse<void>> => {
+  bulkAssign: (managerId: string, assignments: AssignmentItem[]): Promise<ServiceResponse<void>> => {
     const payload: BulkAssignRequest = { managerId, assignments };
     return executeApiRequest<void>(() =>
       api.post(API_ENDPOINTS.TOUR_MANAGER_ASSIGNMENT.BULK_ASSIGN, payload),
     );
   },
 
-  remove: (managerId: string, params: RemoveParams): Promise<ApiResponse<void>> => {
+  remove: (managerId: string, params: RemoveParams): Promise<ServiceResponse<void>> => {
     const query = new URLSearchParams();
     if (params.assignedUserId) {
       query.set("assignedUserId", params.assignedUserId);

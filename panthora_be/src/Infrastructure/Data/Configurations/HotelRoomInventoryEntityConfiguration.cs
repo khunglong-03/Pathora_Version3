@@ -33,8 +33,27 @@ public class HotelRoomInventoryEntityConfiguration : IEntityTypeConfiguration<Ho
         builder.Property(x => x.OperatingCountries)
             .HasMaxLength(500);
 
-        builder.Property(x => x.ImageUrls)
-            .HasColumnType("jsonb");
+        // Thumbnail là owned entity, lưu inline trong bảng HotelRoomInventory
+        builder.OwnsOne(t => t.Thumbnail, thumb =>
+        {
+            thumb.Property(i => i.FileId).HasColumnName("Thumbnail_FileId").HasMaxLength(200);
+            thumb.Property(i => i.OriginalFileName).HasColumnName("Thumbnail_OriginalFileName").HasMaxLength(500);
+            thumb.Property(i => i.FileName).HasColumnName("Thumbnail_FileName").HasMaxLength(500);
+            thumb.Property(i => i.PublicURL).HasColumnName("Thumbnail_PublicURL").HasMaxLength(1000);
+        });
+
+        // Images lưu trong bảng riêng HotelRoomImages
+        builder.OwnsMany(t => t.Images, img =>
+        {
+            img.ToTable("HotelRoomImages");
+            img.WithOwner().HasForeignKey("HotelRoomInventoryId");
+            img.Property<int>("Id").ValueGeneratedOnAdd().UseIdentityAlwaysColumn();
+            img.HasKey("Id");
+            img.Property(i => i.FileId).HasMaxLength(200);
+            img.Property(i => i.OriginalFileName).HasMaxLength(500);
+            img.Property(i => i.FileName).HasMaxLength(500);
+            img.Property(i => i.PublicURL).HasMaxLength(1000);
+        });
 
         builder.Property(x => x.Notes)
             .HasMaxLength(1000);
@@ -48,5 +67,7 @@ public class HotelRoomInventoryEntityConfiguration : IEntityTypeConfiguration<Ho
             .WithMany()
             .HasForeignKey(x => x.SupplierId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(x => !x.Supplier.IsDeleted && x.Supplier.IsActive && (x.Supplier.Owner == null || x.Supplier.Owner.Status == Domain.Enums.UserStatus.Active));
     }
 }

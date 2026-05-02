@@ -7,6 +7,7 @@ export interface FeaturedTour {
   durationDays: number;
   basePrice: number;
   classificationName: string | null;
+  isVisa: boolean;
 }
 
 export interface LatestTour {
@@ -15,6 +16,7 @@ export interface LatestTour {
   thumbnail: string | null;
   shortDescription: string | null;
   createdAt: string;
+  isVisa: boolean;
 }
 
 export interface TrendingDestination {
@@ -57,6 +59,7 @@ export interface SearchTour {
   basePrice: number;
   classificationName: string | null;
   rating: number | null;
+  isVisa: boolean;
 }
 
 export interface ApiResponse<T> {

@@ -1,0 +1,73 @@
+using Application.Common.Constant;
+using Application.Services;
+using Domain.Common.Repositories;
+using Domain.Enums;
+using ErrorOr;
+using MediatR;
+using System.Text.Json.Serialization;
+
+namespace Application.Features.TourInstance.ItineraryFeedback;
+
+public sealed record ListTourItineraryFeedbackQuery(
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("tourInstanceDayId")] Guid TourInstanceDayId)
+    : IRequest<ErrorOr<List<TourItineraryFeedbackDto>>>;
+
+public sealed class ListTourItineraryFeedbackQueryHandler(
+    ITourInstanceRepository tourInstanceRepository,
+    IBookingRepository bookingRepository,
+    ITourItineraryFeedbackRepository feedbackRepository,
+    IOwnershipValidator ownershipValidator,
+    global::Contracts.Interfaces.IUser user)
+    : IRequestHandler<ListTourItineraryFeedbackQuery, ErrorOr<List<TourItineraryFeedbackDto>>>
+{
+    public async Task<ErrorOr<List<TourItineraryFeedbackDto>>> Handle(
+        ListTourItineraryFeedbackQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(ownershipValidator.GetCurrentUserId(), out var userId))
+            return Error.Unauthorized();
+
+        var instance = await tourInstanceRepository.FindById(request.TourInstanceId, cancellationToken: cancellationToken);
+        if (instance == null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (!PrivateTourCoDesignAccess.DayBelongsToInstance(instance, request.TourInstanceDayId))
+            return Error.Validation(ErrorConstants.ItineraryFeedback.InvalidDayCode, ErrorConstants.ItineraryFeedback.InvalidDayDescription);
+
+        var isAdmin = await ownershipValidator.IsAdminAsync(cancellationToken);
+#pragma warning disable CS0618
+        var isAssignedManager = PrivateTourCoDesignAccess.IsInstanceManager(instance, userId);
+#pragma warning restore CS0618
+        var isGlobalManager = user.Roles.Any(r => 
+            string.Equals(r, RoleConstants.TourOperator, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r, RoleConstants.Manager, StringComparison.OrdinalIgnoreCase));
+
+        var isCustomer = !isAssignedManager && !isAdmin && !isGlobalManager;
+        if (isCustomer)
+        {
+            var onInstance = await bookingRepository.GetByTourInstanceIdAsync(request.TourInstanceId, cancellationToken);
+            var ownsBooking = onInstance.Exists(b => b.UserId == userId);
+            if (!ownsBooking)
+                return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
+        }
+
+        var items = await feedbackRepository.ListByInstanceAndDayAsync(
+            request.TourInstanceId,
+            request.TourInstanceDayId,
+            cancellationToken);
+
+        var query = items.AsEnumerable();
+        if (isCustomer)
+        {
+            var currentUserIdStr = userId.ToString();
+            query = query.Where(f => f.Status >= TourItineraryFeedbackStatus.ManagerApproved || f.CreatedBy == currentUserIdStr);
+        }
+
+        return query
+            .Select(f => new TourItineraryFeedbackDto(
+                f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc,
+                f.Status, f.ForwardedByManagerId, f.ForwardedAt, f.RespondedByOperatorId, f.RespondedAt, f.ApprovedByManagerId, f.ApprovedAt, f.RejectionReason, Convert.ToBase64String(f.RowVersion)))
+            .ToList();
+    }
+}

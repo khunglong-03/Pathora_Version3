@@ -1,33 +1,34 @@
 using BuildingBlocks.CORS;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.TaxConfig;
 
 public sealed record TaxConfigResponse(
-    Guid Id,
-    string TaxName,
-    string? TaxCode,
-    decimal TaxRate,
-    string? Description,
-    bool IsActive,
-    DateTimeOffset EffectiveDate,
-    string? CreatedBy,
-    string? LastModifiedBy,
-    DateTimeOffset CreatedOnUtc,
-    DateTimeOffset? LastModifiedOnUtc
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("taxName")] string TaxName,
+    [property: JsonPropertyName("taxCode")] string? TaxCode,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("isActive")] bool IsActive,
+    [property: JsonPropertyName("effectiveDate")] DateTimeOffset EffectiveDate,
+    [property: JsonPropertyName("createdBy")] string? CreatedBy,
+    [property: JsonPropertyName("lastModifiedBy")] string? LastModifiedBy,
+    [property: JsonPropertyName("createdOnUtc")] DateTimeOffset CreatedOnUtc,
+    [property: JsonPropertyName("lastModifiedOnUtc")] DateTimeOffset? LastModifiedOnUtc
 );
 
 public sealed record CreateTaxConfigRequest(
-    string TaxName,
-    decimal TaxRate,
-    string? Description,
-    DateTimeOffset EffectiveDate
+    [property: JsonPropertyName("taxName")] string TaxName,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("effectiveDate")] DateTimeOffset EffectiveDate
 );
 
 public sealed record UpdateTaxConfigRequest(
-    Guid Id,
-    string TaxName,
-    decimal TaxRate,
-    string? Description,
-    DateTimeOffset EffectiveDate,
-    bool IsActive
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("taxName")] string TaxName,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("effectiveDate")] DateTimeOffset EffectiveDate,
+    [property: JsonPropertyName("isActive")] bool IsActive
 );

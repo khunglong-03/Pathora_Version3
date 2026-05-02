@@ -4,10 +4,13 @@ using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Payment
 {
-    public sealed record GetQRCommand(string note, long amount) : IRequest<ErrorOr<string>>;
+    public sealed record GetQRCommand(
+        [property: JsonPropertyName("note")] string note,
+        [property: JsonPropertyName("amount")] long amount) : IRequest<ErrorOr<string>>;
     public class GetQRCommandValidator : AbstractValidator<GetQRCommand>
     {
         public GetQRCommandValidator()

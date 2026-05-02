@@ -245,6 +245,34 @@ public class TourDayActivityRouteTransportRepository(AppDbContext context)
         return await query.CountAsync(cancellationToken);
     }
 
+    public async Task<int> CountByDriverIdAsync(
+        Guid driverId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.TourDayActivityRouteTransports
+            .AsNoTracking()
+            .Where(t => t.DriverId == driverId)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<List<TourDayActivityRouteTransportEntity>> FindByDriverIdPaginatedAsync(
+        Guid driverId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.TourDayActivityRouteTransports
+            .AsNoTracking()
+            .Include(t => t.Vehicle)
+            .Include(t => t.BookingActivityReservation)
+            .Include(t => t.TourDayActivity)
+            .Where(t => t.DriverId == driverId)
+            .OrderByDescending(t => t.CreatedOnUtc)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
     private static (DateTimeOffset Start, DateTimeOffset End) GetQuarterRange(int year, int quarter)
     {
         var startMonth = (quarter - 1) * 3 + 1;

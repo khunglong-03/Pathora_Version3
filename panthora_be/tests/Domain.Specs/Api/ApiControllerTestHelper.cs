@@ -28,7 +28,7 @@ internal static class ApiControllerTestHelper
         {
             RequestServices = services.BuildServiceProvider()
         };
-        httpContext.Request.Path = path;
+        httpContext.Request.Path = path.StartsWith("/") ? path : "/" + path;
 
         var controller = new TController
         {
@@ -62,7 +62,7 @@ internal static class ApiControllerTestHelper
         {
             RequestServices = services.BuildServiceProvider()
         };
-        httpContext.Request.Path = path;
+        httpContext.Request.Path = path.StartsWith("/") ? path : "/" + path;
 
         var controller = (TController)Activator.CreateInstance(typeof(TController), ctorArgs)!;
         controller.ControllerContext = new ControllerContext

@@ -26,7 +26,7 @@ interface CreateSupplierModalProps {
 interface FormValues {
   ownerEmail: string;
   ownerFullName: string;
-  supplierCode: string;
+  password: string;
   supplierName: string;
   phone: string;
   email: string;
@@ -38,7 +38,7 @@ interface FormValues {
 const DEFAULT_VALUES: FormValues = {
   ownerEmail: "",
   ownerFullName: "",
-  supplierCode: "",
+  password: "",
   supplierName: "",
   phone: "",
   email: "",
@@ -46,6 +46,13 @@ const DEFAULT_VALUES: FormValues = {
   note: "",
   primaryContinent: "",
 };
+
+function generateSupplierCode(type: SupplierType): string {
+  const prefix = type === "Transport" ? "TRS" : type === "Accommodation" ? "HTL" : "ACT";
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${ts}-${rand}`;
+}
 
 export function CreateSupplierModal({
   isOpen,
@@ -74,11 +81,12 @@ export function CreateSupplierModal({
           .string()
           .trim()
           .required(t("adminSupplierModal.validation.ownerFullNameRequired")),
-        supplierCode: yup
+        password: yup
           .string()
           .trim()
-          .required(t("adminSupplierModal.validation.supplierCodeRequired"))
-          .max(50, t("adminSupplierModal.validation.supplierCodeTooLong")),
+          .required(t("adminSupplierModal.validation.passwordRequired"))
+          .min(6, t("adminSupplierModal.validation.passwordTooShort")),
+
         supplierName: yup
           .string()
           .trim()
@@ -137,7 +145,7 @@ export function CreateSupplierModal({
       await createSupplierWithOwner({
         ownerEmail: values.ownerEmail.trim(),
         ownerFullName: values.ownerFullName.trim(),
-        supplierCode: values.supplierCode.trim(),
+        supplierCode: generateSupplierCode(supplierType),
         supplierType,
         supplierName: values.supplierName.trim(),
         phone: values.phone.trim() || undefined,
@@ -147,6 +155,7 @@ export function CreateSupplierModal({
         primaryContinent: requireContinent
           ? (values.primaryContinent as SupportedContinentCode)
           : undefined,
+        password: values.password.trim() || undefined,
       });
 
       reset(DEFAULT_VALUES);
@@ -274,6 +283,34 @@ export function CreateSupplierModal({
                     {t("adminSupplierModal.fields.ownerEmailHint")}
                   </p>
                 </div>
+
+                <div>
+                  <label
+                    htmlFor="owner-password"
+                    className="mb-1.5 block text-sm font-medium"
+                    style={{ color: "#374151" }}
+                  >
+                    {t("adminSupplierModal.fields.password")}{" "}
+                    <span style={{ color: "#DC2626" }}>*</span>
+                  </label>
+                  <input
+                    id="owner-password"
+                    type="password"
+                    {...register("password")}
+                    placeholder={t("adminSupplierModal.placeholders.password")}
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    style={
+                      errors.password
+                        ? { borderColor: "#DC2626", color: "#111827" }
+                        : { borderColor: "#E5E7EB", color: "#111827" }
+                    }
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -287,33 +324,7 @@ export function CreateSupplierModal({
                 {t("adminSupplierModal.sections.supplier")}
               </p>
               <div className="space-y-3">
-                <div>
-                  <label
-                    htmlFor="supplier-code"
-                    className="mb-1.5 block text-sm font-medium"
-                    style={{ color: "#374151" }}
-                  >
-                    {t("adminSupplierModal.fields.supplierCode")}{" "}
-                    <span style={{ color: "#DC2626" }}>*</span>
-                  </label>
-                  <input
-                    id="supplier-code"
-                    type="text"
-                    {...register("supplierCode")}
-                    placeholder={t("adminSupplierModal.placeholders.supplierCode")}
-                    className="w-full rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-                    style={
-                      errors.supplierCode
-                        ? { borderColor: "#DC2626", color: "#111827" }
-                        : { borderColor: "#E5E7EB", color: "#111827" }
-                    }
-                  />
-                  {errors.supplierCode && (
-                    <p className="mt-1 text-xs" style={{ color: "#DC2626" }}>
-                      {errors.supplierCode.message}
-                    </p>
-                  )}
-                </div>
+
 
                 <div>
                   <label

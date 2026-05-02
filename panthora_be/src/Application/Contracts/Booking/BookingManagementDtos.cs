@@ -1,404 +1,402 @@
 using Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace Application.Contracts.Booking;
 
 public sealed record SupplierDto(
-    Guid SupplierId,
-    string SupplierCode,
-    SupplierType SupplierType,
-    string Name,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    bool IsActive
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("isActive")] bool IsActive
 );
 
 public sealed record CreateSupplierDto(
-    string SupplierCode,
-    SupplierType SupplierType,
-    string Name,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    Continent? PrimaryContinent
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent
 );
 
 public sealed record UpdateSupplierDto(
-    Guid SupplierId,
-    string SupplierCode,
-    SupplierType SupplierType,
-    string Name,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    bool IsActive
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("isActive")] bool IsActive
 );
 
 public sealed record BookingActivityReservationDto(
-    Guid BookingActivityReservationId,
-    Guid BookingId,
-    Guid? SupplierId,
-    int Order,
-    string ActivityType,
-    string Title,
-    string? Description,
-    DateTimeOffset? StartTime,
-    DateTimeOffset? EndTime,
-    decimal TotalServicePrice,
-    decimal TotalServicePriceAfterTax,
-    ReservationStatus Status,
-    string? Note
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("order")] int Order,
+    [property: JsonPropertyName("activityType")] string ActivityType,
+    [property: JsonPropertyName("title")] string Title,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("startTime")] DateTimeOffset? StartTime,
+    [property: JsonPropertyName("endTime")] DateTimeOffset? EndTime,
+    [property: JsonPropertyName("totalServicePrice")] decimal TotalServicePrice,
+    [property: JsonPropertyName("totalServicePriceAfterTax")] decimal TotalServicePriceAfterTax,
+    [property: JsonPropertyName("status")] ReservationStatus Status,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record TransportDetailDto(
-    Guid BookingTransportDetailId,
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal BuyPrice,
-    decimal TaxRate,
-    decimal TotalBuyPrice,
-    bool IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus Status,
-    string? Note
+    [property: JsonPropertyName("bookingTransportDetailId")] Guid BookingTransportDetailId,
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("totalBuyPrice")] decimal TotalBuyPrice,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus Status,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record CreateTransportDetailDto(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    TransportType TransportType,
-    DateTimeOffset? DepartureAt,
-    DateTimeOffset? ArrivalAt,
-    string? TicketNumber,
-    string? ETicketNumber,
-    string? SeatNumber,
-    int SeatCapacity,
-    string? SeatClass,
-    string? VehicleNumber,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid? BookingParticipantId,
+    [property: JsonPropertyName("passengerName")] string? PassengerName,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("transportType")] TransportType TransportType,
+    [property: JsonPropertyName("departureAt")] DateTimeOffset? DepartureAt,
+    [property: JsonPropertyName("arrivalAt")] DateTimeOffset? ArrivalAt,
+    [property: JsonPropertyName("ticketNumber")] string? TicketNumber,
+    [property: JsonPropertyName("eTicketNumber")] string? ETicketNumber,
+    [property: JsonPropertyName("seatNumber")] string? SeatNumber,
+    [property: JsonPropertyName("seatCapacity")] int SeatCapacity,
+    [property: JsonPropertyName("seatClass")] string? SeatClass,
+    [property: JsonPropertyName("vehicleNumber")] string? VehicleNumber,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record AccommodationDetailDto(
-    Guid BookingAccommodationDetailId,
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal BuyPrice,
-    decimal TaxRate,
-    decimal TotalBuyPrice,
-    bool IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    ReservationStatus Status,
-    string? Note
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("totalBuyPrice")] decimal TotalBuyPrice,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("status")] ReservationStatus Status,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record CreateAccommodationDetailDto(
-    Guid BookingActivityReservationId,
-    Guid? SupplierId,
-    string AccommodationName,
-    RoomType RoomType,
-    int RoomCount,
-    string? BedType,
-    string? Address,
-    string? ContactPhone,
-    DateTimeOffset? CheckInAt,
-    DateTimeOffset? CheckOutAt,
-    decimal BuyPrice,
-    decimal TaxRate,
-    bool IsTaxable,
-    string? ConfirmationCode,
-    string? FileUrl,
-    string? SpecialRequest,
-    string? Note
+    [property: JsonPropertyName("bookingActivityReservationId")] Guid BookingActivityReservationId,
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
+    [property: JsonPropertyName("accommodationName")] string AccommodationName,
+    [property: JsonPropertyName("roomType")] RoomType RoomType,
+    [property: JsonPropertyName("roomCount")] int RoomCount,
+    [property: JsonPropertyName("bedType")] string? BedType,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("contactPhone")] string? ContactPhone,
+    [property: JsonPropertyName("checkInAt")] DateTimeOffset? CheckInAt,
+    [property: JsonPropertyName("checkOutAt")] DateTimeOffset? CheckOutAt,
+    [property: JsonPropertyName("buyPrice")] decimal BuyPrice,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("isTaxable")] bool IsTaxable,
+    [property: JsonPropertyName("confirmationCode")] string? ConfirmationCode,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl,
+    [property: JsonPropertyName("specialRequest")] string? SpecialRequest,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record PassportDto(
-    Guid PassportId,
-    Guid BookingParticipantId,
-    string PassportNumber,
-    string? Nationality,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl
 );
 
 public sealed record CreatePassportDto(
-    Guid BookingParticipantId,
-    string PassportNumber,
-    string? Nationality,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportNumber")] string PassportNumber,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl
 );
 
 public sealed record VisaDto(
-    Guid VisaId,
-    Guid VisaApplicationId,
-    string? VisaNumber,
-    string? Country,
-    VisaStatus Status,
-    VisaEntryType? EntryType,
-    DateTimeOffset? IssuedAt,
-    DateTimeOffset? ExpiresAt,
-    string? FileUrl
+    [property: JsonPropertyName("visaId")] Guid VisaId,
+    [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
+    [property: JsonPropertyName("visaNumber")] string? VisaNumber,
+    [property: JsonPropertyName("country")] string? Country,
+    [property: JsonPropertyName("status")] VisaStatus Status,
+    [property: JsonPropertyName("entryType")] VisaEntryType? EntryType,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt,
+    [property: JsonPropertyName("fileUrl")] string? FileUrl
 );
 
 public sealed record VisaApplicationDto(
-    Guid VisaApplicationId,
-    Guid BookingParticipantId,
-    Guid PassportId,
-    string DestinationCountry,
-    VisaStatus Status,
-    DateTimeOffset? MinReturnDate,
-    string? RefusalReason,
-    string? VisaFileUrl,
-    VisaDto? Visa
+    [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
+    [property: JsonPropertyName("bookingParticipantId")] Guid BookingParticipantId,
+    [property: JsonPropertyName("passportId")] Guid PassportId,
+    [property: JsonPropertyName("destinationCountry")] string DestinationCountry,
+    [property: JsonPropertyName("status")] VisaStatus Status,
+    [property: JsonPropertyName("minReturnDate")] DateTimeOffset? MinReturnDate,
+    [property: JsonPropertyName("refusalReason")] string? RefusalReason,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl,
+    [property: JsonPropertyName("visa")] VisaDto? Visa
 );
 
 public sealed record ParticipantDto(
-    Guid ParticipantId,
-    Guid BookingId,
-    string ParticipantType,
-    string FullName,
-    DateTimeOffset? DateOfBirth,
-    GenderType? Gender,
-    string? Nationality,
-    ReservationStatus Status,
-    PassportDto? Passport,
-    List<VisaApplicationDto> VisaApplications
+    [property: JsonPropertyName("participantId")] Guid ParticipantId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("participantType")] string ParticipantType,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("dateOfBirth")] DateTimeOffset? DateOfBirth,
+    [property: JsonPropertyName("gender")] GenderType? Gender,
+    [property: JsonPropertyName("nationality")] string? Nationality,
+    [property: JsonPropertyName("status")] ReservationStatus Status,
+    [property: JsonPropertyName("passport")] PassportDto? Passport,
+    [property: JsonPropertyName("visaApplications")] List<VisaApplicationDto> VisaApplications
 );
 
 public sealed record CreateParticipantDto(
-    Guid BookingId,
-    string ParticipantType,
-    string FullName,
-    DateTimeOffset? DateOfBirth,
-    GenderType? Gender,
-    string? Nationality
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("participantType")] string ParticipantType,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("dateOfBirth")] DateTimeOffset? DateOfBirth,
+    [property: JsonPropertyName("gender")] GenderType? Gender,
+    [property: JsonPropertyName("nationality")] string? Nationality
 );
 
 public sealed record SupplierReceiptDto(
-    Guid SupplierReceiptId,
-    Guid SupplierPayableId,
-    decimal Amount,
-    DateTimeOffset PaidAt,
-    PaymentMethod PaymentMethod,
-    string? TransactionRef,
-    string? Note
+    [property: JsonPropertyName("supplierReceiptId")] Guid SupplierReceiptId,
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("amount")] decimal Amount,
+    [property: JsonPropertyName("paidAt")] DateTimeOffset PaidAt,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("transactionRef")] string? TransactionRef,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record SupplierPayableDto(
-    Guid SupplierPayableId,
-    Guid BookingId,
-    Guid SupplierId,
-    decimal ExpectedAmount,
-    decimal PaidAmount,
-    DateTimeOffset? DueAt,
-    PaymentStatus Status,
-    string? Note,
-    List<SupplierReceiptDto> Receipts
+    [property: JsonPropertyName("supplierPayableId")] Guid SupplierPayableId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("expectedAmount")] decimal ExpectedAmount,
+    [property: JsonPropertyName("paidAmount")] decimal PaidAmount,
+    [property: JsonPropertyName("dueAt")] DateTimeOffset? DueAt,
+    [property: JsonPropertyName("status")] PaymentStatus Status,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("receipts")] List<SupplierReceiptDto> Receipts
 );
 
 
 public sealed record BookingTeamMemberDto(
-    Guid BookingTourGuideId,
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    AssignmentStatus Status,
-    DateTimeOffset AssignedDate,
-    string? Note
+    [property: JsonPropertyName("bookingTourGuideId")] Guid BookingTourGuideId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("status")] AssignmentStatus Status,
+    [property: JsonPropertyName("assignedDate")] DateTimeOffset AssignedDate,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record AssignTeamMemberDto(
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    string? Note
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record BookingTourGuideDto(
-    Guid BookingTourGuideId,
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    AssignmentStatus Status,
-    DateTimeOffset AssignedDate,
-    string? Note
+    [property: JsonPropertyName("bookingTourGuideId")] Guid BookingTourGuideId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("status")] AssignmentStatus Status,
+    [property: JsonPropertyName("assignedDate")] DateTimeOffset AssignedDate,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record TourDayActivityGuideDto(
-    Guid TourDayActivityGuideId,
-    Guid TourDayActivityStatusId,
-    Guid UserId,
-    GuideRole Role,
-    DateTimeOffset? CheckInTime,
-    DateTimeOffset? CheckOutTime,
-    string? Note
+    [property: JsonPropertyName("tourDayActivityGuideId")] Guid TourDayActivityGuideId,
+    [property: JsonPropertyName("tourDayActivityStatusId")] Guid TourDayActivityStatusId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("role")] GuideRole Role,
+    [property: JsonPropertyName("checkInTime")] DateTimeOffset? CheckInTime,
+    [property: JsonPropertyName("checkOutTime")] DateTimeOffset? CheckOutTime,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record TourDayActivityStatusDto(
-    Guid TourDayActivityStatusId,
-    Guid BookingId,
-    Guid TourDayId,
-    ActivityStatus ActivityStatus,
-    DateTimeOffset? ActualStartTime,
-    DateTimeOffset? ActualEndTime,
-    DateTimeOffset? CompletedAt,
-    string? CancellationReason,
-    DateTimeOffset? CancelledAt,
-    string? Note,
-    List<TourDayActivityGuideDto> Guides
+    [property: JsonPropertyName("tourDayActivityStatusId")] Guid TourDayActivityStatusId,
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId,
+    [property: JsonPropertyName("activityStatus")] ActivityStatus ActivityStatus,
+    [property: JsonPropertyName("actualStartTime")] DateTimeOffset? ActualStartTime,
+    [property: JsonPropertyName("actualEndTime")] DateTimeOffset? ActualEndTime,
+    [property: JsonPropertyName("completedAt")] DateTimeOffset? CompletedAt,
+    [property: JsonPropertyName("cancellationReason")] string? CancellationReason,
+    [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("guides")] List<TourDayActivityGuideDto> Guides
 );
 
 public sealed record UpdateActivityStatusDto(
-    DateTimeOffset? ActualTime,
-    string? Reason,
-    string? Note
+    [property: JsonPropertyName("actualTime")] DateTimeOffset? ActualTime,
+    [property: JsonPropertyName("reason")] string? Reason,
+    [property: JsonPropertyName("note")] string? Note
 );
 
 public sealed record CreateBookingRequest(
-    Guid TourInstanceId,
-    string CustomerName,
-    string CustomerPhone,
-    string? CustomerEmail,
-    int NumberAdult,
-    int NumberChild,
-    int NumberInfant,
-    decimal TotalPrice,
-    PaymentMethod PaymentMethod,
-    bool IsFullPay,
-    List<CreateParticipantDto>? Participants
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("customerPhone")] string CustomerPhone,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
+    [property: JsonPropertyName("paymentMethod")] PaymentMethod PaymentMethod,
+    [property: JsonPropertyName("isFullPay")] bool IsFullPay,
+    [property: JsonPropertyName("participants")] List<CreateParticipantDto>? Participants
 );
 
 public sealed record BookingDetailResponse(
-    Guid BookingId,
-    Guid TourInstanceId,
-    string CustomerName,
-    string CustomerPhone,
-    string? CustomerEmail,
-    int NumberAdult,
-    int NumberChild,
-    int NumberInfant,
-    decimal TotalPrice,
-    BookingStatus Status,
-    List<BookingActivityReservationDto> ActivityReservations,
-    List<TransportDetailDto> TransportDetails,
-    List<AccommodationDetailDto> AccommodationDetails,
-    List<ParticipantDto> Participants,
-    List<SupplierPayableDto> SupplierPayables,
-    List<BookingTourGuideDto> AssignedTourGuides,
-    List<TourDayActivityStatusDto> ActivityStatuses
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("customerPhone")] string CustomerPhone,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
+    [property: JsonPropertyName("status")] BookingStatus Status,
+    [property: JsonPropertyName("activityReservations")] List<BookingActivityReservationDto> ActivityReservations,
+    [property: JsonPropertyName("transportDetails")] List<TransportDetailDto> TransportDetails,
+    [property: JsonPropertyName("accommodationDetails")] List<AccommodationDetailDto> AccommodationDetails,
+    [property: JsonPropertyName("participants")] List<ParticipantDto> Participants,
+    [property: JsonPropertyName("supplierPayables")] List<SupplierPayableDto> SupplierPayables,
+    [property: JsonPropertyName("assignedTourGuides")] List<BookingTourGuideDto> AssignedTourGuides,
+    [property: JsonPropertyName("activityStatuses")] List<TourDayActivityStatusDto> ActivityStatuses
 );
 
 public sealed record CheckoutPriceResponse(
-    Guid BookingId,
-    Guid TourInstanceId,
-    string TourName,
-    string TourCode,
-    string? ThumbnailUrl,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate,
-    int DurationDays,
-    string? Location,
-    int NumberAdult,
-    int NumberChild,
-    int NumberInfant,
-    // TourInstance.BasePrice — adult (100%) price before PricingPolicy tier application
-    decimal BasePrice,
-    decimal? ChildPrice,
-    decimal? InfantPrice,
-    // Calculated prices with tiers
-    decimal AdultSubtotal,
-    decimal ChildSubtotal,
-    decimal InfantSubtotal,
-    decimal Subtotal,
-    // Tax
-    decimal TaxRate,
-    decimal TaxAmount,
-    // Final
-    decimal TotalPrice,
-    // Deposit info
-    decimal DepositPercentage,
-    decimal DepositAmount,
-    decimal RemainingBalance
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("tourCode")] string TourCode,
+    [property: JsonPropertyName("thumbnailUrl")] string? ThumbnailUrl,
+    [property: JsonPropertyName("startDate")] DateTimeOffset StartDate,
+    [property: JsonPropertyName("endDate")] DateTimeOffset EndDate,
+    [property: JsonPropertyName("durationDays")] int DurationDays,
+    [property: JsonPropertyName("location")] string? Location,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("basePrice")] decimal BasePrice,
+    [property: JsonPropertyName("childPrice")] decimal? ChildPrice,
+    [property: JsonPropertyName("infantPrice")] decimal? InfantPrice,
+    [property: JsonPropertyName("adultSubtotal")] decimal AdultSubtotal,
+    [property: JsonPropertyName("childSubtotal")] decimal ChildSubtotal,
+    [property: JsonPropertyName("infantSubtotal")] decimal InfantSubtotal,
+    [property: JsonPropertyName("subtotal")] decimal Subtotal,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("taxAmount")] decimal TaxAmount,
+    [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
+    [property: JsonPropertyName("depositPercentage")] decimal DepositPercentage,
+    [property: JsonPropertyName("depositAmount")] decimal DepositAmount,
+    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance
 );
 
 public sealed record AdminBookingListResponse(
-    Guid Id,
-    string CustomerName,
-    string TourName,
-    DateTimeOffset DepartureDate,
-    decimal TotalPrice,
-    string Status
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("customerName")] string CustomerName,
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("departureDate")] DateTimeOffset DepartureDate,
+    [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("numberAdult")] int NumberAdult,
+    [property: JsonPropertyName("numberChild")] int NumberChild,
+    [property: JsonPropertyName("numberInfant")] int NumberInfant
 );
 
 public sealed record AdminBookingListResult(
-    List<AdminBookingListResponse> Items,
-    int TotalCount
+    [property: JsonPropertyName("items")] List<AdminBookingListResponse> Items,
+    [property: JsonPropertyName("totalCount")] int TotalCount
 );
 
 public sealed record RecentBookingResponse(
-    Guid BookingId,
-    string TourName,
-    DateTimeOffset DepartureDate,
-    string Status,
-    decimal TotalPrice,
-    int TotalParticipants
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("tourName")] string TourName,
+    [property: JsonPropertyName("departureDate")] DateTimeOffset DepartureDate,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("totalPrice")] decimal TotalPrice,
+    [property: JsonPropertyName("totalParticipants")] int TotalParticipants
 );
 
-public sealed record UpdateTourStatusRequestDto(TourStatus Status);
+public sealed record UpdateTourStatusRequestDto([property: JsonPropertyName("status")] TourStatus Status);
 
-/// <summary>
-/// DTO for creating a Supplier with its owner User in one transactional step.
-/// Used by Admin to onboard a new provider (Transport or HotelServiceProvider).
-/// </summary>
 public sealed record CreateSupplierWithOwnerDto(
-    // User fields
-    string OwnerEmail,
-    string OwnerFullName,
-    // Supplier fields
-    string SupplierCode,
-    SupplierType SupplierType,
-    string SupplierName,
-    string? Phone,
-    string? Email,
-    string? Address,
-    string? Note,
-    Continent? PrimaryContinent
+    [property: JsonPropertyName("ownerEmail")] string OwnerEmail,
+    [property: JsonPropertyName("ownerFullName")] string OwnerFullName,
+    [property: JsonPropertyName("supplierCode")] string SupplierCode,
+    [property: JsonPropertyName("supplierType")] SupplierType SupplierType,
+    [property: JsonPropertyName("supplierName")] string SupplierName,
+    [property: JsonPropertyName("phone")] string? Phone,
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("address")] string? Address,
+    [property: JsonPropertyName("note")] string? Note,
+    [property: JsonPropertyName("primaryContinent")] Continent? PrimaryContinent,
+    [property: JsonPropertyName("password")] string? Password = null
 );
 
 public sealed record CreateSupplierWithOwnerResponse(
-    Guid UserId,
-    Guid SupplierId,
-    string OwnerEmail
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("supplierId")] Guid SupplierId,
+    [property: JsonPropertyName("ownerEmail")] string OwnerEmail
 );

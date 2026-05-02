@@ -1,25 +1,26 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.Booking;
 using Application.Services;
-using Contracts.Interfaces;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.BookingManagement.TourGuide;
 
 public sealed record AssignTeamMemberCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    Guid? AssignedBy,
-    string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("assignedBy")] Guid? AssignedBy,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -38,12 +39,14 @@ public sealed class AssignTeamMemberCommandHandler(
     IUserRepository userRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser currentUser,
     ILanguageContext? languageContext = null)
     : ICommandHandler<AssignTeamMemberCommand, ErrorOr<Guid>>
 {
     public async Task<ErrorOr<Guid>> Handle(AssignTeamMemberCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = currentUser.Id ?? "system";
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
@@ -72,7 +75,7 @@ public sealed class AssignTeamMemberCommandHandler(
             request.BookingId,
             request.UserId,
             request.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             request.IsLead,
             request.AssignedBy,
             request.Note);
@@ -85,10 +88,10 @@ public sealed class AssignTeamMemberCommandHandler(
 }
 
 public sealed record UpdateTeamMemberStatusCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignmentStatus Status,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("status")] AssignmentStatus Status,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -105,12 +108,14 @@ public sealed class UpdateTeamMemberStatusCommandValidator : AbstractValidator<U
 public sealed class UpdateTeamMemberStatusCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTeamMemberStatusCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTeamMemberStatusCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -121,7 +126,7 @@ public sealed class UpdateTeamMemberStatusCommandHandler(
 
         assignment.Update(
             assignment.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             assignment.IsLead,
             request.Status,
             request.Note);
@@ -133,7 +138,7 @@ public sealed class UpdateTeamMemberStatusCommandHandler(
     }
 }
 
-public sealed record GetBookingTeamQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTeamQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -176,7 +181,7 @@ public sealed class GetBookingTeamQueryHandler(
     }
 }
 
-public sealed record GetBookingTourManagerQuery(Guid BookingId) : IQuery<ErrorOr<BookingTeamMemberDto>>, ICacheable
+public sealed record GetBookingTourManagerQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<BookingTeamMemberDto>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-manager:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -224,19 +229,19 @@ public sealed class GetBookingTourManagerQueryHandler(
     }
 }
 
-public sealed record GetBookingTourDesignersQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingTourOperatorsQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-designers:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }
 
-public sealed class GetBookingTourDesignersQueryHandler(
+public sealed class GetBookingTourOperatorsQueryHandler(
     IBookingRepository bookingRepository,
     IBookingTourGuideRepository bookingTourGuideRepository,
     IOwnershipValidator ownershipValidator)
-    : IQueryHandler<GetBookingTourDesignersQuery, ErrorOr<List<BookingTeamMemberDto>>>
+    : IQueryHandler<GetBookingTourOperatorsQuery, ErrorOr<List<BookingTeamMemberDto>>>
 {
-    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourDesignersQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<BookingTeamMemberDto>>> Handle(GetBookingTourOperatorsQuery request, CancellationToken cancellationToken)
     {
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
@@ -251,7 +256,7 @@ public sealed class GetBookingTourDesignersQueryHandler(
 
         var assignments = await bookingTourGuideRepository.GetByBookingIdAsync(request.BookingId);
         return assignments
-            .Where(x => x.AssignedRole == AssignedRole.TourDesigner)
+            .Where(x => x.AssignedRole == AssignedRole.TourOperator)
             .Select(x => new BookingTeamMemberDto(
                 x.Id,
                 x.BookingId,
@@ -265,7 +270,7 @@ public sealed class GetBookingTourDesignersQueryHandler(
     }
 }
 
-public sealed record GetBookingAssignedTourGuidesQuery(Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
+public sealed record GetBookingAssignedTourGuidesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<BookingTeamMemberDto>>>, ICacheable
 {
     public string CacheKey => $"{Application.Common.CacheKey.Booking}:team-guides:{BookingId}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
@@ -307,11 +312,11 @@ public sealed class GetBookingAssignedTourGuidesQueryHandler(
 }
 
 public sealed record UpdateTeamMemberAssignmentCommand(
-    Guid BookingId,
-    Guid UserId,
-    AssignedRole AssignedRole,
-    bool IsLead,
-    string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId,
+    [property: JsonPropertyName("assignedRole")] AssignedRole AssignedRole,
+    [property: JsonPropertyName("isLead")] bool IsLead,
+    [property: JsonPropertyName("note")] string? Note) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -328,12 +333,14 @@ public sealed class UpdateTeamMemberAssignmentCommandValidator : AbstractValidat
 public sealed class UpdateTeamMemberAssignmentCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<UpdateTeamMemberAssignmentCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(UpdateTeamMemberAssignmentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -344,7 +351,7 @@ public sealed class UpdateTeamMemberAssignmentCommandHandler(
 
         assignment.Update(
             request.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             request.IsLead,
             assignment.Status,
             request.Note);
@@ -356,7 +363,9 @@ public sealed class UpdateTeamMemberAssignmentCommandHandler(
     }
 }
 
-public sealed record DeleteTeamMemberAssignmentCommand(Guid BookingId, Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record DeleteTeamMemberAssignmentCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -385,7 +394,9 @@ public sealed class DeleteTeamMemberAssignmentCommandHandler(
     }
 }
 
-public sealed record ConfirmTeamMemberAssignmentCommand(Guid BookingId, Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+public sealed record ConfirmTeamMemberAssignmentCommand(
+    [property: JsonPropertyName("bookingId")] Guid BookingId,
+    [property: JsonPropertyName("userId")] Guid UserId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.Booking];
 }
@@ -393,12 +404,14 @@ public sealed record ConfirmTeamMemberAssignmentCommand(Guid BookingId, Guid Use
 public sealed class ConfirmTeamMemberAssignmentCommandHandler(
     IBookingTourGuideRepository bookingTourGuideRepository,
     IUnitOfWork unitOfWork,
+    global::Contracts.Interfaces.IUser user,
     ILanguageContext? languageContext = null)
     : ICommandHandler<ConfirmTeamMemberAssignmentCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(ConfirmTeamMemberAssignmentCommand request, CancellationToken cancellationToken)
     {
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var performedBy = user.Id ?? "system";
         var assignment = await bookingTourGuideRepository.GetByBookingIdAndUserIdAsync(request.BookingId, request.UserId);
         if (assignment is null)
         {
@@ -409,7 +422,7 @@ public sealed class ConfirmTeamMemberAssignmentCommandHandler(
 
         assignment.Update(
             assignment.AssignedRole,
-            performedBy: "system",
+            performedBy: performedBy,
             assignment.IsLead,
             AssignmentStatus.Confirmed,
             assignment.Note);

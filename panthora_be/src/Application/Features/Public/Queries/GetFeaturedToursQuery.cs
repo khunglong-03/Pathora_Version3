@@ -1,16 +1,19 @@
-using Application.Common;
 using Application.Common.Localization;
-using Contracts.Interfaces;
+using Application.Common;
 using Application.Contracts.Public;
 using BuildingBlocks.CORS;
-using ErrorOr;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
-using Domain.Entities;
 using Domain.Entities.Translations;
+using Domain.Entities;
+using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetFeaturedToursQuery(int Limit = 8, string? Language = null) : IQuery<ErrorOr<List<FeaturedTourVm>>>, ICacheable
+public sealed record GetFeaturedToursQuery(
+    [property: JsonPropertyName("limit")] int Limit = 8,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<List<FeaturedTourVm>>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 
@@ -48,7 +51,8 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
                 classification?.NumberOfDay ?? 0,
                 classification?.BasePrice ?? 0m,
                 null,
-                classification?.Name);
+                classification?.Name,
+                t.IsVisa);
         }).ToList();
 
         return result;
@@ -74,4 +78,3 @@ public sealed class GetFeaturedToursQueryHandler(ITourRepository tourRepository)
         return location.City;
     }
 }
-

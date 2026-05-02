@@ -1,18 +1,21 @@
-using Application.Dtos;
-using Application.Common;
 using Application.Common.Constant;
 using Application.Common.Localization;
-using Contracts.Interfaces;
+using Application.Common;
+using Application.Dtos;
 using AutoMapper;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities.Translations;
-using BuildingBlocks.CORS;
 using Domain.Enums;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Public.Queries;
 
-public sealed record GetPublicTourDetailQuery(Guid Id, string? Language = null) : IQuery<ErrorOr<TourDto>>, ICacheable
+public sealed record GetPublicTourDetailQuery(
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<TourDto>>, ICacheable
 {
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 
@@ -20,7 +23,10 @@ public sealed record GetPublicTourDetailQuery(Guid Id, string? Language = null) 
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
 }
 
-public sealed class GetPublicTourDetailQueryHandler(ITourRepository tourRepository, IMapper mapper)
+public sealed class GetPublicTourDetailQueryHandler(
+    ITourRepository tourRepository,
+    IDepositPolicyRepository depositPolicyRepository,
+    IMapper mapper)
     : IQueryHandler<GetPublicTourDetailQuery, ErrorOr<TourDto>>
 {
     public async Task<ErrorOr<TourDto>> Handle(GetPublicTourDetailQuery request, CancellationToken cancellationToken)
@@ -31,6 +37,16 @@ public sealed class GetPublicTourDetailQueryHandler(ITourRepository tourReposito
             return Error.NotFound(ErrorConstants.Tour.NotFoundCode, ErrorConstants.Tour.PublicNotFoundDescription);
 
         tour.ApplyResolvedTranslations(request.ResolvedLanguage);
-        return mapper.Map<TourDto>(tour);
+        var dto = mapper.Map<TourDto>(tour);
+
+        // Fetch and map deposit policy
+        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
+        var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tour.TourScope);
+        if (policy != null)
+        {
+            dto = dto with { DepositPolicy = mapper.Map<DepositPolicyDto>(policy) };
+        }
+
+        return dto;
     }
 }

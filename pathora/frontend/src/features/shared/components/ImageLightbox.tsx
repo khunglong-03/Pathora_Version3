@@ -46,7 +46,7 @@ export function ImageLightbox({ images, initialIndex, onClose }: ImageLightboxPr
 
       {/* Image */}
       <div
-        className="relative max-w-5xl max-h-[80vh] w-full mx-4"
+        className="relative max-w-5xl h-[80vh] w-full mx-4"
         onClick={(e) => e.stopPropagation()}>
         <Image
           src={images[current]}

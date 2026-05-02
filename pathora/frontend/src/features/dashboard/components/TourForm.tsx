@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import Icon from "@/components/ui/Icon";
+import Checkbox from "@/components/ui/Checkbox";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import TourImageUpload from "@/components/ui/TourImageUpload";
 import ConfirmationDialog from "@/components/ui/ConfirmationDialog";
@@ -20,8 +21,9 @@ import type { DepositPolicy } from "@/types/depositPolicy";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
 
 import type { TourDto, ImageDto } from "@/types/tour";
-import { TourStatusMap } from "@/types/tour";
+import { TourStatusMap, isExternalOnlyTransportation } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
+import { formatCurrency } from "@/utils/format";
 
 /* ── TourForm Props ─────────────────────────────────────────── */
 export interface TourFormProps {
@@ -38,11 +40,12 @@ export interface TourFormProps {
   onSubmit: (
     formData: FormData,
     deletedClassificationIds?: string[],
+    deletedPlanIds?: string[],
     deletedActivityIds?: string[],
     lastModifiedOnUtc?: string,
   ) => Promise<void>;
   onCancel?: () => void;
-  /** Show policy/policy selector sections (hide for TourDesigner role) */
+  /** Show policy/policy selector sections (hide for TourOperator role) */
   showPolicySections?: boolean;
 }
 
@@ -95,6 +98,7 @@ interface ActivityForm {
   enTransportationName: string;
   durationMinutes: string;
   price: string;
+  bookingReference: string;
 
   // Accommodation — type 8 (replaces standalone Accommodations step)
   // Phase 2: Supplier details (hotel name, contact, rooms, pricing) now handled at instance/provider selection time
@@ -131,7 +135,6 @@ interface ServiceForm {
   enServiceName: string;
   pricingType: string;
   price: string;
-  salePrice: string;
   email: string;
   contactNumber: string;
 }
@@ -144,6 +147,7 @@ interface BasicInfoForm {
   seoDescription: string;
   status: string;
   tourScope: string;
+  isVisa: boolean;
   continent: string;
   customerSegment: string;
 }
@@ -291,6 +295,7 @@ const emptyActivity = (): ActivityForm => ({
   enTransportationName: "",
   durationMinutes: "",
   price: "",
+  bookingReference: "",
   // Accommodation fields (type 8) — Phase 2: Supplier details handled at instance time
 });
 
@@ -355,7 +360,6 @@ const emptyService = (): ServiceForm => ({
   enServiceName: "",
   pricingType: "",
   price: "",
-  salePrice: "",
   email: "",
   contactNumber: "",
 });
@@ -364,6 +368,36 @@ const emptyService = (): ServiceForm => ({
    TourForm — Shell Component
    All state, handlers, validation, and wizard logic live here.
    ══════════════════════════════════════════════════════════════ */
+
+const parseOptionalNumber = (value: string): number | null => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
+};
+
+/**
+ * Mirrors backend TourClassificationEntity.RecalculateBasePrice:
+ *  - Transportation (type "7"): price ?? estimatedCost ?? 0
+ *  - Accommodation (type "8") and others: estimatedCost ?? 0
+ *  - Optional activities are included; this form does not track soft-deleted
+ *    activities (they are removed from the array on delete).
+ */
+const computeClassificationBasePrice = (plans: DayPlanForm[]): number => {
+  let total = 0;
+  for (const plan of plans) {
+    for (const act of plan.activities) {
+      const estimated = parseOptionalNumber(act.estimatedCost) ?? 0;
+      if (act.activityType === "7") {
+        const price = parseOptionalNumber(act.price);
+        total += price ?? parseOptionalNumber(act.estimatedCost) ?? 0;
+      } else {
+        total += estimated;
+      }
+    }
+  }
+  return total;
+};
 
 const mapActivityType = (type: string | number): string => {
   if (typeof type === "number") return String(type);
@@ -462,6 +496,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     seoDescription: "",
     status: "3",
     tourScope: "1",
+    isVisa: false,
     continent: "",
     customerSegment: "2",
   });
@@ -526,6 +561,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
   );
   // Track deleted IDs for cascade soft-delete
   const [deletedClassificationIds, setDeletedClassificationIds] = useState<string[]>([]);
+  const [deletedPlanIds, setDeletedPlanIds] = useState<string[]>([]);
   const [deletedActivityIds, setDeletedActivityIds] = useState<string[]>([]);
 
   /* ── Auto-save draft ────────────────────────────────────────── */
@@ -552,9 +588,9 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       // localStorage full or unavailable
     }
   }, [basicInfo, classifications, dayPlans, insurances, services,
-      selectedPricingPolicyId, selectedDepositPolicyId,
-      selectedCancellationPolicyId,
-      currentStep, thumbnail, images.length]);
+    selectedPricingPolicyId, selectedDepositPolicyId,
+    selectedCancellationPolicyId,
+    currentStep, thumbnail, images.length]);
 
   // Auto-save draft — create mode only
   useEffect(() => {
@@ -575,7 +611,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         t("toast.draftRestoreConfirm", "A draft was found from your previous session. Do you want to restore it?"),
       );
       if (confirmed) {
-        setBasicInfo(draft.basicInfo);
+        setBasicInfo({ ...draft.basicInfo, isVisa: Boolean(draft.basicInfo.isVisa) });
         if (draft.selectedPricingPolicyId) setSelectedPricingPolicyId(draft.selectedPricingPolicyId);
         if (draft.selectedDepositPolicyId) setSelectedDepositPolicyId(draft.selectedDepositPolicyId);
         if (draft.selectedCancellationPolicyId) setSelectedCancellationPolicyId(draft.selectedCancellationPolicyId);
@@ -587,7 +623,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     } catch {
       // Invalid draft data
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Initialize form from initialData in edit mode
@@ -605,6 +641,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       seoDescription: tour.seoDescription ?? "",
       status: statusStr,
       tourScope: tour.tourScope != null ? String(tour.tourScope) : "1",
+      isVisa: tour.tourScope != null && String(tour.tourScope) === "2" ? Boolean(tour.isVisa) : false,
       continent: tour.continent != null ? String(tour.continent) : "",
       customerSegment: tour.customerSegment != null ? String(tour.customerSegment) : "2",
     });
@@ -650,7 +687,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             enDescription: act.translations?.en?.description ?? "",
             note: act.note ?? "",
             enNote: act.translations?.en?.note ?? "",
-            estimatedCost: String(act.estimatedCost ?? ""),
+            estimatedCost: String(act.estimatedCost ?? act.price ?? ""),
             isOptional: act.isOptional ?? false,
             startTime: act.startTime ?? "",
             endTime: act.endTime ?? "",
@@ -676,6 +713,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             enTransportationName: act.translations?.en?.transportationName ?? "",
             durationMinutes: String(act.durationMinutes ?? ""),
             price: String(act.price ?? ""),
+            bookingReference: act.bookingReference ?? "",
             // Accommodation fields — type 8 — Phase 2: Supplier details handled at instance time
           })),
         })),
@@ -710,7 +748,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         enServiceName: svc.translations?.en?.name ?? "",
         pricingType: svc.pricingType ?? "",
         price: svc.price != null ? String(svc.price) : "",
-        salePrice: svc.salePrice != null ? String(svc.salePrice) : "",
         email: svc.email ?? "",
         contactNumber: svc.contactNumber ?? "",
       }));
@@ -758,12 +795,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             "tourAdmin.invalidDuration",
             "Invalid duration",
           );
-        const basePrice = Number(cls.basePrice);
-        if (!cls.basePrice.trim() || isNaN(basePrice) || basePrice < 0)
-          newErrors[`cls_${i}_basePrice`] = t(
-            "tourAdmin.validation.invalidBasePrice",
-            "Invalid base price",
-          );
+        // basePrice is auto-derived from activity costs — no manual-input validation.
       });
     }
 
@@ -772,6 +804,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       if (plans.length === 0) {
         newErrors.dayPlans = t("tourAdmin.validation.atLeastOneDayPlan", "At least one day plan is required.");
       }
+
+      // Day count must match classification.durationDays
+      const durationDays = Number(classifications[activePackageIndex]?.durationDays ?? 0);
+      if (Number.isFinite(durationDays) && durationDays > 0 && plans.length !== durationDays) {
+        newErrors[`cls_${activePackageIndex}_dayCountMismatch`] = t(
+          "tourAdmin.validation.dayCountMustMatchDuration",
+          "Day count must match configured duration: {{expected}} days (currently {{actual}})",
+          { expected: durationDays, actual: plans.length },
+        );
+      }
+
       plans.forEach((plan, i) => {
         if (!plan.title.trim())
           newErrors[`plan_${i}_title`] = t("tourAdmin.required", "Required");
@@ -779,8 +822,17 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           newErrors[`plan_${i}_description`] = t("tourAdmin.required", "Required");
       });
 
-      // Validate linkToResources URLs
       plans.forEach((plan, planIdx) => {
+        // Min 1 activity per day — skip per-activity checks if day is empty
+        if (plan.activities.length === 0) {
+          newErrors[`day_${planIdx}_empty`] = t(
+            "tourAdmin.validation.minOneActivityPerDay",
+            "Day {{day}} needs at least 1 activity",
+            { day: planIdx + 1 },
+          );
+          return;
+        }
+
         plan.activities.forEach((act, actIdx) => {
           // Validate estimatedCost: optional, but if provided must be >= 0
           if (act.estimatedCost.trim()) {
@@ -793,7 +845,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             }
           }
 
-          // Validate startTime and endTime: both required; endTime must be after startTime
+          // Validate startTime and endTime: both required; endTime must be after startTime (no overnight)
           if (!act.startTime.trim()) {
             newErrors[`act_${planIdx}_${actIdx}_startTime`] = t(
               "tourAdmin.itineraries.startTimeRequired",
@@ -809,8 +861,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           if (act.startTime.trim() && act.endTime.trim()) {
             if (act.endTime <= act.startTime) {
               newErrors[`act_${planIdx}_${actIdx}_endTime`] = t(
-                "tourAdmin.itineraries.endTimeMustBeAfterStartTime",
-                "End time must be after start time",
+                "tourAdmin.validation.activityOvernight",
+                "Activity cannot span overnight (End time must be after Start time within the same day)",
               );
             }
           }
@@ -824,8 +876,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             }
           });
 
-
-
           // Validate type-7 (transportation) required fields
           if (act.activityType === "7") {
             if (!act.fromLocation.trim())
@@ -837,13 +887,30 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
           // Validate type-8 (accommodation) — Phase 2: Supplier details handled at instance time
           // No form validation needed for accommodation activities anymore
         });
+
+        // Cross-activity time ordering: no overlap when sorted by startTime
+        const timed = plan.activities
+          .map((act, origIdx) => ({ act, origIdx }))
+          .filter(({ act }) => act.startTime.trim() && act.endTime.trim() && act.endTime > act.startTime);
+        timed.sort((a, b) => a.act.startTime.localeCompare(b.act.startTime));
+        for (let i = 1; i < timed.length; i += 1) {
+          const prev = timed[i - 1].act;
+          const curr = timed[i];
+          if (curr.act.startTime < prev.endTime) {
+            newErrors[`act_${planIdx}_${curr.origIdx}_startTime`] = t(
+              "tourAdmin.validation.activityOverlap",
+              "This activity overlaps with the previous one (ends at {{prevEnd}})",
+              { prevEnd: prev.endTime },
+            );
+          }
+        }
       });
     }
 
     if (step === 3) {
       // Step 3 = Services (was step 6)
       services.forEach((svc, i) => {
-        const hasAnyField = svc.serviceName.trim() || svc.enServiceName.trim() || svc.pricingType.trim() || svc.price.trim() || svc.salePrice.trim() || svc.email.trim() || svc.contactNumber.trim();
+        const hasAnyField = svc.serviceName.trim() || svc.enServiceName.trim() || svc.pricingType.trim() || svc.price.trim() || svc.email.trim() || svc.contactNumber.trim();
         if (hasAnyField) {
           if (!svc.serviceName.trim())
             newErrors[`svc_${i}_name`] = t("tourAdmin.required", "Required");
@@ -860,14 +927,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (ins.insuranceName.trim() || ins.enInsuranceName.trim()) {
           if (!ins.insuranceName.trim())
             newErrors[`ins_${i}_name`] = t("tourAdmin.required", "Required");
-          if (!ins.coverageDescription.trim())
-            newErrors[`ins_${i}_coverage`] = t("tourAdmin.required", "Required");
-          const amount = Number(ins.coverageAmount);
-          if (!ins.coverageAmount.trim() || isNaN(amount) || amount <= 0)
-            newErrors[`ins_${i}_amount`] = t(
-              "tourAdmin.validation.invalidCoverageAmount",
-              "Invalid coverage amount",
-            );
         }
       });
     }
@@ -892,26 +951,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         const { [field]: _removed, ...rest } = prev;
         return rest;
       });
-    }
-  };
-
-  const validateFieldPositiveNumber = (field: string, value: string, isOptional = false) => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      if (!isOptional) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.required", "Required") }));
-      }
-    } else {
-      const num = Number(trimmed);
-      if (isNaN(num) || num < 0) {
-        setErrors((prev) => ({ ...prev, [field]: t("tourAdmin.invalidPrice", "Invalid price") }));
-      } else {
-        setErrors((prev) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { [field]: _removed, ...rest } = prev;
-          return rest;
-        });
-      }
     }
   };
 
@@ -977,6 +1016,21 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     );
   }, [classifications]);
 
+  // Auto-derive each classification's basePrice from the sum of its activity costs.
+  // Mirrors the authoritative server-side calculation in RecalculateBasePrice.
+  useEffect(() => {
+    setClassifications((prev) => {
+      let changed = false;
+      const next = prev.map((cls, i) => {
+        const computed = String(computeClassificationBasePrice(dayPlans[i] ?? []));
+        if (cls.basePrice === computed) return cls;
+        changed = true;
+        return { ...cls, basePrice: computed };
+      });
+      return changed ? next : prev;
+    });
+  }, [dayPlans]);
+
   const updateClassificationPackageTypeVi = (index: number, value: string) => {
     const option = findPackageTypeOption(value);
     if (!option) {
@@ -1015,23 +1069,27 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? [
-              ...plans,
-              {
-                ...emptyDayPlan(),
-                dayNumber: String(plans.length + 1),
-              },
-            ]
+            ...plans,
+            {
+              ...emptyDayPlan(),
+              dayNumber: String(plans.length + 1),
+            },
+          ]
           : plans,
       ),
     );
   };
 
   const removeDayPlan = (clsIndex: number, dayIndex: number) => {
-    setDayPlans((prev) =>
-      prev.map((plans, i) =>
+    setDayPlans((prev) => {
+      const removedPlan = prev[clsIndex][dayIndex];
+      if (removedPlan.id) {
+        setDeletedPlanIds((ids) => [...ids, removedPlan.id!]);
+      }
+      return prev.map((plans, i) =>
         i === clsIndex ? plans.filter((_, j) => j !== dayIndex) : plans,
-      ),
-    );
+      );
+    });
   };
 
   const updateDayPlan = (
@@ -1044,8 +1102,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex ? { ...day, [field]: value } : day,
-            )
+            j === dayIndex ? { ...day, [field]: value } : day,
+          )
           : plans,
       ),
     );
@@ -1057,10 +1115,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? { ...day, activities: [...day.activities, emptyActivity()] }
-                : day,
-            )
+            j === dayIndex
+              ? { ...day, activities: [...day.activities, emptyActivity()] }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1080,13 +1138,13 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? {
-                    ...day,
-                    activities: day.activities.filter((_, k) => k !== actIndex),
-                  }
-                : day,
-            )
+            j === dayIndex
+              ? {
+                ...day,
+                activities: day.activities.filter((_, k) => k !== actIndex),
+              }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1103,15 +1161,15 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? {
-                    ...day,
-                    activities: day.activities.map((act, k) =>
-                      k === actIndex ? { ...act, [field]: value } : act,
-                    ),
-                  }
-                : day,
-            )
+            j === dayIndex
+              ? {
+                ...day,
+                activities: day.activities.map((act, k) =>
+                  k === actIndex ? { ...act, [field]: value } : act,
+                ),
+              }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1147,8 +1205,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((insList, i) =>
         i === clsIndex
           ? insList.map((ins, j) =>
-              j === insIndex ? { ...ins, [field]: value } : ins,
-            )
+            j === insIndex ? { ...ins, [field]: value } : ins,
+          )
           : insList,
       ),
     );
@@ -1164,20 +1222,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? {
-                    ...day,
-                    activities: day.activities.map((act, k) =>
-                      k === actIndex
-                        ? {
-                            ...act,
-                            linkToResources: [...act.linkToResources, ""],
-                          }
-                        : act,
-                    ),
-                  }
-                : day,
-            )
+            j === dayIndex
+              ? {
+                ...day,
+                activities: day.activities.map((act, k) =>
+                  k === actIndex
+                    ? {
+                      ...act,
+                      linkToResources: [...act.linkToResources, ""],
+                    }
+                    : act,
+                ),
+              }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1194,22 +1252,22 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? {
-                    ...day,
-                    activities: day.activities.map((act, k) =>
-                      k === actIndex
-                        ? {
-                            ...act,
-                            linkToResources: act.linkToResources.map(
-                              (link, l) => (l === linkIndex ? value : link),
-                            ),
-                          }
-                        : act,
-                    ),
-                  }
-                : day,
-            )
+            j === dayIndex
+              ? {
+                ...day,
+                activities: day.activities.map((act, k) =>
+                  k === actIndex
+                    ? {
+                      ...act,
+                      linkToResources: act.linkToResources.map(
+                        (link, l) => (l === linkIndex ? value : link),
+                      ),
+                    }
+                    : act,
+                ),
+              }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1225,22 +1283,22 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       prev.map((plans, i) =>
         i === clsIndex
           ? plans.map((day, j) =>
-              j === dayIndex
-                ? {
-                    ...day,
-                    activities: day.activities.map((act, k) =>
-                      k === actIndex
-                        ? {
-                            ...act,
-                            linkToResources: act.linkToResources.filter(
-                              (_, l) => l !== linkIndex,
-                            ),
-                          }
-                        : act,
-                    ),
-                  }
-                : day,
-            )
+            j === dayIndex
+              ? {
+                ...day,
+                activities: day.activities.map((act, k) =>
+                  k === actIndex
+                    ? {
+                      ...act,
+                      linkToResources: act.linkToResources.filter(
+                        (_, l) => l !== linkIndex,
+                      ),
+                    }
+                    : act,
+                ),
+              }
+              : day,
+          )
           : plans,
       ),
     );
@@ -1263,7 +1321,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     setServices((prev) =>
       prev.map((svc, i) => (i === index ? { ...svc, [field]: value } : svc)),
     );
-    
+
     // Real-time validation clearing
     if (field === "serviceName") {
       if (value.trim()) {
@@ -1370,21 +1428,20 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         if (initialData?.id) {
           formData.append("id", initialData.id);
         }
-        if (existingImages.length > 0) {
-          const preservedImages = existingImages
-            .filter((img) => img.fileId && img.publicURL)
-            .map((img) => ({
-              fileId: img.fileId,
-              originalFileName: img.originalFileName ?? "",
-              fileName: img.fileName ?? "",
-              publicURL: img.publicURL,
-            }));
-          if (preservedImages.length > 0) {
-            formData.append("existingImages", JSON.stringify(preservedImages));
-          }
-        }
+        const preservedImages = existingImages
+          .filter((img) => img.fileId && img.publicURL)
+          .map((img) => ({
+            fileId: img.fileId,
+            originalFileName: img.originalFileName ?? "",
+            fileName: img.fileName ?? "",
+            publicURL: img.publicURL,
+          }));
+        formData.append("existingImages", JSON.stringify(preservedImages));
         if (deletedClassificationIds.length > 0) {
           formData.append("deletedClassificationIds", JSON.stringify(deletedClassificationIds));
+        }
+        if (deletedPlanIds.length > 0) {
+          formData.append("deletedPlanIds", JSON.stringify(deletedPlanIds));
         }
         if (deletedActivityIds.length > 0) {
           formData.append("deletedActivityIds", JSON.stringify(deletedActivityIds));
@@ -1392,9 +1449,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
       }
 
       await onSubmit(
-        formData, 
-        deletedClassificationIds, 
-        deletedActivityIds, 
+        formData,
+        deletedClassificationIds,
+        deletedPlanIds,
+        deletedActivityIds,
         isEditMode ? initialData?.lastModifiedOnUtc : undefined
       );
 
@@ -1437,8 +1495,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-32">
       {/* Full-screen saving overlay */}
       {saving && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 max-w-sm mx-4">
+        <div className="fixed inset-0 z-[100] v-stack center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 v-stack items-center gap-4 max-w-sm mx-4">
             <Icon icon="heroicons:arrow-path" className="size-12 text-orange-500 animate-spin" />
             <p className="text-base font-semibold text-slate-900 dark:text-white">
               {isEditMode
@@ -1456,8 +1514,8 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
       {/* Top Bar */}
       <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between px-4 sm:px-6 h-16">
-          <div>
+        <div className="h-stack items-center justify-between px-4 sm:px-6 h-16">
+          <div className="pl-12 lg:pl-0">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               {isEditMode
                 ? t("tourAdmin.editPage.title", "Edit Tour")
@@ -1467,7 +1525,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
               {t("tourAdmin.createPage.stepOf", { current: currentStep + 1, total: WIZARD_STEPS.length })}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="h-stack items-center gap-2 pr-16 lg:pr-20">
             <button
               onClick={() => onCancel?.()}
               disabled={saving}
@@ -1503,784 +1561,786 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
         </div>
       </header>
 
-        {/* Stepper */}
-        <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-4">
-          <div className="flex items-center gap-1 overflow-x-auto pb-1">
-            {WIZARD_STEPS.map((step, i) => (
-              <React.Fragment key={step.key}>
-                {i > 0 && (
-                  <div
-                    className={`hidden sm:block h-px w-6 shrink-0 ${
-                      i <= currentStep
-                        ? "bg-orange-500"
-                        : "bg-slate-200 dark:bg-slate-700"
+      {/* Stepper */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-4">
+        <div className="h-stack items-center gap-1 overflow-x-auto pb-1">
+          {WIZARD_STEPS.map((step, i) => (
+            <React.Fragment key={step.key}>
+              {i > 0 && (
+                <div
+                  className={`hidden sm:block h-px w-6 shrink-0 ${i <= currentStep
+                      ? "bg-orange-500"
+                      : "bg-slate-200 dark:bg-slate-700"
                     }`}
-                  />
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (i <= maxNavigableStep) setCurrentStep(i);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    i === currentStep
-                      ? "bg-orange-500 text-white"
-                      : i < currentStep
-                        ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
-                        : i <= maxNavigableStep
-                          ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
-                          : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed"
-                  }`}
-                  disabled={i > maxNavigableStep}>
-                  {i < currentStep ? (
-                    <Icon icon="heroicons:check" className="size-3.5" />
-                  ) : (
-                    <span className="w-4 h-4 rounded-full border border-current flex items-center justify-center text-[10px]">
-                      {i + 1}
-                    </span>
-                  )}
-                  <span className="hidden sm:inline">{wizardStepLabels[i]}</span>
-                </button>
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-
-        {/* Step Content */}
-        <div className="p-4 sm:p-6 max-w-5xl">
-          {/* ── Step 1: Basic Info ───────────────────────────── */}
-          {currentStep === 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                {t("tourAdmin.basicInfo.sectionTitle")}
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {t("tourAdmin.basicInfo.sectionSubtitle")}
-              </p>
-
-              {/* Language Tabs */}
-              <div className="mb-5">
-                <LanguageTabs
-                  activeLanguage={activeLang}
-                  onChange={setActiveLang}
                 />
-                <p className="text-xs text-slate-400 mt-2">
-                  {t("tourAdmin.langTabs.translationHint")}
-                </p>
-              </div>
-
-              {/* Tour Scope + Customer Segment — shared (not translatable) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    {t("tourAdmin.tourScope.label")}
-                  </label>
-                  <select
-                    value={basicInfo.tourScope}
-                    onChange={(e) =>
-                      setBasicInfo((prev) => ({
-                        ...prev,
-                        tourScope: e.target.value,
-                        continent: e.target.value === "1" ? "" : prev.continent,
-                      }))
-                    }
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                  >
-                    <option value="1">{t("tourAdmin.tourScope.domestic")}</option>
-                    <option value="2">{t("tourAdmin.tourScope.international")}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    {t("tourAdmin.customerSegment.label")}
-                  </label>
-                  <select
-                    value={basicInfo.customerSegment}
-                    onChange={(e) =>
-                      setBasicInfo((prev) => ({ ...prev, customerSegment: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                  >
-                    <option value="1">{t("tourAdmin.customerSegment.individual")}</option>
-                    <option value="2">{t("tourAdmin.customerSegment.group")}</option>
-                    <option value="3">{t("tourAdmin.customerSegment.family")}</option>
-                    <option value="4">{t("tourAdmin.customerSegment.corporate")}</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Continent — only visible when International */}
-              {basicInfo.tourScope === "2" && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    {t("tourAdmin.continent.label")}
-                  </label>
-                  <select
-                    value={basicInfo.continent}
-                    onChange={(e) =>
-                      setBasicInfo((prev) => ({ ...prev, continent: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                  >
-                    <option value="">{t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}</option>
-                    <option value="1">{t("tourAdmin.continent.asia")}</option>
-                    <option value="2">{t("tourAdmin.continent.europe")}</option>
-                    <option value="3">{t("tourAdmin.continent.africa")}</option>
-                    <option value="4">{t("tourAdmin.continent.americas")}</option>
-                    <option value="5">{t("tourAdmin.continent.oceania")}</option>
-                    <option value="6">{t("tourAdmin.continent.antarctica")}</option>
-                  </select>
-                </div>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (i <= maxNavigableStep) setCurrentStep(i);
+                }}
+                className={`h-stack items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${i === currentStep
+                    ? "bg-orange-500 text-white"
+                    : i < currentStep
+                      ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
+                      : i <= maxNavigableStep
+                        ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-500/30"
+                        : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed"
+                  }`}
+                disabled={i > maxNavigableStep}>
+                {i < currentStep ? (
+                  <Icon icon="heroicons:check" className="size-3.5" />
+                ) : (
+                  <span className="w-4 h-4 rounded-full border border-current center text-[10px]">
+                    {i + 1}
+                  </span>
+                )}
+                <span className="hidden sm:inline">{wizardStepLabels[i]}</span>
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
 
-              {/* Tour Status */}
+      {/* Step Content */}
+      <div className="p-4 sm:p-6 max-w-5xl">
+        {/* ── Step 1: Basic Info ───────────────────────────── */}
+        {currentStep === 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
+              {t("tourAdmin.basicInfo.sectionTitle")}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              {t("tourAdmin.basicInfo.sectionSubtitle")}
+            </p>
+
+            {/* Language Tabs */}
+            <div className="mb-5">
+              <LanguageTabs
+                activeLanguage={activeLang}
+                onChange={setActiveLang}
+              />
+              <p className="text-xs text-slate-400 mt-2">
+                {t("tourAdmin.langTabs.translationHint")}
+              </p>
+            </div>
+
+            {/* Tour Scope + Customer Segment — shared (not translatable) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t("tourAdmin.status.label", "Status")}
+                  {t("tourAdmin.tourScope.label")}
                 </label>
-                <div className="flex items-center gap-3">
-                  {!isManagerOrAdmin ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                      {!isEditMode ? "Pending (Wait for Review)" : (TourStatusMap[Number(basicInfo.status)] ?? "Pending")}
-                    </div>
-                  ) : (
-                    <>
-                      <select
-                        value={basicInfo.status}
-                        onChange={(e) =>
-                          setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
-                        }
-                        className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                      >
-                        <option value="1">{TourStatusMap[1]}</option>
-                        <option value="2">{TourStatusMap[2]}</option>
-                        <option value="3">{TourStatusMap[3]}</option>
-                        <option value="4">{TourStatusMap[4]}</option>
-                      </select>
-                      {isEditMode && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                          {t("tourAdmin.status.currently", "Currently:")}{" "}
-                          <span className="font-medium text-slate-700 dark:text-slate-300">
-                            {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
-                          </span>
-                        </span>
-                      )}
-                    </>
-                  )}
+                <select
+                  value={basicInfo.tourScope}
+                  onChange={(e) =>
+                    setBasicInfo((prev) => ({
+                      ...prev,
+                      tourScope: e.target.value,
+                      continent: e.target.value === "1" ? "" : prev.continent,
+                      isVisa: e.target.value === "1" ? false : prev.isVisa,
+                    }))
+                  }
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                >
+                  <option value="1">{t("tourAdmin.tourScope.domestic")}</option>
+                  <option value="2">{t("tourAdmin.tourScope.international")}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t("tourAdmin.customerSegment.label")}
+                </label>
+                <select
+                  value={basicInfo.customerSegment}
+                  onChange={(e) =>
+                    setBasicInfo((prev) => ({ ...prev, customerSegment: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                >
+                  <option value="1">{t("tourAdmin.customerSegment.individual")}</option>
+                  <option value="2">{t("tourAdmin.customerSegment.group")}</option>
+                  <option value="3">{t("tourAdmin.customerSegment.family")}</option>
+                  <option value="4">{t("tourAdmin.customerSegment.corporate")}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Continent — only visible when International */}
+            {basicInfo.tourScope === "2" && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t("tourAdmin.continent.label")}
+                </label>
+                <select
+                  value={basicInfo.continent}
+                  onChange={(e) =>
+                    setBasicInfo((prev) => ({ ...prev, continent: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                >
+                  <option value="">{t("tourAdmin.continent.placeholder", "-- Chọn châu lục --")}</option>
+                  <option value="1">{t("tourAdmin.continent.asia")}</option>
+                  <option value="2">{t("tourAdmin.continent.europe")}</option>
+                  <option value="3">{t("tourAdmin.continent.africa")}</option>
+                  <option value="4">{t("tourAdmin.continent.americas")}</option>
+                  <option value="5">{t("tourAdmin.continent.oceania")}</option>
+                  <option value="6">{t("tourAdmin.continent.antarctica")}</option>
+                </select>
+                <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50/70 px-3 py-2.5 dark:border-orange-500/30 dark:bg-orange-500/10">
+                  <Checkbox
+                    id="tour-is-visa"
+                    name="isVisa"
+                    value={basicInfo.isVisa}
+                    onChange={() =>
+                      setBasicInfo((prev) => ({ ...prev, isVisa: !prev.isVisa }))
+                    }
+                    activeClass="ring-orange-500 bg-orange-500 dark:bg-orange-500 dark:ring-orange-400"
+                    label={
+                      <span className="font-medium text-slate-700 dark:text-slate-200">
+                        {t("tourAdmin.visa.label")}
+                      </span>
+                    }
+                  />
                 </div>
               </div>
+            )}
 
-              {/* ── Vietnamese Content ── */}
-              {activeLang === "vi" && (
-                <div className="space-y-5">
-                  {/* Tour Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.tourName")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={basicInfo.tourName}
-                        onChange={(e) =>
-                          setBasicInfo((prev) => ({
-                            ...prev,
-                            tourName: e.target.value,
-                          }))
-                        }
-                        onBlur={(e) => validateField("tourName", e.target.value)}
-                        placeholder={t("placeholder.enterTourName")}
-                        className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                          errors.tourName
-                            ? "border-red-400 dark:border-red-500"
-                            : "border-slate-300 dark:border-slate-600"
-                        }`}
-                      />
-                      {errors.tourName && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                          <Icon icon="heroicons:x-circle" className="size-4" />
-                        </span>
-                      )}
-                    </div>
-                    {errors.tourName && (
-                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                        <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                        {errors.tourName}
-                      </p>
-                    )}
+            {/* Tour Status */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                {t("tourAdmin.status.label", "Status")}
+              </label>
+              <div className="h-stack items-center gap-3">
+                {!isManagerOrAdmin ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    {!isEditMode ? "Pending (Wait for Review)" : (TourStatusMap[Number(basicInfo.status)] ?? "Pending")}
                   </div>
-
-                  {/* Short Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.shortDescription")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        value={basicInfo.shortDescription}
-                        onChange={(e) =>
-                          setBasicInfo((prev) => ({
-                            ...prev,
-                            shortDescription: e.target.value,
-                          }))
-                        }
-                        onBlur={(e) => validateField("shortDescription", e.target.value)}
-                        rows={2}
-                        placeholder={t("placeholder.briefTourDescription")}
-                        className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${
-                          errors.shortDescription
-                            ? "border-red-400 dark:border-red-500"
-                            : "border-slate-300 dark:border-slate-600"
-                        }`}
-                      />
-                      {errors.shortDescription && (
-                        <span className="absolute right-3 top-3 text-red-500">
-                          <Icon icon="heroicons:x-circle" className="size-4" />
+                ) : (
+                  <>
+                    <select
+                      value={basicInfo.status}
+                      onChange={(e) =>
+                        setBasicInfo((prev) => ({ ...prev, status: e.target.value }))
+                      }
+                      className="spacer px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                    >
+                      <option value="1">{TourStatusMap[1]}</option>
+                      <option value="2">{TourStatusMap[2]}</option>
+                      <option value="3">{TourStatusMap[3]}</option>
+                      <option value="4">{TourStatusMap[4]}</option>
+                    </select>
+                    {isEditMode && (
+                      <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {t("tourAdmin.status.currently", "Currently:")}{" "}
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
                         </span>
-                      )}
-                    </div>
-                    {errors.shortDescription && (
-                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                        <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                        {errors.shortDescription}
-                      </p>
+                      </span>
                     )}
-                  </div>
+                  </>
+                )}
+              </div>
+            </div>
 
-                  {/* Long Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.longDescription")}
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        value={basicInfo.longDescription}
-                        onChange={(e) =>
-                          setBasicInfo((prev) => ({
-                            ...prev,
-                            longDescription: e.target.value,
-                          }))
-                        }
-                        onBlur={(e) => validateField("longDescription", e.target.value)}
-                        rows={4}
-                        placeholder={t("placeholder.detailedTourDescription")}
-                        className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${
-                          errors.longDescription
-                            ? "border-red-400 dark:border-red-500"
-                            : "border-slate-300 dark:border-slate-600"
-                        }`}
-                      />
-                      {errors.longDescription && (
-                        <span className="absolute right-3 top-3 text-red-500">
-                          <Icon icon="heroicons:x-circle" className="size-4" />
-                        </span>
-                      )}
-                    </div>
-                    {errors.longDescription && (
-                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                        <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                        {errors.longDescription}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* SEO Title */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.seoTitle")}
-                    </label>
+            {/* ── Vietnamese Content ── */}
+            {activeLang === "vi" && (
+              <div className="space-y-5">
+                {/* Tour Name */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.tourName")} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
                     <input
                       type="text"
-                      value={basicInfo.seoTitle}
+                      value={basicInfo.tourName}
                       onChange={(e) =>
                         setBasicInfo((prev) => ({
-                          ...prev,
-                          seoTitle: e.target.value,
-                        }))
-                      }
-                      placeholder={t("placeholder.seoOptimizedTitle")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                    />
-                  </div>
-
-                  {/* SEO Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.seoDescription")}
-                    </label>
-                    <textarea
-                      value={basicInfo.seoDescription}
-                      onChange={(e) =>
-                        setBasicInfo((prev) => ({
-                          ...prev,
-                          seoDescription: e.target.value,
-                        }))
-                      }
-                      rows={2}
-                      placeholder={t("placeholder.seoOptimizedDescription")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* ── English Content ── */}
-              {activeLang === "en" && (
-                <div className="space-y-5">
-                  {/* Tour Name EN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.tourName")} (EN)
-                    </label>
-                    <input
-                      type="text"
-                      value={enTranslation.tourName}
-                      onChange={(e) =>
-                        setEnTranslation((prev) => ({
                           ...prev,
                           tourName: e.target.value,
                         }))
                       }
-                      placeholder={t("placeholder.enterTourNameEn")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      onBlur={(e) => validateField("tourName", e.target.value)}
+                      placeholder={t("placeholder.enterTourName")}
+                      className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${errors.tourName
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-slate-300 dark:border-slate-600"
+                        }`}
                     />
+                    {errors.tourName && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                        <Icon icon="heroicons:x-circle" className="size-4" />
+                      </span>
+                    )}
                   </div>
+                  {errors.tourName && (
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
+                      <Icon icon="heroicons:exclamation-triangle" className="size-3" />
+                      {errors.tourName}
+                    </p>
+                  )}
+                </div>
 
-                  {/* Short Description EN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.shortDescription")} (EN)
-                    </label>
+                {/* Short Description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.shortDescription")} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
                     <textarea
-                      value={enTranslation.shortDescription}
+                      value={basicInfo.shortDescription}
                       onChange={(e) =>
-                        setEnTranslation((prev) => ({
+                        setBasicInfo((prev) => ({
                           ...prev,
                           shortDescription: e.target.value,
                         }))
                       }
+                      onBlur={(e) => validateField("shortDescription", e.target.value)}
                       rows={2}
-                      placeholder={t("placeholder.briefDescEn")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                      placeholder={t("placeholder.briefTourDescription")}
+                      className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${errors.shortDescription
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-slate-300 dark:border-slate-600"
+                        }`}
                     />
+                    {errors.shortDescription && (
+                      <span className="absolute right-3 top-3 text-red-500">
+                        <Icon icon="heroicons:x-circle" className="size-4" />
+                      </span>
+                    )}
                   </div>
+                  {errors.shortDescription && (
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
+                      <Icon icon="heroicons:exclamation-triangle" className="size-3" />
+                      {errors.shortDescription}
+                    </p>
+                  )}
+                </div>
 
-                  {/* Long Description EN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.longDescription")} (EN)
-                    </label>
+                {/* Long Description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.longDescription")}
+                  </label>
+                  <div className="relative">
                     <textarea
-                      value={enTranslation.longDescription}
+                      value={basicInfo.longDescription}
                       onChange={(e) =>
-                        setEnTranslation((prev) => ({
+                        setBasicInfo((prev) => ({
                           ...prev,
                           longDescription: e.target.value,
                         }))
                       }
+                      onBlur={(e) => validateField("longDescription", e.target.value)}
                       rows={4}
-                      placeholder={t("placeholder.detailedDescEn")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                      placeholder={t("placeholder.detailedTourDescription")}
+                      className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none ${errors.longDescription
+                          ? "border-red-400 dark:border-red-500"
+                          : "border-slate-300 dark:border-slate-600"
+                        }`}
                     />
+                    {errors.longDescription && (
+                      <span className="absolute right-3 top-3 text-red-500">
+                        <Icon icon="heroicons:x-circle" className="size-4" />
+                      </span>
+                    )}
                   </div>
-
-                  {/* SEO Title EN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.seoTitle")} (EN)
-                    </label>
-                    <input
-                      type="text"
-                      value={enTranslation.seoTitle}
-                      onChange={(e) =>
-                        setEnTranslation((prev) => ({
-                          ...prev,
-                          seoTitle: e.target.value,
-                        }))
-                      }
-                      placeholder={t("placeholder.seoOptimizedTitle")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                    />
-                  </div>
-
-                  {/* SEO Description EN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                      {t("tourAdmin.basicInfo.seoDescription")} (EN)
-                    </label>
-                    <textarea
-                      value={enTranslation.seoDescription}
-                      onChange={(e) =>
-                        setEnTranslation((prev) => ({
-                          ...prev,
-                          seoDescription: e.target.value,
-                        }))
-                      }
-                      rows={2}
-                      placeholder={t("placeholder.seoOptimizedDescription")}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                    />
-                  </div>
+                  {errors.longDescription && (
+                    <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
+                      <Icon icon="heroicons:exclamation-triangle" className="size-3" />
+                      {errors.longDescription}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* ── Image Upload (shared — always visible regardless of language tab) ── */}
-              <div className="mt-8">
-                <TourImageUpload
-                  thumbnail={thumbnail}
-                  setThumbnail={setThumbnail}
-                  images={images}
-                  setImages={setImages}
-                  t={t}
-                  thumbnailError={thumbnailError}
-                  imagesError={imagesError}
-                  onThumbnailError={setThumbnailError}
-                  onImagesError={setImagesError}
-                  existingImages={existingImages}
-                  onRemoveExistingImage={(img) => {
-                    setExistingImages((prev) =>
-                      prev.filter((e) => e.fileId !== img.fileId),
-                    );
-                  }}
-                  existingThumbnail={existingThumbnail}
-                  onRemoveExistingThumbnail={() => setExistingThumbnail(null)}
-                />
+                {/* SEO Title */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.seoTitle")}
+                  </label>
+                  <input
+                    type="text"
+                    value={basicInfo.seoTitle}
+                    onChange={(e) =>
+                      setBasicInfo((prev) => ({
+                        ...prev,
+                        seoTitle: e.target.value,
+                      }))
+                    }
+                    placeholder={t("placeholder.seoOptimizedTitle")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                  />
+                </div>
+
+                {/* SEO Description */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.seoDescription")}
+                  </label>
+                  <textarea
+                    value={basicInfo.seoDescription}
+                    onChange={(e) =>
+                      setBasicInfo((prev) => ({
+                        ...prev,
+                        seoDescription: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    placeholder={t("placeholder.seoOptimizedDescription")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                  />
+                </div>
               </div>
+            )}
 
+            {/* ── English Content ── */}
+            {activeLang === "en" && (
+              <div className="space-y-5">
+                {/* Tour Name EN */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.tourName")} (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={enTranslation.tourName}
+                    onChange={(e) =>
+                      setEnTranslation((prev) => ({
+                        ...prev,
+                        tourName: e.target.value,
+                      }))
+                    }
+                    placeholder={t("placeholder.enterTourNameEn")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                  />
+                </div>
 
+                {/* Short Description EN */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.shortDescription")} (EN)
+                  </label>
+                  <textarea
+                    value={enTranslation.shortDescription}
+                    onChange={(e) =>
+                      setEnTranslation((prev) => ({
+                        ...prev,
+                        shortDescription: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    placeholder={t("placeholder.briefDescEn")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                  />
+                </div>
+
+                {/* Long Description EN */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.longDescription")} (EN)
+                  </label>
+                  <textarea
+                    value={enTranslation.longDescription}
+                    onChange={(e) =>
+                      setEnTranslation((prev) => ({
+                        ...prev,
+                        longDescription: e.target.value,
+                      }))
+                    }
+                    rows={4}
+                    placeholder={t("placeholder.detailedDescEn")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                  />
+                </div>
+
+                {/* SEO Title EN */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.seoTitle")} (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={enTranslation.seoTitle}
+                    onChange={(e) =>
+                      setEnTranslation((prev) => ({
+                        ...prev,
+                        seoTitle: e.target.value,
+                      }))
+                    }
+                    placeholder={t("placeholder.seoOptimizedTitle")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                  />
+                </div>
+
+                {/* SEO Description EN */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t("tourAdmin.basicInfo.seoDescription")} (EN)
+                  </label>
+                  <textarea
+                    value={enTranslation.seoDescription}
+                    onChange={(e) =>
+                      setEnTranslation((prev) => ({
+                        ...prev,
+                        seoDescription: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    placeholder={t("placeholder.seoOptimizedDescription")}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ── Image Upload (shared — always visible regardless of language tab) ── */}
+            <div className="mt-8">
+              <TourImageUpload
+                thumbnail={thumbnail}
+                setThumbnail={setThumbnail}
+                images={images}
+                setImages={setImages}
+                t={t}
+                thumbnailError={thumbnailError}
+                imagesError={imagesError}
+                onThumbnailError={setThumbnailError}
+                onImagesError={setImagesError}
+                existingImages={existingImages}
+                onRemoveExistingImage={(img) => {
+                  setExistingImages((prev) =>
+                    prev.filter((e) => e.fileId !== img.fileId),
+                  );
+                }}
+                existingThumbnail={existingThumbnail}
+                onRemoveExistingThumbnail={() => setExistingThumbnail(null)}
+              />
             </div>
-          )}
 
-          {/* ── Step 2: Packages ─────────────────────────────── */}
-          {currentStep === 1 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                  {t("tourAdmin.packages.sectionTitle")}
-                </h2>
-                <button
-                  type="button"
-                  onClick={addClassification}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                  <Icon icon="heroicons:plus" className="size-4" />
-                  {t("tourAdmin.buttons.addPackage")}
-                </button>
-              </div>
-              <div className="flex items-center gap-2 mb-6 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
-                <Icon
-                  icon="heroicons:information-circle"
-                  className="size-4 text-blue-500 shrink-0"
-                />
-                <p className="text-xs text-blue-700 dark:text-blue-400">
-                  {t("tourAdmin.packages.infoBanner")}
-                </p>
-              </div>
 
-              <div className="space-y-4">
-                {classifications.map((cls, clsI) => (
-                  <div
-                    key={clsI}
-                    className="border border-stone-200 dark:border-stone-700 rounded-2xl p-5 relative overflow-hidden">
-                    {/* Card header */}
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-                          {clsI + 1}
-                        </div>
-                        <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300">
-                          {cls.name || cls.enName
-                            ? `${cls.name || ""}${cls.name && cls.enName ? " / " : ""}${cls.enName || ""}`
-                            : t("tourAdmin.review.untitled")}
-                        </h3>
+          </div>
+        )}
+
+        {/* ── Step 2: Packages ─────────────────────────────── */}
+        {currentStep === 1 && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="h-stack items-center justify-between mb-1">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+                {t("tourAdmin.packages.sectionTitle")}
+              </h2>
+              <button
+                type="button"
+                onClick={addClassification}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                <Icon icon="heroicons:plus" className="size-4" />
+                {t("tourAdmin.buttons.addPackage")}
+              </button>
+            </div>
+            <div className="h-stack items-center gap-2 mb-6 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
+              <Icon
+                icon="heroicons:information-circle"
+                className="size-4 text-blue-500 shrink-0"
+              />
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                {t("tourAdmin.packages.infoBanner")}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {classifications.map((cls, clsI) => (
+                <div
+                  key={clsI}
+                  className="border border-stone-200 dark:border-stone-700 rounded-2xl p-5 relative overflow-hidden">
+                  {/* Card header */}
+                  <div className="h-stack items-center justify-between mb-5">
+                    <div className="h-stack items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500 center text-white text-xs font-bold">
+                        {clsI + 1}
                       </div>
-                      {classifications.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            isEditMode
-                              ? setConfirmDelete({ type: "classification", index1: clsI })
-                              : removeClassification(clsI)
-                          }
-                          aria-label={t("tourAdmin.packages.removePackage")}
-                          className="text-stone-400 hover:text-red-500 transition-colors">
-                          <Icon icon="heroicons:trash" className="size-4" />
-                        </button>
+                      <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300">
+                        {cls.name || cls.enName
+                          ? `${cls.name || ""}${cls.name && cls.enName ? " / " : ""}${cls.enName || ""}`
+                          : t("tourAdmin.review.untitled")}
+                      </h3>
+                    </div>
+                    {classifications.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfirmDelete({ type: "classification", index1: clsI })
+                        }
+                        aria-label={t("tourAdmin.packages.removePackage")}
+                        className="text-stone-400 hover:text-red-500 transition-colors">
+                        <Icon icon="heroicons:trash" className="size-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Duration & Base Price — shared fields */}
+                  <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+                        {t("tourAdmin.packages.durationDays")} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={cls.durationDays}
+                        onChange={(e) =>
+                          updateClassification(clsI, "durationDays", e.target.value)
+                        }
+                        placeholder={t("tourAdmin.packages.placeholderDuration")}
+                        className="w-full px-3 py-2 text-sm rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      />
+                      {errors[`cls_${clsI}_duration`] && (
+                        <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_duration`]}</p>
                       )}
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+                        {t("tourAdmin.packages.basePrice")}
+                      </label>
+                      <div className="relative group">
+                        <div className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400 h-stack items-center justify-between">
+                          <span className="font-semibold text-stone-900 dark:text-white">
+                            {Number(cls.basePrice || 0).toLocaleString("vi-VN")} đ
+                          </span>
+                          <div className="h-stack items-center gap-1.5 text-[10px] text-orange-500 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
+                            <Icon icon="heroicons:sparkles" className="size-3" />
+                            {t("tourAdmin.packages.basePriceAutoCalculated")}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                    {/* Duration & Base Price — shared fields */}
-                    <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                          {t("tourAdmin.packages.durationDays")} <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={cls.durationDays}
-                          onChange={(e) =>
-                            updateClassification(clsI, "durationDays", e.target.value)
-                          }
-                          placeholder={t("tourAdmin.packages.placeholderDuration")}
-                          className="w-full px-3 py-2 text-sm rounded-xl border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                        {errors[`cls_${clsI}_duration`] && (
-                          <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_duration`]}</p>
-                        )}
+                  {/* VI / EN parallel columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* ── VI Column ── */}
+                    <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
+                      <div className="h-stack items-center gap-2 mb-1">
+                        <span className="text-base">🇻🇳</span>
+                        <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
+                          Tiếng Việt
+                        </span>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-                          {t("tourAdmin.packages.basePrice")} <span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                          {t("tourAdmin.packages.packageType")} <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
-                            min="0"
-                            value={cls.basePrice}
-                            onChange={(e) =>
-                              updateClassification(clsI, "basePrice", e.target.value)
-                            }
-                            onBlur={(e) =>
-                              validateFieldPositiveNumber(`cls_${clsI}_basePrice`, e.target.value)
-                            }
-                            placeholder={t("tourAdmin.packages.placeholderBasePrice")}
-                            className={`w-full px-3 py-2 pr-8 text-sm rounded-xl border bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                              errors[`cls_${clsI}_basePrice`]
+                          <select
+                            value={findPackageTypeOption(cls.name)?.key ?? ""}
+                            onChange={(e) => updateClassificationPackageTypeVi(clsI, e.target.value)}
+                            onBlur={() => validateField(`cls_${clsI}_name`, cls.name)}
+                            className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer ${errors[`cls_${clsI}_name`]
                                 ? "border-red-400 dark:border-red-500"
                                 : "border-stone-300 dark:border-stone-600"
-                            }`}
-                          />
-                          {errors[`cls_${clsI}_basePrice`] && (
+                              }`}>
+                            <option value="">{t("tourAdmin.packages.placeholderPackageType")}</option>
+                            {PACKAGE_TYPE_OPTIONS.map((opt) => (
+                              <option key={opt.key} value={opt.key}>{opt.vi}</option>
+                            ))}
+                          </select>
+                          {errors[`cls_${clsI}_name`] && (
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
                               <Icon icon="heroicons:x-circle" className="size-4" />
                             </span>
                           )}
                         </div>
-                        {errors[`cls_${clsI}_basePrice`] && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        {errors[`cls_${clsI}_name`] && (
+                          <p className="text-red-500 text-xs mt-1 h-stack items-center gap-1">
                             <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                            {errors[`cls_${clsI}_basePrice`]}
+                            {errors[`cls_${clsI}_name`]}
                           </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                          {t("tourAdmin.packages.description")}
+                        </label>
+                        <textarea
+                          value={cls.description}
+                          onChange={(e) => updateClassification(clsI, "description", e.target.value)}
+                          rows={3}
+                          placeholder={t("tourAdmin.packages.placeholderDescription")}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                        />
+                        {errors[`cls_${clsI}_description`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_description`]}</p>
                         )}
                       </div>
                     </div>
 
-                    {/* VI / EN parallel columns */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* ── VI Column ── */}
-                      <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-base">🇻🇳</span>
-                          <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
-                            Tiếng Việt
-                          </span>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
-                            {t("tourAdmin.packages.packageType")} <span className="text-red-500">*</span>
-                          </label>
-                          <div className="relative">
-                            <select
-                              value={findPackageTypeOption(cls.name)?.key ?? ""}
-                              onChange={(e) => updateClassificationPackageTypeVi(clsI, e.target.value)}
-                              onBlur={() => validateField(`cls_${clsI}_name`, cls.name)}
-                              className={`w-full px-3 py-2 pr-8 text-sm rounded-lg border bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer ${
-                                errors[`cls_${clsI}_name`]
-                                  ? "border-red-400 dark:border-red-500"
-                                  : "border-stone-300 dark:border-stone-600"
-                              }`}>
-                              <option value="">{t("tourAdmin.packages.placeholderPackageType")}</option>
-                              {PACKAGE_TYPE_OPTIONS.map((opt) => (
-                                <option key={opt.key} value={opt.key}>{opt.vi}</option>
-                              ))}
-                            </select>
-                            {errors[`cls_${clsI}_name`] && (
-                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                                <Icon icon="heroicons:x-circle" className="size-4" />
-                              </span>
-                            )}
-                          </div>
-                          {errors[`cls_${clsI}_name`] && (
-                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                              <Icon icon="heroicons:exclamation-triangle" className="size-3" />
-                              {errors[`cls_${clsI}_name`]}
-                            </p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
-                            {t("tourAdmin.packages.description")}
-                          </label>
-                          <textarea
-                            value={cls.description}
-                            onChange={(e) => updateClassification(clsI, "description", e.target.value)}
-                            rows={3}
-                            placeholder={t("tourAdmin.packages.placeholderDescription")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                          />
-                          {errors[`cls_${clsI}_description`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_description`]}</p>
-                          )}
-                        </div>
+                    {/* ── EN Column ── */}
+                    <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
+                      <div className="h-stack items-center gap-2 mb-1">
+                        <span className="text-base">🇬🇧</span>
+                        <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
+                          English
+                        </span>
+                        <span className="text-[10px] font-normal text-stone-400 dark:text-stone-500">
+                          (Tùy chọn)
+                        </span>
                       </div>
-
-                      {/* ── EN Column ── */}
-                      <div className="space-y-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-base">🇬🇧</span>
-                          <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
-                            English
-                          </span>
-                          <span className="text-[10px] font-normal text-stone-400 dark:text-stone-500">
-                            (Tùy chọn)
-                          </span>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
-                            {t("tourAdmin.packages.packageType")} / Type
-                          </label>
-                          <select
-                            value={findPackageTypeOption(cls.enName)?.key ?? ""}
-                            onChange={(e) => updateClassificationPackageTypeEn(clsI, e.target.value)}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer">
-                            <option value="">Select type...</option>
-                            {PACKAGE_TYPE_OPTIONS.map((opt) => (
-                              <option key={opt.key} value={opt.key}>{opt.en}</option>
-                            ))}
-                          </select>
-                          {errors[`cls_${clsI}_enName`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enName`]}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
-                            {t("tourAdmin.packages.description")} / Description
-                          </label>
-                          <textarea
-                            value={cls.enDescription}
-                            onChange={(e) => updateClassification(clsI, "enDescription", e.target.value)}
-                            rows={3}
-                            placeholder="Describe what this package includes..."
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
-                          />
-                          {errors[`cls_${clsI}_enDescription`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enDescription`]}</p>
-                          )}
-                        </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                          {t("tourAdmin.packages.packageType")} / Type
+                        </label>
+                        <select
+                          value={findPackageTypeOption(cls.enName)?.key ?? ""}
+                          onChange={(e) => updateClassificationPackageTypeEn(clsI, e.target.value)}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer">
+                          <option value="">Select type...</option>
+                          {PACKAGE_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt.key} value={opt.key}>{opt.en}</option>
+                          ))}
+                        </select>
+                        {errors[`cls_${clsI}_enName`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enName`]}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+                          {t("tourAdmin.packages.description")} / Description
+                        </label>
+                        <textarea
+                          value={cls.enDescription}
+                          onChange={(e) => updateClassification(clsI, "enDescription", e.target.value)}
+                          rows={3}
+                          placeholder="Describe what this package includes..."
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                        />
+                        {errors[`cls_${clsI}_enDescription`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`cls_${clsI}_enDescription`]}</p>
+                        )}
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 3: Itineraries ──────────────────────────── */}
+        {currentStep === 2 && (
+          <div className="space-y-5">
+            {/* Package Selector */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
+                {t("tourAdmin.itineraries.selectPackageTitle")}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                {t("tourAdmin.itineraries.selectPackageSubtitle")}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {classifications.map((cls, i) => {
+                  const daysProcessed = (dayPlans[i] ?? []).length;
+                  const totalDays = Number(cls.durationDays) || 0;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSelectedPackageIndex(i)}
+                      className={`spacer min-w-45 p-4 rounded-xl border-2 text-left transition-all ${selectedPackageIndex === i
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                        }`}>
+                      <div className="h-stack items-center justify-between mb-2">
+                        <span
+                          className={`text-sm font-semibold ${selectedPackageIndex === i
+                              ? "text-orange-600 dark:text-orange-400"
+                              : "text-slate-700 dark:text-slate-300"
+                            }`}>
+                          {t("tourAdmin.packages.packageNumber", { number: i + 1 })}
+                        </span>
+                        {selectedPackageIndex === i && (
+                          <div className="w-5 h-5 bg-orange-500 rounded-full center">
+                            <Icon
+                              icon="heroicons:check"
+                              className="size-3 text-white"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs font-medium text-slate-900 dark:text-white">
+                        {activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: i + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: i + 1 }))}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {t("tourAdmin.itineraries.daysProcessed", { processed: daysProcessed, total: totalDays })}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
 
-          {/* ── Step 3: Itineraries ──────────────────────────── */}
-          {currentStep === 2 && (
-            <div className="space-y-5">
-              {/* Package Selector */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                  {t("tourAdmin.itineraries.selectPackageTitle")}
+            {/* Itinerary Editor */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <div className="h-stack items-center justify-between mb-5">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+                  {t("tourAdmin.itineraries.itineraryForPackage", { number: ci + 1 })}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                  {t("tourAdmin.itineraries.selectPackageSubtitle")}
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {classifications.map((cls, i) => {
-                    const daysProcessed = (dayPlans[i] ?? []).length;
-                    const totalDays = Number(cls.durationDays) || 0;
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setSelectedPackageIndex(i)}
-                        className={`flex-1 min-w-45 p-4 rounded-xl border-2 text-left transition-all ${
-                          selectedPackageIndex === i
-                            ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10"
-                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                        }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span
-                            className={`text-sm font-semibold ${
-                              selectedPackageIndex === i
-                                ? "text-orange-600 dark:text-orange-400"
-                                : "text-slate-700 dark:text-slate-300"
-                            }`}>
-                            {t("tourAdmin.packages.packageNumber", { number: i + 1 })}
-                          </span>
-                          {selectedPackageIndex === i && (
-                            <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                              <Icon
-                                icon="heroicons:check"
-                                className="size-3 text-white"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs font-medium text-slate-900 dark:text-white">
-                          {activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: i + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: i + 1 }))}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {t("tourAdmin.itineraries.daysProcessed", { processed: daysProcessed, total: totalDays })}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => addDayPlan(ci)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                  <Icon icon="heroicons:plus" className="size-4" />
+                  {t("tourAdmin.buttons.addDay")}
+                </button>
               </div>
 
-              {/* Itinerary Editor */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                    {t("tourAdmin.itineraries.itineraryForPackage", { number: ci + 1 })}
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => addDayPlan(ci)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                    <Icon icon="heroicons:plus" className="size-4" />
-                    {t("tourAdmin.buttons.addDay")}
-                  </button>
+              {errors[`cls_${ci}_dayCountMismatch`] && (
+                <div className="mb-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-2">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    {errors[`cls_${ci}_dayCountMismatch`]}
+                  </p>
                 </div>
+              )}
 
-                {(dayPlans[ci] ?? []).length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">
-                    <Icon
-                      icon="heroicons:calendar-days"
-                      className="size-10 mx-auto mb-3 opacity-40"
-                    />
-                    <p className="text-sm">
-                      {t("tourAdmin.itineraries.noDaysYet")}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {(dayPlans[ci] ?? []).map((day, di) => (
+              {(dayPlans[ci] ?? []).length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  <Icon
+                    icon="heroicons:calendar-days"
+                    className="size-10 mx-auto mb-3 opacity-40"
+                  />
+                  <p className="text-sm">
+                    {t("tourAdmin.itineraries.noDaysYet")}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(dayPlans[ci] ?? []).map((day, di) => {
+                    const classificationDurationDays = Number(classifications[ci]?.durationDays ?? 0);
+                    const cannotRemoveDay =
+                      Number.isFinite(classificationDurationDays) &&
+                      classificationDurationDays > 0 &&
+                      (dayPlans[ci] ?? []).length <= classificationDurationDays;
+                    return (
                       <div
                         key={di}
                         className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                         {/* Day Header — Orange */}
-                        <div className="bg-orange-500 px-4 py-3 flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        <div className="bg-orange-500 px-4 py-3 h-stack items-center gap-3">
+                          <div className="w-8 h-8 bg-white/20 rounded-full center text-white text-sm font-bold shrink-0">
                             {day.dayNumber}
                           </div>
-                          <div className="flex-1 flex items-center gap-2">
+                          <div className="spacer h-stack items-center gap-2">
                             <input
                               type="text"
                               value={day.title}
                               onChange={(e) => updateDayPlan(ci, di, "title", e.target.value)}
                               placeholder={t("tourAdmin.itineraries.placeholderDayTitle", { number: day.dayNumber })}
-                              className="flex-1 px-2 py-1 text-sm bg-white/10 text-white rounded border border-white/20 placeholder:text-white/60 focus:ring-2 focus:ring-white/30 outline-none"
+                              className="spacer px-2 py-1 text-sm bg-white/10 text-white rounded border border-white/20 placeholder:text-white/60 focus:ring-2 focus:ring-white/30 outline-none"
                             />
                             <input
                               type="text"
                               value={day.enTitle}
                               onChange={(e) => updateDayPlan(ci, di, "enTitle", e.target.value)}
                               placeholder="Day title EN..."
-                              className="flex-1 px-2 py-1 text-sm bg-white/5 text-white/70 rounded border border-white/10 placeholder:text-white/30 focus:ring-2 focus:ring-white/20 outline-none"
+                              className="spacer px-2 py-1 text-sm bg-white/5 text-white/70 rounded border border-white/10 placeholder:text-white/30 focus:ring-2 focus:ring-white/20 outline-none"
                             />
                           </div>
                           {(errors[`plan_${di}_title`] || errors[`plan_${di}_enTitle`]) && (
@@ -2291,12 +2351,18 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           <button
                             type="button"
                             onClick={() =>
-                            isEditMode
-                              ? setConfirmDelete({ type: "dayPlan", index1: ci, index2: di })
-                              : removeDayPlan(ci, di)
-                          }
+                              setConfirmDelete({ type: "dayPlan", index1: ci, index2: di })
+                            }
+                            disabled={cannotRemoveDay}
+                            title={
+                              cannotRemoveDay
+                                ? t("tourAdmin.itineraries.cannotRemoveDayTooltip", {
+                                  durationDays: classificationDurationDays,
+                                })
+                                : t("tourAdmin.itineraries.removeDay")
+                            }
                             aria-label={t("tourAdmin.itineraries.removeDay")}
-                            className="text-white/70 hover:text-white transition-colors">
+                            className="text-white/70 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-white/70">
                             <Icon icon="heroicons:x-mark" className="size-5" />
                           </button>
                         </div>
@@ -2305,7 +2371,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                         <div className="p-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                             <div className="space-y-1">
-                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                 🇻🇳 {t("tourAdmin.itineraries.dayDescription")} (VI)
                               </span>
                               <textarea
@@ -2317,7 +2383,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                               />
                             </div>
                             <div className="space-y-1">
-                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                              <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                 🇬🇧 Description (EN)
                               </span>
                               <textarea
@@ -2337,7 +2403,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
 
                           {/* Activities Section */}
                           <div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="h-stack items-center justify-between mb-3">
                               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                 {t("tourAdmin.itineraries.activities")}
                               </span>
@@ -2354,25 +2420,30 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                             </div>
 
                             {day.activities.length === 0 && (
-                              <p className="text-xs text-slate-400 text-center py-4">
-                                {t("tourAdmin.itineraries.noActivitiesYet")}
-                              </p>
+                              <>
+                                <p className="text-xs text-slate-400 text-center py-4">
+                                  {t("tourAdmin.itineraries.noActivitiesYet")}
+                                </p>
+                                {errors[`day_${di}_empty`] && (
+                                  <p className="text-xs text-red-600 text-center pb-2">
+                                    {errors[`day_${di}_empty`]}
+                                  </p>
+                                )}
+                              </>
                             )}
 
                             {day.activities.map((act, ai) => (
                               <div
                                 key={ai}
                                 className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 mb-3 border border-slate-100 dark:border-slate-700/50">
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="h-stack items-center justify-between mb-3">
                                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                                     {t("tourAdmin.itineraries.activityNumber", { number: ai + 1 })}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      isEditMode
-                                        ? setConfirmDelete({ type: "activity", index1: ci, index2: di, index3: ai })
-                                        : removeActivity(ci, di, ai)
+                                      setConfirmDelete({ type: "activity", index1: ci, index2: di, index3: ai })
                                     }
                                     aria-label={t("tourAdmin.itineraries.removeActivity")}
                                     className="text-red-400 hover:text-red-600 transition-colors">
@@ -2477,11 +2548,10 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         )
                                       }
                                       placeholder="0"
-                                      className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${
-                                        errors[`act_${di}_${ai}_estimatedCost`]
+                                      className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition ${errors[`act_${di}_${ai}_estimatedCost`]
                                           ? "border-red-400 dark:border-red-500"
                                           : "border-slate-300 dark:border-slate-600"
-                                      }`}
+                                        }`}
                                     />
                                     {errors[`act_${di}_${ai}_estimatedCost`] && (
                                       <p className="text-red-500 text-xs mt-0.5">
@@ -2494,7 +2564,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                 {/* Title — VI / EN */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                   <div className="space-y-1">
-                                    <div className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-stone-400">
+                                    <div className="h-stack items-center gap-1 text-xs font-medium text-stone-500 dark:text-stone-400">
                                       <span>🇻🇳</span>
                                       <span>{t("tourAdmin.itineraries.title")} (VI)</span>
                                       <span className="text-red-500">*</span>
@@ -2508,7 +2578,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <span className="text-xs font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                                    <span className="text-xs font-medium text-stone-500 dark:text-stone-400 h-stack items-center gap-1">
                                       🇬🇧 Title (EN)
                                     </span>
                                     <input
@@ -2638,51 +2708,55 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                   </div>
                                 )}
 
-                            {/* Type 7: Transportation — TU, DEN, Phuong tien, Thoi gian */}
+                                {/* Type 7: Transportation — TU, DEN, Phuong tien, Thoi gian */}
                                 {act.activityType === "7" && (
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇻🇳 {t("tourAdmin.itineraries.fromLocation", "From (VI)")} <span className="text-red-500">*</span>
+                                        🇻🇳 {t("tourAdmin.itineraries.fromLocation", "Từ (địa điểm)")} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="text"
                                         value={act.fromLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "fromLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.fromLocationPlaceholder", "VD: Hà Nội")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇬🇧 {t("tourAdmin.itineraries.fromLocationEn", "From (EN)")}
+                                        🇬🇧 {t("tourAdmin.itineraries.fromLocationEn", "From (location)")}
                                       </label>
                                       <input
                                         type="text"
                                         value={act.enFromLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "enFromLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.fromLocationPlaceholder", "e.g., Hanoi")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇻🇳 {t("tourAdmin.itineraries.toLocation", "To (VI)")} <span className="text-red-500">*</span>
+                                        🇻🇳 {t("tourAdmin.itineraries.toLocation", "Đến (địa điểm)")} <span className="text-red-500">*</span>
                                       </label>
                                       <input
                                         type="text"
                                         value={act.toLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "toLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.toLocationPlaceholder", "VD: TP. Hồ Chí Minh")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        🇬🇧 {t("tourAdmin.itineraries.toLocationEn", "To (EN)")}
+                                        🇬🇧 {t("tourAdmin.itineraries.toLocationEn", "To (location)")}
                                       </label>
                                       <input
                                         type="text"
                                         value={act.enToLocation || ""}
                                         onChange={(e) => updateActivity(ci, di, ai, "enToLocation", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                        placeholder={t("tourAdmin.itineraries.toLocationPlaceholder", "e.g., Ho Chi Minh City")}
+                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
                                     <div>
@@ -2734,18 +2808,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
-                                    <div>
-                                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                        Giá phương tiện ($)
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min={0}
-                                        value={act.price || ""}
-                                        onChange={(e) => updateActivity(ci, di, ai, "price", e.target.value)}
-                                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                      />
-                                    </div>
+
                                   </div>
                                 )}
 
@@ -2754,721 +2817,641 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-
-
-          {/* ── Step 3: Services ───────────────────────────────── */}
-          {currentStep === 3 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Icon
-                    icon="heroicons:wrench-screwdriver"
-                    className="size-5 text-orange-500"
-                  />
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                    {t("tourAdmin.services.sectionTitle")}
-                  </h2>
+                    );
+                  })}
                 </div>
-                <button
-                  type="button"
-                  onClick={addService}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                  <Icon icon="heroicons:plus" className="size-4" />
-                  {t("tourAdmin.buttons.addService")}
-                </button>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {t("tourAdmin.services.infoBanner")}
-              </p>
-
-              <div className="space-y-4">
-                {services.map((svc, svcI) => (
-                  <div
-                    key={svcI}
-                    className="border border-slate-200 dark:border-slate-700 rounded-xl p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          {svcI + 1}
-                        </div>
-                        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          {t("tourAdmin.services.serviceNumber", { number: svcI + 1 })}
-                        </h3>
-                      </div>
-                      {services.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeService(svcI)}
-                          aria-label={t("tourAdmin.services.removeService")}
-                          className="text-red-400 hover:text-red-600 transition-colors">
-                          <Icon icon="heroicons:trash" className="size-4" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      {/* Service Name */}
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                          {t("tourAdmin.services.serviceName")} <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={svc.serviceName}
-                          onChange={(e) => updateService(svcI, "serviceName", e.target.value)}
-                          placeholder={t("tourAdmin.services.placeholderServiceName")}
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                        {errors[`svc_${svcI}_name`] && (
-                          <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_name`]}</p>
-                        )}
-                      </div>
-                      {/* English Service Name */}
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                          {t("tourAdmin.services.serviceName")} (English)
-                        </label>
-                        <input
-                          type="text"
-                          value={svc.enServiceName}
-                          onChange={(e) => updateService(svcI, "enServiceName", e.target.value)}
-                          placeholder={t("tourAdmin.services.placeholderServiceNameEn", "Enter English service name")}
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                      </div>
-                      {/* Pricing Type + Price + Sale Price */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            {t("tourAdmin.services.pricingType")} <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            value={svc.pricingType}
-                            onChange={(e) => updateService(svcI, "pricingType", e.target.value)}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer">
-                            <option value="">{t("tourAdmin.services.placeholderPricingType")}</option>
-                            {PRICING_TYPE_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                          </select>
-                          {errors[`svc_${svcI}_pricingType`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_pricingType`]}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            {t("tourAdmin.services.price")}
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={svc.price}
-                            onChange={(e) => updateService(svcI, "price", e.target.value)}
-                            placeholder={t("tourAdmin.services.placeholderPrice")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            {t("tourAdmin.services.salePrice")}
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={svc.salePrice}
-                            onChange={(e) => updateService(svcI, "salePrice", e.target.value)}
-                            placeholder={t("tourAdmin.services.placeholderSalePrice")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                          />
-                        </div>
-                      </div>
-                      {/* Email + Contact */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            {t("tourAdmin.services.email")}
-                          </label>
-                          <input
-                            type="email"
-                            value={svc.email}
-                            onChange={(e) => updateService(svcI, "email", e.target.value)}
-                            placeholder={t("tourAdmin.services.placeholderEmail")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            {t("tourAdmin.services.contactNumber")}
-                          </label>
-                          <input
-                            type="text"
-                            value={svc.contactNumber}
-                            onChange={(e) => updateService(svcI, "contactNumber", e.target.value)}
-                            placeholder={t("tourAdmin.services.placeholderContactNumber")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ── Step 4: Insurance ────────────────────────────── */}
-          {currentStep === 4 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center gap-2 mb-1">
+
+
+        {/* ── Step 3: Services ───────────────────────────────── */}
+        {currentStep === 3 && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="h-stack items-center justify-between mb-1">
+              <div className="h-stack items-center gap-2">
                 <Icon
-                  icon="heroicons:shield-check"
+                  icon="heroicons:wrench-screwdriver"
                   className="size-5 text-orange-500"
                 />
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                  {t("tourAdmin.insurance.sectionTitle")}
+                  {t("tourAdmin.services.sectionTitle")}
                 </h2>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                {t("tourAdmin.insurance.sectionSubtitle")}
-              </p>
+              <button
+                type="button"
+                onClick={addService}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                <Icon icon="heroicons:plus" className="size-4" />
+                {t("tourAdmin.buttons.addService")}
+              </button>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              {t("tourAdmin.services.infoBanner")}
+            </p>
 
-              <div className="space-y-5">
-                {classifications.map((cls, clsI) => (
-                  <div key={clsI}>
-                    <div className="flex items-center justify-between mb-3">
+            <div className="space-y-4">
+              {services.map((svc, svcI) => (
+                <div
+                  key={svcI}
+                  className="border border-slate-200 dark:border-slate-700 rounded-xl p-5">
+                  <div className="h-stack items-center justify-between mb-4">
+                    <div className="h-stack items-center gap-2">
+                      <div className="w-6 h-6 bg-orange-500 rounded-full center text-white text-xs font-bold">
+                        {svcI + 1}
+                      </div>
                       <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        {activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 }))}
+                        {t("tourAdmin.services.serviceNumber", { number: svcI + 1 })}
                       </h3>
+                    </div>
+                    {services.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => addInsurance(clsI)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
-                        <Icon icon="heroicons:plus" className="size-4" />
-                        {t("tourAdmin.buttons.addInsurance")}
+                        onClick={() => removeService(svcI)}
+                        aria-label={t("tourAdmin.services.removeService")}
+                        className="text-red-400 hover:text-red-600 transition-colors">
+                        <Icon icon="heroicons:trash" className="size-4" />
                       </button>
-                    </div>
-
-                    {(insurances[clsI] ?? []).length === 0 ? (
-                      <div className="border border-dashed border-slate-300 dark:border-slate-600 rounded-lg py-6 text-center">
-                        <p className="text-sm text-slate-400">
-                          {t("tourAdmin.insurance.noInsuranceYet")}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {(insurances[clsI] ?? []).map((ins, ii) => (
-                          <div
-                            key={ii}
-                            className="flex items-start justify-between border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm text-slate-900 dark:text-white">
-                                  {activeLang === "vi" ? (ins.insuranceName || t("tourAdmin.review.untitled")) : (ins.enInsuranceName || ins.insuranceName || t("tourAdmin.review.untitled"))}
-                                </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400">
-                                  {insuranceTypes[Number(ins.insuranceType)] || insuranceTypes[1]}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {t("tourAdmin.insurance.coverage")}: ${ins.coverageAmount || "0"} &bull;
-                                {t("tourAdmin.insurance.durationOfTour")}
-                                {ins.coverageFee
-                                  ? ` • ${t("tourAdmin.insurance.fee")}: $${ins.coverageFee}`
-                                  : ""}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-3 ml-4">
-                              <span className="text-sm font-semibold text-orange-500 whitespace-nowrap">
-                                ${ins.coverageFee || "0"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => removeInsurance(clsI, ii)}
-                                aria-label={t("tourAdmin.buttons.addInsurance")}
-                                className="text-red-400 hover:text-red-600 transition-colors">
-                                <Icon
-                                  icon="heroicons:trash"
-                                  className="size-4"
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
                     )}
                   </div>
-                ))}
-              </div>
-
-              {/* Editing panel for selected insurance */}
-              {classifications.map((cls, clsI) =>
-                (insurances[clsI] ?? []).map((ins, ii) => (
-                  <div
-                    key={`edit-${clsI}-${ii}`}
-                    className="mt-4 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
-                    <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">
-                      {t("tourAdmin.insurance.editInsurance", {
-                        insuranceName: activeLang === "vi" ? (ins.insuranceName || t("tourAdmin.review.untitled")) : (ins.enInsuranceName || ins.insuranceName || t("tourAdmin.review.untitled")),
-                        packageName: activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })),
-                      })}
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-4">
+                    {/* Service Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {t("tourAdmin.services.serviceName")} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={svc.serviceName}
+                        onChange={(e) => updateService(svcI, "serviceName", e.target.value)}
+                        placeholder={t("tourAdmin.services.placeholderServiceName")}
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      />
+                      {errors[`svc_${svcI}_name`] && (
+                        <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_name`]}</p>
+                      )}
+                    </div>
+                    {/* English Service Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        {t("tourAdmin.services.serviceName")} (English)
+                      </label>
+                      <input
+                        type="text"
+                        value={svc.enServiceName}
+                        onChange={(e) => updateService(svcI, "enServiceName", e.target.value)}
+                        placeholder={t("tourAdmin.services.placeholderServiceNameEn", "Enter English service name")}
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      />
+                    </div>
+                    {/* Pricing Type + Price + Sale Price */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.insuranceName")}
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-xs">
-                              <span>VN</span>
-                              <span className="font-medium text-stone-500">Name (VI)</span>
-                            </div>
-                            <input
-                              type="text"
-                              value={ins.insuranceName}
-                              onChange={(e) =>
-                                updateInsurance(
-                                  clsI,
-                                  ii,
-                                  "insuranceName",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder={t("tourAdmin.insurance.insuranceName")}
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-xs">
-                              <span>EN</span>
-                              <span className="font-medium text-stone-500">Name (EN)</span>
-                            </div>
-                            <input
-                              type="text"
-                              value={ins.enInsuranceName}
-                              onChange={(e) =>
-                                updateInsurance(
-                                  clsI,
-                                  ii,
-                                  "enInsuranceName",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder={t("tourAdmin.insurance.insuranceName")}
-                              className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.insuranceType")}
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {t("tourAdmin.services.pricingType")} <span className="text-red-500">*</span>
                         </label>
                         <select
-                          value={ins.insuranceType}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "insuranceType",
-                              e.target.value,
-                            )
-                          }
-                          aria-label={t("tourAdmin.insurance.insuranceType")}
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition">
-                          {INSURANCE_TYPE_OPTIONS.map((opt, idx) => (
-                            <option key={opt.value} value={opt.value}>
-                              {insuranceTypes[idx]}
-                            </option>
+                          value={svc.pricingType}
+                          onChange={(e) => updateService(svcI, "pricingType", e.target.value)}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition cursor-pointer">
+                          <option value="">{t("tourAdmin.services.placeholderPricingType")}</option>
+                          {PRICING_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
+                        {errors[`svc_${svcI}_pricingType`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`svc_${svcI}_pricingType`]}</p>
+                        )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.provider")}
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {t("tourAdmin.services.price")}
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={svc.price}
+                          onChange={(e) => updateService(svcI, "price", e.target.value)}
+                          placeholder={t("tourAdmin.services.placeholderPrice")}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+
+                    </div>
+                    {/* Email + Contact */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {t("tourAdmin.services.email")}
+                        </label>
+                        <input
+                          type="email"
+                          value={svc.email}
+                          onChange={(e) => updateService(svcI, "email", e.target.value)}
+                          placeholder={t("tourAdmin.services.placeholderEmail")}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                          {t("tourAdmin.services.contactNumber")}
                         </label>
                         <input
                           type="text"
-                          value={ins.insuranceProvider}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "insuranceProvider",
-                              e.target.value,
-                            )
-                          }
-                          placeholder={t("tourAdmin.insurance.provider")}
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                          value={svc.contactNumber}
+                          onChange={(e) => updateService(svcI, "contactNumber", e.target.value)}
+                          placeholder={t("tourAdmin.services.placeholderContactNumber")}
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                         />
                       </div>
                     </div>
-                    <div className="mt-3">
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Insurance ────────────────────────────── */}
+        {currentStep === 4 && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="h-stack items-center gap-2 mb-1">
+              <Icon
+                icon="heroicons:shield-check"
+                className="size-5 text-orange-500"
+              />
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+                {t("tourAdmin.insurance.sectionTitle")}
+              </h2>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              {t("tourAdmin.insurance.sectionSubtitle")}
+            </p>
+
+            <div className="space-y-5">
+              {classifications.map((cls, clsI) => (
+                <div key={clsI}>
+                  <div className="h-stack items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      {activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 }))}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => addInsurance(clsI)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
+                      <Icon icon="heroicons:plus" className="size-4" />
+                      {t("tourAdmin.buttons.addInsurance")}
+                    </button>
+                  </div>
+
+                  {(insurances[clsI] ?? []).length === 0 ? (
+                    <div className="border border-dashed border-slate-300 dark:border-slate-600 rounded-lg py-6 text-center">
+                      <p className="text-sm text-slate-400">
+                        {t("tourAdmin.insurance.noInsuranceYet")}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {(insurances[clsI] ?? []).map((ins, ii) => (
+                        <div
+                          key={ii}
+                          className="h-stack items-start justify-between border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+                          <div className="spacer min-w-0">
+                            <div className="h-stack items-center gap-2 mb-1">
+                              <span className="font-medium text-sm text-slate-900 dark:text-white">
+                                {activeLang === "vi" ? (ins.insuranceName || t("tourAdmin.review.untitled")) : (ins.enInsuranceName || ins.insuranceName || t("tourAdmin.review.untitled"))}
+                              </span>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400">
+                                {insuranceTypes[Number(ins.insuranceType)] || insuranceTypes[1]}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              {t("tourAdmin.insurance.coverage")}: {formatCurrency(Number(ins.coverageAmount || 0))} &bull;
+                              {t("tourAdmin.insurance.durationOfTour")}
+                              {ins.coverageFee
+                                ? ` • ${t("tourAdmin.insurance.fee")}: ${formatCurrency(Number(ins.coverageFee))}`
+                                : ""}
+                            </p>
+                          </div>
+                          <div className="h-stack items-center gap-3 ml-4">
+                            <span className="text-sm font-semibold text-orange-500 whitespace-nowrap">
+                              {formatCurrency(Number(ins.coverageFee || 0))}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeInsurance(clsI, ii)}
+                              aria-label={t("tourAdmin.buttons.addInsurance")}
+                              className="text-red-400 hover:text-red-600 transition-colors">
+                              <Icon
+                                icon="heroicons:trash"
+                                className="size-4"
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Editing panel for selected insurance */}
+            {classifications.map((cls, clsI) =>
+              (insurances[clsI] ?? []).map((ins, ii) => (
+                <div
+                  key={`edit-${clsI}-${ii}`}
+                  className="mt-4 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
+                  <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">
+                    {t("tourAdmin.insurance.editInsurance", {
+                      insuranceName: activeLang === "vi" ? (ins.insuranceName || t("tourAdmin.review.untitled")) : (ins.enInsuranceName || ins.insuranceName || t("tourAdmin.review.untitled")),
+                      packageName: activeLang === "vi" ? (cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })) : (cls.enName || cls.name || t("tourAdmin.packages.packageNumber", { number: clsI + 1 })),
+                    })}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        {t("tourAdmin.insurance.coverageDescription")}
+                        {t("tourAdmin.insurance.insuranceName")}
                       </label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
+                          <div className="h-stack items-center gap-1 text-xs">
                             <span>VN</span>
-                            <span className="font-medium text-stone-500">Coverage (VI)</span>
+                            <span className="font-medium text-stone-500">Name (VI)</span>
                           </div>
-                          <textarea
-                            value={ins.coverageDescription}
+                          <input
+                            type="text"
+                            value={ins.insuranceName}
                             onChange={(e) =>
                               updateInsurance(
                                 clsI,
                                 ii,
-                                "coverageDescription",
+                                "insuranceName",
                                 e.target.value,
                               )
                             }
-                            rows={2}
-                            placeholder={t("tourAdmin.insurance.coverageDescription")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                            placeholder={t("tourAdmin.insurance.insuranceName")}
+                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                           />
                         </div>
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
+                          <div className="h-stack items-center gap-1 text-xs">
                             <span>EN</span>
-                            <span className="font-medium text-stone-500">Coverage (EN)</span>
+                            <span className="font-medium text-stone-500">Name (EN)</span>
                           </div>
-                          <textarea
-                            value={ins.enCoverageDescription}
+                          <input
+                            type="text"
+                            value={ins.enInsuranceName}
                             onChange={(e) =>
                               updateInsurance(
                                 clsI,
                                 ii,
-                                "enCoverageDescription",
+                                "enInsuranceName",
                                 e.target.value,
                               )
                             }
-                            rows={2}
-                            placeholder={t("tourAdmin.insurance.coverageDescription")}
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                            placeholder={t("tourAdmin.insurance.insuranceName")}
+                            className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.coverageAmount")}
-                        </label>
-                        <input
-                          type="number"
-                          value={ins.coverageAmount}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "coverageAmount",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="0"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          {t("tourAdmin.insurance.coverageFee")}
-                        </label>
-                        <input
-                          type="number"
-                          value={ins.coverageFee}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "coverageFee",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="0"
-                          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                        />
-                      </div>
-                      <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 self-end pb-2">
-                        <input
-                          type="checkbox"
-                          checked={ins.isOptional}
-                          onChange={(e) =>
-                            updateInsurance(
-                              clsI,
-                              ii,
-                              "isOptional",
-                              e.target.checked,
-                            )
-                          }
-                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500"
-                        />
-                        {t("tourAdmin.insurance.optional")}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        {t("tourAdmin.insurance.insuranceType")}
                       </label>
+                      <select
+                        value={ins.insuranceType}
+                        onChange={(e) =>
+                          updateInsurance(
+                            clsI,
+                            ii,
+                            "insuranceType",
+                            e.target.value,
+                          )
+                        }
+                        aria-label={t("tourAdmin.insurance.insuranceType")}
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition">
+                        {INSURANCE_TYPE_OPTIONS.map((opt, idx) => (
+                          <option key={opt.value} value={opt.value}>
+                            {insuranceTypes[idx]}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                )),
-              )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        {t("tourAdmin.insurance.coverageFee")}
+                      </label>
+                      <input
+                        type="number"
+                        value={ins.coverageFee}
+                        onChange={(e) =>
+                          updateInsurance(
+                            clsI,
+                            ii,
+                            "coverageFee",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="0"
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      />
+                    </div>
+                    <label className="h-stack items-center gap-2 text-sm text-slate-600 dark:text-slate-300 self-end pb-2">
+                      <input
+                        type="checkbox"
+                        checked={ins.isOptional}
+                        onChange={(e) =>
+                          updateInsurance(
+                            clsI,
+                            ii,
+                            "isOptional",
+                            e.target.checked,
+                          )
+                        }
+                        className="rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                      />
+                      {t("tourAdmin.insurance.optional")}
+                    </label>
+                  </div>
+                </div>
+              )),
+            )}
 
-              {/* Info banner */}
-              {classifications.every(
-                (_, i) => (insurances[i] ?? []).length === 0,
-              ) && (
+            {/* Info banner */}
+            {classifications.every(
+              (_, i) => (insurances[i] ?? []).length === 0,
+            ) && (
                 <div className="mt-6 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-3">
                   <p className="text-sm text-amber-700 dark:text-amber-400">
                     {t("tourAdmin.insurance.noInsuranceSelected")}
                   </p>
                 </div>
               )}
-            </div>
-          )}
+          </div>
+        )}
 
-          {/* ── Step 5: Preview ───────────────────────────────── */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-                  {t("tourAdmin.preview.sectionTitle", "Tour Preview")}
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                  {t("tourAdmin.preview.sectionSubtitle", "Review all tour information before creating.")}
-                </p>
+        {/* ── Step 5: Preview ───────────────────────────────── */}
+        {currentStep === 5 && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-1">
+                {t("tourAdmin.preview.sectionTitle", "Tour Preview")}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                {t("tourAdmin.preview.sectionSubtitle", "Review all tour information before creating.")}
+              </p>
 
-                {/* Basic Info */}
-                <div className="mb-5">
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    {t("tourAdmin.preview.basicInfo", "Basic Information")}
-                  </h3>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-2 text-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Tour Name:</span>
-                        <p className="font-medium text-slate-900 dark:text-white">{basicInfo.tourName || "—"}</p>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Short Description:</span>
-                        <p className="font-medium text-slate-900 dark:text-white">{basicInfo.shortDescription || "—"}</p>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Tour Scope:</span>
-                        <p className="font-medium text-slate-900 dark:text-white">
-                          {basicInfo.tourScope === "1"
-                            ? t("tourAdmin.tourScope.domestic")
-                            : t("tourAdmin.tourScope.international")}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Customer Segment:</span>
-                        <p className="font-medium text-slate-900 dark:text-white">
-                          {basicInfo.customerSegment === "1" ? t("tourAdmin.customerSegment.individual")
-                            : basicInfo.customerSegment === "2" ? t("tourAdmin.customerSegment.group")
+              {/* Basic Info */}
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  {t("tourAdmin.preview.basicInfo", "Basic Information")}
+                </h3>
+                <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Tour Name:</span>
+                      <p className="font-medium text-slate-900 dark:text-white">{basicInfo.tourName || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Short Description:</span>
+                      <p className="font-medium text-slate-900 dark:text-white">{basicInfo.shortDescription || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Tour Scope:</span>
+                      <p className="font-medium text-slate-900 dark:text-white">
+                        {basicInfo.tourScope === "1"
+                          ? t("tourAdmin.tourScope.domestic")
+                          : t("tourAdmin.tourScope.international")}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Customer Segment:</span>
+                      <p className="font-medium text-slate-900 dark:text-white">
+                        {basicInfo.customerSegment === "1" ? t("tourAdmin.customerSegment.individual")
+                          : basicInfo.customerSegment === "2" ? t("tourAdmin.customerSegment.group")
                             : basicInfo.customerSegment === "3" ? t("tourAdmin.customerSegment.family")
-                            : t("tourAdmin.customerSegment.corporate")}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Status:</span>
-                        <p className="font-medium text-slate-900 dark:text-white">
-                          {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
-                        </p>
-                      </div>
+                              : t("tourAdmin.customerSegment.corporate")}
+                      </p>
                     </div>
-                    {/* Thumbnail */}
-                    {thumbnail ? (
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Thumbnail:</span>
-                        <div className="mt-1">
-                          <img
-                            src={URL.createObjectURL(thumbnail)}
-                            alt="Thumbnail"
-                            className="h-24 w-auto rounded-lg object-cover"
-                          />
-                        </div>
-                      </div>
-                    ) : existingThumbnail?.publicURL ? (
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Thumbnail:</span>
-                        <div className="mt-1">
-                          <img
-                            src={existingThumbnail.publicURL}
-                            alt="Existing thumbnail"
-                            className="h-24 w-auto rounded-lg object-cover"
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-                    {/* Images */}
-                    {(images.length > 0 || existingImages.length > 0) && (
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">
-                          Gallery ({existingImages.length + images.length}):
-                        </span>
-                        <div
-                          role="list"
-                          aria-label="Tour gallery images"
-                          className="mt-1 flex flex-wrap gap-1">
-                          {existingImages.map((img, i) => (
-                            <img
-                              key={`existing-${img.fileId ?? i}-${i}`}
-                              src={img.publicURL}
-                              alt={`Existing image ${i + 1}`}
-                              className="h-12 w-auto rounded object-cover"
-                            />
-                          ))}
-                          {images.map((img, i) => (
-                            <img
-                              key={`new-${i}`}
-                              src={URL.createObjectURL(img)}
-                              alt={`New image ${i + 1}`}
-                              className="h-12 w-auto rounded object-cover"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Status:</span>
+                      <p className="font-medium text-slate-900 dark:text-white">
+                        {TourStatusMap[Number(basicInfo.status)] ?? basicInfo.status}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                {/* Packages + Itineraries */}
-                <div className="mb-5">
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    {t("tourAdmin.preview.packages", "Packages (#{count})", { count: classifications.length })}
-                  </h3>
-                  {classifications.length === 0 ? (
-                    <p className="text-sm text-slate-400">No packages defined.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {classifications.map((cls, ci) => (
-                        <div key={cls.id ?? ci} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                              {cls.name || `Package #${ci + 1}`}
-                            </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                              {cls.basePrice ? `$${cls.basePrice}` : ""} / {cls.durationDays || "?"} days
-                            </span>
-                          </div>
-                          {/* Day plans preview */}
-                          {(dayPlans[ci] ?? []).length > 0 && (
-                            <div className="mt-2 pl-3 border-l-2 border-orange-200 dark:border-orange-700 space-y-1">
-                              {(dayPlans[ci] ?? []).map((day, di) => (
-                                <div key={day.id ?? di} className="text-xs text-slate-600 dark:text-slate-400">
-                                  <span className="font-medium">Day {day.dayNumber}:</span> {day.title || "—"}
-                                  {day.activities.length > 0 && (
-                                    <span className="ml-1 text-slate-400">({day.activities.length} activities)</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                  {/* Thumbnail */}
+                  {thumbnail ? (
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Thumbnail:</span>
+                      <div className="mt-1">
+                        <img
+                          src={URL.createObjectURL(thumbnail)}
+                          alt="Thumbnail"
+                          className="h-24 w-auto rounded-lg object-cover"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Services */}
-                <div className="mb-5">
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    {t("tourAdmin.preview.services", "Services")}
-                  </h3>
-                  {services.length === 0 ? (
-                    <p className="text-sm text-slate-400">No services added.</p>
-                  ) : (
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 space-y-1">
-                      {services.map((svc, i) => (
-                        <div key={i} className="text-sm text-slate-700 dark:text-slate-300 flex justify-between">
-                          <span>{svc.serviceName || "—"}</span>
-                          <span className="text-slate-500">{svc.price ? `$${svc.price}` : ""}</span>
-                        </div>
-                      ))}
+                  ) : existingThumbnail?.publicURL ? (
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">Thumbnail:</span>
+                      <div className="mt-1">
+                        <img
+                          src={existingThumbnail.publicURL}
+                          alt="Existing thumbnail"
+                          className="h-24 w-auto rounded-lg object-cover"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Insurances */}
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    {t("tourAdmin.preview.insurances", "Insurances")}
-                  </h3>
-                  {classifications.every((_, i) => (insurances[i] ?? []).length === 0) ? (
-                    <p className="text-sm text-slate-400">No insurances added.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {classifications.map((cls, ci) =>
-                        (insurances[ci] ?? []).map((ins, ii) => (
-                          <div key={`${ci}-${ii}`} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm">
-                            <span className="font-medium text-slate-800 dark:text-slate-200">{ins.insuranceName}</span>
-                            <span className="ml-2 text-slate-500">{ins.coverageFee ? `$${ins.coverageFee}` : ""}</span>
-                          </div>
-                        )),
-                      )}
+                  ) : null}
+                  {/* Images */}
+                  {(images.length > 0 || existingImages.length > 0) && (
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        Gallery ({existingImages.length + images.length}):
+                      </span>
+                      <div
+                        role="list"
+                        aria-label="Tour gallery images"
+                        className="mt-1 flex flex-wrap gap-1">
+                        {existingImages.map((img, i) => (
+                          <img
+                            key={`existing-${img.fileId ?? i}-${i}`}
+                            src={img.publicURL}
+                            alt={`Existing image ${i + 1}`}
+                            className="h-12 w-auto rounded object-cover"
+                          />
+                        ))}
+                        {images.map((img, i) => (
+                          <img
+                            key={`new-${i}`}
+                            src={URL.createObjectURL(img)}
+                            alt={`New image ${i + 1}`}
+                            className="h-12 w-auto rounded object-cover"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* ── Navigation Buttons ───────────────────────────── */}
-          <div className="mt-6 flex items-center justify-between">
+              {/* Packages + Itineraries */}
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  {t("tourAdmin.preview.packages", "Packages (#{count})", { count: classifications.length })}
+                </h3>
+                {classifications.length === 0 ? (
+                  <p className="text-sm text-slate-400">No packages defined.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {classifications.map((cls, ci) => (
+                      <div key={cls.id ?? ci} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+                        <div className="h-stack items-center justify-between mb-1">
+                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            {cls.name || `Package #${ci + 1}`}
+                          </span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {cls.basePrice ? formatCurrency(Number(cls.basePrice)) : ""} / {cls.durationDays || "?"} days
+                          </span>
+                        </div>
+                        {/* Day plans preview */}
+                        {(dayPlans[ci] ?? []).length > 0 && (
+                          <div className="mt-2 pl-3 border-l-2 border-orange-200 dark:border-orange-700 space-y-1">
+                            {(dayPlans[ci] ?? []).map((day, di) => (
+                              <div key={day.id ?? di} className="text-xs text-slate-600 dark:text-slate-400">
+                                <span className="font-medium">Day {day.dayNumber}:</span> {day.title || "—"}
+                                {day.activities.length > 0 && (
+                                  <span className="ml-1 text-slate-400">({day.activities.length} activities)</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Services */}
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  {t("tourAdmin.preview.services", "Services")}
+                </h3>
+                {services.length === 0 ? (
+                  <p className="text-sm text-slate-400">No services added.</p>
+                ) : (
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 space-y-1">
+                    {services.map((svc, i) => (
+                      <div key={i} className="text-sm text-slate-700 dark:text-slate-300 h-stack justify-between">
+                        <span>{svc.serviceName || "—"}</span>
+                        <span className="text-slate-500">{svc.price ? formatCurrency(Number(svc.price)) : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Insurances */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  {t("tourAdmin.preview.insurances", "Insurances")}
+                </h3>
+                {classifications.every((_, i) => (insurances[i] ?? []).length === 0) ? (
+                  <p className="text-sm text-slate-400">No insurances added.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {classifications.map((cls, ci) =>
+                      (insurances[ci] ?? []).map((ins, ii) => (
+                        <div key={`${ci}-${ii}`} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm">
+                          <span className="font-medium text-slate-800 dark:text-slate-200">{ins.insuranceName}</span>
+                          <span className="ml-2 text-slate-500">{ins.coverageFee ? formatCurrency(Number(ins.coverageFee)) : ""}</span>
+                        </div>
+                      )),
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Navigation Buttons ───────────────────────────── */}
+        <div className="mt-6 h-stack items-center justify-between">
+          <button
+            type="button"
+            onClick={() =>
+              currentStep === 0 ? onCancel?.() : goPrev()
+            }
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
+            <Icon icon="heroicons:arrow-left" className="size-4" />
+            {currentStep === 0 ? t("tourAdmin.buttons.backToList") : t("tourAdmin.buttons.previous")}
+          </button>
+
+          {currentStep === WIZARD_STEPS.length - 1 ? (
+            // Preview step: show Confirm button
             <button
               type="button"
-              onClick={() =>
-                currentStep === 0 ? onCancel?.() : goPrev()
-              }
+              onClick={handleSubmit}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50">
-              <Icon icon="heroicons:arrow-left" className="size-4" />
-              {currentStep === 0 ? t("tourAdmin.buttons.backToList") : t("tourAdmin.buttons.previous")}
+              className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
+              {saving && (
+                <Icon
+                  icon="heroicons:arrow-path"
+                  className="size-4 animate-spin"
+                />
+              )}
+              <Icon icon="heroicons:check" className="size-4" />
+              {isEditMode
+                ? t("tourAdmin.editPage.updateTour", "Update Tour")
+                : t("tourAdmin.createPage.publishTour")}
             </button>
-
-            {currentStep === WIZARD_STEPS.length - 1 ? (
-              // Preview step: show Confirm button
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={saving}
-                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
-                {saving && (
-                  <Icon
-                    icon="heroicons:arrow-path"
-                    className="size-4 animate-spin"
-                  />
-                )}
-                <Icon icon="heroicons:check" className="size-4" />
-                {isEditMode
-                  ? t("tourAdmin.editPage.updateTour", "Update Tour")
-                  : t("tourAdmin.createPage.publishTour")}
-              </button>
-            ) : currentStep < WIZARD_STEPS.length - 1 ? (
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={saving}
-                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
-                {currentStep === WIZARD_STEPS.length - 2
-                  ? t("tourAdmin.preview.sectionTitle", "Preview")
-                  : t("tourAdmin.buttons.next")}
-                <Icon icon="heroicons:arrow-right" className="size-4" />
-              </button>
-            ) : null}
-          </div>
+          ) : currentStep < WIZARD_STEPS.length - 1 ? (
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={saving}
+              className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50">
+              {currentStep === WIZARD_STEPS.length - 2
+                ? t("tourAdmin.preview.sectionTitle", "Preview")
+                : t("tourAdmin.buttons.next")}
+              <Icon icon="heroicons:arrow-right" className="size-4" />
+            </button>
+          ) : null}
         </div>
+      </div>
 
-      {/* Delete Confirmation Dialog (Edit Mode) */}
+      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         active={confirmDelete !== null}
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleConfirmDelete}
         title={t("tourAdmin.confirmDelete.title")}
-        message={t("tourAdmin.confirmDelete.message")}
+        message={(() => {
+          if (!confirmDelete) return t("tourAdmin.confirmDelete.message");
+          if (confirmDelete.type === "dayPlan") {
+            const dayNumber = (dayPlans[confirmDelete.index1]?.[confirmDelete.index2!]?.dayNumber) ?? String((confirmDelete.index2 ?? 0) + 1);
+            return t("tourAdmin.confirm.removeDay", { dayNumber });
+          }
+          if (confirmDelete.type === "activity") {
+            const act = dayPlans[confirmDelete.index1]?.[confirmDelete.index2!]?.activities[confirmDelete.index3!];
+            const title = act?.title?.trim() || t("tourAdmin.itineraries.activityNumber", { number: (confirmDelete.index3 ?? 0) + 1 });
+            return t("tourAdmin.confirm.removeActivity", { title });
+          }
+          if (confirmDelete.type === "classification") {
+            const name = classifications[confirmDelete.index1]?.name?.trim() || t("tourAdmin.packages.packageNumber", { number: confirmDelete.index1 + 1 });
+            return t("tourAdmin.confirm.removeClassification", { name });
+          }
+          return t("tourAdmin.confirmDelete.message");
+        })()}
         confirmLabel={t("tourAdmin.confirmDelete.confirm")}
         cancelLabel={t("tourAdmin.confirmDelete.cancel")}
       />

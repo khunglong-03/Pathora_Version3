@@ -45,4 +45,12 @@ public interface ITourDayActivityRouteTransportRepository : IRepository<TourDayA
         int? year,
         int? quarter,
         CancellationToken cancellationToken = default);
+    Task<List<TourDayActivityRouteTransportEntity>> FindByDriverIdPaginatedAsync(
+        Guid driverId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+    Task<int> CountByDriverIdAsync(
+        Guid driverId,
+        CancellationToken cancellationToken = default);
 }

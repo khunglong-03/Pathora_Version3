@@ -4,7 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
-import { CustomizeBanner } from "./CustomizeBanner";
+import type { TourDiscoveryInstanceType } from "@/utils/tourDiscoveryFilters";
 
 interface FilterOption {
   value: string;
@@ -49,6 +49,9 @@ interface FilterSidebarProps {
   selectedClassifications: string[];
   onClassificationToggle: (value: string) => void;
   onClearFilters: () => void;
+  showDepartureTypeFilter?: boolean;
+  catalogInstanceType?: TourDiscoveryInstanceType;
+  onCatalogInstanceTypeChange?: (value: TourDiscoveryInstanceType) => void;
 }
 
 const FilterSection = ({
@@ -131,6 +134,9 @@ export const FilterSidebar = ({
   selectedClassifications,
   onClassificationToggle,
   onClearFilters,
+  showDepartureTypeFilter = false,
+  catalogInstanceType = null,
+  onCatalogInstanceTypeChange,
 }: FilterSidebarProps) => {
   const { t } = useTranslation();
   const mounted = React.useSyncExternalStore(
@@ -144,7 +150,10 @@ export const FilterSidebar = ({
   };
 
   const hasActiveFilters =
-    selectedClassifications.length > 0;
+    selectedClassifications.length > 0 || catalogInstanceType === "private";
+
+  const activeFilterCount =
+    selectedClassifications.length + (catalogInstanceType === "private" ? 1 : 0);
 
   return (
     <aside className="w-full lg:w-[280px] shrink-0">
@@ -158,7 +167,7 @@ export const FilterSidebar = ({
             </span>
             {hasActiveFilters && (
               <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-[#fa8b02]/10 text-[#fa8b02] rounded-full">
-                {selectedClassifications.length}
+                {activeFilterCount}
               </span>
             )}
           </div>
@@ -187,7 +196,45 @@ export const FilterSidebar = ({
                 <Icon icon="heroicons-outline:x-mark" className="w-3 h-3" />
               </button>
             ))}
+            {catalogInstanceType === "private" && onCatalogInstanceTypeChange && (
+              <button
+                type="button"
+                onClick={() => onCatalogInstanceTypeChange(null)}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-900 text-white text-xs rounded-full hover:bg-slate-700 transition-colors"
+              >
+                {safeT("landing.tourDiscovery.instanceType.privateTag", "Private departures")}
+                <Icon icon="heroicons-outline:x-mark" className="w-3 h-3" />
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Departure catalog type (public listing vs private) */}
+        {showDepartureTypeFilter && onCatalogInstanceTypeChange && (
+          <FilterSection title={safeT("landing.tourDiscovery.departureCatalogType", "Departure type").toUpperCase()}>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-3 cursor-pointer py-1 text-sm text-slate-600 hover:text-slate-900">
+                <input
+                  type="radio"
+                  name="catalog-instance-type"
+                  className="accent-[#fa8b02] size-4"
+                  checked={catalogInstanceType !== "private"}
+                  onChange={() => onCatalogInstanceTypeChange(null)}
+                />
+                <span>{safeT("landing.tourDiscovery.instanceType.publicDepartures", "Public scheduled departures")}</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer py-1 text-sm text-slate-600 hover:text-slate-900">
+                <input
+                  type="radio"
+                  name="catalog-instance-type"
+                  className="accent-[#fa8b02] size-4"
+                  checked={catalogInstanceType === "private"}
+                  onChange={() => onCatalogInstanceTypeChange("private")}
+                />
+                <span>{safeT("landing.tourDiscovery.instanceType.privateCharters", "Private departures")}</span>
+              </label>
+            </div>
+          </FilterSection>
         )}
 
         {/* Classification Filter */}
@@ -200,10 +247,6 @@ export const FilterSidebar = ({
           />
         </FilterSection>
 
-        {/* Customize Banner */}
-        <div className="mt-6">
-          <CustomizeBanner />
-        </div>
       </div>
     </aside>
   );

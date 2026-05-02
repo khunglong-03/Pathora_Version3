@@ -1,6 +1,6 @@
-using Api;
-using Api.Bosttraping;
-using Infrastructure;
+using global::Api;
+using global::Api.Bosttraping;
+using global::Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;

@@ -1,13 +1,13 @@
 import type { AxiosResponse } from "axios";
 
-import type { ApiResponse } from "@/types/api";
+import type { ServiceResponse } from "@/types/api";
 import { extractData, handleApiError } from "@/utils/apiResponse";
 
 type RequestExecutor = () => Promise<AxiosResponse<unknown>>;
 
 export const executeApiRequest = async <T>(
   executor: RequestExecutor,
-): Promise<ApiResponse<T>> => {
+): Promise<ServiceResponse<T>> => {
   try {
     const response = await executor();
     return {

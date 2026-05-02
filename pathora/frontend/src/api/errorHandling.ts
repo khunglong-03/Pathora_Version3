@@ -5,14 +5,17 @@ import type {
 } from "axios";
 
 interface ErrorDetail {
+  code?: string;
   errorMessage?: string;
   message?: string;
   details?: string;
 }
 
 interface ErrorResponsePayload {
+  code?: string;
   errors?: ErrorDetail[];
   message?: string;
+  statusCode?: number;
 }
 
 interface ErrorToastPayload {
@@ -91,6 +94,16 @@ const getStatusErrorKey = (status: number): string => {
 
 // Map backend error codes to frontend translation keys for login-specific errors
 const mapBackendErrorCode = (errorMessage: string): string => {
+  if (
+    errorMessage === "TOKEN_MISSING" ||
+    errorMessage === "TOKEN_INVALID" ||
+    errorMessage === "TOKEN_EXPIRED"
+  ) {
+    return "UNAUTHORIZED";
+  }
+  if (errorMessage === "ACCESS_DENIED") {
+    return "ACCESS_DENIED";
+  }
   // Map backend error codes to translation keys
   if (errorMessage === "User.NotFound" || errorMessage === "User.InvalidPassword") {
     return "INVALID_CREDENTIALS";
@@ -121,6 +134,13 @@ export const resolveErrorToast = (
         key: mappedKey,
         details: firstError.details,
       };
+    }
+
+    if (data?.code) {
+      const mappedCode = mapBackendErrorCode(data.code);
+      if (mappedCode !== data.code) {
+        return { key: mappedCode };
+      }
     }
 
     if (data?.message) {

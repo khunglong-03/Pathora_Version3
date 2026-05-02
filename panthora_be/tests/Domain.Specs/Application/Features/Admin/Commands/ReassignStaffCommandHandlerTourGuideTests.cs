@@ -1,8 +1,8 @@
-using Application.Features.Admin.Commands.ReassignStaff;
-using Application.Common.Interfaces;
-using Domain.Common.Repositories;
-using Domain.Entities;
-using Domain.Enums;
+using global::Application.Features.Admin.Commands.ReassignStaff;
+using global::Application.Common.Interfaces;
+using global::Domain.Common.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 using Xunit;
@@ -54,14 +54,14 @@ public sealed class ReassignStaffCommandHandlerTourGuideTests
     }
 
     [Fact]
-    public async Task Handle_ReassignTourDesignerToDifferentManager_PreservesRoleInTeam()
+    public async Task Handle_ReassignTourOperatorToDifferentManager_PreservesRoleInTeam()
     {
         var staffId = Guid.NewGuid();
         var oldManagerId = Guid.NewGuid();
         var newManagerId = Guid.NewGuid();
         var assignmentId = Guid.NewGuid();
         var existingAssignment = TourManagerAssignmentEntity.Create(
-            oldManagerId, AssignedEntityType.TourDesigner, staffId, null, AssignedRoleInTeam.Member, "system");
+            oldManagerId, AssignedEntityType.TourOperator, staffId, null, AssignedRoleInTeam.Member, "system");
 
         typeof(TourManagerAssignmentEntity).BaseType!
             .GetProperty("Id")!

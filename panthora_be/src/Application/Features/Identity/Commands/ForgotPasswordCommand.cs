@@ -3,10 +3,11 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Identity.Commands;
 
-public sealed record ForgotPasswordCommand(ForgotPasswordRequest Request) : ICommand<ErrorOr<Success>>;
+public sealed record ForgotPasswordCommand([property: JsonPropertyName("request")] ForgotPasswordRequest Request) : ICommand<ErrorOr<Success>>;
 
 public sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>
 {

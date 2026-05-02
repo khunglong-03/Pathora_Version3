@@ -10,6 +10,19 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 {
     private readonly AppDbContext _context = context;
 
+    /// <summary>
+    /// Ground transportation types — đồng bộ với <see cref="TransportApprovalCategory.Ground"/>
+    /// trong <c>TransportationTypeExtensions</c>. Inline ở đây để EF Core dịch sang SQL.
+    /// </summary>
+    private static readonly TransportationType[] GroundTransportationTypes =
+    [
+        TransportationType.Bus,
+        TransportationType.Car,
+        TransportationType.Motorbike,
+        TransportationType.Taxi,
+        TransportationType.Bicycle,
+    ];
+
     public async Task<TourInstanceEntity?> FindById(Guid id, bool asNoTracking = false, CancellationToken cancellationToken = default)
     {
         var query = asNoTracking
@@ -20,6 +33,13 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Include(t => t.InstanceDays)
             .AsSplitQuery()
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
+    }
+
+    public async Task<TourInstanceEntity?> FindByIdWithBookingsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Include(t => t.Bookings)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
@@ -35,7 +55,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindAll(string? searchText, TourInstanceStatus? status, int pageNumber, int pageSize, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.AsNoTracking()
             .AsSplitQuery()
@@ -66,12 +86,17 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.EndDate >= now);
         }
 
+        if (wantsCustomization.HasValue)
+        {
+            query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
+        }
+
         if (principalId.HasValue)
         {
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -81,10 +106,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
                 designerIds.Add(principalId.Value);
             }
 
-            // Subquery: tour IDs where TourDesignerId is in designerIds
+            // Subquery: tour IDs where TourOperatorId is in designerIds
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Where(t => !t.IsDeleted && t.TourOperatorId.HasValue && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             // Subquery: instance IDs directly assigned to principal
@@ -103,7 +128,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, Guid? principalId = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountAll(string? searchText, TourInstanceStatus? status, bool excludePast = false, bool? wantsCustomization = null, Guid? principalId = null, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstances.Where(t => !t.IsDeleted);
 
@@ -127,12 +152,17 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             query = query.Where(t => t.EndDate >= now);
         }
 
+        if (wantsCustomization.HasValue)
+        {
+            query = query.Where(t => t.WantsCustomization == wantsCustomization.Value);
+        }
+
         if (principalId.HasValue)
         {
             var designerIds = await _context.TourManagerAssignments
                 .AsNoTracking()
                 .Where(a => a.TourManagerId == principalId.Value
-                            && a.AssignedEntityType == AssignedEntityType.TourDesigner
+                            && a.AssignedEntityType == AssignedEntityType.TourOperator
                             && a.AssignedUserId != null)
                 .Select(a => a.AssignedUserId!.Value)
                 .ToListAsync(cancellationToken);
@@ -144,7 +174,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
             var allowedTourIds = _context.Tours
                 .AsNoTracking()
-                .Where(t => !t.IsDeleted && t.TourDesignerId.HasValue && designerIds.Contains(t.TourDesignerId.Value))
+                .Where(t => !t.IsDeleted && t.TourOperatorId.HasValue && designerIds.Contains(t.TourOperatorId ?? Guid.Empty))
                 .Select(t => t.Id);
 
             var allowedInstanceIds = _context.Set<TourInstanceManagerEntity>()
@@ -164,12 +194,38 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .AsNoTracking()
             .AsSplitQuery()
             .Include(t => t.Managers).ThenInclude(m => m.User)
-            .Include(t => t.HotelProvider)
-            .Include(t => t.TransportProvider)
+
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
-            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.FromLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.ToLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc.Supplier)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Driver)
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
+    }
+
+    public async Task<TourInstanceEntity?> FindByIdWithInstanceDaysForUpdate(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .AsSplitQuery()
+            .Include(t => t.Managers).ThenInclude(m => m.User)
+
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.FromLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.ToLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation!).ThenInclude(acc => acc.Supplier)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.RoomBlocks)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Vehicle)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportAssignments)
+                .ThenInclude(x => x.Driver)
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
@@ -181,7 +237,10 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
     public async Task Update(TourInstanceEntity tourInstance, CancellationToken cancellationToken = default)
     {
-        _context.TourInstances.Update(tourInstance);
+        // Entity is already tracked by EF (loaded via FindById without AsNoTracking).
+        // Calling _context.TourInstances.Update() would reset all navigation property states
+        // (Deleted/Added managers → Modified) causing DbUpdateConcurrencyException.
+        // Change tracking already knows what to DELETE, INSERT, UPDATE — just save.
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -212,8 +271,9 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         return (total, available, confirmed, soldOut, completed);
     }
 
-    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
+        var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
         var query = _context.TourInstances
             .AsNoTracking()
             .AsSplitQuery()
@@ -223,8 +283,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Images)
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
-                && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available);
+                && t.InstanceType == instanceTypeFilter
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
         {
@@ -247,12 +307,13 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountPublicAvailable(string? destination, CancellationToken cancellationToken = default)
+    public async Task<int> CountPublicAvailable(string? destination, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
+        var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
         var query = _context.TourInstances
             .Where(t => !t.IsDeleted
-                && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available);
+                && t.InstanceType == instanceTypeFilter
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
 
         if (!string.IsNullOrWhiteSpace(destination))
         {
@@ -273,11 +334,13 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Vehicle)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Driver)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.FromLocation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.ToLocation)
             .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
             .FirstOrDefaultAsync(t => t.Id == id
                 && !t.IsDeleted
                 && t.InstanceType == TourType.Public
-                && t.Status == TourInstanceStatus.Available, cancellationToken);
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut), cancellationToken);
     }
 
     public async Task<TourInstanceDayEntity?> FindInstanceDayById(Guid instanceId, Guid dayId, CancellationToken cancellationToken = default)
@@ -319,6 +382,18 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AddInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
+    {
+        await _context.TourInstanceDayActivities.AddAsync(activity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
+    {
+        _context.TourInstanceDayActivities.Remove(activity);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default)
     {
         return await _context.TourInstances
@@ -330,28 +405,31 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TourInstanceEntity>> FindProviderAssigned(Guid providerId, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
+    public async Task<List<TourInstanceEntity>> FindProviderAssigned(IEnumerable<Guid> providerIds, int pageNumber, int pageSize, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.TourInstances
-            .AsNoTracking()
-            .Include(t => t.Tour)
-            .Include(t => t.Classification)
-            .Include(t => t.Thumbnail)
-            .Where(t => !t.IsDeleted);
+        var idList = providerIds.ToList();
+        if (idList.Count == 0) return [];
+
+        var query = _context.TourInstances.AsNoTracking()
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))))
+            .Where(t => !(t.InstanceType == TourType.Private && (t.Status == TourInstanceStatus.Draft || t.Status == TourInstanceStatus.PendingAdjustment)));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-            query = query.Where(t =>
-                (t.HotelProviderId == providerId && t.HotelApprovalStatus == status) ||
-                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status));
-        }
-        else
-        {
-            query = query.Where(t => t.HotelProviderId == providerId || t.TransportProviderId == providerId);
+            query = query.Where(t => t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value) && a.TransportationApprovalStatus == status) ||
+                (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value) && a.Accommodation.SupplierApprovalStatus == status))));
         }
 
         return await query
+            .Include(t => t.Tour)
+            .Include(t => t.Classification)
+            .Include(t => t.Thumbnail)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.Accommodation)
+            .Include(t => t.InstanceDays).ThenInclude(d => d.Activities).ThenInclude(a => a.TransportSupplier)
             .OrderByDescending(t => t.CreatedOnUtc)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -359,21 +437,23 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountProviderAssigned(Guid providerId, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
+    public async Task<int> CountProviderAssigned(IEnumerable<Guid> providerIds, ProviderApprovalStatus? approvalStatus = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.TourInstances
-            .Where(t => !t.IsDeleted);
+        var idList = providerIds.ToList();
+        if (idList.Count == 0) return 0;
+
+        var query = _context.TourInstances.AsNoTracking()
+            .Where(t => !t.IsDeleted && t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value))
+                || (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value)))))
+            .Where(t => !(t.InstanceType == TourType.Private && (t.Status == TourInstanceStatus.Draft || t.Status == TourInstanceStatus.PendingAdjustment)));
 
         if (approvalStatus.HasValue)
         {
             var status = approvalStatus.Value;
-            query = query.Where(t =>
-                (t.HotelProviderId == providerId && t.HotelApprovalStatus == status) ||
-                (t.TransportProviderId == providerId && t.TransportApprovalStatus == status));
-        }
-        else
-        {
-            query = query.Where(t => t.HotelProviderId == providerId || t.TransportProviderId == providerId);
+            query = query.Where(t => t.InstanceDays.Any(d => !d.IsDeleted && d.Activities.Any(a =>
+                (a.TransportSupplierId.HasValue && idList.Contains(a.TransportSupplierId.Value) && a.TransportationApprovalStatus == status) ||
+                (a.Accommodation != null && a.Accommodation.SupplierId.HasValue && idList.Contains(a.Accommodation.SupplierId.Value) && a.Accommodation.SupplierApprovalStatus == status))));
         }
 
         return await query.CountAsync(cancellationToken);
@@ -459,5 +539,37 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .AnyAsync(m => m.TourInstanceId == tourInstanceId
                 && m.UserId == userId
                 && m.Role == TourInstanceManagerRole.Guide, cancellationToken);
+    }
+
+    public async Task<UserEntity?> FindUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+    }
+
+    public async Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstanceDayActivities
+            .AsNoTracking()
+            .Include(a => a.TourInstanceDay)
+            .Include(a => a.Accommodation)
+            .FirstOrDefaultAsync(a => a.Id == activityId, cancellationToken);
+    }
+
+    public async Task<List<TourInstanceEntity>> ListPrivateInstancesPendingTopUpPastDeadlineAsync(
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Include(t => t.Bookings)
+            .ThenInclude(b => b.PaymentTransactions)
+            .Where(t =>
+                !t.IsDeleted
+                && t.InstanceType == TourType.Private
+                && t.Status == TourInstanceStatus.PendingAdjustment
+                && t.ConfirmationDeadline != null
+                && t.ConfirmationDeadline < nowUtc)
+            .ToListAsync(cancellationToken);
     }
 }

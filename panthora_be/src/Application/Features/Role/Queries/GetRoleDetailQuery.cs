@@ -3,10 +3,11 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using ErrorOr;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.Role.Queries;
 
-public sealed record GetRoleDetailQuery(int RoleId)
+public sealed record GetRoleDetailQuery([property: JsonPropertyName("roleId")] int RoleId)
     : IQuery<ErrorOr<RoleDetailResponse?>>;
 
 public sealed class GetRoleDetailQueryHandler(IRoleService roleService)

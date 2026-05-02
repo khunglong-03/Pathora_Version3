@@ -1,23 +1,35 @@
-using Application.Common;
 using Application.Common.Constant;
+using Application.Common;
 using Application.Contracts.User;
-using Contracts.Interfaces;
+using Application.Services;
 using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
-using Application.Services;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.User.Commands;
 
 public sealed record CreateUserCommand(
-    List<UserDepartmentInfo> Departments,
-    List<int> RoleIds,
-    string Email,
-    string FullName,
-    string Avatar,
-    string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+    [property: JsonPropertyName("departments")] List<UserDepartmentInfo> Departments,
+    [property: JsonPropertyName("roleIds")] List<int> RoleIds,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("avatar")] string Avatar,
+    [property: JsonPropertyName("password")] string? Password = null) : ICommand<ErrorOr<Guid>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.User];
+    public IReadOnlyList<string> CacheKeysToInvalidate
+    {
+        get
+        {
+            var keys = new List<string> { CacheKey.User };
+            if (RoleIds.Any(id => id is DefaultRoleIds.Admin or DefaultRoleIds.Manager))
+            {
+                keys.Add(CacheKey.TourManagerAssignment);
+            }
+            return keys;
+        }
+    }
 }
 
 public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>

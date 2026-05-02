@@ -72,7 +72,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
 
         // Relationships
         builder.HasOne(b => b.TourInstance)
-            .WithMany()
+            .WithMany(t => t.Bookings)
             .HasForeignKey(b => b.TourInstanceId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -120,6 +120,11 @@ public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
             .WithOne(t => t.Booking)
             .HasForeignKey(t => t.BookingId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(b => b.TransactionHistories)
+            .WithOne(h => h.Booking)
+            .HasForeignKey(h => h.BookingId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(b => b.TourDayActivityStatuses)
             .WithOne(s => s.Booking)

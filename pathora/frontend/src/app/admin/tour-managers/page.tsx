@@ -36,7 +36,7 @@ export default function TourManagersPage() {
   const [reassignTarget, setReassignTarget] = useState<StaffMemberDto | null>(null);
 
   // Assign existing modal
-  const [assignExistingRole, setAssignExistingRole] = useState<"TourDesigner" | "TourGuide" | null>(null);
+  const [assignExistingRole, setAssignExistingRole] = useState<"TourOperator" | "TourGuide" | null>(null);
 
   // Create staff modal
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -113,8 +113,8 @@ export default function TourManagersPage() {
 
   const handleAssignExisting = async (userId: string) => {
     if (!selectedManagerId || !assignExistingRole) return;
-    const entityType = assignExistingRole === "TourDesigner"
-      ? ASSIGNED_ENTITY_TYPE.TourDesigner
+    const entityType = assignExistingRole === "TourOperator"
+      ? ASSIGNED_ENTITY_TYPE.TourOperator
       : ASSIGNED_ENTITY_TYPE.TourGuide;
     await tourManagerAssignmentService.bulkAssign(selectedManagerId, [
       {
@@ -271,7 +271,7 @@ export default function TourManagersPage() {
         isOpen={!!assignExistingRole}
         onClose={() => setAssignExistingRole(null)}
         excludedUserIds={excludedUserIds}
-        role={assignExistingRole ?? "TourDesigner"}
+        role={assignExistingRole ?? "TourOperator"}
         onAssign={handleAssignExisting}
       />
 

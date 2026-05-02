@@ -1,8 +1,8 @@
-using Domain.Entities;
-using Domain.Enums;
-using Infrastructure.Data;
-using Infrastructure.Options;
-using Infrastructure.Repositories;
+using global::Domain.Entities;
+using global::Domain.Enums;
+using global::Infrastructure.Data;
+using global::Infrastructure.Options;
+using global::Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Mep = Microsoft.Extensions.Options;
 
@@ -127,7 +127,7 @@ public sealed class AdminDashboardRepositoryTakeLimitTests
                 NumberChild = 0,
                 NumberInfant = 0,
                 TotalPrice = basePrice + i,
-                PaymentMethod = Domain.Enums.PaymentMethod.VnPay,
+                PaymentMethod = global::Domain.Enums.PaymentMethod.VnPay,
                 IsFullPay = i % 2 == 0,
                 Status = BookingStatus.Completed,
                 BookingDate = DateTimeOffset.UtcNow.AddHours(-i),
@@ -291,7 +291,7 @@ public sealed class AdminDashboardRepositoryTakeLimitTests
                 customerPhone: $"09{i:D8}",
                 numberAdult: 1,
                 totalPrice: 500m,
-                paymentMethod: Domain.Enums.PaymentMethod.VnPay,
+                paymentMethod: global::Domain.Enums.PaymentMethod.VnPay,
                 isFullPay: true,
                 performedBy: "admin");
             booking.Status = BookingStatus.Cancelled;
@@ -398,7 +398,7 @@ public sealed class AdminDashboardRepositoryTakeLimitTests
                 customerPhone: $"09{i:D8}",
                 numberAdult: 1,
                 totalPrice: 600m,
-                paymentMethod: Domain.Enums.PaymentMethod.VnPay,
+                paymentMethod: global::Domain.Enums.PaymentMethod.VnPay,
                 isFullPay: true,
                 performedBy: "admin");
             booking.Status = BookingStatus.Cancelled;

@@ -4,15 +4,15 @@ using Application.Services;
 using BuildingBlocks.CORS;
 using ErrorOr;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace Application.Features.TaxConfig.Commands;
 
 public sealed record CreateTaxConfigCommand(
-    string TaxName,
-    decimal TaxRate,
-    string? Description,
-    DateTimeOffset EffectiveDate
-) : ICommand<ErrorOr<Guid>>;
+    [property: JsonPropertyName("taxName")] string TaxName,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("effectiveDate")] DateTimeOffset EffectiveDate) : ICommand<ErrorOr<Guid>>;
 
 public sealed class CreateTaxConfigCommandValidator : AbstractValidator<CreateTaxConfigCommand>
 {
@@ -48,13 +48,12 @@ public sealed class CreateTaxConfigCommandHandler(ITaxConfigService taxConfigSer
 }
 
 public sealed record UpdateTaxConfigCommand(
-    Guid Id,
-    string TaxName,
-    decimal TaxRate,
-    string? Description,
-    DateTimeOffset EffectiveDate,
-    bool IsActive
-) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("taxName")] string TaxName,
+    [property: JsonPropertyName("taxRate")] decimal TaxRate,
+    [property: JsonPropertyName("description")] string? Description,
+    [property: JsonPropertyName("effectiveDate")] DateTimeOffset EffectiveDate,
+    [property: JsonPropertyName("isActive")] bool IsActive) : ICommand<ErrorOr<Success>>;
 
 public sealed class UpdateTaxConfigCommandValidator : AbstractValidator<UpdateTaxConfigCommand>
 {
@@ -94,7 +93,7 @@ public sealed class UpdateTaxConfigCommandHandler(ITaxConfigService taxConfigSer
     }
 }
 
-public sealed record DeleteTaxConfigCommand(Guid Id) : ICommand<ErrorOr<Success>>;
+public sealed record DeleteTaxConfigCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>;
 
 public sealed class DeleteTaxConfigCommandValidator : AbstractValidator<DeleteTaxConfigCommand>
 {

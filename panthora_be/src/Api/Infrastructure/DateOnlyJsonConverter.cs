@@ -14,10 +14,7 @@ public sealed class DateOnlyJsonConverter : JsonConverter<DateOnly>
             if (string.IsNullOrEmpty(value))
                 return default;
 
-            if (DateOnly.TryParse(value, CultureInfo.InvariantCulture, out var result))
-                return result;
-
-            if (DateOnly.TryParse(value, out result))
+            if (DateOnlyQueryParsing.TryParse(value, out var result))
                 return result;
         }
 

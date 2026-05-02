@@ -144,3 +144,4 @@ public sealed class TourResourceTranslationData
     [JsonPropertyName("ticketInfo")]
     public string? TicketInfo { get; set; }
 }
+

@@ -1,6 +1,6 @@
-using Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
-using Domain.Common.Repositories;
-using Domain.Enums;
+using global::Application.Features.TourManagerAssignment.Commands.RemoveTourManagerAssignment;
+using global::Domain.Common.Repositories;
+using global::Domain.Enums;
 using ErrorOr;
 using NSubstitute;
 
@@ -31,7 +31,7 @@ public sealed class RemoveTourManagerAssignmentCommandHandlerTests
             managerId,
             assignedUserId,
             null,
-            AssignedEntityType.TourDesigner,
+            AssignedEntityType.TourOperator,
             Arg.Any<CancellationToken>());
     }
 
@@ -67,7 +67,7 @@ public sealed class RemoveTourManagerAssignmentCommandHandlerTests
             managerId,
             assignedUserId,
             null,
-            AssignedEntityType.TourDesigner,
+            AssignedEntityType.TourOperator,
             Arg.Any<CancellationToken>());
     }
 

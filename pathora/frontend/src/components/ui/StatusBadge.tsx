@@ -60,8 +60,11 @@ export function TourStatusBadge({ status }: { status: string }) {
     active: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", label: "Active" },
     inactive: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500", label: "Inactive" },
     pending: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", label: "Pending" },
+    pendingadjustment: { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500", label: "Cần điều chỉnh" },
+    pendingmanagerreview: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500", label: "Chờ Quản lý duyệt" },
+    pendingcustomerapproval: { bg: "bg-indigo-100", text: "text-indigo-700", dot: "bg-indigo-500", label: "Chờ Khách chốt" },
     rejected: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500", label: "Rejected" },
-    draft: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400", label: "Draft" },
+    draft: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400", label: "Bản nháp" },
   };
   const config = map[normalized] ?? fallback;
   return (

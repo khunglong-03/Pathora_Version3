@@ -1,10 +1,10 @@
 using System.Reflection;
 using System.Text.Json;
-using Domain.Entities;
-using Domain.Enums;
+using global::Domain.Entities;
+using global::Domain.Enums;
 using FluentAssertions;
-using Infrastructure.Data;
-using Infrastructure.Data.Seed;
+using global::Infrastructure.Data;
+using global::Infrastructure.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Specs.Infrastructure;

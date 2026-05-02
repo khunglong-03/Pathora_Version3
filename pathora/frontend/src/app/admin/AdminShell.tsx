@@ -5,8 +5,8 @@ import { AdminSidebar, TopBar } from "@/features/dashboard/components/AdminSideb
 
 interface AdminShellProps {
   children: React.ReactNode;
-  variant?: "admin" | "manager" | "provider" | "tour-designer" | "tour-guide";
-  providerPortal?: "hotel" | "transport" | "tour-designer" | "tour-guide";
+  variant?: "admin" | "manager" | "provider" | "tour-operator" | "tour-guide";
+  providerPortal?: "hotel" | "transport" | "tour-operator" | "tour-guide";
 }
 
 const ADMIN_ROLE_NAME = "Admin";

@@ -18,11 +18,21 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return await _context.Suppliers.FirstOrDefaultAsync(s => s.SupplierCode == supplierCode, cancellationToken);
     }
 
+    [Obsolete("Migration bridge only. Prefer FindAllByOwnerUserIdAsync(Guid ownerUserId, CancellationToken) for multi-hotel owner flows.")]
     public async Task<SupplierEntity?> FindByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
     {
         return await _context.Suppliers
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.OwnerUserId == ownerUserId && !s.IsDeleted, cancellationToken);
+    }
+
+    public async Task<List<SupplierEntity>> FindAllByOwnerUserIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Suppliers
+            .AsNoTracking()
+            .Where(s => s.OwnerUserId == ownerUserId && !s.IsDeleted)
+            .OrderBy(s => s.Name)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<SupplierEntity>> FindAllTransportProvidersAsync(CancellationToken cancellationToken)
@@ -75,7 +85,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return await _context.Suppliers
             .AsNoTracking()
             .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && s.SupplierType == SupplierType.Accommodation)
-            .Where(s => _context.HotelRoomInventories.Any(h => h.SupplierId == s.Id && h.LocationArea.HasValue && continents.Contains(h.LocationArea.Value)))
+            .Where(s => _context.HotelRoomInventories.Any(h => h.SupplierId == s.Id && h.LocationArea.HasValue && continents.Contains(h.LocationArea ?? default)))
             .Select(s => s.OwnerUserId!.Value)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -187,7 +197,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var supplierIds = await _context.Suppliers
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId.Value))
+            .Where(s => !s.IsDeleted && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new { s.OwnerUserId, s.Id })
             .ToListAsync(cancellationToken);
 
@@ -213,7 +223,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return result;
     }
 
-    public async Task<Dictionary<Guid, HotelProviderAdminData>> GetHotelProviderAdminDataGroupedByOwnerAsync(
+    public async Task<Dictionary<Guid, List<HotelProviderAdminData>>> GetHotelProviderAdminDataGroupedByOwnerAsync(
         List<Guid> ownerUserIds, CancellationToken cancellationToken = default)
     {
         if (ownerUserIds.Count == 0)
@@ -221,10 +231,11 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var suppliers = await _context.Suppliers
             .AsNoTracking()
+            .Include(s => s.Owner)
             .Where(s => !s.IsDeleted
                 && s.SupplierType == SupplierType.Accommodation
                 && s.OwnerUserId.HasValue
-                && ownerUserIds.Contains(s.OwnerUserId.Value))
+                && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new
             {
                 SupplierId = s.Id,
@@ -235,7 +246,8 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
                 s.Phone,
                 s.Email,
                 s.CreatedOnUtc,
-                PrimaryContinent = s.Continent
+                PrimaryContinent = s.Continent,
+                OwnerStatus = s.Owner != null ? s.Owner.Status : UserStatus.Active
             })
             .ToListAsync(cancellationToken);
 
@@ -257,32 +269,37 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
             .ToListAsync(cancellationToken);
 
         var inventoryLookup = inventoryGroups.ToDictionary(g => g.SupplierId, g => g);
-        var result = new Dictionary<Guid, HotelProviderAdminData>();
 
-        foreach (var supplier in suppliers)
-        {
-            var hasInventory = inventoryLookup.TryGetValue(supplier.SupplierId, out var inventory);
-            var continents = hasInventory && inventory!.Continents.Count > 0
-                ? inventory.Continents
-                : supplier.PrimaryContinent.HasValue
-                    ? [supplier.PrimaryContinent.Value]
-                    : [];
+        return suppliers
+            .GroupBy(s => s.OwnerUserId)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderBy(s => s.CreatedOnUtc)
+                    .Select(supplier =>
+                    {
+                        var hasInventory = inventoryLookup.TryGetValue(supplier.SupplierId, out var inventory);
+                        var continents = hasInventory && inventory!.Continents.Count > 0
+                            ? inventory.Continents
+                            : supplier.PrimaryContinent.HasValue
+                                ? [supplier.PrimaryContinent.Value]
+                                : [];
 
-            result[supplier.OwnerUserId] = new HotelProviderAdminData(
-                supplier.SupplierId,
-                supplier.SupplierCode,
-                supplier.SupplierName,
-                supplier.Address,
-                supplier.Phone,
-                supplier.Email,
-                supplier.CreatedOnUtc,
-                supplier.PrimaryContinent,
-                hasInventory ? inventory!.AccommodationCount : 0,
-                hasInventory ? inventory!.RoomCount : 0,
-                continents);
-        }
-
-        return result;
+                        return new HotelProviderAdminData(
+                            supplier.SupplierId,
+                            supplier.SupplierCode,
+                            supplier.SupplierName,
+                            supplier.Address,
+                            supplier.Phone,
+                            supplier.Email,
+                            supplier.CreatedOnUtc,
+                            supplier.PrimaryContinent,
+                            supplier.OwnerStatus,
+                            1,
+                            hasInventory ? inventory!.RoomCount : 0,
+                            continents);
+                    })
+                    .ToList());
     }
 
     public async Task<Dictionary<Guid, (string? Address, Continent? PrimaryContinent)>> GetTransportSupplierAddressByOwnerAsync(
@@ -293,7 +310,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var suppliers = await _context.Suppliers
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Transport && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId.Value))
+            .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Transport && s.OwnerUserId.HasValue && ownerUserIds.Contains(s.OwnerUserId ?? Guid.Empty))
             .Select(s => new { s.OwnerUserId, s.Address, s.Continent })
             .ToListAsync(cancellationToken);
 
@@ -321,7 +338,7 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
 
         var details = await _context.BookingTransportDetails
             .AsNoTracking()
-            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId.Value))
+            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId ?? Guid.Empty))
             .GroupBy(_ => 1)
             .Select(g => new
             {
@@ -339,13 +356,18 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
     public async Task<(int Total, int Active, int Completed)> GetHotelBookingCountsByOwnerAsync(
         Guid ownerUserId, CancellationToken cancellationToken = default)
     {
-        var supplier = await FindByOwnerUserIdAsync(ownerUserId, cancellationToken);
-        if (supplier is null)
+        var supplierIds = await _context.Suppliers
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted && s.SupplierType == SupplierType.Accommodation && s.OwnerUserId == ownerUserId)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        if (supplierIds.Count == 0)
             return (0, 0, 0);
 
         var details = await _context.BookingAccommodationDetails
             .AsNoTracking()
-            .Where(b => b.SupplierId == supplier.Id)
+            .Where(b => b.SupplierId.HasValue && supplierIds.Contains(b.SupplierId ?? Guid.Empty))
             .GroupBy(_ => 1)
             .Select(g => new
             {
@@ -358,5 +380,16 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
         return details is null
             ? (0, 0, 0)
             : (details.Total, details.Active, details.Completed);
+    }
+
+    public async Task DeactivateAllByOwnerAsync(Guid ownerUserId, string performedBy, CancellationToken cancellationToken = default)
+    {
+        await _context.Suppliers
+            .Where(s => s.OwnerUserId == ownerUserId && s.IsActive && !s.IsDeleted)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(s => s.IsActive, false)
+                .SetProperty(s => s.LastModifiedBy, performedBy)
+                .SetProperty(s => s.LastModifiedOnUtc, DateTimeOffset.UtcNow),
+                cancellationToken);
     }
 }

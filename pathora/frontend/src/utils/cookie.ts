@@ -23,5 +23,7 @@ export const setCookie = (
   maxAgeSeconds: number,
 ): void => {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  const sameSite = isSecure ? "None" : "Lax";
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAgeSeconds}; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
 };

@@ -12,14 +12,6 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.VehiclePlate)
-            .HasMaxLength(20)
-            .IsRequired();
-
-        builder.HasIndex(x => x.VehiclePlate)
-            .IsUnique()
-            .HasFilter(null);
-
         builder.Property(x => x.VehicleType)
             .HasConversion<string>()
             .HasMaxLength(30)
@@ -52,10 +44,19 @@ public class VehicleEntityConfiguration : IEntityTypeConfiguration<VehicleEntity
         builder.HasIndex(x => x.IsDeleted);
         builder.HasIndex(x => x.LocationArea);
         builder.HasIndex(x => x.OperatingCountries);
+        builder.HasIndex(x => x.SupplierId);
 
         builder.HasOne(x => x.Owner)
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Supplier)
+            .WithMany()
+            .HasForeignKey(x => x.SupplierId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Global query filter to exclude inactive vehicles or those owned by banned users
+        builder.HasQueryFilter(x => !x.IsDeleted && x.IsActive && x.Owner.Status == Domain.Enums.UserStatus.Active);
     }
 }

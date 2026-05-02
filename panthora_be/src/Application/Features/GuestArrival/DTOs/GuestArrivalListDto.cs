@@ -1,14 +1,15 @@
+using Domain.Enums;
+using System.Text.Json.Serialization;
+
 namespace Application.Features.GuestArrival.DTOs;
 
-using Domain.Enums;
-
 public sealed record GuestArrivalListDto(
-    Guid Id,
-    Guid BookingAccommodationDetailId,
-    string? AccommodationName,
-    GuestStayStatus Status,
-    DateTimeOffset? CheckInDate,
-    DateTimeOffset? CheckOutDate,
-    int ParticipantCount,
-    DateTimeOffset? SubmittedAt,
-    GuestArrivalSubmissionStatus SubmissionStatus);
+    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("bookingAccommodationDetailId")] Guid BookingAccommodationDetailId,
+    [property: JsonPropertyName("accommodationName")] string? AccommodationName,
+    [property: JsonPropertyName("status")] GuestStayStatus Status,
+    [property: JsonPropertyName("checkInDate")] DateTimeOffset? CheckInDate,
+    [property: JsonPropertyName("checkOutDate")] DateTimeOffset? CheckOutDate,
+    [property: JsonPropertyName("participantCount")] int ParticipantCount,
+    [property: JsonPropertyName("submittedAt")] DateTimeOffset? SubmittedAt,
+    [property: JsonPropertyName("submissionStatus")] GuestArrivalSubmissionStatus SubmissionStatus);
