@@ -21,6 +21,10 @@ import { BookingImportantInfo } from "./BookingImportantInfo";
 import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
+import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
+
+import { NormalizedTourInstanceDto } from "@/types/tour";
+import { tourInstanceService } from "@/api/services/tourInstanceService";
 
 export function BookingDetailPage() {
   const { t } = useTranslation();
@@ -28,6 +32,7 @@ export function BookingDetailPage() {
   const bookingId = params?.id as string;
   
   const [booking, setBooking] = useState<any>(null);
+  const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +51,16 @@ export function BookingDetailPage() {
           if (cancelled) return;
           if (data) {
             setBooking(data);
+            if (data.tourInstanceId) {
+              try {
+                const instanceData = await tourInstanceService.getInstanceDetail(data.tourInstanceId);
+                if (!cancelled && instanceData) {
+                  setTourInstance(instanceData);
+                }
+              } catch (e) {
+                console.error("Failed to fetch tour instance", e);
+              }
+            }
             return; // success — stop retrying
           }
           // API returned null/empty — backend may not have committed yet
@@ -75,6 +90,15 @@ export function BookingDetailPage() {
     return () => { cancelled = true; };
   }, [bookingId]);
 
+  const fetchBookingWithoutLoading = async () => {
+    try {
+      const data = await bookingService.getBookingDetail(bookingId);
+      if (data) setBooking(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -85,8 +109,13 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
+  const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
+    ? "pending_approval" 
+    : (booking.status?.toLowerCase() || "pending");
+  const mappedBooking = { ...booking, status: actualStatus };
+
   const { totalGuests, showPayRemaining, showVisaStatus, showCancelBooking } =
-    getBookingDerivedState(booking);
+    getBookingDerivedState(mappedBooking);
 
   const labelFns = {
     getStatusLabel: (s: Parameters<typeof getStatusLabel>[1]) =>
@@ -102,30 +131,38 @@ export function BookingDetailPage() {
   return (
     <>
       <main className="bg-[#f9fafb] min-h-[100dvh]">
-        <BookingHeroSection booking={booking} getStatusLabel={labelFns.getStatusLabel} />
+        <BookingHeroSection booking={mappedBooking} getStatusLabel={labelFns.getStatusLabel} />
 
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-12 relative z-20 mb-20">
           <div className="v-stack lg:h-stack gap-6">
             {/* Left Column */}
             <div className="spacer v-stack gap-6 min-w-0">
               <BookingInfoCard
-                booking={booking}
+                booking={mappedBooking}
                 getTierLabel={labelFns.getTierLabel}
                 getPaymentMethodLabel={labelFns.getPaymentMethodLabel}
               />
-              <GuestDetailsCard booking={booking} totalGuests={totalGuests} />
+              <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
               <BookingOverviewTab
-                booking={booking}
+                booking={mappedBooking}
+                tourInstance={tourInstance}
                 totalGuests={totalGuests}
                 getTierLabel={labelFns.getTierLabel}
               />
-              <BookingImportantInfo booking={booking} />
+              <BookingImportantInfo booking={mappedBooking} />
             </div>
 
             {/* Right Sidebar */}
             <div className="w-full lg:w-[480px] shrink-0 v-stack gap-6 lg:sticky lg:top-8 self-start">
+              {mappedBooking.status === "pending_approval" && (
+                <BookingCustomerApprovalAction
+                  bookingId={mappedBooking.id}
+                  tourInstanceId={mappedBooking.tourInstanceId || mappedBooking.id}
+                  onSuccess={fetchBookingWithoutLoading}
+                />
+              )}
               <BookingPaymentSummary
-                booking={booking}
+                booking={mappedBooking}
                 totalGuests={totalGuests}
                 showPayRemaining={showPayRemaining}
                 showVisaStatus={showVisaStatus}

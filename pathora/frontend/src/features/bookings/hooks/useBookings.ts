@@ -21,7 +21,7 @@ export function useBookings(statusFilter: FilterKey, page: number = 1, pageSize:
       reference: b.reference || "N/A",
       // Mapping from backend DTO to frontend types
       tier: "standard" as TourTier, // Backend doesn't explicitly send tier yet, default to standard
-      status: (b.status?.toLowerCase() || "pending") as BookingStatus,
+      status: (b.tourStatus === "PendingCustomerApproval" ? "pending_approval" : (b.status?.toLowerCase() || "pending")) as BookingStatus,
       paymentStatus: (b.paymentStatus?.toLowerCase() || "unpaid") as PaymentStatus,
       paymentMethod: "bank_transfer" as PaymentMethod, // We can enhance this later if needed
       location: b.location || "Multiple locations",

@@ -148,18 +148,13 @@ export default function PrivateTourInstanceEditPage() {
 
   const handleSubmitForReview = async () => {
     if (!data) return;
-    const ok = window.confirm(
-      "Gửi lịch trình này cho Manager duyệt? Sau khi gửi, bạn sẽ chỉ chỉnh sửa lại được nếu Manager yêu cầu điều chỉnh.",
-    );
-    if (!ok) return;
     setSubmittingReview(true);
     try {
       await tourInstanceService.submitPrivateTourForManagerReview(data.id);
-      toast.success("Đã gửi lịch trình cho Manager duyệt");
-      await loadData();
+      toast.success("Đã gửi lịch trình cho Manager duyệt!", { duration: 5000 });
+      router.push(detailHref);
     } catch (e: unknown) {
       toast.error(handleApiError(e).message || "Không thể gửi cho Manager");
-    } finally {
       setSubmittingReview(false);
     }
   };
@@ -232,6 +227,8 @@ export default function PrivateTourInstanceEditPage() {
     );
   }
 
+  const isLocked = data.status === "pendingmanagerreview" || data.status === "pendingcustomerapproval";
+
   return (
     <main className="py-8 md:py-10 px-4 md:px-6 lg:px-8 max-w-5xl mx-auto space-y-8">
 
@@ -256,7 +253,7 @@ export default function PrivateTourInstanceEditPage() {
         </div>
       </motion.div>
 
-      {data.status === "PendingAdjustment" && data.managerReviewNote && (
+      {data.status === "pendingadjustment" && data.managerReviewNote && (
         <motion.div
           variants={itemVariants}
           initial="hidden"
@@ -274,7 +271,7 @@ export default function PrivateTourInstanceEditPage() {
         </motion.div>
       )}
 
-      {data.status === "PendingManagerReview" && (
+      {data.status === "pendingmanagerreview" && (
         <motion.div
           variants={itemVariants}
           initial="hidden"
@@ -291,7 +288,7 @@ export default function PrivateTourInstanceEditPage() {
         </motion.div>
       )}
 
-      {data.status === "PendingCustomerApproval" && (
+      {data.status === "pendingcustomerapproval" && (
         <motion.div
           variants={itemVariants}
           initial="hidden"
@@ -327,10 +324,11 @@ export default function PrivateTourInstanceEditPage() {
           <div>
             <label className={labelCls}>Tiêu đề tour *</label>
             <input
-              className={`${inputCls} ${errors.title ? "border-red-300 ring-1 ring-red-200" : ""}`}
+              className={`${inputCls} ${errors.title ? "border-red-300 ring-1 ring-red-200" : ""} ${isLocked ? "bg-slate-100 opacity-70 cursor-not-allowed" : ""}`}
               placeholder="VD: Private — Nhật Bản 5 ngày"
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
+              disabled={isLocked}
             />
             {errors.title && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.title}</p>}
           </div>
@@ -341,10 +339,13 @@ export default function PrivateTourInstanceEditPage() {
             <div>
               <label className={labelCls}>Điểm khởi hành</label>
               <input
-                className={inputCls}
+                type="text"
+                autoComplete="off"
+                className={`${inputCls} ${isLocked ? "bg-slate-100 opacity-70 cursor-not-allowed" : ""}`}
                 placeholder="VD: Hà Nội"
-                value={form.location}
+                value={form.location ?? ""}
                 onChange={(e) => set("location", e.target.value)}
+                disabled={isLocked}
               />
             </div>
             <div>
@@ -363,10 +364,11 @@ export default function PrivateTourInstanceEditPage() {
             <label className={labelCls}>Hạn xác nhận khách hàng</label>
             <input
               type="date"
-              className={inputCls}
+              className={`${inputCls} ${isLocked ? "bg-slate-100 opacity-70 cursor-not-allowed" : ""}`}
               value={form.confirmationDeadline}
               max={form.startDate}
               onChange={(e) => set("confirmationDeadline", e.target.value)}
+              disabled={isLocked}
             />
             {isCustomRequest && data && (
               <div className="mt-2 text-[13px] text-amber-700 bg-amber-50 border border-amber-100 p-2.5 rounded-lg flex items-start gap-2">
@@ -401,7 +403,7 @@ export default function PrivateTourInstanceEditPage() {
             Thêm, sửa, xoá các hoạt động trong tour. Các thay đổi lịch trình sẽ được lưu trực tiếp vào cơ sở dữ liệu.
           </p>
           
-          <ItineraryEditor instanceId={data.id} days={data.days} startDate={form.startDate} endDate={form.endDate} onRefresh={loadData} />
+          <ItineraryEditor instanceId={data.id} days={data.days} startDate={form.startDate} endDate={form.endDate} onRefresh={loadData} readOnly={isLocked} />
         </div>
       </motion.div>
 
@@ -412,25 +414,27 @@ export default function PrivateTourInstanceEditPage() {
         animate="show"
         className="flex flex-col sm:flex-row gap-4 pb-12 pt-4"
       >
-        <button
-          onClick={handleSave}
-          disabled={saving || submittingReview}
-          className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-bold transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <>
-              <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-              Đang lưu...
-            </>
-          ) : (
-            <>
-              <Icon icon="heroicons:cloud-arrow-up" className="size-5" />
-              Lưu thông tin cơ bản
-            </>
-          )}
-        </button>
+        {!isLocked && (
+          <button
+            onClick={handleSave}
+            disabled={saving || submittingReview}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-bold transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              <>
+                <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Icon icon="heroicons:cloud-arrow-up" className="size-5" />
+                Lưu thông tin cơ bản
+              </>
+            )}
+          </button>
+        )}
 
-        {(data.status === "Draft" || data.status === "PendingAdjustment") && (
+        {(data.status === "draft" || data.status === "pendingadjustment") && (
           <button
             onClick={handleSubmitForReview}
             disabled={saving || submittingReview}
@@ -444,7 +448,7 @@ export default function PrivateTourInstanceEditPage() {
             ) : (
               <>
                 <Icon icon="heroicons:paper-airplane" className="size-5" />
-                {data.status === "PendingAdjustment" ? "Gửi Manager duyệt lại" : "Gửi Manager duyệt"}
+                {data.status === "pendingadjustment" ? "Gửi Manager duyệt lại" : "Gửi Manager duyệt"}
               </>
             )}
           </button>
@@ -464,12 +468,13 @@ export default function PrivateTourInstanceEditPage() {
 /* ══════════════════════════════════════════════════════════════
    Itinerary Editor Components
    ══════════════════════════════════════════════════════════════ */
-function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
+function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, readOnly = false }: {
   instanceId: string;
   days?: TourInstanceDayDto[];
   startDate: string;
   endDate: string;
   onRefresh: () => void;
+  readOnly?: boolean;
 }) {
   const [addingDay, setAddingDay] = useState(false);
   const [newDayTitle, setNewDayTitle] = useState("");
@@ -663,12 +668,13 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
               tourStartDate={startDate}
               tourEndDate={endDate}
               siblingDays={days}
+              readOnly={readOnly}
             />
           ))}
         </div>
       )}
 
-      {addingDay ? (
+      {readOnly ? null : addingDay ? (
         <div className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 space-y-5">
           <h4 className="text-sm font-bold text-slate-900">Thêm Ngày Mới</h4>
 
@@ -842,7 +848,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
   );
 }
 
-function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAutoOpenConsumed, tourStartDate, tourEndDate, siblingDays }: {
+function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAutoOpenConsumed, tourStartDate, tourEndDate, siblingDays, readOnly = false }: {
   instanceId: string;
   day: TourInstanceDayDto;
   index: number;
@@ -852,6 +858,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
   tourStartDate?: string;
   tourEndDate?: string;
   siblingDays?: TourInstanceDayDto[];
+  readOnly?: boolean;
 }) {
   const [addingAct, setAddingAct] = useState(false);
   const hasActivities = day.activities && day.activities.length > 0;
@@ -969,24 +976,26 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
               </h3>
               <p className="text-xs font-semibold text-slate-500 mt-0.5">{toDateInput(day.actualDate)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={startEditingDay}
-                className="p-2 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 shadow-sm transition-all"
-                title="Sửa tên/ngày"
-              >
-                <Icon icon="heroicons:pencil-square" className="size-4" />
-              </button>
-              {hasActivities && (
+            {!readOnly && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setAddingAct(!addingAct)}
-                  className={`p-2 rounded-full border shadow-sm transition-all ${addingAct ? 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200' : 'bg-white text-[#fa8b02] border-slate-200 hover:shadow hover:text-[#fa8b02]/80'}`}
-                  title={addingAct ? "Đóng form thêm hoạt động" : "Thêm hoạt động"}
+                  onClick={startEditingDay}
+                  className="p-2 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 shadow-sm transition-all"
+                  title="Sửa tên/ngày"
                 >
-                  <Icon icon={addingAct ? "heroicons:x-mark" : "heroicons:plus"} className="size-4" />
+                  <Icon icon="heroicons:pencil-square" className="size-4" />
                 </button>
-              )}
-            </div>
+                {hasActivities && (
+                  <button
+                    onClick={() => setAddingAct(!addingAct)}
+                    className={`p-2 rounded-full border shadow-sm transition-all ${addingAct ? 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200' : 'bg-white text-[#fa8b02] border-slate-200 hover:shadow hover:text-[#fa8b02]/80'}`}
+                    title={addingAct ? "Đóng form thêm hoạt động" : "Thêm hoạt động"}
+                  >
+                    <Icon icon={addingAct ? "heroicons:x-mark" : "heroicons:plus"} className="size-4" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -998,34 +1007,36 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
               <Icon icon="heroicons:puzzle-piece" className="size-6 text-slate-300" />
             </div>
             <p className="text-sm text-slate-500">Chưa có hoạt động nào trong ngày này.</p>
-            <button
-              onClick={() => setAddingAct(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#fa8b02] text-white text-sm font-semibold rounded-xl hover:bg-[#fa8b02]/90 transition-all hover:-translate-y-0.5 active:scale-[0.98] shadow-sm"
-            >
-              <Icon icon="heroicons:plus" className="size-4" />
-              Thêm hoạt động đầu tiên
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => setAddingAct(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#fa8b02] text-white text-sm font-semibold rounded-xl hover:bg-[#fa8b02]/90 transition-all hover:-translate-y-0.5 active:scale-[0.98] shadow-sm"
+              >
+                <Icon icon="heroicons:plus" className="size-4" />
+                Thêm hoạt động đầu tiên
+              </button>
+            )}
           </div>
         ) : (
           <>
             {day.activities?.map((act) => (
-              <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} act={act} dayActivities={day.activities} onRefresh={onRefresh} />
+              <ActivityEditor key={act.id} instanceId={instanceId} dayId={day.id} act={act} dayActivities={day.activities} onRefresh={onRefresh} readOnly={readOnly} />
             ))}
           </>
         )}
 
-        {addingAct && (
-          <ActivityForm 
-            instanceId={instanceId} 
-            dayId={day.id} 
+        {addingAct && !readOnly && (
+          <ActivityForm
+            instanceId={instanceId}
+            dayId={day.id}
             dayActivities={day.activities}
-            onCancel={() => setAddingAct(false)} 
-            onSuccess={() => { setAddingAct(false); onRefresh(); }} 
+            onCancel={() => setAddingAct(false)}
+            onSuccess={() => { setAddingAct(false); onRefresh(); }}
           />
         )}
 
         {/* Explicit add activity button after existing activities */}
-        {hasActivities && !addingAct && (
+        {hasActivities && !addingAct && !readOnly && (
           <button
             onClick={() => setAddingAct(true)}
             className="w-full py-3 border border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-400 hover:text-[#fa8b02] hover:border-[#fa8b02]/30 hover:bg-[#fa8b02]/5 transition-all flex items-center justify-center gap-1.5"
@@ -1039,7 +1050,7 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
   );
 }
 
-function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh }: { instanceId: string, dayId: string, act: TourInstanceDayActivityDto, dayActivities?: TourInstanceDayActivityDto[], onRefresh: () => void }) {
+function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh, readOnly = false }: { instanceId: string, dayId: string, act: TourInstanceDayActivityDto, dayActivities?: TourInstanceDayActivityDto[], onRefresh: () => void, readOnly?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -1097,14 +1108,16 @@ function ActivityEditor({ instanceId, dayId, act, dayActivities, onRefresh }: { 
         {act.note && <p className="text-xs text-slate-600 mt-1">{act.note}</p>}
       </div>
 
-      <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-slate-50 pl-2">
-        <button onClick={() => setIsEditing(true)} className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors">
-          <Icon icon="heroicons:pencil" className="size-4" />
-        </button>
-        <button onClick={handleDelete} disabled={isDeleting} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50">
-          <Icon icon="heroicons:trash" className="size-4" />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-slate-50 pl-2">
+          <button onClick={() => setIsEditing(true)} className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors">
+            <Icon icon="heroicons:pencil" className="size-4" />
+          </button>
+          <button onClick={handleDelete} disabled={isDeleting} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50">
+            <Icon icon="heroicons:trash" className="size-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,7 +31,7 @@ public sealed class SubmitPrivateTourForManagerReviewCommandHandler(
 {
     public async Task<ErrorOr<Success>> Handle(SubmitPrivateTourForManagerReviewCommand request, CancellationToken cancellationToken)
     {
-        var instance = await repository.FindByIdWithInstanceDays(request.InstanceId);
+        var instance = await repository.FindById(request.InstanceId, asNoTracking: false, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -69,7 +69,7 @@ public sealed class ManagerApprovePrivateTourCommandHandler(
 {
     public async Task<ErrorOr<Success>> Handle(ManagerApprovePrivateTourCommand request, CancellationToken cancellationToken)
     {
-        var instance = await repository.FindByIdWithInstanceDays(request.InstanceId);
+        var instance = await repository.FindById(request.InstanceId, asNoTracking: false, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -111,13 +111,109 @@ public sealed class ManagerRejectPrivateTourCommandHandler(
 {
     public async Task<ErrorOr<Success>> Handle(ManagerRejectPrivateTourCommand request, CancellationToken cancellationToken)
     {
-        var instance = await repository.FindByIdWithInstanceDays(request.InstanceId);
+        var instance = await repository.FindById(request.InstanceId, asNoTracking: false, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
         try
         {
             instance.ManagerRejectItinerary(request.Reason, user.Id ?? string.Empty);
+        }
+        catch (ArgumentException ex)
+        {
+            return Error.Validation("TourInstance.InvalidRejectReason", ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("TourInstance.InvalidStatusTransition", ex.Message);
+        }
+
+        await repository.Update(instance, cancellationToken);
+        return Result.Success;
+    }
+}
+
+public sealed record CustomerApprovePrivateTourCommand(
+    [property: JsonIgnore] Guid InstanceId) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
+}
+
+public sealed class CustomerApprovePrivateTourCommandValidator : AbstractValidator<CustomerApprovePrivateTourCommand>
+{
+    public CustomerApprovePrivateTourCommandValidator()
+    {
+        RuleFor(x => x.InstanceId).NotEmpty();
+    }
+}
+
+public sealed class CustomerApprovePrivateTourCommandHandler(
+    ITourInstanceRepository repository,
+    IUser user) : ICommandHandler<CustomerApprovePrivateTourCommand, ErrorOr<Success>>
+{
+    public async Task<ErrorOr<Success>> Handle(CustomerApprovePrivateTourCommand request, CancellationToken cancellationToken)
+    {
+        var instance = await repository.FindByIdWithBookingsAsync(request.InstanceId, cancellationToken);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        var booking = instance.Bookings.FirstOrDefault();
+        if (booking is null || booking.UserId.ToString() != user.Id)
+        {
+            return Error.Forbidden("TourInstance.Forbidden", "Bạn không có quyền duyệt lịch trình này.");
+        }
+
+        try
+        {
+            instance.CustomerApproveItinerary(user.Id ?? string.Empty);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("TourInstance.InvalidStatusTransition", ex.Message);
+        }
+
+        await repository.Update(instance, cancellationToken);
+        return Result.Success;
+    }
+}
+
+public sealed record CustomerRejectPrivateTourCommand(
+    [property: JsonIgnore] Guid InstanceId,
+    [property: JsonPropertyName("reason")] string Reason) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
+}
+
+public sealed class CustomerRejectPrivateTourCommandValidator : AbstractValidator<CustomerRejectPrivateTourCommand>
+{
+    public CustomerRejectPrivateTourCommandValidator()
+    {
+        RuleFor(x => x.InstanceId).NotEmpty();
+        RuleFor(x => x.Reason)
+            .NotEmpty().WithMessage("Lý do yêu cầu chỉnh sửa không được để trống.")
+            .MaximumLength(1000).WithMessage("Lý do tối đa 1000 ký tự.");
+    }
+}
+
+public sealed class CustomerRejectPrivateTourCommandHandler(
+    ITourInstanceRepository repository,
+    IUser user) : ICommandHandler<CustomerRejectPrivateTourCommand, ErrorOr<Success>>
+{
+    public async Task<ErrorOr<Success>> Handle(CustomerRejectPrivateTourCommand request, CancellationToken cancellationToken)
+    {
+        var instance = await repository.FindByIdWithBookingsAsync(request.InstanceId, cancellationToken);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        var booking = instance.Bookings.FirstOrDefault();
+        if (booking is null || booking.UserId.ToString() != user.Id)
+        {
+            return Error.Forbidden("TourInstance.Forbidden", "Bạn không có quyền yêu cầu chỉnh sửa lịch trình này.");
+        }
+
+        try
+        {
+            instance.CustomerRequestAdjustment(request.Reason, user.Id ?? string.Empty);
         }
         catch (ArgumentException ex)
         {

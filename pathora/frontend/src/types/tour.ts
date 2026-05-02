@@ -679,4 +679,8 @@ export const TourInstanceStatusMap: Record<string, { label: string; bg: string; 
   cancelled: { label: "Cancelled", bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
   completed: { label: "Completed", bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
   pendingapproval: { label: "Pending Approval", bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500" },
+  pendingadjustment: { label: "Cần điều chỉnh", bg: "bg-rose-100", text: "text-rose-700", dot: "bg-rose-500" },
+  pendingmanagerreview: { label: "Chờ Manager duyệt", bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
+  pendingcustomerapproval: { label: "Chờ khách duyệt", bg: "bg-sky-100", text: "text-sky-700", dot: "bg-sky-500" },
+  draft: { label: "Bản nháp", bg: "bg-slate-100", text: "text-slate-700", dot: "bg-slate-500" },
 };

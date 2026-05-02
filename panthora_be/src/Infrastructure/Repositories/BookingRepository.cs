@@ -165,7 +165,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
 
     public async Task<(List<BookingEntity> Items, int TotalCount)> GetPagedBookingsForUserAsync(
         string userIdStr,
-        Domain.Enums.BookingStatus? status,
+        string? statusFilter,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -177,9 +177,16 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.PaymentTransactions)
             .Where(b => b.CreatedBy == userIdStr || (b.UserId != null && b.UserId.ToString() == userIdStr));
 
-        if (status.HasValue)
+        if (!string.IsNullOrWhiteSpace(statusFilter))
         {
-            query = query.Where(b => b.Status == status.Value);
+            if (statusFilter.Equals("pending_approval", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(b => b.TourInstance != null && b.TourInstance.Status == Domain.Enums.TourInstanceStatus.PendingCustomerApproval);
+            }
+            else if (Enum.TryParse<Domain.Enums.BookingStatus>(statusFilter, true, out var parsedStatus))
+            {
+                query = query.Where(b => b.Status == parsedStatus);
+            }
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

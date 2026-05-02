@@ -393,8 +393,12 @@ export function TourInstanceListPage({
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
                 <option value="all">All Status</option>
-                <option value="available">Available</option>
+                <option value="draft">Draft</option>
+                <option value="pendingadjustment">Pending Adjustment</option>
+                <option value="pendingmanagerreview">Pending Manager Review</option>
+                <option value="pendingcustomerapproval">Pending Customer Approval</option>
                 <option value="pendingapproval">Pending Approval</option>
+                <option value="available">Available</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="soldout">Sold Out</option>
                 <option value="inprogress">In Progress</option>

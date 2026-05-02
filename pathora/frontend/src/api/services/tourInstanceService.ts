@@ -525,6 +525,23 @@ export const tourInstanceService = {
     return extractResult<string>(response.data);
   },
 
+  /** Customer đồng ý lịch trình private tour → Confirmed */
+  customerApprove: async (id: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.CUSTOMER_APPROVE(id),
+    );
+    return extractResult<string>(response.data);
+  },
+
+  /** Customer từ chối lịch trình private tour → PendingAdjustment, kèm lý do */
+  customerReject: async (id: string, reason: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.CUSTOMER_REJECT(id),
+      { reason },
+    );
+    return extractResult<string>(response.data);
+  },
+
   addCustomDay: async (
     instanceId: string,
     payload: { title: string; actualDate: string; description?: string },
@@ -716,21 +733,6 @@ export const tourInstanceService = {
   submitPrivateTourForManagerReview: async (instanceId: string) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_SUBMIT_FOR_REVIEW(instanceId),
-    );
-    return extractResult<unknown>(response.data);
-  },
-
-  managerApprovePrivateTour: async (instanceId: string) => {
-    const response = await api.post<ServiceResponse<unknown>>(
-      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_APPROVE(instanceId),
-    );
-    return extractResult<unknown>(response.data);
-  },
-
-  managerRejectPrivateTour: async (instanceId: string, reason: string) => {
-    const response = await api.post<ServiceResponse<unknown>>(
-      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_REJECT(instanceId),
-      { reason },
     );
     return extractResult<unknown>(response.data);
   },

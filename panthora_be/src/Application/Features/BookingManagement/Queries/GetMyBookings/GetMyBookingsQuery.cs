@@ -11,6 +11,7 @@ public sealed record MyBookingDto(
     Guid TourInstanceId,
     string Reference,
     BookingStatus Status,
+    string TourStatus,
     PaymentStatus PaymentStatus,
     decimal TotalPrice,
     decimal PaidAmount,

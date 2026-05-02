@@ -25,19 +25,11 @@ public sealed class GetMyBookingsQueryHandler(
         // We use string match since Booking.CreatedBy and Booking.UserId can store the guid as string
         var userIdString = currentUserId.Value.ToString();
 
-        // Convert the status filter to enum if provided
-        BookingStatus? statusFilter = null;
-        if (!string.IsNullOrWhiteSpace(request.StatusFilter) &&
-            Enum.TryParse<BookingStatus>(request.StatusFilter, true, out var parsedStatus))
-        {
-            statusFilter = parsedStatus;
-        }
-
         // Using AsQueryable to build the query - depending on repository capabilities
         // Often we need a dedicated method in the repo for this specific projection and pagination
         var result = await bookingRepository.GetPagedBookingsForUserAsync(
             userIdString,
-            statusFilter,
+            request.StatusFilter,
             request.Page,
             request.PageSize,
             cancellationToken);
@@ -56,6 +48,7 @@ public sealed class GetMyBookingsQueryHandler(
                 TourInstanceId: b.TourInstanceId,
                 Reference: b.Id.ToString().Substring(0, 8).ToUpper(),
                 Status: b.Status,
+                TourStatus: b.TourInstance?.Status.ToString() ?? string.Empty,
                 PaymentStatus: paymentStatus,
                 TotalPrice: b.TotalPrice,
                 PaidAmount: paidAmount,

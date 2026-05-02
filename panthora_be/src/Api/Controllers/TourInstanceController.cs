@@ -172,7 +172,7 @@ public class TourInstanceController : BaseApiController
 
     // Private tour itinerary review workflow.
     // Operator submits the edited itinerary for Manager approval.
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost("{id:guid}/private/submit-for-review")]
     public async Task<IActionResult> SubmitPrivateForManagerReview(Guid id)
     {
@@ -195,6 +195,22 @@ public class TourInstanceController : BaseApiController
     public async Task<IActionResult> ManagerRejectPrivate(Guid id, [FromBody] ManagerRejectPrivateRequest request)
     {
         var result = await Sender.Send(new ManagerRejectPrivateTourCommand(id, request.Reason));
+        return HandleResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/customer-approve")]
+    public async Task<IActionResult> CustomerApprovePrivate(Guid id)
+    {
+        var result = await Sender.Send(new CustomerApprovePrivateTourCommand(id));
+        return HandleResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/customer-reject")]
+    public async Task<IActionResult> CustomerRejectPrivate(Guid id, [FromBody] CustomerRejectPrivateRequest request)
+    {
+        var result = await Sender.Send(new CustomerRejectPrivateTourCommand(id, request.Reason));
         return HandleResult(result);
     }
 
@@ -498,4 +514,7 @@ public sealed record ConfirmExternalTransportRequest(
     [property: JsonPropertyName("confirm")] bool Confirm = true);
 
 public sealed record ManagerRejectPrivateRequest(
+    [property: JsonPropertyName("reason")] string Reason);
+
+public sealed record CustomerRejectPrivateRequest(
     [property: JsonPropertyName("reason")] string Reason);

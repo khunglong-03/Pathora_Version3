@@ -212,6 +212,10 @@ export function PrivateTourInstanceListPage() {
               className="w-full appearance-none px-3.5 py-2.5 pl-9 rounded-xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all cursor-pointer"
             >
               <option value="all">Tất cả trạng thái</option>
+              <option value="draft">Bản nháp</option>
+              <option value="pendingadjustment">Cần điều chỉnh</option>
+              <option value="pendingmanagerreview">Chờ Manager duyệt</option>
+              <option value="pendingcustomerapproval">Chờ khách duyệt</option>
               <option value="pendingapproval">Chờ duyệt</option>
               <option value="confirmed">Đã xác nhận</option>
               <option value="available">Sẵn sàng</option>

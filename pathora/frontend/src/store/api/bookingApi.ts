@@ -8,6 +8,7 @@ export interface MyBookingDto {
   tourInstanceId: string;
   reference: string;
   status: string;
+  tourStatus: string;
   paymentStatus: string;
   totalPrice: number;
   paidAmount: number;

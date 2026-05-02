@@ -36,6 +36,7 @@ export interface BookingDetail {
   highlights: string[];
   importantInfo: string[];
   pendingTransactionCode?: string;
+  tourInstanceId?: string;
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */

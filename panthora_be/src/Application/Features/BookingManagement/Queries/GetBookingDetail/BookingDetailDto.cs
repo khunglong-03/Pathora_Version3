@@ -9,6 +9,8 @@ public class BookingDetailDto
     public string Reference { get; set; } = string.Empty;
     public string Tier { get; set; } = "standard";
     public string Status { get; set; } = string.Empty;
+    public string TourStatus { get; set; } = string.Empty;
+    public Guid TourInstanceId { get; set; }
     public string PaymentStatus { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;

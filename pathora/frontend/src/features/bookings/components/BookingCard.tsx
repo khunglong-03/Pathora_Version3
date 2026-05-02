@@ -135,8 +135,14 @@ export function BookingCard({
 
             {/* Actions */}
             <div className={cn("h-stack flex-wrap items-center gap-3")}>
-              {(showPayRemaining || showVisaStatus) && (
+              {(showPayRemaining || showVisaStatus || booking.status === "pending_approval") && (
                 <div className={cn("h-stack mr-2 items-center gap-2")}>
+                  {booking.status === "pending_approval" && (
+                    <Link href={`/bookings/${booking.id}`} className={cn("h-stack items-center gap-2 rounded-md bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-600 active:scale-95")}>
+                      <CalendarBlank weight="bold" className={cn("size-4")} />
+                      Duyệt lịch trình
+                    </Link>
+                  )}
                   {showPayRemaining && (
                     <button type="button" className={cn("h-stack items-center gap-2 rounded-md bg-[#111111] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#333333] active:scale-95")}>
                       <CurrencyCircleDollar weight="bold" className={cn("size-4")} />

@@ -840,6 +840,9 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        if (entity.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
+
         // For Private tours, the max participation is fixed by the customer's request and cannot be changed.
         if (entity.InstanceType == TourType.Private && request.MaxParticipation != entity.MaxParticipation)
         {
@@ -1506,6 +1509,9 @@ public class TourInstanceService(
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        if (instance.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
+
         var instanceDay = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
         if (instanceDay is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Tour instance day not found.");
@@ -1540,6 +1546,9 @@ public class TourInstanceService(
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (instance.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
 
         var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var performedBy = _user.Id ?? string.Empty;
@@ -1579,6 +1588,9 @@ public class TourInstanceService(
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+
+        if (instance.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
 
         var instanceDay = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
         if (instanceDay is null)
@@ -1667,6 +1679,10 @@ public class TourInstanceService(
         if (day == null)
             return Error.NotFound("TourInstanceDay.NotFound", "Day not found.");
 
+        var instanceForLockCheck = await _tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId);
+        if (instanceForLockCheck is not null && instanceForLockCheck.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
+
         int order = day.Activities.Count > 0 ? day.Activities.Max(a => a.Order) + 1 : 1;
 
         var activity = TourInstanceDayActivityEntity.Create(
@@ -1728,6 +1744,10 @@ public class TourInstanceService(
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
 
         var instanceId = activity.TourInstanceDay.TourInstanceId;
+
+        var instanceForLockCheck = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId);
+        if (instanceForLockCheck is not null && instanceForLockCheck.IsLockedForOperatorEdit())
+            return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
 
         await _tourInstanceRepository.DeleteInstanceDayActivity(activity);
         

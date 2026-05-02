@@ -461,6 +461,14 @@ public class TourInstanceEntity : Aggregate<Guid>
     }
 
     /// <summary>
+    /// True khi status không cho phép Operator chỉnh sửa lịch trình/thông tin
+    /// (đang chờ Manager hoặc Customer duyệt).
+    /// </summary>
+    public bool IsLockedForOperatorEdit() =>
+        Status == TourInstanceStatus.PendingManagerReview
+        || Status == TourInstanceStatus.PendingCustomerApproval;
+
+    /// <summary>
     /// Operator nộp lịch trình Private tour cho Manager duyệt.
     /// Cho phép từ <see cref="TourInstanceStatus.Draft"/> hoặc <see cref="TourInstanceStatus.PendingAdjustment"/>.
     /// Reset <see cref="ManagerReviewNote"/> để clear lý do từ chối cũ.
