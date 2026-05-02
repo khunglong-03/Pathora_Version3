@@ -151,7 +151,7 @@ export default function PrivateTourInstanceEditPage() {
     setSubmittingReview(true);
     try {
       await tourInstanceService.submitPrivateTourForManagerReview(data.id);
-      toast.success("Đã gửi lịch trình cho Manager duyệt!", { duration: 5000 });
+      toast.success("Đã gửi lịch trình cho Manager duyệt!", { autoClose: 5000 });
       router.push(detailHref);
     } catch (e: unknown) {
       toast.error(handleApiError(e).message || "Không thể gửi cho Manager");
