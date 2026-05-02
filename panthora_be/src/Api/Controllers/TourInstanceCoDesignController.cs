@@ -88,4 +88,24 @@ public sealed class TourInstanceCoDesignController : BaseApiController
         var result = await Sender.Send(new ApplyPrivateTourSettlementCommand(id, body.BookingId));
         return HandleResult(result);
     }
+
+    public sealed record ManagerRejectItineraryBody([property: JsonPropertyName("reason")] string Reason);
+
+    /// <summary>Manager duyệt lịch trình private tour (PendingManagerReview → PendingCustomerApproval).</summary>
+    [HttpPost(TourInstanceEndpoint.ManagerApproveItinerary)]
+    public async Task<IActionResult> ManagerApproveItinerary(Guid id)
+    {
+        var svc = HttpContext.RequestServices.GetRequiredService<Application.Services.ITourInstanceService>();
+        var result = await svc.ManagerApproveItinerary(id);
+        return HandleResult(result);
+    }
+
+    /// <summary>Manager từ chối lịch trình private tour (PendingManagerReview → PendingAdjustment).</summary>
+    [HttpPost(TourInstanceEndpoint.ManagerRejectItinerary)]
+    public async Task<IActionResult> ManagerRejectItinerary(Guid id, [FromBody] ManagerRejectItineraryBody body)
+    {
+        var svc = HttpContext.RequestServices.GetRequiredService<Application.Services.ITourInstanceService>();
+        var result = await svc.ManagerRejectItinerary(id, body.Reason);
+        return HandleResult(result);
+    }
 }

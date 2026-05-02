@@ -29,6 +29,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.FinalSellPrice), opt => opt.MapFrom(src => src.FinalSellPrice))
             .ForCtorParam(nameof(TourInstanceDto.WantsCustomization), opt => opt.MapFrom(src => src.WantsCustomization))
             .ForCtorParam(nameof(TourInstanceDto.CustomizationNotes), opt => opt.MapFrom(src => src.CustomizationNotes))
+            .ForCtorParam(nameof(TourInstanceDto.ManagerReviewNote), opt => opt.MapFrom(src => src.ManagerReviewNote))
             .ForCtorParam(nameof(TourInstanceDto.Days), opt => opt.MapFrom(src => src.InstanceDays.OrderBy(d => d.InstanceDayNumber).ToList()));
         CreateMap<TourInstanceManagerEntity, TourInstanceManagerDto>()
             .ForCtorParam(nameof(TourInstanceManagerDto.Id), opt => opt.MapFrom(src => src.Id))

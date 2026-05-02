@@ -36,4 +36,5 @@ public sealed record TourInstanceDto(
     [property: JsonPropertyName("finalSellPrice")] decimal? FinalSellPrice = null,
     [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization = false,
     [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes = null,
+    [property: JsonPropertyName("managerReviewNote")] string? ManagerReviewNote = null,
     [property: JsonPropertyName("days")] List<TourInstanceDayDto>? Days = null);

@@ -28,7 +28,9 @@ public sealed record UpdateTourInstanceActivityCommand(
     [property: JsonPropertyName("arrivalTime")] DateTimeOffset? ArrivalTime = null,
     [property: JsonPropertyName("requestedVehicleType")] VehicleType? RequestedVehicleType = null,
     [property: JsonPropertyName("requestedSeatCount")] int? RequestedSeatCount = null,
-    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null,
+    [property: JsonPropertyName("roomType")] RoomType? RoomType = null,
+    [property: JsonPropertyName("roomCount")] int? RoomCount = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }

@@ -54,6 +54,10 @@ public interface ITourInstanceService
     Task<ErrorOr<Guid>> CreatePublicPrivateDraftAsync(CreateTourInstanceCommand request);
     Task TriggerProviderAssignmentsAsync(Guid instanceId, CancellationToken cancellationToken = default);
     Task HandleSupplierRejectionAsync(Guid instanceId, string reason, CancellationToken cancellationToken = default);
+    /// <summary>Manager duyệt lịch trình private tour → PendingCustomerApproval.</summary>
+    Task<ErrorOr<Success>> ManagerApproveItinerary(Guid id);
+    /// <summary>Manager từ chối lịch trình private tour → PendingAdjustment, lưu note.</summary>
+    Task<ErrorOr<Success>> ManagerRejectItinerary(Guid id, string reason);
 }
 
 public class TourInstanceService(
@@ -836,6 +840,12 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        // For Private tours, the max participation is fixed by the customer's request and cannot be changed.
+        if (entity.InstanceType == TourType.Private && request.MaxParticipation != entity.MaxParticipation)
+        {
+            return Error.Validation("TourInstance.MaxParticipation", "Không thể thay đổi số lượng khách tối đa của Tour Riêng (Private Tour).");
+        }
+
         // ER-7: if MaxParticipation is increasing, ensure every vehicle already Approved for
         // a transportation activity still covers the new size. Only load the full graph when
         // a raise is actually requested.
@@ -1014,6 +1024,29 @@ public class TourInstanceService(
                 await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
         }
 
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> ManagerApproveItinerary(Guid id)
+    {
+        var entity = await _tourInstanceRepository.FindById(id);
+        if (entity is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+        try { entity.ManagerApproveItinerary(_user.Id ?? string.Empty); }
+        catch (InvalidOperationException ex) { return Error.Validation("TourInstance.InvalidTransition", ex.Message); }
+        await _tourInstanceRepository.Update(entity);
+        return Result.Success;
+    }
+
+    public async Task<ErrorOr<Success>> ManagerRejectItinerary(Guid id, string reason)
+    {
+        var entity = await _tourInstanceRepository.FindById(id);
+        if (entity is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
+        try { entity.ManagerRejectItinerary(reason, _user.Id ?? string.Empty); }
+        catch (InvalidOperationException ex) { return Error.Validation("TourInstance.InvalidTransition", ex.Message); }
+        catch (ArgumentException ex) { return Error.Validation("TourInstance.InvalidArgument", ex.Message); }
+        await _tourInstanceRepository.Update(entity);
         return Result.Success;
     }
 
@@ -1477,12 +1510,15 @@ public class TourInstanceService(
         if (instanceDay is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Tour instance day not found.");
 
-        // Validate actualDate within instance date range
-        var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-        if (actualDateOffset.Date < instance.StartDate.Date || actualDateOffset.Date > instance.EndDate.Date)
-            return Error.Validation("TourInstanceDay.DateOutOfRange", "Ngày thực tế phải nằm trong khoảng ngày bắt đầu và kết thúc của tour instance.");
-
         var performedBy = _user.Id ?? string.Empty;
+
+        // Reject duplicate ActualDate against OTHER days (parity with AddCustomDay).
+        if (instance.InstanceDays.Any(d => d.Id != request.DayId && d.ActualDate == request.ActualDate))
+            return Error.Validation("TourInstanceDay.DuplicateDate", "Đã tồn tại một ngày với ngày thực tế này trong lịch trình.");
+
+        // Auto-extend instance bounds if the new ActualDate is outside (parity with AddCustomDay).
+        var actualDateOffset = new DateTimeOffset(request.ActualDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        instance.ExtendDateRangeIfNecessary(actualDateOffset, performedBy);
 
         instanceDay.Update(
             title: request.Title,
@@ -1494,6 +1530,7 @@ public class TourInstanceService(
             performedBy: performedBy);
 
         await _tourInstanceRepository.UpdateInstanceDay(instanceDay);
+        await _tourInstanceRepository.Update(instance);
 
         return _mapper.Map<TourInstanceDayDto>(instanceDay);
     }
@@ -1564,6 +1601,25 @@ public class TourInstanceService(
         if (request.Price.HasValue)
             activity.Price = request.Price.Value;
 
+        if (activity.ActivityType == TourDayActivityType.Accommodation
+            && (request.RoomType.HasValue || request.RoomCount.HasValue))
+        {
+            var nextRoomType = request.RoomType ?? activity.Accommodation?.RoomType;
+            var nextQuantity = request.RoomCount ?? activity.Accommodation?.Quantity ?? 1;
+            if (activity.Accommodation is null)
+            {
+                activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
+                    tourInstanceDayActivityId: activity.Id,
+                    roomType: nextRoomType,
+                    quantity: nextQuantity);
+            }
+            else
+            {
+                activity.Accommodation.RoomType = nextRoomType;
+                activity.Accommodation.Quantity = nextQuantity;
+            }
+        }
+
         if (activity.ActivityType == TourDayActivityType.Transportation && request.TransportationType.HasValue)
         {
             var oldIsExternal = activity.TransportationType.IsExternalOnly();
@@ -1597,6 +1653,8 @@ public class TourInstanceService(
         {
             await _unitOfWork.SaveChangeAsync();
         }
+
+        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId);
 
         // Return a mapped DTO. Wait, the return type is TourDayActivityDto but the entity is TourInstanceDayActivityEntity.
         // It might be mapped correctly if AutoMapper profile exists.
@@ -1648,8 +1706,17 @@ public class TourInstanceService(
                     _user.Id ?? "system");
             }
         }
+        else if (request.ActivityType == TourDayActivityType.Accommodation && request.RoomType.HasValue)
+        {
+            activity.Accommodation = TourInstancePlanAccommodationEntity.Create(
+                tourInstanceDayActivityId: activity.Id,
+                roomType: request.RoomType,
+                quantity: request.RoomCount ?? 1);
+        }
 
         await _tourInstanceRepository.AddInstanceDayActivity(activity);
+        
+        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId);
 
         return _mapper.Map<TourInstanceDayActivityDto>(activity);
     }
@@ -1660,9 +1727,32 @@ public class TourInstanceService(
         if (activity == null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
 
+        var instanceId = activity.TourInstanceDay.TourInstanceId;
+
         await _tourInstanceRepository.DeleteInstanceDayActivity(activity);
+        
+        await RecalculatePrivateTourFinalPriceAsync(instanceId);
 
         return Result.Success;
+    }
+    private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId)
+    {
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId);
+        if (instance != null && instance.InstanceType == TourType.Private)
+        {
+            decimal totalActivitiesPrice = instance.InstanceDays
+                .Where(d => !d.IsDeleted)
+                .SelectMany(d => d.Activities)
+                .Sum(a => a.Price ?? 0);
+
+            instance.FinalSellPrice = totalActivitiesPrice;
+            await _tourInstanceRepository.Update(instance);
+            
+            if (_unitOfWork != null)
+            {
+                await _unitOfWork.SaveChangeAsync();
+            }
+        }
     }
 }
 

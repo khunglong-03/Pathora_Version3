@@ -95,6 +95,7 @@ export default function PrivateTourInstanceEditPage() {
   const [dataState, setDataState] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof EditForm, string>>>({});
 
   const loadData = useCallback(async () => {
@@ -143,6 +144,24 @@ export default function PrivateTourInstanceEditPage() {
       toast.error("Vui lòng kiểm tra lại các trường thông tin cơ bản");
     }
     return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmitForReview = async () => {
+    if (!data) return;
+    const ok = window.confirm(
+      "Gửi lịch trình này cho Manager duyệt? Sau khi gửi, bạn sẽ chỉ chỉnh sửa lại được nếu Manager yêu cầu điều chỉnh.",
+    );
+    if (!ok) return;
+    setSubmittingReview(true);
+    try {
+      await tourInstanceService.submitPrivateTourForManagerReview(data.id);
+      toast.success("Đã gửi lịch trình cho Manager duyệt");
+      await loadData();
+    } catch (e: unknown) {
+      toast.error(handleApiError(e).message || "Không thể gửi cho Manager");
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   const handleSave = async () => {
@@ -237,6 +256,58 @@ export default function PrivateTourInstanceEditPage() {
         </div>
       </motion.div>
 
+      {data.status === "PendingAdjustment" && data.managerReviewNote && (
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
+          className="rounded-2xl border border-rose-200 bg-rose-50 p-5"
+        >
+          <div className="flex items-start gap-3">
+            <Icon icon="heroicons:exclamation-triangle" className="size-6 text-rose-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-rose-900">Manager yêu cầu chỉnh sửa</p>
+              <p className="mt-1 text-sm text-rose-800 whitespace-pre-line">{data.managerReviewNote}</p>
+              <p className="mt-2 text-xs text-rose-600">Sửa lịch trình theo yêu cầu rồi nhấn &quot;Gửi Manager duyệt lại&quot;.</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {data.status === "PendingManagerReview" && (
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-5"
+        >
+          <div className="flex items-start gap-3">
+            <Icon icon="heroicons:clock" className="size-6 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-900">Đang chờ Manager duyệt</p>
+              <p className="mt-1 text-sm text-amber-800">Lịch trình đã gửi và đang chờ phản hồi. Bạn không thể chỉnh sửa cho đến khi Manager phản hồi.</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {data.status === "PendingCustomerApproval" && (
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
+          className="rounded-2xl border border-sky-200 bg-sky-50 p-5"
+        >
+          <div className="flex items-start gap-3">
+            <Icon icon="heroicons:user-circle" className="size-6 text-sky-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-sky-900">Đã chuyển khách hàng duyệt</p>
+              <p className="mt-1 text-sm text-sky-800">Manager đã đồng ý. Đang chờ khách hàng xác nhận lịch trình cuối cùng.</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Basic Info Card */}
       <motion.div
         variants={itemVariants}
@@ -277,15 +348,14 @@ export default function PrivateTourInstanceEditPage() {
               />
             </div>
             <div>
-              <label className={labelCls}>Số khách tối đa *</label>
+              <label className={labelCls}>Số khách (Theo yêu cầu) *</label>
               <input
                 type="number"
                 min={1}
-                className={`${inputCls} ${errors.maxParticipation ? "border-red-300 ring-1 ring-red-200" : ""}`}
+                className={`${inputCls} bg-slate-100 opacity-70 cursor-not-allowed`}
                 value={form.maxParticipation}
-                onChange={(e) => set("maxParticipation", e.target.value)}
+                disabled
               />
-              {errors.maxParticipation && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.maxParticipation}</p>}
             </div>
           </div>
 
@@ -344,26 +414,47 @@ export default function PrivateTourInstanceEditPage() {
       >
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="flex-[2] flex items-center justify-center gap-2 py-4 rounded-full bg-[#fa8b02] text-white text-sm font-bold transition-all hover:bg-[#fa8b02]/90 hover:-translate-y-0.5 active:scale-[0.98] shadow-lg shadow-[#fa8b02]/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+          disabled={saving || submittingReview}
+          className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-bold transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {saving ? (
             <>
               <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-              Đang lưu thông tin...
+              Đang lưu...
             </>
           ) : (
             <>
-              <Icon icon="heroicons:check-badge" className="size-5" />
-              Lưu Thông Tin Cơ Bản &amp; Quay Về
+              <Icon icon="heroicons:cloud-arrow-up" className="size-5" />
+              Lưu thông tin cơ bản
             </>
           )}
         </button>
+
+        {(data.status === "Draft" || data.status === "PendingAdjustment") && (
+          <button
+            onClick={handleSubmitForReview}
+            disabled={saving || submittingReview}
+            className="flex-[2] flex items-center justify-center gap-2 py-4 rounded-full bg-[#fa8b02] text-white text-sm font-bold transition-all hover:bg-[#fa8b02]/90 hover:-translate-y-0.5 active:scale-[0.98] shadow-lg shadow-[#fa8b02]/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+          >
+            {submittingReview ? (
+              <>
+                <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
+                Đang gửi...
+              </>
+            ) : (
+              <>
+                <Icon icon="heroicons:paper-airplane" className="size-5" />
+                {data.status === "PendingAdjustment" ? "Gửi Manager duyệt lại" : "Gửi Manager duyệt"}
+              </>
+            )}
+          </button>
+        )}
+
         <Link
           href={detailHref}
           className="flex-1 flex items-center justify-center py-4 rounded-full border border-slate-200 bg-white text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98]"
         >
-          Huỷ thay đổi
+          Quay về
         </Link>
       </motion.div>
     </main>
@@ -423,22 +514,53 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
   // Accommodation fields for add-day form
   const [actRoomType, setActRoomType] = useState("");
   const [actRoomCount, setActRoomCount] = useState("1");
-  // Transportation fields for add-day form
-  const [actFromLocation, setActFromLocation] = useState("");
-  const [actToLocation, setActToLocation] = useState("");
+  // Transportation fields for add-day form (full plan, mirrors ActivityForm)
+  const emptyTransportFields: TransportFields = {
+    transportationType: "",
+    requestedVehicleType: "",
+    requestedSeatCount: "",
+    fromLocation: "",
+    toLocation: "",
+    departureTime: "",
+    arrivalTime: "",
+    externalTransportReference: "",
+    transportationName: "",
+  };
+  const [actTransportFields, setActTransportFields] = useState<TransportFields>(emptyTransportFields);
 
   const isActAccommodation = actType === "8";
   const isActTransportation = actType === "7";
+  const isActExternalTransport = isActTransportation && isExternalOnlyTransportation(actTransportFields.transportationType);
 
   const resetActivityFields = () => {
     setActTitle(""); setActType("0"); setActStartTime(""); setActEndTime(""); setActPrice(""); setActNote("");
-    setActRoomType(""); setActRoomCount("1"); setActFromLocation(""); setActToLocation("");
+    setActRoomType(""); setActRoomCount("1");
+    setActTransportFields(emptyTransportFields);
   };
 
   const handleAddDay = async () => {
     if (!newDayTitle.trim() || !newDayDate) {
       toast.error("Vui lòng nhập tiêu đề ngày và chọn ngày");
       return;
+    }
+    if (startDate && newDayDate < startDate) {
+      toast.error(`Ngày diễn ra không được trước ngày bắt đầu tour (${startDate})`);
+      return;
+    }
+    const isDuplicateDate = (days ?? []).some((d) => {
+      if (!d.actualDate) return false;
+      const existing = new Date(d.actualDate).toISOString().split("T")[0];
+      return existing === newDayDate;
+    });
+    if (isDuplicateDate) {
+      toast.error("Đã có một ngày với ngày diễn ra này trong lịch trình");
+      return;
+    }
+    if (endDate && newDayDate > endDate) {
+      const proceed = window.confirm(
+        `Ngày diễn ra (${newDayDate}) sau ngày kết thúc tour (${endDate}). Hệ thống sẽ tự động mở rộng phạm vi tour. Bạn có muốn tiếp tục?`,
+      );
+      if (!proceed) return;
     }
     if (!actTitle.trim()) {
       toast.error("Vui lòng nhập tên hoạt động đầu tiên cho ngày này");
@@ -448,38 +570,61 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
       toast.error("Giờ kết thúc phải sau giờ bắt đầu");
       return;
     }
+    if (isActTransportation) {
+      if (!actTransportFields.transportationType) {
+        toast.error("Vui lòng chọn loại phương tiện");
+        return;
+      }
+      if (!isActExternalTransport) {
+        if (!actTransportFields.requestedVehicleType) {
+          toast.error("Vui lòng chọn loại xe yêu cầu");
+          return;
+        }
+        if (!actTransportFields.requestedSeatCount || Number(actTransportFields.requestedSeatCount) <= 0) {
+          toast.error("Số chỗ yêu cầu phải lớn hơn 0");
+          return;
+        }
+      } else {
+        if (!actTransportFields.departureTime || !actTransportFields.arrivalTime) {
+          toast.error("Vui lòng nhập giờ khởi hành và giờ đến");
+          return;
+        }
+      }
+    }
     setSaving(true);
     try {
-      // Step 1: Create the day
       const result = await tourInstanceService.addCustomDay(instanceId, { title: newDayTitle.trim(), actualDate: newDayDate });
       const newDayId = result;
 
-      // Step 2: Create the first activity for that day
       if (newDayId) {
-        const computedNote = isActTransportation
-          ? [actFromLocation && `Từ: ${actFromLocation}`, actToLocation && `Đến: ${actToLocation}`, actNote].filter(Boolean).join(" | ")
-          : (actNote || undefined);
+        const finalStartTime = isActExternalTransport ? actTransportFields.departureTime || actStartTime : actStartTime;
+        const finalEndTime = isActExternalTransport ? actTransportFields.arrivalTime || actEndTime : actEndTime;
 
-        const actResult = await tourInstanceService.createInstanceActivity(instanceId, newDayId, {
+        const transportPayload = isActTransportation
+          ? {
+              transportationType: Number(actTransportFields.transportationType),
+              transportationName: actTransportFields.transportationName || null,
+              fromLocationId: actTransportFields.fromLocation || null,
+              toLocationId: actTransportFields.toLocation || null,
+              departureTime: actTransportFields.departureTime ? `${actTransportFields.departureTime}:00` : null,
+              arrivalTime: actTransportFields.arrivalTime ? `${actTransportFields.arrivalTime}:00` : null,
+              requestedVehicleType: actTransportFields.requestedVehicleType ? Number(actTransportFields.requestedVehicleType) : null,
+              requestedSeatCount: actTransportFields.requestedSeatCount ? Number(actTransportFields.requestedSeatCount) : null,
+              externalTransportReference: actTransportFields.externalTransportReference || null,
+            }
+          : {};
+
+        await tourInstanceService.createInstanceActivity(instanceId, newDayId, {
           title: actTitle.trim(),
           activityType: Number(actType),
-          note: computedNote,
-          startTime: actStartTime ? `${actStartTime}:00` : null,
-          endTime: actEndTime ? `${actEndTime}:00` : null,
+          note: actNote || undefined,
+          startTime: finalStartTime ? `${finalStartTime}:00` : null,
+          endTime: finalEndTime ? `${finalEndTime}:00` : null,
           price: actPrice ? Number(actPrice) : null,
+          roomType: isActAccommodation && actRoomType.trim() ? actRoomType.trim() : null,
+          roomCount: isActAccommodation ? (Number(actRoomCount) || 1) : null,
+          ...transportPayload,
         });
-
-        // After creating accommodation activity, assign rooms
-        if (isActAccommodation && actResult?.id && actRoomType.trim()) {
-          try {
-            await tourInstanceService.assignRoomToAccommodation(instanceId, actResult.id, {
-              roomType: actRoomType.trim(),
-              roomCount: Number(actRoomCount) || 1,
-            });
-          } catch {
-            // Best-effort: activity created, room assignment can be done later
-          }
-        }
       }
 
       toast.success("Thêm ngày mới và hoạt động thành công");
@@ -487,7 +632,9 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
       setNewDayTitle("");
       setNewDayDate("");
       resetActivityFields();
-      if (newDayId) setNewlyAddedDayId(newDayId);
+      // First activity already created in this flow — don't auto-open another empty
+      // ActivityForm in DayEditor (was confusing user into thinking title wasn't saved).
+      setNewlyAddedDayId(null);
       onRefresh();
     } catch (e: unknown) {
       toast.error(handleApiError(e).message || "Không thể thêm ngày");
@@ -513,6 +660,9 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
               onRefresh={onRefresh}
               autoOpenActivity={day.id === newlyAddedDayId}
               onAutoOpenConsumed={() => setNewlyAddedDayId(null)}
+              tourStartDate={startDate}
+              tourEndDate={endDate}
+              siblingDays={days}
             />
           ))}
         </div>
@@ -531,6 +681,11 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
             <div>
               <label className={labelCls}>Ngày diễn ra</label>
               <input type="date" className={inputCls} value={newDayDate} min={startDate} onChange={e => setNewDayDate(e.target.value)} />
+              {endDate && newDayDate && newDayDate > endDate && (
+                <p className="mt-1 text-[11px] text-amber-600">
+                  Ngày này nằm sau ngày kết thúc tour ({endDate}). Phạm vi tour sẽ được mở rộng tự động.
+                </p>
+              )}
             </div>
           </div>
 
@@ -564,14 +719,19 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
                   <label className={labelCls}>Loại phòng *</label>
                   <select className={inputCls} value={actRoomType} onChange={e => setActRoomType(e.target.value)}>
                     <option value="">-- Chọn loại phòng --</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Superior">Superior</option>
-                    <option value="Deluxe">Deluxe</option>
-                    <option value="Suite">Suite</option>
-                    <option value="Family">Family</option>
-                    <option value="Twin">Twin</option>
-                    <option value="Double">Double</option>
                     <option value="Single">Single</option>
+                    <option value="Double">Double</option>
+                    <option value="Twin">Twin</option>
+                    <option value="Triple">Triple</option>
+                    <option value="Family">Family</option>
+                    <option value="Suite">Suite</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Quad">Quad</option>
+                    <option value="Dormitory">Dormitory</option>
+                    <option value="Villa">Villa</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
@@ -581,30 +741,76 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
               </div>
             )}
 
-            {/* Transportation fields */}
+            {/* Transportation fields — mirrors ActivityForm */}
             {isActTransportation && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="space-y-4 mt-3">
                 <div>
-                  <label className={labelCls}>Điểm đi</label>
-                  <input className={inputCls} value={actFromLocation} onChange={e => setActFromLocation(e.target.value)} placeholder="VD: Sân bay Nội Bài" />
+                  <label className={labelCls}>Loại phương tiện *</label>
+                  <select
+                    className={inputCls}
+                    value={actTransportFields.transportationType}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const wasExternal = isExternalOnlyTransportation(actTransportFields.transportationType);
+                      const isExternal = isExternalOnlyTransportation(newType);
+                      if (actTransportFields.transportationType && wasExternal !== isExternal) {
+                        if (!window.confirm("Loại phương tiện thay đổi sẽ xoá dữ liệu của nhóm cũ. Bạn có muốn tiếp tục?")) {
+                          return;
+                        }
+                        setActTransportFields((prev) => ({
+                          ...prev,
+                          transportationType: newType,
+                          requestedVehicleType: "",
+                          requestedSeatCount: "",
+                          transportationName: "",
+                          externalTransportReference: "",
+                          departureTime: "",
+                          arrivalTime: "",
+                        }));
+                      } else {
+                        setActTransportFields((prev) => ({ ...prev, transportationType: newType }));
+                      }
+                    }}
+                  >
+                    <option value="">-- Chọn loại phương tiện --</option>
+                    <optgroup label="Đường bộ (Có nhà xe)">
+                      <option value="1">Bus</option>
+                      <option value="5">Car</option>
+                      <option value="8">Taxi</option>
+                    </optgroup>
+                    <optgroup label="Mua vé rời (Manager tự book)">
+                      <option value="3">Máy bay (Flight)</option>
+                      <option value="2">Tàu hoả (Train)</option>
+                      <option value="4">Tàu thuỷ/Du thuyền (Boat)</option>
+                      <option value="99">Khác (Other)</option>
+                    </optgroup>
+                  </select>
                 </div>
-                <div>
-                  <label className={labelCls}>Điểm đến</label>
-                  <input className={inputCls} value={actToLocation} onChange={e => setActToLocation(e.target.value)} placeholder="VD: Khách sạn Hà Nội" />
-                </div>
+
+                {actTransportFields.transportationType && (
+                  <TransportActivitySubForm
+                    fields={actTransportFields}
+                    onChange={(updates) => setActTransportFields((prev) => ({ ...prev, ...updates }))}
+                    isEditing={false}
+                  />
+                )}
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
-              <div>
-                <label className={labelCls}>Giờ bắt đầu</label>
-                <input type="time" className={inputCls} value={actStartTime} onChange={e => setActStartTime(e.target.value)} />
-              </div>
-              <div>
-                <label className={labelCls}>Giờ kết thúc</label>
-                <input type="time" className={inputCls} value={actEndTime} onChange={e => setActEndTime(e.target.value)} />
-              </div>
-              <div>
+              {!isActExternalTransport && (
+                <>
+                  <div>
+                    <label className={labelCls}>Giờ bắt đầu</label>
+                    <input type="time" className={inputCls} value={actStartTime} onChange={e => setActStartTime(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Giờ kết thúc</label>
+                    <input type="time" className={inputCls} value={actEndTime} onChange={e => setActEndTime(e.target.value)} />
+                  </div>
+                </>
+              )}
+              <div className={isActExternalTransport ? "sm:col-span-3" : ""}>
                 <label className={labelCls}>Giá (Tuỳ chọn)</label>
                 <input type="number" min="0" step="any" className={inputCls} value={actPrice} onChange={e => setActPrice(e.target.value)} placeholder="VD: 500000" />
               </div>
@@ -636,16 +842,26 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
   );
 }
 
-function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAutoOpenConsumed }: {
+function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAutoOpenConsumed, tourStartDate, tourEndDate, siblingDays }: {
   instanceId: string;
   day: TourInstanceDayDto;
   index: number;
   onRefresh: () => void;
   autoOpenActivity?: boolean;
   onAutoOpenConsumed?: () => void;
+  tourStartDate?: string;
+  tourEndDate?: string;
+  siblingDays?: TourInstanceDayDto[];
 }) {
   const [addingAct, setAddingAct] = useState(false);
   const hasActivities = day.activities && day.activities.length > 0;
+
+  const initialDate = toDateInput(day.actualDate) || "";
+  const [editingDay, setEditingDay] = useState(false);
+  const [editTitle, setEditTitle] = useState(day.title || "");
+  const [editDate, setEditDate] = useState(initialDate);
+  const [editNote, setEditNote] = useState(day.note || "");
+  const [savingDay, setSavingDay] = useState(false);
 
   // Auto-open activity form for newly created days
   useEffect(() => {
@@ -655,20 +871,123 @@ function DayEditor({ instanceId, day, index, onRefresh, autoOpenActivity, onAuto
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenActivity]);
-  
+
+  const startEditingDay = () => {
+    setEditTitle(day.title || "");
+    setEditDate(initialDate);
+    setEditNote(day.note || "");
+    setEditingDay(true);
+  };
+
+  const handleSaveDay = async () => {
+    if (!editTitle.trim() || !editDate) {
+      toast.error("Vui lòng nhập tiêu đề ngày và chọn ngày diễn ra");
+      return;
+    }
+    if (tourStartDate && editDate < tourStartDate) {
+      toast.error(`Ngày diễn ra không được trước ngày bắt đầu tour (${tourStartDate})`);
+      return;
+    }
+    const dup = (siblingDays ?? []).some((d) => {
+      if (d.id === day.id || !d.actualDate) return false;
+      return new Date(d.actualDate).toISOString().split("T")[0] === editDate;
+    });
+    if (dup) {
+      toast.error("Đã có một ngày khác với ngày diễn ra này trong lịch trình");
+      return;
+    }
+    if (tourEndDate && editDate > tourEndDate) {
+      const ok = window.confirm(
+        `Ngày diễn ra (${editDate}) sau ngày kết thúc tour (${tourEndDate}). Hệ thống sẽ tự động mở rộng phạm vi tour. Tiếp tục?`,
+      );
+      if (!ok) return;
+    }
+    setSavingDay(true);
+    try {
+      await tourInstanceService.updateInstanceDay(instanceId, day.id, {
+        title: editTitle.trim(),
+        actualDate: editDate,
+        note: editNote || null,
+      });
+      toast.success("Cập nhật ngày thành công");
+      setEditingDay(false);
+      onRefresh();
+    } catch (e: unknown) {
+      toast.error(handleApiError(e).message || "Không thể cập nhật ngày");
+    } finally {
+      setSavingDay(false);
+    }
+  };
+
   return (
     <div className="border border-slate-200 rounded-[1.5rem] overflow-hidden bg-white">
-      <div className="bg-slate-100/50 px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-bold text-slate-900">
-            Ngày {day.instanceDayNumber}: {day.title}
-          </h3>
-          <p className="text-xs font-semibold text-slate-500 mt-0.5">{toDateInput(day.actualDate)}</p>
-        </div>
-        {hasActivities && (
-          <button onClick={() => setAddingAct(true)} className="p-2 bg-white rounded-full text-[#fa8b02] border border-slate-200 shadow-sm hover:shadow hover:text-[#fa8b02]/80 transition-all" title="Thêm hoạt động">
-            <Icon icon="heroicons:plus" className="size-4" />
-          </button>
+      <div className="bg-slate-100/50 px-5 py-4 border-b border-slate-200">
+        {editingDay ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Tiêu đề ngày *</label>
+                <input className={inputCls} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="VD: Ngày 1 - Đón khách" />
+              </div>
+              <div>
+                <label className={labelCls}>Ngày diễn ra *</label>
+                <input type="date" className={inputCls} value={editDate} min={tourStartDate} onChange={(e) => setEditDate(e.target.value)} />
+                {tourEndDate && editDate && editDate > tourEndDate && (
+                  <p className="mt-1 text-[11px] text-amber-600">
+                    Ngày này nằm sau ngày kết thúc tour ({tourEndDate}). Phạm vi tour sẽ được mở rộng tự động.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Ghi chú</label>
+              <textarea className={inputCls} rows={2} value={editNote} onChange={(e) => setEditNote(e.target.value)} placeholder="Mô tả ngắn về ngày này..." />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setEditingDay(false)}
+                disabled={savingDay}
+                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+              >
+                Huỷ
+              </button>
+              <button
+                onClick={handleSaveDay}
+                disabled={savingDay}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50"
+              >
+                <Icon icon={savingDay ? "heroicons:arrow-path" : "heroicons:check"} className={`size-4 ${savingDay ? 'animate-spin' : ''}`} />
+                {savingDay ? "Đang lưu..." : "Lưu ngày"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">
+                Ngày {day.instanceDayNumber}: {day.title}
+              </h3>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">{toDateInput(day.actualDate)}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={startEditingDay}
+                className="p-2 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 shadow-sm transition-all"
+                title="Sửa tên/ngày"
+              >
+                <Icon icon="heroicons:pencil-square" className="size-4" />
+              </button>
+              {hasActivities && (
+                <button
+                  onClick={() => setAddingAct(!addingAct)}
+                  className={`p-2 rounded-full border shadow-sm transition-all ${addingAct ? 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200' : 'bg-white text-[#fa8b02] border-slate-200 hover:shadow hover:text-[#fa8b02]/80'}`}
+                  title={addingAct ? "Đóng form thêm hoạt động" : "Thêm hoạt động"}
+                >
+                  <Icon icon={addingAct ? "heroicons:x-mark" : "heroicons:plus"} className="size-4" />
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -951,10 +1270,12 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
           endTime: finalEndTime ? `${finalEndTime}:00` : null,
           price: price ? Number(price) : null,
           ...baseTransportPayload,
+          roomType: isAccommodation && roomType.trim() ? roomType.trim() : null,
+          roomCount: isAccommodation ? (Number(roomCount) || 1) : null,
         });
         toast.success("Cập nhật hoạt động thành công");
       } else {
-        const result = await tourInstanceService.createInstanceActivity(instanceId, dayId, {
+        await tourInstanceService.createInstanceActivity(instanceId, dayId, {
           title: title.trim(),
           activityType: Number(actType),
           note: note,
@@ -962,20 +1283,9 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
           endTime: finalEndTime ? `${finalEndTime}:00` : null,
           price: price ? Number(price) : null,
           ...baseTransportPayload,
+          roomType: isAccommodation && roomType.trim() ? roomType.trim() : null,
+          roomCount: isAccommodation ? (Number(roomCount) || 1) : null,
         });
-
-        // After creating accommodation activity, assign rooms
-        if (isAccommodation && result?.id && roomType.trim()) {
-          try {
-            await tourInstanceService.assignRoomToAccommodation(instanceId, result.id, {
-              roomType: roomType.trim(),
-              roomCount: Number(roomCount) || 1,
-            });
-          } catch {
-            // Room assignment is best-effort; activity was created successfully
-            toast.warning("Hoạt động đã tạo nhưng chưa gán phòng thành công. Vui lòng gán phòng sau.");
-          }
-        }
 
         toast.success("Thêm hoạt động thành công");
       }
@@ -988,48 +1298,79 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
   };
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-      <h4 className="text-sm font-bold text-slate-900">{isEditing ? "Sửa hoạt động" : "Thêm hoạt động mới"}</h4>
+    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-slate-900">{isEditing ? "Sửa hoạt động" : "Thêm hoạt động mới"}</h4>
+        <button 
+          type="button" 
+          onClick={onCancel} 
+          className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors"
+          title="Đóng form"
+        >
+          <Icon icon="heroicons:x-mark" className="size-5" />
+        </button>
+      </div>
       
-      {!isEditing && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Tên hoạt động *</label>
-            <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Tham quan bảo tàng" />
-          </div>
-          <div>
-            <label className={labelCls}>Loại hoạt động</label>
-            <select className={inputCls} value={actType} onChange={e => setActType(e.target.value)}>
-              <option value="0">Tham quan (Sightseeing)</option>
-              <option value="1">Ăn uống (Dining)</option>
-              <option value="7">Di chuyển (Transportation)</option>
-              <option value="8">Lưu trú (Accommodation)</option>
-              <option value="99">Khác (Other)</option>
-            </select>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Tên hoạt động *</label>
+          <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Tham quan bảo tàng" />
         </div>
-      )}
+        <div>
+          <label className={labelCls}>Loại hoạt động</label>
+          <select 
+            className={`${inputCls} ${isEditing ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`} 
+            value={actType} 
+            onChange={e => setActType(e.target.value)}
+            disabled={isEditing}
+          >
+            <option value="0">Tham quan (Sightseeing)</option>
+            <option value="1">Ăn uống (Dining)</option>
+            <option value="7">Di chuyển (Transportation)</option>
+            <option value="8">Lưu trú (Accommodation)</option>
+            <option value="99">Khác (Other)</option>
+          </select>
+        </div>
+      </div>
 
       {/* Accommodation-specific fields */}
-      {isAccommodation && !isEditing && (
+      {isAccommodation && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
           <div>
             <label className={labelCls}>Loại phòng *</label>
-            <select className={inputCls} value={roomType} onChange={e => setRoomType(e.target.value)}>
+            <select 
+              className={`${inputCls} ${isEditing ? 'opacity-50 cursor-not-allowed bg-indigo-100/50' : ''}`} 
+              value={roomType} 
+              onChange={e => setRoomType(e.target.value)}
+              disabled={isEditing}
+            >
               <option value="">-- Chọn loại phòng --</option>
-              <option value="Standard">Standard</option>
-              <option value="Superior">Superior</option>
-              <option value="Deluxe">Deluxe</option>
-              <option value="Suite">Suite</option>
-              <option value="Family">Family</option>
-              <option value="Twin">Twin</option>
-              <option value="Double">Double</option>
               <option value="Single">Single</option>
+              <option value="Double">Double</option>
+              <option value="Twin">Twin</option>
+              <option value="Triple">Triple</option>
+              <option value="Family">Family</option>
+              <option value="Suite">Suite</option>
+              <option value="Standard">Standard</option>
+              <option value="Deluxe">Deluxe</option>
+              <option value="VIP">VIP</option>
+              <option value="Quad">Quad</option>
+              <option value="Dormitory">Dormitory</option>
+              <option value="Villa">Villa</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div>
             <label className={labelCls}>Số lượng phòng *</label>
-            <input type="number" min={1} className={inputCls} value={roomCount} onChange={e => setRoomCount(e.target.value)} placeholder="VD: 2" />
+            <input 
+              type="number" 
+              min={1} 
+              className={`${inputCls} ${isEditing ? 'opacity-50 cursor-not-allowed bg-indigo-100/50' : ''}`} 
+              value={roomCount} 
+              onChange={e => setRoomCount(e.target.value)} 
+              placeholder="VD: 2" 
+              disabled={isEditing}
+            />
           </div>
         </div>
       )}
@@ -1117,8 +1458,8 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900">Huỷ</button>
-        <button onClick={handleSave} disabled={saving} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900">Huỷ</button>
+        <button type="button" onClick={handleSave} disabled={saving} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
           {isEditing ? "Cập nhật" : "Thêm hoạt động"}
         </button>
       </div>

@@ -51,11 +51,11 @@ export const MANAGER_NAV_ITEMS = [
     icon: CalendarDotsIcon,
     href: "/manager/tour-instances",
   },
-  {
+  /*{
     label: "Tour Requests",
     icon: ClipboardTextIcon,
     href: "/manager/dashboard/tour-requests",
-  },
+  },*/
   {
     label: "Custom Tour Requests",
     icon: ClipboardTextIcon,

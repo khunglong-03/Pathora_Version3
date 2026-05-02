@@ -120,6 +120,10 @@ export interface CreateInstanceActivityPayload {
   requestedVehicleType?: number | null;
   requestedSeatCount?: number | null;
   externalTransportReference?: string | null;
+
+  // Accommodation plan fields
+  roomType?: string | null;
+  roomCount?: number | null;
 }
 
 export interface UpdateInstanceActivityPayload {
@@ -130,7 +134,7 @@ export interface UpdateInstanceActivityPayload {
   endTime?: string | null;
   price?: number | null;
   isOptional?: boolean;
-  
+
   // Transport fields
   transportationType?: number | null;
   fromLocationId?: string | null;
@@ -140,6 +144,10 @@ export interface UpdateInstanceActivityPayload {
   requestedVehicleType?: number | null;
   requestedSeatCount?: number | null;
   externalTransportReference?: string | null;
+
+  // Accommodation plan fields
+  roomType?: string | null;
+  roomCount?: number | null;
 }
 
 export interface CheckDuplicateResult {
@@ -421,6 +429,7 @@ export const tourInstanceService = {
       endDate: data.endDate,
       maxParticipation: data.maxParticipation,
       basePrice: data.basePrice,
+      location: data.location?.trim() || null,
       confirmationDeadline: data.confirmationDeadline || null,
       includedServices: normalizeStringArray(data.includedServices),
       guideUserIds: data.guideUserIds ?? [],
@@ -495,6 +504,23 @@ export const tourInstanceService = {
     const response = await api.patch<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.CHANGE_STATUS(id),
       { status },
+    );
+    return extractResult<string>(response.data);
+  },
+
+  /** Manager duyệt lịch trình private tour → PendingCustomerApproval */
+  managerApproveItinerary: async (id: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_APPROVE(id),
+    );
+    return extractResult<string>(response.data);
+  },
+
+  /** Manager từ chối lịch trình private tour → PendingAdjustment, kèm lý do */
+  managerRejectItinerary: async (id: string, reason: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_REJECT(id),
+      { reason },
     );
     return extractResult<string>(response.data);
   },
@@ -683,6 +709,28 @@ export const tourInstanceService = {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.REJECT_TRANSPORTATION(instanceId, activityId),
       data
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  submitPrivateTourForManagerReview: async (instanceId: string) => {
+    const response = await api.post<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_SUBMIT_FOR_REVIEW(instanceId),
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  managerApprovePrivateTour: async (instanceId: string) => {
+    const response = await api.post<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_APPROVE(instanceId),
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  managerRejectPrivateTour: async (instanceId: string, reason: string) => {
+    const response = await api.post<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.PRIVATE_MANAGER_REJECT(instanceId),
+      { reason },
     );
     return extractResult<unknown>(response.data);
   },

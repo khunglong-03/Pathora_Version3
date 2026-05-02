@@ -230,10 +230,12 @@ export function CustomTourInstanceRequestListPage({
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
                 <option value="all">Tất cả</option>
-                <option value="draft">Draft (Chờ xử lý)</option>
-                <option value="pendingadjustment">Pending Adjustment</option>
-                <option value="confirmed">Confirmed (Đã xác nhận)</option>
-                <option value="cancelled">Cancelled (Đã huỷ)</option>
+                <option value="draft">Bản nháp (Draft)</option>
+                <option value="pendingmanagerreview">Chờ Quản lý duyệt</option>
+                <option value="pendingcustomerapproval">Chờ Khách hàng chốt</option>
+                <option value="pendingadjustment">Cần điều chỉnh</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="cancelled">Đã huỷ</option>
               </select>
               <Icon
                 icon="heroicons:chevron-down"

@@ -142,6 +142,119 @@ const toEditForm = (data: NormalizedTourInstanceDto): EditForm => ({
 
 type InstanceDetailDataState = "loading" | "ready" | "error";
 
+/* ── Manager Review Panel (used when status = PendingManagerReview) ──── */
+function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAction: () => void }) {
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleApprove = async () => {
+    setLoading("approve");
+    setError(null);
+    setSuccess(null);
+    try {
+      await tourInstanceService.managerApproveItinerary(instanceId);
+      setSuccess("Lịch trình đã được duyệt. Tour đang chờ khách hàng xác nhận.");
+      onAction();
+    } catch (err: unknown) {
+      const apiError = handleApiError(err);
+      setError(apiError.message || "Không thể duyệt lịch trình.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!note.trim()) {
+      setError("Vui lòng nhập ghi chú điều chỉnh trước khi gửi.");
+      return;
+    }
+    setLoading("reject");
+    setError(null);
+    setSuccess(null);
+    try {
+      await tourInstanceService.managerRejectItinerary(instanceId, note.trim());
+      setSuccess("Lịch trình đã bị trả lại. Tour Operator sẽ nhận được ghi chú của bạn.");
+      setNote("");
+      onAction();
+    } catch (err: unknown) {
+      const apiError = handleApiError(err);
+      setError(apiError.message || "Không thể gửi yêu cầu điều chỉnh.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <article className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm space-y-5">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+          <Icon icon="heroicons:clipboard-document-check" className="size-5" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-stone-900">Duyệt lịch trình</h3>
+          <p className="text-xs text-stone-500">Tour Operator đã hoàn thiện lịch trình. Xem xét và duyệt hoặc yêu cầu điều chỉnh.</p>
+        </div>
+      </div>
+
+      {success && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+          <Icon icon="heroicons:check-circle" className="size-5 text-emerald-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-emerald-800 font-medium">{success}</p>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <Icon icon="heroicons:exclamation-triangle" className="size-5 text-red-500 mt-0.5 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      {/* Note textarea */}
+      <div>
+        <label htmlFor="manager-review-note" className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block mb-2">
+          Ghi chú điều chỉnh (bắt buộc khi yêu cầu điều chỉnh)
+        </label>
+        <textarea
+          id="manager-review-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="VD: Cần bổ sung hoạt động buổi tối ngày 2, điều chỉnh giá vận chuyển..."
+          rows={3}
+          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 resize-none transition-all"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <button
+          onClick={handleApprove}
+          disabled={loading !== null}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
+        >
+          {loading === "approve" ? (
+            <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+          ) : (
+            <><Icon icon="heroicons:check-circle" className="size-4" /> Duyệt lịch trình</>
+          )}
+        </button>
+        <button
+          onClick={handleReject}
+          disabled={loading !== null}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-orange-200 bg-white text-orange-600 text-sm font-semibold transition-all hover:bg-orange-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:border-stone-200"
+        >
+          {loading === "reject" ? (
+            <><Icon icon="heroicons:arrow-path" className="size-4 animate-spin" /> Đang xử lý...</>
+          ) : (
+            <><Icon icon="heroicons:arrow-uturn-left" className="size-4" /> Yêu cầu điều chỉnh</>
+          )}
+        </button>
+      </div>
+    </article>
+  );
+}
+
 export interface TourInstanceDetailPageProps {
   readOnly?: boolean;
 }
@@ -954,6 +1067,29 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
             </div>
           </div>
         </header>
+
+        {/* ── Manager Review Panel (PendingManagerReview + readOnly/manager) ─── */}
+        {readOnly && isManager && data.status?.toLowerCase() === "pendingmanagerreview" && (
+          <ManagerReviewPanel instanceId={data.id} onAction={() => setReloadToken((v) => v + 1)} />
+        )}
+
+        {/* ── Manager Review Note (visible to Tour Operator when PendingAdjustment) ─── */}
+        {!readOnly && data.managerReviewNote && (
+          <article className="rounded-2xl border border-orange-200 bg-orange-50 p-5 shadow-sm space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                <Icon icon="heroicons:chat-bubble-oval-left-ellipsis" className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-orange-900">Ghi chú từ Manager</h3>
+                <p className="text-xs text-orange-600">Vui lòng điều chỉnh lịch trình theo hướng dẫn bên dưới</p>
+              </div>
+            </div>
+            <div className="bg-white border border-orange-100 rounded-xl p-4">
+              <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-wrap">{data.managerReviewNote}</p>
+            </div>
+          </article>
+        )}
 
         {!isEditing ? (
           <>

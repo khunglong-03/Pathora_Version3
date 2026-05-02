@@ -30,7 +30,9 @@ public sealed record CreateTourInstanceActivityCommand(
     [property: JsonPropertyName("arrivalTime")] DateTimeOffset? ArrivalTime = null,
     [property: JsonPropertyName("requestedVehicleType")] VehicleType? RequestedVehicleType = null,
     [property: JsonPropertyName("requestedSeatCount")] int? RequestedSeatCount = null,
-    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null,
+    [property: JsonPropertyName("roomType")] RoomType? RoomType = null,
+    [property: JsonPropertyName("roomCount")] int? RoomCount = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }
@@ -93,6 +95,26 @@ public sealed class CreateTourInstanceActivityCommandValidator : AbstractValidat
                 .Null()
                 .WithErrorCode(TourInstanceTransportErrors.TransportationTypeNotAllowedCode)
                 .WithMessage(TourInstanceTransportErrors.TransportationTypeNotAllowedDescription.En);
+        });
+
+        When(x => x.ActivityType == TourDayActivityType.Accommodation, () =>
+        {
+            RuleFor(x => x.RoomType)
+                .NotNull()
+                .WithMessage("Room type is required for accommodation activity.");
+            RuleFor(x => x.RoomCount)
+                .NotNull()
+                .GreaterThan(0)
+                .LessThanOrEqualTo(1000)
+                .WithMessage("Room count must be between 1 and 1000.");
+        }).Otherwise(() =>
+        {
+            RuleFor(x => x.RoomType)
+                .Null()
+                .WithMessage("Room type is only allowed for accommodation activity.");
+            RuleFor(x => x.RoomCount)
+                .Null()
+                .WithMessage("Room count is only allowed for accommodation activity.");
         });
     }
 }

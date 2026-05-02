@@ -39,6 +39,9 @@ export interface TourInstanceEndpoints {
   DELETE_INSTANCE_ACTIVITY: (instanceId: string, dayId: string, activityId: string) => string;
   GET_PROVIDER_ASSIGNED: string;
   APPROVE: (id: string) => string;
+  PRIVATE_SUBMIT_FOR_REVIEW: (id: string) => string;
+  PRIVATE_MANAGER_APPROVE: (id: string) => string;
+  PRIVATE_MANAGER_REJECT: (id: string) => string;
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
@@ -116,6 +119,12 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/days/${dayId}/activities/${activityId}`,
   GET_PROVIDER_ASSIGNED: "/api/tour-instance/provider-assigned",
   APPROVE: (id: string): string => `/api/tour-instance/${id}/approve`,
+  PRIVATE_SUBMIT_FOR_REVIEW: (id: string): string =>
+    `/api/tour-instance/${id}/private/submit-for-review`,
+  PRIVATE_MANAGER_APPROVE: (id: string): string =>
+    `/api/tour-instance/${id}/manager-approve`,
+  PRIVATE_MANAGER_REJECT: (id: string): string =>
+    `/api/tour-instance/${id}/manager-reject`,
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/activities/${activityId}/assign`,
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string): string =>

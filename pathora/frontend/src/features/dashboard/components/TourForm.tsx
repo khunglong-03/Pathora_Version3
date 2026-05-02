@@ -2808,35 +2808,6 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
-                                    {isExternalOnlyTransportation(act.transportationType) && (
-                                      <>
-                                        <div>
-                                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                            Số hiệu chuyến bay / Chuyến tàu dự kiến
-                                          </label>
-                                          <input
-                                            type="text"
-                                            value={act.bookingReference || ""}
-                                            onChange={(e) => updateActivity(ci, di, ai, "bookingReference", e.target.value)}
-                                            placeholder="VD: VN245, SE3..."
-                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                                            Giá vé dự kiến
-                                          </label>
-                                          <input
-                                            type="number"
-                                            min={0}
-                                            value={act.price || ""}
-                                            onChange={(e) => updateActivity(ci, di, ai, "price", e.target.value)}
-                                            placeholder="VD: 1500000"
-                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                          />
-                                        </div>
-                                      </>
-                                    )}
 
                                   </div>
                                 )}

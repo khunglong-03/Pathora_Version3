@@ -25,6 +25,8 @@ public class TourInstanceEntity : Aggregate<Guid>
     public TourType InstanceType { get; set; } = TourType.Public;
     public TourInstanceStatus Status { get; set; } = TourInstanceStatus.Available;
     public string? CancellationReason { get; set; }
+    /// <summary>Lý do Manager từ chối lịch trình lúc review (Private tour). Reset khi Operator re-submit.</summary>
+    public string? ManagerReviewNote { get; set; }
     public bool WantsCustomization { get; set; } = false;
     public string? CustomizationNotes { get; set; }
 
@@ -445,8 +447,10 @@ public class TourInstanceEntity : Aggregate<Guid>
             TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.InProgress => next is TourInstanceStatus.Completed,
-            TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
-            TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingManagerReview => next is TourInstanceStatus.PendingCustomerApproval or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingCustomerApproval => next is TourInstanceStatus.Confirmed or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Completed => false,
             TourInstanceStatus.Cancelled => false,
             _ => false
@@ -454,5 +458,79 @@ public class TourInstanceEntity : Aggregate<Guid>
 
         if (!valid)
             throw new InvalidOperationException($"Không thể chuyển trạng thái từ {current} sang {next}.");
+    }
+
+    /// <summary>
+    /// Operator nộp lịch trình Private tour cho Manager duyệt.
+    /// Cho phép từ <see cref="TourInstanceStatus.Draft"/> hoặc <see cref="TourInstanceStatus.PendingAdjustment"/>.
+    /// Reset <see cref="ManagerReviewNote"/> để clear lý do từ chối cũ.
+    /// </summary>
+    public void SubmitForManagerReview(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới gửi Manager duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingManagerReview);
+        Status = TourInstanceStatus.PendingManagerReview;
+        ManagerReviewNote = null;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager đồng ý lịch trình → chuyển sang <see cref="TourInstanceStatus.PendingCustomerApproval"/>.
+    /// </summary>
+    public void ManagerApproveItinerary(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Manager duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingCustomerApproval);
+        Status = TourInstanceStatus.PendingCustomerApproval;
+        ManagerReviewNote = null;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager từ chối lịch trình → trả về Operator chỉnh sửa (<see cref="TourInstanceStatus.PendingAdjustment"/>).
+    /// Lý do bắt buộc, lưu vào <see cref="ManagerReviewNote"/>.
+    /// </summary>
+    public void ManagerRejectItinerary(string reason, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Manager duyệt.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Lý do từ chối không được để trống.", nameof(reason));
+        EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
+        Status = TourInstanceStatus.PendingAdjustment;
+        ManagerReviewNote = reason.Trim();
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Customer đồng ý lịch trình → <see cref="TourInstanceStatus.Confirmed"/>.
+    /// </summary>
+    public void CustomerApproveItinerary(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Customer duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.Confirmed);
+        Status = TourInstanceStatus.Confirmed;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Customer yêu cầu chỉnh sửa thêm → trả về Operator (<see cref="TourInstanceStatus.PendingAdjustment"/>).
+    /// </summary>
+    public void CustomerRequestAdjustment(string reason, string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ tour riêng mới qua bước Customer duyệt.");
+        EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
+        Status = TourInstanceStatus.PendingAdjustment;
+        ManagerReviewNote = string.IsNullOrWhiteSpace(reason) ? null : $"[Customer] {reason.Trim()}";
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 }

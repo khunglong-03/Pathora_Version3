@@ -32,4 +32,8 @@ public static class TourInstanceEndpoint
 
     public const string FinalSellPrice = "{id:guid}/final-sell-price";
     public const string PrivateSettlement = "{id:guid}/private-settlement";
+
+    /// <summary>Manager duyệt/từ chối lịch trình private tour (PendingManagerReview).</summary>
+    public const string ManagerApproveItinerary = "{id:guid}/manager-approve";
+    public const string ManagerRejectItinerary = "{id:guid}/manager-reject";
 }

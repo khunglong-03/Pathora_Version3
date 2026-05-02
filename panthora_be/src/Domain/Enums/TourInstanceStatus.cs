@@ -21,5 +21,9 @@ public enum TourInstanceStatus
     [Description("Draft")]
     Draft = 8,
     [Description("Pending Adjustment")]
-    PendingAdjustment = 9
+    PendingAdjustment = 9,
+    [Description("Pending Manager Review")]
+    PendingManagerReview = 10,
+    [Description("Pending Customer Approval")]
+    PendingCustomerApproval = 11
 }

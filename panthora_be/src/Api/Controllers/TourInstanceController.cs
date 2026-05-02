@@ -170,6 +170,34 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    // Private tour itinerary review workflow.
+    // Operator submits the edited itinerary for Manager approval.
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpPost("{id:guid}/private/submit-for-review")]
+    public async Task<IActionResult> SubmitPrivateForManagerReview(Guid id)
+    {
+        var result = await Sender.Send(new SubmitPrivateTourForManagerReviewCommand(id));
+        return HandleResult(result);
+    }
+
+    // Manager approves → moves to PendingCustomerApproval (forwarded to customer).
+    [Authorize(Roles = "Admin,Manager")]
+    [HttpPost("{id:guid}/private/manager-approve")]
+    public async Task<IActionResult> ManagerApprovePrivate(Guid id)
+    {
+        var result = await Sender.Send(new ManagerApprovePrivateTourCommand(id));
+        return HandleResult(result);
+    }
+
+    // Manager rejects → returns to PendingAdjustment with note for Operator.
+    [Authorize(Roles = "Admin,Manager")]
+    [HttpPost("{id:guid}/private/manager-reject")]
+    public async Task<IActionResult> ManagerRejectPrivate(Guid id, [FromBody] ManagerRejectPrivateRequest request)
+    {
+        var result = await Sender.Send(new ManagerRejectPrivateTourCommand(id, request.Reason));
+        return HandleResult(result);
+    }
+
     // ER-12: manager-level assignment requires Admin/Manager/TourOperator.
     [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost("{instanceId:guid}/accommodations/{activityId:guid}/assign-supplier")]
@@ -468,3 +496,6 @@ public sealed record ChangeTourInstanceStatusRequest(
 
 public sealed record ConfirmExternalTransportRequest(
     [property: JsonPropertyName("confirm")] bool Confirm = true);
+
+public sealed record ManagerRejectPrivateRequest(
+    [property: JsonPropertyName("reason")] string Reason);
