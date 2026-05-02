@@ -349,7 +349,7 @@ export function VisaApplicationPage() {
                       <Icon icon="heroicons:magnifying-glass" className="size-6 text-slate-300" />
                     </div>
                     <p className="text-base font-semibold text-slate-900 mb-1">{t("landing.visa.noResults")}</p>
-                    <p className="text-sm text-slate-500 max-w-[30ch]">Try adjusting your search or filters to find what you're looking for.</p>
+                    <p className="text-sm text-slate-500 max-w-[30ch]">Try adjusting your search or filters to find what you&apos;re looking for.</p>
                   </div>
                 ) : (
                   filtered.map((p) => (

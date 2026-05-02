@@ -38,9 +38,17 @@ public sealed class VisaApplicationController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "AdminAndManager")]
     [HttpPut("status")]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateVisaApplicationStatusCommand command)
+    {
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "AdminAndManager")]
+    [HttpPost("quote-fee")]
+    public async Task<IActionResult> QuoteFee([FromBody] QuoteVisaSupportFeeCommand command)
     {
         var result = await Sender.Send(command);
         return HandleResult(result);

@@ -2,8 +2,15 @@
 
 export interface PublicBookingEndpoints {
   CREATE: string;
+  /** CustomerOnly: fetch booking detail for the authenticated customer. */
+  GET_DETAIL: (id: string) => string;
   /** Anonymous: private custom tour pending booking + draft instance only. */
   GET_CHECKOUT_PRICE: (id: string) => string;
+  GET_VISA_REQUIREMENTS: (id: string) => string;
+  UPSERT_PARTICIPANT_PASSPORT: (bookingId: string, participantId: string) => string;
+  SUBMIT_VISA_APPLICATION: (id: string) => string;
+  UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string) => string;
+  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string) => string;
 }
 
 export interface BookingEndpoints {
@@ -57,7 +64,13 @@ export interface PaymentEndpoints {
 
 export const PUBLIC_BOOKING: PublicBookingEndpoints = {
   CREATE: "/api/public/bookings",
+  GET_DETAIL: (id: string): string => `/api/public/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/public/bookings/${id}/checkout-price`,
+  GET_VISA_REQUIREMENTS: (id: string): string => `/api/public/bookings/${id}/visa-requirements`,
+  UPSERT_PARTICIPANT_PASSPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/participants/${participantId}/passport`,
+  SUBMIT_VISA_APPLICATION: (id: string): string => `/api/public/bookings/${id}/visa-applications`,
+  UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${applicationId}`,
+  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${participantId}/request-support`
 };
 
 export const BOOKING: BookingEndpoints = {

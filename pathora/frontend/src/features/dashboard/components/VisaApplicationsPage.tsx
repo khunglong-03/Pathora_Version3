@@ -135,9 +135,52 @@ export function VisaApplicationsPage() {
     setReloadToken((value) => value + 1);
   };
 
+  const handleQuoteFee = async (id: string) => {
+    const feeStr = window.prompt(t("visa.prompt.quoteFeeAmount", "Enter fee amount in VND:"));
+    if (!feeStr) return;
+    const fee = parseFloat(feeStr);
+    if (isNaN(fee) || fee <= 0) {
+      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.invalidFee", "Invalid fee amount")));
+      return;
+    }
+    
+    try {
+      await managerService.quoteVisaFee({ visaApplicationId: id, fee });
+      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.quoted", "Fee quoted successfully")));
+      retryLoading();
+    } catch (err) {
+      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to quote fee"));
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    if (!window.confirm(t("visa.confirm.approve", "Are you sure you want to approve this visa application?"))) return;
+    try {
+      await managerService.updateVisaStatus({ visaApplicationId: id, status: 3 }); // 3 = Approved
+      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.approved", "Visa application approved")));
+      retryLoading();
+    } catch (err) {
+      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to approve visa"));
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    const reason = window.prompt(t("visa.prompt.rejectReason", "Enter reason for rejection:"));
+    if (!reason) return;
+    
+    try {
+      await managerService.updateVisaStatus({ visaApplicationId: id, status: 4, refusalReason: reason }); // 4 = Rejected
+      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.rejected", "Visa application rejected")));
+      retryLoading();
+    } catch (err) {
+      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to reject visa"));
+    }
+  };
+
   const filters = [
     { key: "all", label: t("common.visaApplications.filterAll", "All") },
     { key: "pending", label: t("common.visaApplications.filterPending", "Pending") },
+    { key: "awaiting_payment", label: t("visa.statusAwaitingPayment", "Awaiting Payment") },
     { key: "under_review", label: t("visa.statusUnderReview", "Under Review") },
     { key: "approved", label: t("common.visaApplications.filterApproved", "Approved") },
     { key: "rejected", label: t("common.visaApplications.filterRejected", "Rejected") },
@@ -372,6 +415,11 @@ export function VisaApplicationsPage() {
                           <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
                             {t("common.visaApplications.column.decision", "Decision")}
                           </th>
+                          {isManager && (
+                            <th className="text-right px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
+                              {t("common.actions", "Actions")}
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-stone-50">
@@ -385,7 +433,7 @@ export function VisaApplicationsPage() {
                             className="group hover:bg-stone-50/50 transition-colors duration-150"
                           >
                             <td className="px-6 py-4">
-                              <span className="font-mono text-xs text-stone-500 tracking-tight">{visa.id}</span>
+                              <span className="font-mono text-xs text-stone-500 tracking-tight" title={visa.id}>{visa.id.length > 8 ? visa.id.substring(0, 8) + '...' : visa.id}</span>
                             </td>
                             <td className="px-6 py-4">
                               <p className="text-sm font-medium text-stone-800">{visa.applicant}</p>
@@ -413,6 +461,36 @@ export function VisaApplicationsPage() {
                                 {visa.decisionDate}
                               </span>
                             </td>
+                            {isManager && (
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {visa.status === "pending" && (
+                                    <button
+                                      onClick={() => handleQuoteFee(visa.id)}
+                                      className="px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
+                                    >
+                                      {t("visa.action.quoteFee", "Quote Fee")}
+                                    </button>
+                                  )}
+                                  {visa.status === "under_review" && (
+                                    <>
+                                      <button
+                                        onClick={() => handleApprove(visa.id)}
+                                        className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+                                      >
+                                        {t("common.approve", "Approve")}
+                                      </button>
+                                      <button
+                                        onClick={() => handleReject(visa.id)}
+                                        className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                      >
+                                        {t("common.reject", "Reject")}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            )}
                           </motion.tr>
                         ))}
                       </tbody>

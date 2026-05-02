@@ -15,7 +15,6 @@ interface BookingPaymentSummaryProps {
   booking: BookingDetail;
   totalGuests: number;
   showPayRemaining: boolean;
-  showVisaStatus: boolean;
   showCancelBooking: boolean;
   getPaymentStatusLabel: (s: BookingDetail["paymentStatus"]) => string;
 }
@@ -24,7 +23,6 @@ export function BookingPaymentSummary({
   booking,
   totalGuests,
   showPayRemaining,
-  showVisaStatus,
   showCancelBooking,
   getPaymentStatusLabel,
 }: BookingPaymentSummaryProps) {
@@ -163,20 +161,6 @@ export function BookingPaymentSummary({
                 </span>
               </button>
             </motion.div>
-          )}
-
-          {showVisaStatus && (
-            <motion.button
-              key="btn-visa"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors"
-            >
-              <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-                <AirplaneTilt weight="bold" className="size-5 text-blue-500" />
-              </motion.div>
-              Visa Status
-            </motion.button>
           )}
 
           {showCancelBooking && (

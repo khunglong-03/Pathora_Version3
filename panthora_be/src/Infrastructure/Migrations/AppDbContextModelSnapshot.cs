@@ -381,6 +381,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("VisaServiceFeeTotal")
+                        .HasColumnType("numeric");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingDate");
@@ -4578,6 +4581,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsSystemAssisted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
@@ -4594,6 +4600,18 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<decimal?>("ServiceFee")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset?>("ServiceFeePaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ServiceFeeQuotedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ServiceFeeTransactionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -4605,11 +4623,15 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookingParticipantId");
+                    b.HasIndex("BookingParticipantId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" IN ('Pending', 'Processing', 'Approved')");
 
                     b.HasIndex("PassportId");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("ServiceFeeTransactionId");
+
+                    b.HasIndex("BookingParticipantId", "Status");
 
                     b.ToTable("VisaApplications", (string)null);
                 });

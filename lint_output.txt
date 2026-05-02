@@ -1,0 +1,1181 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/e2e/transport-driver-activities.spec.ts
+  10:28  warning  '_page' is defined but never used  @typescript-eslint/no-unused-vars
+  16:68  warning  '_page' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/full-screenshot.js
+  1:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/inspect.js
+  1:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/screenshot-final.js
+  1:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/screenshot.js
+  1:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/scroll-screenshot.js
+  1:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/axiosInstance.ts
+  121:15  warning  'parsedData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  123:37  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  174:29  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  196:24  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+  213:18  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/endpoints/index.ts
+  29:3  warning  'SearchToursParams' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/errorHandling.ts
+  37:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/responseInterceptor.ts
+  1:8  warning  'axios' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/__tests__/adminService.test.ts
+    5:24  warning  'AdminBooking' is defined but never used  @typescript-eslint/no-unused-vars
+  180:89  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:96  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/__tests__/transportProviderService.availability.test.ts
+  12:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/adminUserService.ts
+  15:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/homeService.ts
+   5:3  warning  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  11:3  warning  'SearchTour' is defined but never used   @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/hotelProviderService.ts
+  255:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/tourInstanceService.ts
+  927:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  930:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/api/services/transportProviderService.ts
+  219:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  348:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/(user)/HomeClient.tsx
+  26:19  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/(user)/HomeClient.tsx:26:19
+  24 | export default function HomeClient() {
+  25 |   const [mounted, setMounted] = useState(false);
+> 26 |   useEffect(() => setMounted(true), []);
+     |                   ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |
+  28 |   if (!mounted) return <div className="min-h-screen bg-black" />;
+  29 |  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/(user)/bookings/[id]/cancellation/page.tsx
+  5:52  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/(user)/page.tsx
+  2:17  warning  'Suspense' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/(user)/payment/[transactionCode]/page.tsx
+   27:7   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  144:28  warning  'setRateLimitMessage' is assigned a value but never used                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  249:6   warning  React Hook useEffect has a missing dependency: 'fetchStatus'. Either include it or remove the dependency array                                                                                                                                                                           react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/__tests__/proxy.test.ts
+  15:3  warning  'isAdminPortal' is defined but never used              @typescript-eslint/no-unused-vars
+  22:3  warning  'USER_DEFAULT_PATH' is defined but never used          @typescript-eslint/no-unused-vars
+  23:3  warning  'ADMIN_ROLE_DEFAULT_PATH' is defined but never used    @typescript-eslint/no-unused-vars
+  24:3  warning  'MANAGER_ROLE_DEFAULT_PATH' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/AdminShell.tsx
+  39:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/AdminShell.tsx:39:5
+  37 |
+  38 |     const roles = parseAuthRoles(authRolesRaw);
+> 39 |     setIsAdmin(roles.includes(ADMIN_ROLE_NAME));
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |   }, []);
+  41 |
+  42 |   return (  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/bookings/accommodation/[id]/page.tsx
+   5:71  warning  'BookingGuestDetail' is defined but never used    @typescript-eslint/no-unused-vars
+   9:52  warning  'ArrowRightIcon' is defined but never used        @typescript-eslint/no-unused-vars
+  19:10  warning  'reloadToken' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/bookings/accommodation/page.tsx
+   9:8   warning  'PaginatedHotelList' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  21:40  warning  'TicketIcon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  38:10  warning  'reloadToken' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  76:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/bookings/accommodation/page.tsx:76:10
+  74 |
+  75 |   useEffect(() => {
+> 76 |     void loadBookings();
+     |          ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  77 |   }, [loadBookings]);
+  78 |
+  79 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotel-providers/page.tsx
+  69:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+  72:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotel-providers/page.tsx:72:10
+  70 |
+  71 |   useEffect(() => {
+> 72 |     void loadProviders();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  73 |   }, [loadProviders]);
+  74 |
+  75 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/blocks/components/BlocksTable.tsx
+  28:19  warning  'today' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/blocks/page.tsx
+  85:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/blocks/page.tsx:85:10
+  83 |
+  84 |   useEffect(() => {
+> 85 |     void loadBlocks();
+     |          ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  86 |   }, [loadBlocks]);
+  87 |
+  88 |   const handleRefresh = () => void loadBlocks();  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/inventory/page.tsx
+    5:58  warning  'PaginatedHotelList' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   63:10  warning  'reloadToken' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   67:10  warning  'total' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  102:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/inventory/page.tsx:102:10
+  100 |
+  101 |   useEffect(() => {
+> 102 |     void loadInventory();
+      |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  103 |   }, [loadInventory]);
+  104 |
+  105 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/suppliers/[id]/page.tsx
+   7:36  warning  'HotelAccommodationSummary' is defined but never used                                                                  @typescript-eslint/no-unused-vars
+  10:3   warning  'AdminEmptyState' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  15:15  warning  'PhoneIcon' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  15:26  warning  'EnvelopeSimpleIcon' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  15:46  warning  'MapPinIcon' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  15:58  warning  'FileTextIcon' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  16:10  warning  'formatDate' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  31:9   warning  'router' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  57:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  90:14  warning  'err' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/suppliers/page.tsx
+   7:58  warning  'PaginatedHotelList' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  36:10  warning  'reloadToken' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  77:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/hotels/suppliers/page.tsx:77:10
+  75 |
+  76 |   useEffect(() => {
+> 77 |     void loadSuppliers();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |   }, [loadSuppliers]);
+  79 |
+  80 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/settings/manager-bank-accounts/page.tsx
+   33:11  warning  'PaginatedManagersResponse' is defined but never used                                                  @typescript-eslint/no-unused-vars
+  142:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  143:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  145:42  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/[id]/staff/page.tsx
+  35:10  warning  'isReassigning' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  63:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  66:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/[id]/staff/page.tsx:66:10
+  64 |
+  65 |   useEffect(() => {
+> 66 |     void loadData();
+     |          ^^^^^^^^ Avoid calling setState() directly within an effect
+  67 |   }, [loadData]);
+  68 |
+  69 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/actions.ts
+  3:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/components/TeamAssignmentModal.tsx
+  85:16  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/page.tsx
+  89:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/tour-managers/page.tsx:89:10
+  87 |
+  88 |   useEffect(() => {
+> 89 |     void loadStaff();
+     |          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  90 |   }, [loadStaff]);
+  91 |
+  92 |   const handleRefresh = () => {  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/transport-providers/[id]/page.tsx
+   9:3   warning  'AdminEmptyState' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  66:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  84:46  warning  Unexpected any. Specify a different type                                                                               @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/transport-providers/page.tsx
+   43:10  warning  'total' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   44:10  warning  'pendingCount' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   70:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/transport-providers/page.tsx:70:10
+  68 |
+  69 |   useEffect(() => {
+> 70 |     void loadStats();
+     |          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |   }, [loadStats, reloadToken]);
+  72 |
+  73 |   const loadProviders = useCallback(async () => {                   react-hooks/set-state-in-effect
+   97:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  100:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/transport-providers/page.tsx:100:10
+   98 |
+   99 |   useEffect(() => {
+> 100 |     void loadProviders();
+      |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  101 |   }, [loadProviders]);
+  102 |
+  103 |   const handleRefresh = () => setReloadToken((t) => t + 1);  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/users/[id]/page.tsx
+   6:32  warning  'TourManagerStaffDto' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   9:3   warning  'AdminEmptyState' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  31:10  warning  'formatDate' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  71:6   warning  React Hook useCallback has an unnecessary dependency: 'reloadToken'. Either exclude it or remove the dependency array       react-hooks/exhaustive-deps
+  90:6   warning  React Hook useCallback has an unnecessary dependency: 'staffReloadToken'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/admin/users/page.tsx
+  16:8   warning  'Icon' is defined but never used                      @typescript-eslint/no-unused-vars
+  42:24  warning  'setStatusFilter' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  80:19  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/api/dev-logger/route.ts
+  18:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/auth/callback/__tests__/callbackPage.test.ts
+  1:32  warning  'vi' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/hotel/__tests__/page.test.tsx
+  85:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/hotel/page.tsx
+  110:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/hotel/rooms/page.tsx
+  276:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  284:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/manager/bank-account/page.tsx
+  21:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/manager/bank-accounts/page.tsx
+  218:10  warning  'showConfirmModal' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  218:28  warning  'setShowConfirmModal' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  219:10  warning  'pendingFormData' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  219:27  warning  'setPendingFormData' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/manager/dashboard/bookings/[id]/cancellation/page.tsx
+  5:51  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/manager/tour-management/search/page.tsx
+   26:11  warning  't' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   57:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/manager/tour-management/search/page.tsx:57:5
+  55 |
+  56 |   useEffect(() => {
+> 57 |     fetchResults();
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |   }, [fetchResults]);
+  59 |
+  60 |   const statusBadge = (status: string) => {  react-hooks/set-state-in-effect
+  171:31  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/not-found.tsx
+  10:7  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/robots.ts
+  1:10  warning  'Metadata' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/sidemap.ts
+  1:10  warning  'Metadata' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/tour-guide/page.tsx
+   4:10  warning  'MapTrifoldIcon' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  78:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/tour-operator/tours/[id]/edit/page.tsx
+  9:42  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/tour-operator/tours/[id]/page.tsx
+  9:42  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/transport/page.tsx
+   15:3   warning  'CalendarCheckIcon' is defined but never used         @typescript-eslint/no-unused-vars
+  107:83  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  285:9   warning  'tripsInProgress' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/transport/profile/page.tsx
+  4:22  warning  'BuildingsIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/transport/trips/page.tsx
+  14:3   warning  'TripStatus' is defined but never used                @typescript-eslint/no-unused-vars
+  56:10  warning  'isDetailLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/app/transport/vehicles/page.tsx
+   11:3   warning  'XCircle' is defined but never used            @typescript-eslint/no-unused-vars
+  285:29  warning  'isActive' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/Loading.tsx
+  21:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  51:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/hotel/__tests__/HotelProfileForm.test.tsx
+  5:8  warning  'userEvent' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/transport/DriverForm.tsx
+   24:7   warning  'LICENSE_TYPE_LABELS' is assigned a value but never used                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  242:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Breadcrumbs.tsx
+  32:6  warning  React Hook useMemo has an unnecessary dependency: 'pathname'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Button.tsx
+  2:8  warning  'Icon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Checkbox.tsx
+  53:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Dropdown.tsx
+  35:3  warning  'className' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/FileInput.tsx
+   88:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  102:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Icon.tsx
+  12:72  warning  'UserCircleGearIcon' is defined but never used  @typescript-eslint/no-unused-vars
+  14:65  warning  'AirplaneTiltIcon' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Image.tsx
+  23:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/InputGroup.tsx
+  43:3  warning  'classGroup' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  47:3  warning  'value' is defined but never used                @typescript-eslint/no-unused-vars
+  49:3  warning  'icon' is defined but never used                 @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Popover.tsx
+  37:23  warning  'className' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Select.tsx
+  39:3  warning  'classGroup' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  42:3  warning  'readonly' is defined but never used             @typescript-eslint/no-unused-vars
+  45:3  warning  'icon' is defined but never used                 @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Switch.tsx
+  57:11  warning  Elements with the ARIA role "switch" must have the following attributes defined: aria-checked  jsx-a11y/role-has-required-aria-props
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/TextInput.tsx
+  44:3  warning  'classGroup' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  50:3  warning  'icon' is defined but never used                 @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Textarea.tsx
+  35:3  warning  'classGroup' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  41:3  warning  'icon' is defined but never used                 @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/Tooltip.tsx
+  9:6  warning  'props' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/components/ui/__tests__/TourImageUpload.test.tsx
+   2:32  warning  'vi' is defined but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   3:27  warning  'waitFor' is defined but never used                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  43:8   warning  React Hook React.useEffect has an unnecessary dependency: 'existingThumbnail'. Either exclude it or remove the dependency array. Outer scope values like 'existingThumbnail' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/about/components/AboutTeamSection.tsx
+  2:17  warning  'useRef' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingCustomerApprovalAction.tsx
+  16:3  warning  'bookingId' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingDetailPage.tsx
+   4:10  warning  'motion' is defined but never used        @typescript-eslint/no-unused-vars
+  34:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingHistoryHero.tsx
+  4:21  warning  'Ticket' is defined but never used       @typescript-eslint/no-unused-vars
+  4:29  warning  'CheckCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingHistoryPage.tsx
+  57:44  warning  'isError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingInfoCard.tsx
+  3:10  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingOverviewTab.tsx
+    5:10  warning  'QuickInfoItem' is defined but never used  @typescript-eslint/no-unused-vars
+  136:55  warning  'index' is defined but never used          @typescript-eslint/no-unused-vars
+  188:50  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  232:49  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingPaymentSummary.tsx
+  6:32  warning  'AirplaneTilt' is defined but never used           @typescript-eslint/no-unused-vars
+  7:25  warning  'PAYMENT_STATUS_COLOR' is defined but never used   @typescript-eslint/no-unused-vars
+  8:26  warning  'getPaymentStatusLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/BookingVisaSection.tsx
+   45:6    warning  React Hook useEffect has a missing dependency: 'fetchRequirements'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  104:71   warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+  108:130  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/CustomerAddParticipants.tsx
+   4:51  warning  'WarningCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  20:75  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/VisaUploadForm.tsx
+   7:38  warning  'VisaApplicationSummaryDto' is defined but never used  @typescript-eslint/no-unused-vars
+  14:28  warning  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  15:27  warning  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  88:41  warning  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/__tests__/BookingVisaSection.test.tsx
+  36:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/components/__tests__/VisaUploadForm.test.tsx
+  62:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/hooks/__tests__/useBookings.test.tsx
+   25:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/bookings/hooks/useBookings.ts
+  1:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/cancellations/components/ManagerCancellationDetail.tsx
+  4:41  warning  'Ticket' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/checkout/components/CheckoutPage.tsx
+  214:6  warning  React Hook useEffect has a missing dependency: 'searchParams'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  373:9  warning  'hasTourInstanceBooking' is assigned a value but never used                                                      @typescript-eslint/no-unused-vars
+  584:9  warning  'showBookingSummary' is assigned a value but never used                                                          @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/checkout/components/CheckoutRequestPage.tsx
+  217:9  warning  'checkoutFlowParam' is assigned a value but never used                                                           @typescript-eslint/no-unused-vars
+  281:6  warning  React Hook useEffect has a missing dependency: 'searchParams'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  451:9  warning  'hasTourInstanceBooking' is assigned a value but never used                                                      @typescript-eslint/no-unused-vars
+  682:9  warning  'showBookingSummary' is assigned a value but never used                                                          @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/checkout/components/PaymentSidebar.tsx
+  45:29  warning  '_initialSeconds' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/checkout/components/paymentFlowUtils.ts
+  62:48  warning  '_url' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/custom-tour/components/CustomTourForm.tsx
+   4:10  warning  'useForm' is defined but never used   @typescript-eslint/no-unused-vars
+  46:3   warning  'setValue' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/custom-tour/components/CustomTourPage.tsx
+   9:8   warning  'Icon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  85:22  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/custom-tour/components/CustomTourPage.tsx:85:22
+  83 |
+  84 |   const toggleTravelInterest = (interest: TourRequestTravelInterest) => {
+> 85 |     const current = (watch("travelInterests") ?? []) as TourRequestTravelInterest[];
+     |                      ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  86 |     const next = current.includes(interest)
+  87 |       ? current.filter((item) => item !== interest)
+  88 |       : [...current, interest];  react-hooks/incompatible-library
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AddStaffModal.tsx
+  85:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminDashboardPage.tsx
+   5:10  warning  'AdminSidebar' is defined but never used             @typescript-eslint/no-unused-vars
+   5:24  warning  'TopBar' is defined but never used                   @typescript-eslint/no-unused-vars
+  17:10  warning  'sidebarOpen' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  17:23  warning  'setSidebarOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminLogoutButton.tsx
+  18:11  warning  'portal' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminSidebar.tsx
+   24:3  warning  'PaintBrushIcon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  241:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminSidebar.tsx:241:5
+  239 |
+  240 |   useEffect(() => {
+> 241 |     setMounted(true);
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  242 |   }, []);
+  243 |
+  244 |   const navItems =                                                      react-hooks/set-state-in-effect
+  382:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  969:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminSidebar.tsx:969:5
+  967 |
+  968 |   useEffect(() => {
+> 969 |     setMounted(true);
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  970 |   }, []);
+  971 |
+  972 |   const currentLang = (i18n.resolvedLanguage || i18n.language || "en")  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/AdminUserTable.tsx
+  97:27  warning  'index' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CancellationPolicyList.tsx
+  64:6  warning  React Hook useEffect has a missing dependency: 'loadPolicies'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CreateStaffModal.test.tsx
+  7:15  warning  'CreateStaffRequest' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CreateStaffModal.tsx
+  26:10  warning  'apiError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CreateTourInstancePage.tsx
+    14:16  warning  'CollapsibleSection' is defined but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    33:3   warning  'buildActivityTypeByActivityId' is defined but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    34:3   warning  'clearRoomTypeAssignments' is defined but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    35:3   warning  'hasRoomAssignments' is defined but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   394:9   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   805:3   warning  'hotelProviders' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   815:3   warning  'updateImageUrl' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   816:3   warning  'appendImageUrl' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   822:3   warning  'hotelDetailsBySupplierId' is defined but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  2145:10  warning  'reloadToken' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2151:10  warning  'checkingDuplicate' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  2517:46  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2521:28  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2522:29  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2594:6   warning  React Hook useEffect has a missing dependency: 'form.endDate'. Either include it or remove the dependency array                                                                                                                                                                          react-hooks/exhaustive-deps
+  3047:77  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CustomTourInstanceRequestListPage.tsx
+  152:6   warning  React Hook useEffect has a missing dependency: 'safeT'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  160:5   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  166:9   warning  'formatCurrency' is assigned a value but never used                                                       @typescript-eslint/no-unused-vars
+  364:25  warning  'isPublic' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/CustomTourRequestDetailPage.tsx
+   48:11  warning  't' is assigned a value but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   49:9   warning  'router' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  566:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/DepositPolicyList.tsx
+  37:6  warning  React Hook useEffect has a missing dependency: 'loadPolicies'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/DriverActivityDrawer.tsx
+  25:11  warning  't' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  39:6   warning  React Hook useEffect has a missing dependency: 'loadActivities'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/HotelOnboardingWizard.tsx
+   10:3   warning  'PlusIcon' is defined but never used             @typescript-eslint/no-unused-vars
+   11:3   warning  'XIcon' is defined but never used                @typescript-eslint/no-unused-vars
+   50:10  warning  'supplierId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   80:14  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+   97:24  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  113:14  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/HotelProviderCard.tsx
+  43:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/HotelTourAssignmentPage.tsx
+   55:10  warning  'isApprovalActionLoading' is assigned a value but never used                                                    @typescript-eslint/no-unused-vars
+  123:6   warning  React Hook useEffect has a missing dependency: 'fetchDetail'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  135:22  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  275:21  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  299:21  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  320:21  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  341:9   warning  'isApproved' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  504:60  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                 react/no-unescaped-entities
+  504:75  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                 react/no-unescaped-entities
+  642:98  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/InsurancePage.tsx
+  221:6  warning  React Hook useEffect has a missing dependency: 'isManager'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/ManagerDashboardPage.tsx
+   8:3  warning  'CalendarDotsIcon' is defined but never used          @typescript-eslint/no-unused-vars
+  10:3  warning  'AirplaneTakeoffIcon' is defined but never used       @typescript-eslint/no-unused-vars
+  12:3  warning  'TrendUpIcon' is defined but never used               @typescript-eslint/no-unused-vars
+  22:3  warning  'ManagerUpcomingDeparture' is defined but never used  @typescript-eslint/no-unused-vars
+  23:3  warning  'ManagerRecentBooking' is defined but never used      @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PaymentsPage.tsx
+  110:6  warning  React Hook useEffect has a missing dependency: 'isManager'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PricingPolicyList.tsx
+  67:6  warning  React Hook useEffect has a missing dependency: 'loadPolicies'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PricingTierInput.tsx
+  3:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PrivateTourInstanceDetailPage.tsx
+  155:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PrivateTourInstanceEditPage.tsx
+    7:18  warning  'AnimatePresence' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  500:6   warning  React Hook useCallback has an unnecessary dependency: 'endDate'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  851:39  warning  'index' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/PublicTourBookingAssignmentPanel.tsx
+  237:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/StaffReassignModal.tsx
+  5:15  warning  'StaffMemberDto' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/StaffScheduleCalendar.tsx
+  179:21  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/StaffScheduleCalendar.tsx:179:21
+  177 |   const { user } = useAuth();
+  178 |   const [mounted, setMounted] = useState(false);
+> 179 |   useEffect(() => { setMounted(true); }, []);
+      |                     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  180 |   const safeT = (key: string, fallback: string) =>
+  181 |     mounted ? t(key, fallback) : fallback;
+  182 |     react-hooks/set-state-in-effect
+  238:6   warning  React Hook useEffect has a missing dependency: 'safeT'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TourDetailPage.tsx
+    28:10  warning  'AdminSidebar' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    28:24  warning  'TopBar' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  1174:10  warning  'sidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  1174:23  warning  'setSidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  1360:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1414:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TourForm.tsx
+     2:38   warning  'useRef' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+     8:8    warning  'SearchableSelect' is defined but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+    14:10   warning  'pricingPolicyService' is defined but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    15:10   warning  'depositPolicyService' is defined but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    16:10   warning  'cancellationPolicyService' is defined but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    19:15   warning  'PricingPolicy' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    20:15   warning  'DepositPolicy' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    21:15   warning  'CancellationPolicy' is defined but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    24:25   warning  'isExternalOnlyTransportation' is defined but never used                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   425:114  warning  'showPolicySections' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   469:9    warning  'transportationTypes' is assigned a value but never used                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  1216:9    warning  'addLinkToResource' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  1244:9    warning  'updateLinkToResource' is assigned a value but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  1276:9    warning  'removeLinkToResource' is assigned a value but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  1329:42   warning  '_' is assigned a value but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  1337:49   warning  '_' is assigned a value but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  3254:25   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  3265:25   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  3284:27   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  3292:27   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TourInstanceDetailPage.tsx
+    42:15  warning  'BookingTicketEntry' is defined but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   297:9   warning  'canEditItinerary' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   318:10  warning  'tourOperators' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   318:25  warning  'setTourOperators' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   319:10  warning  'showAssignOperatorModal' is assigned a value but never used                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   320:10  warning  'selectedOperatorId' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   320:30  warning  'setSelectedOperatorId' is assigned a value but never used                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   321:10  warning  'assigningOperator' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   321:29  warning  'setAssigningOperator' is assigned a value but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   322:10  warning  'showCancelConfirm' is assigned a value but never used                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   323:10  warning  'cancellingInstance' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   323:30  warning  'setCancellingInstance' is assigned a value but never used                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   324:10  warning  'cancelReason' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   324:24  warning  'setCancelReason' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   974:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1149:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1937:26  warning  '_i' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  2116:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  2172:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TourInstanceListPage.tsx
+   22:10  warning  'AdminSidebar' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   22:24  warning  'TopBar' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  170:10  warning  'sidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  170:23  warning  'setSidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  577:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TourListPage.tsx
+   15:10  warning  'AdminSidebar' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   15:24  warning  'TopBar' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   49:10  warning  'sidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   49:23  warning  'setSidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  363:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TranslationTabForm.tsx
+  61:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/TransportTourAssignmentPage.tsx
+  660:6  warning  React Hook useMemo has an unnecessary dependency: 'approveDraft.rows'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/VisaApplicationsPage.tsx
+  97:6  warning  React Hook useEffect has a missing dependency: 'isManager'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/AdminUserTable.test.tsx
+  2:32  warning  'vi' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/BulkApproveConfirmationModal.test.tsx
+  29:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:86  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/CreateTourInstancePage.helpers.test.ts
+  225:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/CreateTourInstancePage.test.tsx
+  322:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  324:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  326:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  327:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  330:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  335:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  338:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  341:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  342:87  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  345:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  346:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  547:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/HotelTourAssignmentPage.test.tsx
+  104:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  203:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  215:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/SupplierReassignmentModal.test.tsx
+   69:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  173:87  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  210:87  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  226:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/TourManagerCard.test.tsx
+  2:32  warning  'fn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/VisaApplicationsPage.test.tsx
+    8:10  warning  'adminService' is defined but never used  @typescript-eslint/no-unused-vars
+   70:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/__tests__/createTourInstanceAssignments.test.ts
+  18:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/bookings/BookingsPage.tsx
+  3:17  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/bookings/ui/BookingsShared.tsx
+  2:10  warning  'Icon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/bookings/ui/BookingsStatCards.tsx
+  21:56  warning  'accentBorder' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/bookings/ui/BookingsTable.tsx
+  4:10  warning  'Icon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour-instance/ViewComponents.tsx
+    4:10  warning  'NormalizedTourInstanceDto' is defined but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  107:9   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour/TourForm.tsx
+     2:38  warning  'useRef' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+     9:10  warning  'pricingPolicyService' is defined but never used                                                       @typescript-eslint/no-unused-vars
+    10:10  warning  'depositPolicyService' is defined but never used                                                       @typescript-eslint/no-unused-vars
+    11:10  warning  'cancellationPolicyService' is defined but never used                                                  @typescript-eslint/no-unused-vars
+    14:15  warning  'PricingPolicy' is defined but never used                                                              @typescript-eslint/no-unused-vars
+    15:15  warning  'DepositPolicy' is defined but never used                                                              @typescript-eslint/no-unused-vars
+    16:15  warning  'CancellationPolicy' is defined but never used                                                         @typescript-eslint/no-unused-vars
+   210:7   warning  'isValidUrl' is assigned a value but never used                                                        @typescript-eslint/no-unused-vars
+   365:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+   471:10  warning  'enTranslation' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  1069:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  1073:7   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  1075:40  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  1085:53  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+  1086:52  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour/builders/BasicInfoSection.tsx
+   8:8  warning  'SearchableSelect' is defined but never used      @typescript-eslint/no-unused-vars
+  82:3  warning  'setBasicInfo' is defined but never used          @typescript-eslint/no-unused-vars
+  83:3  warning  'setEnTranslation' is defined but never used      @typescript-eslint/no-unused-vars
+  85:3  warning  'setExistingThumbnail' is defined but never used  @typescript-eslint/no-unused-vars
+  87:3  warning  'setExistingImages' is defined but never used     @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour/builders/InsuranceSection.tsx
+  6:15  warning  'TourFormValues' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour/builders/TourItineraryBuilder.tsx
+  149:3   warning  'transportationTypes' is defined but never used     @typescript-eslint/no-unused-vars
+  157:3   warning  'onAddLinkToResource' is defined but never used     @typescript-eslint/no-unused-vars
+  158:3   warning  'onRemoveLinkToResource' is defined but never used  @typescript-eslint/no-unused-vars
+  159:3   warning  'onUpdateLinkToResource' is defined but never used  @typescript-eslint/no-unused-vars
+  421:42  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+  450:42  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+  778:44  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+  797:44  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/dashboard/components/tour/builders/TourPreviewSection.tsx
+  196:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  207:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  226:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  234:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/BoldFeaturedTrips.tsx
+  23:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/BoldHeroSection.tsx
+   37:86  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   38:38  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  168:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  187:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  203:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/BoldLatestTours.tsx
+  25:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/BoldTrendingDestinations.tsx
+  52:6  warning  React Hook React.useCallback has an unnecessary dependency: 'i18n.language'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/HeroSection.tsx
+   5:10  warning  'Icon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  56:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/HeroSection.tsx:56:5
+  54 |
+  55 |   useEffect(() => {
+> 56 |     setMounted(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  57 |     homeService.getDestinations().then((data) => {
+  58 |       if (data && data.length > 0) setDestinations(data);
+  59 |     }).catch(() => {});  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/home/components/ReviewsSection.tsx
+  17:9  warning  'locale' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/private-co-design/CoDesignPage.tsx
+  50:54  warning  Unexpected any. Specify a different type                                                                                         @typescript-eslint/no-explicit-any
+  51:61  warning  Unexpected any. Specify a different type                                                                                         @typescript-eslint/no-explicit-any
+  62:6   warning  React Hook useEffect has missing dependencies: 'user?.id' and 'user?.roles'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  79:49  warning  Unexpected any. Specify a different type                                                                                         @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/private-co-design/PrivateTourCoDesignOperatorSection.tsx
+  188:30  warning  'idx' is defined but never used                                  @typescript-eslint/no-unused-vars
+  342:56  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/private-co-design/__tests__/PrivateTourCoDesignManagerSection.test.tsx
+   10:40   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:106  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:94   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:123  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:94   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:120  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:118  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/LandingFooter.tsx
+  4:8  warning  'Image' is defined but never used               @typescript-eslint/no-unused-vars
+  9:7  warning  'FOOTER_BG' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/LandingHeader.tsx
+   26:10  warning  'handleCustomizer' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   33:3   warning  'FiSliders' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  416:9   warning  'customizerOpen' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  529:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/LandingHeader.tsx:529:5
+  527 |     // Truly unauthenticated: sync Redux and show login modal
+  528 |     dispatch(logOut());
+> 529 |     setAuthOpen(true);
+      |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  530 |     setAuthView("login");
+  531 |   }, [searchParams, clientIsAuth, router, dispatch]);
+  532 |  react-hooks/set-state-in-effect
+  536:7   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/LandingHeader.tsx:536:7
+  534 |   useEffect(() => {
+  535 |     if (clientIsAuth && authOpen) {
+> 536 |       setAuthOpen(false);
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  537 |     }
+  538 |   }, [clientIsAuth, authOpen]);
+  539 |                                                                     react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/ReviewsSection.tsx
+  16:34  warning  'tourId' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/shared/components/shared.tsx
+  4:39  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-guide/components/TourGuideCheckIn.tsx
+  4:21  warning  'UsersThree' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-guide/components/TourGuideItinerary.tsx
+  4:68  warning  'CheckCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerBookTransport.tsx
+  4:67  warning  'Ticket' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerResubmission.test.tsx
+  109:6  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerTourDetailPage.tsx
+  145:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerTourDetailPage.tsx:145:10
+  143 |
+  144 |   useEffect(() => {
+> 145 |     void fetchTour();
+      |          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  146 |   }, [fetchTour]);
+  147 |
+  148 |   if (dataState === "loading") {  react-hooks/set-state-in-effect
+  375:20  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+  502:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+  525:46  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  525:54  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  527:74  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  527:82  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  588:47  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerTourEditWrapper.tsx
+  48:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerTourEditWrapper.tsx:48:10
+  46 |
+  47 |   useEffect(() => {
+> 48 |     void fetchTour();
+     |          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |   }, [fetchTour]);
+  50 |
+  51 |   if (dataState === "loading") {  react-hooks/set-state-in-effect
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tour-operator/components/TourDesignerTourListPage.tsx
+    6:10  warning  'toast' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   70:10  warning  'reloadToken' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  297:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tours/components/HeroSection.tsx
+  10:7  warning  'HERO_BLUR_URL' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  29:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tours/components/SearchBar.tsx
+  5:8  warning  'TextInput' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tours/components/TourDetailPage.tsx
+   90:11  warning  'user' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  214:9   warning  'originalPrice' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  228:9   warning  'canBook' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tours/components/TourDiscoveryPage.tsx
+  49:10  warning  'reloadKey' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/tours/components/TourInstancePublicDetailPage.tsx
+    9:18  warning  'AnimatePresence' is defined but never used       @typescript-eslint/no-unused-vars
+   20:37  warning  'DynamicPricingDto' is defined but never used     @typescript-eslint/no-unused-vars
+  139:9   warning  'totalGuests' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/features/user/profile/ProfilePage.tsx
+  8:10  warning  'LandingHeader' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/proxy.ts
+  129:7  warning  'clearAuthCookies' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/store/api/auth/authApiSlice.ts
+  24:7  warning  'setAuthSessionCookies' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/store/api/bookingApi.ts
+  36:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/store/infrastructure/__tests__/authSlice.test.ts
+  1:32  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/store/infrastructure/__tests__/layoutSlice.test.ts
+  1:32  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/types/react-table.d.ts
+  141:31  warning  'T' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/types/tour.ts
+  83:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/utils/__tests__/apiResponse.test.ts
+  128:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/utils/apiResponse.ts
+   95:11  warning  'BackendErrorPayload' is defined but never used  @typescript-eslint/no-unused-vars
+  292:27  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  295:19  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+
+/Users/mac/Documents/GitHub/Pathora_Version3/pathora/frontend/src/utils/authRouting.ts
+  212:3  warning  'searchParams' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 486 problems (8 errors, 478 warnings)
+  0 errors and 7 warnings potentially fixable with the `--fix` option.
+

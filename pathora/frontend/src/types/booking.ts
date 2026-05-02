@@ -225,6 +225,9 @@ export interface BookingDetailResponse {
   numberInfant: number;
   totalPrice: number;
   status: BookingStatusEnum;
+  isVisaRequired?: boolean;
+  visaServiceFeeTotal?: number;
+  pendingTransactions?: BookingPendingTransaction[];
   activityReservations: BookingActivityReservationDto[];
   transportDetails: TransportDetailDto[];
   accommodationDetails: AccommodationDetailDto[];
@@ -252,3 +255,72 @@ export const toPaymentStatus = (value: number): PaymentStatusEnum => {
 export const toBookingStatus = (value: number): BookingStatusEnum => {
   return value as BookingStatusEnum;
 };
+
+// --- Visa Types ---
+export interface VisaRequirementParticipant {
+  id: string;
+  fullName: string;
+  requiresVisa: boolean;
+  missingDateOfBirth: boolean;
+  passport: PassportDto | null;
+  latestVisaApplication: VisaApplicationSummaryDto | null;
+  availableActions: string[];
+}
+
+export interface VisaApplicationSummaryDto {
+  id: string;
+  status: string;
+  destinationCountry: string;
+  minReturnDate: string | null;
+  refusalReason: string | null;
+  visaFileUrl: string | null;
+  isSystemAssisted: boolean;
+  serviceFee: number | null;
+  serviceFeePaidAt: string | null;
+  hasPendingServiceFee: boolean;
+}
+
+export interface VisaRequirementResponse {
+  bookingId: string;
+  tourInstanceId: string;
+  tourStatus: string;
+  isVisaRequired: boolean;
+  visaServiceFeeTotal: number;
+  participants: VisaRequirementParticipant[];
+}
+
+export interface CustomerPassportPayload {
+  passportNumber: string;
+  nationality: string | null;
+  issuedAt: string | null;
+  expiresAt: string | null;
+  fileUrl: string | null;
+}
+
+export interface SubmitVisaApplicationPayload {
+  bookingParticipantId: string;
+  destinationCountry: string;
+  minReturnDate?: string;
+  visaFileUrl?: string;
+}
+
+export interface UpdateVisaApplicationPayload {
+  destinationCountry?: string;
+  minReturnDate?: string;
+  visaFileUrl?: string;
+  isResubmitting?: boolean;
+}
+
+export interface RequestVisaSupportResponse {
+  serviceFeeQuoted: boolean;
+  message: string;
+}
+
+export interface BookingPendingTransaction {
+  transactionCode: string;
+  amount: number;
+  type: string;
+  purpose: string;
+  createdAt: string;
+  expiresAt: string | null;
+}

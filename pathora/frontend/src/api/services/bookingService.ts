@@ -3,6 +3,14 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 import { extractItems, extractResult } from "@/utils/apiResponse";
 import type { ServiceResponse } from "@/types/api";
 import type { CheckoutPriceResponse } from "./paymentService";
+import type { 
+  VisaRequirementResponse, 
+  CustomerPassportPayload, 
+  SubmitVisaApplicationPayload, 
+  UpdateVisaApplicationPayload, 
+  RequestVisaSupportResponse,
+  BookingDetailResponse
+} from "@/types/booking";
 
 // Tour Day Activity Status (for guide portal)
 export interface TourDayActivityStatus {
@@ -127,9 +135,50 @@ export const bookingService = {
   },
 
   getBookingDetail: async (bookingId: string) => {
-    const response = await api.get<ServiceResponse<any>>(
-      `/api/public/bookings/${bookingId}`,
+    // Use the CustomerBookingController endpoint (CustomerOnly policy).
+    // NOT BOOKING.GET_DETAIL (/api/bookings/{id}) — that's BookingInfoController
+    // which only allows Admin/Manager/TourOperator/TourGuide (403 for customers).
+    const response = await api.get<ServiceResponse<BookingDetailResponse>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.GET_DETAIL(bookingId),
     );
-    return extractResult<any>(response.data);
+    return extractResult<BookingDetailResponse>(response.data);
+  },
+
+  getVisaRequirements: async (bookingId: string) => {
+    const response = await api.get<ServiceResponse<VisaRequirementResponse>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.GET_VISA_REQUIREMENTS(bookingId),
+    );
+    return extractResult<VisaRequirementResponse>(response.data);
+  },
+
+  upsertParticipantPassport: async (bookingId: string, participantId: string, payload: CustomerPassportPayload) => {
+    const response = await api.put<ServiceResponse<unknown>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.UPSERT_PARTICIPANT_PASSPORT(bookingId, participantId),
+      payload
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  submitVisaApplication: async (bookingId: string, payload: SubmitVisaApplicationPayload) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.SUBMIT_VISA_APPLICATION(bookingId),
+      payload
+    );
+    return extractResult<string>(response.data);
+  },
+
+  updateVisaApplication: async (bookingId: string, applicationId: string, payload: UpdateVisaApplicationPayload) => {
+    const response = await api.put<ServiceResponse<unknown>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.UPDATE_VISA_APPLICATION(bookingId, applicationId),
+      payload
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  requestVisaSupport: async (bookingId: string, participantId: string) => {
+    const response = await api.post<ServiceResponse<RequestVisaSupportResponse>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.REQUEST_VISA_SUPPORT(bookingId, participantId)
+    );
+    return extractResult<RequestVisaSupportResponse>(response.data);
   },
 };

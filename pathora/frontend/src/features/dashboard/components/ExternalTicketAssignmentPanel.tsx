@@ -11,10 +11,8 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 export interface BookingTicketEntry {
   bookingId: string;
   customerName: string;
-  /** Số ghế cần thiết = adult + child */
+  /** Số ghế cần thiết = adult + child + infant */
   requiredSeats: number;
-  /** Số infant không cần ghế (thông tin) */
-  infantCount: number;
   /** Dữ liệu form người dùng nhập */
   flightNumber: string;    // VD: VN 123
   departureAt: string;     // datetime-local input
@@ -80,12 +78,11 @@ export default function ExternalTicketAssignmentPanel({
   const [entries, setEntries] = useState<Record<string, BookingTicketEntry>>(() => {
     const init: Record<string, BookingTicketEntry> = {};
     for (const b of bookings) {
-      const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0);
+      const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0) + (b.numberInfant ?? 0);
       init[b.id.toLowerCase()] = {
         bookingId: b.id.toLowerCase(),
         customerName: b.customerName,
         requiredSeats,
-        infantCount: b.numberInfant ?? 0,
         flightNumber: "",
         departureAt: "",
         arrivalAt: "",
@@ -280,10 +277,7 @@ export default function ExternalTicketAssignmentPanel({
             {transportLabel[transportType] ?? transportType} · {activityTitle}
           </p>
           <p className="text-sm text-stone-500 mt-1">
-            Gán vé cho từng booking — nhập đủ số ghế cho người lớn + trẻ em
-            <span className="ml-1 text-orange-600 font-medium">
-              (em bé &lt; 2 tuổi không cần ghế riêng)
-            </span>
+            Gán vé cho từng booking — nhập đủ số ghế cho tất cả hành khách (bao gồm em bé)
           </p>
         </div>
         <span
@@ -388,11 +382,6 @@ export default function ExternalTicketAssignmentPanel({
                     </p>
                     <p className="text-sm text-stone-500 mt-0.5">
                       {entry.requiredSeats} ghế cần
-                      {entry.infantCount > 0 && (
-                        <span className="ml-1 text-orange-600">
-                          · {entry.infantCount} em bé kẹp vé
-                        </span>
-                      )}
                     </p>
                   </div>
                 </div>
@@ -400,20 +389,7 @@ export default function ExternalTicketAssignmentPanel({
 
               {/* Form Grid */}
               <div className="space-y-5">
-                {/* Infant notice */}
-                {entry.infantCount > 0 && (
-                  <div className="flex items-start gap-3 rounded-[1.5rem] bg-orange-50/80 border border-orange-200/60 p-4 shadow-sm text-sm text-orange-800">
-                    <Icon
-                      icon="heroicons:information-circle"
-                      className="size-5 shrink-0 mt-0.5 text-orange-500"
-                    />
-                    <span className="leading-relaxed">
-                      Booking này có <strong>{entry.infantCount} em bé</strong> dưới 2 tuổi.
-                      Em bé không cần ghế riêng, chỉ cần ghi chú vào vé của người lớn đi kèm.
-                      Chỉ nhập <strong>{entry.requiredSeats} ghế</strong> cho người lớn + trẻ em.
-                    </span>
-                  </div>
-                )}                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Seat numbers — free text */}
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
@@ -466,11 +442,6 @@ export default function ExternalTicketAssignmentPanel({
                       placeholder="Ghi chú đặc biệt (bữa ăn, hành lý...)"
                       className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
-                    {entry.infantCount > 0 && (
-                      <p className="mt-1.5 text-xs text-orange-600">
-                        💡 Nên ghi rõ tên + ngày sinh em bé để hãng xác nhận kẹp vé
-                      </p>
-                    )}
                   </div>
 
                   <button

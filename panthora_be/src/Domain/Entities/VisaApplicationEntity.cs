@@ -1,5 +1,7 @@
 namespace Domain.Entities;
 
+using Domain.Events;
+
 /// <summary>
 /// Đơn xin visa cho một BookingParticipant. Lưu quốc gia đích, trạng thái,
 /// ngày về tối thiểu, lý do từ chối, và file đính kèm. Sau khi được cấp,
@@ -28,13 +30,26 @@ public class VisaApplicationEntity : Aggregate<Guid>
     /// <summary>Visa đã được cấp sau khi đơn được duyệt (null nếu chưa).</summary>
     public virtual VisaEntity? Visa { get; set; }
 
+    // System-assisted fields
+    /// <summary>True nếu khách yêu cầu hệ thống hỗ trợ tạo visa (chưa có visa sẵn).</summary>
+    public bool IsSystemAssisted { get; set; }
+    /// <summary>Phí dịch vụ hỗ trợ visa (do Manager báo giá).</summary>
+    public decimal? ServiceFee { get; set; }
+    /// <summary>ID PaymentTransaction dùng để thanh toán phí visa. Dùng để idempotent quote.</summary>
+    public Guid? ServiceFeeTransactionId { get; set; }
+    /// <summary>Thời điểm Manager báo giá phí visa.</summary>
+    public DateTimeOffset? ServiceFeeQuotedAt { get; set; }
+    /// <summary>Thời điểm khách thanh toán phí visa.</summary>
+    public DateTimeOffset? ServiceFeePaidAt { get; set; }
+
     public static VisaApplicationEntity Create(
         Guid bookingParticipantId,
         Guid passportId,
         string destinationCountry,
         string performedBy,
         DateTimeOffset? minReturnDate = null,
-        string? visaFileUrl = null)
+        string? visaFileUrl = null,
+        bool isSystemAssisted = false)
     {
         return new VisaApplicationEntity
         {
@@ -45,11 +60,56 @@ public class VisaApplicationEntity : Aggregate<Guid>
             Status = VisaStatus.Pending,
             MinReturnDate = minReturnDate,
             VisaFileUrl = visaFileUrl,
+            IsSystemAssisted = isSystemAssisted,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
             LastModifiedOnUtc = DateTimeOffset.UtcNow
         };
+    }
+
+    /// <summary>Khách yêu cầu hệ thống hỗ trợ làm visa.</summary>
+    public void RequestSystemAssistance(string performedBy)
+    {
+        IsSystemAssisted = true;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Manager báo giá phí hỗ trợ visa. Idempotent theo ServiceFeeTransactionId:
+    /// nếu đã quote cùng transactionId thì bỏ qua, không cộng phí lần 2.
+    /// </summary>
+    public bool QuoteServiceFee(decimal fee, Guid transactionId, string performedBy)
+    {
+        if (ServiceFeeTransactionId == transactionId)
+            return false; // Idempotent: đã quote với transaction này
+
+        ServiceFee = fee;
+        ServiceFeeTransactionId = transactionId;
+        ServiceFeeQuotedAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        
+        AddDomainEvent(new VisaServiceFeeQuotedEvent(Id, fee, performedBy));
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Đánh dấu phí visa đã được thanh toán. Idempotent theo ServiceFeeTransactionId.
+    /// </summary>
+    public bool MarkServiceFeePaid(Guid transactionId, string performedBy)
+    {
+        if (ServiceFeeTransactionId != transactionId)
+            return false; // Transaction không khớp
+        if (ServiceFeePaidAt.HasValue)
+            return false; // Đã đánh dấu paid rồi
+
+        ServiceFeePaidAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        return true;
     }
 
     public void Update(
@@ -60,6 +120,8 @@ public class VisaApplicationEntity : Aggregate<Guid>
         string? refusalReason = null,
         string? visaFileUrl = null)
     {
+        var oldStatus = Status;
+
         DestinationCountry = destinationCountry;
         Status = status ?? Status;
         MinReturnDate = minReturnDate;
@@ -67,5 +129,24 @@ public class VisaApplicationEntity : Aggregate<Guid>
         VisaFileUrl = visaFileUrl;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
+
+        if (status.HasValue && oldStatus != status.Value)
+        {
+            AddDomainEvent(new VisaApplicationStatusChangedEvent(Id, oldStatus, status.Value, performedBy));
+        }
+    }
+
+    /// <summary>Khách nộp lại sau khi bị Rejected: clear RefusalReason, chuyển về Pending.</summary>
+    public void Resubmit(string performedBy, string? visaFileUrl = null)
+    {
+        if (Status != VisaStatus.Rejected)
+            throw new InvalidOperationException("Chỉ có thể nộp lại đơn đã bị từ chối.");
+        Status = VisaStatus.Pending;
+        RefusalReason = null;
+        if (visaFileUrl != null)
+            VisaFileUrl = visaFileUrl;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 }
+

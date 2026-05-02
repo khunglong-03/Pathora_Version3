@@ -136,4 +136,28 @@ export const managerService = {
     const json = await response.json();
     return json.data ?? [];
   },
+
+  // ── Visa Applications ──
+  updateVisaStatus: async (data: {
+    visaApplicationId: string;
+    status: number;
+    refusalReason?: string;
+  }) => {
+    const response = await api.put<ServiceResponse<void>>(
+      "/api/visa-application/status",
+      data
+    );
+    return extractResult(response.data);
+  },
+
+  quoteVisaFee: async (data: {
+    visaApplicationId: string;
+    fee: number;
+  }) => {
+    const response = await api.post<ServiceResponse<string>>(
+      "/api/visa-application/quote-fee",
+      data
+    );
+    return extractResult(response.data);
+  },
 };

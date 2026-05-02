@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
-import { SAMPLE_BOOKINGS } from "./BookingDetailData";
+import { BookingVisaSection } from "./BookingVisaSection";
 import { bookingService } from "@/api/services";
 import {
   getStatusLabel,
@@ -69,16 +69,11 @@ export function BookingDetailPage() {
             if (cancelled) return;
             continue;
           }
-          // Exhausted retries and still no real data — fall back to sample
-          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
-        } catch (error) {
-          console.error(`Failed to fetch booking (attempt ${attempt + 1})`, error);
-          if (cancelled) return;
           if (attempt < MAX_RETRIES) {
             await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
             continue;
           }
-          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+          // Do not set sample booking
         } finally {
           if (!cancelled) setLoading(false);
         }
@@ -114,7 +109,7 @@ export function BookingDetailPage() {
     : (booking.status?.toLowerCase() || "pending");
   const mappedBooking = { ...booking, status: actualStatus };
 
-  const { totalGuests, showPayRemaining, showVisaStatus, showCancelBooking } =
+  const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
 
   const labelFns = {
@@ -143,6 +138,7 @@ export function BookingDetailPage() {
                 getPaymentMethodLabel={labelFns.getPaymentMethodLabel}
               />
               <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
+              {showVisaSection && <BookingVisaSection bookingId={mappedBooking.id} />}
               <BookingOverviewTab
                 booking={mappedBooking}
                 tourInstance={tourInstance}
@@ -165,7 +161,6 @@ export function BookingDetailPage() {
                 booking={mappedBooking}
                 totalGuests={totalGuests}
                 showPayRemaining={showPayRemaining}
-                showVisaStatus={showVisaStatus}
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
               />

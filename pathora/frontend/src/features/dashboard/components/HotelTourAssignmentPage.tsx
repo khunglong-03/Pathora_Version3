@@ -501,7 +501,7 @@ export default function HotelTourAssignmentPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-2 text-xs text-slate-400">* "Còn có thể gán" = tổng phòng trống + phòng đang giữ cho tour này (để không bị trừ 2 lần)</p>
+              <p className="mt-2 text-xs text-slate-400">* &quot;Còn có thể gán&quot; = tổng phòng trống + phòng đang giữ cho tour này (để không bị trừ 2 lần)</p>
             </Card>
           )}
 

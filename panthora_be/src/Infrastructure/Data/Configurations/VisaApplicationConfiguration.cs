@@ -27,9 +27,14 @@ public class VisaApplicationConfiguration : IEntityTypeConfiguration<VisaApplica
         builder.Property(x => x.VisaFileUrl)
             .HasMaxLength(1000);
 
-        builder.HasIndex(x => x.BookingParticipantId);
+        builder.HasIndex(x => new { x.BookingParticipantId, x.Status });
+        builder.HasIndex(x => x.ServiceFeeTransactionId);
         builder.HasIndex(x => x.PassportId);
-        builder.HasIndex(x => x.Status);
+
+        // Unique filtered index để mỗi participant chỉ có tối đa 1 application active (Pending, Processing, Approved) tại một thời điểm
+        builder.HasIndex(x => x.BookingParticipantId)
+            .IsUnique()
+            .HasFilter("\"Status\" IN ('Pending', 'Processing', 'Approved')");
 
         builder.HasOne(x => x.BookingParticipant)
             .WithMany(x => x.VisaApplications)

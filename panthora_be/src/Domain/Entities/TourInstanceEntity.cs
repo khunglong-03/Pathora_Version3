@@ -444,13 +444,14 @@ public class TourInstanceEntity : Aggregate<Guid>
         {
             TourInstanceStatus.PendingApproval => next is TourInstanceStatus.Available or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Available => next is TourInstanceStatus.Confirmed or TourInstanceStatus.SoldOut or TourInstanceStatus.Cancelled,
-            TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.PendingVisa or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.InProgress => next is TourInstanceStatus.Completed,
             TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingManagerReview => next is TourInstanceStatus.PendingCustomerApproval or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingCustomerApproval => next is TourInstanceStatus.Confirmed or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingVisa => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Completed => false,
             TourInstanceStatus.Cancelled => false,
             _ => false
@@ -538,6 +539,46 @@ public class TourInstanceEntity : Aggregate<Guid>
         EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
         Status = TourInstanceStatus.PendingAdjustment;
         ManagerReviewNote = string.IsNullOrWhiteSpace(reason) ? null : $"[Customer] {reason.Trim()}";
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Kích hoạt visa gate sau khi khách thanh toán. Chỉ cho Private tour đang Confirmed có IsVisa=true.
+    /// Idempotent: nếu đã PendingVisa thì chỉ cập nhật audit fields.
+    /// </summary>
+    public void EnterVisaGate(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ Private tour mới có visa gate.");
+
+        // Idempotent: đã PendingVisa thì skip transition, chỉ update audit
+        if (Status == TourInstanceStatus.PendingVisa)
+        {
+            LastModifiedBy = performedBy;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+            return;
+        }
+
+        EnsureValidTransition(Status, TourInstanceStatus.PendingVisa);
+        Status = TourInstanceStatus.PendingVisa;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Hoàn tất visa gate sau khi tất cả visa required được duyệt.
+    /// Chuyển về <see cref="TourInstanceStatus.Confirmed"/> để tiếp tục flow gán nhà cung cấp.
+    /// Idempotent: nếu đã Confirmed thì không throw.
+    /// </summary>
+    public void CompleteVisaGate(string performedBy)
+    {
+        // Idempotent: đã Confirmed thì bỏ qua
+        if (Status == TourInstanceStatus.Confirmed)
+            return;
+
+        EnsureValidTransition(Status, TourInstanceStatus.Confirmed);
+        Status = TourInstanceStatus.Confirmed;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

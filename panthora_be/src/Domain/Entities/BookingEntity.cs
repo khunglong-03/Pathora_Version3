@@ -48,6 +48,9 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>True nếu khách thanh toán đủ, False nếu chỉ đặt cọc.</summary>
     public bool IsFullPay { get; set; }
 
+    /// <summary>Phí hỗ trợ visa (dynamic, do Manager báo giá). Cộng dồn vào TotalPrice khi được thêm.</summary>
+    public decimal VisaServiceFeeTotal { get; private set; }
+
     // Booking type
     /// <summary>Loại booking: Join chuyến đi có sẵn hoặc Private tour riêng.</summary>
     public BookingType BookingType { get; set; } = BookingType.InstanceJoin;
@@ -184,6 +187,20 @@ public class BookingEntity : Aggregate<Guid>
     }
 
     public int TotalParticipants() => NumberAdult + NumberChild + NumberInfant;
+
+    /// <summary>
+    /// Cộng phí hỗ trợ visa vào booking. Không đổi BookingStatus.
+    /// Guard: amount phải dương.
+    /// </summary>
+    public void AddVisaServiceFee(decimal amount, string performedBy)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Phí visa phải lớn hơn 0.");
+        VisaServiceFeeTotal += amount;
+        TotalPrice += amount;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 
     private static void EnsureValidParticipants(int numberAdult, int numberChild, int numberInfant)
     {

@@ -150,6 +150,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
         _bookingRepository.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
         _bookingRepository.UpdateAsync(Arg.Any<BookingEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
 
@@ -169,6 +170,7 @@ public sealed class PrivateTourCoDesignHandlersTests
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
             CancellationToken.None);
 
+        if (result.IsError) Assert.Fail(result.FirstError.Description);
         Assert.False(result.IsError);
         Assert.Equal(9000m, result.Value.Delta); // Delta expected to be 9000
         Assert.NotNull(result.Value.TopUpTransactionId);
@@ -214,6 +216,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         _ownershipValidator.GetCurrentUserId().Returns(managerId.ToString());
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
         _bookingRepository.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
+        _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
 
@@ -233,6 +236,7 @@ public sealed class PrivateTourCoDesignHandlersTests
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
             CancellationToken.None);
 
+        if (result.IsError) Assert.Fail(result.FirstError.Description);
         Assert.False(result.IsError);
         Assert.Equal(-2000m, result.Value.Delta);
         Assert.Equal(2000m, result.Value.CreditAmount);

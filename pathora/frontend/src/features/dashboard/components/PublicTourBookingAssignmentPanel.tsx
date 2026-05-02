@@ -27,9 +27,8 @@ import type { BookingRoomAssignmentDto } from "@/api/services/tourInstanceServic
 export interface RoomAssignmentEntry {
   bookingId: string;
   customerName: string;
-  /** Số người lớn + trẻ em (không tính infant) */
+  /** Số người lớn + trẻ em + em bé */
   guestCount: number;
-  infantCount: number;
   /** Số phòng đề xuất theo guest count */
   roomsSuggested: number;
   /** Số phòng TourOperator phân bổ */
@@ -137,8 +136,7 @@ function AccommodationBookingCard({
       init[b.id] = {
         bookingId: b.id,
         customerName: b.customerName,
-        guestCount: adults + children,
-        infantCount: b.numberInfant ?? 0,
+        guestCount: adults + children + (b.numberInfant ?? 0),
         roomsSuggested: suggested,
         roomCount: suggested,
         roomType: defaultRoomType,
@@ -352,9 +350,6 @@ function AccommodationBookingCard({
                     <p className="text-base font-semibold text-stone-900 truncate">{booking.customerName}</p>
                     <p className="text-sm text-stone-500 mt-0.5">
                       {entry.guestCount} khách · đề xuất {entry.roomsSuggested} phòng
-                      {entry.infantCount > 0 && (
-                        <span className="ml-1 text-orange-600">· {entry.infantCount} em bé</span>
-                      )}
                     </p>
                   </div>
                 </div>

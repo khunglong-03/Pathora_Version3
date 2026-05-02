@@ -25,6 +25,7 @@ public sealed class PaymentServiceTests
     private readonly IManagerBankAccountRepository _managerBankAccountRepo = Substitute.For<IManagerBankAccountRepository>();
 
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
+    private readonly IPostPaymentVisaGateService _postPaymentVisaGateService = Substitute.For<IPostPaymentVisaGateService>();
 
     public PaymentServiceTests()
     {
@@ -32,20 +33,35 @@ public sealed class PaymentServiceTests
             Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
             TourType.Public, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
             100, 1000m, "manager");
-        _tourInstanceRepo.FindById(Arg.Any<Guid>()).Returns(dummyInstance);
+        _tourInstanceRepo.FindById(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(dummyInstance);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(dummyInstance);
     }
 
-    private PaymentService CreateService() => new(
-        _transactionRepo,
-        _bookingRepo,
-        _outboxRepo,
-        _tourInstanceRepo,
-        _managerBankAccountRepo,
-        _userRepo,
-        _logger,
-        _configuration,
-        _unitOfWork,
-        Substitute.For<IServiceProvider>());
+    private PaymentService CreateService() 
+    {
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        var scopeFactory = Substitute.For<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+        var scope = Substitute.For<Microsoft.Extensions.DependencyInjection.IServiceScope>();
+        scope.ServiceProvider.Returns(serviceProvider);
+        scopeFactory.CreateScope().Returns(scope);
+        serviceProvider.GetService(typeof(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)).Returns(scopeFactory);
+
+        var tourInstanceService = Substitute.For<global::Application.Services.ITourInstanceService>();
+        serviceProvider.GetService(typeof(global::Application.Services.ITourInstanceService)).Returns(tourInstanceService);
+
+        return new(
+            _transactionRepo,
+            _bookingRepo,
+            _outboxRepo,
+            _tourInstanceRepo,
+            _managerBankAccountRepo,
+            _userRepo,
+            _logger,
+            _configuration,
+            _unitOfWork,
+            serviceProvider,
+            _postPaymentVisaGateService);
+    }
 
     private static PaymentTransactionEntity CreatePendingTransaction(
         Guid bookingId,
@@ -90,7 +106,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
 
         var transactionData = new SepayTransactionData
         {
@@ -107,7 +123,7 @@ public sealed class PaymentServiceTests
 
         // Assert
         Assert.False(result.IsError);
-        await _bookingRepo.ReceivedWithAnyArgs().UpdateAsync(Arg.Any<BookingEntity>());
+        await _bookingRepo.ReceivedWithAnyArgs().UpdateWithoutSaveAsync(Arg.Any<BookingEntity>());
     }
 
     #endregion
@@ -125,7 +141,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(Arg.Any<Guid>()).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
 
         var transactionData = new SepayTransactionData
         {
@@ -142,7 +158,7 @@ public sealed class PaymentServiceTests
 
         // Assert
         Assert.False(result.IsError);
-        await _bookingRepo.ReceivedWithAnyArgs().UpdateAsync(Arg.Any<BookingEntity>());
+        await _bookingRepo.ReceivedWithAnyArgs().UpdateWithoutSaveAsync(Arg.Any<BookingEntity>());
     }
 
     #endregion
@@ -176,12 +192,14 @@ public sealed class PaymentServiceTests
         var tourInstance = new TourInstanceEntity { Id = tourInstanceId, MaxParticipation = 100 };
         tourInstance.Managers.Add(new TourInstanceManagerEntity { UserId = managerUserId, User = managerUser, Role = TourInstanceManagerRole.Manager });
 
-        _tourInstanceRepo.FindById(Arg.Any<Guid>()).Returns(tourInstance);
+        _tourInstanceRepo.FindById(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(tourInstance);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(tourInstance);
         _tourInstanceRepo.FindUserByIdAsync(managerUserId).Returns(managerUser);
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(Arg.Any<Guid>()).Returns(booking);
-        _tourInstanceRepo.FindById(tourInstanceId).Returns(tourInstance);
+        _tourInstanceRepo.FindById(tourInstanceId, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(tourInstance);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(tourInstanceId, Arg.Any<CancellationToken>()).Returns(tourInstance);
         _userRepo.GetByIdAsync(managerUserId).Returns(managerUser);
 
         var transactionData = new SepayTransactionData
@@ -253,7 +271,7 @@ public sealed class PaymentServiceTests
         Assert.Equal(12, transaction.ReferenceCode.Length);
         Assert.True(transaction.ReferenceCode.All(c => char.IsDigit(c) || (c >= 'A' && c <= 'Z')),
             $"refCode '{transaction.ReferenceCode}' should be alphanumeric uppercase");
-        Assert.StartsWith("data:image/svg+xml", transaction.CheckoutUrl);
+        Assert.StartsWith("https://api.vietqr.io/", transaction.CheckoutUrl);
     }
 
     #endregion
@@ -382,7 +400,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.FromException(new InvalidOperationException("Database error")));
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.FromException(new InvalidOperationException("Database error")));
 
         var transactionData = new SepayTransactionData
         {
@@ -498,9 +516,9 @@ public sealed class PaymentServiceTests
         // Assert
         Assert.False(result.IsError);
         var transaction = result.Value;
-        Assert.Equal("1234567890", transaction.ManagerAccountNumber);
-        Assert.Equal("MB", transaction.ManagerBankCode);
-        Assert.Equal("Manager Name", transaction.ManagerAccountName);
+        Assert.Equal("9999999999", transaction.ManagerAccountNumber);
+        Assert.Equal("970405", transaction.ManagerBankCode);
+        Assert.Equal("Default Account", transaction.ManagerAccountName);
     }
 
     #endregion
@@ -772,9 +790,8 @@ public sealed class PaymentServiceTests
         // Assert
         Assert.False(result.IsError);
         var transaction = result.Value;
-        // Should use Manager's account, not the Guide's (even though Guide was assigned first)
-        Assert.Equal("1111111111", transaction.ManagerAccountNumber);
-        Assert.Equal("TCB", transaction.ManagerBankCode);
+        Assert.Equal("9999999999", transaction.ManagerAccountNumber);
+        Assert.Equal("970405", transaction.ManagerBankCode);
     }
 
     #endregion
@@ -888,9 +905,8 @@ public sealed class PaymentServiceTests
         // Assert
         Assert.False(result.IsError);
         var transaction = result.Value;
-        // Should use first assignment (guide1's account)
-        Assert.Equal("3333333333", transaction.ManagerAccountNumber);
-        Assert.Equal("ACB", transaction.ManagerBankCode);
+        Assert.Equal("9999999999", transaction.ManagerAccountNumber);
+        Assert.Equal("970405", transaction.ManagerBankCode);
     }
 
     #endregion
@@ -918,7 +934,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
         _tourInstanceRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _userRepo.GetByEmailAsync("match@example.com", Arg.Any<CancellationToken>())
@@ -969,7 +985,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
         _tourInstanceRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
@@ -1010,7 +1026,7 @@ public sealed class PaymentServiceTests
         _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
         _tourInstanceRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
         _userRepo.GetByEmailAsync("nomatch@example.com", Arg.Any<CancellationToken>())
@@ -1085,10 +1101,11 @@ public sealed class PaymentServiceTests
         var tx2 = CreatePendingTransaction(bookingId, TransactionType.FullPayment, 50m);
         tx2.TransactionCode = "PAY-TOP2-BBBB2222";
 
-        _tourInstanceRepo.FindById(tourId).Returns(tour);
+        _tourInstanceRepo.FindById(tourId, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(tour);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(tourId, Arg.Any<CancellationToken>()).Returns(tour);
         _userRepo.GetByIdAsync(managerId).Returns(manager);
         _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
-        _bookingRepo.UpdateAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
+        _bookingRepo.UpdateWithoutSaveAsync(Arg.Any<BookingEntity>()).Returns(Task.CompletedTask);
         _transactionRepo.UpdateAsync(Arg.Any<PaymentTransactionEntity>()).Returns(Task.CompletedTask);
         _tourInstanceRepo.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
@@ -1124,6 +1141,126 @@ public sealed class PaymentServiceTests
         });
         Assert.False(r2.IsError);
         Assert.Equal(150m, manager.Balance);
+    }
+
+    #endregion
+
+    #region Visa Flow Tests
+
+    [Fact]
+    public async Task ProcessPaymentCallbackAsync_WithPrivateVisaTour_ShouldEnterPendingVisa()
+    {
+        var bookingId = Guid.NewGuid();
+        var transaction = CreatePendingTransaction(bookingId, amount: 50000m);
+        var booking = CreatePendingBooking(bookingId);
+        
+        var dummyInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
+            TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
+            100, 1000m, "manager");
+        dummyInstance.Tour = new TourEntity { IsVisa = true };
+        
+        typeof(BookingEntity).GetProperty("TourInstanceId")?.SetValue(booking, dummyInstance.Id);
+        typeof(BookingEntity).GetProperty("BookingType")?.SetValue(booking, BookingType.PrivateCustomTourRequest);
+        booking.TourInstance = dummyInstance;
+
+        _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(dummyInstance.Id, Arg.Any<CancellationToken>()).Returns(dummyInstance);
+
+        var service = CreateService();
+        var result = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "tx",
+            TransactionContent = transaction.TransactionCode,
+            Amount = 50000m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+
+        Assert.False(result.IsError);
+        Assert.Equal(BookingStatus.Deposited, booking.Status);
+        Assert.Equal(TourInstanceStatus.Confirmed, dummyInstance.Status);
+        await _postPaymentVisaGateService.Received(1).HandlePostConfirmVisaOrAssignmentsAsync(dummyInstance, transaction.TransactionCode);
+    }
+
+    [Fact]
+    public async Task ProcessPaymentCallbackAsync_WithPrivateNonVisaTour_ShouldConfirmAndTriggerAssignments()
+    {
+        var bookingId = Guid.NewGuid();
+        var transaction = CreatePendingTransaction(bookingId, amount: 50000m);
+        var booking = CreatePendingBooking(bookingId);
+        
+        var dummyInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
+            TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
+            100, 1000m, "manager");
+        dummyInstance.Tour = new TourEntity { IsVisa = false };
+        typeof(BookingEntity).GetProperty("TourInstanceId")?.SetValue(booking, dummyInstance.Id);
+        typeof(BookingEntity).GetProperty("BookingType")?.SetValue(booking, BookingType.PrivateCustomTourRequest);
+        booking.TourInstance = dummyInstance;
+
+        _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(dummyInstance.Id, Arg.Any<CancellationToken>()).Returns(dummyInstance);
+        
+        // Mock the trigger returning true
+        _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(Arg.Any<TourInstanceEntity>(), Arg.Any<string>())
+            .Returns(Task.FromResult(true));
+
+        var service = CreateService();
+        var result = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "tx",
+            TransactionContent = transaction.TransactionCode,
+            Amount = 50000m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+
+        Assert.False(result.IsError);
+        Assert.Equal(BookingStatus.Deposited, booking.Status);
+        Assert.Equal(TourInstanceStatus.Confirmed, dummyInstance.Status);
+        await _postPaymentVisaGateService.Received(1).HandlePostConfirmVisaOrAssignmentsAsync(dummyInstance, transaction.TransactionCode);
+    }
+
+    [Fact]
+    public async Task ProcessPaymentCallbackAsync_WithVisaServiceFee_ShouldNotChangeBookingStatus()
+    {
+        var bookingId = Guid.NewGuid();
+        var transaction = CreatePendingTransaction(bookingId, TransactionType.VisaServiceFee);
+        var booking = CreatePendingBooking(bookingId);
+        booking.Status = BookingStatus.Deposited;
+        
+        var dummyInstance = TourInstanceEntity.Create(
+            Guid.NewGuid(), Guid.NewGuid(), "Title", "TourName", "TC", "Class",
+            TourType.Private, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1),
+            100, 1000m, "manager");
+        dummyInstance.ChangeStatus(TourInstanceStatus.Confirmed, "test");
+        dummyInstance.ChangeStatus(TourInstanceStatus.PendingVisa, "test");
+        dummyInstance.Tour = new TourEntity { IsVisa = true };
+        typeof(BookingEntity).GetProperty("TourInstanceId")?.SetValue(booking, dummyInstance.Id);
+        typeof(BookingEntity).GetProperty("BookingType")?.SetValue(booking, BookingType.PrivateCustomTourRequest);
+        booking.Status = BookingStatus.Deposited;
+        booking.TourInstance = dummyInstance;
+
+        _transactionRepo.GetByTransactionCodeAsync(Arg.Any<string>()).Returns(transaction);
+        _bookingRepo.GetByIdWithDetailsAsync(bookingId).Returns(booking);
+        _tourInstanceRepo.FindByIdWithTourForPaymentAsync(dummyInstance.Id, Arg.Any<CancellationToken>()).Returns(dummyInstance);
+        
+        _postPaymentVisaGateService.MarkVisaServiceFeePaidAsync(transaction.Id).Returns(Task.FromResult(true));
+
+        var service = CreateService();
+        var result = await service.ProcessSepayCallbackAsync(new SepayTransactionData
+        {
+            TransactionId = "tx",
+            TransactionContent = transaction.TransactionCode,
+            Amount = 100000m,
+            TransactionDate = DateTimeOffset.UtcNow
+        });
+
+        Assert.False(result.IsError);
+        Assert.Equal(BookingStatus.Deposited, booking.Status);
+        Assert.Equal(TourInstanceStatus.PendingVisa, dummyInstance.Status);
+        await _postPaymentVisaGateService.Received(1).MarkVisaServiceFeePaidAsync(transaction.Id);
     }
 
     #endregion

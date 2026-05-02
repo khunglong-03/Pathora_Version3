@@ -56,6 +56,7 @@ public class PaymentService : IPaymentService
     private readonly ILogger<PaymentService> _logger;
     private readonly Domain.UnitOfWork.IUnitOfWork _unitOfWork;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IPostPaymentVisaGateService _postPaymentVisaGateService;
 
     public PaymentService(
         IPaymentTransactionRepository transactionRepository,
@@ -67,7 +68,8 @@ public class PaymentService : IPaymentService
         ILogger<PaymentService> logger,
         IConfiguration configuration,
         Domain.UnitOfWork.IUnitOfWork unitOfWork,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IPostPaymentVisaGateService postPaymentVisaGateService)
     {
         _transactionRepository = transactionRepository;
         _bookingRepository = bookingRepository;
@@ -78,6 +80,7 @@ public class PaymentService : IPaymentService
         _logger = logger;
         _unitOfWork = unitOfWork;
         _serviceProvider = serviceProvider;
+        _postPaymentVisaGateService = postPaymentVisaGateService;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
         _sepayBankCode = NormalizeConfigValue(configuration["Payment:Bank"]);
         _sepayQrBaseUrl = NormalizeConfigValue(configuration["Payment:QrBaseUrl"]);
@@ -294,7 +297,8 @@ public class PaymentService : IPaymentService
         await _transactionRepository.UpdateAsync(transaction);
 
         // Update booking status based on transaction type (and check capacity)
-        bool isBookingSuccess = await UpdateBookingStatusAsync(transaction);
+        var updateResult = await UpdateBookingStatusAsync(transaction);
+        bool isBookingSuccess = updateResult.IsSuccess;
 
         var bookingForCredit = transaction.Booking
             ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
@@ -378,7 +382,6 @@ public class PaymentService : IPaymentService
             }
         }
 
-        // Persist all changes (transaction + booking + manager balance) in one transaction
         try
         {
             await _unitOfWork.SaveChangeAsync(CancellationToken.None);
@@ -390,6 +393,17 @@ public class PaymentService : IPaymentService
             throw;
         }
 
+        if (updateResult.ShouldTriggerAssignments)
+        {
+            var booking = transaction.Booking ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
+            if (booking != null)
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
+                await tourService.TriggerProviderAssignmentsAsync(booking.TourInstanceId, CancellationToken.None);
+            }
+        }
+
         _logger.LogInformation(
             "Payment processed successfully: TransactionCode={TransactionCode}, Amount={Amount}, BookingId={BookingId}",
             transaction.TransactionCode, transaction.PaidAmount, transaction.BookingId);
@@ -397,22 +411,23 @@ public class PaymentService : IPaymentService
         return transaction;
     }
 
-    private async Task<bool> UpdateBookingStatusAsync(PaymentTransactionEntity transaction)
+    private async Task<(bool IsSuccess, bool ShouldTriggerAssignments)> UpdateBookingStatusAsync(PaymentTransactionEntity transaction)
     {
+        bool shouldTriggerAssignments = false;
         var booking = transaction.Booking
             ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
         if (booking == null)
         {
             _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
                 transaction.BookingId, transaction.TransactionCode);
-            return false;
+            return (false, false);
         }
 
-        var tourInstance = await _tourInstanceRepository.FindById(booking.TourInstanceId);
+        var tourInstance = await _tourInstanceRepository.FindByIdWithTourForPaymentAsync(booking.TourInstanceId, CancellationToken.None);
         if (tourInstance == null)
         {
             _logger.LogWarning("TourInstance {TourInstanceId} not found for booking {BookingId}", booking.TourInstanceId, booking.Id);
-            return false;
+            return (false, false);
         }
 
         // Only check and reserve capacity if the booking is currently Pending
@@ -426,7 +441,7 @@ public class PaymentService : IPaymentService
                     tourInstance.Id, booking.Id, tourInstance.CurrentParticipation, tourInstance.MaxParticipation);
                 booking.Cancel("Hết chỗ. Số tiền thanh toán đã được cộng vào số dư tài khoản.", "SYSTEM");
                 await _bookingRepository.UpdateAsync(booking);
-                return false;
+                return (false, false);
             }
 
             // Reserve capacity!
@@ -465,7 +480,6 @@ public class PaymentService : IPaymentService
                                 tourInstance.Id,
                                 transaction.TransactionCode);
                             // TODO: Notify managers that a private custom tour requires their attention.
-                            // The notification logic has been deferred to a specialized event/handler.
                         }
                         else
                         {
@@ -476,10 +490,14 @@ public class PaymentService : IPaymentService
                                 tourInstance.Id,
                                 transaction.TransactionCode);
 
-                            using var scope = _serviceProvider.CreateScope();
-                            var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
-                            await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                            shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
                         }
+                    }
+                    // Khi thanh toán deposit cho Private tour đã Confirmed → check visa gate
+                    else if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Confirmed)
+                    {
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
                     }
                 }
                 break;
@@ -505,7 +523,6 @@ public class PaymentService : IPaymentService
                                 tourInstance.Id,
                                 transaction.TransactionCode);
                             // TODO: Notify managers that a private custom tour requires their attention.
-                            // The notification logic has been deferred to a specialized event/handler.
                         }
                         else
                         {
@@ -516,12 +533,30 @@ public class PaymentService : IPaymentService
                                 tourInstance.Id,
                                 transaction.TransactionCode);
 
-                            using var scope = _serviceProvider.CreateScope();
-                            var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
-                            await tourService.TriggerProviderAssignmentsAsync(tourInstance.Id, CancellationToken.None);
+                            shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
                         }
                     }
+                    // Khi full pay cho Private tour đã Confirmed → check visa gate
+                    else if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Confirmed)
+                    {
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
+                    }
                 }
+                break;
+
+            case TransactionType.VisaServiceFee:
+                // Phí visa: chỉ đánh dấu VisaApplication fee paid, KHÔNG đổi BookingStatus
+                var marked = await _postPaymentVisaGateService.MarkVisaServiceFeePaidAsync(transaction.Id);
+                if (marked)
+                {
+                    // Chạy gate check ngay trong transaction
+                    var bookingId = booking.Id;
+                    _ = Task.Run(() => _postPaymentVisaGateService.TryCompleteVisaGateAsync(bookingId, default));
+                }
+                _logger.LogInformation(
+                    "VisaServiceFee transaction {TransactionCode} completed for booking {BookingId}. No booking status change.",
+                    transaction.TransactionCode, booking.Id);
                 break;
 
             default:
@@ -529,8 +564,8 @@ public class PaymentService : IPaymentService
                 break;
         }
 
-        await _bookingRepository.UpdateAsync(booking);
-        return true;
+        await _bookingRepository.UpdateWithoutSaveAsync(booking);
+        return (true, shouldTriggerAssignments);
     }
 
     public async Task<ErrorOr<PaymentTransactionEntity>> ExpireTransactionAsync(string transactionCode)
@@ -613,6 +648,8 @@ public class PaymentService : IPaymentService
 
         return transaction;
     }
+
+
 
     private async Task<Guid?> GetPrimaryManagerIdForTourInstanceAsync(Guid tourInstanceId)
     {

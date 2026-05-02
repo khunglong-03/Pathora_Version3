@@ -43,6 +43,14 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
     }
 
+    public async Task<TourInstanceEntity?> FindByIdWithTourForPaymentAsync(Guid tourInstanceId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TourInstances
+            .Include(t => t.Tour)
+            .Include(t => t.Managers)
+            .FirstOrDefaultAsync(t => t.Id == tourInstanceId && !t.IsDeleted, cancellationToken);
+    }
+
     public async Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         var idList = ids.ToList();

@@ -9,7 +9,8 @@ using ErrorOr;
 namespace Application.Features.BookingManagement.Queries.GetBookingDetail;
 
 public class GetBookingDetailQueryHandler(
-    IBookingRepository bookingRepository) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
+    IBookingRepository bookingRepository,
+    Application.Common.Interfaces.ICurrentUser currentUser) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
 {
     public async Task<ErrorOr<BookingDetailDto>> Handle(GetBookingDetailQuery request, CancellationToken cancellationToken)
     {
@@ -18,14 +19,23 @@ public class GetBookingDetailQueryHandler(
         if (booking == null)
             return Error.NotFound(ErrorConstants.Booking.NotFoundCode, "Booking not found");
 
-        var paidAmount = booking.Payments.Sum(p => p.Amount);
+        var currentUserId = currentUser.Id;
+        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin) && (!currentUserId.HasValue || currentUserId.Value.ToString() != booking.UserId?.ToString()))
+        {
+            return Error.Forbidden("Booking.Forbidden", "You do not have access to this booking.");
+        }
+
+        var paidAmount = booking.PaymentTransactions
+            .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
+            .Sum(t => t.PaidAmount ?? t.Amount);
+
+        // Include VisaServiceFeeTotal inside TotalPrice has been handled in booking.AddVisaServiceFee.
         var remainingBalance = Math.Max(0, booking.TotalPrice - paidAmount);
 
-        // Find pending transaction if any
-        var pendingTransaction = booking.PaymentTransactions
+        var pendingTransactions = booking.PaymentTransactions
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Pending)
             .OrderByDescending(t => t.CreatedOnUtc)
-            .FirstOrDefault();
+            .ToList();
 
         var durationDays = booking.TourInstance?.EndDate.Subtract(booking.TourInstance.StartDate).Days + 1 ?? 1;
 
@@ -52,10 +62,13 @@ public class GetBookingDetailQueryHandler(
         var dto = new BookingDetailDto
         {
             Id = booking.Id,
+            TourInstanceId = booking.TourInstanceId,
+            IsVisaRequired = booking.TourInstance?.Tour?.IsVisa ?? false,
             TourName = booking.TourInstance?.TourName ?? string.Empty,
             Reference = "PATH-" + booking.CreatedOnUtc.ToString("yyyy-MMdd-HHmm"),
             Tier = "standard", // Mocked or derived if needed
             Status = statusStr,
+            TourStatus = booking.TourInstance?.Status.ToString() ?? string.Empty,
             PaymentStatus = paymentStatusStr,
             PaymentMethod = booking.PaymentMethod.ToString().ToLower(),
             Location = booking.TourInstance?.Location ?? string.Empty,
@@ -70,11 +83,21 @@ public class GetBookingDetailQueryHandler(
             TotalAmount = booking.TotalPrice,
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,
+            VisaServiceFeeTotal = booking.VisaServiceFeeTotal,
             Image = booking.TourInstance?.Thumbnail?.PublicURL ?? "/assets/images/tours/placeholder.png",
             Description = booking.TourInstance?.TourName ?? string.Empty,
             Highlights = [],
             ImportantInfo = [],
-            PendingTransactionCode = pendingTransaction?.TransactionCode
+            PendingTransactionCode = pendingTransactions.FirstOrDefault()?.TransactionCode,
+            PendingTransactions = pendingTransactions.Select(t => new PendingTransactionDto
+            {
+                TransactionCode = t.TransactionCode ?? string.Empty,
+                Amount = t.Amount,
+                Type = t.Type.ToString(),
+                Purpose = t.Type == TransactionType.VisaServiceFee ? "Visa Service Fee" : "Tour Payment",
+                CreatedAt = t.CreatedOnUtc,
+                ExpiresAt = null // If you have an ExpiresAt logic, add it here
+            }).ToList()
         };
 
         return dto;

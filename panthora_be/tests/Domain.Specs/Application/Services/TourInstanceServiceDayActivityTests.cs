@@ -296,7 +296,11 @@ public class TourInstanceServiceDayActivityTests
     public async Task DeleteActivity_ShouldSucceed_WhenValid()
     {
         var command = new DeleteTourInstanceActivityCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        var activity = new TourInstanceDayActivityEntity { Id = command.ActivityId };
+        var activity = new TourInstanceDayActivityEntity 
+        { 
+            Id = command.ActivityId,
+            TourInstanceDay = new TourInstanceDayEntity { TourInstanceId = Guid.NewGuid() }
+        };
         _tourInstanceRepository.FindActivityByIdAsync(command.ActivityId).Returns(activity);
 
         var result = await _sut.DeleteActivity(command);

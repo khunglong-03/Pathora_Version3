@@ -186,4 +186,76 @@ describe("bookingService", () => {
       expect(result).toEqual(mockData);
     });
   });
+
+  describe("getBookingDetail", () => {
+    it("calls GET_DETAIL endpoint and returns extracted result with pendingTransactions", async () => {
+      const mockResult = {
+        id: "bk-1",
+        totalPrice: 1000,
+        pendingTransactions: [
+          { transactionId: "tx-1", amount: 500, status: "Pending" }
+        ]
+      };
+      vi.mocked(api.get).mockResolvedValue({
+        data: { result: mockResult },
+      } as never);
+
+      const result = await bookingService.getBookingDetail("bk-1");
+
+      expect(result).toEqual(mockResult);
+      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.GET_DETAIL("bk-1"));
+    });
+  });
+
+  describe("Visa Methods", () => {
+    it("getVisaRequirements calls GET_VISA_REQUIREMENTS and extracts result", async () => {
+      const mockResult = { isVisaRequired: true };
+      vi.mocked(api.get).mockResolvedValue({ data: { result: mockResult } } as never);
+
+      const result = await bookingService.getVisaRequirements("bk-1");
+
+      expect(result).toEqual(mockResult);
+      expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.GET_VISA_REQUIREMENTS("bk-1"));
+    });
+
+    it("upsertParticipantPassport calls UPSERT_PARTICIPANT_PASSPORT and extracts result", async () => {
+      const payload = { passportNumber: "AB123", nationality: "VN", issuedAt: null, expiresAt: null, fileUrl: null };
+      vi.mocked(api.put).mockResolvedValue({ data: { result: "success" } } as never);
+
+      const result = await bookingService.upsertParticipantPassport("bk-1", "p-1", payload);
+
+      expect(result).toEqual("success");
+      expect(api.put).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.UPSERT_PARTICIPANT_PASSPORT("bk-1", "p-1"), payload);
+    });
+
+    it("submitVisaApplication calls SUBMIT_VISA_APPLICATION and extracts result", async () => {
+      const payload = { bookingParticipantId: "p-1", passportId: "pass-1", destinationCountry: "JP" };
+      vi.mocked(api.post).mockResolvedValue({ data: { result: "app-1" } } as never);
+
+      const result = await bookingService.submitVisaApplication("bk-1", payload);
+
+      expect(result).toEqual("app-1");
+      expect(api.post).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.SUBMIT_VISA_APPLICATION("bk-1"), payload);
+    });
+
+    it("updateVisaApplication calls UPDATE_VISA_APPLICATION and extracts result", async () => {
+      const payload = { isResubmitting: true };
+      vi.mocked(api.put).mockResolvedValue({ data: { result: "success" } } as never);
+
+      const result = await bookingService.updateVisaApplication("bk-1", "app-1", payload);
+
+      expect(result).toEqual("success");
+      expect(api.put).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.UPDATE_VISA_APPLICATION("bk-1", "app-1"), payload);
+    });
+
+    it("requestVisaSupport calls REQUEST_VISA_SUPPORT and handles duplicate support response", async () => {
+      const mockResponse = { serviceFeeQuoted: true, message: "OK" };
+      vi.mocked(api.post).mockResolvedValue({ data: { result: mockResponse } } as never);
+
+      const result = await bookingService.requestVisaSupport("bk-1", "p-1");
+
+      expect(result).toEqual(mockResponse);
+      expect(api.post).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.REQUEST_VISA_SUPPORT("bk-1", "p-1"));
+    });
+  });
 });

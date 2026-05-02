@@ -15,14 +15,21 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
     public async Task<AdminOverviewReport> GetOverview(CancellationToken cancellationToken = default)
     {
-        var stats = await BuildDashboardStats(cancellationToken);
-        var customers = await BuildCustomers(cancellationToken);
-        var payments = new List<AdminPaymentReport>();
-        //await BuildPayments(cancellationToken);
-        var insurances = await BuildInsurances(cancellationToken);
-        var visaApplications = await BuildVisaApplications(cancellationToken);
+        var statsTask = BuildDashboardStats(cancellationToken);
+        var customersTask = BuildCustomers(cancellationToken);
+        var insurancesTask = BuildInsurances(cancellationToken);
+        var visaApplicationsTask = BuildVisaApplications(cancellationToken);
 
-        return new AdminOverviewReport(stats, customers, payments, insurances, visaApplications);
+        await Task.WhenAll(statsTask, customersTask, insurancesTask, visaApplicationsTask);
+
+        var payments = new List<AdminPaymentReport>();
+
+        return new AdminOverviewReport(
+            statsTask.Result, 
+            customersTask.Result, 
+            payments, 
+            insurancesTask.Result, 
+            visaApplicationsTask.Result);
     }
 
     private async Task<AdminDashboardStatsReport> BuildDashboardStats(CancellationToken cancellationToken)
@@ -252,29 +259,31 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
     private async Task<List<AdminVisaApplicationReport>> BuildVisaApplications(CancellationToken cancellationToken)
     {
-        var visaRows = await _context.TourRequests
+        var visaRows = await _context.VisaApplications
             .AsNoTracking()
-            .Include(x => x.TourInstance)
+            .Include(x => x.BookingParticipant)
+            .Include(x => x.Passport)
             .OrderByDescending(x => x.CreatedOnUtc)
             .Take(200)
             .Select(x => new VisaApplicationRow(
                 x.Id,
-                x.CustomerName,
-                x.Destination,
+                x.BookingParticipant != null ? x.BookingParticipant.FullName : "Unknown",
+                x.DestinationCountry,
                 x.Status,
                 x.CreatedOnUtc,
-                x.ReviewedAt,
-                x.TourInstance != null ? x.TourInstance.Title : null))
+                x.LastModifiedOnUtc,
+                "Visa Application",
+                x.Passport != null ? x.Passport.PassportNumber : "-"))
             .ToListAsync(cancellationToken);
 
         return visaRows
             .Select(row => new AdminVisaApplicationReport(
-                PrefixId("VISA", row.Id),
+                row.Id.ToString(), // Do not prefix ID, keep Guid for actions
                 string.IsNullOrWhiteSpace(row.TourInstanceTitle)
                     ? row.Destination
                     : row.TourInstanceTitle,
                 row.CustomerName,
-                "-",
+                row.PassportNumber,
                 row.Destination,
                 "Tourist",
                 MapVisaStatus(row.Status),
@@ -320,14 +329,15 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
             _ => "inactive"
         };
 
-    private static string MapVisaStatus(TourRequestStatus status)
+    private static string MapVisaStatus(VisaStatus status)
     {
         return status switch
         {
-            TourRequestStatus.Pending => "pending",
-            TourRequestStatus.Approved => "approved",
-            TourRequestStatus.Rejected => "rejected",
-            TourRequestStatus.Cancelled => "under_review",
+            VisaStatus.Pending => "pending",
+            VisaStatus.Processing => "under_review",
+            VisaStatus.Approved => "approved",
+            VisaStatus.Rejected => "rejected",
+            VisaStatus.Cancelled => "rejected",
             _ => "pending"
         };
     }
@@ -382,8 +392,9 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         Guid Id,
         string CustomerName,
         string Destination,
-        TourRequestStatus Status,
+        VisaStatus Status,
         DateTimeOffset CreatedOnUtc,
         DateTimeOffset? ReviewedAt,
-        string? TourInstanceTitle);
+        string? TourInstanceTitle,
+        string PassportNumber);
 }

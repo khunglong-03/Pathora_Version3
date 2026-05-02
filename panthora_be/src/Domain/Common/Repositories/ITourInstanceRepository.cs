@@ -9,6 +9,7 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindByIdWithInstanceDays(Guid id, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindByIdWithBookingsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TourInstanceEntity?> FindByIdWithTourForPaymentAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
 
     /// <summary>Tracked graph for commands that mutate activities (e.g. transport assignments).</summary>
     Task<TourInstanceEntity?> FindByIdWithInstanceDaysForUpdate(Guid id, CancellationToken cancellationToken = default);

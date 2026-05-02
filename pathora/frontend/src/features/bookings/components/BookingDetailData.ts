@@ -37,6 +37,9 @@ export interface BookingDetail {
   importantInfo: string[];
   pendingTransactionCode?: string;
   tourInstanceId?: string;
+  isVisaRequired?: boolean;
+  tourStatus?: string;
+  visaServiceFeeTotal?: number;
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */
