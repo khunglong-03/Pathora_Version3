@@ -26,7 +26,11 @@ public sealed record VisaApplicationSummaryDto(
     string? VisaFileUrl,
     bool IsSystemAssisted,
     decimal? ServiceFee,
-    bool ServiceFeePaid);
+    bool ServiceFeePaid,
+    VisaCategory? Category,
+    VisaFormat? Format,
+    int? MaxStayDays,
+    string? IssuingAuthority);
 
 public sealed record VisaRequirementParticipantDto(
     Guid ParticipantId,
@@ -124,7 +128,11 @@ public sealed class GetCustomerVisaRequirementsQueryHandler(
                     latestApp.VisaFileUrl,
                     latestApp.IsSystemAssisted,
                     latestApp.ServiceFee,
-                    latestApp.ServiceFeePaidAt.HasValue),
+                    latestApp.ServiceFeePaidAt.HasValue,
+                    latestApp.Visa?.Category,
+                    latestApp.Visa?.Format,
+                    latestApp.Visa?.MaxStayDays,
+                    latestApp.Visa?.IssuingAuthority),
                 AvailableActions: actions));
         }
 

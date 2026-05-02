@@ -11,6 +11,8 @@ export interface PublicBookingEndpoints {
   SUBMIT_VISA_APPLICATION: (id: string) => string;
   UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string) => string;
   REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string) => string;
+  GET_PARTICIPANTS: (id: string) => string;
+  CREATE_PARTICIPANT: (id: string) => string;
 }
 
 export interface BookingEndpoints {
@@ -70,7 +72,9 @@ export const PUBLIC_BOOKING: PublicBookingEndpoints = {
   UPSERT_PARTICIPANT_PASSPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/participants/${participantId}/passport`,
   SUBMIT_VISA_APPLICATION: (id: string): string => `/api/public/bookings/${id}/visa-applications`,
   UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${applicationId}`,
-  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${participantId}/request-support`
+  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${participantId}/request-support`,
+  GET_PARTICIPANTS: (id: string): string => `/api/public/bookings/${id}/participants`,
+  CREATE_PARTICIPANT: (id: string): string => `/api/public/bookings/${id}/participants`
 };
 
 export const BOOKING: BookingEndpoints = {

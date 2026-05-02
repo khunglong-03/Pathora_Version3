@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useTranslation } from "react-i18next";
-import { VisaRequirementParticipant, VisaApplicationSummaryDto } from "@/types/booking";
+import { VisaRequirementParticipant, VisaApplicationSummaryDto, VisaCategory, VisaFormat } from "@/types/booking";
 
 interface VisaUploadFormProps {
   participant: VisaRequirementParticipant;
@@ -64,13 +64,17 @@ export function VisaUploadForm({
     destinationCountry: yup.string().required(t("landing.visa.countryRequired")),
     minReturnDate: yup.string().nullable(),
     visaFileUrl: yup.string().nullable(),
+    category: yup.number().transform((value) => (isNaN(value) ? undefined : value)).required("Category is required"),
+    format: yup.number().transform((value) => (isNaN(value) ? undefined : value)).nullable(),
+    maxStayDays: yup.number().transform((value) => (isNaN(value) ? undefined : value)).min(1, "Phải lớn hơn 0").nullable(),
+    issuingAuthority: yup.string().nullable(),
   });
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<any>({
     resolver: yupResolver(schema),
     context: { isPassportMissing },
     defaultValues: {
@@ -82,6 +86,10 @@ export function VisaUploadForm({
       destinationCountry: application?.destinationCountry || destinationCountry || "",
       minReturnDate: application?.minReturnDate ? application.minReturnDate.split("T")[0] : tourReturnDate || "",
       visaFileUrl: application?.visaFileUrl || "",
+      category: application?.category ?? "",
+      format: application?.format ?? "",
+      maxStayDays: application?.maxStayDays ?? "",
+      issuingAuthority: application?.issuingAuthority || "",
     },
   });
 
@@ -101,6 +109,10 @@ export function VisaUploadForm({
         minReturnDate: data.minReturnDate,
         visaFileUrl: data.visaFileUrl,
         isResubmitting,
+        category: data.category !== "" ? data.category : undefined,
+        format: data.format !== "" ? data.format : undefined,
+        maxStayDays: data.maxStayDays !== "" ? data.maxStayDays : undefined,
+        issuingAuthority: data.issuingAuthority,
       });
     } catch (error) {
       console.error(error);
@@ -194,6 +206,71 @@ export function VisaUploadForm({
             {...register("minReturnDate")}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+        
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Category
+          </label>
+          <select
+            {...register("category")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">Select Category</option>
+            {Object.keys(VisaCategory)
+              .filter((key) => isNaN(Number(key)))
+              .map((key) => (
+                <option key={key} value={VisaCategory[key as keyof typeof VisaCategory]}>
+                  {key}
+                </option>
+              ))}
+          </select>
+          {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category.message as string}</p>}
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Format
+          </label>
+          <select
+            {...register("format")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">Select Format</option>
+            {Object.keys(VisaFormat)
+              .filter((key) => isNaN(Number(key)))
+              .map((key) => (
+                <option key={key} value={VisaFormat[key as keyof typeof VisaFormat]}>
+                  {key}
+                </option>
+              ))}
+          </select>
+          {errors.format && <p className="text-red-500 text-xs mt-1">{errors.format.message as string}</p>}
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Max Stay (Days)
+          </label>
+          <input
+            type="number"
+            {...register("maxStayDays")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g. 30"
+          />
+          {errors.maxStayDays && <p className="text-red-500 text-xs mt-1">{errors.maxStayDays.message as string}</p>}
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Issuing Authority
+          </label>
+          <input
+            {...register("issuingAuthority")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g. Embassy of Japan"
+          />
+          {errors.issuingAuthority && <p className="text-red-500 text-xs mt-1">{errors.issuingAuthority.message as string}</p>}
         </div>
         <div className="md:col-span-2">
           <label className="text-sm font-medium text-slate-600 mb-1 block">

@@ -257,6 +257,21 @@ export const toBookingStatus = (value: number): BookingStatusEnum => {
 };
 
 // --- Visa Types ---
+export enum VisaCategory {
+  Tourist = 0,
+  Business = 1,
+  FamilyVisit = 2,
+  Student = 3,
+  Transit = 4,
+  Other = 5,
+}
+
+export enum VisaFormat {
+  Sticker = 0,
+  EVisa = 1,
+  VisaOnArrival = 2,
+}
+
 export interface VisaRequirementParticipant {
   id: string;
   fullName: string;
@@ -278,6 +293,10 @@ export interface VisaApplicationSummaryDto {
   serviceFee: number | null;
   serviceFeePaidAt: string | null;
   hasPendingServiceFee: boolean;
+  category: number | null;
+  format: number | null;
+  maxStayDays: number | null;
+  issuingAuthority: string | null;
 }
 
 export interface VisaRequirementResponse {
@@ -302,6 +321,10 @@ export interface SubmitVisaApplicationPayload {
   destinationCountry: string;
   minReturnDate?: string;
   visaFileUrl?: string;
+  category?: number;
+  format?: number;
+  maxStayDays?: number;
+  issuingAuthority?: string;
 }
 
 export interface UpdateVisaApplicationPayload {
@@ -309,6 +332,10 @@ export interface UpdateVisaApplicationPayload {
   minReturnDate?: string;
   visaFileUrl?: string;
   isResubmitting?: boolean;
+  category?: number;
+  format?: number;
+  maxStayDays?: number;
+  issuingAuthority?: string;
 }
 
 export interface RequestVisaSupportResponse {

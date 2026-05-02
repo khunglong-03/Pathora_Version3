@@ -272,16 +272,14 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                 x.Status,
                 x.CreatedOnUtc,
                 x.LastModifiedOnUtc,
-                "Visa Application",
+                x.BookingParticipant != null ? (Guid?)x.BookingParticipant.BookingId : null,
                 x.Passport != null ? x.Passport.PassportNumber : "-"))
             .ToListAsync(cancellationToken);
 
         return visaRows
             .Select(row => new AdminVisaApplicationReport(
                 row.Id.ToString(), // Do not prefix ID, keep Guid for actions
-                string.IsNullOrWhiteSpace(row.TourInstanceTitle)
-                    ? row.Destination
-                    : row.TourInstanceTitle,
+                row.BookingId.HasValue ? PrefixId("ORD", row.BookingId.Value) : "No Order",
                 row.CustomerName,
                 row.PassportNumber,
                 row.Destination,
@@ -395,6 +393,6 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         VisaStatus Status,
         DateTimeOffset CreatedOnUtc,
         DateTimeOffset? ReviewedAt,
-        string? TourInstanceTitle,
+        Guid? BookingId,
         string PassportNumber);
 }

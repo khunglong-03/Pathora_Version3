@@ -12,6 +12,7 @@ public class VisaApplicationRepository(AppDbContext context)
     public async Task<IReadOnlyList<VisaApplicationEntity>> GetByBookingParticipantIdAsync(Guid bookingParticipantId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
+            .Include(x => x.Visa)
             .Where(x => x.BookingParticipantId == bookingParticipantId)
             .ToListAsync(cancellationToken);
     }
@@ -19,6 +20,7 @@ public class VisaApplicationRepository(AppDbContext context)
     public async Task<IReadOnlyList<VisaApplicationEntity>> GetByBookingParticipantIdsAsync(IEnumerable<Guid> bookingParticipantIds, CancellationToken cancellationToken = default)
     {
         return await _dbSet
+            .Include(x => x.Visa)
             .Where(x => bookingParticipantIds.Contains(x.BookingParticipantId))
             .ToListAsync(cancellationToken);
     }
@@ -37,5 +39,12 @@ public class VisaApplicationRepository(AppDbContext context)
     {
         return await _dbSet
             .FirstOrDefaultAsync(v => v.ServiceFeeTransactionId == transactionId, cancellationToken);
+    }
+    
+    public async Task<VisaApplicationEntity?> GetByIdWithVisaAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Include(v => v.Visa)
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
 }

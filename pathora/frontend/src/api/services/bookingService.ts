@@ -181,4 +181,19 @@ export const bookingService = {
     );
     return extractResult<RequestVisaSupportResponse>(response.data);
   },
+
+  getParticipants: async (bookingId: string) => {
+    const response = await api.get<ServiceResponse<any[]>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.GET_PARTICIPANTS(bookingId)
+    );
+    return extractResult<any[]>(response.data);
+  },
+
+  createParticipant: async (bookingId: string, payload: any) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.CREATE_PARTICIPANT(bookingId),
+      payload
+    );
+    return extractResult<string>(response.data);
+  },
 };

@@ -15,6 +15,7 @@ import { showErrorToast } from "./showErrorToast";
 import { getCurrentApiLanguage } from "./languageHeader";
 import { API_GATEWAY_BASE_URL } from "@/configs/apiGateway";
 import { getCookie } from "@/utils/cookie";
+import { clearAuthSession } from "@/utils/authSession";
 
 const API_BASE_URL: string = API_GATEWAY_BASE_URL;
 
@@ -71,9 +72,11 @@ const onUnauthorized = (): void => {
   // from the Network tab.
   if (!getCookie("auth_status")) return;
 
-  // Chỉ redirect về home với login modal — KHÔNG xóa cookie/localStorage
-  // để user re-login và giữ nguyên context (booking history, etc.)
-  //
+  // Refresh đã thất bại → session vô hiệu, phải xóa toàn bộ cookie auth.
+  // Nếu giữ `auth_status`, LandingHeader sẽ thấy `hasAuthCookie === true` và
+  // KHÔNG mở login modal khi nhận `?login=true`, khiến user kẹt ở trang home.
+  clearAuthSession();
+
   // Strip `login`/`next` from current URL before reusing it as the new `next`,
   // otherwise repeated 401s would nest `?next=%2F%3Fnext%3D%252F...` infinitely.
   const currentUrl = new URL(window.location.href);

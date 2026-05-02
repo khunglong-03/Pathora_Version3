@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Domain.Entities;
 
 /// <summary>
@@ -14,6 +16,16 @@ public class VisaEntity : Aggregate<Guid>
     public string? VisaNumber { get; set; }
     /// <summary>Quốc gia cấp visa.</summary>
     public string? Country { get; set; }
+    /// <summary>Quốc gia được nhập cảnh.</summary>
+    public string? DestinationCountry { get; set; }
+    /// <summary>Mục đích visa (Du lịch, Công tác...).</summary>
+    public VisaCategory? Category { get; set; }
+    /// <summary>Hình thức visa (Sticker, EVisa...).</summary>
+    public VisaFormat? Format { get; set; }
+    /// <summary>Thời gian lưu trú tối đa (ngày).</summary>
+    public int? MaxStayDays { get; set; }
+    /// <summary>Cơ quan cấp visa.</summary>
+    public string? IssuingAuthority { get; set; }
     /// <summary>Trạng thái: Pending, Processing, Approved, Rejected, Cancelled.</summary>
     public VisaStatus Status { get; set; } = VisaStatus.Pending;
     /// <summary>Loại nhập cảnh: Single, Double, Multiple.</summary>
@@ -34,7 +46,12 @@ public class VisaEntity : Aggregate<Guid>
         VisaEntryType? entryType = null,
         DateTimeOffset? issuedAt = null,
         DateTimeOffset? expiresAt = null,
-        string? fileUrl = null)
+        string? fileUrl = null,
+        string? destinationCountry = null,
+        VisaCategory? category = null,
+        VisaFormat? format = null,
+        int? maxStayDays = null,
+        string? issuingAuthority = null)
     {
         EnsureValidDateRange(issuedAt, expiresAt);
 
@@ -44,6 +61,11 @@ public class VisaEntity : Aggregate<Guid>
             VisaApplicationId = visaApplicationId,
             VisaNumber = visaNumber,
             Country = country,
+            DestinationCountry = destinationCountry,
+            Category = category,
+            Format = format,
+            MaxStayDays = maxStayDays,
+            IssuingAuthority = issuingAuthority,
             Status = status,
             EntryType = entryType,
             IssuedAt = issuedAt,
@@ -64,12 +86,22 @@ public class VisaEntity : Aggregate<Guid>
         VisaEntryType? entryType = null,
         DateTimeOffset? issuedAt = null,
         DateTimeOffset? expiresAt = null,
-        string? fileUrl = null)
+        string? fileUrl = null,
+        string? destinationCountry = null,
+        VisaCategory? category = null,
+        VisaFormat? format = null,
+        int? maxStayDays = null,
+        string? issuingAuthority = null)
     {
         EnsureValidDateRange(issuedAt, expiresAt);
 
         VisaNumber = visaNumber;
         Country = country;
+        DestinationCountry = destinationCountry;
+        Category = category;
+        Format = format;
+        MaxStayDays = maxStayDays;
+        IssuingAuthority = issuingAuthority;
         Status = status ?? Status;
         EntryType = entryType;
         IssuedAt = issuedAt;

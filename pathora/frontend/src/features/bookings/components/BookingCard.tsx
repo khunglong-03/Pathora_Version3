@@ -150,7 +150,7 @@ export function BookingCard({
                     </button>
                   )}
                   {showVisaStatus && (
-                    <Link href="/visa" className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
+                    <Link href={`/bookings/${booking.id}`} className={cn("h-stack items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50")}>
                       <AirplaneTilt weight="bold" className={cn("size-4")} />
                       {t("landing.bookings.visaStatus")}
                     </Link>

@@ -1,6 +1,7 @@
 using Api.Endpoint;
 using Application.Features.VisaApplication.Commands;
 using Application.Features.VisaApplication.Queries;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +40,11 @@ public sealed class CustomerVisaController : BaseApiController
             PassportId: body.PassportId,
             DestinationCountry: body.DestinationCountry,
             MinReturnDate: body.MinReturnDate,
-            VisaFileUrl: body.VisaFileUrl);
+            VisaFileUrl: body.VisaFileUrl,
+            Category: body.Category,
+            Format: body.Format,
+            MaxStayDays: body.MaxStayDays,
+            IssuingAuthority: body.IssuingAuthority);
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
@@ -60,7 +65,11 @@ public sealed class CustomerVisaController : BaseApiController
             PassportId: body.PassportId,
             DestinationCountry: body.DestinationCountry,
             MinReturnDate: body.MinReturnDate,
-            VisaFileUrl: body.VisaFileUrl);
+            VisaFileUrl: body.VisaFileUrl,
+            Category: body.Category,
+            Format: body.Format,
+            MaxStayDays: body.MaxStayDays,
+            IssuingAuthority: body.IssuingAuthority);
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
@@ -105,13 +114,21 @@ public sealed record SubmitVisaApplicationRequest(
     Guid PassportId,
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
-    string? VisaFileUrl = null);
+    string? VisaFileUrl = null,
+    VisaCategory? Category = null,
+    VisaFormat? Format = null,
+    int? MaxStayDays = null,
+    string? IssuingAuthority = null);
 
 public sealed record UpdateVisaApplicationRequest(
     Guid PassportId,
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
-    string? VisaFileUrl = null);
+    string? VisaFileUrl = null,
+    VisaCategory? Category = null,
+    VisaFormat? Format = null,
+    int? MaxStayDays = null,
+    string? IssuingAuthority = null);
 
 public sealed record UpdateCustomerPassportRequest(
     string PassportNumber,

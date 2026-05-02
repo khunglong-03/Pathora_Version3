@@ -15,7 +15,11 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     Guid PassportId,
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
-    string? VisaFileUrl = null)
+    string? VisaFileUrl = null,
+    VisaCategory? Category = null,
+    VisaFormat? Format = null,
+    int? MaxStayDays = null,
+    string? IssuingAuthority = null)
     : IRequest<ErrorOr<Guid>>;
 
 public sealed class SubmitCustomerVisaApplicationCommandHandler(
@@ -75,6 +79,24 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             performedBy: currentUserId.Value.ToString(),
             minReturnDate: minReturnDate,
             visaFileUrl: request.VisaFileUrl);
+            
+        application.Update(
+            destinationCountry: request.DestinationCountry,
+            performedBy: currentUserId.Value.ToString(),
+            status: VisaStatus.Processing);
+
+        var visa = VisaEntity.Create(
+            visaApplicationId: application.Id,
+            performedBy: currentUserId.Value.ToString(),
+            destinationCountry: request.DestinationCountry,
+            category: request.Category,
+            format: request.Format,
+            maxStayDays: request.MaxStayDays,
+            issuingAuthority: request.IssuingAuthority,
+            fileUrl: request.VisaFileUrl,
+            status: VisaStatus.Pending);
+            
+        application.Visa = visa;
 
         await visaApplicationRepository.AddAsync(application, cancellationToken);
         await unitOfWork.SaveChangeAsync(cancellationToken);
@@ -93,7 +115,11 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     Guid PassportId,
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
-    string? VisaFileUrl = null)
+    string? VisaFileUrl = null,
+    VisaCategory? Category = null,
+    VisaFormat? Format = null,
+    int? MaxStayDays = null,
+    string? IssuingAuthority = null)
     : IRequest<ErrorOr<Success>>;
 
 public sealed class UpdateCustomerVisaApplicationCommandHandler(
@@ -119,7 +145,7 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
             return Error.Forbidden("Booking.Forbidden", "Bạn không có quyền truy cập booking này.");
 
         // Load visa application và validate ownership theo booking graph
-        var application = await visaApplicationRepository.GetByIdAsync(request.VisaApplicationId, cancellationToken);
+        var application = await visaApplicationRepository.GetByIdWithVisaAsync(request.VisaApplicationId, cancellationToken);
         if (application == null)
             return Error.NotFound("Visa.NotFound", "Đơn visa không tồn tại.");
 
@@ -146,6 +172,31 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
             performedBy: currentUserId.Value.ToString(),
             minReturnDate: minReturnDate,
             visaFileUrl: request.VisaFileUrl ?? application.VisaFileUrl);
+
+        if (application.Visa != null)
+        {
+            application.Visa.Update(
+                performedBy: currentUserId.Value.ToString(),
+                destinationCountry: request.DestinationCountry,
+                category: request.Category ?? application.Visa.Category,
+                format: request.Format ?? application.Visa.Format,
+                maxStayDays: request.MaxStayDays ?? application.Visa.MaxStayDays,
+                issuingAuthority: request.IssuingAuthority ?? application.Visa.IssuingAuthority,
+                fileUrl: request.VisaFileUrl ?? application.Visa.FileUrl);
+        }
+        else
+        {
+            application.Visa = VisaEntity.Create(
+                visaApplicationId: application.Id,
+                performedBy: currentUserId.Value.ToString(),
+                destinationCountry: request.DestinationCountry,
+                category: request.Category,
+                format: request.Format,
+                maxStayDays: request.MaxStayDays,
+                issuingAuthority: request.IssuingAuthority,
+                fileUrl: request.VisaFileUrl,
+                status: VisaStatus.Pending);
+        }
 
         visaApplicationRepository.Update(application);
         await unitOfWork.SaveChangeAsync(cancellationToken);

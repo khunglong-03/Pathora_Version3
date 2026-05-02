@@ -107,6 +107,7 @@ public class VisaApplicationEntity : Aggregate<Guid>
             return false; // Đã đánh dấu paid rồi
 
         ServiceFeePaidAt = DateTimeOffset.UtcNow;
+        Status = VisaStatus.Processing;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
         return true;
@@ -141,7 +142,7 @@ public class VisaApplicationEntity : Aggregate<Guid>
     {
         if (Status != VisaStatus.Rejected)
             throw new InvalidOperationException("Chỉ có thể nộp lại đơn đã bị từ chối.");
-        Status = VisaStatus.Pending;
+        Status = VisaStatus.Processing;
         RefusalReason = null;
         if (visaFileUrl != null)
             VisaFileUrl = visaFileUrl;
