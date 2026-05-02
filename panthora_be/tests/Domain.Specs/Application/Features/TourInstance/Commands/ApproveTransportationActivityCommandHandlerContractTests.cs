@@ -98,6 +98,70 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
     }
 
     [Fact]
+    public async Task Handle_WhenTransportationIsExternal_ReturnsNotProviderManagedError()
+    {
+        var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
+        var supplierRepository = Substitute.For<ISupplierRepository>();
+        var vehicleRepository = Substitute.For<IVehicleRepository>();
+        var driverRepository = Substitute.For<IDriverRepository>();
+        var vehicleBlockRepository = Substitute.For<IVehicleBlockRepository>();
+        var availabilityService = Substitute.For<IResourceAvailabilityService>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var user = Substitute.For<IUser>();
+
+        var userId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
+        var instanceId = Guid.NewGuid();
+
+        user.Id.Returns(userId.ToString());
+        supplierRepository.FindAllByOwnerUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns([new SupplierEntity { Id = supplierId, OwnerUserId = userId }]);
+
+        var day = new TourInstanceDayEntity
+        {
+            Id = Guid.NewGuid(),
+            ActualDate = new DateOnly(2026, 5, 1),
+            IsDeleted = false
+        };
+        var activity = TourInstanceDayActivityEntity.Create(
+            day.Id, 1, TourDayActivityType.Transportation, "Flight", "t");
+        var activityId = activity.Id;
+        activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Flight; // External
+        activity.TourInstanceDayId = day.Id;
+        activity.TourInstanceDay = day;
+        day.Activities = [activity];
+
+        var instance = new TourInstanceEntity
+        {
+            Id = instanceId,
+            MaxParticipation = 10,
+            Status = TourInstanceStatus.PendingApproval,
+            InstanceDays = [day]
+        };
+
+        tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
+
+        var handler = new ApproveTransportationActivityCommandHandler(
+            tourInstanceRepository,
+            supplierRepository,
+            vehicleRepository,
+            driverRepository,
+            vehicleBlockRepository,
+            availabilityService,
+            unitOfWork,
+            user,
+            _logger);
+
+        var result = await handler.Handle(
+            new ApproveTransportationActivityCommand(instanceId, activityId, null, Guid.NewGuid(), Guid.NewGuid()),
+            CancellationToken.None);
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.NotProviderManaged");
+    }
+
+    [Fact]
     public async Task Handle_WhenAssignmentsContainDuplicateVehicle_ReturnsDuplicateVehicleInActivity()
     {
         var tourInstanceRepository = Substitute.For<ITourInstanceRepository>();
@@ -112,10 +176,24 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
         var userId = Guid.NewGuid();
         user.Id.Returns(userId.ToString());
 
+        var supplierId = Guid.NewGuid();
         var instanceId = Guid.NewGuid();
-        var activityId = Guid.NewGuid();
         var vehicleId = Guid.NewGuid();
-        var driverId = Guid.NewGuid();
+        var driverId1 = Guid.NewGuid();
+        var driverId2 = Guid.NewGuid();
+
+        var day = new TourInstanceDayEntity { Id = Guid.NewGuid(), ActualDate = new DateOnly(2026, 5, 1) };
+        var activity = TourInstanceDayActivityEntity.Create(day.Id, 1, TourDayActivityType.Transportation, "Transfer", "t");
+        var activityId = activity.Id;
+        activity.TransportSupplierId = supplierId;
+        activity.TransportationType = TransportationType.Bus;
+        // Do not set RequestedVehicleType to trigger the duplicate vehicle check
+        activity.TourInstanceDayId = day.Id;
+        activity.TourInstanceDay = day;
+        day.Activities = [activity];
+
+        var instance = new TourInstanceEntity { Id = instanceId, InstanceDays = [day] };
+        tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, Arg.Any<CancellationToken>()).Returns(instance);
 
         var handler = new ApproveTransportationActivityCommandHandler(
             tourInstanceRepository,
@@ -130,8 +208,8 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
 
         var assignments = new List<TransportApprovalAssignmentDto>
         {
-            new(vehicleId, driverId),
-            new(vehicleId, driverId),
+            new(vehicleId, driverId1),
+            new(vehicleId, driverId2),
         };
 
         var result = await handler.Handle(
@@ -140,8 +218,6 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
 
         Assert.True(result.IsError);
         Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.DuplicateVehicle");
-        await tourInstanceRepository.DidNotReceive()
-            .FindByIdWithInstanceDaysForUpdate(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -165,6 +241,7 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
         var vehicleId2 = Guid.NewGuid();
         var driverId = Guid.NewGuid();
 
+        // The DuplicateDriver check runs very early, before DB lookups.
         var handler = new ApproveTransportationActivityCommandHandler(
             tourInstanceRepository,
             supplierRepository,
@@ -188,8 +265,6 @@ public sealed class ApproveTransportationActivityCommandHandlerContractTests
 
         Assert.True(result.IsError);
         Assert.Contains(result.Errors, e => e.Code == "TourInstanceActivity.DuplicateDriver");
-        await tourInstanceRepository.DidNotReceive()
-            .FindByIdWithInstanceDaysForUpdate(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

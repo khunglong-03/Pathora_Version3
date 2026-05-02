@@ -2527,7 +2527,12 @@
         "roomCountExceedsInventory": "Requested room count exceeds the active inventory of the supplier.",
         "vehicleAvailabilityNoSupplier": "You do not have any transport supplier configured.",
         "vehicleAvailabilityActivityNotOwned": "This activity does not belong to your supplier.",
-        "supplierNotApplicable": "This activity uses external-only transport (flight/train/ferry) — the tour planner must book it externally instead of assigning an in-app supplier."
+        "supplierNotApplicable": "This activity uses external-only transport (flight/train/ferry) — the tour planner must book it externally instead of assigning an in-app supplier.",
+        "externalFieldsNotAllowedForGround": "Ground transport cannot specify flight/train fields like departure time or arrival time.",
+        "groundFieldsNotAllowedForExternal": "External transport (flight/train/ferry) cannot request vehicle types or seat counts.",
+        "externalTransportRequiresTime": "External transport requires both departure time and arrival time.",
+        "groundTransportRequiresVehicle": "Ground transport requires a vehicle type and seat count.",
+        "cannotChangeTransportTypeWithSupplier": "Cannot change the transport group because this activity is already assigned to a supplier. Please remove the supplier first."
       },
       "externalOnly": {
         "title": "External transport — no in-app supplier",

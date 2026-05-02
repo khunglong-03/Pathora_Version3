@@ -101,12 +101,45 @@ export interface UpdateInstanceDayPayload {
   note?: string | null;
 }
 
-export interface UpdateInstanceActivityPayload {
+export interface CreateInstanceActivityPayload {
+  title: string;
+  activityType: number;
+  description?: string | null;
   note?: string | null;
   startTime?: string | null;
   endTime?: string | null;
   price?: number | null;
   isOptional?: boolean;
+
+  // Transport fields
+  transportationType?: number | null;
+  fromLocationId?: string | null;
+  toLocationId?: string | null;
+  departureTime?: string | null;
+  arrivalTime?: string | null;
+  requestedVehicleType?: number | null;
+  requestedSeatCount?: number | null;
+  externalTransportReference?: string | null;
+}
+
+export interface UpdateInstanceActivityPayload {
+  title?: string | null;
+  description?: string | null;
+  note?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  price?: number | null;
+  isOptional?: boolean;
+  
+  // Transport fields
+  transportationType?: number | null;
+  fromLocationId?: string | null;
+  toLocationId?: string | null;
+  departureTime?: string | null;
+  arrivalTime?: string | null;
+  requestedVehicleType?: number | null;
+  requestedSeatCount?: number | null;
+  externalTransportReference?: string | null;
 }
 
 export interface CheckDuplicateResult {
@@ -425,16 +458,7 @@ export const tourInstanceService = {
   createInstanceActivity: async (
     instanceId: string,
     dayId: string,
-    data: {
-      title: string;
-      activityType: number;
-      description?: string | null;
-      note?: string | null;
-      startTime?: string | null;
-      endTime?: string | null;
-      price?: number | null;
-      isOptional?: boolean;
-    },
+    data: CreateInstanceActivityPayload,
   ) => {
     const response = await api.post<ServiceResponse<TourDayActivityDto>>(
       API_ENDPOINTS.TOUR_INSTANCE.CREATE_INSTANCE_ACTIVITY(instanceId, dayId),

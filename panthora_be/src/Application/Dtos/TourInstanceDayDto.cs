@@ -55,6 +55,7 @@ public sealed record TourInstanceDayActivityDto(
     [property: JsonPropertyName("transportSupplierName")] string? TransportSupplierName,
     [property: JsonPropertyName("transportationApprovalStatus")] string? TransportationApprovalStatus,
     [property: JsonPropertyName("transportationApprovalNote")] string? TransportationApprovalNote,
+    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference,
 
     // Instance-specific Vehicle Assignment info
     [property: JsonPropertyName("vehicleId")] Guid? VehicleId,

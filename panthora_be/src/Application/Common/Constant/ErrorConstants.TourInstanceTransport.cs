@@ -155,4 +155,34 @@ public static class TourInstanceTransportErrors
         new(
             "Hoạt động vận chuyển này không thuộc phạm vi duyệt của nhà cung cấp vận tải (chỉ duyệt phương tiện đường bộ).",
             "This transportation activity is not managed by Transport Providers (only ground vehicles are approved here).");
+
+    public const string TransportationTypeRequiredCode = "TourInstanceActivity.TransportationTypeRequired";
+    public static readonly LocalizedMessage TransportationTypeRequiredDescription =
+        new(
+            "Loại phương tiện là bắt buộc cho hoạt động vận chuyển.",
+            "Transportation type is required for transportation activities.");
+
+    public const string TransportationTypeNotAllowedCode = "TourInstanceActivity.TransportationTypeNotAllowed";
+    public static readonly LocalizedMessage TransportationTypeNotAllowedDescription =
+        new(
+            "Không được phép chọn loại phương tiện cho hoạt động không phải vận chuyển.",
+            "Transportation type is not allowed for non-transportation activities.");
+
+    public const string GroundFieldsNotAllowedForExternalCode = "TourInstanceActivity.GroundFieldsNotAllowedForExternal";
+    public static readonly LocalizedMessage GroundFieldsNotAllowedForExternalDescription =
+        new(
+            "Không được cung cấp thông tin xe yêu cầu (Ground transport) cho các phương tiện ngoài hệ thống (External).",
+            "Ground transport fields are not allowed for external transportation activities.");
+
+    public const string ExternalFieldsNotAllowedForGroundCode = "TourInstanceActivity.ExternalFieldsNotAllowedForGround";
+    public static readonly LocalizedMessage ExternalFieldsNotAllowedForGroundDescription =
+        new(
+            "Không được cung cấp thông tin chuyến đi/thời gian ngoài hệ thống (External) cho các phương tiện xe (Ground).",
+            "External transport fields are not allowed for ground transportation activities.");
+
+    public const string CannotChangeTransportGroupWithSupplierAssignedCode = "TourInstanceActivity.CannotChangeTransportGroupWithSupplierAssigned";
+    public static readonly LocalizedMessage CannotChangeTransportGroupWithSupplierAssignedDescription =
+        new(
+            "Không thể thay đổi nhóm phương tiện khi đã được gán nhà cung cấp.",
+            "Cannot change transport group when a supplier is already assigned.");
 }

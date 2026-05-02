@@ -57,6 +57,9 @@ public class TourInstanceDayActivityConfiguration : IEntityTypeConfiguration<Tou
         builder.Property(a => a.TransportationName)
             .HasMaxLength(300);
 
+        builder.Property(a => a.ExternalTransportReference)
+            .HasMaxLength(64);
+
         builder.Property(a => a.Price)
             .HasColumnType("numeric(18,2)");
 

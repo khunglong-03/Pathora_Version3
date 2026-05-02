@@ -21,7 +21,7 @@ import type { DepositPolicy } from "@/types/depositPolicy";
 import type { CancellationPolicy } from "@/types/cancellationPolicy";
 
 import type { TourDto, ImageDto } from "@/types/tour";
-import { TourStatusMap } from "@/types/tour";
+import { TourStatusMap, isExternalOnlyTransportation } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import { formatCurrency } from "@/utils/format";
 
@@ -98,6 +98,7 @@ interface ActivityForm {
   enTransportationName: string;
   durationMinutes: string;
   price: string;
+  bookingReference: string;
 
   // Accommodation — type 8 (replaces standalone Accommodations step)
   // Phase 2: Supplier details (hotel name, contact, rooms, pricing) now handled at instance/provider selection time
@@ -294,6 +295,7 @@ const emptyActivity = (): ActivityForm => ({
   enTransportationName: "",
   durationMinutes: "",
   price: "",
+  bookingReference: "",
   // Accommodation fields (type 8) — Phase 2: Supplier details handled at instance time
 });
 
@@ -711,6 +713,7 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
             enTransportationName: act.translations?.en?.transportationName ?? "",
             durationMinutes: String(act.durationMinutes ?? ""),
             price: String(act.price ?? ""),
+            bookingReference: act.bookingReference ?? "",
             // Accommodation fields — type 8 — Phase 2: Supplier details handled at instance time
           })),
         })),
@@ -2805,6 +2808,35 @@ export default function TourForm({ mode, initialData, existingImages: initialExi
                                         className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                                       />
                                     </div>
+                                    {isExternalOnlyTransportation(act.transportationType) && (
+                                      <>
+                                        <div>
+                                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                            Số hiệu chuyến bay / Chuyến tàu dự kiến
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={act.bookingReference || ""}
+                                            onChange={(e) => updateActivity(ci, di, ai, "bookingReference", e.target.value)}
+                                            placeholder="VD: VN245, SE3..."
+                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                            Giá vé dự kiến
+                                          </label>
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            value={act.price || ""}
+                                            onChange={(e) => updateActivity(ci, di, ai, "price", e.target.value)}
+                                            placeholder="VD: 1500000"
+                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                                          />
+                                        </div>
+                                      </>
+                                    )}
 
                                   </div>
                                 )}

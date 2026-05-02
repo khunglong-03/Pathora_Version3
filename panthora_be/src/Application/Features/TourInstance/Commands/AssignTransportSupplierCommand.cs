@@ -116,7 +116,7 @@ public sealed class AssignTransportSupplierCommandHandler(
         if (activity.ActivityType != TourDayActivityType.Transportation)
             return Error.Validation("TourInstanceActivity.InvalidType", "Hoạt động này không phải loại vận chuyển.");
 
-        if (Domain.Entities.TourInstanceDayActivityEntity.IsExternalOnlyTransportationType(activity.TransportationType))
+        if (activity.TransportationType.IsExternalOnly())
         {
             return Error.Validation(
                 TourInstanceTransportErrors.SupplierNotApplicableCode,

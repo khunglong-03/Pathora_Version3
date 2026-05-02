@@ -75,6 +75,9 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     public string? TransportationApprovalNote { get; set; }
 
     // External transport confirmation (flights, trains, ferries — no in-app supplier)
+    /// <summary>Mã chuyến / vé (vd: VN234, PNR: ABCDEF) cho phương tiện ngoài hệ thống.</summary>
+    public string? ExternalTransportReference { get; set; }
+
     /// <summary>
     /// Manager manually confirms that external transport (flight/train/ferry) has been booked
     /// outside the system. Required for activation gate (BƯỚC 4 in lifecycle doc).
@@ -109,7 +112,8 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
         TransportationType? transportationType = null,
         string? transportationName = null,
         int? durationMinutes = null,
-        decimal? price = null)
+        decimal? price = null,
+        string? externalTransportReference = null)
     {
         var entity = new TourInstanceDayActivityEntity
         {
@@ -130,6 +134,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
             TransportationName = transportationName,
             DurationMinutes = durationMinutes,
             Price = price,
+            ExternalTransportReference = externalTransportReference,
             CreatedBy = performedBy,
             LastModifiedBy = performedBy,
             CreatedOnUtc = DateTimeOffset.UtcNow,
@@ -162,7 +167,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only assign transport supplier to Transportation activities.");
-        if (IsExternalOnlyTransportationType(TransportationType))
+        if (TransportationType.IsExternalOnly())
             throw new InvalidOperationException("Cannot assign in-app supplier to Flight/Train/Boat activities — must be handled as external transport.");
 
         TransportSupplierId = supplierId;
@@ -211,7 +216,7 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     {
         if (ActivityType != TourDayActivityType.Transportation)
             throw new InvalidOperationException("Can only approve transportation on Transportation activities.");
-        if (IsExternalOnlyTransportationType(TransportationType))
+        if (TransportationType.IsExternalOnly())
             throw new InvalidOperationException("Cannot approve Flight/Train/Boat activities via supplier flow — must be confirmed as external transport.");
         if (!TransportSupplierId.HasValue)
             throw new InvalidOperationException("Cannot approve transportation without an assigned supplier.");
@@ -275,13 +280,60 @@ public class TourInstanceDayActivityEntity : Aggregate<Guid>
     }
 
     /// <summary>
-    /// Vé máy bay / tàu / du thuyền không có nhà cung cấp in-app — phải do Manager
-    /// đặt vé bên ngoài và confirm sau khi khách thanh toán. Dùng để guard cả khi
-    /// Manager gán supplier (<see cref="AssignTransportSupplier"/>) lẫn khi Provider
-    /// duyệt (<see cref="ApproveTransportation"/>).
+    /// Update transport plan details and clear irrelevant fields based on TransportationType.
     /// </summary>
-    public static bool IsExternalOnlyTransportationType(Domain.Enums.TransportationType? type) =>
-        type is Domain.Enums.TransportationType.Flight
-             or Domain.Enums.TransportationType.Train
-             or Domain.Enums.TransportationType.Boat;
+    public void UpdateTransportPlan(
+        TransportationType? transportationType,
+        string? transportationName,
+        Guid? fromLocationId,
+        Guid? toLocationId,
+        DateTimeOffset? departureTime,
+        DateTimeOffset? arrivalTime,
+        VehicleType? requestedVehicleType,
+        int? requestedSeatCount,
+        string? externalTransportReference,
+        string performedBy)
+    {
+        if (ActivityType != TourDayActivityType.Transportation)
+            throw new InvalidOperationException("Can only update transport plan on Transportation activities.");
+
+        TransportationType = transportationType;
+        TransportationName = transportationName;
+        FromLocationId = fromLocationId;
+        ToLocationId = toLocationId;
+
+        if (transportationType.IsExternalOnly())
+        {
+            DepartureTime = departureTime;
+            ArrivalTime = arrivalTime;
+            ExternalTransportReference = externalTransportReference;
+
+            // Clear Ground fields
+            RequestedVehicleType = null;
+            RequestedSeatCount = null;
+            RequestedVehicleCount = null;
+        }
+        else if (transportationType.HasValue) // Ground transport
+        {
+            RequestedVehicleType = requestedVehicleType;
+            RequestedSeatCount = requestedSeatCount;
+
+            // Clear External fields
+            DepartureTime = null;
+            ArrivalTime = null;
+            ExternalTransportReference = null;
+        }
+        else // Other / Null
+        {
+            DepartureTime = null;
+            ArrivalTime = null;
+            ExternalTransportReference = null;
+            RequestedVehicleType = null;
+            RequestedSeatCount = null;
+            RequestedVehicleCount = null;
+        }
+
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 }

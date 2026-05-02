@@ -11,9 +11,10 @@ import {
   tourInstanceService,
   type UpdateTourInstancePayload,
 } from "@/api/services/tourInstanceService";
-import { NormalizedTourInstanceDto, TourInstanceDayDto, TourInstanceDayActivityDto } from "@/types/tour";
+import { NormalizedTourInstanceDto, TourInstanceDayDto, TourInstanceDayActivityDto, isExternalOnlyTransportation } from "@/types/tour";
 import { handleApiError } from "@/utils/apiResponse";
 import { formatDate } from "@/utils/format";
+import { TransportActivitySubForm, TransportFields } from "./TransportActivitySubForm";
 
 /* ── helpers ──────────────────────────────────────────────── */
 const inputCls =
@@ -37,7 +38,7 @@ interface EditForm {
 
 const fromDto = (data: NormalizedTourInstanceDto): EditForm => {
   // Auto-calculate endDate based on itinerary days count for private tours
-  let computedStartDate = toDateInput(data.startDate);
+  const computedStartDate = toDateInput(data.startDate);
   let computedEndDate = toDateInput(data.endDate);
 
   if (data.wantsCustomization && data.startDate && data.days && data.days.length > 0) {
@@ -396,8 +397,7 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
         const next = new Date(sortedDates[0]);
         next.setDate(next.getDate() + 1);
         const nextStr = next.toISOString().split("T")[0];
-        // Only suggest if on or after tour start date
-        if (!startDate || nextStr >= startDate) return nextStr;
+        return nextStr;
       }
     }
     return startDate || "";
@@ -420,9 +420,19 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
   const [actEndTime, setActEndTime] = useState("");
   const [actPrice, setActPrice] = useState("");
   const [actNote, setActNote] = useState("");
+  // Accommodation fields for add-day form
+  const [actRoomType, setActRoomType] = useState("");
+  const [actRoomCount, setActRoomCount] = useState("1");
+  // Transportation fields for add-day form
+  const [actFromLocation, setActFromLocation] = useState("");
+  const [actToLocation, setActToLocation] = useState("");
+
+  const isActAccommodation = actType === "8";
+  const isActTransportation = actType === "7";
 
   const resetActivityFields = () => {
     setActTitle(""); setActType("0"); setActStartTime(""); setActEndTime(""); setActPrice(""); setActNote("");
+    setActRoomType(""); setActRoomCount("1"); setActFromLocation(""); setActToLocation("");
   };
 
   const handleAddDay = async () => {
@@ -446,14 +456,30 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
 
       // Step 2: Create the first activity for that day
       if (newDayId) {
-        await tourInstanceService.createInstanceActivity(instanceId, newDayId, {
+        const computedNote = isActTransportation
+          ? [actFromLocation && `Từ: ${actFromLocation}`, actToLocation && `Đến: ${actToLocation}`, actNote].filter(Boolean).join(" | ")
+          : (actNote || undefined);
+
+        const actResult = await tourInstanceService.createInstanceActivity(instanceId, newDayId, {
           title: actTitle.trim(),
           activityType: Number(actType),
-          note: actNote || undefined,
+          note: computedNote,
           startTime: actStartTime ? `${actStartTime}:00` : null,
           endTime: actEndTime ? `${actEndTime}:00` : null,
           price: actPrice ? Number(actPrice) : null,
         });
+
+        // After creating accommodation activity, assign rooms
+        if (isActAccommodation && actResult?.id && actRoomType.trim()) {
+          try {
+            await tourInstanceService.assignRoomToAccommodation(instanceId, actResult.id, {
+              roomType: actRoomType.trim(),
+              roomCount: Number(actRoomCount) || 1,
+            });
+          } catch {
+            // Best-effort: activity created, room assignment can be done later
+          }
+        }
       }
 
       toast.success("Thêm ngày mới và hoạt động thành công");
@@ -530,6 +556,45 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh }: {
                 </select>
               </div>
             </div>
+
+            {/* Accommodation fields */}
+            {isActAccommodation && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <div>
+                  <label className={labelCls}>Loại phòng *</label>
+                  <select className={inputCls} value={actRoomType} onChange={e => setActRoomType(e.target.value)}>
+                    <option value="">-- Chọn loại phòng --</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Superior">Superior</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                    <option value="Family">Family</option>
+                    <option value="Twin">Twin</option>
+                    <option value="Double">Double</option>
+                    <option value="Single">Single</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Số lượng phòng *</label>
+                  <input type="number" min={1} className={inputCls} value={actRoomCount} onChange={e => setActRoomCount(e.target.value)} placeholder="VD: 2" />
+                </div>
+              </div>
+            )}
+
+            {/* Transportation fields */}
+            {isActTransportation && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div>
+                  <label className={labelCls}>Điểm đi</label>
+                  <input className={inputCls} value={actFromLocation} onChange={e => setActFromLocation(e.target.value)} placeholder="VD: Sân bay Nội Bài" />
+                </div>
+                <div>
+                  <label className={labelCls}>Điểm đến</label>
+                  <input className={inputCls} value={actToLocation} onChange={e => setActToLocation(e.target.value)} placeholder="VD: Khách sạn Hà Nội" />
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
               <div>
                 <label className={labelCls}>Giờ bắt đầu</label>
@@ -749,6 +814,37 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
   const [note, setNote] = useState(initialData?.note || "");
   const [saving, setSaving] = useState(false);
 
+  // Accommodation fields
+  const [roomType, setRoomType] = useState(initialData?.accommodation?.roomType || "");
+  const [roomCount, setRoomCount] = useState(initialData?.accommodation?.quantity ? String(initialData.accommodation.quantity) : "1");
+
+  // Transportation fields
+  const getTransportTypeValue = (type: string | number | null | undefined): string => {
+    if (!type) return "";
+    if (typeof type === "number") return String(type);
+    const num = Number(type);
+    if (!isNaN(num)) return String(num);
+    const mapping: Record<string, string> = {
+      "bus": "1", "train": "2", "flight": "3", "boat": "4", "car": "5", "taxi": "8", "other": "99"
+    };
+    return mapping[type.toLowerCase()] || "";
+  };
+
+  const [transportFields, setTransportFields] = useState<TransportFields>({
+    transportationType: getTransportTypeValue(initialData?.transportationType),
+    requestedVehicleType: initialData?.requestedVehicleType ? String(initialData.requestedVehicleType) : "",
+    requestedSeatCount: initialData?.requestedSeatCount ? String(initialData.requestedSeatCount) : "",
+    fromLocation: initialData?.fromLocation?.locationName || "",
+    toLocation: initialData?.toLocation?.locationName || "",
+    departureTime: initialData?.departureTime?.slice(0, 5) || "",
+    arrivalTime: initialData?.arrivalTime?.slice(0, 5) || "",
+    externalTransportReference: initialData?.externalTransportReference || "",
+    transportationName: initialData?.transportationName || "",
+  });
+
+  const isAccommodation = actType === "8" || actType === "Accommodation";
+  const isTransportation = actType === "7" || actType === "Transportation";
+
   const handleSave = async () => {
     if (!title.trim()) {
       toast.error("Vui lòng nhập tên hoạt động");
@@ -785,25 +881,102 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
       }
     }
 
+    // Validate accommodation fields
+    if (isAccommodation && !isEditing) {
+      if (!roomType.trim()) {
+        toast.error("Vui lòng nhập loại phòng (VD: Standard, Deluxe, Suite)");
+        return;
+      }
+      if (!roomCount || Number(roomCount) <= 0) {
+        toast.error("Số lượng phòng phải lớn hơn 0");
+        return;
+      }
+    }
+
+    // Validate transportation fields
+    if (isTransportation) {
+      if (!transportFields.transportationType) {
+        toast.error("Vui lòng chọn Loại phương tiện");
+        return;
+      }
+
+      const isExt = isExternalOnlyTransportation(transportFields.transportationType);
+      if (!isExt) {
+        // Ground validation
+        if (!transportFields.requestedVehicleType) {
+          toast.error("Vui lòng chọn Loại xe yêu cầu");
+          return;
+        }
+        if (!transportFields.requestedSeatCount || Number(transportFields.requestedSeatCount) <= 0) {
+          toast.error("Vui lòng nhập số ghế hợp lệ");
+          return;
+        }
+      } else {
+        // External validation
+        if (!transportFields.departureTime || !transportFields.arrivalTime) {
+          toast.error("Vui lòng nhập Giờ khởi hành và Giờ đến dự kiến cho phương tiện ngoài");
+          return;
+        }
+      }
+    }
+
+    const baseTransportPayload = isTransportation ? {
+      transportationType: Number(transportFields.transportationType),
+      fromLocationId: transportFields.fromLocation ? transportFields.fromLocation : null, // Backend uses LocationId but we only have string name for now. If BE expects ID, this is a known gap, we might need a location picker.
+      toLocationId: transportFields.toLocation ? transportFields.toLocation : null,
+      departureTime: transportFields.departureTime ? `${transportFields.departureTime}:00` : null,
+      arrivalTime: transportFields.arrivalTime ? `${transportFields.arrivalTime}:00` : null,
+      requestedVehicleType: transportFields.requestedVehicleType ? Number(transportFields.requestedVehicleType) : null,
+      requestedSeatCount: transportFields.requestedSeatCount ? Number(transportFields.requestedSeatCount) : null,
+      externalTransportReference: transportFields.externalTransportReference || null,
+      transportationName: transportFields.transportationName || null,
+    } : {};
+
+    const isExternalTransport = isTransportation && isExternalOnlyTransportation(transportFields.transportationType);
+    let finalStartTime = startTime;
+    let finalEndTime = endTime;
+
+    if (isExternalTransport) {
+      finalStartTime = transportFields.departureTime || startTime;
+      finalEndTime = transportFields.arrivalTime || endTime;
+    }
+
     setSaving(true);
     try {
       if (isEditing) {
         await tourInstanceService.updateInstanceActivity(instanceId, dayId, initialData.id, {
-          note,
-          startTime: startTime ? `${startTime}:00` : null,
-          endTime: endTime ? `${endTime}:00` : null,
+          title: title.trim(),
+          note: note,
+          startTime: finalStartTime ? `${finalStartTime}:00` : null,
+          endTime: finalEndTime ? `${finalEndTime}:00` : null,
           price: price ? Number(price) : null,
+          ...baseTransportPayload,
         });
         toast.success("Cập nhật hoạt động thành công");
       } else {
-        await tourInstanceService.createInstanceActivity(instanceId, dayId, {
-          title,
+        const result = await tourInstanceService.createInstanceActivity(instanceId, dayId, {
+          title: title.trim(),
           activityType: Number(actType),
-          note,
-          startTime: startTime ? `${startTime}:00` : null,
-          endTime: endTime ? `${endTime}:00` : null,
+          note: note,
+          startTime: finalStartTime ? `${finalStartTime}:00` : null,
+          endTime: finalEndTime ? `${finalEndTime}:00` : null,
           price: price ? Number(price) : null,
+          ...baseTransportPayload,
         });
+
+        // After creating accommodation activity, assign rooms
+        if (isAccommodation && result?.id && roomType.trim()) {
+          try {
+            await tourInstanceService.assignRoomToAccommodation(instanceId, result.id, {
+              roomType: roomType.trim(),
+              roomCount: Number(roomCount) || 1,
+            });
+          } catch {
+            // Room assignment is best-effort; activity was created successfully
+            toast.warning("Hoạt động đã tạo nhưng chưa gán phòng thành công. Vui lòng gán phòng sau.");
+          }
+        }
+
         toast.success("Thêm hoạt động thành công");
       }
       onSuccess();
@@ -837,15 +1010,101 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
         </div>
       )}
 
+      {/* Accommodation-specific fields */}
+      {isAccommodation && !isEditing && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+          <div>
+            <label className={labelCls}>Loại phòng *</label>
+            <select className={inputCls} value={roomType} onChange={e => setRoomType(e.target.value)}>
+              <option value="">-- Chọn loại phòng --</option>
+              <option value="Standard">Standard</option>
+              <option value="Superior">Superior</option>
+              <option value="Deluxe">Deluxe</option>
+              <option value="Suite">Suite</option>
+              <option value="Family">Family</option>
+              <option value="Twin">Twin</option>
+              <option value="Double">Double</option>
+              <option value="Single">Single</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Số lượng phòng *</label>
+            <input type="number" min={1} className={inputCls} value={roomCount} onChange={e => setRoomCount(e.target.value)} placeholder="VD: 2" />
+          </div>
+        </div>
+      )}
+
+      {/* Transportation-specific fields */}
+      {isTransportation && (
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Loại phương tiện *</label>
+            <select
+              className={inputCls}
+              value={transportFields.transportationType}
+              onChange={(e) => {
+                const newType = e.target.value;
+                const wasExternal = isExternalOnlyTransportation(transportFields.transportationType);
+                const isExternal = isExternalOnlyTransportation(newType);
+                
+                if (transportFields.transportationType && wasExternal !== isExternal) {
+                  if (!window.confirm("Loại phương tiện thay đổi sẽ xoá dữ liệu của nhóm cũ. Bạn có muốn tiếp tục?")) {
+                    return;
+                  }
+                  // Clear incompatible fields
+                  setTransportFields(prev => ({
+                    ...prev,
+                    transportationType: newType,
+                    requestedVehicleType: "",
+                    requestedSeatCount: "",
+                    transportationName: "",
+                    externalTransportReference: "",
+                    departureTime: "",
+                    arrivalTime: "",
+                  }));
+                } else {
+                  setTransportFields(prev => ({ ...prev, transportationType: newType }));
+                }
+              }}
+            >
+              <option value="">-- Chọn loại phương tiện --</option>
+              <optgroup label="Đường bộ (Có nhà xe)">
+                <option value="1">Bus</option>
+                <option value="5">Car</option>
+                <option value="8">Taxi</option>
+              </optgroup>
+              <optgroup label="Mua vé rời (Manager tự book)">
+                <option value="3">Máy bay (Flight)</option>
+                <option value="2">Tàu hoả (Train)</option>
+                <option value="4">Tàu thuỷ/Du thuyền (Boat)</option>
+                <option value="99">Khác (Other)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          {transportFields.transportationType && (
+            <TransportActivitySubForm
+              fields={transportFields}
+              onChange={(updates) => setTransportFields((prev) => ({ ...prev, ...updates }))}
+              isEditing={isEditing}
+            />
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className={labelCls}>Giờ bắt đầu</label>
-          <input type="time" className={inputCls} value={startTime} onChange={e => setStartTime(e.target.value)} />
-        </div>
-        <div>
-          <label className={labelCls}>Giờ kết thúc</label>
-          <input type="time" className={inputCls} value={endTime} onChange={e => setEndTime(e.target.value)} />
-        </div>
+        {!(isTransportation && isExternalOnlyTransportation(transportFields.transportationType)) && (
+          <>
+            <div>
+              <label className={labelCls}>Giờ bắt đầu</label>
+              <input type="time" className={inputCls} value={startTime} onChange={e => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelCls}>Giờ kết thúc</label>
+              <input type="time" className={inputCls} value={endTime} onChange={e => setEndTime(e.target.value)} />
+            </div>
+          </>
+        )}
         <div>
           <label className={labelCls}>Giá (Tuỳ chọn)</label>
           <input type="number" min="0" step="any" className={inputCls} value={price} onChange={e => setPrice(e.target.value)} placeholder="VD: 500000" />

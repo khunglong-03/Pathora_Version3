@@ -38,4 +38,30 @@ public sealed class TransportationTypeExtensionsTests
         var bogus = (TransportationType)999;
         Assert.Throws<ArgumentOutOfRangeException>(() => bogus.GetApprovalCategory());
     }
+
+    [Theory]
+    [InlineData(TransportationType.Flight, true)]
+    [InlineData(TransportationType.Train, true)]
+    [InlineData(TransportationType.Boat, true)]
+    [InlineData(TransportationType.Car, false)]
+    [InlineData(TransportationType.Bus, false)]
+    [InlineData(TransportationType.Motorbike, false)]
+    [InlineData(TransportationType.Walking, false)]
+    [InlineData(TransportationType.Other, false)]
+    public void IsExternalOnly_ReturnsCorrectBoolean(TransportationType type, bool expected)
+    {
+        Assert.Equal(expected, type.IsExternalOnly());
+    }
+
+    [Fact]
+    public void IsExternalOnly_Nullable_ReturnsCorrectBoolean()
+    {
+        TransportationType? nullType = null;
+        TransportationType? flightType = TransportationType.Flight;
+        TransportationType? carType = TransportationType.Car;
+
+        Assert.False(nullType.IsExternalOnly());
+        Assert.True(flightType.IsExternalOnly());
+        Assert.False(carType.IsExternalOnly());
+    }
 }

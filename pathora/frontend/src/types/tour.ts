@@ -526,6 +526,7 @@ export interface TourInstanceDayActivityDto {
   externalTransportConfirmed?: boolean | null;
   externalTransportConfirmedAt?: string | null;
   externalTransportConfirmedBy?: string | null;
+  externalTransportReference?: string | null;
 }
 
 export interface TicketImageDto {

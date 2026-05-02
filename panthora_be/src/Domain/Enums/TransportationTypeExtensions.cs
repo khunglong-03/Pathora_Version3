@@ -26,4 +26,12 @@ public static class TransportationTypeExtensions
             type,
             $"Unmapped TransportationType '{type}'. Add to TransportationTypeExtensions.GetApprovalCategory."),
     };
+
+    public static bool IsExternalOnly(this TransportationType type) => type is
+        TransportationType.Flight or
+        TransportationType.Train or
+        TransportationType.Boat;
+
+    public static bool IsExternalOnly(this TransportationType? type) =>
+        type.HasValue && type.Value.IsExternalOnly();
 }

@@ -297,12 +297,12 @@ public class TourInstanceService(
                     endTime: templateActivity.EndTime,
                     isOptional: templateActivity.IsOptional,
                     // Transport plan fields — copy from template
-                    fromLocationId: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.FromLocationId : null,
-                    toLocationId: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.ToLocationId : null,
+                    fromLocationId: templateActivity.FromLocationId,
+                    toLocationId: templateActivity.ToLocationId,
                     transportationType: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationType : null,
                     transportationName: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationName : null,
-                    durationMinutes: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.DurationMinutes : null,
-                    price: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.Price : null
+                    durationMinutes: templateActivity.DurationMinutes,
+                    price: templateActivity.Price
                 );
 
                 switch (templateActivity.ActivityType)
@@ -1564,6 +1564,31 @@ public class TourInstanceService(
         if (request.Price.HasValue)
             activity.Price = request.Price.Value;
 
+        if (activity.ActivityType == TourDayActivityType.Transportation && request.TransportationType.HasValue)
+        {
+            var oldIsExternal = activity.TransportationType.IsExternalOnly();
+            var newIsExternal = request.TransportationType.IsExternalOnly();
+
+            if (oldIsExternal != newIsExternal && activity.TransportSupplierId.HasValue)
+            {
+                return Error.Validation(
+                    TourInstanceTransportErrors.CannotChangeTransportGroupWithSupplierAssignedCode,
+                    TourInstanceTransportErrors.CannotChangeTransportGroupWithSupplierAssignedDescription.En);
+            }
+
+            activity.UpdateTransportPlan(
+                request.TransportationType,
+                request.TransportationName ?? activity.TransportationName,
+                request.FromLocationId ?? activity.FromLocationId,
+                request.ToLocationId ?? activity.ToLocationId,
+                request.DepartureTime,
+                request.ArrivalTime,
+                request.RequestedVehicleType,
+                request.RequestedSeatCount,
+                request.ExternalTransportReference,
+                performedBy);
+        }
+
         activity.LastModifiedBy = performedBy;
         activity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
 
@@ -1597,8 +1622,32 @@ public class TourInstanceService(
             request.StartTime,
             request.EndTime,
             request.IsOptional,
-            price: request.Price
+            request.FromLocationId,
+            request.ToLocationId,
+            request.TransportationType,
+            request.TransportationName,
+            null, // durationMinutes
+            request.Price,
+            request.ExternalTransportReference
         );
+
+        if (request.ActivityType == TourDayActivityType.Transportation)
+        {
+            if (request.TransportationType.HasValue)
+            {
+                activity.UpdateTransportPlan(
+                    request.TransportationType,
+                    request.TransportationName,
+                    request.FromLocationId,
+                    request.ToLocationId,
+                    request.DepartureTime,
+                    request.ArrivalTime,
+                    request.RequestedVehicleType,
+                    request.RequestedSeatCount,
+                    request.ExternalTransportReference,
+                    _user.Id ?? "system");
+            }
+        }
 
         await _tourInstanceRepository.AddInstanceDayActivity(activity);
 

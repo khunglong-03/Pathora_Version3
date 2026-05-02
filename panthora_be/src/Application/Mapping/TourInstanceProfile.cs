@@ -73,6 +73,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportSupplierName), opt => opt.MapFrom(src => src.TransportSupplier != null ? src.TransportSupplier.Name : null))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalStatus), opt => opt.MapFrom(src => src.TransportationApprovalStatus.ToString()))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.TransportationApprovalNote), opt => opt.MapFrom(src => src.TransportationApprovalNote))
+            .ForCtorParam(nameof(TourInstanceDayActivityDto.ExternalTransportReference), opt => opt.MapFrom(src => src.ExternalTransportReference))
             // Instance-specific Vehicle Assignment info
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleId), opt => opt.MapFrom(src => src.VehicleId))
             .ForCtorParam(nameof(TourInstanceDayActivityDto.VehicleType), opt => opt.MapFrom(src => src.Vehicle != null ? src.Vehicle.VehicleType.ToString() : null))

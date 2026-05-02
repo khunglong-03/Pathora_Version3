@@ -66,6 +66,7 @@ interface ActivityPayloadInput {
   enTransportationName: string;
   durationMinutes: string;
   price: string;
+  bookingReference?: string;
 }
 
 interface DayPlanPayloadInput {
@@ -372,7 +373,8 @@ const buildClassificationsPayload = (
           transportationName: activity.activityType === "7" ? (activity.transportationName || null) : null,
           enTransportationName: activity.activityType === "7" ? (activity.enTransportationName || null) : null,
           durationMinutes: activity.activityType === "7" ? parseIntValue(activity.durationMinutes, 0) : null,
-          price: activity.activityType === "7" ? parseDecimal(activity.estimatedCost, 0) : null,
+          price: activity.activityType === "7" ? parseDecimal(activity.price || activity.estimatedCost, 0) : null,
+          bookingReference: activity.activityType === "7" ? (activity.bookingReference || null) : null,
           accommodation: isAccommodation ? {
             accommodationName: activity.locationName || activity.title,
             address: activity.locationAddress || "",

@@ -2831,7 +2831,12 @@
         "roomCountExceedsInventory": "Số phòng yêu cầu vượt quá số phòng đang hoạt động của nhà cung cấp.",
         "vehicleAvailabilityNoSupplier": "Bạn chưa có nhà cung cấp vận chuyển nào.",
         "vehicleAvailabilityActivityNotOwned": "Hoạt động này không thuộc nhà cung cấp của bạn.",
-        "supplierNotApplicable": "Hoạt động này dùng phương tiện đặc thù (máy bay/tàu/du thuyền) nên phải do người thiết kế tour tự đặt vé bên ngoài, không gán nhà cung cấp trong hệ thống."
+        "supplierNotApplicable": "Hoạt động này dùng phương tiện đặc thù (máy bay/tàu/du thuyền) nên phải do người thiết kế tour tự đặt vé bên ngoài, không gán nhà cung cấp trong hệ thống.",
+        "externalFieldsNotAllowedForGround": "Phương tiện đường bộ không được chứa các trường của vé tàu/máy bay (VD: Giờ khởi hành).",
+        "groundFieldsNotAllowedForExternal": "Phương tiện đặc thù (máy bay/tàu/du thuyền) không được yêu cầu loại xe hoặc số lượng ghế.",
+        "externalTransportRequiresTime": "Phương tiện ngoài hệ thống yêu cầu cung cấp Giờ khởi hành và Giờ đến dự kiến.",
+        "groundTransportRequiresVehicle": "Di chuyển đường bộ yêu cầu phải chọn Loại xe và số lượng ghế.",
+        "cannotChangeTransportTypeWithSupplier": "Không thể đổi nhóm phương tiện do hoạt động này đã được gán cho nhà cung cấp xe. Vui lòng gỡ nhà cung cấp trước."
       },
       "externalOnly": {
         "title": "Phương tiện đặc thù — không gán nhà cung cấp",

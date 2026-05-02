@@ -21,7 +21,16 @@ public sealed record CreateTourInstanceActivityCommand(
     [property: JsonPropertyName("startTime")] TimeOnly? StartTime = null,
     [property: JsonPropertyName("endTime")] TimeOnly? EndTime = null,
     [property: JsonPropertyName("price")] decimal? Price = null,
-    [property: JsonPropertyName("isOptional")] bool IsOptional = false) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
+    [property: JsonPropertyName("isOptional")] bool IsOptional = false,
+    [property: JsonPropertyName("transportationType")] TransportationType? TransportationType = null,
+    [property: JsonPropertyName("transportationName")] string? TransportationName = null,
+    [property: JsonPropertyName("fromLocationId")] Guid? FromLocationId = null,
+    [property: JsonPropertyName("toLocationId")] Guid? ToLocationId = null,
+    [property: JsonPropertyName("departureTime")] DateTimeOffset? DepartureTime = null,
+    [property: JsonPropertyName("arrivalTime")] DateTimeOffset? ArrivalTime = null,
+    [property: JsonPropertyName("requestedVehicleType")] VehicleType? RequestedVehicleType = null,
+    [property: JsonPropertyName("requestedSeatCount")] int? RequestedSeatCount = null,
+    [property: JsonPropertyName("externalTransportReference")] string? ExternalTransportReference = null) : ICommand<ErrorOr<TourInstanceDayActivityDto>>, ICacheInvalidator
 {
     public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, $"{CacheKey.TourInstance}:detail:{InstanceId}"];
 }
@@ -38,6 +47,52 @@ public sealed class CreateTourInstanceActivityCommandValidator : AbstractValidat
             RuleFor(x => x)
                 .Must(x => x.StartTime!.Value < x.EndTime!.Value)
                 .WithMessage("Giờ bắt đầu phải trước giờ kết thúc.");
+        });
+
+        // Rules for TransportationType
+        When(x => x.ActivityType == TourDayActivityType.Transportation, () =>
+        {
+            RuleFor(x => x.TransportationType)
+                .NotNull()
+                .WithErrorCode(TourInstanceTransportErrors.TransportationTypeRequiredCode)
+                .WithMessage(TourInstanceTransportErrors.TransportationTypeRequiredDescription.En);
+
+            When(x => x.TransportationType.IsExternalOnly(), () =>
+            {
+                RuleFor(x => x.RequestedVehicleType)
+                    .Null()
+                    .WithErrorCode(TourInstanceTransportErrors.GroundFieldsNotAllowedForExternalCode)
+                    .WithMessage(TourInstanceTransportErrors.GroundFieldsNotAllowedForExternalDescription.En);
+
+                RuleFor(x => x.RequestedSeatCount)
+                    .Null()
+                    .WithErrorCode(TourInstanceTransportErrors.GroundFieldsNotAllowedForExternalCode)
+                    .WithMessage(TourInstanceTransportErrors.GroundFieldsNotAllowedForExternalDescription.En);
+            });
+
+            When(x => x.TransportationType.HasValue && !x.TransportationType.IsExternalOnly(), () =>
+            {
+                RuleFor(x => x.DepartureTime)
+                    .Null()
+                    .WithErrorCode(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundCode)
+                    .WithMessage(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundDescription.En);
+
+                RuleFor(x => x.ArrivalTime)
+                    .Null()
+                    .WithErrorCode(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundCode)
+                    .WithMessage(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundDescription.En);
+
+                RuleFor(x => x.ExternalTransportReference)
+                    .Null()
+                    .WithErrorCode(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundCode)
+                    .WithMessage(TourInstanceTransportErrors.ExternalFieldsNotAllowedForGroundDescription.En);
+            });
+        }).Otherwise(() =>
+        {
+            RuleFor(x => x.TransportationType)
+                .Null()
+                .WithErrorCode(TourInstanceTransportErrors.TransportationTypeNotAllowedCode)
+                .WithMessage(TourInstanceTransportErrors.TransportationTypeNotAllowedDescription.En);
         });
     }
 }

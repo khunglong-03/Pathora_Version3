@@ -277,6 +277,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             .SelectMany(d => d.Activities)
             .Where(a => a.ActivityType == TourDayActivityType.Transportation
                         && a.TransportSupplierId.HasValue
+                        && !a.TransportationType.IsExternalOnly()
                         && (!a.TransportationType.HasValue
                             || a.TransportationType.Value.GetApprovalCategory() != TransportApprovalCategory.NoApproval))
             .ToList();
