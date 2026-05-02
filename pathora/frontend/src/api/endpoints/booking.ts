@@ -13,6 +13,7 @@ export interface PublicBookingEndpoints {
   REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string) => string;
   GET_PARTICIPANTS: (id: string) => string;
   CREATE_PARTICIPANT: (id: string) => string;
+  UPDATE_PARTICIPANT: (id: string, participantId: string) => string;
 }
 
 export interface BookingEndpoints {
@@ -26,6 +27,7 @@ export interface BookingEndpoints {
   GET_TRANSPORT_DETAILS: (id: string) => string;
   GET_ACCOMMODATION_DETAILS: (id: string) => string;
   GET_PARTICIPANTS: (id: string) => string;
+  UPDATE_PARTICIPANT: (id: string, participantId: string) => string;
   GET_PAYABLES: (id: string) => string;
   GET_ACTIVITY_STATUSES: (id: string) => string;
   GET_ACTIVITY_STATUS_DETAIL: (id: string, tourDayId: string) => string;
@@ -74,7 +76,8 @@ export const PUBLIC_BOOKING: PublicBookingEndpoints = {
   UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${applicationId}`,
   REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${participantId}/request-support`,
   GET_PARTICIPANTS: (id: string): string => `/api/public/bookings/${id}/participants`,
-  CREATE_PARTICIPANT: (id: string): string => `/api/public/bookings/${id}/participants`
+  CREATE_PARTICIPANT: (id: string): string => `/api/public/bookings/${id}/participants`,
+  UPDATE_PARTICIPANT: (id: string, participantId: string): string => `/api/public/bookings/${id}/participants/${participantId}`
 };
 
 export const BOOKING: BookingEndpoints = {
@@ -91,6 +94,7 @@ export const BOOKING: BookingEndpoints = {
   GET_TRANSPORT_DETAILS: (id: string): string => `/api/bookings/${id}/transport-details`,
   GET_ACCOMMODATION_DETAILS: (id: string): string => `/api/bookings/${id}/accommodation-details`,
   GET_PARTICIPANTS: (id: string): string => `/api/bookings/${id}/participants`,
+  UPDATE_PARTICIPANT: (id: string, participantId: string): string => `/api/bookings/${id}/participants/${participantId}`,
   GET_PAYABLES: (id: string): string => `/api/bookings/${id}/payables`,
   GET_ACTIVITY_STATUSES: (id: string): string => `/api/bookings/${id}/activity-statuses`,
   GET_ACTIVITY_STATUS_DETAIL: (id: string, tourDayId: string): string =>

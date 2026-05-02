@@ -214,6 +214,14 @@ public class BookingManagementController : BaseApiController
         return HandleCreated(result);
     }
 
+    [HttpPut(BookingManagementEndpoint.Participants + "/{participantId:guid}")]
+    public async Task<IActionResult> UpdateParticipant(Guid id, Guid participantId, [FromBody] Application.Features.BookingManagement.Participant.UpdateParticipantCommand request)
+    {
+        var command = request with { ParticipantId = participantId };
+        var result = await Sender.Send(command);
+        return HandleUpdated(result);
+    }
+
     [HttpGet(BookingManagementEndpoint.Payables)]
     public async Task<IActionResult> GetPayables(Guid id)
     {

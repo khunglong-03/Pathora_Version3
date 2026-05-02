@@ -47,4 +47,12 @@ public class CustomerBookingController : BaseApiController
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
+
+    [HttpPut("{bookingId:guid}/participants/{participantId:guid}")]
+    public async Task<IActionResult> UpdateParticipant(Guid bookingId, Guid participantId, [FromBody] Application.Features.BookingManagement.Participant.UpdateParticipantCommand request)
+    {
+        var command = request with { ParticipantId = participantId };
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
 }

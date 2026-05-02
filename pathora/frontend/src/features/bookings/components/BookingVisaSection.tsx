@@ -83,7 +83,7 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
           <h3 className="text-xl font-bold text-amber-900">{t("landing.visa.sectionTitle")}</h3>
         </div>
         <p className="text-sm text-amber-800">
-          {t("landing.visa.requiresParticipantsFirst", "Tour này cần visa. Vui lòng thêm thông tin từng hành khách trước khi nộp visa.")}
+          {t("landing.visa.requiresParticipantsFirst", "Tour này cần visa. Vui lòng thêm thông tin từng hành khách trước khi nộp visa. Người chưa có visa có thể yêu cầu hệ thống hỗ trợ làm visa (có phí).")}
         </p>
         <a
           href={`/bookings/${bookingId}/participants`}

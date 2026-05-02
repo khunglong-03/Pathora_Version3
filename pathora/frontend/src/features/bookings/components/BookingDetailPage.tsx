@@ -94,6 +94,16 @@ export function BookingDetailPage() {
     }
   };
 
+  useEffect(() => {
+    if (loading || !booking) return;
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#visa") return;
+    const el = document.getElementById("visa");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading, booking]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -138,7 +148,11 @@ export function BookingDetailPage() {
                 getPaymentMethodLabel={labelFns.getPaymentMethodLabel}
               />
               <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
-              {showVisaSection && <BookingVisaSection bookingId={mappedBooking.id} />}
+              {showVisaSection && (
+                <div id="visa" className="scroll-mt-24">
+                  <BookingVisaSection bookingId={mappedBooking.id} />
+                </div>
+              )}
               <BookingOverviewTab
                 booking={mappedBooking}
                 tourInstance={tourInstance}

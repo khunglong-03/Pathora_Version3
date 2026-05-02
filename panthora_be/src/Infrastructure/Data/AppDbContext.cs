@@ -107,6 +107,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<GuestArrivalEntity> GuestArrivals => Set<GuestArrivalEntity>();
     public DbSet<GuestArrivalParticipantEntity> GuestArrivalParticipants => Set<GuestArrivalParticipantEntity>();
     public DbSet<ManagerBankAccountEntity> ManagerBankAccounts => Set<ManagerBankAccountEntity>();
+    public DbSet<WithdrawalRequestEntity> WithdrawalRequests => Set<WithdrawalRequestEntity>();
     public DbSet<TourInstanceBookingTicketEntity> TourInstanceBookingTickets => Set<TourInstanceBookingTicketEntity>();
     public DbSet<TourInstanceBookingRoomAssignmentEntity> TourInstanceBookingRoomAssignments => Set<TourInstanceBookingRoomAssignmentEntity>();
 

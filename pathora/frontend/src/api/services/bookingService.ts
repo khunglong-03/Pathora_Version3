@@ -196,4 +196,12 @@ export const bookingService = {
     );
     return extractResult<string>(response.data);
   },
+
+  updateParticipant: async (bookingId: string, participantId: string, payload: any) => {
+    const response = await api.put<ServiceResponse<unknown>>(
+      API_ENDPOINTS.PUBLIC_BOOKING.UPDATE_PARTICIPANT(bookingId, participantId),
+      payload
+    );
+    return extractResult<unknown>(response.data);
+  },
 };

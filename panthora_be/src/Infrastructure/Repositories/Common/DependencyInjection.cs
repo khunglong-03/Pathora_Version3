@@ -81,6 +81,7 @@ internal static class DependencyInjection
         services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
 
         services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
+        services.AddScoped<IWithdrawalRequestRepository, WithdrawalRequestRepository>();
 
         services.AddScoped<IInsuranceRepository, InsuranceRepository>();
 
