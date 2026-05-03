@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -93,35 +94,33 @@ export function ProfilePage() {
   return (
     <>
       
-      <div style={{ backgroundColor: CSS.background }} className="min-h-screen pt-20">
-        <div className="max-w-4xl mx-auto px-4 pb-8">
+      <div style={{ backgroundColor: CSS.background }} className="min-h-screen py-8 md:py-10">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={SPRING}
-            style={{ backgroundColor: CSS.surface, boxShadow: CSS.shadowCard }}
-            className="rounded-2xl overflow-hidden"
-          >
-            {/* Accent bar header */}
+            className="bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200/50 rounded-[1.5rem] overflow-hidden"
+          >            {/* Accent bar header */}
             <div
-              style={{ backgroundColor: CSS.accentMuted, borderTop: `3px solid ${CSS.accent}` }}
-              className="px-6 py-8 transition-all duration-300"
+              className="px-6 md:px-8 py-8 bg-blue-50/50 border-t-[3px] border-t-blue-500"
+              
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${CSS.accent} 15%, transparent)` }}>
-                  <HeaderIcon style={{ color: CSS.accent }} className="w-5 h-5" />
+              <div className="h-stack items-center gap-3">
+                <div className="size-10 rounded-full center bg-blue-100">
+                  <HeaderIcon className="size-5 text-blue-600" />
                 </div>
                 <div>
-                  <h1 style={{ color: CSS.textPrimary, fontFamily: "var(--font-display)" }} className="text-2xl font-bold">{currentHeader.title}</h1>
-                  <p style={{ color: CSS.textSecondary }} className="mt-0.5 text-sm">{currentHeader.subtitle}</p>
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{currentHeader.title}</h1>
+                  <p className="mt-1 text-sm font-medium text-slate-500">{currentHeader.subtitle}</p>
                 </div>
               </div>
-              {user?.email && <p style={{ color: CSS.textMuted }} className="text-xs mt-3 ml-[52px]">{user.email}</p>}
+              {user?.email && <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-4 ml-[52px]">{user.email}</p>}
             </div>
 
             {/* Tab navigation */}
-            <div style={{ borderBottom: `1px solid ${CSS.border}` }}>
-              <nav className="flex">
+            <div className="border-b border-slate-200">
+              <nav className="flex overflow-x-auto scrollbar-hide">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -134,31 +133,25 @@ export function ProfilePage() {
                         params.set("tab", tab.id);
                         router.replace(`?${params.toString()}`);
                       }}
-                      style={{
-                        color: isActive ? CSS.accent : CSS.textSecondary,
-                      }}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative hover:opacity-80 ${
-                        isActive ? "" : "hover:!text-gray-700"
-                      }`}
+                      
+                      className={cn("h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50", isActive ? "text-blue-600" : "text-slate-500 hover:text-slate-900")}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="size-4" />
                       {tab.label}
                       {isActive && (
                         <motion.span
                           layoutId="tab-indicator"
-                          style={{ backgroundColor: CSS.accent }}
-                          className="absolute bottom-0 left-0 right-0 h-0.5"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
-                      )}
-                    </button>
+                      )}                    </button>
                   );
                 })}
               </nav>
             </div>
 
             {/* Tab content with stagger animation */}
-            <div className="p-6">
+            <div className="p-6 md:p-8">
               <motion.div
                 key={activeTab}
                 variants={containerVariants}

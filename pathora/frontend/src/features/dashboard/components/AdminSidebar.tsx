@@ -87,6 +87,11 @@ export const MANAGER_NAV_ITEMS = [
     icon: BuildingsIcon,
     href: "/manager/bank-accounts",
   },
+  {
+    label: "Tài Khoản",
+    icon: GearIcon,
+    href: "/manager/profile",
+  },
 ] as const;
 
 export const ADMIN_BASIC_NAV_ITEMS = [
@@ -122,6 +127,7 @@ export const ADMIN_TOUR_ITEMS = [
 
 export const ADMIN_SETTINGS_ITEMS = [
   { label: "Cấu hình hệ thống", icon: GearIcon, href: "/admin/settings" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/admin/profile" },
 ] as const;
 
 // Flat nav items list (used by the component)
@@ -151,6 +157,7 @@ export const TOUROPERATOR_BASE_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-operator" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/tour-operator/profile" },
 ] as const;
 
 // Public tour section — xe/khách sạn đã đăng ký sẵn
@@ -184,7 +191,9 @@ export const TOUROPERATOR_NAV_ITEMS = [
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
-  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-guide" },
+  { label: "Lịch Trình", icon: CalendarDotsIcon, href: "/tour-guide/schedule" },
+  { label: "Hoạt Động", icon: ClipboardTextIcon, href: "/tour-guide/operations" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/tour-guide/profile" },
 ] as const;
 
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
@@ -389,7 +398,6 @@ export function AdminSidebar({
       "/manager/dashboard",
       "/admin/users",
       "/tour-operator",
-      "/tour-guide",
       "/hotel",
       "/transport",
       "/manager/staff-schedule",

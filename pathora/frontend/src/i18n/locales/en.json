@@ -3897,5 +3897,23 @@
       "oceania": "Oceania",
       "antarctica": "Antarctica"
     }
+  },
+  "tourGuide": {
+    "portalTitle": "Tour Guide Workspace",
+    "portalSubtitle": "Manage your schedules and activities",
+    "schedule": {
+      "calendarTitle": "Your Schedule",
+      "noToursOnDate": "You have no tours scheduled for this date."
+    },
+    "operations": {
+      "title": "Operations",
+      "emptyState": "You have not been assigned any tours yet",
+      "completeTour": "Complete Tour"
+    },
+    "profile": {
+      "title": "Account",
+      "avatar": "Avatar",
+      "changePassword": "Change Password"
+    }
   }
 }
