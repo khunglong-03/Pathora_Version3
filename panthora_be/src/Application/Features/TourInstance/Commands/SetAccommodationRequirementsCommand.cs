@@ -6,7 +6,6 @@ using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.UnitOfWork;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
@@ -16,6 +15,7 @@ namespace Application.Features.TourInstance.Commands;
 public sealed record SetAccommodationRequirementsCommand(
     Guid InstanceId,
     Guid AccommodationActivityId,
+    Guid? SupplierId,
     string RoomType,
     int Quantity
 ) : ICommand<ErrorOr<Success>>;
@@ -34,13 +34,12 @@ public sealed class SetAccommodationRequirementsCommandValidator : AbstractValid
 public sealed class SetAccommodationRequirementsCommandHandler(
     IRoomBlockRepository roomBlockRepository,
     ITourInstanceRepository tourInstanceRepository,
-    IUnitOfWork unitOfWork,
     IUser user
 ) : ICommandHandler<SetAccommodationRequirementsCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(SetAccommodationRequirementsCommand request, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(user.Id, out var currentUserId))
+        if (!Guid.TryParse(user.Id, out _))
             return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
 
         // Verify role: TourOperator, Manager or Admin
@@ -49,7 +48,7 @@ public sealed class SetAccommodationRequirementsCommandHandler(
              return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Only Tour Operators and Managers can set accommodation requirements.");
         }
 
-        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId, cancellationToken);
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
 
@@ -64,34 +63,33 @@ public sealed class SetAccommodationRequirementsCommandHandler(
         if (activity.ActivityType != TourDayActivityType.Accommodation)
             return Error.Validation("TourInstanceActivity.InvalidType", "Activity is not an accommodation.");
 
-        if (activity.Accommodation == null)
-            return Error.Validation("TourInstanceActivity.NoAccommodation", "Accommodation details not found on this activity.");
-
         if (!Enum.TryParse<RoomType>(request.RoomType, true, out var roomType))
             return Error.Validation("RoomType.Invalid", "Invalid room type.");
 
-        await unitOfWork.ExecuteTransactionAsync(async () =>
-        {
-            activity.Accommodation.Update(
-                roomType: roomType,
-                quantity: request.Quantity,
-                checkInTime: activity.Accommodation.CheckInTime,
-                checkOutTime: activity.Accommodation.CheckOutTime,
-                supplierId: activity.Accommodation.SupplierId
-            );
+        activity.Accommodation ??= TourInstancePlanAccommodationEntity.Create(activity.Id);
 
-            // If a supplier is assigned, setting requirements resets approval to Pending
-            if (activity.Accommodation.SupplierId.HasValue)
-            {
-                 activity.Accommodation.SupplierApprovalStatus = ProviderApprovalStatus.Pending;
-                 activity.Accommodation.SupplierApprovalNote = null;
-            }
+        var checkInTime = activity.Accommodation.CheckInTime;
+        var checkOutTime = activity.Accommodation.CheckOutTime;
 
-            // Delete any existing room blocks since the requirements have changed
-            await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
-            
-            await unitOfWork.SaveChangeAsync(cancellationToken);
-        });
+        activity.Accommodation.Update(
+            roomType: roomType,
+            quantity: request.Quantity,
+            checkInTime: checkInTime,
+            checkOutTime: checkOutTime,
+            supplierId: request.SupplierId
+        );
+
+        // Setting requirements resets approval to Pending if supplier is set, otherwise NotAssigned
+        activity.Accommodation.SupplierApprovalStatus = request.SupplierId.HasValue 
+            ? ProviderApprovalStatus.Pending 
+            : ProviderApprovalStatus.NotAssigned;
+        activity.Accommodation.SupplierApprovalNote = null;
+
+        // Delete any existing room blocks since requirements have changed.
+        // ExecuteDeleteAsync is raw SQL — runs outside change tracker.
+        await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
+
+        await tourInstanceRepository.Update(instance, cancellationToken);
 
         return Result.Success;
     }

@@ -1,3 +1,4 @@
+using Domain.Abstractions;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -248,7 +249,32 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         // Entity is already tracked by EF (loaded via FindById without AsNoTracking).
         // Calling _context.TourInstances.Update() would reset all navigation property states
         // (Deleted/Added managers → Modified) causing DbUpdateConcurrencyException.
-        // Change tracking already knows what to DELETE, INSERT, UPDATE — just save.
+
+        // [TEMP DEBUG] Log all tracked TourInstancePlanAccommodationEntity entries
+        foreach (var entry in _context.ChangeTracker.Entries<TourInstancePlanAccommodationEntity>())
+        {
+            Console.WriteLine($"[EF-DEBUG-ACCOM] Entity={entry.Entity.GetType().Name} State={entry.State} Id={entry.Entity.Id} ActivityId={entry.Entity.TourInstanceDayActivityId} RoomType={entry.Entity.RoomType} Qty={entry.Entity.Quantity} SupplierId={entry.Entity.SupplierId} CreatedOnUtc={entry.Entity.CreatedOnUtc}");
+        }
+
+        // Fix entities added via navigation properties with pre-set keys (e.g. Guid.CreateVersion7).
+        // EF Core's ValueGeneratedOnAdd treats non-default key values as existing entities,
+        // marking them Modified or Unchanged instead of Added. Detect them by checking CreatedOnUtc == default
+        // (a persisted entity always has a real audit timestamp set by AppDbContext).
+        foreach (var entry in _context.ChangeTracker.Entries<ICreationAuditable>())
+        {
+            if ((entry.State == EntityState.Modified || entry.State == EntityState.Unchanged) && entry.Entity.CreatedOnUtc == default)
+            {
+                Console.WriteLine($"[EF-DEBUG-FIX] Fixing {entry.Entity.GetType().Name} from {entry.State} to Added (CreatedOnUtc=default)");
+                entry.State = EntityState.Added;
+            }
+        }
+
+        // [TEMP DEBUG] Log state AFTER fixup
+        foreach (var entry in _context.ChangeTracker.Entries<TourInstancePlanAccommodationEntity>())
+        {
+            Console.WriteLine($"[EF-DEBUG-ACCOM-AFTER] State={entry.State} Id={entry.Entity.Id}");
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 

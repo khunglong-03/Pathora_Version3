@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Users, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
@@ -19,6 +19,7 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [conflicts, setConflicts] = useState<GuideConflict[]>([]);
+  const inFlightRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +64,8 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
 
   const handleSave = async () => {
     if (!instance) return;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setSaving(true);
     setError(null);
     setConflicts([]);
@@ -74,7 +77,6 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
         const availResult = await tourInstanceService.checkGuideAvailability(selectedGuideIds, instance.startDate, instance.endDate);
         if (availResult?.conflicts && availResult.conflicts.length > 0) {
           setConflicts(availResult.conflicts);
-          setSaving(false);
           return; // Stop saving if conflicts exist
         }
       }
@@ -87,6 +89,7 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
       setError(err?.message || "Failed to assign guides");
     } finally {
       setSaving(false);
+      inFlightRef.current = false;
     }
   };
 

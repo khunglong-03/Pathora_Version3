@@ -760,7 +760,7 @@ export const tourInstanceService = {
   setAccommodationRequirements: async (
     instanceId: string,
     activityId: string,
-    data: { roomType: string; quantity: number },
+    data: { supplierId?: string | null; roomType: string; quantity: number },
   ) => {
     const response = await api.put<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.SET_ACCOMMODATION_REQUIREMENTS(instanceId, activityId),

@@ -99,11 +99,11 @@ public class RoomBlockRepository(AppDbContext context)
     public async Task DeleteByTourInstanceDayActivityIdAsync(
         Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default)
     {
-        var blocks = await _dbSet
+        // ExecuteDeleteAsync: idempotent bulk delete via raw SQL.
+        // Bypasses change tracker → no DbUpdateConcurrencyException on concurrent calls.
+        await _dbSet
             .Where(x => x.TourInstanceDayActivityId == tourInstanceDayActivityId)
-            .ToListAsync(cancellationToken);
-
-        _dbSet.RemoveRange(blocks);
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdsAsync(

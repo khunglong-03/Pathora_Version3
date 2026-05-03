@@ -112,14 +112,26 @@ export function TourInstanceInfoCard({
                   : t("landing.checkout.private")}
               </div>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                Deposit Required
-              </span>
-              <span className="text-lg font-bold text-zinc-900">
-                {fmtCurrency(tourInstanceBooking.depositPerPerson)}
-              </span>
-            </div>
+            {!isPublic && (
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                  {t("landing.checkout.estimatedBudget", "Estimated Budget")}
+                </span>
+                <span className="text-lg font-bold text-zinc-900">
+                  {fmtCurrency(tourInstanceBooking.depositPerPerson)}
+                </span>
+              </div>
+            )}
+            {isPublic && (
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                  Deposit Required
+                </span>
+                <span className="text-lg font-bold text-zinc-900">
+                  {fmtCurrency(tourInstanceBooking.depositPerPerson)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

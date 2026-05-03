@@ -638,6 +638,7 @@ export interface TourInstanceDto {
   customizationNotes?: string | null;
   /** Lý do Manager từ chối lịch trình; chỉ có khi status = PendingAdjustment. */
   managerReviewNote?: string | null;
+  continent?: number | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {

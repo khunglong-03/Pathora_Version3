@@ -102,22 +102,21 @@ public sealed class AssignRoomToAccommodationCommandHandler(
         var inventory = await inventoryRepository.FindByHotelAndRoomTypeAsync(supplier.Id, roomType, cancellationToken);
         var blockedDate = activity.TourInstanceDay.ActualDate;
 
-        await unitOfWork.ExecuteTransactionAsync(async () =>
-        {
-            await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
+        // Mirrors AssignTransportSupplier pattern (no ExecuteTransactionAsync wrap):
+        // ExecuteDeleteAsync runs raw SQL (no tracker churn), then Add + single SaveChanges.
+        await roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(request.AccommodationActivityId, cancellationToken);
 
-            var block = RoomBlockEntity.Create(
-                supplierId: supplier.Id,
-                roomType: roomType,
-                blockedDate: blockedDate,
-                roomCountBlocked: request.RoomCount,
-                performedBy: currentUserId.ToString(),
-                tourInstanceDayActivityId: request.AccommodationActivityId,
-                holdStatus: HoldStatus.Hard); // Hard hold since it's provider assignment
+        var block = RoomBlockEntity.Create(
+            supplierId: supplier.Id,
+            roomType: roomType,
+            blockedDate: blockedDate,
+            roomCountBlocked: request.RoomCount,
+            performedBy: currentUserId.ToString(),
+            tourInstanceDayActivityId: request.AccommodationActivityId,
+            holdStatus: HoldStatus.Hard); // Hard hold since it's provider assignment
 
-            roomBlockRepository.Add(block);
-            await unitOfWork.SaveChangeAsync(cancellationToken);
-        });
+        roomBlockRepository.Add(block);
+        await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return new AssignRoomToAccommodationResponse(
             Success: true,

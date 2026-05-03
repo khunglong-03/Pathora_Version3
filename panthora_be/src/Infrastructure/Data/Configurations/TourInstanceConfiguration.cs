@@ -71,9 +71,14 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
 
         builder.Property(t => t.IsDeleted)
             .HasDefaultValue(false);
+        // RowVersion: byte[] column kept for schema compat.
+        // IsRowVersion() removed: Npgsql bytea doesn't auto-increment, causing
+        // false-positive DbUpdateConcurrencyException ("0 rows affected") on
+        // every Modified save. Concurrency for status transitions handled at
+        // service layer via re-read + re-check pattern.
         builder.Property(t => t.RowVersion)
-            .IsRowVersion()
             .IsRequired()
+            .IsConcurrencyToken(false)
             .HasDefaultValue(Array.Empty<byte>());
         builder.Property(t => t.IncludedServices)
             .ConfigureCollectionJsonb();

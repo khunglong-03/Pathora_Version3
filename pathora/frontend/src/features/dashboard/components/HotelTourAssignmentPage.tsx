@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, X, Bed } from "@phosphor-icons/react";
@@ -30,6 +30,7 @@ const isAccommodationActivity = (activityType?: string | null) => {
 
 interface RoomAssignmentForm {
   [activityId: string]: {
+    supplierId: string;
     roomType: string;
     roomCount: number;
     isSubmitting: boolean;
@@ -53,6 +54,9 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   const [assignments, setAssignments] = useState<RoomAssignmentForm>({});
   const [inventory, setInventory] = useState<AccommodationItem[]>([]);
   const [availability, setAvailability] = useState<RoomAvailability[]>([]);
+  const [hotelSuppliers, setHotelSuppliers] = useState<any[]>([]); // Using any to avoid importing SupplierItem if it's messy, but we can import it.
+  const [accommodationsBySupplier, setAccommodationsBySupplier] = useState<Record<string, any[]>>({});
+  const inFlightActivitiesRef = useRef<Set<string>>(new Set());
 
   // Approval Modals
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -97,6 +101,15 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
           } catch (e) {
             console.error("Failed to load inventory:", e);
           }
+        } else {
+          // Tour Operator view: Fetch hotel suppliers matching continent
+          try {
+            const { supplierService } = await import("@/api/services/supplierService");
+            const suppliers = await supplierService.getSuppliers("Accommodation", data.continent);
+            setHotelSuppliers(suppliers);
+          } catch (e) {
+            console.error("Failed to load suppliers:", e);
+          }
         }
 
         // Initialize form state out of currently assigned accommodations
@@ -105,6 +118,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
           day.activities?.forEach((act) => {
             if (isAccommodationActivity(act.activityType)) {
               tempAssigns[act.id] = {
+                supplierId: act.accommodation?.supplierId ?? "",
                 roomType:
                   act.accommodation?.roomType ??
                   canonicalRoomOptions[0]?.roomType ??
@@ -118,6 +132,23 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
           });
         });
         setAssignments(tempAssigns);
+
+        if (props.instanceId) {
+          const sids = Object.values(tempAssigns).map(a => a.supplierId).filter(id => id);
+          const uniqueSids = Array.from(new Set(sids));
+          if (uniqueSids.length > 0) {
+            try {
+              const { supplierService } = await import("@/api/services/supplierService");
+              const accommsMap: Record<string, any[]> = {};
+              await Promise.all(uniqueSids.map(async sid => {
+                accommsMap[sid] = await supplierService.getSupplierAccommodations(sid);
+              }));
+              setAccommodationsBySupplier(accommsMap);
+            } catch (e) {
+              console.error("Failed to load supplier accommodations:", e);
+            }
+          }
+        }
       }
     } catch (error) {
       const apiError = handleApiError(error);
@@ -274,7 +305,29 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
     return availItem.availableRooms + ownBlocks;
   };
 
-  const handleAssignmentChange = (activityId: string, field: "roomType" | "roomCount", value: string | number) => {
+  const handleAssignmentChange = async (activityId: string, field: "supplierId" | "roomType" | "roomCount", value: string | number) => {
+    if (field === "supplierId" && value) {
+      const sid = value as string;
+      if (!accommodationsBySupplier[sid]) {
+        try {
+          const { supplierService } = await import("@/api/services/supplierService");
+          const accomms = await supplierService.getSupplierAccommodations(sid);
+          setAccommodationsBySupplier(prev => ({ ...prev, [sid]: accomms }));
+        } catch (e) {
+          console.error("Failed to load supplier accommodations:", e);
+        }
+      }
+      setAssignments((prev) => ({
+        ...prev,
+        [activityId]: {
+          ...prev[activityId],
+          supplierId: sid,
+          roomType: "", // reset roomType when supplier changes
+        },
+      }));
+      return;
+    }
+
     setAssignments((prev) => ({
       ...prev,
       [activityId]: {
@@ -320,6 +373,8 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   const handleSetRequirements = async (activityId: string) => {
     const currentState = assignments[activityId];
     if (!currentState) return;
+    if (inFlightActivitiesRef.current.has(activityId)) return;
+    inFlightActivitiesRef.current.add(activityId);
 
     setAssignments((prev) => ({
       ...prev,
@@ -328,6 +383,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
 
     try {
       const res = await tourInstanceService.setAccommodationRequirements(instanceId, activityId, {
+        supplierId: currentState.supplierId,
         roomType: currentState.roomType,
         quantity: currentState.roomCount,
       });
@@ -340,6 +396,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
       const apiError = handleApiError(error);
       toast.error(t(apiError.message));
     } finally {
+      inFlightActivitiesRef.current.delete(activityId);
       setAssignments((prev) => ({
         ...prev,
         [activityId]: { ...prev[activityId], isSubmitting: false },
@@ -677,7 +734,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                         <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
                           <Bed size={16} className="text-slate-400" />
                           <span className="text-slate-500 font-medium">Loại:</span>
-                          <span className="font-bold text-slate-800">{act.accommodation.roomType}</span>
+                          <span className="font-bold text-slate-800">{act.accommodation?.roomType}</span>
                         </div>
                         <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
                           <span className="text-slate-500 font-medium">Yêu cầu:</span>
@@ -695,10 +752,10 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                             {roomBlocks} / {requiredQty}
                           </span>
                         </div>
-                        {act.accommodation.supplierApprovalStatus && (
+                        {act.accommodation?.supplierApprovalStatus && (
                           <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
                             <span className="text-slate-500 font-medium">Duyệt:</span>
-                            <span className="font-bold text-slate-800">{act.accommodation.supplierApprovalStatus}</span>
+                            <span className="font-bold text-slate-800">{act.accommodation?.supplierApprovalStatus}</span>
                           </div>
                         )}
                       </div>
@@ -711,14 +768,14 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                       {/* Tour Operator View */}
                       {!!props.instanceId && (
                         <>
-                          {act.accommodation.supplierApprovalStatus === "Approved" ? (
+                          {act.accommodation?.supplierApprovalStatus === "Approved" ? (
                             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
                               <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
                                 <Check size={14} weight="bold" /> Yêu cầu đã được duyệt
                               </p>
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-slate-500">Loại:</span>
-                                <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                                <span className="font-semibold text-slate-800">{act.accommodation?.roomType}</span>
                                 <span className="mx-1 text-slate-300">•</span>
                                 <span className="text-slate-500">Yêu cầu:</span>
                                 <span className="font-semibold text-emerald-700">{requiredQty} phòng</span>
@@ -726,32 +783,63 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                             </div>
                           ) : (
                             <>
-                              <div className="flex items-end gap-3">
-                                <div className="flex-1">
+                              <div className="flex flex-col gap-3">
+                                <div>
                                   <Select
-                                    label="Loại phòng"
-                                    options={roomTypeOptions}
-                                    value={state.roomType}
-                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                                    label="Khách sạn / Nhà cung cấp (Tùy chọn)"
+                                    options={[
+                                      { value: "", label: "Chưa chọn (Chỉ đặt phòng)..." },
+                                      ...hotelSuppliers.map((s) => ({ value: s.id, label: s.name }))
+                                    ]}
+                                    value={state.supplierId}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "supplierId", e.target.value)}
                                   />
                                 </div>
-                                <div className="w-24">
-                                  <TextInput
-                                    label="Số phòng"
-                                    type="number"
-                                    min={1}
-                                    value={state.roomCount.toString()}
-                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
-                                  />
+                                <div className="flex items-end gap-3">
+                                  <div className="flex-1">
+                                    <Select
+                                      label="Loại phòng"
+                                      options={state.supplierId ? [
+                                        { value: "", label: "Chọn loại phòng..." },
+                                        ...(accommodationsBySupplier[state.supplierId] || []).map((a: any) => ({
+                                          value: a.roomType,
+                                          label: `${a.name || a.roomType} (${a.totalRooms} phòng)`,
+                                        }))
+                                      ] : [
+                                        { value: "", label: "Chọn loại phòng cơ bản..." },
+                                        { value: "Single", label: "Single" },
+                                        { value: "Double", label: "Double" },
+                                        { value: "Twin", label: "Twin" },
+                                        { value: "Triple", label: "Triple" },
+                                        { value: "Quad", label: "Quad" },
+                                        { value: "Family", label: "Family" },
+                                        { value: "Suite", label: "Suite" },
+                                        { value: "Dormitory", label: "Dormitory" },
+                                        { value: "Standard", label: "Standard" },
+                                        { value: "Deluxe", label: "Deluxe" }
+                                      ]}
+                                      value={state.roomType}
+                                      onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="w-24">
+                                    <TextInput
+                                      label="Số phòng"
+                                      type="number"
+                                      min={1}
+                                      value={state.roomCount.toString()}
+                                      onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                              <Button
-                                variant="primary"
-                                className="w-full justify-center"
-                                onClick={() => handleSetRequirements(act.activityId)}
-                                disabled={state.isSubmitting}
-                              >
-                                {state.isSubmitting ? "Đang lưu..." : "Cập nhật yêu cầu"}
+                                <Button
+                                  variant="primary"
+                                  className="w-full justify-center"
+                                  onClick={() => handleSetRequirements(act.activityId)}
+                                  disabled={state.isSubmitting || !state.roomType}
+                                >
+                                {state.isSubmitting ? "Đang lưu..." : "Lưu yêu cầu phòng"}
                               </Button>
                             </>
                           )}
@@ -769,7 +857,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                               </p>
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-slate-500">Loại:</span>
-                                <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                                <span className="font-semibold text-slate-800">{act.accommodation?.roomType}</span>
                                 <span className="mx-1 text-slate-300">•</span>
                                 <span className="text-slate-500">Số lượng:</span>
                                 <span className="font-semibold text-emerald-700">{roomBlocks} phòng</span>

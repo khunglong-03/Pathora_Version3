@@ -262,6 +262,7 @@ public class TourInstanceController : BaseApiController
         var result = await Sender.Send(new SetAccommodationRequirementsCommand(
             instanceId,
             activityId,
+            request.SupplierId,
             request.RoomType,
             request.Quantity));
         return HandleResult(result);
@@ -544,6 +545,7 @@ public sealed record AssignRoomRequest(
     [property: JsonPropertyName("roomCount")] int RoomCount);
 
 public sealed record SetAccommodationRequirementsRequest(
+    [property: JsonPropertyName("supplierId")] Guid? SupplierId,
     [property: JsonPropertyName("roomType")] string RoomType,
     [property: JsonPropertyName("quantity")] int Quantity);
 

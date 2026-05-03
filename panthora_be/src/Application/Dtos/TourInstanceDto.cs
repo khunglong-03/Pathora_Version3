@@ -37,4 +37,5 @@ public sealed record TourInstanceDto(
     [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization = false,
     [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes = null,
     [property: JsonPropertyName("managerReviewNote")] string? ManagerReviewNote = null,
+    [property: JsonPropertyName("continent")] int? Continent = null,
     [property: JsonPropertyName("days")] List<TourInstanceDayDto>? Days = null);

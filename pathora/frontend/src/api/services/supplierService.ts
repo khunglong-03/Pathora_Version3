@@ -30,11 +30,15 @@ interface SupplierRaw {
 export const supplierService = {
   /**
    * @param supplierType  Backend enum name: "Accommodation", "Transport", etc.
+   * @param continent Backend Continent enum value.
    */
-  getSuppliers: async (supplierType?: string) => {
+  getSuppliers: async (supplierType?: string, continent?: number | null) => {
     const params = new URLSearchParams();
     if (supplierType) {
       params.append("supplierType", supplierType);
+    }
+    if (continent !== undefined && continent !== null) {
+      params.append("continent", continent.toString());
     }
 
     const response = await api.get<ServiceResponse<SupplierRaw[]>>(
@@ -54,5 +58,12 @@ export const supplierService = {
       note: s.note,
       isActive: s.isActive,
     }));
+  },
+
+  getSupplierAccommodations: async (supplierId: string) => {
+    const response = await api.get<ServiceResponse<any[]>>(
+      `/api/suppliers/${supplierId}/accommodations`
+    );
+    return extractResult<any[]>(response.data) ?? [];
   },
 };

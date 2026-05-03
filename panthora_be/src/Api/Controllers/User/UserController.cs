@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.User;
 
-[Authorize(Policy = "AdminOnly")]
 [Route(UserEndpoint.Base)]
 public class UserController : BaseApiController
 {
@@ -32,6 +31,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet(UserEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {
@@ -39,6 +39,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
     {
@@ -46,6 +47,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateUserCommand command)
     {
@@ -53,6 +55,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpDelete(UserEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -60,6 +63,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut(UserEndpoint.ChangePassword)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
     {
@@ -67,6 +71,7 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "AdminOnly")]
     [HttpPut(UserEndpoint.Ban)]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateUserStatusCommand command)
     {

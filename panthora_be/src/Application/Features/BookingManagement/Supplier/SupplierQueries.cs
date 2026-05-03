@@ -8,6 +8,8 @@ using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using System.Text.Json.Serialization;
+using Application.Features.HotelServiceProvider.Accommodations.DTOs;
+using Application.Dtos;
 
 namespace Application.Features.BookingManagement.Supplier;
 
@@ -80,5 +82,50 @@ public sealed class GetSuppliersQueryHandler(ISupplierRepository supplierReposit
                 s.Note,
                 s.IsActive))
             .ToList();
+    }
+}
+
+public sealed record GetSupplierAccommodationsQuery([property: JsonPropertyName("supplierId")] Guid SupplierId) : IQuery<ErrorOr<List<AccommodationDto>>>, ICacheable
+{
+    public string CacheKey => $"{Application.Common.CacheKey.Supplier}:accommodations:{SupplierId}";
+    public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
+}
+
+public sealed class GetSupplierAccommodationsQueryHandler(
+    IHotelRoomInventoryRepository inventoryRepository,
+    ISupplierRepository supplierRepository,
+    ILanguageContext? languageContext = null)
+    : IQueryHandler<GetSupplierAccommodationsQuery, ErrorOr<List<AccommodationDto>>>
+{
+    public async Task<ErrorOr<List<AccommodationDto>>> Handle(GetSupplierAccommodationsQuery request, CancellationToken cancellationToken)
+    {
+        var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
+        var supplier = await supplierRepository.GetByIdAsync(request.SupplierId);
+        if (supplier is null)
+        {
+            return Error.NotFound(
+                ErrorConstants.Supplier.NotFoundCode,
+                ErrorConstants.Supplier.NotFoundDescription.Resolve(lang));
+        }
+
+        var entities = await inventoryRepository.GetByHotelIdsAsync(new List<Guid> { request.SupplierId });
+
+        return entities.Select(MapToDto).ToList();
+    }
+
+    private static AccommodationDto MapToDto(HotelRoomInventoryEntity e)
+    {
+        return new AccommodationDto(
+            e.Id,
+            e.SupplierId,
+            e.RoomType.ToString(),
+            e.TotalRooms,
+            e.Name,
+            e.Address,
+            e.LocationArea?.ToString(),
+            e.OperatingCountries,
+            e.Thumbnail is not null ? new ImageDto(e.Thumbnail.FileId, e.Thumbnail.OriginalFileName, e.Thumbnail.FileName, e.Thumbnail.PublicURL) : null,
+            e.Images?.Select(i => new ImageDto(i.FileId, i.OriginalFileName, i.FileName, i.PublicURL)).ToList(),
+            e.Notes);
     }
 }

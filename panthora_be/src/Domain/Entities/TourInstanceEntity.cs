@@ -83,11 +83,11 @@ public class TourInstanceEntity : Aggregate<Guid>
     public bool IsDeleted { get; set; }
 
     /// <summary>
-    /// Concurrency token (ER-2). EF is configured with <c>IsRowVersion()</c> so that
-    /// concurrent status transitions throw <c>DbUpdateConcurrencyException</c>, which the
-    /// service layer catches and converts into an idempotent success (or a re-read retry).
+    /// RowVersion column kept for schema compat. NOT a concurrency token —
+    /// Npgsql bytea doesn't auto-increment, so [Timestamp]/IsRowVersion() produces
+    /// false-positive DbUpdateConcurrencyException on every Modified save.
+    /// Concurrency for status transitions handled at service layer (re-read + re-check).
     /// </summary>
-    [System.ComponentModel.DataAnnotations.Timestamp]
     public byte[] RowVersion { get; set; } = [];
 
     // Translations (vi/en)

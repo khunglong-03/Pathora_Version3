@@ -56,13 +56,17 @@ public sealed class AssignTourInstanceGuidesCommandHandler(
         {
             if (!existingGuides.Any(e => e.UserId == desiredUserId))
             {
-                entity.Managers.Add(TourInstanceManagerEntity.Create(
-                    entity.Id, desiredUserId, TourInstanceManagerRole.Guide, performedBy));
+                var newGuide = TourInstanceManagerEntity.Create(
+                    entity.Id, desiredUserId, TourInstanceManagerRole.Guide, performedBy);
+                // Ensure IsAccepted matches the default value from DB or explicit logic
+                newGuide.IsAccepted = false;
+                entity.Managers.Add(newGuide);
             }
         }
 
         entity.LastModifiedBy = performedBy;
         entity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        // EF Core will automatically bump the RowVersion when LastModifiedOnUtc is changed.
 
         await _tourInstanceRepository.Update(entity, cancellationToken);
 

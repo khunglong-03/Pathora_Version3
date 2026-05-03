@@ -92,4 +92,12 @@ public class SupplierController : BaseApiController
         var result = await Sender.Send(new DeleteSupplierCommand(id));
         return HandleDeleted(result);
     }
+
+    [HttpGet("{id:guid}/accommodations")]
+    [Authorize(Policy = "TourManagerOnly")]
+    public async Task<IActionResult> GetSupplierAccommodations(Guid id)
+    {
+        var result = await Sender.Send(new GetSupplierAccommodationsQuery(id));
+        return HandleResult(result);
+    }
 }

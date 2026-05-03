@@ -1015,8 +1015,31 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        // ER-Security: If the user is a TourGuide (and not an Admin/Manager/TourOperator), they can only start/complete their assigned instances.
+        if (_user.Roles.Contains("TourGuide") && !_user.Roles.Contains("Admin") && !_user.Roles.Contains("Manager") && !_user.Roles.Contains("TourOperator"))
+        {
+            if (!Guid.TryParse(_user.Id, out var currentUserId))
+                return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+                
+            var isAssigned = entity.Managers.Any(m => m.UserId == currentUserId && m.Role == TourInstanceManagerRole.Guide);
+            if (!isAssigned)
+                return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Bạn không được phân công hướng dẫn tour này.");
+            
+            // TourGuide can only transition to InProgress or Completed
+            if (newStatus != TourInstanceStatus.InProgress && newStatus != TourInstanceStatus.Completed)
+                return Error.Validation("TourInstance.InvalidStatus", "Hướng dẫn viên chỉ có thể Bắt đầu (InProgress) hoặc Kết thúc (Completed) tour.");
+        }
+
         var performedBy = _user.Id ?? string.Empty;
-        entity.ChangeStatus(newStatus, performedBy);
+        try
+        {
+            entity.ChangeStatus(newStatus, performedBy);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("TourInstance.InvalidTransition", ex.Message);
+        }
+
         await _tourInstanceRepository.Update(entity);
 
         // ER-3: whenever the tour transitions into Cancelled, free all inventory holds.
