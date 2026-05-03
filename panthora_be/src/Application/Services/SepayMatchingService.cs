@@ -8,7 +8,11 @@ namespace Application.Services;
 /// </summary>
 public static class SepayMatchingService
 {
-    private const decimal AmountTolerance = 0.01m;
+    /// <summary>
+    /// VND is a zero-decimal currency. Allow up to 1000đ tolerance to handle
+    /// rounding differences from tax/deposit percentage calculations.
+    /// </summary>
+    private const decimal AmountTolerance = 1000m;
 
     /// <summary>
     /// Attempts to match a SePay transaction against a pending payment transaction.

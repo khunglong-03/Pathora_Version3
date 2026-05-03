@@ -104,7 +104,7 @@ public sealed class CreatePrivateTourInitialPaymentCommandHandler(
             }
 
             transactionType = TransactionType.Deposit;
-            amount = booking.TotalPrice * depositPercentage / 100m;
+            amount = Math.Round(booking.TotalPrice * depositPercentage / 100m, 0, MidpointRounding.ToEven);
             note = $"Private tour deposit {depositPercentage:F0}% — booking {booking.Id}";
         }
 

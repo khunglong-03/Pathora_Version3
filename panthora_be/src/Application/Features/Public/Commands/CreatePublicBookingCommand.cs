@@ -128,7 +128,7 @@ public sealed class CreatePublicBookingCommandHandler(
 
         // Phase 5.1.2: Apply active tax rate
         var taxRate = activeTaxConfig?.TaxRate ?? 0m;
-        var taxAmount = subtotal * taxRate / 100m;
+        var taxAmount = Math.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
         var totalPrice = subtotal + taxAmount;
 
         // Extract User ID if authenticated
@@ -194,7 +194,7 @@ public sealed class CreatePublicBookingCommandHandler(
             depositPercentage = 100m;
         }
 
-        var depositAmount = totalPrice * depositPercentage / 100m;
+        var depositAmount = Math.Round(totalPrice * depositPercentage / 100m, 0, MidpointRounding.ToEven);
         var remainingBalance = totalPrice - depositAmount;
 
         return new CheckoutPriceResponse(

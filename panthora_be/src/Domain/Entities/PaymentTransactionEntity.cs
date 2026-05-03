@@ -128,6 +128,12 @@ public class PaymentTransactionEntity : Aggregate<Guid>
         if (RemainingAmount.HasValue)
         {
             RemainingAmount = Math.Max(0, RemainingAmount.Value - paidAmount);
+            // VND is a zero-decimal currency: snap sub-đồng remainders to 0
+            // so the transaction is recognized as fully paid.
+            if (RemainingAmount.Value > 0 && RemainingAmount.Value < 1m)
+            {
+                RemainingAmount = 0;
+            }
         }
     }
 

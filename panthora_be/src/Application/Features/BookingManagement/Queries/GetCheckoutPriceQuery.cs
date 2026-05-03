@@ -51,7 +51,7 @@ public sealed class GetCheckoutPriceQueryHandler(
         var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
 
         var taxRate = activeTaxConfig?.TaxRate ?? 0;
-        var taxAmount = subtotal * taxRate / 100;
+        var taxAmount = Math.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
         var totalPrice = subtotal + taxAmount;
 
         var tour = await tourRepository.FindById(tourInstance.TourId, true, cancellationToken);
@@ -78,7 +78,7 @@ public sealed class GetCheckoutPriceQueryHandler(
             depositPercentage = 100m;
         }
 
-        var depositAmount = totalPrice * depositPercentage / 100m;
+        var depositAmount = Math.Round(totalPrice * depositPercentage / 100m, 0, MidpointRounding.ToEven);
         var remainingBalance = totalPrice - depositAmount;
 
         return new CheckoutPriceResponse(

@@ -123,6 +123,10 @@ public sealed class SePayApiClient : ISePayApiClient
             return null;
         }
 
+        // VND is a zero-decimal currency. Allow up to 1000đ tolerance to handle
+        // rounding differences from tax/deposit percentage calculations.
+        const long AmountTolerance = 1000;
+
         foreach (var transaction in allTransactions.Transactions)
         {
             var txAmount = SepayParsingHelper.ParseAmount(transaction.amount_in, transaction.amount_out);
@@ -143,11 +147,11 @@ public sealed class SePayApiClient : ISePayApiClient
                 matched = false;
             }
 
-            if (matched && txAmount > 0 && txAmount == amount)
+            if (matched && txAmount > 0 && Math.Abs(txAmount - amount) <= AmountTolerance)
             {
                 _logger.LogInformation(
-                    "Found matching SePay transaction: {TransactionId}, Amount: {Amount}, RefCode: {RefCode}",
-                    transaction.id, txAmount, referenceCode);
+                    "Found matching SePay transaction: {TransactionId}, Amount: {Amount} (expected: {Expected}), RefCode: {RefCode}",
+                    transaction.id, txAmount, amount, referenceCode);
                 return transaction;
             }
         }

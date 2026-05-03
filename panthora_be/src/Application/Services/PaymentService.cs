@@ -155,11 +155,14 @@ public class PaymentService : IPaymentService
         var managerAccountName = _vietQrAccountName;
         var beneficiaryBank = string.IsNullOrWhiteSpace(_sepayBankCode) ? _vietQrBankBin : _sepayBankCode;
 
+        // VND is a zero-decimal currency — ensure whole-number amount for QR, DB, and webhook matching
+        var roundedAmount = Math.Round(amount, 0, MidpointRounding.ToEven);
+
         var transaction = PaymentTransactionEntity.Create(
             bookingId: bookingId,
             transactionCode: transactionCode,
             type: type,
-            amount: amount,
+            amount: roundedAmount,
             paymentMethod: paymentMethod,
             paymentNote: paymentNoteWithRef,
             createdBy: createdBy,
@@ -173,7 +176,7 @@ public class PaymentService : IPaymentService
         transaction.BeneficiaryBank = beneficiaryBank ?? managerBankCode;
 
         // Generate QR using dynamic account parameters
-        var qrResult = await GetQR(refCode, (long)amount, bankBin: managerBankCode, accountNo: managerAccountNumber, accountName: managerAccountName);
+        var qrResult = await GetQR(refCode, (long)roundedAmount, bankBin: managerBankCode, accountNo: managerAccountNumber, accountName: managerAccountName);
         if (qrResult.IsError)
         {
             return qrResult.Errors;
@@ -190,7 +193,7 @@ public class PaymentService : IPaymentService
             TransactionCode = transactionCode,
             ReferenceCode = refCode,
             BookingId = bookingId,
-            Amount = amount,
+            Amount = roundedAmount,
             CreatedAt = DateTimeOffset.UtcNow
         });
         var outboxMessage = OutboxMessage.Create(OutboxTypePaymentCheck, outboxPayload);
