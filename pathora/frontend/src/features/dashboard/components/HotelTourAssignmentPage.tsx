@@ -165,6 +165,29 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
     return acts;
   }, [instance]);
 
+  const groupedAccommodationDays = useMemo(() => {
+    const dayMap = new Map<number, {
+      dayId: string;
+      dayNumber: number;
+      date: string;
+      activities: typeof accommodationActivities;
+    }>();
+
+    accommodationActivities.forEach(act => {
+      if (!dayMap.has(act.dayNumber)) {
+        dayMap.set(act.dayNumber, {
+          dayId: act.dayId,
+          dayNumber: act.dayNumber,
+          date: act.date,
+          activities: []
+        });
+      }
+      dayMap.get(act.dayNumber)!.activities.push(act);
+    });
+
+    return Array.from(dayMap.values()).sort((a, b) => a.dayNumber - b.dayNumber);
+  }, [accommodationActivities]);
+
   const approvableActivityIds = useMemo(
     () => accommodationActivities.map((activity) => activity.activityId),
     [accommodationActivities],
@@ -282,6 +305,36 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
         await fetchDetail();
       } else {
         toast.error(t("failed_to_assign_room") || "Failed to assign room.");
+      }
+    } catch (error: any) {
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
+    } finally {
+      setAssignments((prev) => ({
+        ...prev,
+        [activityId]: { ...prev[activityId], isSubmitting: false },
+      }));
+    }
+  };
+
+  const handleSetRequirements = async (activityId: string) => {
+    const currentState = assignments[activityId];
+    if (!currentState) return;
+
+    setAssignments((prev) => ({
+      ...prev,
+      [activityId]: { ...prev[activityId], isSubmitting: true },
+    }));
+
+    try {
+      const res = await tourInstanceService.setAccommodationRequirements(instanceId, activityId, {
+        roomType: currentState.roomType,
+        quantity: currentState.roomCount,
+      });
+
+      if (res) {
+        toast.success(t("requirements_set_successfully") || "Requirements set successfully.");
+        await fetchDetail();
       }
     } catch (error: any) {
       const apiError = handleApiError(error);
@@ -550,13 +603,26 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
             </h2>
           </div>
           
-          {accommodationActivities.length === 0 ? (
+          {groupedAccommodationDays.length === 0 ? (
             <Card className="p-12 text-center text-slate-500 rounded-[1.5rem] border border-slate-200/50 border-dashed bg-slate-50">
               <Bed size={48} className="mx-auto mb-4 text-slate-300" weight="light" />
               {t("no_accommodation_requirements") || "No accommodation requirements for this tour."}
             </Card>
           ) : (
-            accommodationActivities.map((act) => {
+            groupedAccommodationDays.map((dayGroup) => (
+              <div key={dayGroup.dayId} className="flex flex-col gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                   <div className="flex flex-col justify-center items-center bg-indigo-50 border border-indigo-100 rounded-xl p-3 min-w-[80px]">
+                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Day</span>
+                      <span className="text-2xl font-black text-indigo-700">{dayGroup.dayNumber}</span>
+                   </div>
+                   <div>
+                     <h3 className="text-lg font-bold text-slate-800">{format(new Date(dayGroup.date), "EEEE, MMM d, yyyy")}</h3>
+                     <p className="text-sm text-slate-500">{dayGroup.activities.length} accommodation activities</p>
+                   </div>
+                </div>
+                
+                {dayGroup.activities.map((act) => {
               const state = assignments[act.activityId];
               // ✅ Phòng được coi là "đã gán đủ" chỉ khi roomBlocksTotal >= quantity (hard block tồn tại)
               const roomBlocks = act.accommodation?.roomBlocksTotal ?? 0;
@@ -640,97 +706,154 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                   </div>
 
                   {/* ── RIGHT: Assignment form ── */}
-                  {aggregateHotelApproval === 1 && !props.instanceId && state && (
+                  {state && (
                     <div className="flex flex-col gap-3 sm:w-[300px] sm:flex-none">
-                      {isFullyBlocked ? (
-                        /* ✅ Đã gán đủ: form read-only, chỉ cho phép cập nhật nếu muốn */
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                          <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
-                            <Check size={14} weight="bold" /> Phòng đã được giữ chỗ thành công
-                          </p>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-slate-500">Loại:</span>
-                            <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
-                            <span className="mx-1 text-slate-300">•</span>
-                            <span className="text-slate-500">Số lượng:</span>
-                            <span className="font-semibold text-emerald-700">{roomBlocks} phòng</span>
-                          </div>
-                          <button
-                            className="mt-2 text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 transition-colors"
-                            onClick={() => {
-                              // Expand inline edit
-                              setAssignments(prev => ({
-                                ...prev,
-                                [act.activityId]: { ...prev[act.activityId], _editing: true } as any,
-                              }));
-                            }}
-                          >
-                            Thay đổi phân bổ phòng
-                          </button>
-                        </div>
-                      ) : (
-                        /* 📝 Chưa đủ block: form nhập phòng */
+                      {/* Tour Operator View */}
+                      {!!props.instanceId && (
                         <>
-                          {/* Available rooms indicator */}
-                          {effectiveAvail !== null && (
-                            <div className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium ${
-                              effectiveAvail === 0
-                                ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                                : effectiveAvail < (state.roomCount ?? 1)
-                                ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
-                                : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            }`}>
-                              <span>
-                                {effectiveAvail === 0
-                                  ? "⛔ Hết phòng loại này vào ngày này"
-                                  : effectiveAvail < (state.roomCount ?? 1)
-                                  ? `⚠️ Chỉ còn ${effectiveAvail} phòng — ít hơn yêu cầu`
-                                  : `✓ Còn ${effectiveAvail} phòng có thể gán`}
-                              </span>
-                              <span className="opacity-60">/ {(() => {
-                                const actDateStr = format(new Date(act.date), "yyyy-MM-dd");
-                                const av = availability.find(a => a.date.startsWith(actDateStr) && a.roomType === state.roomType);
-                                return av?.totalRooms ?? "?";
-                              })()} tổng</span>
+                          {act.accommodation.supplierApprovalStatus === "Approved" ? (
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                              <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
+                                <Check size={14} weight="bold" /> Yêu cầu đã được duyệt
+                              </p>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-slate-500">Loại:</span>
+                                <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                                <span className="mx-1 text-slate-300">•</span>
+                                <span className="text-slate-500">Yêu cầu:</span>
+                                <span className="font-semibold text-emerald-700">{requiredQty} phòng</span>
+                              </div>
                             </div>
+                          ) : (
+                            <>
+                              <div className="flex items-end gap-3">
+                                <div className="flex-1">
+                                  <Select
+                                    label="Loại phòng"
+                                    options={roomTypeOptions}
+                                    value={state.roomType}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                                  />
+                                </div>
+                                <div className="w-24">
+                                  <TextInput
+                                    label="Số phòng"
+                                    type="number"
+                                    min={1}
+                                    value={state.roomCount.toString()}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
+                                  />
+                                </div>
+                              </div>
+                              <Button
+                                variant="primary"
+                                className="w-full justify-center"
+                                onClick={() => handleSetRequirements(act.activityId)}
+                                disabled={state.isSubmitting}
+                              >
+                                {state.isSubmitting ? "Đang lưu..." : "Cập nhật yêu cầu"}
+                              </Button>
+                            </>
                           )}
+                        </>
+                      )}
 
-                          <div className="flex items-end gap-3">
-                            <div className="flex-1">
-                              <Select
-                                label="Loại phòng"
-                                options={roomTypeOptions}
-                                value={state.roomType}
-                                onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
-                              />
+                      {/* Hotel Provider View */}
+                      {!props.instanceId && aggregateHotelApproval === 1 && (
+                        <>
+                          {isFullyBlocked ? (
+                            /* ✅ Đã gán đủ: form read-only, chỉ cho phép cập nhật nếu muốn */
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                              <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
+                                <Check size={14} weight="bold" /> Phòng đã được giữ chỗ thành công
+                              </p>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-slate-500">Loại:</span>
+                                <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                                <span className="mx-1 text-slate-300">•</span>
+                                <span className="text-slate-500">Số lượng:</span>
+                                <span className="font-semibold text-emerald-700">{roomBlocks} phòng</span>
+                              </div>
+                              <button
+                                className="mt-2 text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 transition-colors"
+                                onClick={() => {
+                                  // Expand inline edit
+                                  setAssignments(prev => ({
+                                    ...prev,
+                                    [act.activityId]: { ...prev[act.activityId], _editing: true } as any,
+                                  }));
+                                }}
+                              >
+                                Thay đổi phân bổ phòng
+                              </button>
                             </div>
-                            <div className="w-24">
-                              <TextInput
-                                label={`Số phòng (cần ${requiredQty})`}
-                                type="number"
-                                min={1}
-                                max={requiredQty}
-                                value={state.roomCount.toString()}
-                                onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
-                              />
-                            </div>
-                          </div>
+                          ) : (
+                            /* 📝 Chưa đủ block: form nhập phòng */
+                            <>
+                              {/* Available rooms indicator */}
+                              {effectiveAvail !== null && (
+                                <div className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium ${
+                                  effectiveAvail === 0
+                                    ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                                    : effectiveAvail < (state.roomCount ?? 1)
+                                    ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                                    : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                                }`}>
+                                  <span>
+                                    {effectiveAvail === 0
+                                      ? "⛔ Hết phòng loại này vào ngày này"
+                                      : effectiveAvail < (state.roomCount ?? 1)
+                                      ? `⚠️ Chỉ còn ${effectiveAvail} phòng — ít hơn yêu cầu`
+                                      : `✓ Còn ${effectiveAvail} phòng có thể gán`}
+                                  </span>
+                                  <span className="opacity-60">/ {(() => {
+                                    const actDateStr = format(new Date(act.date), "yyyy-MM-dd");
+                                    const av = availability.find(a => a.date.startsWith(actDateStr) && a.roomType === state.roomType);
+                                    return av?.totalRooms ?? "?";
+                                  })()} tổng</span>
+                                </div>
+                              )}
 
-                          <Button
-                            variant="primary"
-                            className="w-full justify-center"
-                            onClick={() => handleAssignRoom(act.activityId)}
-                            disabled={state.isSubmitting || effectiveAvail === 0}
-                          >
-                            {state.isSubmitting ? "Đang gán..." : roomBlocks > 0 ? `Cập nhật (đang giữ ${roomBlocks})` : "Gán phòng"}
-                          </Button>
+                              <div className="flex items-end gap-3">
+                                <div className="flex-1">
+                                  <Select
+                                    label="Loại phòng"
+                                    options={roomTypeOptions}
+                                    value={state.roomType}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                                  />
+                                </div>
+                                <div className="w-24">
+                                  <TextInput
+                                    label={`Số phòng (cần ${requiredQty})`}
+                                    type="number"
+                                    min={1}
+                                    max={requiredQty}
+                                    value={state.roomCount.toString()}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
+                                  />
+                                </div>
+                              </div>
+
+                              <Button
+                                variant="primary"
+                                className="w-full justify-center"
+                                onClick={() => handleAssignRoom(act.activityId)}
+                                disabled={state.isSubmitting || effectiveAvail === 0}
+                              >
+                                {state.isSubmitting ? "Đang gán..." : roomBlocks > 0 ? `Cập nhật (đang giữ ${roomBlocks})` : "Gán phòng"}
+                              </Button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>
                   )}
                 </Card>
               );
-            })
+                })}
+              </div>
+            ))
           )}
         </div>
       </div>

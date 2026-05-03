@@ -48,6 +48,7 @@ export interface TourInstanceEndpoints {
   CUSTOMER_REJECT: (id: string) => string;
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string) => string;
+  SET_ACCOMMODATION_REQUIREMENTS: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
   ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string) => string;
   APPROVE_TRANSPORTATION: (instanceId: string, activityId: string) => string;
@@ -139,6 +140,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/activities/${activityId}/assign`,
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-supplier`,
+  SET_ACCOMMODATION_REQUIREMENTS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/accommodations/${activityId}/set-requirements`,
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-rooms`,
   ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string): string =>

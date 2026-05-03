@@ -757,6 +757,18 @@ export const tourInstanceService = {
     return extractResult<unknown>(response.data);
   },
 
+  setAccommodationRequirements: async (
+    instanceId: string,
+    activityId: string,
+    data: { roomType: string; quantity: number },
+  ) => {
+    const response = await api.put<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.SET_ACCOMMODATION_REQUIREMENTS(instanceId, activityId),
+      data,
+    );
+    return extractResult<unknown>(response.data);
+  },
+
   assignRoomToAccommodation: async (
     instanceId: string,
     activityId: string,

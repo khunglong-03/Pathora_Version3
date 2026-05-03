@@ -248,6 +248,25 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    /// <summary>
+    /// Set room requirements for an accommodation activity.
+    /// Updates the plan fields and resets approval to Pending, but does NOT create room blocks.
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpPut("{instanceId:guid}/accommodations/{activityId:guid}/set-requirements")]
+    public async Task<IActionResult> SetAccommodationRequirements(
+        Guid instanceId,
+        Guid activityId,
+        [FromBody] SetAccommodationRequirementsRequest request)
+    {
+        var result = await Sender.Send(new SetAccommodationRequirementsCommand(
+            instanceId,
+            activityId,
+            request.RoomType,
+            request.Quantity));
+        return HandleResult(result);
+    }
+
     [AllowAnonymous]
     [HttpPut("{instanceId:guid}/activities/{activityId:guid}/assign")]
     [Obsolete("Use POST .../transportation/{activityId}/approve instead. Kept for one release.")]
@@ -523,6 +542,10 @@ public sealed record AssignVehicleToRouteRequest(
 public sealed record AssignRoomRequest(
     [property: JsonPropertyName("roomType")] string RoomType,
     [property: JsonPropertyName("roomCount")] int RoomCount);
+
+public sealed record SetAccommodationRequirementsRequest(
+    [property: JsonPropertyName("roomType")] string RoomType,
+    [property: JsonPropertyName("quantity")] int Quantity);
 
 public sealed record ChangeTourInstanceStatusRequest(
     [property: JsonPropertyName("status")] TourInstanceStatus Status);

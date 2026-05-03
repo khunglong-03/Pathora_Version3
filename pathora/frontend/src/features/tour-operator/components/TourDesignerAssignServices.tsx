@@ -27,7 +27,7 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
         setLoading(true);
         const [instanceData, guidesData] = await Promise.all([
           tourInstanceService.getInstanceDetail(instanceId),
-          userService.getGuides(),
+          userService.getTeamGuides(),
         ]);
         
         if (isMounted) {

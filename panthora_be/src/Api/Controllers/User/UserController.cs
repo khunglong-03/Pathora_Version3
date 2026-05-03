@@ -24,6 +24,14 @@ public class UserController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
+    [HttpGet("team-guides")]
+    public async Task<IActionResult> GetTeamGuides()
+    {
+        var result = await Sender.Send(new Application.Features.User.Queries.GetTeamGuides.GetTeamGuidesQuery());
+        return HandleResult(result);
+    }
+
     [HttpGet(UserEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {

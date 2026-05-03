@@ -33,6 +33,11 @@ export const userService = {
     return extractResult<PaginatedUsersResponse>(response.data)?.data ?? [];
   },
 
+  getTeamGuides: async (): Promise<UserInfo[]> => {
+    const response = await api.get(`${API_ENDPOINTS.USER.GET_ALL}/team-guides`);
+    return extractResult<UserInfo[]>(response.data) ?? [];
+  },
+
   getTourOperators: async (): Promise<UserInfo[]> => {
     const response = await api.get(API_ENDPOINTS.USER.GET_ALL, {
       params: { role: "TourOperator", pageSize: 100 },
