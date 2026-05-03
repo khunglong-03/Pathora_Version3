@@ -108,10 +108,10 @@ export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanc
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest mb-4 border border-blue-100">
               <MapPin weight="bold" className="size-4" />
-              Accommodations & Transport
+              Accommodations
             </div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-slate-900 leading-none">
-              Assign Rooms & Tickets
+              Assign Rooms
             </h1>
             <p className="text-slate-500 mt-2 font-medium">
               Tour: {instance.tourName} &bull; Total Pax: {totalPax}
@@ -130,7 +130,7 @@ export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanc
             bookings={bookings}
             bookingsLoading={loading}
             accommodationActivities={accomActivities}
-            externalTransportActivities={externalActivities}
+            externalTransportActivities={[]}
             onSaveTicket={async (activityId, entry) => {
               await tourInstanceService.saveBookingTicket(instance.id, activityId, {
                 bookingId: entry.bookingId,
