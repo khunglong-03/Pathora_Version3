@@ -151,11 +151,11 @@ export const managerService = {
     refusalReason?: string;
     visaFileUrl?: string;
     visaNumber?: string;
-    entryType?: number;
+    entryType?: string;
     issuedAt?: string;
     expiresAt?: string;
-    category?: number;
-    format?: number;
+    category?: string;
+    format?: string;
     maxStayDays?: number;
     issuingAuthority?: string;
   }) => {
@@ -195,9 +195,9 @@ export const managerService = {
     visaNumber: string;
     issuedAt: string;
     expiresAt: string;
-    category: number;
-    format: number;
-    entryType?: number;
+    category: string;
+    format: string;
+    entryType?: string;
     maxStayDays?: number;
     issuingAuthority?: string;
     visaFileUrl?: string;

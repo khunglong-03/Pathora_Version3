@@ -77,12 +77,12 @@ public sealed class VisaApplicationController : BaseApiController
 }
 
 public sealed record RegisterVisaDetailsRequest(
-    string VisaNumber,
-    DateTimeOffset IssuedAt,
-    DateTimeOffset ExpiresAt,
-    Domain.Enums.VisaCategory Category,
-    Domain.Enums.VisaFormat Format,
-    Domain.Enums.VisaEntryType? EntryType = null,
-    int? MaxStayDays = null,
-    string? IssuingAuthority = null,
-    string? VisaFileUrl = null);
+    [property: System.Text.Json.Serialization.JsonPropertyName("visaNumber")] string VisaNumber,
+    [property: System.Text.Json.Serialization.JsonPropertyName("issuedAt")] DateTimeOffset IssuedAt,
+    [property: System.Text.Json.Serialization.JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
+    [property: System.Text.Json.Serialization.JsonPropertyName("category")] Domain.Enums.VisaCategory? Category,
+    [property: System.Text.Json.Serialization.JsonPropertyName("format")] Domain.Enums.VisaFormat? Format,
+    [property: System.Text.Json.Serialization.JsonPropertyName("entryType")] Domain.Enums.VisaEntryType? EntryType = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null);

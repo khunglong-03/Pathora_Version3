@@ -266,8 +266,9 @@ export function VisaUploadForm({
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">{t("common.select")}</option>
-            <option value={0}>Single</option>
-            <option value={1}>Multiple</option>
+            <option value="Single">Single</option>
+            <option value="Double">Double</option>
+            <option value="Multiple">Multiple</option>
           </select>
         </div>
 
@@ -302,12 +303,12 @@ export function VisaUploadForm({
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">{t("common.select")}</option>
-            <option value={0}>Tourist</option>
-            <option value={1}>Business</option>
-            <option value={2}>FamilyVisit</option>
-            <option value={3}>Student</option>
-            <option value={4}>Transit</option>
-            <option value={5}>Other</option>
+            <option value="Tourist">Tourist</option>
+            <option value="Business">Business</option>
+            <option value="FamilyVisit">Family Visit</option>
+            <option value="Student">Student</option>
+            <option value="Transit">Transit</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
@@ -320,9 +321,9 @@ export function VisaUploadForm({
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">{t("common.select")}</option>
-            <option value={0}>Sticker</option>
-            <option value={1}>E_Visa</option>
-            <option value={2}>VisaOnArrival</option>
+            <option value="Sticker">Sticker</option>
+            <option value="EVisa">E-Visa</option>
+            <option value="VisaOnArrival">Visa On Arrival</option>
           </select>
         </div>
 

@@ -283,8 +283,8 @@ public sealed record RegisterVisaDetailsCommand(
     [property: JsonPropertyName("visaNumber")] string VisaNumber,
     [property: JsonPropertyName("issuedAt")] DateTimeOffset IssuedAt,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
-    [property: JsonPropertyName("category")] VisaCategory Category,
-    [property: JsonPropertyName("format")] VisaFormat Format,
+    [property: JsonPropertyName("category")] VisaCategory? Category,
+    [property: JsonPropertyName("format")] VisaFormat? Format,
     [property: JsonPropertyName("entryType")] VisaEntryType? EntryType = null,
     [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
     [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
@@ -304,8 +304,8 @@ public sealed class RegisterVisaDetailsCommandValidator : AbstractValidator<Regi
         RuleFor(x => x.ExpiresAt).NotEmpty()
             .GreaterThan(x => x.IssuedAt)
             .WithMessage("ExpiresAt phải lớn hơn IssuedAt.");
-        RuleFor(x => x.Category).IsInEnum();
-        RuleFor(x => x.Format).IsInEnum();
+        RuleFor(x => x.Category).NotNull().IsInEnum();
+        RuleFor(x => x.Format).NotNull().IsInEnum();
         RuleFor(x => x.EntryType).IsInEnum().When(x => x.EntryType.HasValue);
         RuleFor(x => x.MaxStayDays).GreaterThan(0).When(x => x.MaxStayDays.HasValue);
         RuleFor(x => x.IssuingAuthority).MaximumLength(200);
@@ -314,6 +314,7 @@ public sealed class RegisterVisaDetailsCommandValidator : AbstractValidator<Regi
 
 public sealed class RegisterVisaDetailsCommandHandler(
     IVisaApplicationRepository visaRepository,
+    IVisaRepository visaEntityRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
     : IRequestHandler<RegisterVisaDetailsCommand, ErrorOr<Guid>>
@@ -348,12 +349,8 @@ public sealed class RegisterVisaDetailsCommandHandler(
         if (visaApp.Status == VisaStatus.Approved || visaApp.Status == VisaStatus.Rejected)
             return Error.Conflict("Visa.AlreadyFinalized", "Đơn visa đã ở trạng thái cuối, không thể chỉnh sửa thông tin.");
 
-        var passport = visaApp.Passport;
-        if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value.Date < tourInstance.StartDate.Date)
-            return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour bắt đầu.");
-
-        if (request.ExpiresAt.Date < tourInstance.StartDate.Date)
-            return Error.Validation("Visa.ExpiresBeforeTourStart", "Visa hết hạn trước khi tour bắt đầu.");
+        // Không validate passport/visa expiry tại bước register-details — chỉ là nhập thông tin.
+        // Passport + expiry sẽ được kiểm tra cuối cùng ở UpdateVisaApplicationStatusCommand khi approve.
 
         var performedBy = currentUserId.Value.ToString();
 
@@ -371,11 +368,11 @@ public sealed class RegisterVisaDetailsCommandHandler(
                 maxStayDays: request.MaxStayDays,
                 issuingAuthority: request.IssuingAuthority,
                 fileUrl: request.VisaFileUrl ?? visaApp.Visa.FileUrl,
-                status: visaApp.Visa.Status);
+                status: VisaStatus.Approved);
         }
         else
         {
-            visaApp.Visa = VisaEntity.Create(
+            var newVisa = VisaEntity.Create(
                 visaApplicationId: visaApp.Id,
                 performedBy: performedBy,
                 visaNumber: request.VisaNumber,
@@ -388,14 +385,21 @@ public sealed class RegisterVisaDetailsCommandHandler(
                 maxStayDays: request.MaxStayDays,
                 issuingAuthority: request.IssuingAuthority,
                 fileUrl: request.VisaFileUrl,
-                status: VisaStatus.Pending);
+                status: VisaStatus.Approved);
+            await visaEntityRepository.AddAsync(newVisa, cancellationToken);
+            visaApp.Visa = newVisa;
         }
 
         if (!string.IsNullOrWhiteSpace(request.VisaFileUrl))
             visaApp.VisaFileUrl = request.VisaFileUrl;
 
-        visaApp.LastModifiedBy = performedBy;
-        visaApp.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        visaApp.Update(
+            destinationCountry: visaApp.DestinationCountry,
+            performedBy: performedBy,
+            status: VisaStatus.Approved,
+            minReturnDate: visaApp.MinReturnDate,
+            refusalReason: null,
+            visaFileUrl: request.VisaFileUrl ?? visaApp.VisaFileUrl);
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
 

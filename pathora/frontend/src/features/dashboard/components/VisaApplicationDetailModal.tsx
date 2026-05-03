@@ -23,11 +23,11 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
   const [refusalReason, setRefusalReason] = useState<string>("");
 
   const [visaNumber, setVisaNumber] = useState("");
-  const [entryType, setEntryType] = useState<number | "">("");
+  const [entryType, setEntryType] = useState("");
   const [issuedAt, setIssuedAt] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
-  const [category, setCategory] = useState<number | "">("");
-  const [format, setFormat] = useState<number | "">("");
+  const [category, setCategory] = useState("");
+  const [format, setFormat] = useState("");
   const [maxStayDays, setMaxStayDays] = useState<number | "">("");
   const [issuingAuthority, setIssuingAuthority] = useState("");
   
@@ -111,7 +111,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
       import("react-toastify").then(({ toast }) => toast.error(t("visa.error.expiresAfterIssued", "Expires must be after issued date")));
       return;
     }
-    if (category === "" || format === "") {
+    if (!category || !format) {
       import("react-toastify").then(({ toast }) => toast.error(t("visa.error.categoryFormatRequired", "Category and format are required")));
       return;
     }
@@ -122,10 +122,10 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
         visaNumber: visaNumber.trim(),
         issuedAt: new Date(issuedAt).toISOString(),
         expiresAt: new Date(expiresAt).toISOString(),
-        category: Number(category),
-        format: Number(format),
-        entryType: entryType !== "" ? Number(entryType) : undefined,
-        maxStayDays: maxStayDays !== "" ? Number(maxStayDays) : undefined,
+        category,
+        format,
+        entryType: entryType || undefined,
+        maxStayDays: maxStayDays !== "" && Number.isFinite(Number(maxStayDays)) ? Number(maxStayDays) : undefined,
         issuingAuthority: issuingAuthority || undefined,
         visaFileUrl: visaFileUrl || undefined,
       });
@@ -155,11 +155,11 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
         visaFileUrl: (status === 3 && visaFileUrl) ? visaFileUrl : undefined,
         ...(status === 3 && data?.isSystemAssisted ? {
           visaNumber: visaNumber || undefined,
-          entryType: entryType !== "" ? entryType : undefined,
+          entryType: entryType || undefined,
           issuedAt: issuedAt ? new Date(issuedAt).toISOString() : undefined,
           expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
-          category: category !== "" ? category : undefined,
-          format: format !== "" ? format : undefined,
+          category: category || undefined,
+          format: format || undefined,
           maxStayDays: maxStayDays !== "" ? maxStayDays : undefined,
           issuingAuthority: issuingAuthority || undefined,
         } : {})
@@ -352,11 +352,12 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={entryType}
-                          onChange={(e: any) => setEntryType(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setEntryType(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Single</option>
-                          <option value={1}>Multiple</option>
+                          <option value="Single">Single</option>
+                          <option value="Double">Double</option>
+                          <option value="Multiple">Multiple</option>
                         </select>
                       </div>
                       <TextInput
@@ -376,15 +377,15 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={category}
-                          onChange={(e: any) => setCategory(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setCategory(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Tourist</option>
-                          <option value={1}>Business</option>
-                          <option value={2}>Family Visit</option>
-                          <option value={3}>Student</option>
-                          <option value={4}>Transit</option>
-                          <option value={5}>Other</option>
+                          <option value="Tourist">Tourist</option>
+                          <option value="Business">Business</option>
+                          <option value="FamilyVisit">Family Visit</option>
+                          <option value="Student">Student</option>
+                          <option value="Transit">Transit</option>
+                          <option value="Other">Other</option>
                         </select>
                       </div>
                       <div className="v-stack">
@@ -392,12 +393,12 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={format}
-                          onChange={(e: any) => setFormat(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setFormat(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Sticker</option>
-                          <option value={1}>E-Visa</option>
-                          <option value={2}>Visa On Arrival</option>
+                          <option value="Sticker">Sticker</option>
+                          <option value="EVisa">E-Visa</option>
+                          <option value="VisaOnArrival">Visa On Arrival</option>
                         </select>
                       </div>
                       <TextInput
@@ -472,11 +473,12 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={entryType}
-                          onChange={(e: any) => setEntryType(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setEntryType(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Single</option>
-                          <option value={1}>Multiple</option>
+                          <option value="Single">Single</option>
+                          <option value="Double">Double</option>
+                          <option value="Multiple">Multiple</option>
                         </select>
                       </div>
                       <TextInput
@@ -496,15 +498,15 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={category}
-                          onChange={(e: any) => setCategory(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setCategory(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Tourist</option>
-                          <option value={1}>Business</option>
-                          <option value={2}>Family Visit</option>
-                          <option value={3}>Student</option>
-                          <option value={4}>Transit</option>
-                          <option value={5}>Other</option>
+                          <option value="Tourist">Tourist</option>
+                          <option value="Business">Business</option>
+                          <option value="FamilyVisit">Family Visit</option>
+                          <option value="Student">Student</option>
+                          <option value="Transit">Transit</option>
+                          <option value="Other">Other</option>
                         </select>
                       </div>
                       <div className="v-stack">
@@ -512,12 +514,12 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={format}
-                          onChange={(e: any) => setFormat(e.target.value ? Number(e.target.value) : "")}
+                          onChange={(e: any) => setFormat(e.target.value)}
                         >
                           <option value="">{t("common.select", "Select")}</option>
-                          <option value={0}>Sticker</option>
-                          <option value={1}>E-Visa</option>
-                          <option value={2}>Visa On Arrival</option>
+                          <option value="Sticker">Sticker</option>
+                          <option value="EVisa">E-Visa</option>
+                          <option value="VisaOnArrival">Visa On Arrival</option>
                         </select>
                       </div>
                       <TextInput
@@ -626,7 +628,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                       <div className="v-stack">
                         <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Entry Type</p>
                         <p className="text-sm font-medium text-slate-900">
-                          {data.entryType === 0 ? "Single" : data.entryType === 1 ? "Multiple" : "—"}
+                          {data.entryType || "—"}
                         </p>
                       </div>
                       <div className="v-stack">
@@ -644,13 +646,13 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                       <div className="v-stack">
                         <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Category</p>
                         <p className="text-sm font-medium text-slate-900">
-                          {data.category === 0 ? "Tourist" : data.category === 1 ? "Business" : data.category === 2 ? "Family Visit" : data.category === 3 ? "Student" : data.category === 4 ? "Transit" : data.category === 5 ? "Other" : "—"}
+                          {data.category === "FamilyVisit" ? "Family Visit" : data.category === "VisaOnArrival" ? "Visa On Arrival" : data.category || "—"}
                         </p>
                       </div>
                       <div className="v-stack">
                         <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Format</p>
                         <p className="text-sm font-medium text-slate-900">
-                          {data.format === 0 ? "Sticker" : data.format === 1 ? "E-Visa" : data.format === 2 ? "Visa On Arrival" : "—"}
+                          {data.format === "EVisa" ? "E-Visa" : data.format === "VisaOnArrival" ? "Visa On Arrival" : data.format || "—"}
                         </p>
                       </div>
                       <div className="v-stack">

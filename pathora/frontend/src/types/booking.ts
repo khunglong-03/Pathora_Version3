@@ -259,18 +259,18 @@ export const toBookingStatus = (value: number): BookingStatusEnum => {
 
 // --- Visa Types ---
 export enum VisaCategory {
-  Tourist = 0,
-  Business = 1,
-  FamilyVisit = 2,
-  Student = 3,
-  Transit = 4,
-  Other = 5,
+  Tourist = "Tourist",
+  Business = "Business",
+  FamilyVisit = "FamilyVisit",
+  Student = "Student",
+  Transit = "Transit",
+  Other = "Other",
 }
 
 export enum VisaFormat {
-  Sticker = 0,
-  EVisa = 1,
-  VisaOnArrival = 2,
+  Sticker = "Sticker",
+  EVisa = "EVisa",
+  VisaOnArrival = "VisaOnArrival",
 }
 
 export interface VisaRequirementParticipant {
@@ -294,12 +294,12 @@ export interface VisaApplicationSummaryDto {
   serviceFee: number | null;
   serviceFeePaidAt: string | null;
   hasPendingServiceFee: boolean;
-  category: number | null;
-  format: number | null;
+  category: string | null;
+  format: string | null;
   maxStayDays: number | null;
   issuingAuthority: string | null;
   visaNumber: string | null;
-  entryType: number | null;
+  entryType: string | null;
   issuedAt: string | null;
   expiresAt: string | null;
 }
