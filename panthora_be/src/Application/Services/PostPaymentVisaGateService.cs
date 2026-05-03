@@ -67,10 +67,10 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
         var tourService = scope.ServiceProvider.GetRequiredService<Application.Services.ITourInstanceService>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<Domain.UnitOfWork.IUnitOfWork>();
 
-        var booking = await bookingRepo.GetByIdWithDetailsAsync(bookingId, cancellationToken);
-        if (booking == null) return;
+        var triggerBooking = await bookingRepo.GetByIdWithDetailsAsync(bookingId, cancellationToken);
+        if (triggerBooking == null) return;
 
-        var tourInstance = await tourInstanceRepo.FindById(booking.TourInstanceId);
+        var tourInstance = await tourInstanceRepo.FindById(triggerBooking.TourInstanceId);
         if (tourInstance == null) return;
 
         if (tourInstance.Status != TourInstanceStatus.PendingVisa)
@@ -79,14 +79,16 @@ public class PostPaymentVisaGateService : IPostPaymentVisaGateService
             return; // Idempotent check
         }
 
-        var participants = booking.BookingParticipants.ToList();
-        var participantIds = participants.Select(p => p.Id).ToList();
-        var allApps = await visaAppRepo.GetByBookingParticipantIdsAsync(participantIds, cancellationToken);
+        // Fetch ALL bookings for the tour instance to check every participant
+        var allBookings = await bookingRepo.GetByTourInstanceIdAsync(tourInstance.Id, cancellationToken);
+        var allParticipants = allBookings.SelectMany(b => b.BookingParticipants).ToList();
+        var allParticipantIds = allParticipants.Select(p => p.Id).ToList();
+        var allApps = await visaAppRepo.GetByBookingParticipantIdsAsync(allParticipantIds, cancellationToken);
         var appsByParticipant = allApps.GroupBy(a => a.BookingParticipantId).ToDictionary(g => g.Key, g => g.ToList());
 
         bool allSatisfied = true;
 
-        foreach (var participant in participants)
+        foreach (var participant in allParticipants)
         {
             var apps = appsByParticipant.GetValueOrDefault(participant.Id) ?? new List<VisaApplicationEntity>();
             var latest = apps.OrderByDescending(v => v.CreatedOnUtc).FirstOrDefault();

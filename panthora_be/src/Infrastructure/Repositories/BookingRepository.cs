@@ -42,6 +42,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.User)
             .Include(b => b.TourInstance)
+            .Include(b => b.BookingParticipants)
             .Where(b => b.TourInstanceId == tourInstanceId)
             .OrderByDescending(b => b.BookingDate)
             .AsSplitQuery()

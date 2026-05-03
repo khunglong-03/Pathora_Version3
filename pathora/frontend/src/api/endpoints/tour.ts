@@ -26,6 +26,7 @@ export interface TourInstanceEndpoints {
   GET_PRICING_TIERS: EndpointWithId;
   CREATE: string;
   UPDATE: string;
+  ASSIGN_GUIDES: EndpointWithId;
   DELETE: EndpointWithId;
   CHANGE_STATUS: EndpointWithId;
   UPSERT_PRICING_TIERS: EndpointWithId;
@@ -103,6 +104,7 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
   CREATE: "/api/tour-instance",
   UPDATE: "/api/tour-instance",
+  ASSIGN_GUIDES: (id: string): string => `/api/tour-instance/${id}/guides`,
   DELETE: (id: string): string => `/api/tour-instance/${id}`,
   CHANGE_STATUS: (id: string): string => `/api/tour-instance/${id}/status`,
   UPSERT_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,

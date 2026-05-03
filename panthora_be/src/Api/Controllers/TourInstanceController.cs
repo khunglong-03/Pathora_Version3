@@ -54,6 +54,15 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Roles = "Admin,TourOperator")]
+    [HttpPut(TourInstanceEndpoint.AssignGuides)]
+    public async Task<IActionResult> AssignGuides(Guid id, [FromBody] AssignTourInstanceGuidesCommand command)
+    {
+        var updatedCommand = command with { Id = id };
+        var result = await Sender.Send(updatedCommand);
+        return HandleResult(result);
+    }
+
     [AllowAnonymous]
     [HttpDelete(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)

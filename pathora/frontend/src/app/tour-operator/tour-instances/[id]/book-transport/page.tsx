@@ -1,6 +1,7 @@
 import React from "react";
 import { TourOperatorBookTransport } from "@/features/tour-operator/components/TourOperatorBookTransport";
 
-export default function BookTransportPage({ params }: { params: { id: string } }) {
-  return <TourOperatorBookTransport instanceId={params.id || "INST-001"} />;
+export default async function BookTransportPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  return <TourOperatorBookTransport instanceId={resolvedParams.id || "INST-001"} />;
 }

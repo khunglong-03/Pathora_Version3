@@ -544,6 +544,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
                         l.TourDayActivity.TourDay.Classification.Tour != null &&
                         l.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
                         !l.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
+            .Where(l => _context.TourInstances.Any(i => 
+                        i.TourId == l.TourDayActivity!.TourDay!.Classification!.Tour!.Id && 
+                        !i.IsDeleted && 
+                        i.InstanceType == TourType.Public && 
+                        (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)))
             .GroupBy(l => new { l.City, l.Country })
             .Select(g => new { g.Key.City, g.Key.Country, ToursCount = g.Select(l => l.TourDayActivity!.TourDay!.Classification!.Tour!.Id).Distinct().Count() })
             .OrderByDescending(x => x.ToursCount)
@@ -562,6 +567,16 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .AsNoTracking()
             .Where(l => Enumerable.Contains(attractionTypes, l.LocationType))
             .Where(l => l.City != null && l.Country != null)
+            .Where(l => l.TourDayActivity != null && l.TourDayActivity.TourDay != null &&
+                        l.TourDayActivity.TourDay.Classification != null &&
+                        l.TourDayActivity.TourDay.Classification.Tour != null &&
+                        l.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
+                        !l.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
+            .Where(l => _context.TourInstances.Any(i => 
+                        i.TourId == l.TourDayActivity!.TourDay!.Classification!.Tour!.Id && 
+                        !i.IsDeleted && 
+                        i.InstanceType == TourType.Public && 
+                        (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)))
             .Take(limit)
             .ToListAsync(cancellationToken);
     }

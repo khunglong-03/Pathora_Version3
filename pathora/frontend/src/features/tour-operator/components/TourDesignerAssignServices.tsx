@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { tourInstanceService, GuideConflict } from "@/api/services/tourInstanceService";
 import { userService } from "@/api/services/userService";
 import { NormalizedTourInstanceDto } from "@/types/tour";
-import { mapInstanceToUpdatePayload } from "../utils/fulfillmentHelpers";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 // Since UserInfo in types/tour.ts might lack fullName/email depending on how it's used, we can just use any for now or cast properly.
@@ -81,11 +80,8 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
       }
 
       // No conflicts, proceed to save
-      const payload = mapInstanceToUpdatePayload(instance);
-      payload.guideUserIds = selectedGuideIds;
+      await tourInstanceService.assignGuides({ id: instanceId, guideUserIds: selectedGuideIds });
 
-      await tourInstanceService.updateInstance(payload);
-      
       setSaveSuccess(true);
     } catch (err: any) {
       setError(err?.message || "Failed to assign guides");

@@ -8,6 +8,12 @@ import { tourInstanceService } from "@/api/services/tourInstanceService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export interface TicketDetail {
+  paxIndex: number;
+  seatNumber: string;
+  eTicketNumber: string;
+}
+
 export interface BookingTicketEntry {
   bookingId: string;
   customerName: string;
@@ -17,8 +23,7 @@ export interface BookingTicketEntry {
   flightNumber: string;    // VD: VN 123
   departureAt: string;     // datetime-local input
   arrivalAt: string;       // datetime-local input
-  seatNumbers: string;     // VD: "12A 12B 13C" — cách nhau bằng dấu cách
-  eTicketNumbers: string;  // VD: "001-123456 001-123457" — cách nhau bằng dấu cách
+  tickets: TicketDetail[];
   seatClass: string;       // Economy / Business / First
   note: string;
 }
@@ -86,8 +91,11 @@ export default function ExternalTicketAssignmentPanel({
         flightNumber: "",
         departureAt: "",
         arrivalAt: "",
-        seatNumbers: "",
-        eTicketNumbers: "",
+        tickets: Array.from({ length: Math.max(requiredSeats, 1) }).map((_, i) => ({
+          paxIndex: i + 1,
+          seatNumber: "",
+          eTicketNumber: "",
+        })),
         seatClass: "Economy",
         note: "",
       };
@@ -108,7 +116,7 @@ export default function ExternalTicketAssignmentPanel({
         setDataLoading(true);
         const fetched = await tourInstanceService.getBookingTickets(instanceId, activityId);
         if (isMounted && fetched && fetched.length > 0) {
-          const loadedEntries: Record<string, Partial<BookingTicketEntry>> = {};
+          const loadedEntries: Record<string, any> = {};
           const loadedIds = new Set<string>();
 
           console.log("Fetched tickets:", fetched);
@@ -150,7 +158,25 @@ export default function ExternalTicketAssignmentPanel({
             for (const bId of Object.keys(loadedEntries)) {
               if (next[bId]) {
                 console.log(`Applying data for booking ${bId}`);
-                next[bId] = { ...next[bId], ...loadedEntries[bId] };
+                const loadedData = loadedEntries[bId];
+                
+                const seatNums = loadedData.seatNumbers.split(" ").filter(Boolean);
+                const eTickets = loadedData.eTicketNumbers.split(" ").filter(Boolean);
+                
+                const currentTickets = [...next[bId].tickets];
+                for (let i = 0; i < currentTickets.length; i++) {
+                   currentTickets[i] = {
+                     ...currentTickets[i],
+                     seatNumber: seatNums[i] || currentTickets[i].seatNumber,
+                     eTicketNumber: eTickets[i] || currentTickets[i].eTicketNumber,
+                   };
+                }
+                
+                next[bId] = { 
+                  ...next[bId], 
+                  note: loadedData.note || next[bId].note, 
+                  tickets: currentTickets 
+                };
               } else {
                 console.warn(`Booking ID ${bId} not found in existing entries!`);
               }
@@ -171,12 +197,31 @@ export default function ExternalTicketAssignmentPanel({
     };
   }, [activityId, instanceId]);
 
+  const updateTicketEntry = useCallback(
+    (bookingId: string, paxIndex: number, field: keyof TicketDetail, value: string) => {
+      setEntries((prev) => {
+        const id = bookingId.toLowerCase();
+        const entry = prev[id];
+        if (!entry) return prev;
+        
+        const newTickets = entry.tickets.map(t => 
+          t.paxIndex === paxIndex ? { ...t, [field]: value } : t
+        );
+        
+        return {
+          ...prev,
+          [id]: { ...entry, tickets: newTickets },
+        };
+      });
+    },
+    []
+  );
 
-  const updateEntry = useCallback(
-    (bookingId: string, field: keyof BookingTicketEntry, value: string) => {
+  const updateEntryNote = useCallback(
+    (bookingId: string, value: string) => {
       setEntries((prev) => ({
         ...prev,
-        [bookingId.toLowerCase()]: { ...prev[bookingId.toLowerCase()], [field]: value },
+        [bookingId.toLowerCase()]: { ...prev[bookingId.toLowerCase()], note: value },
       }));
     },
     []
@@ -214,6 +259,12 @@ export default function ExternalTicketAssignmentPanel({
       }
     }
 
+    const emptyTickets = entry.tickets.filter(t => !t.seatNumber.trim());
+    if (emptyTickets.length > 0) {
+      toast.error(`Vui lòng nhập vị trí/mã ghế cho tất cả ${entry.requiredSeats} hành khách`);
+      return;
+    }
+
     try {
       setSavingId(bookingId);
       const fullEntry = {
@@ -222,6 +273,9 @@ export default function ExternalTicketAssignmentPanel({
         seatClass: commonDetails.seatClass,
         departureAt: commonDetails.departureAt,
         arrivalAt: commonDetails.arrivalAt,
+        // For backwards compatibility we stringify the inputs, the backend might still accept strings
+        seatNumbers: entry.tickets.map(t => t.seatNumber).join(" "),
+        eTicketNumbers: entry.tickets.map(t => t.eTicketNumber).join(" "),
       };
       await onSave?.(fullEntry);
       setSavedIds((prev) => new Set([...prev, bookingId.toLowerCase()]));
@@ -361,6 +415,8 @@ export default function ExternalTicketAssignmentPanel({
 
           if (!entry) return null;
 
+          const filledCount = entry.tickets.filter(t => t.seatNumber.trim() !== "").length;
+
           return (
             <div
               key={booking.id}
@@ -383,75 +439,85 @@ export default function ExternalTicketAssignmentPanel({
                       {booking.customerName}
                     </p>
                     <p className="text-sm text-stone-500 mt-0.5">
-                      {entry.requiredSeats} ghế cần
+                      {entry.requiredSeats} hành khách
                     </p>
                   </div>
                 </div>
+                {/* Progress Badge */}
+                {!isSaved && (
+                  <span className={`px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md ${
+                    filledCount === entry.requiredSeats 
+                      ? "bg-blue-50 text-blue-600 border border-blue-100" 
+                      : "bg-amber-50 text-amber-600 border border-amber-100"
+                  }`}>
+                    {filledCount === entry.requiredSeats ? "Đã điền đủ" : `Đang nhập ${filledCount}/${entry.requiredSeats}`}
+                  </span>
+                )}
+                {isSaved && (
+                  <span className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    Đã lưu vé
+                  </span>
+                )}
               </div>
 
-              {/* Form Grid */}
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Seat numbers — free text */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Vị trí / Mã ghế * <span className="normal-case font-normal">(VD: 12A-12G, Toa 4)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={entry.seatNumbers}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "seatNumbers", e.target.value)
-                      }
-                      placeholder={`Cần xếp ${entry.requiredSeats} chỗ...`}
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 border-stone-200 focus:border-blue-500 focus:ring-blue-500/20`}
-                    />
-                  </div>
+              {/* Form Grid for Individual Tickets */}
+              <div className="space-y-4">
+                {entry.tickets.map((ticket, tIdx) => (
+                  <div key={ticket.paxIndex} className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-4 border-b border-stone-100/50 last:border-0 last:pb-0">
+                    {/* Seat numbers */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                        Vị trí / Mã ghế * <span className="normal-case font-normal">(Hành khách {ticket.paxIndex})</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ticket.seatNumber}
+                        onChange={(e) => updateTicketEntry(booking.id, ticket.paxIndex, "seatNumber", e.target.value)}
+                        placeholder="VD: 12A"
+                        className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                      />
+                    </div>
 
-                  {/* E-ticket numbers */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Mã vé điện tử (E-ticket)
-                    </label>
-                    <input
-                      type="text"
-                      value={entry.eTicketNumbers}
-                      onChange={(e) =>
-                        updateEntry(
-                          booking.id,
-                          "eTicketNumbers",
-                          e.target.value
-                        )
-                      }
-                      placeholder="VD: 001-1234567890 001-1234567891"
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
+                    {/* E-ticket numbers */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                        Mã vé điện tử (E-ticket) <span className="normal-case font-normal">(Hành khách {ticket.paxIndex})</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ticket.eTicketNumber}
+                        onChange={(e) => updateTicketEntry(booking.id, ticket.paxIndex, "eTicketNumber", e.target.value)}
+                        placeholder="VD: 001-1234567890"
+                        className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                      />
+                    </div>
                   </div>
-                </div>
+                ))}
 
                 {/* Note and Save */}
-                <div className="flex flex-col md:flex-row gap-5 items-start md:items-end">
+                <div className="flex flex-col md:flex-row gap-5 items-start md:items-end pt-2">
                   <div className="flex-1 w-full">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Ghi chú
+                      Ghi chú chung
                     </label>
                     <input
                       type="text"
                       value={entry.note}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "note", e.target.value)
-                      }
+                      onChange={(e) => updateEntryNote(booking.id, e.target.value)}
                       placeholder="Ghi chú đặc biệt (bữa ăn, hành lý...)"
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
                     />
                   </div>
 
                   <button
                     onClick={() => handleSave(booking.id)}
-                    disabled={isSaving}
-                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${isSaved
+                    disabled={isSaving || filledCount < entry.requiredSeats}
+                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      isSaved
                       ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
-                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500"
+                      : filledCount < entry.requiredSeats
+                      ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500 active:scale-[0.98]"
                       }`}
                   >
                     {isSaving ? (
@@ -482,8 +548,8 @@ export default function ExternalTicketAssignmentPanel({
         <button
           onClick={handleConfirmAll}
           disabled={!allSaved || confirmingAll}
-          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500"
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500 active:scale-[0.98]"
             : "bg-stone-100 text-stone-400 cursor-not-allowed"
             }`}
         >

@@ -203,6 +203,11 @@ export interface UpdateTourInstancePayload {
   imageUrls?: string[];
 }
 
+export interface AssignTourInstanceGuidesPayload {
+  id: string;
+  guideUserIds: string[];
+}
+
 export interface TourInstanceRequestError {
   status?: number;
   response?: {
@@ -441,6 +446,14 @@ export const tourInstanceService = {
     const response = await api.put<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE,
       payload,
+    );
+    return extractResult<string>(response.data);
+  },
+
+  assignGuides: async (data: AssignTourInstanceGuidesPayload) => {
+    const response = await api.put<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_GUIDES(data.id),
+      data,
     );
     return extractResult<string>(response.data);
   },

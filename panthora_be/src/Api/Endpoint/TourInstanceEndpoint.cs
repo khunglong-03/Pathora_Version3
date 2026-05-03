@@ -6,6 +6,7 @@ public static class TourInstanceEndpoint
     public const string Id = "{id:guid}";
     public const string Stats = "stats";
     public const string ChangeStatus = "{id:guid}/status";
+    public const string AssignGuides = "{id:guid}/guides";
     public const string CheckDuplicate = "check-duplicate";
     public const string Days = "{id:guid}/days";
     public const string DayId = "{id:guid}/days/{dayId:guid}";
