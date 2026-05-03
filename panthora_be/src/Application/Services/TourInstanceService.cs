@@ -1419,8 +1419,13 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
         }
 
-        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, principalId);
-        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, principalId);
+        // If the user is an Admin or Manager, and they are viewing Custom Tour Requests (wantsCustomization = true),
+        // we bypass the principalId scoping so they can see all custom requests for review.
+        var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
+        Guid? effectivePrincipalId = (isAdminOrManager && request.WantsCustomization == true) ? null : principalId;
+
+        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
+        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, request.PageNumber, request.PageSize);

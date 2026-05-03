@@ -215,15 +215,28 @@ export interface TourDayActivityStatusDto {
 }
 
 // Main booking detail response
+// NOTE: The CustomerBooking endpoint (GET /api/public/bookings/{id}) returns
+// `adults`, `children`, `infants` from BookingDetailDto.
+// The admin endpoint uses `numberAdult`, `numberChild`, `numberInfant`.
+// Both field names are declared here for compatibility.
 export interface BookingDetailResponse {
   bookingId: string;
   tourInstanceId: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
+  /** @deprecated Use `adults` — kept for admin endpoint compatibility */
   numberAdult: number;
+  /** @deprecated Use `children` — kept for admin endpoint compatibility */
   numberChild: number;
+  /** @deprecated Use `infants` — kept for admin endpoint compatibility */
   numberInfant: number;
+  /** Customer endpoint field name */
+  adults?: number;
+  /** Customer endpoint field name */
+  children?: number;
+  /** Customer endpoint field name */
+  infants?: number;
   totalPrice: number;
   status: BookingStatusEnum;
   isVisaRequired?: boolean;
