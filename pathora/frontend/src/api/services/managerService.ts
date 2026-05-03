@@ -189,4 +189,24 @@ export const managerService = {
     );
     return extractResult(response.data);
   },
+
+  registerVisaDetails: async (data: {
+    visaApplicationId: string;
+    visaNumber: string;
+    issuedAt: string;
+    expiresAt: string;
+    category: number;
+    format: number;
+    entryType?: number;
+    maxStayDays?: number;
+    issuingAuthority?: string;
+    visaFileUrl?: string;
+  }) => {
+    const { visaApplicationId, ...body } = data;
+    const response = await api.post<ServiceResponse<string>>(
+      `/api/visa-application/${visaApplicationId}/register-details`,
+      body
+    );
+    return extractResult(response.data);
+  },
 };

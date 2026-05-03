@@ -108,9 +108,14 @@ export function VisaStatusBadge({ status }: { status: string }) {
     awaiting_payment: { bg: "bg-purple-50/80", text: "text-purple-700", border: "border-purple-200/50", dot: "bg-purple-500", label: "Awaiting Payment" },
   };
   const config = map[lower] ?? map.pending;
-  const displayLabel = lower === "under_review"
-    ? safeT("visa.statusUnderReview", "Under Review")
-    : status.charAt(0).toUpperCase() + status.slice(1);
+  
+  let i18nKey = "";
+  if (lower === "under_review") i18nKey = "visa.statusUnderReview";
+  else if (lower === "awaiting_payment") i18nKey = "visa.statusAwaitingPayment";
+  else i18nKey = `common.visaApplications.filter${lower.charAt(0).toUpperCase() + lower.slice(1)}`;
+  
+  const displayLabel = safeT(i18nKey, config.label);
+  
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${config.bg} ${config.text} border ${config.border ?? ""}`}>
       {config.dot && <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />}

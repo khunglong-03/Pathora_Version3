@@ -117,26 +117,28 @@ export default function ExternalTicketAssignmentPanel({
             console.log("Processing ticket:", t);
             if (!firstTicket) firstTicket = t;
             // Try different possible property names for the booking ID
-            const rawId = t.bookingId || t.BookingId || t.id || t.Id;
+            const tAny = t as any;
+            const rawId = tAny.bookingId || tAny.BookingId || tAny.id || tAny.Id;
             if (!rawId) {
               console.warn("Ticket does not have a recognizable booking ID!", t);
               continue;
             }
             const lowerBookingId = String(rawId).toLowerCase();
             loadedEntries[lowerBookingId] = {
-              seatNumbers: t.seatNumbers || t.SeatNumbers || "",
-              eTicketNumbers: t.eTicketNumbers || t.ETicketNumbers || "",
-              note: t.note || t.Note || "",
+              seatNumbers: tAny.seatNumbers || tAny.SeatNumbers || "",
+              eTicketNumbers: tAny.eTicketNumbers || tAny.ETicketNumbers || "",
+              note: tAny.note || tAny.Note || "",
             };
             loadedIds.add(lowerBookingId);
           }
 
           if (firstTicket) {
+            const ft = firstTicket as any;
             setCommonDetails({
-              flightNumber: firstTicket.flightNumber || firstTicket.FlightNumber || "",
-              seatClass: firstTicket.seatClass || firstTicket.SeatClass || "Economy",
-              departureAt: (firstTicket.departureAt || firstTicket.DepartureAt) ? new Date(firstTicket.departureAt || firstTicket.DepartureAt).toISOString().slice(0, 16) : "",
-              arrivalAt: (firstTicket.arrivalAt || firstTicket.ArrivalAt) ? new Date(firstTicket.arrivalAt || firstTicket.ArrivalAt).toISOString().slice(0, 16) : "",
+              flightNumber: ft.flightNumber || ft.FlightNumber || "",
+              seatClass: ft.seatClass || ft.SeatClass || "Economy",
+              departureAt: (ft.departureAt || ft.DepartureAt) ? new Date(ft.departureAt || ft.DepartureAt).toISOString().slice(0, 16) : "",
+              arrivalAt: (ft.arrivalAt || ft.ArrivalAt) ? new Date(ft.arrivalAt || ft.ArrivalAt).toISOString().slice(0, 16) : "",
             });
           }
 

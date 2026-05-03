@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, UserGroup, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { ArrowLeft, Users, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { tourInstanceService, GuideConflict } from "@/api/services/tourInstanceService";
 import { userService } from "@/api/services/userService";
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { mapInstanceToUpdatePayload } from "../utils/fulfillmentHelpers";
-import { SkeletonCard } from "@/features/dashboard/components/TourInstanceDetailPage";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 // Since UserInfo in types/tour.ts might lack fullName/email depending on how it's used, we can just use any for now or cast properly.
 export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
@@ -116,7 +116,7 @@ export function TourOperatorAssignServices({ instanceId, backUrl }: { instanceId
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold uppercase tracking-widest mb-4 border border-emerald-100">
-              <UserGroup weight="bold" className="size-4" />
+              <Users weight="bold" className="size-4" />
               Service Assignment
             </div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-slate-900 leading-none">

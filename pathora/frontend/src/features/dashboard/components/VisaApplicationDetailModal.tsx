@@ -98,6 +98,47 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
     }
   };
 
+  const handleRegisterDetails = async () => {
+    if (!visaNumber.trim()) {
+      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.visaNumberRequired", "Visa number is required")));
+      return;
+    }
+    if (!issuedAt || !expiresAt) {
+      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.datesRequired", "Issued/Expires dates are required")));
+      return;
+    }
+    if (new Date(expiresAt) <= new Date(issuedAt)) {
+      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.expiresAfterIssued", "Expires must be after issued date")));
+      return;
+    }
+    if (category === "" || format === "") {
+      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.categoryFormatRequired", "Category and format are required")));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await managerService.registerVisaDetails({
+        visaApplicationId: visaId!,
+        visaNumber: visaNumber.trim(),
+        issuedAt: new Date(issuedAt).toISOString(),
+        expiresAt: new Date(expiresAt).toISOString(),
+        category: Number(category),
+        format: Number(format),
+        entryType: entryType !== "" ? Number(entryType) : undefined,
+        maxStayDays: maxStayDays !== "" ? Number(maxStayDays) : undefined,
+        issuingAuthority: issuingAuthority || undefined,
+        visaFileUrl: visaFileUrl || undefined,
+      });
+      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.registered", "Visa details registered")));
+      onSuccess();
+      await loadData();
+    } catch (err) {
+      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to register visa details"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleUpdateStatus = async (status: number) => {
     if (status === 4) {
       if (!refusalReason || refusalReason.trim().length < 5) {
@@ -216,35 +257,92 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
               </div>
             )}
 
-            {normalizedStatus === "pending" && !data.isSystemAssisted && (
-              <div className="v-stack gap-5 bg-[#f9fafb] p-6 rounded-[1.5rem] border border-slate-200/50 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-                <h4 className="text-xl font-bold tracking-tight text-slate-900 mb-2">{t("visa.action.customerAction", "Customer Action Required")}</h4>
-                <p className="text-sm text-slate-500">
-                  {t("visa.detail.customerUpload", "This application is not system-assisted. The customer is currently preparing and uploading their visa document.")}
-                </p>
-              </div>
-            )}
+            {(normalizedStatus === "pending" || normalizedStatus === "under_review") && !data.isSystemAssisted && (
+              <div className="v-stack gap-5">
+                <div className="v-stack">
+                  <h4 className="text-xl font-bold tracking-tight text-slate-900 mb-2">{t("visa.action.reviewSelfVisa", "Review Customer-Provided Visa")}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed max-w-[65ch]">
+                    {t("visa.detail.reviewSelfVisaDesc", "Customer submitted their own visa. Review the document and decide.")}
+                  </p>
+                </div>
 
-            {normalizedStatus === "awaiting_payment" && (
-              <div className="v-stack gap-5 bg-purple-50/50 p-6 rounded-[1.5rem] border border-purple-100">
-                <h4 className="text-xl font-bold tracking-tight text-purple-900 mb-2">{t("visa.action.awaitingPayment", "Awaiting Payment")}</h4>
-                <div className="v-stack gap-2 text-sm text-purple-700">
-                  <p>{t("visa.detail.feeQuoted", "Fee has been quoted:")} <span className="font-semibold">{data.serviceFee?.toLocaleString()} VND</span></p>
-                  <p>{t("visa.detail.waitingCustomerPay", "Waiting for the customer to complete the payment before processing can begin.")}</p>
+                {data.visaFileUrl && (
+                  <div className="v-stack bg-[#f9fafb] p-4 rounded-xl border border-slate-200/50">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">{t("visa.detail.visaFile", "Visa Document")}</p>
+                    <a href={data.visaFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-medium">
+                      {t("visa.detail.viewDocument", "View Document")} &rarr;
+                    </a>
+                  </div>
+                )}
+
+                <TextInput
+                  type="text"
+                  label={t("visa.detail.visaFileUrl", "Visa Document URL")}
+                  placeholder="https://..."
+                  value={visaFileUrl}
+                  onChange={(e: any) => setVisaFileUrl(e.target.value)}
+                />
+
+                <Textarea
+                  label={t("visa.detail.refusalReason", "Refusal Reason (Required for Rejection)")}
+                  placeholder={t("visa.detail.refusalReasonPlaceholder", "Enter reason...")}
+                  value={refusalReason}
+                  onChange={(e: any) => setRefusalReason(e.target.value)}
+                  row={3}
+                />
+
+                <div className="h-stack justify-end gap-4 pt-4">
+                  <button
+                    onClick={() => handleUpdateStatus(4)}
+                    disabled={submitting || !refusalReason}
+                    className="px-6 py-[11px] bg-red-50 text-red-600 text-sm font-semibold rounded-[1rem] hover:bg-red-100 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                  >
+                    {t("common.reject", "Reject")}
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStatus(3)}
+                    disabled={submitting}
+                    className="px-6 py-[11px] bg-emerald-600 text-white text-sm font-semibold rounded-[1rem] shadow-[0_8px_20px_-6px_rgba(5,150,105,0.3)] hover:bg-emerald-700 hover:shadow-[0_8px_20px_-6px_rgba(5,150,105,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                  >
+                    {t("common.approve", "Approve")}
+                  </button>
                 </div>
               </div>
             )}
 
-            {normalizedStatus === "under_review" && ( // Processing / Under Review (2)
-              <div className="v-stack gap-5">
-                <h4 className="text-xl font-bold tracking-tight text-slate-900 mb-2">{t("visa.action.process", "Process Application")}</h4>
-                
-                <div className="v-stack gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <h5 className="font-bold text-slate-700">{t("visa.detail.systemAssistedDetails", "Visa Details (Required for Approval)")}</h5>
+            {normalizedStatus === "awaiting_payment" && (() => {
+              const hasRegisteredDetails = Boolean(data.visaNumber);
+              return (
+                <div className="v-stack gap-5">
+                  <div className="v-stack gap-3 bg-purple-50/50 p-6 rounded-[1.5rem] border border-purple-100">
+                    <h4 className="text-xl font-bold tracking-tight text-purple-900">{t("visa.action.awaitingPayment", "Awaiting Payment")}</h4>
+                    <div className="v-stack gap-2 text-sm text-purple-700">
+                      <p>{t("visa.detail.feeQuoted", "Fee has been quoted:")} <span className="font-semibold">{data.serviceFee?.toLocaleString()} VND</span></p>
+                      <p>{t("visa.detail.waitingCustomerPay", "Waiting for the customer to complete the payment.")}</p>
+                    </div>
+                  </div>
+
+                  <div className="v-stack">
+                    <h4 className="text-xl font-bold tracking-tight text-slate-900 mb-2">
+                      {hasRegisteredDetails
+                        ? t("visa.action.updateRegisteredVisa", "Registered Visa Details")
+                        : t("visa.action.registerDetails", "Register Visa Details")}
+                    </h4>
+                    <p className="text-sm text-slate-500 leading-relaxed max-w-[65ch]">
+                      {t("visa.detail.registerDetailsDescPreview", "You can register visa info now so customer sees it once payment is completed. Approval still requires customer payment.")}
+                    </p>
+                  </div>
+
+                  <div className="v-stack gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h5 className="font-bold text-slate-700">
+                      {hasRegisteredDetails
+                        ? t("visa.detail.systemAssistedDetails", "Visa Details")
+                        : t("visa.detail.systemAssistedDetailsRequired", "Visa Details (Required)")}
+                    </h5>
                     <div className="grid grid-cols-2 gap-4">
                       <TextInput
                         type="text"
-                        label="Visa Number"
+                        label="Visa Number *"
                         placeholder="Ex: V123456"
                         value={visaNumber}
                         onChange={(e: any) => setVisaNumber(e.target.value)}
@@ -263,18 +361,18 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                       </div>
                       <TextInput
                         type="date"
-                        label="Issued At"
+                        label="Issued At *"
                         value={issuedAt}
                         onChange={(e: any) => setIssuedAt(e.target.value)}
                       />
                       <TextInput
                         type="date"
-                        label="Expires At"
+                        label="Expires At *"
                         value={expiresAt}
                         onChange={(e: any) => setExpiresAt(e.target.value)}
                       />
                       <div className="v-stack">
-                        <label className="text-sm font-medium text-slate-700 mb-[6px]">Category</label>
+                        <label className="text-sm font-medium text-slate-700 mb-[6px]">Category *</label>
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={category}
@@ -290,7 +388,7 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         </select>
                       </div>
                       <div className="v-stack">
-                        <label className="text-sm font-medium text-slate-700 mb-[6px]">Format</label>
+                        <label className="text-sm font-medium text-slate-700 mb-[6px]">Format *</label>
                         <select
                           className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
                           value={format}
@@ -317,41 +415,184 @@ export const VisaApplicationDetailModal = ({ isOpen, onClose, visaId, onSuccess 
                         onChange={(e: any) => setIssuingAuthority(e.target.value)}
                       />
                     </div>
-                </div>
-                <TextInput
-                  type="text"
-                  label={t("visa.detail.visaFileUrl", "Visa Document URL (Optional for Approval)")}
-                  placeholder="https://..."
-                  value={visaFileUrl}
-                  onChange={(e: any) => setVisaFileUrl(e.target.value)}
-                />
-                
-                <Textarea
-                  label={t("visa.detail.refusalReason", "Refusal Reason (Required for Rejection)")}
-                  placeholder={t("visa.detail.refusalReasonPlaceholder", "Enter reason...")}
-                  value={refusalReason}
-                  onChange={(e: any) => setRefusalReason(e.target.value)}
-                  row={3}
-                />
+                  </div>
+                  <TextInput
+                    type="text"
+                    label={t("visa.detail.visaFileUrl", "Visa Document URL")}
+                    placeholder="https://..."
+                    value={visaFileUrl}
+                    onChange={(e: any) => setVisaFileUrl(e.target.value)}
+                  />
 
-                <div className="h-stack justify-end gap-4 pt-4">
-                  <button
-                    onClick={() => handleUpdateStatus(4)} // 4 = Rejected
-                    disabled={submitting || !refusalReason}
-                    className="px-6 py-[11px] bg-red-50 text-red-600 text-sm font-semibold rounded-[1rem] hover:bg-red-100 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-red-500"
-                  >
-                    {t("common.reject", "Reject")}
-                  </button>
-                  <button
-                    onClick={() => handleUpdateStatus(3)} // 3 = Approved
-                    disabled={submitting}
-                    className="px-6 py-[11px] bg-emerald-600 text-white text-sm font-semibold rounded-[1rem] shadow-[0_8px_20px_-6px_rgba(5,150,105,0.3)] hover:bg-emerald-700 hover:shadow-[0_8px_20px_-6px_rgba(5,150,105,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                  >
-                    {t("common.approve", "Approve")}
-                  </button>
+                  <div className="h-stack justify-end gap-4 pt-4">
+                    <button
+                      onClick={handleRegisterDetails}
+                      disabled={submitting}
+                      className="px-6 py-[11px] bg-zinc-950 text-white text-sm font-semibold rounded-[1rem] hover:bg-zinc-800 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-zinc-950"
+                    >
+                      {submitting ? "..." : (hasRegisteredDetails ? t("visa.action.updateDetails", "Update Details") : t("visa.action.saveDetails", "Save Visa Details"))}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
+
+            {normalizedStatus === "under_review" && data.isSystemAssisted && (() => {
+              const hasRegisteredDetails = Boolean(data.visaNumber);
+              return (
+                <div className="v-stack gap-5">
+                  <h4 className="text-xl font-bold tracking-tight text-slate-900 mb-2">
+                    {hasRegisteredDetails
+                      ? t("visa.action.process", "Process Application")
+                      : t("visa.action.registerDetails", "Register Visa Details")}
+                  </h4>
+
+                  {!hasRegisteredDetails && (
+                    <p className="text-sm text-slate-500 leading-relaxed max-w-[65ch] -mt-3">
+                      {t("visa.detail.registerDetailsDesc", "Customer has paid the service fee. Enter the issued visa information so they can view it. After saving, you can approve or reject the application.")}
+                    </p>
+                  )}
+
+                  <div className="v-stack gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h5 className="font-bold text-slate-700">
+                      {hasRegisteredDetails
+                        ? t("visa.detail.systemAssistedDetails", "Visa Details")
+                        : t("visa.detail.systemAssistedDetailsRequired", "Visa Details (Required)")}
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <TextInput
+                        type="text"
+                        label={`Visa Number${hasRegisteredDetails ? "" : " *"}`}
+                        placeholder="Ex: V123456"
+                        value={visaNumber}
+                        onChange={(e: any) => setVisaNumber(e.target.value)}
+                      />
+                      <div className="v-stack">
+                        <label className="text-sm font-medium text-slate-700 mb-[6px]">Entry Type</label>
+                        <select
+                          className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
+                          value={entryType}
+                          onChange={(e: any) => setEntryType(e.target.value ? Number(e.target.value) : "")}
+                        >
+                          <option value="">{t("common.select", "Select")}</option>
+                          <option value={0}>Single</option>
+                          <option value={1}>Multiple</option>
+                        </select>
+                      </div>
+                      <TextInput
+                        type="date"
+                        label={`Issued At${hasRegisteredDetails ? "" : " *"}`}
+                        value={issuedAt}
+                        onChange={(e: any) => setIssuedAt(e.target.value)}
+                      />
+                      <TextInput
+                        type="date"
+                        label={`Expires At${hasRegisteredDetails ? "" : " *"}`}
+                        value={expiresAt}
+                        onChange={(e: any) => setExpiresAt(e.target.value)}
+                      />
+                      <div className="v-stack">
+                        <label className="text-sm font-medium text-slate-700 mb-[6px]">{`Category${hasRegisteredDetails ? "" : " *"}`}</label>
+                        <select
+                          className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
+                          value={category}
+                          onChange={(e: any) => setCategory(e.target.value ? Number(e.target.value) : "")}
+                        >
+                          <option value="">{t("common.select", "Select")}</option>
+                          <option value={0}>Tourist</option>
+                          <option value={1}>Business</option>
+                          <option value={2}>Family Visit</option>
+                          <option value={3}>Student</option>
+                          <option value={4}>Transit</option>
+                          <option value={5}>Other</option>
+                        </select>
+                      </div>
+                      <div className="v-stack">
+                        <label className="text-sm font-medium text-slate-700 mb-[6px]">{`Format${hasRegisteredDetails ? "" : " *"}`}</label>
+                        <select
+                          className="px-4 py-[11px] bg-white border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 outline-none transition-all shadow-sm"
+                          value={format}
+                          onChange={(e: any) => setFormat(e.target.value ? Number(e.target.value) : "")}
+                        >
+                          <option value="">{t("common.select", "Select")}</option>
+                          <option value={0}>Sticker</option>
+                          <option value={1}>E-Visa</option>
+                          <option value={2}>Visa On Arrival</option>
+                        </select>
+                      </div>
+                      <TextInput
+                        type="number"
+                        label="Max Stay Days"
+                        placeholder="Ex: 30"
+                        value={maxStayDays as any}
+                        onChange={(e: any) => setMaxStayDays(e.target.value ? Number(e.target.value) : "")}
+                      />
+                      <TextInput
+                        type="text"
+                        label="Issuing Authority"
+                        placeholder="Ex: Embassy of Japan"
+                        value={issuingAuthority}
+                        onChange={(e: any) => setIssuingAuthority(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <TextInput
+                    type="text"
+                    label={t("visa.detail.visaFileUrl", "Visa Document URL")}
+                    placeholder="https://..."
+                    value={visaFileUrl}
+                    onChange={(e: any) => setVisaFileUrl(e.target.value)}
+                  />
+
+                  {!hasRegisteredDetails ? (
+                    <div className="h-stack justify-end gap-4 pt-4">
+                      <button
+                        onClick={handleRegisterDetails}
+                        disabled={submitting}
+                        className="px-6 py-[11px] bg-zinc-950 text-white text-sm font-semibold rounded-[1rem] hover:bg-zinc-800 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-zinc-950"
+                      >
+                        {submitting ? "..." : t("visa.action.saveDetails", "Save Visa Details")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Textarea
+                        label={t("visa.detail.refusalReason", "Refusal Reason (Required for Rejection)")}
+                        placeholder={t("visa.detail.refusalReasonPlaceholder", "Enter reason...")}
+                        value={refusalReason}
+                        onChange={(e: any) => setRefusalReason(e.target.value)}
+                        row={3}
+                      />
+                      <div className="h-stack justify-between items-center gap-4 pt-4">
+                        <button
+                          onClick={handleRegisterDetails}
+                          disabled={submitting}
+                          className="px-4 py-[9px] bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-[0.875rem] hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                          {t("visa.action.updateDetails", "Update Details")}
+                        </button>
+                        <div className="h-stack gap-4">
+                          <button
+                            onClick={() => handleUpdateStatus(4)}
+                            disabled={submitting || !refusalReason}
+                            className="px-6 py-[11px] bg-red-50 text-red-600 text-sm font-semibold rounded-[1rem] hover:bg-red-100 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-50 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                          >
+                            {t("common.reject", "Reject")}
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatus(3)}
+                            disabled={submitting}
+                            className="px-6 py-[11px] bg-emerald-600 text-white text-sm font-semibold rounded-[1rem] shadow-[0_8px_20px_-6px_rgba(5,150,105,0.3)] hover:bg-emerald-700 hover:shadow-[0_8px_20px_-6px_rgba(5,150,105,0.4)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                          >
+                            {t("common.approve", "Approve")}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             {(normalizedStatus === "approved" || normalizedStatus === "rejected") && (
               <div className="v-stack gap-5 bg-[#f9fafb] p-6 rounded-[1.5rem] border border-slate-200/50 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">

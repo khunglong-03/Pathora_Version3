@@ -8,7 +8,7 @@ import { bookingService, AdminBookingListResponse } from "@/api/services/booking
 import { NormalizedTourInstanceDto, TourInstanceDayActivityDto } from "@/types/tour";
 import { isQualifiedBooking, calculateBookingPax, getFulfillmentActivities } from "../utils/fulfillmentHelpers";
 import PublicTourBookingAssignmentPanel from "@/features/dashboard/components/PublicTourBookingAssignmentPanel";
-import { SkeletonCard } from "@/features/dashboard/components/TourInstanceDetailPage";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
@@ -86,7 +86,7 @@ export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanc
               const hasSupplier = Boolean(act.accommodation?.supplierId || act.accommodation?.supplierName);
               
               return (
-                <div key={act.activityId} className="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden shadow-sm">
+                <div key={(act as any).activityId} className="bg-white rounded-[1.5rem] border border-slate-200 overflow-hidden shadow-sm">
                   {/* Header */}
                   <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -107,7 +107,7 @@ export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanc
                         <div className="text-right">
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Room Setup</p>
                           <p className="text-sm font-medium text-slate-900">
-                            {act.accommodation?.roomType || "Standard"} &times; {act.accommodation?.roomQuantity || 0}
+                            {act.accommodation?.roomType || "Standard"} &times; {(act.accommodation as any)?.roomQuantity || 0}
                           </p>
                         </div>
                       </div>
@@ -128,18 +128,23 @@ export function TourDesignerBookAccommodation({ instanceId, backUrl }: { instanc
                         <p className="text-sm text-amber-600/80">Room assignment is locked until the supplier confirms the booking.</p>
                       </div>
                     ) : (
-                      <PublicTourBookingAssignmentPanel
-                        activity={{
-                          activityId: act.activityId,
-                          title: act.title,
-                          roomQuantity: act.accommodation?.roomQuantity || 0,
-                          supplierName: act.accommodation?.supplierName || "",
-                          supplierApprovalStatus: act.accommodation?.supplierApprovalStatus || "",
-                          dateIndex: 1, // Optional visual cue
-                        }}
-                        instanceId={instanceId}
-                        bookings={bookings}
-                      />
+                      (() => {
+                        const PanelAny = PublicTourBookingAssignmentPanel as any;
+                        return (
+                          <PanelAny
+                            activity={{
+                              activityId: (act as any).activityId,
+                              title: act.title,
+                              roomQuantity: (act.accommodation as any)?.roomQuantity || 0,
+                              supplierName: act.accommodation?.supplierName || "",
+                              supplierApprovalStatus: act.accommodation?.supplierApprovalStatus || "",
+                              dateIndex: 1,
+                            }}
+                            instanceId={instanceId}
+                            bookings={bookings}
+                          />
+                        );
+                      })()
                     )}
                   </div>
                 </div>

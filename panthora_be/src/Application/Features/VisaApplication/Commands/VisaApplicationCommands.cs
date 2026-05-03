@@ -123,8 +123,8 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
         if (request.Status == VisaStatus.Approved)
         {
             var passport = entity.Passport;
-            if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value < tourInstance.EndDate)
-                return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour kết thúc.");
+            if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value.Date < tourInstance.StartDate.Date)
+                return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour bắt đầu.");
             
             // Note: Emit Event có thể add trực tiếp vào Domain Entity (Domain Event) 
             // hoặc gửi qua MediatR. Hiện tại Entity có CreateDomainEvent() không? 
@@ -342,18 +342,18 @@ public sealed class RegisterVisaDetailsCommandHandler(
         if (!visaApp.IsSystemAssisted)
             return Error.Validation("Visa.NotSystemAssisted", "Chỉ áp dụng đăng ký thông tin visa cho đơn có yêu cầu hỗ trợ từ hệ thống.");
 
-        if (!visaApp.ServiceFeePaidAt.HasValue)
-            return Error.Validation("Visa.ServiceFeeNotPaid", "Khách hàng chưa thanh toán phí dịch vụ visa.");
+        if (!visaApp.ServiceFeeTransactionId.HasValue)
+            return Error.Validation("Visa.ServiceFeeNotQuoted", "Chưa báo giá phí dịch vụ visa, không thể đăng ký thông tin.");
 
         if (visaApp.Status == VisaStatus.Approved || visaApp.Status == VisaStatus.Rejected)
             return Error.Conflict("Visa.AlreadyFinalized", "Đơn visa đã ở trạng thái cuối, không thể chỉnh sửa thông tin.");
 
         var passport = visaApp.Passport;
-        if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value < tourInstance.EndDate)
-            return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour kết thúc.");
+        if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value.Date < tourInstance.StartDate.Date)
+            return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour bắt đầu.");
 
-        if (request.ExpiresAt < tourInstance.EndDate)
-            return Error.Validation("Visa.ExpiresBeforeTourEnd", "Visa hết hạn trước khi tour kết thúc.");
+        if (request.ExpiresAt.Date < tourInstance.StartDate.Date)
+            return Error.Validation("Visa.ExpiresBeforeTourStart", "Visa hết hạn trước khi tour bắt đầu.");
 
         var performedBy = currentUserId.Value.ToString();
 

@@ -1,15 +1,14 @@
 import { NormalizedTourInstanceDto, TourInstanceDayActivityDto, isExternalOnlyTransportation } from "@/types/tour";
-import { BookingDto, BookingStatus } from "@/types/booking";
 
 // 2.1 Add typed helpers for qualified booking detection
-export const isQualifiedBooking = (booking: BookingDto | any): boolean => {
+export const isQualifiedBooking = (booking: any): boolean => {
   if (!booking || typeof booking.status !== "string") return false;
   const s = booking.status.toLowerCase();
   return s === "deposited" || s === "paid" || s === "completed";
 };
 
 // 2.2 Add helper to calculate booking pax
-export const calculateBookingPax = (booking: BookingDto | any): number => {
+export const calculateBookingPax = (booking: any): number => {
   if (!booking) return 0;
   return (booking.numberAdult || 0) + (booking.numberChild || 0) + (booking.numberInfant || 0);
 };
@@ -18,8 +17,8 @@ export const calculateBookingPax = (booking: BookingDto | any): number => {
 export const getFulfillmentActivities = (instance: NormalizedTourInstanceDto | any) => {
   const allActivities: TourInstanceDayActivityDto[] = (instance?.days || []).flatMap((d: any) => d.activities || []);
   
-  const transportActivities = allActivities.filter(a => a.activityType === "Transportation" || a.activityType === 1);
-  const accommodationActivities = allActivities.filter(a => a.activityType === "Accommodation" || a.activityType === 2);
+  const transportActivities = allActivities.filter((a: any) => a.activityType === "Transportation" || a.activityType === 1);
+  const accommodationActivities = allActivities.filter((a: any) => a.activityType === "Accommodation" || a.activityType === 2);
   
   return { transportActivities, accommodationActivities };
 };
@@ -30,7 +29,7 @@ export const isActivityExternalTransport = (activity: TourInstanceDayActivityDto
 };
 
 // 2.5 Add safe mapper from NormalizedTourInstanceDto to UpdateTourInstancePayload
-export const mapInstanceToUpdatePayload = (instance: NormalizedTourInstanceDto | any) => {
+export const mapInstanceToUpdatePayload = (instance: NormalizedTourInstanceDto | any): any => {
   return {
     id: instance.id,
     tourId: instance.tourId,

@@ -7,7 +7,7 @@ import { bookingService, AdminBookingListResponse } from "@/api/services/booking
 import { NormalizedTourInstanceDto, TourInstanceDayActivityDto } from "@/types/tour";
 import { isQualifiedBooking, calculateBookingPax, getFulfillmentActivities, isActivityExternalTransport } from "../utils/fulfillmentHelpers";
 import ExternalTicketAssignmentPanel from "@/features/dashboard/components/ExternalTicketAssignmentPanel";
-import { SkeletonCard } from "@/features/dashboard/components/TourInstanceDetailPage";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
@@ -88,13 +88,13 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
                   <Ticket weight="bold" className="text-blue-500" />
                   External Tickets (Flight, Train, Boat)
                 </h3>
-                {externalTransports.map(act => (
+                {externalTransports.map((act: any) => (
                   <ExternalTicketAssignmentPanel
-                    key={act.activityId}
-                    activityId={act.activityId}
+                    key={(act as any).activityId}
+                    activityId={(act as any).activityId}
                     instanceId={instanceId}
                     activityTitle={act.title}
-                    transportType={act.transportationType ?? act.transportationName ?? "Other"}
+                    transportType={(act.transportationType ?? act.transportationName ?? "Other") as any}
                     bookings={bookings}
                     activityDate={instance.startDate} // Pass relevant date
                   />
@@ -109,8 +109,8 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
                   Ground Transport (Bus, Taxi)
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {groundTransports.map(act => (
-                    <div key={act.activityId} className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm flex flex-col gap-4">
+                  {groundTransports.map((act: any) => (
+                    <div key={(act as any).activityId} className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm flex flex-col gap-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-bold text-slate-900">{act.title}</h4>
