@@ -152,11 +152,11 @@ export const bookingService = {
   },
 
   upsertParticipantPassport: async (bookingId: string, participantId: string, payload: CustomerPassportPayload) => {
-    const response = await api.put<ServiceResponse<unknown>>(
+    const response = await api.put<ServiceResponse<string>>(
       API_ENDPOINTS.PUBLIC_BOOKING.UPSERT_PARTICIPANT_PASSPORT(bookingId, participantId),
       payload
     );
-    return extractResult<unknown>(response.data);
+    return extractResult<string>(response.data);
   },
 
   submitVisaApplication: async (bookingId: string, payload: SubmitVisaApplicationPayload) => {

@@ -28,8 +28,19 @@ public sealed class GetAllVisaApplicationsQueryHandler(IVisaApplicationRepositor
             e.MinReturnDate,
             e.RefusalReason,
             e.VisaFileUrl,
+            e.IsSystemAssisted,
+            e.ServiceFee,
+            e.ServiceFeePaidAt,
             e.CreatedOnUtc,
-            e.LastModifiedOnUtc
+            e.LastModifiedOnUtc,
+            e.Visa?.VisaNumber,
+            e.Visa?.EntryType,
+            e.Visa?.IssuedAt,
+            e.Visa?.ExpiresAt,
+            e.Visa?.Category,
+            e.Visa?.Format,
+            e.Visa?.MaxStayDays,
+            e.Visa?.IssuingAuthority
         )).ToList();
         return result;
     }
@@ -43,7 +54,7 @@ public sealed class GetVisaApplicationByIdQueryHandler(IVisaApplicationRepositor
 {
     public async Task<ErrorOr<VisaApplicationDto?>> Handle(GetVisaApplicationByIdQuery request, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetByIdAsync(request.Id);
+        var entity = await repository.GetByIdWithGraphAsync(request.Id, cancellationToken);
         if (entity is null)
             return (VisaApplicationDto?)null;
 
@@ -58,8 +69,19 @@ public sealed class GetVisaApplicationByIdQueryHandler(IVisaApplicationRepositor
             entity.MinReturnDate,
             entity.RefusalReason,
             entity.VisaFileUrl,
+            entity.IsSystemAssisted,
+            entity.ServiceFee,
+            entity.ServiceFeePaidAt,
             entity.CreatedOnUtc,
-            entity.LastModifiedOnUtc
+            entity.LastModifiedOnUtc,
+            entity.Visa?.VisaNumber,
+            entity.Visa?.EntryType,
+            entity.Visa?.IssuedAt,
+            entity.Visa?.ExpiresAt,
+            entity.Visa?.Category,
+            entity.Visa?.Format,
+            entity.Visa?.MaxStayDays,
+            entity.Visa?.IssuingAuthority
         );
     }
 }
@@ -84,8 +106,19 @@ public sealed class GetVisaApplicationsByParticipantQueryHandler(IVisaApplicatio
             e.MinReturnDate,
             e.RefusalReason,
             e.VisaFileUrl,
+            e.IsSystemAssisted,
+            e.ServiceFee,
+            e.ServiceFeePaidAt,
             e.CreatedOnUtc,
-            e.LastModifiedOnUtc
+            e.LastModifiedOnUtc,
+            e.Visa?.VisaNumber,
+            e.Visa?.EntryType,
+            e.Visa?.IssuedAt,
+            e.Visa?.ExpiresAt,
+            e.Visa?.Category,
+            e.Visa?.Format,
+            e.Visa?.MaxStayDays,
+            e.Visa?.IssuingAuthority
         )).ToList();
         return result;
     }

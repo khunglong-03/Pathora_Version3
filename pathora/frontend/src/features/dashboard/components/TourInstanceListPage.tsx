@@ -397,6 +397,7 @@ export function TourInstanceListPage({
                 <option value="pendingadjustment">Pending Adjustment</option>
                 <option value="pendingmanagerreview">Pending Manager Review</option>
                 <option value="pendingcustomerapproval">Pending Customer Approval</option>
+                <option value="pendingvisa">Pending Visa</option>
                 <option value="pendingapproval">Pending Approval</option>
                 <option value="available">Available</option>
                 <option value="confirmed">Confirmed</option>

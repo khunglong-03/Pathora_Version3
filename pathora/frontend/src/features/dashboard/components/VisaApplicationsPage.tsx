@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Icon, VisaStatusBadge } from "@/components/ui";
 import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
+import { VisaApplicationDetailModal } from "./VisaApplicationDetailModal";
 import { adminService } from "@/api/services/adminService";
 import { managerService } from "@/api/services/managerService";
 import type { AdminOverview, AdminVisaApplication } from "@/types/admin";
@@ -130,46 +131,12 @@ export function VisaApplicationsPage() {
     setReloadToken((value) => value + 1);
   };
 
-  const handleQuoteFee = async (id: string) => {
-    const feeStr = window.prompt(t("visa.prompt.quoteFeeAmount", "Enter fee amount in VND:"));
-    if (!feeStr) return;
-    const fee = parseFloat(feeStr);
-    if (isNaN(fee) || fee <= 0) {
-      import("react-toastify").then(({ toast }) => toast.error(t("visa.error.invalidFee", "Invalid fee amount")));
-      return;
-    }
-    
-    try {
-      await managerService.quoteVisaFee({ visaApplicationId: id, fee });
-      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.quoted", "Fee quoted successfully")));
-      retryLoading();
-    } catch (err) {
-      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to quote fee"));
-    }
-  };
+  const [selectedVisaId, setSelectedVisaId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleApprove = async (id: string) => {
-    if (!window.confirm(t("visa.confirm.approve", "Are you sure you want to approve this visa application?"))) return;
-    try {
-      await managerService.updateVisaStatus({ visaApplicationId: id, status: 3 }); // 3 = Approved
-      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.approved", "Visa application approved")));
-      retryLoading();
-    } catch (err) {
-      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to approve visa"));
-    }
-  };
-
-  const handleReject = async (id: string) => {
-    const reason = window.prompt(t("visa.prompt.rejectReason", "Enter reason for rejection:"));
-    if (!reason) return;
-    
-    try {
-      await managerService.updateVisaStatus({ visaApplicationId: id, status: 4, refusalReason: reason }); // 4 = Rejected
-      import("react-toastify").then(({ toast }) => toast.success(t("visa.success.rejected", "Visa application rejected")));
-      retryLoading();
-    } catch (err) {
-      import("react-toastify").then(({ toast }) => toast.error(err instanceof Error ? err.message : "Failed to reject visa"));
-    }
+  const openDetailModal = (id: string) => {
+    setSelectedVisaId(id);
+    setIsDetailModalOpen(true);
   };
 
   const filters = [
@@ -427,6 +394,15 @@ export function VisaApplicationsPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                   </svg>
                                   {orderId}
+                                  {visas.length > 0 && visas[0].type && visas[0].type !== "Unknown" && (
+                                    <span className={`ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                      visas[0].type === "Private Tour" 
+                                        ? "bg-purple-100 text-purple-700 border border-purple-200" 
+                                        : "bg-blue-100 text-blue-700 border border-blue-200"
+                                    }`}>
+                                      {visas[0].type}
+                                    </span>
+                                  )}
                                 </span>
                               </td>
                             </tr>
@@ -472,30 +448,12 @@ export function VisaApplicationsPage() {
                                   {isManager && (
                                     <td className="px-6 py-4 text-right">
                                       <div className="flex items-center justify-end gap-2">
-                                        {visa.status === "pending" && (
-                                          <button
-                                            onClick={() => handleQuoteFee(visa.id)}
-                                            className="px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors"
-                                          >
-                                            {t("visa.action.quoteFee", "Quote Fee")}
-                                          </button>
-                                        )}
-                                        {visa.status === "under_review" && (
-                                          <>
-                                            <button
-                                              onClick={() => handleApprove(visa.id)}
-                                              className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
-                                            >
-                                              {t("common.approve", "Approve")}
-                                            </button>
-                                            <button
-                                              onClick={() => handleReject(visa.id)}
-                                              className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                                            >
-                                              {t("common.reject", "Reject")}
-                                            </button>
-                                          </>
-                                        )}
+                                        <button
+                                          onClick={() => openDetailModal(visa.id)}
+                                          className="px-3 py-1.5 text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg transition-colors"
+                                        >
+                                          {t("visa.action.details", "Details & Process")}
+                                        </button>
                                       </div>
                                     </td>
                                   )}
@@ -512,6 +470,13 @@ export function VisaApplicationsPage() {
             )}
           </>
         ) : null}
+        {/* Detail Modal */}
+        <VisaApplicationDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          visaId={selectedVisaId}
+          onSuccess={retryLoading}
+        />
       </main>
   );
 }

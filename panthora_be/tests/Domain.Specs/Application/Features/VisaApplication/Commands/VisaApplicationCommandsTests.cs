@@ -69,7 +69,7 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenNotSystemAssisted_ShouldReturnValidation()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _bookingRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
         
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);
@@ -101,7 +101,7 @@ public class VisaApplicationCommandsTests
     [Fact]
     public async Task QuoteFee_WhenAlreadyQuoted_ShouldReturnExistingTransactionId()
     {
-        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _bookingRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
+        var handler = new QuoteVisaSupportFeeCommandHandler(_visaRepoMock, _transactionRepoMock, _currentUserMock, _uowMock);
         
         var userId = Guid.NewGuid();
         _currentUserMock.Id.Returns(userId);

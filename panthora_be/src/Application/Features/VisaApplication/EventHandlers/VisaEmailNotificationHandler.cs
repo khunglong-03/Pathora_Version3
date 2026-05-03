@@ -1,5 +1,6 @@
 using Domain.Common.Repositories;
 using Domain.Events;
+using Domain.Mails;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -7,6 +8,7 @@ namespace Application.Features.VisaApplication.EventHandlers;
 
 public sealed class VisaEmailNotificationHandler(
     IVisaApplicationRepository visaApplicationRepository,
+    IMailRepository mailRepository,
     ILogger<VisaEmailNotificationHandler> logger)
     : INotificationHandler<VisaApplicationStatusChangedEvent>,
       INotificationHandler<VisaServiceFeeQuotedEvent>
@@ -19,24 +21,65 @@ public sealed class VisaEmailNotificationHandler(
 
         var email = application.BookingParticipant.Booking.User?.Email ?? application.BookingParticipant.Booking.CustomerEmail;
         if (string.IsNullOrEmpty(email))
+        {
+            logger.LogWarning("Cannot send visa notification: email is empty for Visa Application {VisaId}.", application.Id);
             return;
+        }
 
         if (notification.NewStatus == Domain.Enums.VisaStatus.Approved)
         {
-            logger.LogInformation(
-                "MOCK EMAIL: Gửi email cho {Email}: Visa của hành khách {ParticipantName} đi {Country} đã được duyệt.",
-                email,
-                application.BookingParticipant.FullName,
-                application.DestinationCountry);
+            try
+            {
+                var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
+                
+                var approvedMail = new VisaApplicationApprovedMail(
+                    CustomerName: customerName,
+                    ParticipantName: application.BookingParticipant.FullName,
+                    DestinationCountry: application.DestinationCountry,
+                    ViewLink: "/bookings");
+
+                var mail = approvedMail.ToMail(email);
+                var addResult = await mailRepository.Add(mail);
+                if (addResult.IsError)
+                {
+                    logger.LogWarning(
+                        "Failed to queue VisaApplicationApprovedMail for Visa {VisaId}: {ErrorDescription}",
+                        application.Id,
+                        addResult.FirstError.Description);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to create VisaApplicationApprovedMail for Visa {VisaId}", application.Id);
+            }
         }
         else if (notification.NewStatus == Domain.Enums.VisaStatus.Rejected)
         {
-            logger.LogInformation(
-                "MOCK EMAIL: Gửi email cho {Email}: Visa của hành khách {ParticipantName} đi {Country} bị từ chối. Lý do: {Reason}. Vui lòng đăng nhập và nộp lại.",
-                email,
-                application.BookingParticipant.FullName,
-                application.DestinationCountry,
-                application.RefusalReason ?? "Không có lý do");
+            try
+            {
+                var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
+                
+                var rejectedMail = new VisaApplicationRejectedMail(
+                    CustomerName: customerName,
+                    ParticipantName: application.BookingParticipant.FullName,
+                    DestinationCountry: application.DestinationCountry,
+                    RefusalReason: application.RefusalReason ?? "Not specified.",
+                    ResubmitLink: "/bookings"); // Assuming they manage visas from their bookings page
+
+                var mail = rejectedMail.ToMail(email);
+                var addResult = await mailRepository.Add(mail);
+                if (addResult.IsError)
+                {
+                    logger.LogWarning(
+                        "Failed to queue VisaApplicationRejectedMail for Visa {VisaId}: {ErrorDescription}",
+                        application.Id,
+                        addResult.FirstError.Description);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to create VisaApplicationRejectedMail for Visa {VisaId}", application.Id);
+            }
         }
     }
 
@@ -48,12 +91,36 @@ public sealed class VisaEmailNotificationHandler(
 
         var email = application.BookingParticipant.Booking.User?.Email ?? application.BookingParticipant.Booking.CustomerEmail;
         if (string.IsNullOrEmpty(email))
+        {
+            logger.LogWarning("Cannot send visa notification: email is empty for Visa Application {VisaId}.", application.Id);
             return;
+        }
 
-        logger.LogInformation(
-            "MOCK EMAIL: Gửi email cho {Email}: Cần thanh toán phí hỗ trợ visa cho hành khách {ParticipantName}. Số tiền: {Fee:C0}. Vui lòng kiểm tra chi tiết Booking.",
-            email,
-            application.BookingParticipant.FullName,
-            notification.Fee);
+        try
+        {
+            var customerName = application.BookingParticipant.Booking.User?.FullName ?? "Customer";
+            var feeStr = notification.Fee.ToString("N0");
+            
+            var quoteMail = new VisaServiceFeeQuotedMail(
+                CustomerName: customerName,
+                ParticipantName: application.BookingParticipant.FullName,
+                DestinationCountry: application.DestinationCountry,
+                Fee: feeStr,
+                PaymentLink: "/bookings"); // Link to booking to pay the fee
+
+            var mail = quoteMail.ToMail(email);
+            var addResult = await mailRepository.Add(mail);
+            if (addResult.IsError)
+            {
+                logger.LogWarning(
+                    "Failed to queue VisaServiceFeeQuotedMail for Visa {VisaId}: {ErrorDescription}",
+                    application.Id,
+                    addResult.FirstError.Description);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create VisaServiceFeeQuotedMail for Visa {VisaId}", application.Id);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -16,11 +17,18 @@ public sealed record SubmitCustomerVisaApplicationCommand(
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
     string? VisaFileUrl = null,
+    string? VisaNumber = null,
+    VisaEntryType? EntryType = null,
+    DateTimeOffset? IssuedAt = null,
+    DateTimeOffset? ExpiresAt = null,
     VisaCategory? Category = null,
     VisaFormat? Format = null,
     int? MaxStayDays = null,
     string? IssuingAuthority = null)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
 
 public sealed class SubmitCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
@@ -68,7 +76,7 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             return Error.Conflict("Visa.DuplicateActive", "Participant đã có đơn visa đang xử lý.");
 
         // Default minReturnDate về EndDate nếu không gửi
-        var minReturnDate = request.MinReturnDate ?? tourInstance.EndDate;
+        var minReturnDate = (request.MinReturnDate ?? tourInstance.EndDate).ToUniversalTime();
         if (minReturnDate < tourInstance.EndDate)
             return Error.Validation("Visa.MinReturnDate", "MinReturnDate phải lớn hơn hoặc bằng ngày kết thúc tour.");
 
@@ -89,6 +97,10 @@ public sealed class SubmitCustomerVisaApplicationCommandHandler(
             visaApplicationId: application.Id,
             performedBy: currentUserId.Value.ToString(),
             destinationCountry: request.DestinationCountry,
+            visaNumber: request.VisaNumber,
+            entryType: request.EntryType,
+            issuedAt: request.IssuedAt?.ToUniversalTime(),
+            expiresAt: request.ExpiresAt?.ToUniversalTime(),
             category: request.Category,
             format: request.Format,
             maxStayDays: request.MaxStayDays,
@@ -116,11 +128,18 @@ public sealed record UpdateCustomerVisaApplicationCommand(
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
     string? VisaFileUrl = null,
+    string? VisaNumber = null,
+    VisaEntryType? EntryType = null,
+    DateTimeOffset? IssuedAt = null,
+    DateTimeOffset? ExpiresAt = null,
     VisaCategory? Category = null,
     VisaFormat? Format = null,
     int? MaxStayDays = null,
     string? IssuingAuthority = null)
-    : IRequest<ErrorOr<Success>>;
+    : IRequest<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
 
 public sealed class UpdateCustomerVisaApplicationCommandHandler(
     IBookingRepository bookingRepository,
@@ -159,7 +178,7 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
             return Error.Conflict("Visa.CannotUpdate", "Chỉ có thể cập nhật đơn visa đang Pending hoặc đã Rejected.");
 
         var tourInstance = booking.TourInstance!;
-        var minReturnDate = request.MinReturnDate ?? tourInstance.EndDate;
+        var minReturnDate = (request.MinReturnDate ?? tourInstance.EndDate).ToUniversalTime();
 
         // Nếu đơn đang Rejected → resubmit (clear reason, về Pending)
         if (application.Status == VisaStatus.Rejected)
@@ -167,9 +186,14 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
             application.Resubmit(currentUserId.Value.ToString(), request.VisaFileUrl);
         }
 
+        // Khi khách hàng tự nộp visa (hoặc update khi đang Pending/vừa Resubmit),
+        // chuyển trạng thái sang Processing để Manager review.
+        var newStatus = application.Status == VisaStatus.Pending ? VisaStatus.Processing : (VisaStatus?)null;
+
         application.Update(
             destinationCountry: request.DestinationCountry,
             performedBy: currentUserId.Value.ToString(),
+            status: newStatus,
             minReturnDate: minReturnDate,
             visaFileUrl: request.VisaFileUrl ?? application.VisaFileUrl);
 
@@ -177,11 +201,16 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
         {
             application.Visa.Update(
                 performedBy: currentUserId.Value.ToString(),
+                visaNumber: request.VisaNumber ?? application.Visa.VisaNumber,
+                entryType: request.EntryType ?? application.Visa.EntryType,
+                issuedAt: request.IssuedAt?.ToUniversalTime() ?? application.Visa.IssuedAt,
+                expiresAt: request.ExpiresAt?.ToUniversalTime() ?? application.Visa.ExpiresAt,
                 destinationCountry: request.DestinationCountry,
                 category: request.Category ?? application.Visa.Category,
                 format: request.Format ?? application.Visa.Format,
                 maxStayDays: request.MaxStayDays ?? application.Visa.MaxStayDays,
                 issuingAuthority: request.IssuingAuthority ?? application.Visa.IssuingAuthority,
+                status: newStatus,
                 fileUrl: request.VisaFileUrl ?? application.Visa.FileUrl);
         }
         else
@@ -189,13 +218,17 @@ public sealed class UpdateCustomerVisaApplicationCommandHandler(
             application.Visa = VisaEntity.Create(
                 visaApplicationId: application.Id,
                 performedBy: currentUserId.Value.ToString(),
+                visaNumber: request.VisaNumber,
+                entryType: request.EntryType,
+                issuedAt: request.IssuedAt?.ToUniversalTime(),
+                expiresAt: request.ExpiresAt?.ToUniversalTime(),
                 destinationCountry: request.DestinationCountry,
                 category: request.Category,
                 format: request.Format,
                 maxStayDays: request.MaxStayDays,
                 issuingAuthority: request.IssuingAuthority,
                 fileUrl: request.VisaFileUrl,
-                status: VisaStatus.Pending);
+                status: newStatus ?? VisaStatus.Pending);
         }
 
         visaApplicationRepository.Update(application);
@@ -283,16 +316,16 @@ public sealed record UpdateCustomerPassportCommand(
     DateTimeOffset? IssuedAt,
     DateTimeOffset? ExpiresAt,
     string? FileUrl)
-    : IRequest<ErrorOr<Success>>;
+    : IRequest<ErrorOr<Guid>>;
 
 public sealed class UpdateCustomerPassportCommandHandler(
     IBookingRepository bookingRepository,
     IPassportRepository passportRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
-    : IRequestHandler<UpdateCustomerPassportCommand, ErrorOr<Success>>
+    : IRequestHandler<UpdateCustomerPassportCommand, ErrorOr<Guid>>
 {
-    public async Task<ErrorOr<Success>> Handle(
+    public async Task<ErrorOr<Guid>> Handle(
         UpdateCustomerPassportCommand request,
         CancellationToken cancellationToken)
     {
@@ -318,6 +351,7 @@ public sealed class UpdateCustomerPassportCommandHandler(
         if (request.ExpiresAt.HasValue && request.ExpiresAt.Value < tourInstance.EndDate)
             return Error.Validation("Passport.Expired", "Hộ chiếu phải còn hạn sau ngày kết thúc tour.");
 
+        Guid passportId;
         var existingPassport = await passportRepository.GetByBookingParticipantIdAsync(request.ParticipantId, cancellationToken);
         if (existingPassport != null)
         {
@@ -325,11 +359,12 @@ public sealed class UpdateCustomerPassportCommandHandler(
                 request.PassportNumber,
                 currentUserId.Value.ToString(),
                 request.Nationality,
-                request.IssuedAt,
-                request.ExpiresAt,
+                request.IssuedAt?.ToUniversalTime(),
+                request.ExpiresAt?.ToUniversalTime(),
                 request.FileUrl
             );
             passportRepository.Update(existingPassport);
+            passportId = existingPassport.Id;
         }
         else
         {
@@ -337,15 +372,16 @@ public sealed class UpdateCustomerPassportCommandHandler(
                 bookingParticipantId: request.ParticipantId,
                 passportNumber: request.PassportNumber,
                 nationality: request.Nationality,
-                issuedAt: request.IssuedAt,
-                expiresAt: request.ExpiresAt,
+                issuedAt: request.IssuedAt?.ToUniversalTime(),
+                expiresAt: request.ExpiresAt?.ToUniversalTime(),
                 fileUrl: request.FileUrl,
                 performedBy: currentUserId.Value.ToString()
             );
             await passportRepository.AddAsync(newPassport, cancellationToken);
+            passportId = newPassport.Id;
         }
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
-        return Result.Success;
+        return passportId;
     }
 }

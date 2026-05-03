@@ -12,7 +12,7 @@ const TeamSection = ({ teamMembers = TEAM_MEMBERS }: { teamMembers?: TeamMember[
 
   return (
     <section className="bg-zinc-50 dark:bg-zinc-950 py-32 relative">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-4 md:px-6 lg:px-8 lg:px-8">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -20,7 +20,7 @@ const TeamSection = ({ teamMembers = TEAM_MEMBERS }: { teamMembers?: TeamMember[
           viewport={{ once: true, margin: "-100px" }}
           className="max-w-xl mb-24"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 flex items-center gap-3">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 h-stack items-center gap-3">
             <span className="w-8 h-px bg-[#fa8b02]/30" />
             {t("landing.aboutUs.teamSubtitle")}
           </p>
@@ -39,7 +39,7 @@ const TeamSection = ({ teamMembers = TEAM_MEMBERS }: { teamMembers?: TeamMember[
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 80, damping: 20, delay: i * 0.1 }}
                 viewport={{ once: true, margin: "-100px" }}
-                className="group flex flex-col"
+                className="group v-stack"
               >
                 {/* Photo with Liquid Glass frame */}
                 <div className="relative rounded-[2rem] overflow-hidden mb-6 aspect-[4/5] bg-zinc-200 dark:bg-zinc-800">
@@ -61,7 +61,7 @@ const TeamSection = ({ teamMembers = TEAM_MEMBERS }: { teamMembers?: TeamMember[
                   
                   {/* Hover Info Overlay */}
                   <div className="absolute inset-x-4 bottom-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                    <div className="flex items-center justify-center gap-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-xl py-2 px-4 shadow-lg border border-white/20">
+                    <div className="h-stack items-center justify-center gap-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-xl py-2 px-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-white/20">
                       <Icon
                         icon="heroicons-outline:trophy"
                         className="w-4 h-4 text-[#fa8b02]"
@@ -74,7 +74,7 @@ const TeamSection = ({ teamMembers = TEAM_MEMBERS }: { teamMembers?: TeamMember[
                 </div>
                 
                 {/* Info Text */}
-                <div className="flex flex-col">
+                <div className="v-stack">
                   <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
                     {member.name}
                   </h3>

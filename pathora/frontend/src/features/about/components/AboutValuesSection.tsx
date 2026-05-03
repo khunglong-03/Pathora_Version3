@@ -12,7 +12,7 @@ const ValuesSection = ({ values = VALUES }: { values?: typeof VALUES }) => {
       {/* Ambient backgrounds */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-zinc-200/50 dark:bg-zinc-900/50 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4" />
       
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-4 md:px-6 lg:px-8 lg:px-8 relative z-10">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -20,7 +20,7 @@ const ValuesSection = ({ values = VALUES }: { values?: typeof VALUES }) => {
           viewport={{ once: true, margin: "-100px" }}
           className="text-center mb-20 max-w-2xl mx-auto"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 flex justify-center items-center gap-3">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 center gap-3">
             <span className="w-8 h-px bg-[#fa8b02]/30" />
             {t("landing.aboutUs.whyChooseUs")}
             <span className="w-8 h-px bg-[#fa8b02]/30" />
@@ -43,7 +43,7 @@ const ValuesSection = ({ values = VALUES }: { values?: typeof VALUES }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 80, damping: 20, delay: i * 0.1 }}
                 viewport={{ once: true, margin: "-50px" }}
-                className={`group relative bg-white dark:bg-zinc-900/40 rounded-[2.5rem] p-8 md:p-10 border border-zinc-200/60 dark:border-white/5 shadow-xl shadow-zinc-200/20 dark:shadow-black/20 overflow-hidden ${
+                className={`group relative bg-white dark:bg-zinc-900/40 rounded-[2.5rem] p-8 md:p-10 border border-zinc-200/60 dark:border-white/5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shadow-zinc-200/20 dark:shadow-black/20 overflow-hidden ${
                   isWide ? "md:col-span-2" : "md:col-span-1"
                 }`}
               >
@@ -54,7 +54,7 @@ const ValuesSection = ({ values = VALUES }: { values?: typeof VALUES }) => {
                 <motion.div 
                   animate={{ y: [0, -4, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-                  className="w-16 h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-700 flex items-center justify-center mb-8 shadow-sm group-hover:shadow-md transition-shadow relative z-10"
+                  className="w-16 h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-100 dark:border-zinc-700 h-stack items-center justify-center mb-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] group-hover:shadow-md transition-shadow relative z-10"
                 >
                   <Icon icon={v.icon} className="w-7 h-7 text-[#fa8b02]" />
                 </motion.div>

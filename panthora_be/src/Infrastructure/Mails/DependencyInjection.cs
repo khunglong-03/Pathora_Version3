@@ -16,7 +16,7 @@ internal static class DependencyInjection
 
         services.AddSingleton<IMailBodyBuilder, MailBodyBuilder>();
 
-        // services.AddHostedService<MailProcessor>();
+        services.AddHostedService<MailProcessor>();
 
         services.AddResiliencePipeline("mail-pipeline", cfg =>
         {

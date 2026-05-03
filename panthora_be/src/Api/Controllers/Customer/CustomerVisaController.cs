@@ -34,6 +34,8 @@ public sealed class CustomerVisaController : BaseApiController
     [HttpPost("visa-applications")]
     public async Task<IActionResult> SubmitVisa(Guid bookingId, [FromBody] SubmitVisaApplicationRequest body)
     {
+        if (body is null) return BadRequest("Request payload is required.");
+
         var command = new SubmitCustomerVisaApplicationCommand(
             BookingId: bookingId,
             BookingParticipantId: body.BookingParticipantId,
@@ -41,6 +43,10 @@ public sealed class CustomerVisaController : BaseApiController
             DestinationCountry: body.DestinationCountry,
             MinReturnDate: body.MinReturnDate,
             VisaFileUrl: body.VisaFileUrl,
+            VisaNumber: body.VisaNumber,
+            EntryType: body.EntryType,
+            IssuedAt: body.IssuedAt,
+            ExpiresAt: body.ExpiresAt,
             Category: body.Category,
             Format: body.Format,
             MaxStayDays: body.MaxStayDays,
@@ -59,6 +65,8 @@ public sealed class CustomerVisaController : BaseApiController
         Guid applicationId,
         [FromBody] UpdateVisaApplicationRequest body)
     {
+        if (body is null) return BadRequest("Request payload is required.");
+
         var command = new UpdateCustomerVisaApplicationCommand(
             BookingId: bookingId,
             VisaApplicationId: applicationId,
@@ -66,6 +74,10 @@ public sealed class CustomerVisaController : BaseApiController
             DestinationCountry: body.DestinationCountry,
             MinReturnDate: body.MinReturnDate,
             VisaFileUrl: body.VisaFileUrl,
+            VisaNumber: body.VisaNumber,
+            EntryType: body.EntryType,
+            IssuedAt: body.IssuedAt,
+            ExpiresAt: body.ExpiresAt,
             Category: body.Category,
             Format: body.Format,
             MaxStayDays: body.MaxStayDays,
@@ -94,6 +106,8 @@ public sealed class CustomerVisaController : BaseApiController
         Guid participantId,
         [FromBody] UpdateCustomerPassportRequest body)
     {
+        if (body is null) return BadRequest("Request payload is required.");
+
         var command = new UpdateCustomerPassportCommand(
             BookingId: bookingId,
             ParticipantId: participantId,
@@ -115,6 +129,10 @@ public sealed record SubmitVisaApplicationRequest(
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
     string? VisaFileUrl = null,
+    string? VisaNumber = null,
+    VisaEntryType? EntryType = null,
+    DateTimeOffset? IssuedAt = null,
+    DateTimeOffset? ExpiresAt = null,
     VisaCategory? Category = null,
     VisaFormat? Format = null,
     int? MaxStayDays = null,
@@ -125,6 +143,10 @@ public sealed record UpdateVisaApplicationRequest(
     string DestinationCountry,
     DateTimeOffset? MinReturnDate = null,
     string? VisaFileUrl = null,
+    string? VisaNumber = null,
+    VisaEntryType? EntryType = null,
+    DateTimeOffset? IssuedAt = null,
+    DateTimeOffset? ExpiresAt = null,
     VisaCategory? Category = null,
     VisaFormat? Format = null,
     int? MaxStayDays = null,

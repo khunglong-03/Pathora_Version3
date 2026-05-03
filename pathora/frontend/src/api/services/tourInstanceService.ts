@@ -923,11 +923,11 @@ export const tourInstanceService = {
     return extractResult<PrivateTourSettlementResultDto>(response.data);
   },
 
-  getBookingTickets: async (instanceId: string, activityId: string) => {
-    const response = await api.get<ServiceResponse<any[]>>(
+  getBookingTickets: async (instanceId: string, activityId: string): Promise<BookingTicketDto[]> => {
+    const response = await api.get<ServiceResponse<BookingTicketDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
     );
-    return extractResult<any[]>(response.data) ?? [];
+    return extractResult<BookingTicketDto[]>(response.data) ?? [];
   },
 
   saveBookingTicket: async (
@@ -986,4 +986,15 @@ export interface BookingRoomAssignmentDto {
   roomCount: number;
   roomNumbers?: string | null;
   note?: string | null;
+}
+
+export interface BookingTicketDto {
+  id: string;
+  bookingId: string;
+  activityId: string;
+  ticketFileUrl: string | null;
+  ticketNumber: string | null;
+  metadata: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

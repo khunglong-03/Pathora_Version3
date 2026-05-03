@@ -8,7 +8,7 @@ const CTABanner = () => {
   const { t } = useTranslation();
   return (
     <section className="bg-[#05073c] py-16 md:py-20">
-      <div className="max-w-3xl mx-auto px-6 text-center">
+      <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8 text-center">
         <p className="text-xs font-bold uppercase tracking-[1.2px] text-[#fa8b02] mb-3">
           {t("landing.aboutUs.readyToExplore")}
         </p>
@@ -22,7 +22,7 @@ const CTABanner = () => {
         </p>
         <Link
           href="/tours"
-          className="mt-8 inline-flex items-center gap-2 bg-[#fa8b02] text-white font-semibold text-base px-8 py-4 rounded-[14px] shadow-[0_10px_15px_rgba(126,42,12,0.3),0_4px_6px_rgba(126,42,12,0.3)] hover:brightness-110 transition-all"
+          className="mt-8 inline-h-stack items-center gap-2 bg-[#fa8b02] text-white font-semibold text-base px-8 py-4 rounded-[14px] shadow-[0_10px_15px_rgba(126,42,12,0.3),0_4px_6px_rgba(126,42,12,0.3)] hover:brightness-110 transition-all"
         >
           {t("landing.aboutUs.browsePackageTours")}
           <Icon icon="heroicons-outline:arrow-right" className="w-4 h-4" />

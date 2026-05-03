@@ -23,7 +23,7 @@ const CountUp = ({ to }: { to: number }) => {
 const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
   const { t } = useTranslation();
   return (
-    <section className="bg-white dark:bg-zinc-950 px-6 lg:px-12 py-16 relative overflow-hidden">
+    <section className="bg-white dark:bg-zinc-950 px-4 md:px-4 md:px-6 lg:px-8 lg:px-8 py-16 relative overflow-hidden">
       {/* Background glow motion */}
       <motion.div 
         animate={{ 
@@ -34,7 +34,7 @@ const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#fa8b02]/10 blur-[120px] pointer-events-none rounded-full"
       />
 
-      <div className="max-w-[1400px] mx-auto relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat, i) => {
           // Parse number from value if possible, fallback to string
           const numValue = parseInt(stat.value.replace(/[^0-9]/g, ''), 10);
@@ -48,7 +48,7 @@ const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: i * 0.1 }}
               viewport={{ once: true, margin: "-50px" }}
-              className="flex flex-col items-center gap-3 text-center p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 backdrop-blur-xl relative group hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors duration-500 shadow-xl shadow-zinc-200/40 dark:shadow-none"
+              className="v-stack items-center gap-3 text-center p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 backdrop-blur-xl relative group hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors duration-500 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shadow-zinc-200/40 dark:shadow-none"
             >
               {/* Perpetual status dot */}
               <motion.div 
@@ -57,7 +57,7 @@ const StatsBar = ({ stats = STATS }: { stats?: typeof STATS }) => {
                 className="absolute top-6 right-6 w-1.5 h-1.5 rounded-full bg-[#fa8b02]"
               />
 
-              <div className="w-14 h-14 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 shadow-inner flex items-center justify-center mb-2 group-hover:-translate-y-1 transition-transform duration-500 ease-out shadow-sm dark:shadow-inner">
+              <div className="w-14 h-14 rounded-[1.5rem] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/5 shadow-inner h-stack items-center justify-center mb-2 group-hover:-translate-y-1 transition-transform duration-500 ease-out shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-inner">
                 <Icon icon={stat.icon} className="w-6 h-6 text-zinc-500 group-hover:text-[#fa8b02] transition-colors duration-300" />
               </div>
               <p className="text-4xl lg:text-5xl font-extrabold tracking-tighter text-zinc-900 dark:text-white font-mono flex items-baseline">

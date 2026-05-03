@@ -502,7 +502,8 @@ export default function PublicTourBookingAssignmentPanel({
   );
 
   const isPublic = instanceType?.toLowerCase() === "public";
-  if (!isPublic) return null;
+  const isPrivate = instanceType?.toLowerCase() === "private";
+  if (!isPublic && !isPrivate) return null;
   if (accommodationActivities.length === 0 && externalTransportActivities.length === 0) return null;
 
   const hasAccom = accommodationActivities.length > 0;
@@ -514,12 +515,14 @@ export default function PublicTourBookingAssignmentPanel({
         <div className="flex items-center gap-3">
           <Icon icon="heroicons:clipboard-document-list" className="size-6 text-stone-600" />
           <h2 className="text-xl font-semibold tracking-tight text-stone-900">
-            Phân bổ Per-booking
+            Phân bổ Dịch Vụ / Vé
           </h2>
         </div>
         <p className="mt-2 text-sm text-stone-500 max-w-[65ch]">
-          Tour public có nhiều order độc lập — phòng khách sạn và vé phương tiện phải gán riêng cho từng booking.
-          (Xe đi chung không hiển thị ở đây vì đã gán chung ở trên).
+          {isPublic 
+            ? "Tour public có nhiều order độc lập — phòng khách sạn và vé phương tiện phải gán riêng cho từng booking."
+            : "Phân bổ phòng khách sạn và vé phương tiện tương ứng cho khách hàng trong tour riêng tư."}
+          {" (Xe đi chung không hiển thị ở đây vì đã gán chung ở trên)."}
         </p>
       </div>
 

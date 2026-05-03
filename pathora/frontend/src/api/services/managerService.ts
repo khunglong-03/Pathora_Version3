@@ -138,14 +138,43 @@ export const managerService = {
   },
 
   // ── Visa Applications ──
+  getVisaApplication: async (id: string) => {
+    const response = await api.get<ServiceResponse<any>>(
+      `/api/visa-application/${id}`
+    );
+    return extractResult(response.data);
+  },
+
   updateVisaStatus: async (data: {
     visaApplicationId: string;
     status: number;
     refusalReason?: string;
+    visaFileUrl?: string;
+    visaNumber?: string;
+    entryType?: number;
+    issuedAt?: string;
+    expiresAt?: string;
+    category?: number;
+    format?: number;
+    maxStayDays?: number;
+    issuingAuthority?: string;
   }) => {
     const response = await api.put<ServiceResponse<void>>(
       "/api/visa-application/status",
-      data
+      {
+        id: data.visaApplicationId,
+        status: data.status,
+        refusalReason: data.refusalReason,
+        visaFileUrl: data.visaFileUrl,
+        visaNumber: data.visaNumber,
+        entryType: data.entryType,
+        issuedAt: data.issuedAt,
+        expiresAt: data.expiresAt,
+        category: data.category,
+        format: data.format,
+        maxStayDays: data.maxStayDays,
+        issuingAuthority: data.issuingAuthority
+      }
     );
     return extractResult(response.data);
   },

@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -40,7 +41,7 @@ public sealed class CreateVisaApplicationCommandHandler(
             request.PassportId,
             request.DestinationCountry,
             "system",
-            request.MinReturnDate,
+            request.MinReturnDate?.ToUniversalTime(),
             request.VisaFileUrl
         );
 
@@ -55,7 +56,18 @@ public sealed record UpdateVisaApplicationStatusCommand(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("status")] VisaStatus Status,
     [property: JsonPropertyName("refusalReason")] string? RefusalReason = null,
-    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null,
+    [property: JsonPropertyName("visaNumber")] string? VisaNumber = null,
+    [property: JsonPropertyName("entryType")] VisaEntryType? EntryType = null,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset? IssuedAt = null,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset? ExpiresAt = null,
+    [property: JsonPropertyName("category")] VisaCategory? Category = null,
+    [property: JsonPropertyName("format")] VisaFormat? Format = null,
+    [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
+    [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null) : ICommand<ErrorOr<Success>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
 
 public sealed class UpdateVisaApplicationStatusCommandValidator : AbstractValidator<UpdateVisaApplicationStatusCommand>
 {
@@ -63,6 +75,12 @@ public sealed class UpdateVisaApplicationStatusCommandValidator : AbstractValida
     {
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Status).IsInEnum();
+        RuleFor(x => x.RefusalReason)
+            .NotEmpty()
+            .WithMessage("Rejection reason is required.")
+            .MinimumLength(5)
+            .WithMessage("Rejection reason must be at least 5 characters.")
+            .When(x => x.Status == VisaStatus.Rejected);
     }
 }
 
@@ -87,14 +105,14 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
         if (tourInstance == null)
             return Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
 
-        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin))
+        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin) && !currentUser.IsInRole(Application.Common.Constant.RoleConstants.Manager))
         {
-            if (currentUser.IsInRole(Application.Common.Constant.RoleConstants.TourOperator) && !currentUser.IsInRole(Application.Common.Constant.RoleConstants.Manager))
+            if (currentUser.IsInRole(Application.Common.Constant.RoleConstants.TourOperator))
                 return Error.Forbidden("Visa.Forbidden", "Tour Operator không được duyệt/từ chối visa.");
 
             var isManager = tourInstance.Managers.Any(m => m.UserId == currentUserId);
             if (!isManager)
-                return Error.Forbidden("Visa.Forbidden", "Chỉ manager của tour mới được phép thao tác.");
+                return Error.Forbidden("Visa.Forbidden", "Bạn không có quyền thao tác trên tour này.");
         }
 
         if (request.Status == VisaStatus.Rejected && tourInstance.Status != TourInstanceStatus.PendingVisa)
@@ -111,6 +129,42 @@ public sealed class UpdateVisaApplicationStatusCommandHandler(
             // Note: Emit Event có thể add trực tiếp vào Domain Entity (Domain Event) 
             // hoặc gửi qua MediatR. Hiện tại Entity có CreateDomainEvent() không? 
             // Giả sử Update() trên entity sẽ xử lý logic domain event.
+            
+            if (entity.IsSystemAssisted)
+            {
+                if (entity.Visa != null)
+                {
+                    entity.Visa.Update(
+                        performedBy: currentUserId.Value.ToString(),
+                        visaNumber: request.VisaNumber ?? entity.Visa.VisaNumber,
+                        entryType: request.EntryType ?? entity.Visa.EntryType,
+                        issuedAt: request.IssuedAt?.ToUniversalTime() ?? entity.Visa.IssuedAt,
+                        expiresAt: request.ExpiresAt?.ToUniversalTime() ?? entity.Visa.ExpiresAt,
+                        destinationCountry: entity.DestinationCountry,
+                        category: request.Category ?? entity.Visa.Category,
+                        format: request.Format ?? entity.Visa.Format,
+                        maxStayDays: request.MaxStayDays ?? entity.Visa.MaxStayDays,
+                        issuingAuthority: request.IssuingAuthority ?? entity.Visa.IssuingAuthority,
+                        fileUrl: request.VisaFileUrl ?? entity.Visa.FileUrl);
+                }
+                else
+                {
+                    entity.Visa = VisaEntity.Create(
+                        visaApplicationId: entity.Id,
+                        performedBy: currentUserId.Value.ToString(),
+                        visaNumber: request.VisaNumber,
+                        entryType: request.EntryType,
+                        issuedAt: request.IssuedAt?.ToUniversalTime(),
+                        expiresAt: request.ExpiresAt?.ToUniversalTime(),
+                        destinationCountry: entity.DestinationCountry,
+                        category: request.Category,
+                        format: request.Format,
+                        maxStayDays: request.MaxStayDays,
+                        issuingAuthority: request.IssuingAuthority,
+                        fileUrl: request.VisaFileUrl,
+                        status: VisaStatus.Approved);
+                }
+            }
         }
         else if (request.Status == VisaStatus.Rejected)
         {
@@ -151,7 +205,6 @@ public sealed record QuoteVisaSupportFeeCommand(
 
 public sealed class QuoteVisaSupportFeeCommandHandler(
     IVisaApplicationRepository visaRepository,
-    IBookingRepository bookingRepository,
     IPaymentTransactionRepository transactionRepository,
     ICurrentUser currentUser,
     Domain.UnitOfWork.IUnitOfWork unitOfWork)
@@ -171,11 +224,11 @@ public sealed class QuoteVisaSupportFeeCommandHandler(
         if (tourInstance == null)
             return Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
 
-        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin))
+        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin) && !currentUser.IsInRole(Application.Common.Constant.RoleConstants.Manager))
         {
             var isManager = tourInstance.Managers.Any(m => m.UserId == currentUserId);
             if (!isManager)
-                return Error.Forbidden("Visa.Forbidden", "Chỉ manager của tour mới được phép báo giá phí visa.");
+                return Error.Forbidden("Visa.Forbidden", "Bạn không có quyền thao tác trên tour này.");
         }
 
         if (!visaApp.IsSystemAssisted)
@@ -187,7 +240,7 @@ public sealed class QuoteVisaSupportFeeCommandHandler(
             return visaApp.ServiceFeeTransactionId.Value;
         }
 
-        var booking = await bookingRepository.GetByIdAsync(visaApp.BookingParticipant!.BookingId);
+        var booking = visaApp.BookingParticipant!.Booking;
         if (booking == null)
             return Error.NotFound("Booking.NotFound", "Booking không tồn tại.");
 
@@ -206,15 +259,146 @@ public sealed class QuoteVisaSupportFeeCommandHandler(
         await transactionRepository.AddAsync(transaction, cancellationToken);
 
         // 2. Add VisaServiceFeeTotal vào booking (nhưng không đổi status)
+        // booking & visaApp đã tracked qua GetByIdWithGraphAsync — EF tự detect mutation,
+        // không gọi DbSet.Update() để tránh xung đột re-attach graph.
         booking.AddVisaServiceFee(request.Fee, performedBy);
-        await bookingRepository.UpdateWithoutSaveAsync(booking);
 
         // 3. Set service fee reference cho application
         visaApp.QuoteServiceFee(request.Fee, transaction.Id, performedBy);
-        visaRepository.Update(visaApp);
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         return transaction.Id;
+    }
+}
+
+// ─── Register Visa Details (Manager) ─────────────────────────────────────────
+// Manager đăng ký thông tin visa sau khi customer đã thanh toán phí dịch vụ.
+// Gate: visaApp.IsSystemAssisted && visaApp.ServiceFeePaidAt != null.
+// Không đổi status visaApp (vẫn Processing); VisaEntity child status = Pending,
+// sau đó manager approve riêng qua UpdateVisaApplicationStatusCommand.
+
+public sealed record RegisterVisaDetailsCommand(
+    [property: JsonPropertyName("visaApplicationId")] Guid VisaApplicationId,
+    [property: JsonPropertyName("visaNumber")] string VisaNumber,
+    [property: JsonPropertyName("issuedAt")] DateTimeOffset IssuedAt,
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
+    [property: JsonPropertyName("category")] VisaCategory Category,
+    [property: JsonPropertyName("format")] VisaFormat Format,
+    [property: JsonPropertyName("entryType")] VisaEntryType? EntryType = null,
+    [property: JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
+    [property: JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
+    [property: JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null)
+    : ICommand<ErrorOr<Guid>>, ICacheInvalidator
+{
+    public IReadOnlyList<string> CacheKeysToInvalidate => ["Admin", "manager"];
+}
+
+public sealed class RegisterVisaDetailsCommandValidator : AbstractValidator<RegisterVisaDetailsCommand>
+{
+    public RegisterVisaDetailsCommandValidator()
+    {
+        RuleFor(x => x.VisaApplicationId).NotEmpty();
+        RuleFor(x => x.VisaNumber).NotEmpty().MaximumLength(64);
+        RuleFor(x => x.IssuedAt).NotEmpty();
+        RuleFor(x => x.ExpiresAt).NotEmpty()
+            .GreaterThan(x => x.IssuedAt)
+            .WithMessage("ExpiresAt phải lớn hơn IssuedAt.");
+        RuleFor(x => x.Category).IsInEnum();
+        RuleFor(x => x.Format).IsInEnum();
+        RuleFor(x => x.EntryType).IsInEnum().When(x => x.EntryType.HasValue);
+        RuleFor(x => x.MaxStayDays).GreaterThan(0).When(x => x.MaxStayDays.HasValue);
+        RuleFor(x => x.IssuingAuthority).MaximumLength(200);
+    }
+}
+
+public sealed class RegisterVisaDetailsCommandHandler(
+    IVisaApplicationRepository visaRepository,
+    ICurrentUser currentUser,
+    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    : IRequestHandler<RegisterVisaDetailsCommand, ErrorOr<Guid>>
+{
+    public async Task<ErrorOr<Guid>> Handle(RegisterVisaDetailsCommand request, CancellationToken cancellationToken)
+    {
+        var currentUserId = currentUser.Id;
+        if (currentUserId == null)
+            return Error.Unauthorized("User.Unauthorized", "User is not authenticated.");
+
+        var visaApp = await visaRepository.GetByIdWithGraphAsync(request.VisaApplicationId, cancellationToken);
+        if (visaApp == null)
+            return Error.NotFound("Visa.NotFound", "Đơn visa không tồn tại.");
+
+        var tourInstance = visaApp.BookingParticipant?.Booking?.TourInstance;
+        if (tourInstance == null)
+            return Error.NotFound("TourInstance.NotFound", "TourInstance không tồn tại.");
+
+        if (!currentUser.IsInRole(Application.Common.Constant.RoleConstants.Admin) && !currentUser.IsInRole(Application.Common.Constant.RoleConstants.Manager))
+        {
+            var isManager = tourInstance.Managers.Any(m => m.UserId == currentUserId);
+            if (!isManager)
+                return Error.Forbidden("Visa.Forbidden", "Bạn không có quyền thao tác trên tour này.");
+        }
+
+        if (!visaApp.IsSystemAssisted)
+            return Error.Validation("Visa.NotSystemAssisted", "Chỉ áp dụng đăng ký thông tin visa cho đơn có yêu cầu hỗ trợ từ hệ thống.");
+
+        if (!visaApp.ServiceFeePaidAt.HasValue)
+            return Error.Validation("Visa.ServiceFeeNotPaid", "Khách hàng chưa thanh toán phí dịch vụ visa.");
+
+        if (visaApp.Status == VisaStatus.Approved || visaApp.Status == VisaStatus.Rejected)
+            return Error.Conflict("Visa.AlreadyFinalized", "Đơn visa đã ở trạng thái cuối, không thể chỉnh sửa thông tin.");
+
+        var passport = visaApp.Passport;
+        if (passport == null || !passport.ExpiresAt.HasValue || passport.ExpiresAt.Value < tourInstance.EndDate)
+            return Error.Validation("Visa.InvalidPassport", "Hộ chiếu chưa có hoặc đã hết hạn trước khi tour kết thúc.");
+
+        if (request.ExpiresAt < tourInstance.EndDate)
+            return Error.Validation("Visa.ExpiresBeforeTourEnd", "Visa hết hạn trước khi tour kết thúc.");
+
+        var performedBy = currentUserId.Value.ToString();
+
+        if (visaApp.Visa != null)
+        {
+            visaApp.Visa.Update(
+                performedBy: performedBy,
+                visaNumber: request.VisaNumber,
+                entryType: request.EntryType ?? visaApp.Visa.EntryType,
+                issuedAt: request.IssuedAt.ToUniversalTime(),
+                expiresAt: request.ExpiresAt.ToUniversalTime(),
+                destinationCountry: visaApp.DestinationCountry,
+                category: request.Category,
+                format: request.Format,
+                maxStayDays: request.MaxStayDays,
+                issuingAuthority: request.IssuingAuthority,
+                fileUrl: request.VisaFileUrl ?? visaApp.Visa.FileUrl,
+                status: visaApp.Visa.Status);
+        }
+        else
+        {
+            visaApp.Visa = VisaEntity.Create(
+                visaApplicationId: visaApp.Id,
+                performedBy: performedBy,
+                visaNumber: request.VisaNumber,
+                entryType: request.EntryType,
+                issuedAt: request.IssuedAt.ToUniversalTime(),
+                expiresAt: request.ExpiresAt.ToUniversalTime(),
+                destinationCountry: visaApp.DestinationCountry,
+                category: request.Category,
+                format: request.Format,
+                maxStayDays: request.MaxStayDays,
+                issuingAuthority: request.IssuingAuthority,
+                fileUrl: request.VisaFileUrl,
+                status: VisaStatus.Pending);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.VisaFileUrl))
+            visaApp.VisaFileUrl = request.VisaFileUrl;
+
+        visaApp.LastModifiedBy = performedBy;
+        visaApp.LastModifiedOnUtc = DateTimeOffset.UtcNow;
+
+        await unitOfWork.SaveChangeAsync(cancellationToken);
+
+        return visaApp.Visa!.Id;
     }
 }

@@ -31,6 +31,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .Include(b => b.Deposits)
             .Include(b => b.Payments)
             .Include(b => b.PaymentTransactions)
+            .Include(b => b.BookingParticipants)
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }

@@ -37,9 +37,9 @@ const MagneticButton = ({ children, href }: { children: React.ReactNode; href: s
         href={href}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="mt-8 inline-flex items-center gap-2 bg-[#fa8b02] text-white font-semibold text-sm px-8 py-4 rounded-xl hover:bg-[#fa8b02]/90 transition-colors relative overflow-hidden"
+        className="mt-8 inline-h-stack items-center gap-2 bg-[#fa8b02] text-white font-semibold text-sm px-8 py-4 rounded-xl hover:bg-[#fa8b02]/90 transition-colors relative overflow-hidden"
       >
-        <span className="relative z-10 flex items-center gap-2">
+        <span className="relative z-10 h-stack items-center gap-2">
           {children}
         </span>
         {/* Subtle inner glare for liquid feel */}
@@ -52,8 +52,8 @@ const MagneticButton = ({ children, href }: { children: React.ReactNode; href: s
 const WhoWeAreSection = () => {
   const { t } = useTranslation();
   return (
-    <section className="max-w-[1400px] mx-auto px-6 lg:px-12 py-24">
-      <div className="flex flex-col lg:flex-row gap-20 items-center">
+    <section className="max-w-7xl mx-auto px-4 md:px-4 md:px-6 lg:px-8 lg:px-8 py-8 md:py-10">
+      <div className="v-stack lg:h-stack gap-20 items-center">
         {/* Left: Image with Liquid Glass Refraction */}
         <div className="relative w-full lg:w-[50%] flex-shrink-0">
           <div className="relative rounded-[2.5rem] overflow-hidden bg-zinc-100 dark:bg-zinc-800/50 p-2 border border-zinc-200/50 dark:border-white/5 shadow-2xl shadow-zinc-200/20 dark:shadow-black/40">
@@ -87,14 +87,14 @@ const WhoWeAreSection = () => {
         </div>
 
         {/* Right: Text */}
-        <div className="flex-1 max-w-xl">
+        <div className="spacer max-w-xl">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 80, damping: 20 }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 flex items-center gap-3">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#fa8b02] mb-4 h-stack items-center gap-3">
               <span className="w-8 h-px bg-[#fa8b02]/30" />
               {t("landing.aboutUs.whoWeAre")}
             </p>

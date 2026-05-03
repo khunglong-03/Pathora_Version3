@@ -63,6 +63,7 @@ export function TourStatusBadge({ status }: { status: string }) {
     pendingadjustment: { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500", label: "Cần điều chỉnh" },
     pendingmanagerreview: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500", label: "Chờ Quản lý duyệt" },
     pendingcustomerapproval: { bg: "bg-indigo-100", text: "text-indigo-700", dot: "bg-indigo-500", label: "Chờ Khách chốt" },
+    pendingvisa: { bg: "bg-teal-100", text: "text-teal-700", dot: "bg-teal-500", label: "Chờ xin Visa" },
     rejected: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500", label: "Rejected" },
     draft: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400", label: "Bản nháp" },
   };
@@ -104,6 +105,7 @@ export function VisaStatusBadge({ status }: { status: string }) {
     pending: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200/50", dot: "bg-amber-500", label: "Pending" },
     under_review: { bg: "bg-sky-50/80", text: "text-sky-700", border: "border-sky-200/50", dot: "bg-sky-500", label: "Under Review" },
     rejected: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200/50", dot: "bg-rose-500", label: "Rejected" },
+    awaiting_payment: { bg: "bg-purple-50/80", text: "text-purple-700", border: "border-purple-200/50", dot: "bg-purple-500", label: "Awaiting Payment" },
   };
   const config = map[lower] ?? map.pending;
   const displayLabel = lower === "under_review"

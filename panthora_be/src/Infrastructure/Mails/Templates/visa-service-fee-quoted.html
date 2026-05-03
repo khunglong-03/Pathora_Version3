@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visa Service Fee Quote</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #fdf4ff;
+        color: #1f2937;
+      }
+      .card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+      .head {
+        background: linear-gradient(135deg, #a855f7, #9333ea);
+        color: #ffffff;
+        padding: 24px;
+      }
+      .body {
+        padding: 24px;
+      }
+      .meta {
+        background: #fdf4ff;
+        border: 1px solid #f3e8ff;
+        border-radius: 10px;
+        padding: 16px;
+        margin: 16px 0;
+      }
+      .meta p {
+        margin: 8px 0;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .meta p span {
+        font-weight: 600;
+        color: #111827;
+      }
+      .total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed #d8b4fe;
+        font-size: 16px !important;
+        color: #7e22ce !important;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        background: #0f172a;
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .foot {
+        padding: 16px 24px 24px;
+        color: #6b7280;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="head">
+        <h2 style="margin: 0">Visa Service Fee Details</h2>
+      </div>
+      <div class="body">
+        <p style="margin-top: 0">Hi {{ customername }},</p>
+        <p>The system has assessed your request for visa assistance for passenger <strong>{{ participantname }}</strong> to <strong>{{ destinationcountry }}</strong>.</p>
+        <p>Please review and pay the quoted service fee to proceed with the visa processing:</p>
+        <div class="meta">
+          <p>Service Fee: <span>{{ fee }} VND</span></p>
+          <p class="total">Total to pay: <span>{{ fee }} VND</span></p>
+        </div>
+        <p>You can complete the payment in your booking details page.</p>
+        <a class="cta" href="{{ paymentlink }}">Pay Visa Fee</a>
+      </div>
+      <div class="foot">Pathora automated notification.</div>
+    </div>
+  </body>
+</html>

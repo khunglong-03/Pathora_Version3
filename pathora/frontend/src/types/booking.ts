@@ -56,6 +56,7 @@ export type TransportTypeString = "Bus" | "Train" | "Flight" | "Boat" | "Car" | 
 
 // Sub-DTOs
 export interface PassportDto {
+  id?: string;
   passportNumber: string | null;
   issuedDate: string | null;
   expiryDate: string | null;
@@ -273,7 +274,7 @@ export enum VisaFormat {
 }
 
 export interface VisaRequirementParticipant {
-  id: string;
+  participantId: string;
   fullName: string;
   requiresVisa: boolean;
   missingDateOfBirth: boolean;
@@ -297,6 +298,10 @@ export interface VisaApplicationSummaryDto {
   format: number | null;
   maxStayDays: number | null;
   issuingAuthority: string | null;
+  visaNumber: string | null;
+  entryType: number | null;
+  issuedAt: string | null;
+  expiresAt: string | null;
 }
 
 export interface VisaRequirementResponse {
@@ -318,6 +323,7 @@ export interface CustomerPassportPayload {
 
 export interface SubmitVisaApplicationPayload {
   bookingParticipantId: string;
+  passportId: string;
   destinationCountry: string;
   minReturnDate?: string;
   visaFileUrl?: string;
@@ -325,6 +331,10 @@ export interface SubmitVisaApplicationPayload {
   format?: number;
   maxStayDays?: number;
   issuingAuthority?: string;
+  visaNumber?: string;
+  entryType?: number;
+  issuedAt?: string;
+  expiresAt?: string;
 }
 
 export interface UpdateVisaApplicationPayload {
@@ -336,6 +346,10 @@ export interface UpdateVisaApplicationPayload {
   format?: number;
   maxStayDays?: number;
   issuingAuthority?: string;
+  visaNumber?: string;
+  entryType?: number;
+  issuedAt?: string;
+  expiresAt?: string;
 }
 
 export interface RequestVisaSupportResponse {

@@ -15,21 +15,19 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
 
     public async Task<AdminOverviewReport> GetOverview(CancellationToken cancellationToken = default)
     {
-        var statsTask = BuildDashboardStats(cancellationToken);
-        var customersTask = BuildCustomers(cancellationToken);
-        var insurancesTask = BuildInsurances(cancellationToken);
-        var visaApplicationsTask = BuildVisaApplications(cancellationToken);
-
-        await Task.WhenAll(statsTask, customersTask, insurancesTask, visaApplicationsTask);
+        var stats = await BuildDashboardStats(cancellationToken);
+        var customers = await BuildCustomers(cancellationToken);
+        var insurances = await BuildInsurances(cancellationToken);
+        var visaApplications = await BuildVisaApplications(cancellationToken);
 
         var payments = new List<AdminPaymentReport>();
 
         return new AdminOverviewReport(
-            statsTask.Result, 
-            customersTask.Result, 
+            stats, 
+            customers, 
             payments, 
-            insurancesTask.Result, 
-            visaApplicationsTask.Result);
+            insurances, 
+            visaApplications);
     }
 
     private async Task<AdminDashboardStatsReport> BuildDashboardStats(CancellationToken cancellationToken)
@@ -273,7 +271,10 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                 x.CreatedOnUtc,
                 x.LastModifiedOnUtc,
                 x.BookingParticipant != null ? (Guid?)x.BookingParticipant.BookingId : null,
-                x.Passport != null ? x.Passport.PassportNumber : "-"))
+                x.Passport != null ? x.Passport.PassportNumber : "-",
+                x.BookingParticipant != null && x.BookingParticipant.Booking != null && x.BookingParticipant.Booking.TourInstance != null
+                    ? (TourType?)x.BookingParticipant.Booking.TourInstance.InstanceType
+                    : null))
             .ToListAsync(cancellationToken);
 
         return visaRows
@@ -283,7 +284,7 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
                 row.CustomerName,
                 row.PassportNumber,
                 row.Destination,
-                "Tourist",
+                row.TourType.HasValue ? (row.TourType.Value == TourType.Private ? "Private Tour" : "Public Tour") : "Unknown",
                 MapVisaStatus(row.Status),
                 FormatDate(row.CreatedOnUtc),
                 row.ReviewedAt.HasValue
@@ -394,5 +395,6 @@ public class AdminOverviewRepository(AppDbContext context) : IAdminOverviewRepos
         DateTimeOffset CreatedOnUtc,
         DateTimeOffset? ReviewedAt,
         Guid? BookingId,
-        string PassportNumber);
+        string PassportNumber,
+        TourType? TourType);
 }

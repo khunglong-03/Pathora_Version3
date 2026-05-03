@@ -298,9 +298,9 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
     (r) => r.name === "Admin" || r.name === "TourOperator",
   );
 
-  // Public tour per-booking assignment state
-  const [publicTourBookings, setPublicTourBookings] = useState<AdminBookingListResponse[]>([]);
-  const [publicTourBookingsLoading, setPublicTourBookingsLoading] = useState(false);
+  // Bookings for per-booking assignment panel
+  const [instanceBookings, setInstanceBookings] = useState<AdminBookingListResponse[]>([]);
+  const [instanceBookingsLoading, setInstanceBookingsLoading] = useState(false);
 
   const hasAssignedOperator = useMemo(() => {
     if (data?.instanceType?.toLowerCase() === "private") return true;
@@ -457,22 +457,22 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
     fetchUsers();
   }, [fetchUsers]);
 
-  // Load bookings for public tour per-booking assignment panel
+  // Load bookings for per-booking assignment panel
   useEffect(() => {
-    if (!data?.id || data.instanceType?.toLowerCase() !== "public") {
-      setPublicTourBookings([]);
+    if (!data?.id || !["public", "private"].includes(data.instanceType?.toLowerCase() || "")) {
+      setInstanceBookings([]);
       return;
     }
     let active = true;
-    setPublicTourBookingsLoading(true);
+    setInstanceBookingsLoading(true);
     void (async () => {
       try {
         const bookings = await bookingService.getBookingsByTourInstance(data.id);
-        if (active) setPublicTourBookings(bookings.filter((b) => b.status !== "Cancelled"));
+        if (active) setInstanceBookings(bookings.filter((b) => b.status !== "Cancelled"));
       } catch {
-        if (active) setPublicTourBookings([]);
+        if (active) setInstanceBookings([]);
       } finally {
-        if (active) setPublicTourBookingsLoading(false);
+        if (active) setInstanceBookingsLoading(false);
       }
     })();
     return () => { active = false; };
@@ -1927,8 +1927,8 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
               )}
             </section>
 
-            {/* ── Public tour per-booking assignment panel ── */}
-            {data.instanceType?.toLowerCase() === "public" && canReassign && (() => {
+            {/* ── Per-booking assignment panel ── */}
+            {["public", "private"].includes(data.instanceType?.toLowerCase() || "") && canReassign && (() => {
               const allActivities = (data.days ?? []).flatMap((d) => d.activities ?? []);
 
               // Accommodation activities assigned to a hotel supplier
@@ -1975,8 +1975,8 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                 <PublicTourBookingAssignmentPanel
                   instanceId={data.id}
                   instanceType={data.instanceType ?? "public"}
-                  bookings={publicTourBookings}
-                  bookingsLoading={publicTourBookingsLoading}
+                  bookings={instanceBookings}
+                  bookingsLoading={instanceBookingsLoading}
                   accommodationActivities={accomActivities}
                   externalTransportActivities={externalActivities}
                   onSaveTicket={async (activityId, entry) => {

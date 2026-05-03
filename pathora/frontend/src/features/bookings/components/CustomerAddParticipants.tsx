@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { bookingService } from "@/api/services/bookingService";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { fileService } from "@/api/services/fileService";
 
 type VisaMode = "has_visa" | "needs_support" | "";
 
@@ -67,6 +68,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
   const [tourReturnDate, setTourReturnDate] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchData();
@@ -102,7 +104,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
             ? "has_visa"
             : "";
         return {
-          id: p.id || `existing-${Date.now()}-${existingSeq++}`,
+          id: p.participantId || p.id || `existing-${Date.now()}-${existingSeq++}`,
           fullName: p.fullName,
           dob: p.dateOfBirth ? p.dateOfBirth.split("T")[0] : "",
           gender: typeof p.gender === "number" ? p.gender : 0,
@@ -169,6 +171,58 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     setParticipants(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
 
+  const getAgeFromDob = (dob: string): number | null => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
+  /** Returns { minAge, maxAge } for participant type */
+  const getAgeRange = (type: string): { minAge: number; maxAge: number | null } => {
+    if (type === "Infant") return { minAge: 0, maxAge: 1 };
+    if (type === "Child") return { minAge: 2, maxAge: 11 };
+    return { minAge: 12, maxAge: null }; // Adult
+  };
+
+  /** Returns { min, max } date strings (YYYY-MM-DD) for the date input */
+  const getDobDateRange = (type: string): { min: string; max: string } => {
+    const today = new Date();
+    const { minAge, maxAge } = getAgeRange(type);
+    // max date = today - minAge years (youngest allowed)
+    const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+    // min date = today - (maxAge+1) years + 1 day (oldest allowed)
+    const minDate = maxAge !== null
+      ? new Date(today.getFullYear() - (maxAge + 1), today.getMonth(), today.getDate() + 1)
+      : new Date(1900, 0, 1);
+    return {
+      min: minDate.toISOString().split("T")[0],
+      max: maxDate.toISOString().split("T")[0],
+    };
+  };
+
+  const getAgeLabel = (type: string): string => {
+    const { minAge, maxAge } = getAgeRange(type);
+    if (maxAge === null) return `từ ${minAge} tuổi trở lên`;
+    return `từ ${minAge} đến ${maxAge} tuổi`;
+  };
+
+  const isDobValidForType = (dob: string, type: string): boolean => {
+    const age = getAgeFromDob(dob);
+    if (age === null) return true; // no DOB yet, skip check
+    const { minAge, maxAge } = getAgeRange(type);
+    if (age < minAge) return false;
+    if (maxAge !== null && age > maxAge) return false;
+    return true;
+  };
+
+  const handleDobChange = (id: string, dob: string) => {
+    updateParticipant(id, "dob", dob);
+  };
+
   const addParticipant = () => {
     if (participants.length >= maxParticipants && maxParticipants > 0) {
       toast.error(`You can only add up to ${maxParticipants} guests for this booking.`);
@@ -198,6 +252,20 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     setParticipants(prev => prev.filter(p => p.id !== id));
   };
 
+  const handleFileUpload = async (participantId: string, field: "passportFileUrl" | "visaFileUrl", file: File) => {
+    setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: true }));
+    try {
+      const res = await fileService.uploadFile(file);
+      updateParticipant(participantId, field, res.url);
+      toast.success("Tải ảnh lên thành công");
+    } catch (err) {
+      console.error(err);
+      toast.error("Tải ảnh lên thất bại");
+    } finally {
+      setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: false }));
+    }
+  };
+
   const isVisaActionable = (p: Participant): boolean => {
     if (!isVisaRequired) return false;
     return p.isNew === true || !p.documentUploaded || !p.hasVisaApp;
@@ -205,17 +273,24 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
 
   const validateRow = (p: Participant): string | null => {
     if (!p.fullName.trim()) return `Hành khách thiếu họ tên.`;
+    if (!p.dob) return `${p.fullName || "Hành khách"}: vui lòng nhập ngày sinh.`;
+    if (!isDobValidForType(p.dob, p.participantType)) {
+      return `${p.fullName}: ngày sinh không khớp với loại "${p.participantType}" (${getAgeLabel(p.participantType)}).`;
+    }
     if (!isVisaActionable(p)) return null;
     if (!p.visaMode) return `${p.fullName || "Hành khách"}: vui lòng chọn tình trạng visa.`;
     if (p.visaMode) {
-      if (!p.passportNumber.trim()) return `${p.fullName}: thiếu số passport.`;
-      if (!p.passportNationality.trim()) return `${p.fullName}: thiếu quốc tịch passport.`;
-      if (!p.passportIssuedAt) return `${p.fullName}: thiếu ngày cấp passport.`;
-      if (!p.passportExpiresAt) return `${p.fullName}: thiếu ngày hết hạn passport.`;
-      if (tourReturnDate && new Date(p.passportExpiresAt) < new Date(tourReturnDate)) {
-        return `${p.fullName}: passport phải còn hạn sau ngày kết thúc tour (${tourReturnDate}).`;
+      if (p.visaMode === "has_visa") {
+        if (!p.passportNumber.trim()) return `${p.fullName}: thiếu số passport.`;
+        if (!p.passportNationality.trim()) return `${p.fullName}: thiếu quốc tịch passport.`;
+        if (!p.passportIssuedAt) return `${p.fullName}: thiếu ngày cấp passport.`;
+        if (!p.passportExpiresAt) return `${p.fullName}: thiếu ngày hết hạn passport.`;
+        if (tourReturnDate && new Date(p.passportExpiresAt) < new Date(tourReturnDate)) {
+          return `${p.fullName}: passport phải còn hạn sau ngày kết thúc tour (${tourReturnDate}).`;
+        }
+      } else if (p.visaMode === "needs_support") {
+        if (!p.passportFileUrl.trim()) return `${p.fullName}: thiếu file ảnh passport. Để hệ thống hỗ trợ, bạn cần upload ảnh mặt passport.`;
       }
-      if (!p.passportFileUrl.trim()) return `${p.fullName}: thiếu file passport.`;
     }
     if (p.visaMode === "has_visa") {
       if (!p.destinationCountry.trim()) return `${p.fullName}: thiếu quốc gia đến.`;
@@ -269,8 +344,8 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
         if (!isVisaRequired || !participantId) continue;
 
         if (p.visaMode) {
-          await bookingService.upsertParticipantPassport(bookingId, participantId, {
-            passportNumber: p.passportNumber,
+          const passportId = await bookingService.upsertParticipantPassport(bookingId, participantId, {
+            passportNumber: p.visaMode === "needs_support" && !p.passportNumber.trim() ? "PENDING" : p.passportNumber,
             nationality: p.passportNationality,
             issuedAt: p.passportIssuedAt ? new Date(p.passportIssuedAt).toISOString() : null,
             expiresAt: p.passportExpiresAt ? new Date(p.passportExpiresAt).toISOString() : null,
@@ -281,6 +356,7 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
             if (!p.hasVisaApp) {
               await bookingService.submitVisaApplication(bookingId, {
                 bookingParticipantId: participantId,
+                passportId: passportId,
                 destinationCountry: p.destinationCountry,
                 minReturnDate: p.minReturnDate ? new Date(p.minReturnDate).toISOString() : undefined,
                 visaFileUrl: p.visaFileUrl || undefined,
@@ -396,14 +472,23 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Date of Birth</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Ngày sinh <span className="font-normal text-slate-400">({getAgeLabel(p.participantType)})</span></label>
                     <input
                       type="date"
                       value={p.dob}
-                      
-                      onChange={(e) => updateParticipant(p.id, "dob", e.target.value)}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium "
+                      min={getDobDateRange(p.participantType).min}
+                      max={getDobDateRange(p.participantType).max}
+                      onChange={(e) => handleDobChange(p.id, e.target.value)}
+                      className={`w-full px-5 py-4 rounded-2xl border bg-slate-50 focus:bg-white focus:ring-1 transition-all font-medium ${p.dob && !isDobValidForType(p.dob, p.participantType) ? "border-red-400 focus:border-red-500 focus:ring-red-300" : "border-slate-200 focus:border-slate-900 focus:ring-slate-900"}`}
                     />
+                    {p.dob && (() => {
+                      const age = getAgeFromDob(p.dob);
+                      const valid = isDobValidForType(p.dob, p.participantType);
+                      if (age === null) return null;
+                      return valid
+                        ? <span className="text-xs text-emerald-600 mt-1 block">✔ {age} tuổi — hợp lệ</span>
+                        : <span className="text-xs text-red-500 mt-1 block">✖ {age} tuổi — không khớp với {p.participantType} ({getAgeLabel(p.participantType)})</span>;
+                    })()}
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Gender</label>
@@ -434,14 +519,14 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                     <label className="block text-sm font-bold text-slate-700 mb-2">Participant Type</label>
                     <select
                       value={p.participantType}
-                      
-                      onChange={(e) => updateParticipant(p.id, "participantType", e.target.value)}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium "
+                      disabled
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed transition-all font-medium rounded-2xl"
                     >
-                      <option value="Adult">Adult</option>
-                      <option value="Child">Child</option>
-                      <option value="Infant">Infant</option>
+                      <option value="Adult">Adult (Người lớn)</option>
+                      <option value="Child">Child (Trẻ em)</option>
+                      <option value="Infant">Infant (Em bé)</option>
                     </select>
+                    <span className="text-xs text-slate-400 mt-1 block">Tự động theo ngày sinh</span>
                   </div>
                 </div>
 
@@ -490,56 +575,79 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                       <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 mt-4 flex flex-col gap-4">
                         <p className="text-sm font-bold text-slate-700">Thông tin passport</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Number</label>
-                            <input
-                              type="text"
-                              value={p.passportNumber}
-                              onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
-                              placeholder="C1234567"
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Nationality</label>
-                            <input
-                              type="text"
-                              maxLength={3}
-                              value={p.passportNationality}
-                              onChange={(e) => updateParticipant(p.id, "passportNationality", e.target.value.toUpperCase())}
-                              placeholder="VN"
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-slate-600 mb-1 block">Issued Date</label>
-                            <input
-                              type="date"
-                              value={p.passportIssuedAt}
-                              onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                            />
-                          </div>
-                          <div>
+                          {p.visaMode === "has_visa" && (
+                            <>
+                              <div>
+                                <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Number</label>
+                                <input
+                                  type="text"
+                                  value={p.passportNumber}
+                                  onChange={(e) => updateParticipant(p.id, "passportNumber", e.target.value)}
+                                  placeholder="C1234567"
+                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-slate-600 mb-1 block">Passport Nationality</label>
+                                <input
+                                  type="text"
+                                  maxLength={3}
+                                  value={p.passportNationality}
+                                  onChange={(e) => updateParticipant(p.id, "passportNationality", e.target.value.toUpperCase())}
+                                  placeholder="VN"
+                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-slate-600 mb-1 block">Issued Date</label>
+                                <input
+                                  type="date"
+                                  value={p.passportIssuedAt}
+                                  onChange={(e) => updateParticipant(p.id, "passportIssuedAt", e.target.value)}
+                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-slate-600 mb-1 block">
+                                  Expires Date {tourReturnDate && <span className="font-normal text-slate-400">(sau {tourReturnDate})</span>}
+                                </label>
+                                <input
+                                  type="date"
+                                  value={p.passportExpiresAt}
+                                  onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
+                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                                />
+                              </div>
+                            </>
+                          )}
+                          <div className={p.visaMode === "needs_support" ? "md:col-span-1" : "md:col-span-2"}>
                             <label className="text-xs font-bold text-slate-600 mb-1 block">
-                              Expires Date {tourReturnDate && <span className="font-normal text-slate-400">(sau {tourReturnDate})</span>}
+                              {p.visaMode === "needs_support" ? "Upload ảnh mặt Passport (Bắt buộc)" : "Ảnh Passport (tùy chọn)"}
                             </label>
-                            <input
-                              type="date"
-                              value={p.passportExpiresAt}
-                              onChange={(e) => updateParticipant(p.id, "passportExpiresAt", e.target.value)}
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="text-xs font-bold text-slate-600 mb-1 block">Passport File URL</label>
-                            <input
-                              type="url"
-                              value={p.passportFileUrl}
-                              onChange={(e) => updateParticipant(p.id, "passportFileUrl", e.target.value)}
-                              placeholder="https://..."
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-                            />
+                            {p.passportFileUrl ? (
+                              <div className="flex items-center gap-3 mt-2">
+                                <a href={p.passportFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline text-sm truncate max-w-[200px]">
+                                  Xem ảnh đã tải
+                                </a>
+                                <label className="cursor-pointer px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">
+                                  Đổi ảnh
+                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                    if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                  }} />
+                                </label>
+                              </div>
+                            ) : (
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) handleFileUpload(p.id, "passportFileUrl", e.target.files[0]);
+                                }}
+                                disabled={uploadingFiles[`${p.id}-passportFileUrl`]}
+                                className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl"
+                              />
+                            )}
+                            {uploadingFiles[`${p.id}-passportFileUrl`] && <span className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Spinner size={12} className="animate-spin"/> Đang tải...</span>}
                           </div>
                         </div>
 
@@ -570,15 +678,31 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
                                 />
                               </div>
                               <div className="md:col-span-2">
-                                <label className="text-xs font-bold text-slate-600 mb-1 block">Visa File URL (tùy chọn)</label>
-                                <input
-                                  type="url"
-                                  value={p.visaFileUrl}
-                                  onChange={(e) => updateParticipant(p.id, "visaFileUrl", e.target.value)}
-                                  placeholder="https://..."
-                                  disabled={!p.isNew && p.hasVisaApp}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all "
-                                />
+                                <label className="text-xs font-bold text-slate-600 mb-1 block">Ảnh File Visa (tùy chọn)</label>
+                                {p.visaFileUrl ? (
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <a href={p.visaFileUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline text-sm truncate max-w-[200px]">
+                                      Xem visa đã tải
+                                    </a>
+                                    <label className="cursor-pointer px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors">
+                                      Đổi ảnh
+                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                        if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
+                                      }} />
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) handleFileUpload(p.id, "visaFileUrl", e.target.files[0]);
+                                    }}
+                                    disabled={uploadingFiles[`${p.id}-visaFileUrl`]}
+                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl"
+                                  />
+                                )}
+                                {uploadingFiles[`${p.id}-visaFileUrl`] && <span className="text-xs text-slate-500 mt-2 flex items-center gap-1"><Spinner size={12} className="animate-spin"/> Đang tải...</span>}
                               </div>
                             </div>
                           </div>

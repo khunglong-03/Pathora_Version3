@@ -109,7 +109,7 @@ export function PrivateTourInstanceListPage() {
           1,
           pageSize,
           excludePast,
-          false,
+          undefined,
         );
         if (!active) return;
         if (result) {
@@ -152,7 +152,7 @@ export function PrivateTourInstanceListPage() {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
-    <main id="main-content" className="p-6 space-y-6 max-w-[87.5rem] mx-auto">
+    <main id="main-content" className="py-8 md:py-10 px-4 md:px-6 lg:px-8 space-y-6 max-w-7xl mx-auto">
       {/* ── Page Header ────────────────────────────────── */}
       <motion.div
         variants={itemVariants}
@@ -160,10 +160,10 @@ export function PrivateTourInstanceListPage() {
         animate="show"
         className="space-y-1"
       >
-        <h1 className="text-3xl font-bold tracking-tight text-stone-900">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-slate-900 leading-tight">
           {safeT("tourInstance.privateTitle", "Tour Riêng Tư")}
         </h1>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-slate-500">
           {safeT("tourInstance.privateApprovalDesc", "Quản lý duyệt xe & dịch vụ cho các tour riêng tư")}
         </p>
       </motion.div>
@@ -173,20 +173,20 @@ export function PrivateTourInstanceListPage() {
         variants={itemVariants}
         initial="hidden"
         animate="show"
-        className="bg-white border border-stone-200/50 rounded-2xl p-3 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3"
+        className="bg-white border border-slate-200/50 rounded-[1.5rem] p-3 shadow-sm v-stack md:h-stack items-center justify-between gap-3"
       >
         {/* Search */}
-        <div className="relative flex-1 w-full min-w-[240px]">
+        <div className="relative spacer w-full min-w-[240px]">
           <Icon
             icon="heroicons:magnifying-glass"
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4.5 text-stone-400 pointer-events-none"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4.5 text-slate-400 pointer-events-none"
           />
           <input
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder={safeT("placeholder.searchPrivateTours", "Tìm kiếm tour...")}
-            className="w-full pl-10 pr-10 py-2.5 rounded-xl border-none bg-stone-50/50 text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-200"
+            className="w-full pl-10 pr-10 py-2.5 rounded-xl border-none bg-slate-50/50 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-200"
           />
           <AnimatePresence>
             {searchText && (
@@ -195,7 +195,7 @@ export function PrivateTourInstanceListPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={() => setSearchText("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-stone-200 text-stone-500 hover:bg-stone-300 rounded-full transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 h-stack items-center justify-center bg-slate-200 text-slate-500 hover:bg-slate-300 rounded-full transition-colors"
               >
                 <Icon icon="heroicons:x-mark" className="size-3.5" />
               </motion.button>
@@ -204,18 +204,16 @@ export function PrivateTourInstanceListPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-3">
-          <div className="relative flex-1 md:flex-none min-w-[130px]">
+        <div className="h-stack items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-3">
+          <div className="relative spacer md:flex-none min-w-[130px]">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full appearance-none px-3.5 py-2.5 pl-9 rounded-xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all cursor-pointer"
+              className="w-full appearance-none px-3.5 py-2.5 pl-9 rounded-xl border-none bg-slate-50/50 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all cursor-pointer"
             >
               <option value="all">Tất cả trạng thái</option>
-              <option value="draft">Bản nháp</option>
-              <option value="pendingadjustment">Cần điều chỉnh</option>
-              <option value="pendingmanagerreview">Chờ Manager duyệt</option>
-              <option value="pendingcustomerapproval">Chờ khách duyệt</option>
+              
+              <option value="pendingvisa">Chờ xin Visa</option>
               <option value="pendingapproval">Chờ duyệt</option>
               <option value="confirmed">Đã xác nhận</option>
               <option value="available">Sẵn sàng</option>
@@ -225,20 +223,20 @@ export function PrivateTourInstanceListPage() {
             </select>
             <Icon
               icon="heroicons:funnel"
-              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-stone-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none"
             />
             <Icon
               icon="heroicons:chevron-down"
-              className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-stone-400 pointer-events-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400 pointer-events-none"
             />
           </div>
 
-          <label className="flex items-center gap-2 text-sm font-medium text-stone-600 cursor-pointer min-w-max">
+          <label className="h-stack items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer min-w-max">
             <input
               type="checkbox"
               checked={excludePast}
               onChange={(e) => setExcludePast(e.target.checked)}
-              className="size-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500/20 transition-colors"
+              className="size-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500/20 transition-colors"
             />
             Ẩn tour đã qua
           </label>
@@ -251,7 +249,7 @@ export function PrivateTourInstanceListPage() {
           variants={itemVariants}
           initial="hidden"
           animate="show"
-          className="p-6 bg-red-50/50 border border-red-200 border-dashed rounded-2xl"
+          className="p-6 bg-red-50/50 border border-red-200 border-dashed rounded-[1.5rem]"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -283,14 +281,14 @@ export function PrivateTourInstanceListPage() {
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-white/60 border border-stone-200/50 rounded-2xl p-5 flex items-center gap-4"
+              className="bg-white/60 border border-slate-200/50 rounded-[1.5rem] p-5 h-stack items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-stone-200/50 animate-pulse shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="w-1/3 h-5 bg-stone-200/50 animate-pulse rounded-md" />
-                <div className="w-2/3 h-4 bg-stone-200/50 animate-pulse rounded-md" />
+              <div className="w-12 h-12 rounded-xl bg-slate-200/50 animate-pulse shrink-0" />
+              <div className="spacer space-y-2">
+                <div className="w-1/3 h-5 bg-slate-200/50 animate-pulse rounded-md" />
+                <div className="w-2/3 h-4 bg-slate-200/50 animate-pulse rounded-md" />
               </div>
-              <div className="w-20 h-8 bg-stone-200/50 animate-pulse rounded-xl shrink-0" />
+              <div className="w-20 h-8 bg-slate-200/50 animate-pulse rounded-xl shrink-0" />
             </div>
           ))}
         </motion.div>
@@ -302,15 +300,15 @@ export function PrivateTourInstanceListPage() {
           variants={itemVariants}
           initial="hidden"
           animate="show"
-          className="p-14 text-center border-2 border-dashed border-stone-200 rounded-2xl bg-stone-50/50 flex flex-col items-center justify-center"
+          className="p-14 text-center border-2 border-dashed border-slate-200 rounded-[1.5rem] bg-slate-50/50 v-stack items-center justify-center"
         >
-          <div className="w-16 h-16 rounded-2xl bg-white border border-stone-200/50 shadow-sm flex items-center justify-center mb-5">
-            <Icon icon="heroicons:inbox" className="size-7 text-stone-300" />
+          <div className="w-16 h-16 rounded-[1.5rem] bg-white border border-slate-200/50 shadow-sm h-stack items-center justify-center mb-5">
+            <Icon icon="heroicons:inbox" className="size-7 text-slate-300" />
           </div>
-          <h2 className="text-lg font-bold text-stone-800 tracking-tight">
+          <h2 className="text-lg font-bold text-slate-800 tracking-tight">
             Không có tour riêng tư
           </h2>
-          <p className="text-sm text-stone-500 mt-2 max-w-[40ch] mx-auto leading-relaxed">
+          <p className="text-sm text-slate-500 mt-2 max-w-[40ch] mx-auto leading-relaxed">
             Không tìm thấy tour riêng tư nào phù hợp với bộ lọc hiện tại.
           </p>
         </motion.div>
@@ -335,16 +333,18 @@ export function PrivateTourInstanceListPage() {
                   layout
                   layoutId={`private-${inst.id}`}
                   key={inst.id}
-                  onClick={() => router.push(`${basePath}/${inst.id}`)}
-                  className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group ${
+                  onClick={() => {
+                    router.push(`${basePath}/${inst.id}`);
+                  }}
+                  className={`bg-white border rounded-[1.5rem] p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 v-stack md:h-stack md:items-center justify-between gap-4 cursor-pointer group ${
                     isPendingApproval
                       ? "border-orange-200/70 bg-orange-50/20"
-                      : "border-stone-200/50"
+                      : "border-slate-200/50"
                   }`}
                 >
                   {/* Left: thumbnail + core info */}
                   <div className="flex items-start md:items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-xl shrink-0 overflow-hidden border border-stone-200/50 bg-stone-100">
+                    <div className="w-12 h-12 rounded-xl shrink-0 overflow-hidden border border-slate-200/50 bg-slate-100">
                       {inst.thumbnail?.publicURL ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -353,36 +353,36 @@ export function PrivateTourInstanceListPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-stone-400">
+                        <div className="w-full h-full h-stack items-center justify-center text-slate-400">
                           <Icon icon="heroicons:photo" className="size-5" />
                         </div>
                       )}
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <h3 className="text-base font-bold text-stone-900 truncate">
+                      <div className="h-stack items-center gap-2.5 mb-1">
+                        <h3 className="text-base font-bold text-slate-900 truncate">
                           {inst.title || inst.tourName}
                         </h3>
                         <TourStatusBadge status={inst.status} />
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
-                        <span className="font-medium text-stone-600">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+                        <span className="font-medium text-slate-600">
                           {inst.tourInstanceCode}
                         </span>
-                        <span className="hidden sm:inline text-stone-300">•</span>
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:inline text-slate-300">•</span>
+                        <span className="h-stack items-center gap-1">
                           <Icon icon="heroicons:calendar" className="size-3.5" />
                           {formatDate(inst.startDate)}
                         </span>
-                        <span className="hidden sm:inline text-stone-300">•</span>
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:inline text-slate-300">•</span>
+                        <span className="h-stack items-center gap-1">
                           <Icon icon="heroicons:clock" className="size-3.5" />
                           {inst.durationDays} ngày
                         </span>
-                        <span className="hidden sm:inline text-stone-300">•</span>
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:inline text-slate-300">•</span>
+                        <span className="h-stack items-center gap-1">
                           <Icon icon="heroicons:user-group" className="size-3.5" />
                           {inst.maxParticipation} khách
                         </span>
@@ -391,7 +391,7 @@ export function PrivateTourInstanceListPage() {
                   </div>
 
                   {/* Right: approval status + action */}
-                  <div className="flex items-center gap-3 shrink-0 border-t md:border-t-0 border-stone-100 pt-3 md:pt-0">
+                  <div className="h-stack items-center gap-3 shrink-0 border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
                     {/* Transport approval badge */}
                     <span
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${transportInfo.color}`}
@@ -401,7 +401,7 @@ export function PrivateTourInstanceListPage() {
                     </span>
 
                     {/* Action link */}
-                    <div className="text-sm font-semibold text-amber-600 flex items-center gap-1 group-hover:text-amber-700 transition-colors whitespace-nowrap">
+                    <div className="text-sm font-semibold text-amber-600 h-stack items-center gap-1 group-hover:text-amber-700 transition-colors whitespace-nowrap">
                       {isPendingApproval
                         ? safeT("common.review", "Duyệt")
                         : safeT("common.viewDetails", "Chi tiết")}
@@ -420,22 +420,22 @@ export function PrivateTourInstanceListPage() {
 
       {/* ── Pagination ─────────────────────────────────── */}
       {(dataState === "ready" || dataState === "empty") && totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white border border-stone-200/50 rounded-2xl p-4 shadow-sm">
-          <span className="text-sm text-stone-600">
+        <div className="h-stack items-center justify-between bg-white border border-slate-200/50 rounded-[1.5rem] p-4 shadow-sm">
+          <span className="text-sm text-slate-600">
             Trang {currentPage} / {totalPages}
           </span>
-          <div className="flex items-center gap-2">
+          <div className="h-stack items-center gap-2">
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="px-4 py-1.5 rounded-xl text-sm text-stone-600 disabled:opacity-50 hover:bg-stone-100 active:scale-[0.98] transition-all"
+              className="px-4 py-1.5 rounded-xl text-sm text-slate-600 disabled:opacity-50 hover:bg-slate-100 active:scale-[0.98] transition-all"
             >
               Trước
             </button>
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              className="px-4 py-1.5 rounded-xl text-sm text-stone-600 disabled:opacity-50 hover:bg-stone-100 active:scale-[0.98] transition-all"
+              className="px-4 py-1.5 rounded-xl text-sm text-slate-600 disabled:opacity-50 hover:bg-slate-100 active:scale-[0.98] transition-all"
             >
               Sau
             </button>

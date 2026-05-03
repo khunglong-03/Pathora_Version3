@@ -29,9 +29,13 @@ public class VisaApplicationRepository(AppDbContext context)
         return await _dbSet
             .Include(v => v.BookingParticipant)
                 .ThenInclude(p => p.Booking)
+                    .ThenInclude(b => b.User)
+            .Include(v => v.BookingParticipant)
+                .ThenInclude(p => p.Booking)
                     .ThenInclude(b => b.TourInstance)
                         .ThenInclude(ti => ti.Managers)
             .Include(v => v.Passport)
+            .Include(v => v.Visa)
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
     

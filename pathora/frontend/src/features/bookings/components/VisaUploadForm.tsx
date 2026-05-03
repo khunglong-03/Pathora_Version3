@@ -11,7 +11,7 @@ interface VisaUploadFormProps {
   tourReturnDate?: string;
   destinationCountry: string;
   isResubmitting: boolean;
-  onSubmitPassport: (data: any) => Promise<void>;
+  onSubmitPassport: (data: any) => Promise<string>;
   onSubmitVisaApp: (data: any) => Promise<void>;
   onCancel: () => void;
 }
@@ -64,9 +64,13 @@ export function VisaUploadForm({
     destinationCountry: yup.string().required(t("landing.visa.countryRequired")),
     minReturnDate: yup.string().nullable(),
     visaFileUrl: yup.string().nullable(),
-    category: yup.number().transform((value) => (isNaN(value) ? undefined : value)).required("Category is required"),
-    format: yup.number().transform((value) => (isNaN(value) ? undefined : value)).nullable(),
-    maxStayDays: yup.number().transform((value) => (isNaN(value) ? undefined : value)).min(1, "Phải lớn hơn 0").nullable(),
+    visaNumber: yup.string().nullable(),
+    entryType: yup.number().nullable(),
+    visaIssuedAt: yup.string().nullable(),
+    visaExpiresAt: yup.string().nullable(),
+    category: yup.number().nullable(),
+    format: yup.number().nullable(),
+    maxStayDays: yup.number().nullable().transform((value) => (isNaN(value) ? null : value)),
     issuingAuthority: yup.string().nullable(),
   });
 
@@ -86,6 +90,10 @@ export function VisaUploadForm({
       destinationCountry: application?.destinationCountry || destinationCountry || "",
       minReturnDate: application?.minReturnDate ? application.minReturnDate.split("T")[0] : tourReturnDate || "",
       visaFileUrl: application?.visaFileUrl || "",
+      visaNumber: application?.visaNumber || "",
+      entryType: application?.entryType ?? "",
+      visaIssuedAt: application?.issuedAt ? application.issuedAt.split("T")[0] : "",
+      visaExpiresAt: application?.expiresAt ? application.expiresAt.split("T")[0] : "",
       category: application?.category ?? "",
       format: application?.format ?? "",
       maxStayDays: application?.maxStayDays ?? "",
@@ -96,24 +104,44 @@ export function VisaUploadForm({
   const handleFormSubmit = async (data: any) => {
     try {
       if (isPassportMissing) {
-        await onSubmitPassport({
+        const newPassportId = await onSubmitPassport({
           passportNumber: data.passportNumber,
           nationality: data.nationality,
           issuedAt: data.issuedAt,
           expiresAt: data.expiresAt,
           fileUrl: data.fileUrl,
         });
+        await onSubmitVisaApp({
+          _passportId: newPassportId,
+          destinationCountry: data.destinationCountry,
+          minReturnDate: data.minReturnDate,
+          visaFileUrl: data.visaFileUrl,
+          visaNumber: data.visaNumber,
+          entryType: data.entryType,
+          issuedAt: data.visaIssuedAt,
+          expiresAt: data.visaExpiresAt,
+          category: data.category,
+          format: data.format,
+          maxStayDays: data.maxStayDays,
+          issuingAuthority: data.issuingAuthority,
+          isResubmitting,
+        });
+      } else {
+        await onSubmitVisaApp({
+          destinationCountry: data.destinationCountry,
+          minReturnDate: data.minReturnDate,
+          visaFileUrl: data.visaFileUrl,
+          visaNumber: data.visaNumber,
+          entryType: data.entryType,
+          issuedAt: data.visaIssuedAt,
+          expiresAt: data.visaExpiresAt,
+          category: data.category,
+          format: data.format,
+          maxStayDays: data.maxStayDays,
+          issuingAuthority: data.issuingAuthority,
+          isResubmitting,
+        });
       }
-      await onSubmitVisaApp({
-        destinationCountry: data.destinationCountry,
-        minReturnDate: data.minReturnDate,
-        visaFileUrl: data.visaFileUrl,
-        isResubmitting,
-        category: data.category !== "" ? data.category : undefined,
-        format: data.format !== "" ? data.format : undefined,
-        maxStayDays: data.maxStayDays !== "" ? data.maxStayDays : undefined,
-        issuingAuthority: data.issuingAuthority,
-      });
     } catch (error) {
       console.error(error);
     }
@@ -207,71 +235,6 @@ export function VisaUploadForm({
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Category
-          </label>
-          <select
-            {...register("category")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">Select Category</option>
-            {Object.keys(VisaCategory)
-              .filter((key) => isNaN(Number(key)))
-              .map((key) => (
-                <option key={key} value={VisaCategory[key as keyof typeof VisaCategory]}>
-                  {key}
-                </option>
-              ))}
-          </select>
-          {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category.message as string}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Format
-          </label>
-          <select
-            {...register("format")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">Select Format</option>
-            {Object.keys(VisaFormat)
-              .filter((key) => isNaN(Number(key)))
-              .map((key) => (
-                <option key={key} value={VisaFormat[key as keyof typeof VisaFormat]}>
-                  {key}
-                </option>
-              ))}
-          </select>
-          {errors.format && <p className="text-red-500 text-xs mt-1">{errors.format.message as string}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Max Stay (Days)
-          </label>
-          <input
-            type="number"
-            {...register("maxStayDays")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. 30"
-          />
-          {errors.maxStayDays && <p className="text-red-500 text-xs mt-1">{errors.maxStayDays.message as string}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-slate-600 mb-1 block">
-            Issuing Authority
-          </label>
-          <input
-            {...register("issuingAuthority")}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. Embassy of Japan"
-          />
-          {errors.issuingAuthority && <p className="text-red-500 text-xs mt-1">{errors.issuingAuthority.message as string}</p>}
-        </div>
         <div className="md:col-span-2">
           <label className="text-sm font-medium text-slate-600 mb-1 block">
             {t("landing.visa.visaFileUrlOptional")}
@@ -280,6 +243,109 @@ export function VisaUploadForm({
             {...register("visaFileUrl")}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             placeholder="https://..."
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Visa Number
+          </label>
+          <input
+            {...register("visaNumber")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: V123456"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Entry Type
+          </label>
+          <select
+            {...register("entryType")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">{t("common.select")}</option>
+            <option value={0}>Single</option>
+            <option value={1}>Multiple</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Issued At
+          </label>
+          <input
+            type="date"
+            {...register("visaIssuedAt")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            Expires At
+          </label>
+          <input
+            type="date"
+            {...register("visaExpiresAt")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            {t("landing.visa.category")}
+          </label>
+          <select
+            {...register("category")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">{t("common.select")}</option>
+            <option value={0}>Tourist</option>
+            <option value={1}>Business</option>
+            <option value={2}>FamilyVisit</option>
+            <option value={3}>Student</option>
+            <option value={4}>Transit</option>
+            <option value={5}>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            {t("landing.visa.format")}
+          </label>
+          <select
+            {...register("format")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">{t("common.select")}</option>
+            <option value={0}>Sticker</option>
+            <option value={1}>E_Visa</option>
+            <option value={2}>VisaOnArrival</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            {t("landing.visa.maxStayDays")}
+          </label>
+          <input
+            type="number"
+            {...register("maxStayDays")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: 30"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">
+            {t("landing.visa.issuingAuthority")}
+          </label>
+          <input
+            {...register("issuingAuthority")}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Ex: Embassy of Japan"
           />
         </div>
       </div>

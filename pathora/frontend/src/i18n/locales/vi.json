@@ -245,7 +245,9 @@
     "bankAccounts": {
       "pageTitle": "Tài Khoản Ngân Hàng",
       "pageSubtitle": "Quản lý các tài khoản ngân hàng để nhận thanh toán"
-    }
+    },
+    "select": "Chọn",
+    "submitting": "Đang gửi..."
   },
   "placeholder": {
     "searchAnything": "Tìm kiếm...",
@@ -1390,32 +1392,32 @@
       "hideDetails": "Ẩn chi tiết"
     },
     "admin": {
-    "staff": {
-      "title": "Tạo mới nhân viên",
-      "type": "Loại nhân viên",
-      "designer": "Tour Operator",
-      "designerDesc": "Điều phối và lên kế hoạch tour",
-      "guide": "Tour Guide",
-      "guideDesc": "Hướng dẫn và điều hành tour",
-      "username": "Tên đăng nhập (Username)",
-      "email": "Email",
-      "fullName": "Họ và tên",
-      "password": "Mật khẩu",
-      "confirmPassword": "Xác nhận mật khẩu",
-      "passwordHint": "* Để trống mật khẩu nếu muốn sử dụng mật khẩu mặc định \"password123\"",
-      "submit": "Tạo nhân viên",
-      "submitting": "Đang tạo...",
-      "cancel": "Hủy",
-      "validation": {
-        "required": "Vui lòng nhập đầy đủ thông tin",
-        "invalidUsername": "Tên đăng nhập không hợp lệ (chỉ cho phép chữ, số, dấu chấm, gạch dưới)",
-        "invalidEmail": "Định dạng email không hợp lệ",
-        "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
-        "passwordMismatch": "Mật khẩu xác nhận không khớp"
+      "staff": {
+        "title": "Tạo mới nhân viên",
+        "type": "Loại nhân viên",
+        "designer": "Tour Operator",
+        "designerDesc": "Điều phối và lên kế hoạch tour",
+        "guide": "Tour Guide",
+        "guideDesc": "Hướng dẫn và điều hành tour",
+        "username": "Tên đăng nhập (Username)",
+        "email": "Email",
+        "fullName": "Họ và tên",
+        "password": "Mật khẩu",
+        "confirmPassword": "Xác nhận mật khẩu",
+        "passwordHint": "* Để trống mật khẩu nếu muốn sử dụng mật khẩu mặc định \"password123\"",
+        "submit": "Tạo nhân viên",
+        "submitting": "Đang tạo...",
+        "cancel": "Hủy",
+        "validation": {
+          "required": "Vui lòng nhập đầy đủ thông tin",
+          "invalidUsername": "Tên đăng nhập không hợp lệ (chỉ cho phép chữ, số, dấu chấm, gạch dưới)",
+          "invalidEmail": "Định dạng email không hợp lệ",
+          "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
+          "passwordMismatch": "Mật khẩu xác nhận không khớp"
+        },
+        "createSuccess": "Tạo nhân viên thành công",
+        "createError": "Không thể thêm nhân viên. Vui lòng thử lại."
       },
-      "createSuccess": "Tạo nhân viên thành công",
-      "createError": "Không thể thêm nhân viên. Vui lòng thử lại."
-    },
       "table": {
         "index": "#",
         "destination": "Điểm đến",
@@ -1581,7 +1583,8 @@
         "basePriceNonNegative": "Giá cơ bản không được nhỏ hơn 0",
         "startDatePast": "Ngày bắt đầu không được nằm trong quá khứ"
       }
-      },    "stat": {
+    },
+    "stat": {
       "totalTours": "Tổng Tours",
       "active": "Hoạt Động",
       "inactive": "Không Hoạt Động",
@@ -3240,7 +3243,13 @@
       "minReturnDate": "Ngày về dự kiến",
       "visaFileUrlOptional": "URL File Visa (Tùy chọn)",
       "confirmSupportFee": "Bằng việc yêu cầu hỗ trợ visa, bạn đồng ý sẽ thanh toán phí dịch vụ sau khi nhân viên chúng tôi kiểm tra và báo giá. Tiếp tục?",
-      "selectParticipant": "Chọn một người tham gia để xem chi tiết"
+      "selectParticipant": "Chọn một người tham gia để xem chi tiết",
+      "category": "Loại Visa",
+      "format": "Định dạng Visa",
+      "maxStayDays": "Số ngày lưu trú tối đa",
+      "issuingAuthority": "Cơ quan cấp",
+      "visaNumber": "Số Visa",
+      "entryType": "Loại nhập cảnh"
     },
     "auth": {
       "login": "Đăng nhập",
@@ -3513,7 +3522,6 @@
       "dataProtected": "Dữ liệu được bảo vệ an toàn",
       "day": "Ngày",
       "days": "Ngày",
-      "deposit": "Đặt cọc",
       "depositDesc": "Thanh toán một phần để giữ chỗ",
       "email": "Email",
       "emailPlaceholder": "Nhập địa chỉ email",

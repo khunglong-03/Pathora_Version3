@@ -128,16 +128,18 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
     }
   };
 
-  const handleSubmitPassport = async (participantId: string, payload: any) => {
-    await bookingService.upsertParticipantPassport(bookingId, participantId, payload);
+  const handleSubmitPassport = async (participantId: string, payload: any): Promise<string> => {
+    const passportId = await bookingService.upsertParticipantPassport(bookingId, participantId, payload);
+    return passportId ?? "";
   };
 
-  const handleSubmitVisaApp = async (participantId: string, applicationId: string | undefined, isResubmitting: boolean, payload: any) => {
+  const handleSubmitVisaApp = async (participantId: string, passportId: string, applicationId: string | undefined, isResubmitting: boolean, payload: any) => {
     if (isResubmitting && applicationId) {
       await bookingService.updateVisaApplication(bookingId, applicationId, payload);
     } else {
       await bookingService.submitVisaApplication(bookingId, {
         bookingParticipantId: participantId,
+        passportId: passportId,
         destinationCountry: payload.destinationCountry,
         minReturnDate: payload.minReturnDate,
         visaFileUrl: payload.visaFileUrl,
@@ -145,6 +147,10 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
         format: payload.format,
         maxStayDays: payload.maxStayDays,
         issuingAuthority: payload.issuingAuthority,
+        visaNumber: payload.visaNumber,
+        entryType: payload.entryType,
+        issuedAt: payload.issuedAt,
+        expiresAt: payload.expiresAt,
       });
     }
     toast.success(t("landing.visa.submitSuccess"));
@@ -239,14 +245,14 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
       <div className="v-stack gap-4">
         {requiredParticipants.map((participant) => {
           const app = participant.latestVisaApplication;
-          const isFormOpen = activeFormParticipantId === participant.id;
+          const isFormOpen = activeFormParticipantId === participant.participantId;
           const destinationCountry = app?.destinationCountry || "VN"; // fallback for now if new
           const canSubmit = participant.availableActions.includes("submit_visa") || participant.availableActions.includes("add_passport");
           const canRequestSupport = participant.availableActions.includes("request_support");
           const isRejected = app?.status === "Rejected";
 
           return (
-            <div key={participant.id} className="border border-slate-100 rounded-2xl p-4 v-stack gap-3 transition-colors hover:border-blue-100">
+            <div key={participant.participantId} className="border border-slate-100 rounded-2xl p-4 v-stack gap-3 transition-colors hover:border-blue-100">
               <div className="h-stack justify-between items-center flex-wrap gap-2">
                 <div className="h-stack items-center gap-3">
                   <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
@@ -261,8 +267,8 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
                 <div className="h-stack items-center gap-2">
                   {canRequestSupport && !isFormOpen && (
                     <button
-                      onClick={() => handleRequestSupport(participant.id)}
-                      disabled={isRequestingSupport === participant.id}
+                      onClick={() => handleRequestSupport(participant.participantId)}
+                      disabled={isRequestingSupport === participant.participantId}
                       className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors h-stack items-center gap-1 disabled:opacity-50"
                     >
                       <HandHeart weight="bold" /> {t("landing.visa.requestSupport")}
@@ -270,7 +276,7 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
                   )}
                   {(canSubmit || isRejected) && !isFormOpen && !participant.missingDateOfBirth && (
                     <button
-                      onClick={() => setActiveFormParticipantId(participant.id)}
+                      onClick={() => setActiveFormParticipantId(participant.participantId)}
                       className="text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-3 py-2 rounded-lg transition-colors"
                     >
                       {isRejected ? t("landing.visa.resubmit") : t("landing.visa.provideDetails")}
@@ -293,10 +299,13 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
                   destinationCountry={destinationCountry}
                   isResubmitting={isRejected}
                   onSubmitPassport={async (payload) => {
-                    await handleSubmitPassport(participant.id, payload);
+                    const newPassportId = await handleSubmitPassport(participant.participantId, payload);
+                    return newPassportId;
                   }}
                   onSubmitVisaApp={async (payload) => {
-                    await handleSubmitVisaApp(participant.id, app?.id, isRejected, payload);
+                    // passportId comes from either the just-created passport or the existing one
+                    const passportId = payload._passportId || participant.passport?.id || "";
+                    await handleSubmitVisaApp(participant.participantId, passportId, app?.id, isRejected, payload);
                   }}
                   onCancel={() => setActiveFormParticipantId(null)}
                 />
