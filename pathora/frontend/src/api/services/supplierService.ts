@@ -66,4 +66,11 @@ export const supplierService = {
     );
     return extractResult<any[]>(response.data) ?? [];
   },
+
+  getSupplierTransportDetail: async (supplierId: string) => {
+    const response = await api.get<ServiceResponse<import("@/types/admin").TransportProviderDetail>>(
+      `/api/suppliers/${supplierId}/transport-detail`
+    );
+    return extractResult<import("@/types/admin").TransportProviderDetail>(response.data);
+  },
 };

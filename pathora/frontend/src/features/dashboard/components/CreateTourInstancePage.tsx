@@ -2283,7 +2283,7 @@ export function CreateTourInstancePage({
         Promise.allSettled(
           normalizedTransports.map(async (tp) => ({
             supplierId: tp.id,
-            detail: await adminService.getTransportProviderDetail(tp.id),
+            detail: await supplierService.getSupplierTransportDetail(tp.id),
           })),
         ),
       ]);

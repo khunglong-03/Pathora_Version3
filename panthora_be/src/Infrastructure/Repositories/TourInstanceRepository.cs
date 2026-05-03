@@ -275,7 +275,22 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             Console.WriteLine($"[EF-DEBUG-ACCOM-AFTER] State={entry.State} Id={entry.Entity.Id}");
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+        {
+            foreach (var entry in ex.Entries)
+            {
+                Console.WriteLine($"[EF-CONCURRENCY] Entity={entry.Entity.GetType().Name} State={entry.State} Keys={string.Join(",", entry.Metadata.FindPrimaryKey()!.Properties.Select(p => $"{p.Name}={entry.Property(p.Name).CurrentValue}"))}");
+                foreach (var prop in entry.Metadata.GetProperties().Where(p => p.IsConcurrencyToken))
+                {
+                    Console.WriteLine($"  ConcurrencyToken: {prop.Name} Original={entry.Property(prop.Name).OriginalValue} Current={entry.Property(prop.Name).CurrentValue}");
+                }
+            }
+            throw;
+        }
     }
 
     public async Task SoftDelete(Guid id, CancellationToken cancellationToken = default)

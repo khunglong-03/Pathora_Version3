@@ -28,14 +28,17 @@ public class TourInstanceManagerEntity : Aggregate<Guid>
         TourInstanceManagerRole role,
         string performedBy)
     {
+        // CreatedOnUtc intentionally left default — AppDbContext.UpdateAuditableEntities
+        // sets it on SaveChanges. The repo Update() fixup also relies on default
+        // CreatedOnUtc to force EntityState.Added for entities mistakenly marked
+        // Modified by EF when added via tracked navigation collection with pre-set Id.
         return new TourInstanceManagerEntity
         {
             Id = Guid.CreateVersion7(),
             TourInstanceId = tourInstanceId,
             UserId = userId,
             Role = role,
-            CreatedBy = performedBy,
-            CreatedOnUtc = DateTimeOffset.UtcNow
+            CreatedBy = performedBy
         };
     }
 

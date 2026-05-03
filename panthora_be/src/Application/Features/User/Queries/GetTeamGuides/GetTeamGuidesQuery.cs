@@ -12,10 +12,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Features.User.Queries.GetTeamGuides;
 
-public sealed record GetTeamGuidesQuery() : IQuery<ErrorOr<List<UserVm>>>, ICacheable
+public sealed record GetTeamGuidesQuery() : IQuery<ErrorOr<List<UserVm>>>
 {
-    public string CacheKey => $"{Common.CacheKey.User}:team-guides";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(30);
 }
 
 public sealed class GetTeamGuidesQueryHandler(

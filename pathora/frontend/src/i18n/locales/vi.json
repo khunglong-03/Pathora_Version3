@@ -3877,4 +3877,14 @@
       "antarctica": "Châu Nam Cực"
     }
   }
+    },
+    "tourGuide": {
+      "portalTitle": "Cổng thông tin Hướng dẫn viên",
+      "portalSubtitle": "Quản lý công việc và hoạt động tour",
+      "schedule": {
+        "calendarTitle": "Lịch làm việc",
+        "noToursOnDate": "Bạn không có lịch trình tour nào trong ngày này."
+      }
+    }
+  }
 }

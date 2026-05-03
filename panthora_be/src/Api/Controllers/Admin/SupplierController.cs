@@ -2,6 +2,7 @@ using Api.Endpoint;
 using Application.Common.Constant;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Supplier;
+using Application.Features.Admin.Queries.GetTransportProviderById;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -98,6 +99,14 @@ public class SupplierController : BaseApiController
     public async Task<IActionResult> GetSupplierAccommodations(Guid id)
     {
         var result = await Sender.Send(new GetSupplierAccommodationsQuery(id));
+        return HandleResult(result);
+    }
+
+    [HttpGet("{id:guid}/transport-detail")]
+    [Authorize(Policy = "TourManagerOnly")]
+    public async Task<IActionResult> GetSupplierTransportDetail(Guid id)
+    {
+        var result = await Sender.Send(new GetTransportProviderByIdQuery(id));
         return HandleResult(result);
     }
 }

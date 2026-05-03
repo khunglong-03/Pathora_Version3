@@ -15,6 +15,7 @@ import {
   type TourInstanceDayActivityDto,
 } from "@/types/tour";
 import { normalizeApprovalStatus } from "@/utils/approvalStatusHelper";
+import type { TransportProviderDetail } from "@/types/admin";
 
 interface SupplierReassignmentModalProps {
   open: boolean;
@@ -72,6 +73,10 @@ export default function SupplierReassignmentModal({
     activity.requestedVehicleCount ?? 1,
   );
   const [submitting, setSubmitting] = useState(false);
+
+  // Transport provider details for vehicle type filtering
+  const [providerDetail, setProviderDetail] = useState<TransportProviderDetail | null>(null);
+  const [providerDetailLoading, setProviderDetailLoading] = useState(false);
 
   // Track dirty state for Esc guard
   const initialValues = useRef({
@@ -132,6 +137,7 @@ export default function SupplierReassignmentModal({
       }
       // Reset form
       setSelectedSupplierId("");
+      setProviderDetail(null);
       setRequestedVehicleType(
         toVehicleTypeSelectValue(activity.requestedVehicleType),
       );
@@ -145,6 +151,52 @@ export default function SupplierReassignmentModal({
       };
     }
   }, [open, fetchSuppliers, activity, isExternalOnly]);
+
+  // Fetch transport provider detail when supplier changes to filter vehicle types
+  useEffect(() => {
+    if (!selectedSupplierId || activityType !== "Transportation") {
+      setProviderDetail(null);
+      return;
+    }
+    
+    let isMounted = true;
+    const fetchDetail = async () => {
+      setProviderDetailLoading(true);
+      try {
+        const detail = await supplierService.getSupplierTransportDetail(selectedSupplierId);
+        if (isMounted) {
+          setProviderDetail(detail);
+        }
+      } catch (err) {
+        console.error("Failed to fetch provider detail", err);
+        if (isMounted) {
+          setProviderDetail(null);
+        }
+      } finally {
+        if (isMounted) {
+          setProviderDetailLoading(false);
+        }
+      }
+    };
+    
+    void fetchDetail();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedSupplierId, activityType]);
+
+  const allowedVehicleKeys = useMemo(() => {
+    if (!providerDetail || !providerDetail.vehicles) return null;
+    const keys = new Set<number>();
+    providerDetail.vehicles.forEach(v => {
+      if (v.isActive) {
+        const key = vehicleTypeNameToKey(v.vehicleType);
+        if (key !== undefined) keys.add(key);
+      }
+    });
+    return keys;
+  }, [providerDetail]);
 
   // Focus management after load
   useEffect(() => {
@@ -241,6 +293,10 @@ export default function SupplierReassignmentModal({
       value,
     })),
   ];
+
+  const filteredVehicleTypeOptions = allowedVehicleKeys
+    ? vehicleTypeOptions.filter(opt => allowedVehicleKeys.has(Number(opt.value)))
+    : vehicleTypeOptions;
 
   const actionLabel = isApproved ? "Đổi và huỷ phê duyệt" : "Đổi nhà cung cấp";
 
@@ -404,16 +460,27 @@ export default function SupplierReassignmentModal({
                     id="vehicle-type-select"
                     value={requestedVehicleType}
                     onChange={(e) => setRequestedVehicleType(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    disabled={!selectedSupplierId || providerDetailLoading || (allowedVehicleKeys !== null && allowedVehicleKeys.size === 0)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50 disabled:text-slate-500"
                   >
-                    <option value="">
-                      {t("tourInstance.transport.selectVehicleType", "Select vehicle type...")}
-                    </option>
-                    {vehicleTypeOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+                    {providerDetailLoading ? (
+                      <option value="">{t("common.loading", "Đang tải...")}</option>
+                    ) : !selectedSupplierId ? (
+                      <option value="">{t("tourInstance.transport.selectProviderFirst", "Vui lòng chọn nhà cung cấp trước")}</option>
+                    ) : allowedVehicleKeys !== null && allowedVehicleKeys.size === 0 ? (
+                      <option value="">{t("tourInstance.transport.noActiveVehicles", "Nhà cung cấp này chưa có xe hoạt động")}</option>
+                    ) : (
+                      <>
+                        <option value="">
+                          {t("tourInstance.transport.selectVehicleType", "Select vehicle type...")}
+                        </option>
+                        {filteredVehicleTypeOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
                 <div>
