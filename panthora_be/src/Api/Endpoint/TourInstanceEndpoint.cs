@@ -14,6 +14,7 @@ public static class TourInstanceEndpoint
     public const string ActivityId = "{id:guid}/days/{dayId:guid}/activities/{activityId:guid}";
     public const string ProviderAssigned = "provider-assigned";
     public const string Approve = "{id:guid}/approve";
+    public const string GuideApprove = "{id:guid}/guide-approve";
     public const string CheckGuideAvailability = "check-guide-availability";
     public const string ConfirmExternalTransport = "{instanceId:guid}/transportation/{activityId:guid}/confirm-external";
 

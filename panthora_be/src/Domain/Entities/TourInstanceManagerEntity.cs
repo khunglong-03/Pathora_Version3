@@ -19,6 +19,9 @@ public class TourInstanceManagerEntity : Aggregate<Guid>
     /// <summary>Vai trò của nhân viên trong instance: Manager, Coordinator, Assistant.</summary>
     public TourInstanceManagerRole Role { get; set; }
 
+    /// <summary>Đánh dấu Guide đã phê duyệt/nhận chuyến đi này hay chưa.</summary>
+    public bool IsAccepted { get; set; } = false;
+
     public static TourInstanceManagerEntity Create(
         Guid tourInstanceId,
         Guid userId,

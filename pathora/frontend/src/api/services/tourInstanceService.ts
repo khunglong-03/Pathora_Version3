@@ -458,6 +458,13 @@ export const tourInstanceService = {
     return extractResult<string>(response.data);
   },
 
+  guideApprove: async (id: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.GUIDE_APPROVE(id),
+    );
+    return extractResult<string>(response.data);
+  },
+
   deleteInstance: async (id: string) => {
     const response = await api.delete<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.DELETE(id),

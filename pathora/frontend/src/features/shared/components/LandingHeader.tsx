@@ -26,8 +26,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { handleCustomizer } from "@/store/layout";
 import { logOut } from "@/store/infrastructure/authSlice";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
+import { Globe } from "@phosphor-icons/react";
 import {
-  FiGlobe,
   FiChevronDown,
   FiCheck,
   FiSliders,
@@ -161,6 +161,13 @@ const MobileSidebar = ({
   const { t, i18n } = useTranslation();
   const { isAuth, user } = useSelector((state: RootState) => state.auth);
   const panelRef = useRef<HTMLDivElement>(null);
+  
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  
   const normalizedLanguage = (i18n.resolvedLanguage || i18n.language || "en")
     .toLowerCase()
     .split("-")[0];
@@ -213,7 +220,7 @@ const MobileSidebar = ({
 
   return (
     <Transition show={open} as={Fragment}>
-      <div className="fixed inset-0 z-50 md:hidden">
+      <div className="fixed inset-0 z-50 lg:hidden">
         <TransitionChild
           as={Fragment}
           enter="transition-opacity duration-300 ease-out"
@@ -370,7 +377,7 @@ const MobileSidebar = ({
                       key={lang.code}
                       type="button"
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        normalizedLanguage === lang.code
+                        mounted && normalizedLanguage === lang.code
                           ? "bg-[#fa8b02] text-white"
                           : "text-gray-300 hover:text-white"
                       } min-h-9 min-w-14`}
@@ -721,7 +728,8 @@ export const LandingHeader = () => {
                   aria-expanded={languageMenuOpen}
                   aria-controls={languageMenuId}
                 >
-                  <FiGlobe
+                  <Globe
+                    weight="bold"
                     suppressHydrationWarning
                     className="w-4 h-4 text-white/70"
                   />

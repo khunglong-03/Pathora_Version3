@@ -179,6 +179,14 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
+    [Authorize(Policy = "TourGuideOnly")]
+    [HttpPost(TourInstanceEndpoint.GuideApprove)]
+    public async Task<IActionResult> GuideApprove(Guid id)
+    {
+        var result = await Sender.Send(new GuideApproveTourInstanceCommand(id));
+        return HandleResult(result);
+    }
+
     // Private tour itinerary review workflow.
     // Operator submits the edited itinerary for Manager approval.
     [Authorize(Roles = "Admin,Manager,TourOperator")]

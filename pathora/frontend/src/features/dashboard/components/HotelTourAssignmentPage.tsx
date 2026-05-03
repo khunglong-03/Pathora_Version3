@@ -36,11 +36,17 @@ interface RoomAssignmentForm {
   };
 }
 
-export default function HotelTourAssignmentPage() {
+interface HotelTourAssignmentPageProps {
+  instanceId?: string;
+  backUrl?: string;
+}
+
+export default function HotelTourAssignmentPage(props: HotelTourAssignmentPageProps) {
   const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
-  const instanceId = params.id as string;
+  const instanceId = props.instanceId || (params.id as string);
+  const backUrl = props.backUrl || "/hotel/tour-approvals";
 
   const [instance, setInstance] = useState<TourInstanceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,22 +76,27 @@ export default function HotelTourAssignmentPage() {
   const fetchDetail = async () => {
     setIsLoading(true);
     try {
-      const data = await tourInstanceService.getMyAssignedInstanceDetail(instanceId);
+      const data = props.instanceId
+        ? await tourInstanceService.getInstanceDetail(instanceId)
+        : await tourInstanceService.getMyAssignedInstanceDetail(instanceId);
       if (data) {
         setInstance(data);
         let canonicalRoomOptions = buildProviderRoomOptions([]);
         
-        try {
-          const invData = await hotelProviderService.getAccommodations();
-          const availData = await hotelProviderService.getRoomAvailability(
-            format(new Date(data.startDate), "yyyy-MM-dd"),
-            format(new Date(data.endDate), "yyyy-MM-dd")
-          );
-          canonicalRoomOptions = buildProviderRoomOptions(invData || []);
-          setInventory(invData || []);
-          setAvailability(availData || []);
-        } catch (e) {
-          console.error("Failed to load inventory:", e);
+        // Only fetch inventory and availability if the user is a Hotel Provider (not passing instanceId)
+        if (!props.instanceId) {
+          try {
+            const invData = await hotelProviderService.getAccommodations();
+            const availData = await hotelProviderService.getRoomAvailability(
+              format(new Date(data.startDate), "yyyy-MM-dd"),
+              format(new Date(data.endDate), "yyyy-MM-dd")
+            );
+            canonicalRoomOptions = buildProviderRoomOptions(invData || []);
+            setInventory(invData || []);
+            setAvailability(availData || []);
+          } catch (e) {
+            console.error("Failed to load inventory:", e);
+          }
         }
 
         // Initialize form state out of currently assigned accommodations
@@ -352,7 +363,7 @@ export default function HotelTourAssignmentPage() {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <p className="mb-4 text-slate-500">{t("tour_not_found") || "Tour not found"}</p>
-        <Button variant="outline" onClick={() => router.push("/hotel/tour-approvals")}>
+        <Button variant="outline" onClick={() => router.push(backUrl)}>
           <ArrowLeft className="mr-2" /> {t("back_to_list") || "Back to list"}
         </Button>
       </div>
@@ -360,28 +371,34 @@ export default function HotelTourAssignmentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.push("/hotel/tour-approvals")} className="-ml-3">
-            <ArrowLeft size={20} />
+    <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-10 space-y-8 bg-[#f9fafb] min-h-screen">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <Button variant="ghost" onClick={() => router.push(backUrl)} className="-ml-3 mt-1 md:mt-0 shrink-0 hover:bg-slate-200/50 transition-colors">
+            <ArrowLeft size={24} weight="bold" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{instance.title}</h1>
-            <p className="text-sm text-slate-500">
+          <div className="min-w-0 flex flex-col gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wider w-fit border border-indigo-100">
+              <Bed size={14} weight="bold" />
+              {t("accommodation_assignment") || "Accommodation Assignment"}
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter text-slate-900 leading-none break-words">
+              {instance.title}
+            </h1>
+            <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
               {instance.tourInstanceCode} • {format(new Date(instance.startDate), "MMM dd, yyyy")} - {format(new Date(instance.endDate), "MMM dd, yyyy")}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pl-12 md:pl-0">
           {aggregateHotelApproval === 1 && (
-            <Badge className="bg-warning-500 text-white px-2.5 py-0.5 text-xs">{t("pending_approval") || "Pending Approval"}</Badge>
+            <Badge className="bg-warning-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("pending_approval") || "Pending Approval"}</Badge>
           )}
           {aggregateHotelApproval === 2 && (
-            <Badge className="bg-success-500 text-white px-2.5 py-0.5 text-xs">{t("approved") || "Approved"}</Badge>
+            <Badge className="bg-success-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("approved") || "Approved"}</Badge>
           )}
           {aggregateHotelApproval === 3 && (
-            <Badge className="bg-danger-500 text-white px-2.5 py-0.5 text-xs">{t("rejected") || "Rejected"}</Badge>
+            <Badge className="bg-danger-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("rejected") || "Rejected"}</Badge>
           )}
         </div>
       </div>
@@ -389,24 +406,24 @@ export default function HotelTourAssignmentPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Info Column */}
         <div className="space-y-6 md:col-span-1">
-          <Card className="p-5">
-            <h3 className="mb-4 font-semibold text-slate-800">{t("tour_summary") || "Tour Summary"}</h3>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-slate-500">{t("participants") || "Participants"}</dt>
-                <dd className="font-medium">{instance.currentParticipation} / {instance.maxParticipation}</dd>
+          <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+            <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("tour_summary") || "Tour Summary"}</h3>
+            <dl className="space-y-4 text-sm md:text-base text-slate-600">
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <dt>{t("participants") || "Participants"}</dt>
+                <dd className="font-semibold text-slate-900">{instance.currentParticipation} / {instance.maxParticipation}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-slate-500">{t("duration") || "Duration"}</dt>
-                <dd className="font-medium">{instance.durationDays} {t("days", { count: instance.durationDays })}</dd>
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <dt>{t("duration") || "Duration"}</dt>
+                <dd className="font-semibold text-slate-900">{instance.durationDays} {t("days", { count: instance.durationDays })}</dd>
               </div>
             </dl>
           </Card>
 
           {/* Action Card */}
-          {aggregateHotelApproval === 1 && (
-            <Card className="p-5">
-              <h3 className="mb-4 font-semibold text-slate-800">{t("action_required") || "Action Required"}</h3>
+          {aggregateHotelApproval === 1 && !props.instanceId && (
+            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("action_required") || "Action Required"}</h3>
               <p className="mb-4 text-sm text-slate-600">
                 {t("review_rooms_desc") || "Please assign room availability for each accommodation requirement before approving this tour."}
               </p>
@@ -456,8 +473,8 @@ export default function HotelTourAssignmentPage() {
         <div className="space-y-6 md:col-span-2">
           {/* Inventory Summary Table */}
           {inventory.length > 0 && (
-            <Card className="p-5">
-              <h3 className="mb-4 font-semibold text-slate-800">Tổng quan phòng của tôi</h3>
+            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">Tổng quan phòng của tôi</h3>
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
@@ -506,9 +523,9 @@ export default function HotelTourAssignmentPage() {
           )}
 
           {/* Progress Bar */}
-          <Card className="p-5">
-             <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
+          <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+             <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <h3 className="text-xl font-semibold tracking-tight text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
                 <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned") || "Assigned"}</span>
              </div>
              <div className="w-full bg-slate-200 rounded-full h-2.5">
@@ -524,13 +541,18 @@ export default function HotelTourAssignmentPage() {
              )}
           </Card>
 
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-            <Bed size={24} className="text-primary-600" />
-            {t("accommodation_requirements") || "Accommodation Requirements"}
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-8 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
+              <div className="p-2.5 bg-indigo-100 rounded-xl">
+                <Bed size={24} weight="bold" className="text-indigo-600 shrink-0" />
+              </div>
+              <span className="break-words leading-tight">{t("accommodation_requirements") || "Accommodation Requirements"}</span>
+            </h2>
+          </div>
           
           {accommodationActivities.length === 0 ? (
-            <Card className="p-8 text-center text-slate-500">
+            <Card className="p-12 text-center text-slate-500 rounded-[1.5rem] border border-slate-200/50 border-dashed bg-slate-50">
+              <Bed size={48} className="mx-auto mb-4 text-slate-300" weight="light" />
               {t("no_accommodation_requirements") || "No accommodation requirements for this tour."}
             </Card>
           ) : (
@@ -551,10 +573,10 @@ export default function HotelTourAssignmentPage() {
               return (
                 <Card
                   key={act.activityId}
-                  className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between transition-all ${
+                  className={`flex flex-col gap-4 p-6 lg:p-8 rounded-[1.5rem] border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:flex-row sm:items-start sm:justify-between transition-all duration-300 ${
                     isFullyBlocked
-                      ? "ring-2 ring-emerald-200 bg-emerald-50/30"
-                      : "bg-white"
+                      ? "ring-1 ring-emerald-200 border-emerald-200 bg-emerald-50/20"
+                      : "border-slate-200/50 bg-white hover:border-slate-300/80 hover:shadow-md"
                   }`}
                 >
                   {/* ── LEFT: Activity info ── */}
@@ -578,39 +600,39 @@ export default function HotelTourAssignmentPage() {
                       )}
                     </div>
 
-                    <h4 className="font-semibold text-slate-800">{act.title}</h4>
+                    <h4 className="text-xl font-bold tracking-tight text-slate-800 leading-tight mt-1">{act.title}</h4>
                     {act.description && (
-                      <p className="mt-1 text-sm text-slate-600 line-clamp-2">{act.description}</p>
+                      <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{act.description}</p>
                     )}
 
                     {/* Current assignment summary */}
                     {hasRoomTypeSet && (
-                      <div className="mt-3 flex gap-2 text-sm flex-wrap">
-                        <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                          <Bed size={14} className="text-slate-400" />
-                          <span className="text-slate-500">Loại:</span>
-                          <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                      <div className="mt-4 flex gap-3 text-sm flex-wrap">
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                          <Bed size={16} className="text-slate-400" />
+                          <span className="text-slate-500 font-medium">Loại:</span>
+                          <span className="font-bold text-slate-800">{act.accommodation.roomType}</span>
                         </div>
-                        <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                          <span className="text-slate-500">Yêu cầu:</span>
-                          <span className="font-semibold text-slate-800">{requiredQty} phòng</span>
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                          <span className="text-slate-500 font-medium">Yêu cầu:</span>
+                          <span className="font-bold text-slate-800">{requiredQty} phòng</span>
                         </div>
-                        <div className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 ${
+                        <div className={`inline-flex items-center gap-2 rounded-xl border shadow-sm px-3.5 py-2 ${
                           isFullyBlocked
-                            ? "bg-emerald-50 border-emerald-100"
-                            : "bg-amber-50 border-amber-100"
+                            ? "bg-emerald-50 border-emerald-200"
+                            : "bg-amber-50 border-amber-200"
                         }`}>
-                          <span className="text-slate-500">Đã block:</span>
-                          <span className={`font-semibold ${
-                            isFullyBlocked ? "text-emerald-700" : "text-amber-700"
+                          <span className={`${isFullyBlocked ? "text-emerald-700/80" : "text-amber-700/80"} font-medium`}>Đã block:</span>
+                          <span className={`font-bold ${
+                            isFullyBlocked ? "text-emerald-800" : "text-amber-800"
                           }`}>
                             {roomBlocks} / {requiredQty}
                           </span>
                         </div>
                         {act.accommodation.supplierApprovalStatus && (
-                          <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                            <span className="text-slate-500">Duyệt:</span>
-                            <span className="font-medium text-slate-800">{act.accommodation.supplierApprovalStatus}</span>
+                          <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                            <span className="text-slate-500 font-medium">Duyệt:</span>
+                            <span className="font-bold text-slate-800">{act.accommodation.supplierApprovalStatus}</span>
                           </div>
                         )}
                       </div>
@@ -618,7 +640,7 @@ export default function HotelTourAssignmentPage() {
                   </div>
 
                   {/* ── RIGHT: Assignment form ── */}
-                  {aggregateHotelApproval === 1 && state && (
+                  {aggregateHotelApproval === 1 && !props.instanceId && state && (
                     <div className="flex flex-col gap-3 sm:w-[300px] sm:flex-none">
                       {isFullyBlocked ? (
                         /* ✅ Đã gán đủ: form read-only, chỉ cho phép cập nhật nếu muốn */

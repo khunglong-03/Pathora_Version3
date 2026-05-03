@@ -1,9 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapTrifold, MapPin, Bus, ForkKnife, Buildings, CheckCircle, NavigationArrow } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SAMPLE_ITINERARY } from "./TourGuideItineraryData";
+import { TourGuideInstanceActionPanel } from "./TourGuideInstanceActionPanel";
+import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
 
 const getActivityIcon = (type: string) => {
   switch (type) {
@@ -17,6 +21,29 @@ const getActivityIcon = (type: string) => {
 
 export function TourGuideItinerary({ instanceId }: { instanceId: string }) {
   const [activeDay, setActiveDay] = useState<number>(1);
+  const [isAccepted, setIsAccepted] = useState<boolean>(true); // Default true so it doesn't flash
+  const [loading, setLoading] = useState(true);
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const fetchInstance = async () => {
+    try {
+      const data = await tourInstanceService.getInstanceDetail(instanceId);
+      if (data && user) {
+        const myAssignment = data.managers.find(m => m.userId === user.id && m.role === "Guide");
+        if (myAssignment) {
+          setIsAccepted(myAssignment.isAccepted);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInstance();
+  }, [instanceId, user]);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-8 pb-20">
@@ -29,7 +56,7 @@ export function TourGuideItinerary({ instanceId }: { instanceId: string }) {
           Back to Dashboard
         </Link>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-widest mb-4 border border-indigo-100">
               <MapTrifold weight="bold" className="size-4" />
@@ -43,6 +70,14 @@ export function TourGuideItinerary({ instanceId }: { instanceId: string }) {
             </p>
           </div>
         </div>
+
+        {!loading && (
+          <TourGuideInstanceActionPanel 
+            instanceId={instanceId} 
+            isAccepted={isAccepted} 
+            onSuccess={() => setIsAccepted(true)} 
+          />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           

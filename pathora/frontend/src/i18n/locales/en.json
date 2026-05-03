@@ -3375,6 +3375,12 @@
       "tourPackages": "Tour Packages",
       "ourPolicies": "Our Policies"
     },
+    "sidebar": {
+      "tourDiscovery": "Tour Discovery"
+    },
+    "language": {
+      "title": "Language"
+    },
     "tourDiscovery": {
       "departureCatalogType": "Departure type",
       "instanceType": {

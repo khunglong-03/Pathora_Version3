@@ -36,7 +36,8 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceManagerDto.UserId), opt => opt.MapFrom(src => src.UserId))
             .ForCtorParam(nameof(TourInstanceManagerDto.UserName), opt => opt.MapFrom(src => src.User != null ? src.User.FullName : string.Empty))
             .ForCtorParam(nameof(TourInstanceManagerDto.UserAvatar), opt => opt.MapFrom(src => src.User != null ? src.User.AvatarUrl : null))
-            .ForCtorParam(nameof(TourInstanceManagerDto.Role), opt => opt.MapFrom(src => src.Role.ToString()));
+            .ForCtorParam(nameof(TourInstanceManagerDto.Role), opt => opt.MapFrom(src => src.Role.ToString()))
+            .ForCtorParam(nameof(TourInstanceManagerDto.IsAccepted), opt => opt.MapFrom(src => src.IsAccepted));
 
 
         CreateMap<TourInstancePlanAccommodationEntity, TourInstancePlanAccommodationDto>()

@@ -412,6 +412,7 @@ export interface TourInstanceManagerDto {
   userName: string;
   userAvatar: string | null;
   role: "Guide" | "Manager";
+  isAccepted: boolean;
 }
 
 export interface DynamicPricingDto {

@@ -3361,6 +3361,12 @@
       "tourPackages": "Tour du lịch",
       "ourPolicies": "Chính sách"
     },
+    "sidebar": {
+      "tourDiscovery": "Khám phá Tour"
+    },
+    "language": {
+      "title": "Ngôn ngữ"
+    },
     "tourDiscovery": {
       "departureCatalogType": "Loại khởi hành",
       "instanceType": {
