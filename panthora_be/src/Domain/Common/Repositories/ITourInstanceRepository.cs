@@ -43,8 +43,7 @@ public interface ITourInstanceRepository
     /// <summary>
     /// Lightweight lookup for a TourInstanceDayActivity by ID. Used for IDOR validation
     /// in vehicle availability queries (excludeActivityId ownership check).
-    /// </summary>
-    Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default);
+    Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, bool asNoTracking = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Private tours in <see cref="TourInstanceStatus.PendingAdjustment"/> whose

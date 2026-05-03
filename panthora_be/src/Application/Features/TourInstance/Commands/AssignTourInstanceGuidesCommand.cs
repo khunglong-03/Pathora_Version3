@@ -1,5 +1,7 @@
 using Application.Common.Constant;
 using Application.Common;
+using BuildingBlocks.CORS;
+using Contracts.Interfaces;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;

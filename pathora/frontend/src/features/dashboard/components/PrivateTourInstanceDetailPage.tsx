@@ -490,7 +490,7 @@ export default function PrivateTourInstanceDetailPage() {
           {/* Add Day Form */}
           <AnimatePresence>
             {addingDay && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="bg-white border border-amber-200 rounded-[1.5rem] p-5 space-y-3 overflow-hidden">
+              <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="bg-white border border-amber-200 rounded-[1.5rem] p-5 space-y-3 overflow-hidden">
                 <p className="text-sm font-semibold text-slate-800">Thêm ngày mới</p>
                 <input className={inputCls} placeholder="Tiêu đề ngày *" value={newDayForm.title} onChange={(e) => setNewDayForm((f) => ({ ...f, title: e.target.value }))} />
                 <input type="date" className={inputCls} value={newDayForm.actualDate} onChange={(e) => setNewDayForm((f) => ({ ...f, actualDate: e.target.value }))} />
@@ -526,7 +526,7 @@ export default function PrivateTourInstanceDetailPage() {
               {/* Day edit form */}
               <AnimatePresence>
                 {editingDayId === day.id && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-4 border-b border-amber-100 bg-amber-50/30 space-y-3 overflow-hidden">
+                  <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-4 border-b border-amber-100 bg-amber-50/30 space-y-3 overflow-hidden">
                     <input className={inputCls} placeholder="Tiêu đề" value={dayEditForm.title} onChange={(e) => setDayEditForm((f) => ({ ...f, title: e.target.value }))} />
                     <div className="grid grid-cols-2 gap-3">
                       <input type="date" className={inputCls} value={dayEditForm.actualDate} onChange={(e) => setDayEditForm((f) => ({ ...f, actualDate: e.target.value }))} />
@@ -665,7 +665,7 @@ export default function PrivateTourInstanceDetailPage() {
                       {/* Activity edit form */}
                       <AnimatePresence>
                         {editingActivityId === act.id && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-3 border-t border-amber-100 bg-amber-50/20 space-y-3 overflow-hidden">
+                          <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-3 border-t border-amber-100 bg-amber-50/20 space-y-3 overflow-hidden">
                             <div className="grid grid-cols-2 gap-3">
                               <input type="time" className={inputCls} placeholder="Giờ bắt đầu" value={actEditForm.startTime} onChange={(e) => setActEditForm((f) => ({ ...f, startTime: e.target.value }))} />
                               <input type="time" className={inputCls} placeholder="Giờ kết thúc" value={actEditForm.endTime} onChange={(e) => setActEditForm((f) => ({ ...f, endTime: e.target.value }))} />
@@ -705,7 +705,7 @@ export default function PrivateTourInstanceDetailPage() {
               {/* Add activity form */}
               <AnimatePresence>
                 {addingActivityForDayId === day.id && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-4 border-t border-amber-100 bg-amber-50/20 space-y-3 overflow-hidden">
+                  <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="px-5 py-4 border-t border-amber-100 bg-amber-50/20 space-y-3 overflow-hidden">
                     <p className="text-sm font-semibold text-slate-800">Thêm hoạt động mới</p>
                     <input className={inputCls} placeholder="Tiêu đề *" value={newActForm.title} onChange={(e) => setNewActForm((f) => ({ ...f, title: e.target.value }))} />
                     <select className={inputCls} value={newActForm.activityType} onChange={(e) => setNewActForm((f) => ({ ...f, activityType: Number(e.target.value) }))}>

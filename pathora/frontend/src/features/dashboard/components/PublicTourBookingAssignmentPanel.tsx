@@ -72,7 +72,7 @@ interface Props {
   accommodationActivities: AccommodationActivityInfo[];
   externalTransportActivities: ExternalTransportActivityInfo[];
   onSaveTicket?: (activityId: string, entry: BookingTicketEntry) => Promise<void>;
-  onConfirmExternalTransport?: (activityId: string) => Promise<void>;
+  onConfirmExternalTransport?: (activityId: string, departureTime?: string, arrivalTime?: string) => Promise<void>;
   /** Save 1 booking room assignment to backend */
   onSaveRoomAssignment?: (
     activityId: string,
@@ -653,7 +653,7 @@ export default function PublicTourBookingAssignmentPanel({
                         bookings={bookings}
                         activityDate={activity.date}
                         onSave={(entry) => onSaveTicket?.(activity.activityId, entry)}
-                        onConfirmAll={() => onConfirmExternalTransport?.(activity.activityId)}
+                        onConfirmAll={(dep, arr) => onConfirmExternalTransport?.(activity.activityId, dep, arr)}
                       />
                     </div>
                   </div>

@@ -118,7 +118,7 @@ public sealed class GetAvailableVehiclesQueryHandlerTests
                 new() { Id = mySupplierId, IsActive = true, IsDeleted = false }
             });
 
-        _tourInstanceRepository.FindActivityByIdAsync(excludeActivityId, Arg.Any<CancellationToken>())
+        _tourInstanceRepository.FindActivityByIdAsync(excludeActivityId, true, Arg.Any<CancellationToken>())
             .Returns(new TourInstanceDayActivityEntity
             {
                 Id = excludeActivityId,

@@ -16,7 +16,9 @@ namespace Application.Features.TourInstance.Commands;
 public sealed record ConfirmExternalTransportCommand(
     [property: JsonPropertyName("instanceId")] Guid InstanceId,
     [property: JsonPropertyName("activityId")] Guid ActivityId,
-    [property: JsonPropertyName("confirm")] bool Confirm = true) : ICommand<ErrorOr<Success>>;
+    [property: JsonPropertyName("confirm")] bool Confirm = true,
+    [property: JsonPropertyName("departureTime")] DateTimeOffset? DepartureTime = null,
+    [property: JsonPropertyName("arrivalTime")] DateTimeOffset? ArrivalTime = null) : ICommand<ErrorOr<Success>>;
 
 public sealed class ConfirmExternalTransportCommandValidator : AbstractValidator<ConfirmExternalTransportCommand>
 {
@@ -39,7 +41,7 @@ public sealed class ConfirmExternalTransportCommandHandler(
         var lang = languageContext?.CurrentLanguage ?? ILanguageContext.DefaultLanguage;
         var performedBy = user.Id ?? "system";
 
-        var instance = await tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId);
+        var instance = await tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(
                 ErrorConstants.TourInstance.NotFoundCode,
@@ -68,6 +70,9 @@ public sealed class ConfirmExternalTransportCommandHandler(
 
         if (request.Confirm)
         {
+            if (request.DepartureTime.HasValue) activity.DepartureTime = request.DepartureTime;
+            if (request.ArrivalTime.HasValue) activity.ArrivalTime = request.ArrivalTime;
+
             activity.ConfirmExternalTransport(performedBy);
         }
         else

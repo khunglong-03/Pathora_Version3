@@ -14,6 +14,7 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
   const [bookings, setBookings] = useState<AdminBookingListResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -38,7 +39,7 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
     };
     loadData();
     return () => { isMounted = false; };
-  }, [instanceId]);
+  }, [instanceId, refreshKey]);
 
   if (loading) return <div className="min-h-screen bg-[#f9fafb] p-8 max-w-[1200px] mx-auto"><SkeletonCard /></div>;
   if (error || !instance) return <div className="min-h-screen bg-[#f9fafb] p-8 text-rose-500 font-medium center">{error || "Instance not found"}</div>;
@@ -88,15 +89,35 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
                   <Ticket weight="bold" className="text-blue-500" />
                   External Tickets (Flight, Train, Boat)
                 </h3>
-                {externalTransports.map((act: any) => (
+                {externalTransports.map((act: any, idx: number) => (
                   <ExternalTicketAssignmentPanel
-                    key={(act as any).activityId}
-                    activityId={(act as any).activityId}
+                    key={(act as any).id || `ext-${idx}`}
+                    activityId={(act as any).id}
                     instanceId={instanceId}
                     activityTitle={act.title}
                     transportType={(act.transportationType ?? act.transportationName ?? "Other") as any}
                     bookings={bookings}
-                    activityDate={instance.startDate} // Pass relevant date
+                    activityDate={act.actualDate || instance.startDate} // Pass relevant date
+                    activityStartTime={act.startTime}
+                    activityEndTime={act.endTime}
+                    onSave={async (entry) => {
+                      await tourInstanceService.saveBookingTicket(instanceId, (act as any).id, {
+                        bookingId: entry.bookingId,
+                        flightNumber: entry.flightNumber,
+                        departureAt: entry.departureAt ? new Date(entry.departureAt).toISOString() : null,
+                        arrivalAt: entry.arrivalAt ? new Date(entry.arrivalAt).toISOString() : null,
+                        seatNumbers: entry.seatNumbers,
+                        eTicketNumbers: entry.eTicketNumbers,
+                        seatClass: entry.seatClass,
+                        note: entry.note,
+                      });
+                      console.info("[PrivateTour] Ticket saved for booking", entry.bookingId, "activity", (act as any).id);
+                      setRefreshKey(prev => prev + 1);
+                    }}
+                    onConfirmAll={async (dep, arr) => {
+                      await tourInstanceService.confirmExternalTransport(instanceId, (act as any).id, true, dep, arr);
+                      setRefreshKey(prev => prev + 1);
+                    }}
                   />
                 ))}
               </div>
@@ -109,8 +130,8 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
                   Ground Transport (Bus, Taxi)
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {groundTransports.map((act: any) => (
-                    <div key={(act as any).activityId} className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm flex flex-col gap-4">
+                  {groundTransports.map((act: any, idx: number) => (
+                    <div key={(act as any).id || `gnd-${idx}`} className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm flex flex-col gap-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-bold text-slate-900">{act.title}</h4>

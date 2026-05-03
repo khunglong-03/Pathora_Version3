@@ -353,7 +353,7 @@ public class TourInstanceController : BaseApiController
         [FromBody] ConfirmExternalTransportRequest request)
     {
         var result = await Sender.Send(new ConfirmExternalTransportCommand(
-            instanceId, activityId, request.Confirm));
+            instanceId, activityId, request.Confirm, request.DepartureTime, request.ArrivalTime));
         return HandleResult(result);
     }
 
@@ -520,7 +520,9 @@ public sealed record ChangeTourInstanceStatusRequest(
     [property: JsonPropertyName("status")] TourInstanceStatus Status);
 
 public sealed record ConfirmExternalTransportRequest(
-    [property: JsonPropertyName("confirm")] bool Confirm = true);
+    [property: JsonPropertyName("confirm")] bool Confirm = true,
+    [property: JsonPropertyName("departureTime")] DateTimeOffset? DepartureTime = null,
+    [property: JsonPropertyName("arrivalTime")] DateTimeOffset? ArrivalTime = null);
 
 public sealed record ManagerRejectPrivateRequest(
     [property: JsonPropertyName("reason")] string Reason);

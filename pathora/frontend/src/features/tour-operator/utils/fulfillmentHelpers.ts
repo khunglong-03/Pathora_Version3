@@ -15,7 +15,9 @@ export const calculateBookingPax = (booking: any): number => {
 
 // 2.3 Add helper to flatten tour instance days into transportation and accommodation activity collections
 export const getFulfillmentActivities = (instance: NormalizedTourInstanceDto | any) => {
-  const allActivities: TourInstanceDayActivityDto[] = (instance?.days || []).flatMap((d: any) => d.activities || []);
+  const allActivities = (instance?.days || []).flatMap((d: any) => 
+    (d.activities || []).map((a: any) => ({ ...a, actualDate: d.actualDate }))
+  );
   
   const transportActivities = allActivities.filter((a: any) => a.activityType === "Transportation" || a.activityType === 1);
   const accommodationActivities = allActivities.filter((a: any) => a.activityType === "Accommodation" || a.activityType === 2);

@@ -1,5 +1,6 @@
 using Application.Common.Constant;
 using Application.Common;
+using BuildingBlocks.CORS;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
@@ -17,7 +18,7 @@ public sealed class AssignTourInstanceGuidesCommandHandler(
 
     public async Task<ErrorOr<Success>> Handle(AssignTourInstanceGuidesCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _tourInstanceRepository.FindById(request.Id, cancellationToken);
+        var entity = await _tourInstanceRepository.FindById(request.Id, cancellationToken: cancellationToken);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 

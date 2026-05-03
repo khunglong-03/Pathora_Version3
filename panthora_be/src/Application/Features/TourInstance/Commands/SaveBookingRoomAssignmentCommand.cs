@@ -39,7 +39,7 @@ public sealed class SaveBookingRoomAssignmentCommandHandler(
 {
     public async Task<ErrorOr<Success>> Handle(SaveBookingRoomAssignmentCommand request, CancellationToken cancellationToken)
     {
-        var activity = await instanceRepository.FindActivityByIdAsync(request.ActivityId, cancellationToken);
+        var activity = await instanceRepository.FindActivityByIdAsync(request.ActivityId, true, cancellationToken);
         if (activity == null || activity.TourInstanceDay.TourInstanceId != request.TourInstanceId)
         {
             return Error.NotFound("TourInstance.ActivityNotFound", "Activity không tồn tại.");

@@ -788,10 +788,12 @@ export const tourInstanceService = {
     instanceId: string,
     activityId: string,
     confirm: boolean = true,
+    departureTime?: string,
+    arrivalTime?: string
   ) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.CONFIRM_EXTERNAL_TRANSPORT(instanceId, activityId),
-      { confirm },
+      { confirm, departureTime, arrivalTime },
     );
     return extractResult<unknown>(response.data);
   },

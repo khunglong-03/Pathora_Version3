@@ -556,10 +556,15 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
     }
 
-    public async Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default)
+    public async Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, bool asNoTracking = true, CancellationToken cancellationToken = default)
     {
-        return await _context.TourInstanceDayActivities
-            .AsNoTracking()
+        var query = _context.TourInstanceDayActivities.AsQueryable();
+        if (asNoTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query
             .Include(a => a.TourInstanceDay)
             .Include(a => a.Accommodation)
             .FirstOrDefaultAsync(a => a.Id == activityId, cancellationToken);

@@ -26,6 +26,10 @@ export interface BookingTicketEntry {
   tickets: TicketDetail[];
   seatClass: string;       // Economy / Business / First
   note: string;
+  /** Computed: space-separated seat numbers (populated at save time) */
+  seatNumbers?: string;
+  /** Computed: space-separated e-ticket numbers (populated at save time) */
+  eTicketNumbers?: string;
 }
 
 interface Props {
@@ -38,7 +42,7 @@ interface Props {
   /** Callback khi TourOperator lưu vé cho 1 booking */
   onSave?: (entry: BookingTicketEntry) => Promise<void>;
   /** Callback khi tất cả booking đã được gán vé */
-  onConfirmAll?: () => Promise<void>;
+  onConfirmAll?: (departureTime?: string, arrivalTime?: string) => Promise<void>;
   /** Đang loading */
   loading?: boolean;
   /** Ngày diễn ra hoạt động (YYYY-MM-DD) */
@@ -47,6 +51,10 @@ interface Props {
   activityId?: string;
   /** ID của tour instance để gọi API */
   instanceId?: string;
+  /** Giờ khởi hành của activity trên lịch trình */
+  activityStartTime?: string | null;
+  /** Giờ đến của activity trên lịch trình */
+  activityEndTime?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -71,13 +79,30 @@ export default function ExternalTicketAssignmentPanel({
   activityDate,
   activityId,
   instanceId,
+  activityStartTime,
+  activityEndTime,
 }: Props) {
   const [dataLoading, setDataLoading] = useState(false);
-  const [commonDetails, setCommonDetails] = useState({
-    flightNumber: "",
-    seatClass: "Economy",
-    departureAt: "",
-    arrivalAt: "",
+  const [commonDetails, setCommonDetails] = useState(() => {
+    let defaultDep = "";
+    let defaultArr = "";
+    
+    if (activityDate) {
+      const datePart = activityDate.slice(0, 10);
+      if (activityStartTime) {
+        defaultDep = `${datePart}T${activityStartTime.slice(0, 5)}`;
+      }
+      if (activityEndTime) {
+        defaultArr = `${datePart}T${activityEndTime.slice(0, 5)}`;
+      }
+    }
+
+    return {
+      flightNumber: "",
+      seatClass: "Economy",
+      departureAt: defaultDep,
+      arrivalAt: defaultArr,
+    };
   });
   // Local state: form entries per booking
   const [entries, setEntries] = useState<Record<string, BookingTicketEntry>>(() => {
@@ -142,11 +167,20 @@ export default function ExternalTicketAssignmentPanel({
 
           if (firstTicket) {
             const ft = firstTicket as any;
+            
+            const formatLocal = (dateStr: string) => {
+              if (!dateStr) return "";
+              const d = new Date(dateStr);
+              if (isNaN(d.getTime())) return "";
+              const pad = (n: number) => n.toString().padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            };
+
             setCommonDetails({
               flightNumber: ft.flightNumber || ft.FlightNumber || "",
               seatClass: ft.seatClass || ft.SeatClass || "Economy",
-              departureAt: (ft.departureAt || ft.DepartureAt) ? new Date(ft.departureAt || ft.DepartureAt).toISOString().slice(0, 16) : "",
-              arrivalAt: (ft.arrivalAt || ft.ArrivalAt) ? new Date(ft.arrivalAt || ft.ArrivalAt).toISOString().slice(0, 16) : "",
+              departureAt: formatLocal(ft.departureAt || ft.DepartureAt),
+              arrivalAt: formatLocal(ft.arrivalAt || ft.ArrivalAt),
             });
           }
 
@@ -251,10 +285,11 @@ export default function ExternalTicketAssignmentPanel({
     }
 
     if (activityDate) {
-      const actDate = new Date(activityDate);
-      actDate.setHours(0, 0, 0, 0);
+      const [year, month, day] = activityDate.slice(0, 10).split("-");
+      const actDate = new Date(Number(year), Number(month) - 1, Number(day));
+      
       if (depDate < actDate) {
-        toast.error(`Giờ khởi hành không được trước ngày hoạt động diễn ra (${new Date(activityDate).toLocaleDateString("vi-VN")})`);
+        toast.error(`Giờ khởi hành không được trước ngày hoạt động diễn ra (${day}/${month}/${year})`);
         return;
       }
     }
@@ -295,7 +330,10 @@ export default function ExternalTicketAssignmentPanel({
     }
     try {
       setConfirmingAll(true);
-      await onConfirmAll?.();
+      await onConfirmAll?.(
+        commonDetails.departureAt ? new Date(commonDetails.departureAt).toISOString() : undefined,
+        commonDetails.arrivalAt ? new Date(commonDetails.arrivalAt).toISOString() : undefined
+      );
       toast.success("Đã xác nhận tất cả vé cho activity này!");
     } catch {
       toast.error("Xác nhận thất bại. Vui lòng thử lại.");
@@ -332,6 +370,15 @@ export default function ExternalTicketAssignmentPanel({
           <p className="text-base font-semibold tracking-tight text-stone-900">
             {transportLabel[transportType] ?? transportType} · {activityTitle}
           </p>
+          {(activityDate || activityStartTime || activityEndTime) && (
+            <p className="text-sm font-medium text-blue-600 mt-1 flex items-center gap-1.5">
+              <Icon icon="heroicons:clock" className="size-4" />
+              Lịch trình dự kiến: {activityDate ? (() => {
+                const [y, m, d] = activityDate.slice(0, 10).split("-");
+                return `${d}/${m}/${y}`;
+              })() : ""} {activityStartTime ? activityStartTime.slice(0, 5) : "--:--"} - {activityEndTime ? activityEndTime.slice(0, 5) : "--:--"}
+            </p>
+          )}
           <p className="text-sm text-stone-500 mt-1">
             Gán vé cho từng booking — nhập đủ số ghế cho tất cả hành khách (bao gồm em bé)
           </p>

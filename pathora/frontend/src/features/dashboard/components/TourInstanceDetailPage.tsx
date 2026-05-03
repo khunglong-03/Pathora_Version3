@@ -1992,8 +1992,8 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                     });
                     console.info("[PublicTour] Ticket saved for booking", entry.bookingId, "activity", activityId);
                   }}
-                  onConfirmExternalTransport={async (activityId) => {
-                    await tourInstanceService.confirmExternalTransport(data.id, activityId, true);
+                  onConfirmExternalTransport={async (activityId, dep, arr) => {
+                    await tourInstanceService.confirmExternalTransport(data.id, activityId, true, dep, arr);
                     void loadData();
                   }}
                   onSaveRoomAssignment={async (activityId, payload) => {
