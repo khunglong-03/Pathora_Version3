@@ -698,7 +698,7 @@ export const tourInstanceService = {
   assignTransportSupplier: async (
     instanceId: string,
     activityId: string,
-    data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number }
+    data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number; requestedVehicleCount?: number }
   ) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_TRANSPORT_SUPPLIER(instanceId, activityId),

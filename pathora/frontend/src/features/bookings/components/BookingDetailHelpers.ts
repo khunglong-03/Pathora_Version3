@@ -49,7 +49,7 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
 };
 
 export const getBookingDerivedState = (booking: BookingDetail) => ({
-  totalGuests: booking.adults + booking.children,
+  totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
   showPayRemaining: (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") && booking.status !== "cancelled" && booking.status !== "rejected",
   showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
   showCancelBooking:

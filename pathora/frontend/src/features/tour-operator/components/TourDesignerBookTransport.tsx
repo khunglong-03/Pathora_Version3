@@ -7,6 +7,7 @@ import { bookingService, AdminBookingListResponse } from "@/api/services/booking
 import { NormalizedTourInstanceDto, TourInstanceDayActivityDto } from "@/types/tour";
 import { isQualifiedBooking, calculateBookingPax, getFulfillmentActivities, isActivityExternalTransport } from "../utils/fulfillmentHelpers";
 import ExternalTicketAssignmentPanel from "@/features/dashboard/components/ExternalTicketAssignmentPanel";
+import SupplierReassignmentModal from "@/features/dashboard/components/SupplierReassignmentModal";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId: string; backUrl?: string }) {
@@ -15,6 +16,7 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [reassignActivity, setReassignActivity] = useState<TourInstanceDayActivityDto | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -153,10 +155,21 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
                         </div>
                       </div>
 
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setReassignActivity(act)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
+                        >
+                          <Bus weight="bold" className="size-4" />
+                          Assign Supplier
+                        </button>
+                      </div>
+
                       {!act.transportSupplierId && (
                         <div className="mt-2 bg-amber-50 text-amber-700 p-3 rounded-xl flex items-center gap-2 text-sm font-medium border border-amber-100">
                           <WarningCircle weight="fill" className="size-5 shrink-0" />
-                          Ground transport is handled by Transport Operators.
+                          Ground transport is pending supplier assignment.
                         </div>
                       )}
                     </div>
@@ -167,6 +180,21 @@ export function TourOperatorBookTransport({ instanceId, backUrl }: { instanceId:
           </div>
         )}
       </div>
+
+      {reassignActivity && (
+        <SupplierReassignmentModal
+          open={!!reassignActivity}
+          onClose={() => setReassignActivity(null)}
+          activity={reassignActivity}
+          activityType="Transportation"
+          tourInstanceId={instanceId}
+          minRequiredSeats={instance?.maxParticipation || totalPax}
+          onSuccess={() => {
+            setReassignActivity(null);
+            setRefreshKey(prev => prev + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

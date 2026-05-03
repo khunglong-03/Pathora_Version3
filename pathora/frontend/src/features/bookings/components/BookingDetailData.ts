@@ -27,6 +27,7 @@ export interface BookingDetail {
   returnDate: string;
   adults: number;
   children: number;
+  infants: number;
   pricePerPerson: number;
   totalAmount: number;
   paidAmount: number;
@@ -59,6 +60,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "March 16, 2026",
     adults: 2,
     children: 1,
+    infants: 0,
     pricePerPerson: 1425,
     totalAmount: 2850,
     paidAmount: 1425,
@@ -96,6 +98,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "February 11, 2026",
     adults: 2,
     children: 0,
+    infants: 0,
     pricePerPerson: 1600,
     totalAmount: 3200,
     paidAmount: 3200,
@@ -129,6 +132,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "April 19, 2026",
     adults: 5,
     children: 2,
+    infants: 0,
     pricePerPerson: 600,
     totalAmount: 4200,
     paidAmount: 4200,
@@ -162,6 +166,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "May 26, 2026",
     adults: 2,
     children: 0,
+    infants: 0,
     pricePerPerson: 2800,
     totalAmount: 5600,
     paidAmount: 0,
@@ -195,6 +200,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "January 8, 2026",
     adults: 1,
     children: 0,
+    infants: 0,
     pricePerPerson: 890,
     totalAmount: 890,
     paidAmount: 890,
@@ -226,6 +232,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "March 5, 2026",
     adults: 4,
     children: 0,
+    infants: 0,
     pricePerPerson: 1200,
     totalAmount: 4800,
     paidAmount: 4800,
@@ -258,6 +265,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "April 23, 2026",
     adults: 2,
     children: 0,
+    infants: 0,
     pricePerPerson: 800,
     totalAmount: 1600,
     paidAmount: 480,
@@ -289,6 +297,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "May 12, 2026",
     adults: 3,
     children: 1,
+    infants: 0,
     pricePerPerson: 600,
     totalAmount: 2400,
     paidAmount: 0,
@@ -323,6 +332,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "June 10, 2026",
     adults: 2,
     children: 0,
+    infants: 0,
     pricePerPerson: 4250,
     totalAmount: 8500,
     paidAmount: 4250,
@@ -358,6 +368,7 @@ export const SAMPLE_BOOKINGS: Record<string, BookingDetail> = {
     returnDate: "April 5, 2026",
     adults: 2,
     children: 1,
+    infants: 0,
     pricePerPerson: 2067,
     totalAmount: 6200,
     paidAmount: 0,

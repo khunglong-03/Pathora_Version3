@@ -22,6 +22,7 @@ interface SupplierReassignmentModalProps {
   activity: TourInstanceDayActivityDto;
   activityType: "Transportation" | "Accommodation";
   tourInstanceId: string;
+  minRequiredSeats?: number;
   onSuccess: () => void;
 }
 
@@ -50,6 +51,7 @@ export default function SupplierReassignmentModal({
   activity,
   activityType,
   tourInstanceId,
+  minRequiredSeats,
   onSuccess,
 }: SupplierReassignmentModalProps) {
   const { t } = useTranslation();
@@ -66,6 +68,9 @@ export default function SupplierReassignmentModal({
   const [requestedSeatCount, setRequestedSeatCount] = useState<number>(
     activity.requestedSeatCount ?? 0,
   );
+  const [requestedVehicleCount, setRequestedVehicleCount] = useState<number>(
+    activity.requestedVehicleCount ?? 1,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   // Track dirty state for Esc guard
@@ -73,14 +78,16 @@ export default function SupplierReassignmentModal({
     supplierId: "",
     vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
     seatCount: activity.requestedSeatCount ?? 0,
+    vehicleCount: activity.requestedVehicleCount ?? 1,
   });
 
   const isDirty = useMemo(
     () =>
       selectedSupplierId !== initialValues.current.supplierId ||
       requestedVehicleType !== initialValues.current.vehicleType ||
-      requestedSeatCount !== initialValues.current.seatCount,
-    [selectedSupplierId, requestedVehicleType, requestedSeatCount],
+      requestedSeatCount !== initialValues.current.seatCount ||
+      requestedVehicleCount !== initialValues.current.vehicleCount,
+    [selectedSupplierId, requestedVehicleType, requestedSeatCount, requestedVehicleCount],
   );
 
   // Refs for focus management
@@ -129,10 +136,12 @@ export default function SupplierReassignmentModal({
         toVehicleTypeSelectValue(activity.requestedVehicleType),
       );
       setRequestedSeatCount(activity.requestedSeatCount ?? 0);
+      setRequestedVehicleCount(activity.requestedVehicleCount ?? 1);
       initialValues.current = {
         supplierId: "",
         vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
         seatCount: activity.requestedSeatCount ?? 0,
+        vehicleCount: activity.requestedVehicleCount ?? 1,
       };
     }
   }, [open, fetchSuppliers, activity, isExternalOnly]);
@@ -197,7 +206,8 @@ export default function SupplierReassignmentModal({
           supplierId: selectedSupplierId,
           requestedVehicleType: Number(requestedVehicleType),
           requestedSeatCount,
-        });
+          requestedVehicleCount,
+        } as any); // Using any because the type in service might not have requestedVehicleCount yet
       } else {
         await tourInstanceService.assignAccommodationSupplier(
           tourInstanceId,
@@ -385,7 +395,7 @@ export default function SupplierReassignmentModal({
             </div>
 
             {activityType === "Transportation" && (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <label htmlFor="vehicle-type-select" className="mb-1 block text-sm font-medium text-slate-700">
                     Loại xe yêu cầu
@@ -419,6 +429,35 @@ export default function SupplierReassignmentModal({
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
+                <div>
+                  <label htmlFor="vehicle-count-input" className="mb-1 block text-sm font-medium text-slate-700">
+                    Số lượng xe
+                  </label>
+                  <input
+                    id="vehicle-count-input"
+                    type="number"
+                    min={1}
+                    value={requestedVehicleCount}
+                    onChange={(e) => setRequestedVehicleCount(Number(e.target.value))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {activityType === "Transportation" && minRequiredSeats !== undefined && (
+              <div className="text-sm">
+                {requestedSeatCount * requestedVehicleCount < minRequiredSeats ? (
+                  <p className="text-rose-600 flex items-center gap-1.5 mt-2">
+                    <Icon icon="heroicons:exclamation-circle" className="size-4" />
+                    Tổng số chỗ ngồi ({requestedSeatCount * requestedVehicleCount}) đang ít hơn số lượng khách ({minRequiredSeats})
+                  </p>
+                ) : (
+                  <p className="text-emerald-600 flex items-center gap-1.5 mt-2">
+                    <Icon icon="heroicons:check-circle" className="size-4" />
+                    Tổng số chỗ ngồi: {requestedSeatCount * requestedVehicleCount} (Đủ cho {minRequiredSeats} khách)
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -442,6 +481,7 @@ export default function SupplierReassignmentModal({
                 !selectedSupplierId
                 || submitting
                 || (activityType === "Transportation" && !requestedVehicleType)
+                || (activityType === "Transportation" && minRequiredSeats !== undefined && (requestedSeatCount * requestedVehicleCount < minRequiredSeats))
               }
               className={`rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
                 isApproved

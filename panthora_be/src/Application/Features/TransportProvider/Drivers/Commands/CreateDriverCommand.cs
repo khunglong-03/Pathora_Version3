@@ -58,6 +58,12 @@ public sealed class CreateDriverCommandHandler(
         CreateDriverCommand request,
         CancellationToken cancellationToken)
     {
+        var exists = await driverRepository.ExistsByLicenseNumberAsync(request.Request.LicenseNumber, cancellationToken);
+        if (exists)
+        {
+            return Error.Conflict("Driver.LicenseNumberExists", "Số bằng lái này đã tồn tại trong hệ thống.");
+        }
+
         var driver = Domain.Entities.DriverEntity.Create(
             request.CurrentUserId,
             request.Request.FullName,

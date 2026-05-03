@@ -57,6 +57,15 @@ public sealed class UpdateDriverCommandHandler(
         if (driver is null)
             return Error.NotFound(Application.Common.Constant.ErrorConstants.User.NotFoundCode, "Resource not found.");
 
+        if (!string.IsNullOrEmpty(request.Request.LicenseNumber) && request.Request.LicenseNumber != driver.LicenseNumber)
+        {
+            var exists = await driverRepository.ExistsByLicenseNumberAsync(request.Request.LicenseNumber, cancellationToken);
+            if (exists)
+            {
+                return Error.Conflict("Driver.LicenseNumberExists", "Số bằng lái này đã tồn tại trong hệ thống.");
+            }
+        }
+
         string? oldPublicId = null;
         if (!string.IsNullOrEmpty(driver.AvatarUrl) && driver.AvatarUrl != request.Request.AvatarUrl)
         {

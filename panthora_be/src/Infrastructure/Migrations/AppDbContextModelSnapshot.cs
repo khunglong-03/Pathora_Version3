@@ -3306,9 +3306,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bytea")
                         .HasDefaultValue(new byte[0]);
 

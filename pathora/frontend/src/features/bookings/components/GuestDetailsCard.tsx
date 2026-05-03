@@ -64,7 +64,24 @@ export function GuestDetailsCard({ booking, totalGuests }: GuestDetailsCardProps
           <p className="text-4xl font-bold font-mono text-slate-900 tracking-tighter">{booking.children}</p>
         </motion.div>
 
-        {/* Total */}
+        {/* Infants */}
+        {(booking.infants ?? 0) > 0 && (
+          <motion.div 
+            whileHover={{ scale: 1.01 }}
+            className="flex items-center justify-between p-5 rounded-[1.5rem] bg-slate-50 border border-slate-100/50 transition-colors hover:bg-slate-100"
+          >
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-[1rem] bg-white flex items-center justify-center shadow-sm shrink-0 border border-slate-100">
+                <Baby weight="fill" className="size-5 text-pink-400" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-slate-900">Infants</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-1">Under 2</p>
+              </div>
+            </div>
+            <p className="text-4xl font-bold font-mono text-slate-900 tracking-tighter">{booking.infants}</p>
+          </motion.div>
+        )}
         <div className="flex items-center justify-between p-8 mt-4 rounded-[2rem] bg-slate-900 text-white relative overflow-hidden shadow-xl shadow-slate-900/10">
           {/* Subtle moving mesh background */}
           <motion.div 
