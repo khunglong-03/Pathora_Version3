@@ -3612,7 +3612,8 @@
       "ctaTitle": "Bắt đầu hành trình",
       "ctaTitleWith": "cùng Pathora",
       "ctaDescription": "Gia nhập hàng ngàn khách du lịch hài lòng. Đặt ngay kỳ nghỉ trong mơ của bạn và để chúng tôi lo phần còn lại.",
-      "browsePackageTours": "Xem các gói Tour"
+      "browsePackageTours": "Xem các gói Tour",
+      "toursLed": "Chuyến đi đã dẫn"
     },
     "checkout": {
       "accountHolder": "Chủ tài khoản",

@@ -3626,7 +3626,8 @@
       "ctaTitle": "Start your journey",
       "ctaTitleWith": "with Pathora",
       "ctaDescription": "Join thousands of satisfied travelers. Book your dream vacation today and let us handle all the details.",
-      "browsePackageTours": "Browse Package Tours"
+      "browsePackageTours": "Browse Package Tours",
+      "toursLed": "Tours Led"
     },
     "checkout": {
       "accountHolder": "Account Holder",

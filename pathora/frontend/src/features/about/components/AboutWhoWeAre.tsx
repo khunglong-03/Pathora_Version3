@@ -37,7 +37,7 @@ const MagneticButton = ({ children, href }: { children: React.ReactNode; href: s
         href={href}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="mt-8 inline-h-stack items-center gap-2 bg-[#fa8b02] text-white font-semibold text-sm px-8 py-4 rounded-xl hover:bg-[#fa8b02]/90 transition-colors relative overflow-hidden"
+        className="mt-8 inline-flex items-center gap-2 bg-[#fa8b02] text-white font-semibold text-sm px-8 py-4 rounded-xl hover:bg-[#fa8b02]/90 transition-colors relative overflow-hidden"
       >
         <span className="relative z-10 h-stack items-center gap-2">
           {children}

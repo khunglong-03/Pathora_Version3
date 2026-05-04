@@ -11,6 +11,7 @@ namespace Api.Controllers;
 [Route(DepositPolicyEndpoint.Base)]
 public class DepositPolicyController : BaseApiController
 {
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

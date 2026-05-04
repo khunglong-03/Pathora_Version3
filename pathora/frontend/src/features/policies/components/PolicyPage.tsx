@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ import { Icon } from "@/components/ui";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import type { PolicySection } from "@/types/siteContent";
 import { normalizePolicySections } from "../utils/normalizePolicySections";
+import { useSystemPolicySections } from "../hooks/useSystemPolicySections";
 
 /* ── Motion & Style Constants ── */
 const SPRING_TRANSITION = { type: "spring", stiffness: 100, damping: 20 } as const;
@@ -283,10 +284,32 @@ const FloatingButtons = () => (
 /*  Main Policy Page                                          */
 /* ═══════════════════════════════════════════════════════════ */
 export const PolicyPage = () => {
-  const { content, loading, error } = useSiteContent("policies");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const { content, loading: cmsLoading, error: cmsError } = useSiteContent("policies");
+  const { sections: systemSections, loading: sysLoading, error: sysError } = useSystemPolicySections();
 
   const raw = content?.["policy-sections"];
-  const { sections: policySections } = normalizePolicySections(raw);
+  const { sections: cmsSections } = normalizePolicySections(raw);
+
+  const policySections: PolicySection[] = [...systemSections, ...cmsSections];
+  const loading = cmsLoading || sysLoading;
+  const error = sysError || cmsError;
+
+  if (!mounted) {
+    return (
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="bg-[#f9fafb] text-slate-900 min-h-screen selection:bg-slate-900 selection:text-white pb-24"
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-10">
+          <PolicyContentLoading />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main
