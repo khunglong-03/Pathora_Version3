@@ -249,6 +249,20 @@ export interface BookingDetailResponse {
   supplierPayables: SupplierPayableDto[];
   assignedTourGuides: BookingTourGuideDto[];
   activityStatuses: TourDayActivityStatusDto[];
+  cancellationRequest?: BookingCancellationRequestSummaryDto;
+  cancellationRequests: BookingCancellationRequestSummaryDto[];
+}
+
+export interface BookingCancellationRequestSummaryDto {
+  requestId: string;
+  status: string;
+  feePercent: number;
+  paidAmountSnapshot: number;
+  refundAmount: number;
+  managerNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  refundConfirmedAt: string | null;
 }
 
 // Helper functions to convert string to enum

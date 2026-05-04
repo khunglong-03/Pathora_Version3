@@ -287,6 +287,14 @@ public class PaymentService : IPaymentService
         // (matched by content + amount from SePay), we must mark the payment as paid
         // regardless of expiration. The expiration sweep handles auto-cancellation separately.
 
+        var booking = transaction.Booking ?? await _bookingRepository.GetByIdAsync(transaction.BookingId);
+        
+        if (booking != null && (booking.Status == BookingStatus.PendingCancellation || booking.Status == BookingStatus.Cancelled))
+        {
+            _logger.LogWarning("Payment webhook received for booking {Id} in {Status} state — skipping update", booking.Id, booking.Status);
+            return transaction;
+        }
+
         // Mark transaction as paid
         transaction.MarkAsPaid(
             paidAmount: transactionData.Amount,
@@ -398,12 +406,12 @@ public class PaymentService : IPaymentService
 
         if (updateResult.ShouldTriggerAssignments)
         {
-            var booking = transaction.Booking ?? await _bookingRepository.GetByIdWithDetailsAsync(transaction.BookingId);
-            if (booking != null)
+            var assignmentBooking = bookingForCredit ?? booking;
+            if (assignmentBooking != null)
             {
                 using var scope = _serviceProvider.CreateScope();
                 var tourService = scope.ServiceProvider.GetRequiredService<ITourInstanceService>();
-                await tourService.TriggerProviderAssignmentsAsync(booking.TourInstanceId, CancellationToken.None);
+                await tourService.TriggerProviderAssignmentsAsync(assignmentBooking.TourInstanceId, CancellationToken.None);
             }
         }
 
@@ -424,6 +432,26 @@ public class PaymentService : IPaymentService
             _logger.LogWarning("Booking {BookingId} not found for transaction {TransactionCode}",
                 transaction.BookingId, transaction.TransactionCode);
             return (false, false);
+        }
+
+        // 10.C Guard: do NOT process payment for bookings awaiting cancellation review or already cancelled.
+        // Return idempotent ack (true = success) so the webhook gets a 200, but skip all state mutations.
+        if (booking.Status == BookingStatus.PendingCancellation)
+        {
+            _logger.LogWarning(
+                "Payment webhook received for booking {BookingId} in PendingCancellation state — skipping update. " +
+                "Transaction {TransactionCode}. Manual reconciliation required if funds were transferred.",
+                booking.Id, transaction.TransactionCode);
+            return (true, false);
+        }
+
+        if (booking.Status == BookingStatus.Cancelled)
+        {
+            _logger.LogWarning(
+                "Payment webhook received for booking {BookingId} in Cancelled state — skipping update. " +
+                "Transaction {TransactionCode}. Manual reconciliation required if funds were transferred.",
+                booking.Id, transaction.TransactionCode);
+            return (true, false);
         }
 
         var tourInstance = await _tourInstanceRepository.FindByIdWithTourForPaymentAsync(booking.TourInstanceId, CancellationToken.None);

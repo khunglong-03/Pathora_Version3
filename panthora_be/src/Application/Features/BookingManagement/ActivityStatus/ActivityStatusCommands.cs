@@ -331,10 +331,7 @@ public sealed record GetActivityStatusesQuery([property: JsonPropertyName("booki
 public sealed class GetActivityStatusesQueryHandler(
     IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
-    ITourDayActivityGuideRepository tourDayActivityGuideRepository,
-    IOwnershipValidator ownershipValidator,
-    ITourInstanceRepository tourInstanceRepository,
-    IUser user)
+    ITourDayActivityGuideRepository tourDayActivityGuideRepository)
     : IQueryHandler<GetActivityStatusesQuery, ErrorOr<List<TourDayActivityStatusDto>>>
 {
     public async Task<ErrorOr<List<TourDayActivityStatusDto>>> Handle(GetActivityStatusesQuery request, CancellationToken cancellationToken)

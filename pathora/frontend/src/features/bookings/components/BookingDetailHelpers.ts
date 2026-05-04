@@ -17,6 +17,7 @@ export const getStatusLabel = (t: (key: string) => string, s: BookingStatus) => 
     approved: t("landing.bookingDetail.statusApproved"),
     cancelled: t("landing.bookingDetail.statusCancelled"),
     rejected: t("landing.bookingDetail.statusRejected"),
+    pending_cancellation: t("landing.bookingDetail.statusPendingCancellation"),
   };
   return map[s];
 };

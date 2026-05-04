@@ -33,6 +33,8 @@ public class BookingDetailDto
     public List<string> ImportantInfo { get; set; } = [];
     public string? PendingTransactionCode { get; set; }
     public List<PendingTransactionDto> PendingTransactions { get; set; } = [];
+    public BookingCancellationRequestSummaryDto? CancellationRequest { get; set; }
+    public List<BookingCancellationRequestSummaryDto> CancellationRequests { get; set; } = [];
 }
 
 public class PendingTransactionDto
@@ -44,3 +46,17 @@ public class PendingTransactionDto
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
 }
+
+public class BookingCancellationRequestSummaryDto
+{
+    public Guid RequestId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public int FeePercent { get; set; }
+    public decimal PaidAmountSnapshot { get; set; }
+    public decimal RefundAmount { get; set; }
+    public string? ManagerNote { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public DateTimeOffset? RefundConfirmedAt { get; set; }
+}
+

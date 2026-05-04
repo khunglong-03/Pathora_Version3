@@ -6,7 +6,8 @@ export type BookingStatus =
   | "pending_approval"
   | "approved"
   | "cancelled"
-  | "rejected";
+  | "rejected"
+  | "pending_cancellation";
 
 export type TourTier = "standard" | "luxury" | "premium";
 export type PaymentStatus = "paid" | "partial" | "unpaid";
@@ -41,6 +42,8 @@ export interface BookingDetail {
   isVisaRequired?: boolean;
   tourStatus?: string;
   visaServiceFeeTotal?: number;
+  cancellationRequest?: any;
+  cancellationRequests?: any[];
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */
@@ -403,6 +406,7 @@ export const STATUS_CONFIG: Record<
   approved: { bg: "bg-emerald-500", text: "text-white" },
   cancelled: { bg: "bg-red-500", text: "text-white" },
   rejected: { bg: "bg-red-600", text: "text-white" },
+  pending_cancellation: { bg: "bg-orange-500", text: "text-white" },
 };
 
 export const TIER_CONFIG: Record<TourTier, { bg: string; text: string }> = {

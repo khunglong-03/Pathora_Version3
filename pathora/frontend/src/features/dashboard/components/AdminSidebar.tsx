@@ -18,6 +18,7 @@ import {
   CertificateIcon,
   GearIcon,
   XIcon,
+  XCircleIcon,
   ListIcon,
   BellIcon,
   BuildingsIcon,
@@ -37,6 +38,9 @@ import { AdminLogoutButton } from "./AdminLogoutButton";
 import { useTranslation } from "react-i18next";
 import { signalRService, CustomTourRequestUpdate } from "@/api/services/signalRService";
 import { toast } from "react-toastify";
+import axiosInstance from "@/api/axiosInstance";
+import { BOOKING_CANCELLATION } from "@/api/endpoints/bookingCancellation";
+import { CancellationRequestUpdate } from "@/api/services/signalRService";
 
 /* ══════════════════════════════════════════════════════════════
    Navigation Items - Single Source of Truth
@@ -64,6 +68,11 @@ export const MANAGER_NAV_ITEMS = [
     href: "/manager/dashboard/custom-tour-requests",
   },
   { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
+  {
+    label: "Cancellations",
+    icon: XCircleIcon,
+    href: "/manager/dashboard/cancellations",
+  },
   {
     label: "Payments",
     icon: CreditCardIcon,
@@ -246,6 +255,7 @@ export function AdminSidebar({
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingCancellationCount, setPendingCancellationCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -374,10 +384,25 @@ export function AdminSidebar({
     }
   }, []);
 
+  const loadPendingCancellationCount = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(BOOKING_CANCELLATION.MANAGER_LIST, {
+        params: { status: "PendingManagerReview", page: 1, pageSize: 1 }
+      });
+      if (response.data && response.data.totalCount !== undefined) {
+        setPendingCancellationCount(response.data.totalCount);
+      }
+    } catch {
+      setPendingCancellationCount(0);
+    }
+  }, []);
+
   useEffect(() => {
     if (variant === "manager") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadPendingCount();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadPendingCancellationCount();
 
       const handleCustomRequest = (update: CustomTourRequestUpdate) => {
         toast.info(`Yêu cầu Custom Tour mới từ ${update.customerName}`);
@@ -386,15 +411,24 @@ export function AdminSidebar({
       };
 
       const unsubscribe = signalRService.onCustomTourRequest(handleCustomRequest);
+      
+      const handleCancellationRequest = (update: CancellationRequestUpdate) => {
+        toast.info(`Yêu cầu hủy từ booking ${update.bookingId.substring(0, 8)}...`);
+        setPendingCancellationCount((prev) => prev + 1);
+        window.dispatchEvent(new CustomEvent("refresh-cancellation-requests"));
+      };
+      const unsubscribeCancellation = signalRService.onCancellationRequest(handleCancellationRequest);
+
       return () => {
         unsubscribe();
+        unsubscribeCancellation();
       };
     }
     if (variant === "provider") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadCompanyName();
     }
-  }, [variant, loadPendingCount, loadCompanyName]);
+  }, [variant, loadPendingCount, loadPendingCancellationCount, loadCompanyName]);
 
   const isActive = (href: string) => {
     const exactMatchHrefs = [
@@ -839,6 +873,21 @@ export function AdminSidebar({
                           }}
                           className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white ml-auto">
                           {pendingCount > 99 ? "99+" : pendingCount}
+                        </motion.span>
+                      )}
+
+                      {/* Pending count badge for Cancellations */}
+                      {item.label === "Cancellations" && pendingCancellationCount > 0 && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 15,
+                          }}
+                          className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ml-auto">
+                          {pendingCancellationCount > 99 ? "99+" : pendingCancellationCount}
                         </motion.span>
                       )}
 

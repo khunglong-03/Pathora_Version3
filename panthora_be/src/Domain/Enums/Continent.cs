@@ -20,5 +20,11 @@ public enum Continent
     Oceania = 5,
 
     [Description("Châu Nam Cực")]
-    Antarctica = 6
+    Antarctica = 6,
+
+    [Description("Trong nước")]
+    Domestic = 7,
+
+    [Description("Quốc tế")]
+    International = 8
 }

@@ -10,6 +10,7 @@ namespace Application.Features.BookingManagement.Queries.GetBookingDetail;
 
 public class GetBookingDetailQueryHandler(
     IBookingRepository bookingRepository,
+    IBookingCancellationRequestRepository cancellationRequestRepository,
     Application.Common.Interfaces.ICurrentUser currentUser) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
 {
     public async Task<ErrorOr<BookingDetailDto>> Handle(GetBookingDetailQuery request, CancellationToken cancellationToken)
@@ -99,6 +100,25 @@ public class GetBookingDetailQueryHandler(
                 ExpiresAt = null // If you have an ExpiresAt logic, add it here
             }).ToList()
         };
+
+        var allRequests = await cancellationRequestRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+        if (allRequests.Count > 0)
+        {
+            dto.CancellationRequests = allRequests.OrderByDescending(r => r.CreatedOnUtc).Select(req => new BookingCancellationRequestSummaryDto
+            {
+                RequestId = req.Id,
+                Status = req.Status.ToString(),
+                FeePercent = req.FeePercent,
+                PaidAmountSnapshot = req.PaidAmountSnapshot,
+                RefundAmount = req.RefundAmount,
+                ManagerNote = req.ManagerNote,
+                CreatedAt = req.CreatedAt,
+                ReviewedAt = req.ReviewedAt,
+                RefundConfirmedAt = req.RefundConfirmedAt
+            }).ToList();
+
+            dto.CancellationRequest = dto.CancellationRequests.FirstOrDefault();
+        }
 
         return dto;
     }

@@ -40,6 +40,7 @@ import type {
   TourRequestEndpoints,
   PaymentEndpoints,
 } from "./booking";
+import type { BookingCancellationEndpoints } from "./bookingCancellation";
 import type {
   PricingPolicyEndpoints,
   DepositPolicyEndpoints,
@@ -85,6 +86,7 @@ export type {
   TourRequestEndpoints,
   PaymentEndpoints,
 } from "./booking";
+export type { BookingCancellationEndpoints } from "./bookingCancellation";
 export type {
   PricingPolicyEndpoints,
   DepositPolicyEndpoints,
@@ -126,6 +128,7 @@ import {
   TOUR_REQUESTS,
   PAYMENT,
 } from "./booking";
+import { BOOKING_CANCELLATION } from "./bookingCancellation";
 import {
   PRICING_POLICY,
   DEPOSIT_POLICY,
@@ -162,6 +165,7 @@ export {
   TOUR_REQUESTS,
   PAYMENT,
 } from "./booking";
+export { BOOKING_CANCELLATION } from "./bookingCancellation";
 export {
   PRICING_POLICY,
   DEPOSIT_POLICY,
@@ -222,6 +226,7 @@ export interface ApiEndpoints {
   MANAGER: ManagerEndpoints;
   WITHDRAWAL: WithdrawalEndpoints;
   HOTEL_PROVIDER: HotelProviderEndpoints;
+  BOOKING_CANCELLATION: BookingCancellationEndpoints;
 }
 
 // Main endpoint object
@@ -256,6 +261,7 @@ export const API_ENDPOINTS: ApiEndpoints = {
   TOUR_MANAGER_ASSIGNMENT,
   MANAGER,
   WITHDRAWAL,
+  BOOKING_CANCELLATION,
 };
 
 // Backwards-compatible default export

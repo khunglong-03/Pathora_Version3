@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Yêu cầu hủy đặt chỗ bị từ chối</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Xin chào {{ customer_name }},</h2>
+        <p>Yêu cầu hủy đặt chỗ của bạn cho tour <strong>{{ tour_name }}</strong> (Mã: {{ booking_id }}) đã bị từ chối.</p>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+            <strong>Lý do từ chối:</strong><br />
+            {{ manager_note }}
+        </div>
+        
+        <p>Vui lòng liên hệ với chúng tôi để biết thêm chi tiết hoặc nếu bạn có bất kỳ câu hỏi nào.</p>
+        <p>Trân trọng,<br />Đội ngũ Pathora</p>
+    </div>
+</body>
+</html>

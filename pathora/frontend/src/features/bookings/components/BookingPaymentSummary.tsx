@@ -10,6 +10,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { paymentService } from "@/api/services/paymentService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useAuth } from "@/contexts/AuthContext";
+import { CancelBookingModal } from "./CancelBookingModal";
+import { useCancellationEstimate } from "../hooks/useCancellationEstimate";
+import { useRequestCancellationMutation } from "@/store/api/bookingCancellationApi";
+import { useTranslation } from "react-i18next";
 
 interface BookingPaymentSummaryProps {
   booking: BookingDetail;
@@ -26,9 +30,31 @@ export function BookingPaymentSummary({
   showCancelBooking,
   getPaymentStatusLabel,
 }: BookingPaymentSummaryProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [creatingTransaction, setCreatingTransaction] = useState(false);
+
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const { estimate, isLoading: isEstimateLoading } = useCancellationEstimate(
+    isCancelModalOpen ? booking.id : null
+  );
+  const [requestCancellation, { isLoading: isRequesting }] =
+    useRequestCancellationMutation();
+
+  const handleConfirmCancel = async (reason: string) => {
+    try {
+      await requestCancellation({
+        bookingId: booking.id,
+        reason,
+      }).unwrap();
+      toast.success("Cancellation request submitted successfully.");
+      setIsCancelModalOpen(false);
+    } catch (error: unknown) {
+      const handledError = handleApiError(error);
+      toast.error(handledError.message || "Failed to submit cancellation request.");
+    }
+  };
 
   const handlePayRemaining = async () => {
     if (creatingTransaction) return;
@@ -145,12 +171,13 @@ export function BookingPaymentSummary({
               <button
                 type="button"
                 onClick={handlePayRemaining}
-                disabled={creatingTransaction}
+                disabled={creatingTransaction || booking.status === "pending_cancellation"}
                 className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
-                  creatingTransaction
-                    ? "bg-emerald-400 cursor-not-allowed"
-                    : "bg-emerald-500 cursor-pointer"
+                  creatingTransaction || booking.status === "pending_cancellation"
+                    ? "bg-slate-400 cursor-not-allowed"
+                    : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
                 }`}
+                title={booking.status === "pending_cancellation" ? t("landing.bookings.paymentDisabledPendingCancellation") : ""}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <CurrencyCircleDollar weight="bold" className="size-5 relative z-10" />
@@ -165,17 +192,27 @@ export function BookingPaymentSummary({
 
           {showCancelBooking && (
             <motion.div key="btn-cancel" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href={`/bookings/${booking.id}/cancellation`}
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(true)}
                 className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] border border-red-100 bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100/50 transition-colors mt-2"
               >
                 <XCircle weight="bold" className="size-5" />
                 Cancel Booking
-              </Link>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      <CancelBookingModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+        isLoading={isEstimateLoading}
+        isRequesting={isRequesting}
+        estimate={estimate}
+      />
     </motion.div>
   );
 }

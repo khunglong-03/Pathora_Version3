@@ -89,6 +89,8 @@ internal static class DependencyInjection
         services.AddScoped<ITourInstanceBookingTicketRepository, TourInstanceBookingTicketRepository>();
         services.AddScoped<ITourInstanceBookingRoomAssignmentRepository, TourInstanceBookingRoomAssignmentRepository>();
 
+        services.AddScoped<IBookingCancellationRequestRepository, BookingCancellationRequestRepository>();
+
         return services;
     }
 }

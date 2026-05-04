@@ -22,6 +22,7 @@ import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
+import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
 
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
@@ -178,6 +179,7 @@ export function BookingDetailPage() {
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
               />
+              <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
               <BookingNeedHelp />
             </div>
           </div>
