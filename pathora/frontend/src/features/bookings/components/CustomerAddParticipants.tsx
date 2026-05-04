@@ -223,35 +223,6 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
     updateParticipant(id, "dob", dob);
   };
 
-  const addParticipant = () => {
-    if (participants.length >= maxParticipants && maxParticipants > 0) {
-      toast.error(`You can only add up to ${maxParticipants} guests for this booking.`);
-      return;
-    }
-    setParticipants(prev => [...prev, {
-      id: `new-${Date.now()}`,
-      fullName: "",
-      dob: "",
-      gender: 0,
-      nationality: "VN",
-      participantType: "Adult",
-      documentUploaded: false,
-      hasVisaApp: false,
-      isNew: true,
-      ...blankVisaFields({ nationality: "VN", minReturnDate: tourReturnDate }),
-    }]);
-  };
-
-  const removeParticipant = async (id: string) => {
-    const p = participants.find(x => x.id === id);
-    if (!p) return;
-    if (!p.isNew) {
-      toast.error("Cannot remove an existing participant from this interface yet.");
-      return;
-    }
-    setParticipants(prev => prev.filter(p => p.id !== id));
-  };
-
   const handleFileUpload = async (participantId: string, field: "passportFileUrl" | "visaFileUrl", file: File) => {
     setUploadingFiles((prev) => ({ ...prev, [`${participantId}-${field}`]: true }));
     try {
@@ -447,15 +418,6 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold tracking-tight text-slate-900">Guest {index + 1}</h3>
-                  {p.isNew && (
-                    <button
-                      onClick={() => removeParticipant(p.id)}
-                      className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors"
-                      title="Remove Participant"
-                    >
-                      <Trash weight="bold" className="size-5" />
-                    </button>
-                  )}
                 </div>
 
                 {/* Basic info */}
@@ -732,18 +694,6 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
               </motion.div>
             ))}
           </AnimatePresence>
-
-          {(maxParticipants === 0 || participants.length < maxParticipants) && (
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={addParticipant}
-              className="w-full py-6 rounded-[2.5rem] border-2 border-dashed border-slate-200 text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center justify-center gap-3"
-            >
-              <UserCirclePlus weight="fill" className="size-6" />
-              Add Another Guest
-            </motion.button>
-          )}
         </div>
 
         <div className="mt-12 flex justify-end gap-4">
