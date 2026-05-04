@@ -21,11 +21,13 @@ public sealed record GetHomeStatsQuery([property: JsonPropertyName("language")] 
 public sealed class GetHomeStatsQueryHandler(
     ITourRepository tourRepository,
     ISystemKeyRepository systemKeyRepository,
+    IUserRepository userRepository,
     ILogger<GetHomeStatsQueryHandler> logger)
     : IQueryHandler<GetHomeStatsQuery, ErrorOr<HomeStatsVm>>
 {
     private readonly ITourRepository _tourRepository = tourRepository;
     private readonly ISystemKeyRepository _systemKeyRepository = systemKeyRepository;
+    private readonly IUserRepository _userRepository = userRepository;
     private readonly ILogger<GetHomeStatsQueryHandler> _logger = logger;
 
     public async Task<ErrorOr<HomeStatsVm>> Handle(GetHomeStatsQuery request, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ public sealed class GetHomeStatsQueryHandler(
             var totalDistance = await _tourRepository.GetTotalDistanceKm(cancellationToken);
             var travelersKey = await _systemKeyRepository.FindByCode("TOTAL_TRAVELERS", cancellationToken);
 
-            var totalTravelers = travelersKey?.CodeValue ?? 10000;
+            var totalTravelers = travelersKey?.CodeValue ?? await _userRepository.CountAll(null, 3, cancellationToken);
 
             return new HomeStatsVm(totalTravelers, totalTours, totalDistance);
         }

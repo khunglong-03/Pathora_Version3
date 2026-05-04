@@ -169,9 +169,9 @@ export default function PrivateTourInstanceDetailPage() {
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
   const [dayEditForm, setDayEditForm] = useState({ title: "", description: "", actualDate: "", startTime: "", endTime: "", note: "" });
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
-  const [actEditForm, setActEditForm] = useState({ note: "", startTime: "", endTime: "", isOptional: false });
+  const [actEditForm, setActEditForm] = useState({ note: "", startTime: "", endTime: "", isOptional: false, price: "" });
   const [addingActivityForDayId, setAddingActivityForDayId] = useState<string | null>(null);
-  const [newActForm, setNewActForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+  const [newActForm, setNewActForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
   const [addingDay, setAddingDay] = useState(false);
   const [newDayForm, setNewDayForm] = useState({ title: "", actualDate: "", description: "" });
   const [saving, setSaving] = useState(false);
@@ -234,11 +234,11 @@ export default function PrivateTourInstanceDetailPage() {
   };
 
   /* ── Activity CRUD ───────────────────────────────────────── */
-  const startEditActivity = (act: { id: string; note?: string | null; startTime?: string | null; endTime?: string | null; isOptional?: boolean }) => {
+  const startEditActivity = (act: { id: string; note?: string | null; startTime?: string | null; endTime?: string | null; isOptional?: boolean; price?: number | null }) => {
     setEditingActivityId(act.id);
     setEditingDayId(null);
     setAddingActivityForDayId(null);
-    setActEditForm({ note: act.note ?? "", startTime: act.startTime ?? "", endTime: act.endTime ?? "", isOptional: act.isOptional ?? false });
+    setActEditForm({ note: act.note ?? "", startTime: act.startTime ?? "", endTime: act.endTime ?? "", isOptional: act.isOptional ?? false, price: act.price != null ? String(act.price) : "" });
   };
 
   const saveActivity = async (dayId: string) => {
@@ -246,7 +246,7 @@ export default function PrivateTourInstanceDetailPage() {
     setSaving(true);
     try {
       await tourInstanceService.updateInstanceActivity(data.id, dayId, editingActivityId, {
-        note: actEditForm.note || null, startTime: actEditForm.startTime || null, endTime: actEditForm.endTime || null, isOptional: actEditForm.isOptional,
+        note: actEditForm.note || null, startTime: actEditForm.startTime || null, endTime: actEditForm.endTime || null, isOptional: actEditForm.isOptional, price: actEditForm.price ? Number(actEditForm.price) : null,
       });
       toast.success("Đã cập nhật hoạt động");
       setEditingActivityId(null);
@@ -262,11 +262,11 @@ export default function PrivateTourInstanceDetailPage() {
       await tourInstanceService.createInstanceActivity(data.id, dayId, {
         title: newActForm.title.trim(), activityType: newActForm.activityType,
         description: newActForm.description.trim() || null, note: newActForm.note.trim() || null,
-        startTime: newActForm.startTime || null, endTime: newActForm.endTime || null, isOptional: newActForm.isOptional,
+        startTime: newActForm.startTime || null, endTime: newActForm.endTime || null, isOptional: newActForm.isOptional, price: newActForm.price ? Number(newActForm.price) : null,
       });
       toast.success("Đã thêm hoạt động");
       setAddingActivityForDayId(null);
-      setNewActForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+      setNewActForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
       setReloadToken((v) => v + 1);
     } catch (e: unknown) { toast.error(handleApiError(e).message); }
     finally { setSaving(false); }
@@ -476,6 +476,17 @@ export default function PrivateTourInstanceDetailPage() {
           animate="show"
           className="space-y-5"
         >
+          {data.finalSellPrice != null && (
+            <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 h-stack items-center justify-between">
+              <div className="h-stack items-center gap-2">
+                <Icon icon="heroicons:banknotes" className="size-5 text-emerald-600" />
+                <span className="text-sm font-semibold text-emerald-800">Tổng giá chuyến đi</span>
+              </div>
+              <span className="text-lg font-bold text-emerald-700">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.finalSellPrice)}
+              </span>
+            </div>
+          )}
           <div className="h-stack items-center justify-between">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
               Lịch trình ({data.days.length} ngày)
@@ -641,6 +652,11 @@ export default function PrivateTourInstanceDetailPage() {
                             </p>
                           )}
 
+                          {act.price != null && act.price > 0 && (
+                            <p className="text-xs font-semibold text-emerald-600">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(act.price)}
+                            </p>
+                          )}
                           {act.note && !isTransport && !isAccomm && (
                             <p className="text-xs text-slate-500">{act.note}</p>
                           )}
@@ -672,6 +688,7 @@ export default function PrivateTourInstanceDetailPage() {
                               <input type="time" className={inputCls} placeholder="Giờ bắt đầu" value={actEditForm.startTime} onChange={(e) => setActEditForm((f) => ({ ...f, startTime: e.target.value }))} />
                               <input type="time" className={inputCls} placeholder="Giờ kết thúc" value={actEditForm.endTime} onChange={(e) => setActEditForm((f) => ({ ...f, endTime: e.target.value }))} />
                             </div>
+                            <input type="number" className={inputCls} placeholder="Giá (VND)" value={actEditForm.price} onChange={(e) => setActEditForm((f) => ({ ...f, price: e.target.value }))} min="0" step="1000" />
                             <textarea className={inputCls} rows={2} placeholder="Ghi chú" value={actEditForm.note} onChange={(e) => setActEditForm((f) => ({ ...f, note: e.target.value }))} />
                             <label className="h-stack items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={actEditForm.isOptional} onChange={(e) => setActEditForm((f) => ({ ...f, isOptional: e.target.checked }))} className="size-4 rounded border-slate-300 text-amber-500" /> Tuỳ chọn</label>
                             <div className="flex gap-2">
@@ -718,6 +735,7 @@ export default function PrivateTourInstanceDetailPage() {
                       <input type="time" className={inputCls} placeholder="Giờ bắt đầu" value={newActForm.startTime} onChange={(e) => setNewActForm((f) => ({ ...f, startTime: e.target.value }))} />
                       <input type="time" className={inputCls} placeholder="Giờ kết thúc" value={newActForm.endTime} onChange={(e) => setNewActForm((f) => ({ ...f, endTime: e.target.value }))} />
                     </div>
+                    <input type="number" className={inputCls} placeholder="Giá (VND)" value={newActForm.price} onChange={(e) => setNewActForm((f) => ({ ...f, price: e.target.value }))} min="0" step="1000" />
                     <textarea className={inputCls} rows={1} placeholder="Ghi chú" value={newActForm.note} onChange={(e) => setNewActForm((f) => ({ ...f, note: e.target.value }))} />
                     <div className="flex gap-2">
                       <button onClick={() => saveNewActivity(day.id)} disabled={saving} className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 disabled:opacity-50">{saving ? "Đang lưu..." : "Thêm"}</button>

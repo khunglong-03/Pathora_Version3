@@ -278,9 +278,9 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
   const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const [dayEditForm, setDayEditForm] = useState<Record<string, { title: string; description: string; actualDate: string; startTime: string; endTime: string; note: string }>>({});
-  const [activityEditForm, setActivityEditForm] = useState<Record<string, { note: string; startTime: string; endTime: string; isOptional: boolean }>>({});
+  const [activityEditForm, setActivityEditForm] = useState<Record<string, { note: string; startTime: string; endTime: string; isOptional: boolean; price: string }>>({});
   const [addingActivityForDayId, setAddingActivityForDayId] = useState<string | null>(null);
-  const [newActivityForm, setNewActivityForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+  const [newActivityForm, setNewActivityForm] = useState({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [data, setData] = useState<NormalizedTourInstanceDto | null>(null);
   const [form, setForm] = useState<EditForm | null>(null);
@@ -672,10 +672,13 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
     setEditingDayId(dayId);
     setEditingActivityId(activity.id);
     setActivityEditForm({
-      note: activity.note ?? "",
-      startTime: activity.startTime ?? "",
-      endTime: activity.endTime ?? "",
-      isOptional: activity.isOptional ?? false,
+      [activity.id]: {
+        note: activity.note ?? "",
+        startTime: activity.startTime ?? "",
+        endTime: activity.endTime ?? "",
+        isOptional: activity.isOptional ?? false,
+        price: activity.price != null ? String(activity.price) : "",
+      }
     });
   };
 
@@ -699,6 +702,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
           startTime: f.startTime || null,
           endTime: f.endTime || null,
           isOptional: f.isOptional,
+          price: f.price ? Number(f.price) : null,
         },
       );
       if (updated) {
@@ -763,10 +767,11 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
         startTime: newActivityForm.startTime || null,
         endTime: newActivityForm.endTime || null,
         isOptional: newActivityForm.isOptional,
+        price: newActivityForm.price ? Number(newActivityForm.price) : null,
       });
       toast.success(t("tourInstance.activityAdded", "Activity added successfully"));
       setAddingActivityForDayId(null);
-      setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+      setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
       await loadData();
     } catch (error: unknown) {
       const apiError = handleApiError(error);
@@ -1525,6 +1530,20 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                                         placeholder={t("tourInstance.form.activityNotePlaceholder", "Admin note for this activity...")}
                                       />
                                     </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-medium text-stone-500">
+                                        {t("tourInstance.form.price", "Giá (VND)")}
+                                      </label>
+                                      <input
+                                        type="number"
+                                        className={inputClassName}
+                                        value={activityEditForm[activity.id]?.price ?? ""}
+                                        onChange={(e) => setActivityEditForm((f) => ({ ...f, [activity.id]: { ...f[activity.id], price: e.target.value } }))}
+                                        placeholder="0"
+                                        min="0"
+                                        step="1000"
+                                      />
+                                    </div>
                                     <label className="items-center gap-2 text-xs text-stone-600 h-stack">
                                       <input
                                         type="checkbox"
@@ -1945,6 +1964,20 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                                     onChange={(e) => setNewActivityForm((f) => ({ ...f, description: e.target.value }))}
                                   />
                                 </div>
+                                <div className="space-y-1">
+                                  <label className="text-xs font-medium text-stone-500">
+                                    {t("tourInstance.form.price", "Giá (VND)")}
+                                  </label>
+                                  <input
+                                    type="number"
+                                    className={inputClassName}
+                                    value={newActivityForm.price}
+                                    onChange={(e) => setNewActivityForm((f) => ({ ...f, price: e.target.value }))}
+                                    placeholder="0"
+                                    min="0"
+                                    step="1000"
+                                  />
+                                </div>
                                 <div className="items-center justify-between h-stack">
                                   <label className="items-center gap-2 text-xs text-stone-600 h-stack">
                                     <input
@@ -1960,7 +1993,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                                       type="button"
                                       onClick={() => {
                                         setAddingActivityForDayId(null);
-                                        setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false });
+                                        setNewActivityForm({ title: "", activityType: 0, description: "", note: "", startTime: "", endTime: "", isOptional: false, price: "" });
                                       }}
                                       className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">
                                       {t("common.cancel", "Cancel")}

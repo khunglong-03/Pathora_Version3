@@ -106,8 +106,15 @@ export const ManagerCancellationList: React.FC = () => {
     });
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (req: CancellationRequestDto) => {
+    if (req.status === "Approved" && req.refundConfirmedAt) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <MoneyIcon weight="fill" /> Refunded
+        </span>
+      );
+    }
+    switch (req.status) {
       case "PendingManagerReview":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
@@ -135,7 +142,7 @@ export const ManagerCancellationList: React.FC = () => {
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
-            {status}
+            {req.status}
           </span>
         );
     }
@@ -235,7 +242,7 @@ export const ManagerCancellationList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(req.status)}
+                      {getStatusBadge(req)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-slate-600 tabular-nums">
                       {req.feePercent}%
@@ -261,7 +268,7 @@ export const ManagerCancellationList: React.FC = () => {
                             </button>
                           </>
                         )}
-                        {req.status === "Approved" && (
+                        {req.status === "Approved" && !req.refundConfirmedAt && (
                           <button
                             onClick={() => openModal(req, "refund")}
                             className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors active:scale-[0.98]"

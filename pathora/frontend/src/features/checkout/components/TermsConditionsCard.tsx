@@ -89,12 +89,11 @@ export function TermsConditionsCard({
 
         <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-4">
           <div
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            className={`p-4 rounded-2xl border transition-all ${
               agreeTerms
                 ? "bg-zinc-50/50 border-zinc-900 shadow-sm"
                 : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
             }`}
-            onClick={() => setAgreeTerms(!agreeTerms)}
           >
             <Checkbox
               value={agreeTerms}
@@ -121,12 +120,11 @@ export function TermsConditionsCard({
             />
           </div>
           <div
-            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            className={`p-4 rounded-2xl border transition-all ${
               acknowledgeInfo
                 ? "bg-zinc-50/50 border-zinc-900 shadow-sm"
                 : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
             }`}
-            onClick={() => setAcknowledgeInfo(!acknowledgeInfo)}
           >
             <Checkbox
               value={acknowledgeInfo}

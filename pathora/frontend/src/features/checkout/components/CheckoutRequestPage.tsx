@@ -260,14 +260,14 @@ export function CheckoutRequestPage() {
 
   /* ── Initialize tour instance booking from URL params ──── */
   useEffect(() => {
-    if (tourInstanceIdParam && tourNameParam) {
+    if (tourInstanceIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPercentage = Number(depositPercentageParam) || 0.3;
       const depositAmount = Math.round(basePrice * depositPercentage);
 
       setTourInstanceBooking({
         tourInstanceId: tourInstanceIdParam,
-        tourName: tourNameParam,
+        tourName: tourNameParam || "Tour Riêng",
         startDate: startDateParam || "",
         endDate: endDateParam || "",
         location: locationParam || "",
@@ -381,7 +381,7 @@ export function CheckoutRequestPage() {
 
   // Build a CheckoutPriceResponse from URL params when there's no API response (tour instance direct checkout)
   const computedCheckoutPrice: CheckoutPriceResponse | null = React.useMemo(() => {
-    if (tourInstanceIdParam && tourNameParam) {
+    if (tourInstanceIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPct = Number(depositPercentageParam) || 0.3;
       const adultPrice = adultPriceParam ? Number(adultPriceParam) : basePrice;
@@ -413,7 +413,7 @@ export function CheckoutRequestPage() {
       return {
         bookingId: "",
         tourInstanceId: tourInstanceIdParam,
-        tourName: decodeURIComponent(tourNameParam),
+        tourName: tourNameParam ? decodeURIComponent(tourNameParam) : "Tour Riêng",
         tourCode: "",
         thumbnailUrl: thumbnailUrlParam ? decodeURIComponent(thumbnailUrlParam) : undefined,
         startDate: startDateParam || "",
@@ -630,6 +630,10 @@ export function CheckoutRequestPage() {
         }
       }
 
+      if (!currentBookingId) {
+        throw new Error("MISSING_BOOKING_ID");
+      }
+
       // Step 2: Create payment transaction
       let result: PaymentTransaction | null = null;
       if ((isPrivateCustomCheckout || tourInstanceBooking?.bookingType === "PrivateCustom") && currentBookingId) {
@@ -661,7 +665,12 @@ export function CheckoutRequestPage() {
       console.error("Failed to create transaction:", handledError.message);
       
       let errorMessage = handledError.details || handledError.message;
-      if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
+      if (error instanceof Error && error.message === "MISSING_BOOKING_ID") {
+        errorMessage = t(
+          "landing.checkout.missingBookingId",
+          "Không tìm thấy thông tin đặt tour. Vui lòng quay lại trang chi tiết tour và thử lại.",
+        );
+      } else if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
         // Flatten validation errors into a single string
         errorMessage = Object.values(handledError.validationErrors).flat().join(", ");
       } else if (!errorMessage || errorMessage === "DEFAULT_ERROR") {
