@@ -268,6 +268,17 @@ export const mapToTranslationKey = (errorMessage: string): string => {
     return "error_response.INVALID_CREDENTIALS";
   }
 
+  // Common validation errors (FluentValidation default messages in English)
+  if (errorMessage === "Email is required." || errorMessage === "'email' must not be empty.") {
+    return "error_response.EMAIL_REQUIRED";
+  }
+  if (errorMessage === "Invalid email address." || errorMessage === "'email' is not a valid email address.") {
+    return "error_response.EMAIL_INVALID";
+  }
+  if (errorMessage === "Password is required." || errorMessage === "'password' must not be empty.") {
+    return "error_response.PASSWORD_IS_REQUIRED";
+  }
+
   // Unknown-code safety: never echo a raw backend code as a translation key lookup
   // to prevent translation-key injection (security finding S-3)
   if (errorMessage === "DEFAULT_ERROR") {

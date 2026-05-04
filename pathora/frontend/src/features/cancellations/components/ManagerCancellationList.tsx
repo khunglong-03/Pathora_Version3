@@ -38,9 +38,7 @@ export const ManagerCancellationList: React.FC = () => {
   const [rejectReq] = useRejectCancellationRequestMutation();
   const [confirmRefund] = useConfirmRefundPaidMutation();
 
-  const [selectedReq, setSelectedReq] = useState<CancellationRequestDto | null>(null);
-  const [actionModal, setActionModal] = useState<"approve" | "reject" | "refund" | null>(null);
-  const [note, setNote] = useState("");
+
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -48,46 +46,64 @@ export const ManagerCancellationList: React.FC = () => {
     setTimeout(() => setDebouncedSearch(e.target.value), 500);
   };
 
-  const handleAction = async () => {
-    if (!selectedReq || !actionModal) return;
-
-    try {
-      if (actionModal === "approve") {
-        await approveReq({
-          requestId: selectedReq.requestId,
-          body: { managerNote: note },
-        }).unwrap();
-        toast.success("Cancellation approved");
-      } else if (actionModal === "reject") {
-        if (!note.trim()) {
-          toast.error("Please provide a rejection reason");
-          return;
-        }
-        await rejectReq({
-          requestId: selectedReq.requestId,
-          body: { managerNote: note },
-        }).unwrap();
-        toast.success("Cancellation rejected");
-      } else if (actionModal === "refund") {
-        await confirmRefund({
-          requestId: selectedReq.requestId,
-          body: { refundProofNote: note },
-        }).unwrap();
-        toast.success("Refund confirmed");
-      }
-      
-      setActionModal(null);
-      setSelectedReq(null);
-      setNote("");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Operation failed");
-    }
-  };
-
   const openModal = (req: CancellationRequestDto, action: "approve" | "reject" | "refund") => {
-    setSelectedReq(req);
-    setActionModal(action);
-    setNote("");
+    let title = "";
+    let inputPlaceholder = "";
+    let inputValidator = undefined;
+    
+    if (action === "approve") {
+      title = "Approve Cancellation";
+      inputPlaceholder = "Internal Note (Optional)";
+    } else if (action === "reject") {
+      title = "Reject Cancellation";
+      inputPlaceholder = "Reason for rejection *";
+      inputValidator = (value: string) => (!value.trim() ? "Please provide a rejection reason" : null);
+    } else {
+      title = "Confirm Refund";
+      inputPlaceholder = "Transaction Ref / Notes (Optional)";
+    }
+
+    import("sweetalert2").then(({ default: Swal }) => {
+      Swal.fire({
+        title,
+        html: `
+          <div style="font-size: 0.875rem; color: #475569; background-color: #f8fafc; padding: 1rem; border-radius: 0.75rem; border: 1px solid #f1f5f9; text-align: left; margin-bottom: 1rem;">
+            <p><strong>Booking ID:</strong> ${req.bookingId}</p>
+            <p><strong>Refund Amount:</strong> ${formatCurrency(req.refundAmount)}</p>
+            <p style="margin-top: 0.5rem; color: #64748b; font-style: italic;">"${req.customerReason}"</p>
+          </div>
+        `,
+        input: "textarea",
+        inputPlaceholder,
+        inputValidator,
+        showCancelButton: true,
+        confirmButtonText: action === "approve" ? "Approve" : action === "reject" ? "Reject" : "Confirm",
+        confirmButtonColor: action === "approve" ? "#059669" : action === "reject" ? "#dc2626" : "#09090b",
+        cancelButtonColor: "#64748b",
+        customClass: {
+          confirmButton: "px-5 py-2.5 rounded-xl font-medium text-white shadow-sm transition-all",
+          cancelButton: "px-4 py-2.5 font-medium text-slate-600 transition-colors"
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const noteValue = result.value || "";
+          try {
+            if (action === "approve") {
+              await approveReq({ requestId: req.requestId, body: { managerNote: noteValue } }).unwrap();
+              toast.success("Cancellation approved");
+            } else if (action === "reject") {
+              await rejectReq({ requestId: req.requestId, body: { managerNote: noteValue } }).unwrap();
+              toast.success("Cancellation rejected");
+            } else if (action === "refund") {
+              await confirmRefund({ requestId: req.requestId, body: { refundProofNote: noteValue } }).unwrap();
+              toast.success("Refund confirmed");
+            }
+          } catch (error: any) {
+            toast.error(error?.data?.message || "Operation failed");
+          }
+        }
+      });
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -299,66 +315,6 @@ export const ManagerCancellationList: React.FC = () => {
         )}
       </div>
 
-      {/* Action Modal */}
-      {actionModal && selectedReq && (
-        <div className="fixed inset-0 z-[100] center p-4" role="dialog" aria-labelledby="modal-title">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setActionModal(null)} />
-          <div className="relative bg-white rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <h3 id="modal-title" className="text-lg font-semibold text-slate-900 mb-2">
-                {actionModal === "approve" ? "Approve Cancellation" : 
-                 actionModal === "reject" ? "Reject Cancellation" : 
-                 "Confirm Refund"}
-              </h3>
-              
-              <div className="mb-4 text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <p><span className="font-medium text-slate-900">Booking ID:</span> {selectedReq.bookingId}</p>
-                <p><span className="font-medium text-slate-900">Refund Amount:</span> {formatCurrency(selectedReq.refundAmount)}</p>
-                <p className="mt-2 text-slate-500 italic leading-relaxed">&quot;{selectedReq.customerReason}&quot;</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    {actionModal === "reject" ? "Reason for rejection *" : 
-                     actionModal === "refund" ? "Transaction Ref / Notes (Optional)" : 
-                     "Internal Note (Optional)"}
-                  </label>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-                    placeholder="Add details here..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 h-stack items-center justify-end gap-3">
-                <button
-                  onClick={() => setActionModal(null)}
-                  className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAction}
-                  className={cn(
-                    "px-5 py-2.5 text-sm font-medium text-white rounded-xl shadow-sm transition-all active:scale-[0.98] focus-visible:outline outline-offset-2",
-                    actionModal === "approve" ? "bg-emerald-600 hover:bg-emerald-700 outline-emerald-600" :
-                    actionModal === "reject" ? "bg-red-600 hover:bg-red-700 outline-red-600" :
-                    "bg-zinc-950 hover:bg-zinc-900 outline-zinc-950"
-                  )}
-                >
-                  {actionModal === "approve" ? "Approve" : 
-                   actionModal === "reject" ? "Reject" : 
-                   "Confirm"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

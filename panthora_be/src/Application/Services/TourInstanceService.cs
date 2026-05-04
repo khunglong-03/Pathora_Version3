@@ -1204,7 +1204,7 @@ public class TourInstanceService(
                 // RoomBlock INSERT/DELETE and activity status flips commit atomically.
                 await RunTransactional(async () =>
                 {
-                    var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+                    var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, cancellationToken);
                     if (fullInst is null) return;
 
                     var requestedActivityIds = accommodationActivityIds?.Count > 0
@@ -1325,7 +1325,13 @@ public class TourInstanceService(
         var entities = await _tourInstanceRepository.FindProviderAssigned(supplierIds, pageNumber, pageSize, approvalStatus, cancellationToken);
         var total = await _tourInstanceRepository.CountProviderAssigned(supplierIds, approvalStatus, cancellationToken);
 
-        var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
+        var vms = entities.Select(e =>
+        {
+            var vm = _mapper.Map<TourInstanceVm>(e);
+            var supplierIdSet = new HashSet<Guid>(supplierIds);
+            var rollup = ComputeTransportApprovalRollup(e, supplierIdSet);
+            return vm with { TransportApprovalStatus = rollup };
+        }).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 
@@ -1766,6 +1772,55 @@ public class TourInstanceService(
                 await _unitOfWork.SaveChangeAsync();
             }
         }
+    }
+
+    /// <summary>
+    /// Compute a worst-status-wins rollup from per-activity <c>TransportationApprovalStatus</c>.
+    /// Returns <see cref="ProviderApprovalStatus"/> as int: 0 = unassigned, 1 = Pending, 2 = Approved, 3 = Rejected.
+    /// </summary>
+    private static int ComputeTransportApprovalRollup(TourInstanceEntity entity, HashSet<Guid> supplierIds)
+    {
+        var activities = entity.InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                     && a.TransportSupplierId.HasValue
+                     && supplierIds.Contains(a.TransportSupplierId.Value))
+            .ToList();
+
+        if (activities.Count == 0) return 0;
+
+        var hasRejected = false;
+        var hasPending = false;
+        var hasApproved = false;
+        var allApproved = true;
+
+        foreach (var a in activities)
+        {
+            switch (a.TransportationApprovalStatus)
+            {
+                case ProviderApprovalStatus.Rejected:
+                    hasRejected = true;
+                    allApproved = false;
+                    break;
+                case ProviderApprovalStatus.Pending:
+                    hasPending = true;
+                    allApproved = false;
+                    break;
+                case ProviderApprovalStatus.Approved:
+                    hasApproved = true;
+                    break;
+                default:
+                    allApproved = false;
+                    break;
+            }
+        }
+
+        // Worst-status-wins: Rejected > Pending > Approved > Unassigned
+        if (hasRejected) return (int)ProviderApprovalStatus.Rejected;
+        if (hasPending) return (int)ProviderApprovalStatus.Pending;
+        if (allApproved && hasApproved) return (int)ProviderApprovalStatus.Approved;
+        return 0;
     }
 }
 

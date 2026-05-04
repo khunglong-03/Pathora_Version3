@@ -58,6 +58,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
   const [availability, setAvailability] = useState<RoomAvailability[]>([]);
   const [hotelSuppliers, setHotelSuppliers] = useState<any[]>([]); // Using any to avoid importing SupplierItem if it's messy, but we can import it.
   const [accommodationsBySupplier, setAccommodationsBySupplier] = useState<Record<string, any[]>>({});
+  const [providerSupplierIds, setProviderSupplierIds] = useState<string[]>([]);
   const inFlightActivitiesRef = useRef<Set<string>>(new Set());
 
   // Approval Modals
@@ -92,6 +93,8 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
         // Only fetch inventory and availability if the user is a Hotel Provider (not passing instanceId)
         if (!props.instanceId) {
           try {
+            const supplierInfo = await hotelProviderService.getSupplierInfo();
+            setProviderSupplierIds(supplierInfo.map((s) => s.id));
             const invData = await hotelProviderService.getAccommodations();
             const availData = await hotelProviderService.getRoomAvailability(
               format(new Date(data.startDate), "yyyy-MM-dd"),
@@ -183,6 +186,11 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
     instance.days.forEach((day) => {
       day.activities?.forEach((act) => {
         if (isAccommodationActivity(act.activityType)) {
+          if (!props.instanceId) {
+            if (!act.accommodation?.supplierId || !providerSupplierIds.includes(act.accommodation.supplierId)) {
+              return;
+            }
+          }
           acts.push({
             dayId: day.id,
             dayNumber: day.instanceDayNumber,
@@ -197,7 +205,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
     });
 
     return acts;
-  }, [instance]);
+  }, [instance, props.instanceId, providerSupplierIds]);
 
   const groupedAccommodationDays = useMemo(() => {
     const dayMap = new Map<number, {
@@ -452,16 +460,13 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
 
   // Derive aggregate hotel approval from per-accommodation supplier statuses
   const aggregateHotelApproval = useMemo(() => {
-    if (!instance?.days) return 0; // NotAssigned
-    const statuses = instance.days
-      .flatMap((d) => d.activities ?? [])
-      .filter((a) => isAccommodationActivity(a.activityType))
-      .map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
+    if (accommodationActivities.length === 0) return 0; // NotAssigned
+    const statuses = accommodationActivities.map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
     if (statuses.length === 0) return 0;
     if (statuses.some((s) => s === "Rejected")) return 3;
     if (statuses.every((s) => s === "Approved")) return 2;
     return 1; // Pending
-  }, [instance]);
+  }, [accommodationActivities]);
 
   const isApproved = aggregateHotelApproval === 2;
 
