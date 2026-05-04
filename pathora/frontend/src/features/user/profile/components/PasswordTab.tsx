@@ -75,7 +75,6 @@ interface PasswordInputProps {
 
 function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onToggle, error, disabled, placeholder }: PasswordInputProps) {
   const { t } = useTranslation();
-  const borderColor = error ? CSS.danger : CSS.border;
 
   return (
     <div>

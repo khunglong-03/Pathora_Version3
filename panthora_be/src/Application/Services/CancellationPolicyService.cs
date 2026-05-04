@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.UnitOfWork;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -33,6 +34,10 @@ public class CancellationPolicyService(
         if (validationErrors.Count > 0)
             return validationErrors;
 
+        var duplicateActive = await _repository.FindActiveByTourScopeAsync(request.TourScope);
+        if (duplicateActive is not null)
+            return DuplicateActiveScopeError();
+
         var entity = CancellationPolicyEntity.Create(
             request.TourScope,
             request.Tiers,
@@ -40,7 +45,14 @@ public class CancellationPolicyService(
             request.Translations);
 
         await _repository.Create(entity);
-        await _unitOfWork.SaveChangeAsync();
+        try
+        {
+            await _unitOfWork.SaveChangeAsync();
+        }
+        catch (DbUpdateException exception) when (IsDuplicateActiveScopeException(exception))
+        {
+            return DuplicateActiveScopeError();
+        }
 
         return ToResponse(entity);
     }
@@ -55,6 +67,13 @@ public class CancellationPolicyService(
         if (validationErrors.Count > 0)
             return validationErrors;
 
+        if (request.Status == CancellationPolicyStatus.Active)
+        {
+            var duplicateActive = await _repository.FindActiveByTourScopeAsync(request.TourScope, request.Id);
+            if (duplicateActive is not null)
+                return DuplicateActiveScopeError();
+        }
+
         entity.Update(
             request.TourScope,
             request.Tiers,
@@ -65,7 +84,14 @@ public class CancellationPolicyService(
             entity.Translations = request.Translations;
 
         await _repository.UpdateAsync(entity);
-        await _unitOfWork.SaveChangeAsync();
+        try
+        {
+            await _unitOfWork.SaveChangeAsync();
+        }
+        catch (DbUpdateException exception) when (IsDuplicateActiveScopeException(exception))
+        {
+            return DuplicateActiveScopeError();
+        }
 
         return ToResponse(entity);
     }
@@ -180,6 +206,20 @@ public class CancellationPolicyService(
     }
 
     private const int TIER_COVERS_ALL = int.MaxValue;
+
+    private static Error DuplicateActiveScopeError()
+    {
+        return Error.Conflict(
+            "CancellationPolicy.DuplicateActiveScope",
+            "Only one active cancellation policy is allowed for each tour scope.");
+    }
+
+    private static bool IsDuplicateActiveScopeException(DbUpdateException exception)
+    {
+        var message = exception.InnerException?.Message ?? exception.Message;
+        return message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("ix_cancellation_policies_active_scope", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static List<Error> ValidateTiers(List<Domain.ValueObjects.CancellationPolicyTier> tiers)
     {

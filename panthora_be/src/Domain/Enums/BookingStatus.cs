@@ -17,5 +17,7 @@ public enum BookingStatus
     [Description("Completed")]
     Completed = 6,
     [Description("Pending Adjustment")]
-    PendingAdjustment = 7
+    PendingAdjustment = 7,
+    [Description("Pending Cancellation")]
+    PendingCancellation = 8
 }

@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   SquaresFourIcon,
@@ -245,6 +247,7 @@ export function AdminSidebar({
   const [mounted, setMounted] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
+  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     setMounted(true);
@@ -875,22 +878,26 @@ export function AdminSidebar({
               className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
               style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
               <div
-                className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
                 style={{
                   backgroundColor: "var(--accent)",
                 }}>
-                {providerPortal === "transport" && companyName
-                  ? companyName
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((w) => w[0] ?? "")
-                      .join("")
-                      .toUpperCase()
-                  : providerPortal === "tour-operator"
-                    ? "TD"
-                    : providerPortal === "tour-guide"
-                      ? "TG"
-                      : "AD"}
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  providerPortal === "transport" && companyName
+                    ? companyName
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((w) => w[0] ?? "")
+                        .join("")
+                        .toUpperCase()
+                    : providerPortal === "tour-operator"
+                      ? "TD"
+                      : providerPortal === "tour-guide"
+                        ? "TG"
+                        : "AD"
+                )}
                 {/* Online dot */}
                 <span
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"

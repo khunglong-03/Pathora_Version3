@@ -3,8 +3,9 @@
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/cn";
 import { motion } from "framer-motion";
-import { FiLock, FiSettings, FiUser } from "react-icons/fi";
+import { FiLock, FiUser } from "react-icons/fi";
 import { LandingHeader } from "@/features/shared/components";
 import { extractResult } from "@/utils/apiResponse";
 import { useChangePasswordMutation, useGetUserInfoQuery, useUpdateUserMutation } from "@/store/api/auth/authApiSlice";
@@ -12,7 +13,6 @@ import type { UserInfo } from "@/store/domain/auth";
 import type { ProfileTabType } from "./types";
 import { ProfileTab } from "./components/ProfileTab";
 import { PasswordTab } from "./components/PasswordTab";
-import { SettingsTab } from "./components/SettingsTab";
 
 // Using Tailwind directly to match the-hieu-design.md
 const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
@@ -27,7 +27,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: SPRING },
 };
 
-const VALID_TABS: ProfileTabType[] = ["profile", "password", "settings"];
+const VALID_TABS: ProfileTabType[] = ["profile", "password"];
 
 export function ProfilePage() {
   const { t } = useTranslation();
@@ -47,7 +47,6 @@ export function ProfilePage() {
   const tabs = [
     { id: "profile" as const, label: t("common.profile") || "Thông tin cá nhân", icon: FiUser },
     { id: "password" as const, label: t("common.changePassword") || "Đổi mật khẩu", icon: FiLock },
-    { id: "settings" as const, label: t("common.settings") || "Cài đặt", icon: FiSettings },
   ];
 
   const headerConfig: Record<ProfileTabType, { icon: typeof FiUser; title: string; subtitle: string }> = {
@@ -60,11 +59,6 @@ export function ProfilePage() {
       icon: FiLock,
       title: t("common.profilePage.passwordTitle") || "Đổi mật khẩu",
       subtitle: t("common.profilePage.passwordSubtitle") || "Cập nhật mật khẩu để bảo mật tài khoản",
-    },
-    settings: {
-      icon: FiSettings,
-      title: t("common.profilePage.settingsTitle") || "Cài đặt",
-      subtitle: t("common.profilePage.settingsSubtitle") || "Tùy chỉnh thông báo và tùy chọn cá nhân",
     },
   };
 
@@ -87,8 +81,12 @@ export function ProfilePage() {
               
             >
               <div className="h-stack items-center gap-3">
-                <div className="size-10 rounded-full center bg-slate-100">
-                  <HeaderIcon className="size-5 text-slate-700" />
+                <div className="size-10 rounded-full center bg-slate-100 overflow-hidden">
+                  {activeTab === "profile" && user?.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <HeaderIcon className="size-5 text-slate-700" />
+                  )}
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{currentHeader.title}</h1>
@@ -159,12 +157,6 @@ export function ProfilePage() {
                         await changePassword(payload).unwrap();
                       }}
                     />
-                  </motion.div>
-                ) : null}
-
-                {activeTab === "settings" ? (
-                  <motion.div variants={itemVariants}>
-                    <SettingsTab user={user ?? null} />
                   </motion.div>
                 ) : null}
               </motion.div>

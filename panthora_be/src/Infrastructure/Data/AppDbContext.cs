@@ -64,6 +64,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TourInstanceEntity> TourInstances => Set<TourInstanceEntity>();
     public DbSet<TourRequestEntity> TourRequests => Set<TourRequestEntity>();
     public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
+    public DbSet<BookingCancellationRequestEntity> BookingCancellationRequests => Set<BookingCancellationRequestEntity>();
     public DbSet<BookingActivityReservationEntity> BookingActivityReservations => Set<BookingActivityReservationEntity>();
     public DbSet<BookingTransportDetailEntity> BookingTransportDetails => Set<BookingTransportDetailEntity>();
     public DbSet<BookingAccommodationDetailEntity> BookingAccommodationDetails => Set<BookingAccommodationDetailEntity>();

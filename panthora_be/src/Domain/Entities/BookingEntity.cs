@@ -186,6 +186,44 @@ public class BookingEntity : Aggregate<Guid>
         AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
     }
 
+    public void RequestCancellation(string performedBy)
+    {
+        EnsureValidTransition(Status, BookingStatus.PendingCancellation);
+        var oldStatus = Status;
+        Status = BookingStatus.PendingCancellation;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.PendingCancellation, performedBy));
+        AddDomainEvent(new BookingCancellationRequestedEvent(Id, oldStatus, performedBy));
+    }
+
+    public void ApproveCancellation(string reason, string performedBy)
+    {
+        EnsureValidTransition(Status, BookingStatus.Cancelled);
+        var oldStatus = Status;
+        Status = BookingStatus.Cancelled;
+        CancelReason = reason;
+        CancelledAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
+        AddDomainEvent(new BookingCancellationApprovedEvent(Id, performedBy));
+    }
+
+    public void RejectCancellation(BookingStatus restoreTo, string performedBy)
+    {
+        if (restoreTo is not (BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid))
+            throw new InvalidOperationException($"Không thể khôi phục trạng thái hủy về {restoreTo}.");
+
+        EnsureValidTransition(Status, restoreTo);
+        var oldStatus = Status;
+        Status = restoreTo;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, restoreTo, performedBy));
+        AddDomainEvent(new BookingCancellationRejectedEvent(Id, restoreTo, performedBy));
+    }
+
     public int TotalParticipants() => NumberAdult + NumberChild + NumberInfant;
 
     /// <summary>
@@ -223,10 +261,11 @@ public class BookingEntity : Aggregate<Guid>
         var valid = current switch
         {
             BookingStatus.Pending => next is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled,
+            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
+            BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
+            BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
             BookingStatus.PendingAdjustment => next is BookingStatus.Paid or BookingStatus.Cancelled,
+            BookingStatus.PendingCancellation => next is BookingStatus.Cancelled or BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid,
             BookingStatus.Completed => false,
             BookingStatus.Cancelled => false,
             _ => false

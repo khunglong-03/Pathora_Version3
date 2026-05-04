@@ -342,25 +342,7 @@ public sealed class GetActivityStatusesQueryHandler(
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
-            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-        }
-
-        // Check access: either owner/admin OR guide assigned to the tour instance
-        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
-        if (!hasAccess)
-        {
-            if (Guid.TryParse(user.Id, out var currentUserId))
-            {
-                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
-                if (!isAssignedGuide)
-                {
-                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-                }
-            }
-            else
-            {
-                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-            }
+            return Error.NotFound("Booking.IsNull", "Booking is null.");
         }
 
         var statuses = await tourDayActivityStatusRepository.GetByBookingIdAsync(request.BookingId);
