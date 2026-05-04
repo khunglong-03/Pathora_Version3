@@ -37,7 +37,7 @@ export default function TourGuideOperationsPage() {
   // Filter only Confirmed and InProgress tours for the operations list
   const activeTours = useMemo(() => {
     return instances.filter(
-      (tour) => tour.status === "confirmed" || tour.status === "inprogress"
+      (tour) => tour.status.toLowerCase() === "confirmed" || tour.status.toLowerCase() === "inprogress"
     );
   }, [instances]);
 
@@ -54,11 +54,11 @@ export default function TourGuideOperationsPage() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 animate-pulse flex items-start gap-4">
-                <div className="w-16 h-16 bg-slate-200 rounded-xl shrink-0" />
+              <div key={i} className="bg-white p-6 rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200 animate-pulse flex items-start gap-4">
+                <div className="w-16 h-16 bg-slate-100 rounded-xl shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <div className="h-5 bg-slate-200 rounded w-1/3" />
-                  <div className="h-4 bg-slate-200 rounded w-1/4" />
+                  <div className="h-5 bg-slate-100 rounded w-1/3" />
+                  <div className="h-4 bg-slate-100 rounded w-1/4" />
                 </div>
               </div>
             ))}
@@ -75,10 +75,10 @@ export default function TourGuideOperationsPage() {
               <CheckCircleIcon size={32} className="text-slate-400" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">
-              {t("tourGuide.operations.emptyState") || "Chưa có tour nào được phân công"}
+              {t("tourGuide.operations.emptyState") || "Chưa có hoạt động nào"}
             </h3>
             <p className="text-slate-500 max-w-sm">
-              Bạn hiện không có tour nào đang diễn ra hoặc sắp tới. Vui lòng kiểm tra lại sau.
+              Bạn hiện không có tour nào đang diễn ra hoặc sắp tới. Vui lòng kiểm tra lịch làm việc của bạn.
             </p>
           </div>
         ) : (
@@ -92,44 +92,44 @@ export default function TourGuideOperationsPage() {
                 <Link
                   href={`/tour-guide/operations/${tour.id}`}
                   key={tour.id}
-                  className="group bg-white rounded-2xl p-5 shadow-sm border border-slate-200/60 hover:shadow-md hover:border-primary/30 transition-all flex flex-col relative overflow-hidden"
+                  className="group block bg-white rounded-[1.5rem] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.98] relative overflow-hidden"
                 >
-                  <div className={`absolute top-0 left-0 w-full h-1 ${isOngoing ? "bg-amber-500" : "bg-emerald-500"}`} />
+                  <div className={`absolute top-0 left-0 w-full h-1.5 ${isOngoing ? "bg-slate-900" : "bg-emerald-500"}`} />
                   
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  <div className="flex justify-between items-center mb-5 mt-1">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${
                       isOngoing 
-                        ? "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
-                        : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+                        ? "bg-slate-100 text-slate-900"
+                        : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10"
                     }`}>
-                      {isOngoing ? <HourglassHighIcon weight="fill" /> : <CalendarBlankIcon weight="fill" />}
-                      {isOngoing ? "Đang diễn ra" : "Sắp tới"}
+                      {isOngoing ? <HourglassHighIcon weight="fill" size={14} /> : <CalendarBlankIcon weight="fill" size={14} />}
+                      {isOngoing ? "Đang thực hiện" : "Sắp tới"}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       #{tour.id.slice(0, 8)}
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-lg text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="font-bold text-xl text-slate-900 leading-tight mb-6 group-hover:text-slate-700 transition-colors line-clamp-2">
                     {tour.tourName}
                   </h3>
 
-                  <div className="space-y-2.5 mt-auto pt-4 border-t border-slate-100">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className="space-y-3 pt-5 border-t border-slate-100">
+                    <div className="flex items-center gap-3 text-sm text-slate-600 font-medium">
                       <CalendarBlankIcon className="text-slate-400 shrink-0" size={18} />
                       <span>{format(startDate, "dd/MM/yyyy")} - {format(endDate, "dd/MM/yyyy")}</span>
                     </div>
                     
                     {tour.location && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <div className="flex items-center gap-3 text-sm text-slate-600 font-medium">
                         <MapPinIcon className="text-slate-400 shrink-0" size={18} />
                         <span className="truncate">{tour.location}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-3 text-sm text-slate-600 font-medium">
                       <UsersIcon className="text-slate-400 shrink-0" size={18} />
-                      <span>{tour.registeredParticipants || 0} hành khách</span>
+                      <span>{tour.currentParticipation || 0} hành khách</span>
                     </div>
                   </div>
                 </Link>

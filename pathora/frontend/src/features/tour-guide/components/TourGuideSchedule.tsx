@@ -66,8 +66,8 @@ export function TourGuideSchedule({ instances }: Props) {
   const selectedInstances = instancesByDate.get(selectedDateStr) || [];
 
   return (
-    <div className="v-stack gap-6 p-4 pb-24 md:p-6">
-      <div className="bg-white rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200 overflow-hidden">
+    <div className="flex flex-col lg:flex-row items-start gap-6 p-4 pb-24 md:p-6">
+      <div className="w-full lg:w-[400px] shrink-0 bg-white rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200 overflow-hidden lg:sticky lg:top-24">
         <div className="p-4 border-b border-slate-100">
           <h2 className="text-xl font-bold text-slate-900">
             {t("tourGuide.schedule.calendarTitle") || "Lịch làm việc"}
@@ -97,7 +97,7 @@ export function TourGuideSchedule({ instances }: Props) {
         </div>
       </div>
 
-      <div className="v-stack gap-4">
+      <div className="w-full flex-1 v-stack gap-4">
         <h3 className="text-lg font-bold text-slate-900 px-1">
           {format(selectedDate, "dd/MM/yyyy")}
         </h3>

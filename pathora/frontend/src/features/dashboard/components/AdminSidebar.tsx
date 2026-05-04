@@ -437,11 +437,10 @@ export function AdminSidebar({
     <>
       {/* Sidebar */}
       {mounted ? (
-        <motion.aside
-          initial={false}
-          animate={{ x: 0 }}
-          transition={{ type: "spring", stiffness: 100, damping: 20 }}
-          className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col lg:translate-x-0"
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
           style={{
             backgroundColor: "var(--sidebar-bg)",
             borderRight: "1px solid var(--sidebar-border)",
@@ -930,9 +929,9 @@ export function AdminSidebar({
             </div>
             <AdminLogoutButton />
           </div>
-        </motion.aside>
+        </aside>
       ) : (
-        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] lg:translate-x-0" />
+        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] -translate-x-full lg:translate-x-0" />
       )}
 
       {/* Backdrop for mobile */}

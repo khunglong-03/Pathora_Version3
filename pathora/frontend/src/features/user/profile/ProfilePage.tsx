@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -15,26 +15,7 @@ import { ProfileTab } from "./components/ProfileTab";
 import { PasswordTab } from "./components/PasswordTab";
 import { SettingsTab } from "./components/SettingsTab";
 
-// ─── Design Tokens ─────────────────────────────────────────────────────────
-const CSS = {
-  background:   "var(--background)",
-  surface:      "var(--surface)",
-  accent:       "var(--accent)",
-  accentMuted:  "var(--accent-muted)",
-  border:       "var(--border)",
-  borderSub:    "var(--border-subtle)",
-  textPrimary:  "var(--text-primary)",
-  textSecondary:"var(--text-secondary)",
-  textMuted:    "var(--text-muted)",
-  success:      "var(--success)",
-  successMuted: "var(--success-muted)",
-  danger:       "var(--danger)",
-  dangerMuted:  "var(--danger-muted)",
-  warning:      "var(--warning)",
-  warningMuted: "var(--warning-muted)",
-  shadowCard:   "var(--shadow-card)",
-} as const;
-
+// Using Tailwind directly to match the-hieu-design.md
 const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
 
 const containerVariants = {
@@ -94,7 +75,7 @@ export function ProfilePage() {
   return (
     <>
       
-      <div style={{ backgroundColor: CSS.background }} className="min-h-screen py-8 md:py-10">
+      <div className="min-h-screen py-8 md:py-10 bg-slate-50/30">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -103,12 +84,12 @@ export function ProfilePage() {
             className="bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200/50 rounded-[1.5rem] overflow-hidden"
           >            {/* Accent bar header */}
             <div
-              className="px-6 md:px-8 py-8 bg-blue-50/50 border-t-[3px] border-t-blue-500"
+              className="px-6 md:px-8 py-8 bg-slate-50/50 border-t-[3px] border-t-slate-900"
               
             >
               <div className="h-stack items-center gap-3">
-                <div className="size-10 rounded-full center bg-blue-100">
-                  <HeaderIcon className="size-5 text-blue-600" />
+                <div className="size-10 rounded-full center bg-slate-100">
+                  <HeaderIcon className="size-5 text-slate-700" />
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{currentHeader.title}</h1>
@@ -134,14 +115,14 @@ export function ProfilePage() {
                         router.replace(`?${params.toString()}`);
                       }}
                       
-                      className={cn("h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50", isActive ? "text-blue-600" : "text-slate-500 hover:text-slate-900")}
+                      className={cn("h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50", isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-900")}
                     >
                       <Icon className="size-4" />
                       {tab.label}
                       {isActive && (
                         <motion.span
                           layoutId="tab-indicator"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900"
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
                       )}                    </button>

@@ -1,8 +1,6 @@
 using Api.Endpoint;
 using Application.Contracts.Booking;
-using Application.Common.Constant;
 using Application.Features.BookingManagement.Activity;
-using Application.Features.BookingManagement.ActivityStatus;
 using Application.Features.BookingManagement.Participant;
 using Application.Features.BookingManagement.Payable;
 using Application.Features.BookingManagement.TourGuide;
@@ -241,49 +239,6 @@ public class BookingManagementController : BaseApiController
 
         var result = await Sender.Send(command);
         return HandleCreated(result);
-    }
-
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpGet(BookingManagementEndpoint.ActivityStatuses)]
-    public async Task<IActionResult> GetActivityStatuses(Guid id)
-    {
-        var result = await Sender.Send(new GetActivityStatusesQuery(id));
-        return HandleResult(result);
-    }
-
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpGet(BookingManagementEndpoint.ActivityStatusDetail)]
-    public async Task<IActionResult> GetActivityStatusDetail(Guid id, Guid tourDayId)
-    {
-        var result = await Sender.Send(new GetActivityStatusByTourDayQuery(id, tourDayId));
-        return HandleResult(result);
-    }
-
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpPost(BookingManagementEndpoint.ActivityStatusStart)]
-    public async Task<IActionResult> StartActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
-    {
-        var result = await Sender.Send(new StartActivityCommand(id, tourDayId, request.ActualTime));
-        return HandleUpdated(result);
-    }
-
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpPost(BookingManagementEndpoint.ActivityStatusComplete)]
-    public async Task<IActionResult> CompleteActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
-    {
-        var result = await Sender.Send(new CompleteActivityCommand(id, tourDayId, request.ActualTime));
-        return HandleUpdated(result);
-    }
-
-    [Authorize(Policy = "ManagerOrTourGuideOnly")]
-    [HttpPost(BookingManagementEndpoint.ActivityStatusCancel)]
-    public async Task<IActionResult> CancelActivity(Guid id, Guid tourDayId, [FromBody] UpdateActivityStatusDto request)
-    {
-        var reason = string.IsNullOrWhiteSpace(request.Reason)
-            ? ErrorConstants.ActivityStatus.DefaultCancelReason.Resolve(CurrentLanguage)
-            : request.Reason;
-        var result = await Sender.Send(new CancelActivityCommand(id, tourDayId, reason));
-        return HandleUpdated(result);
     }
 
     [HttpGet(BookingManagementEndpoint.Team)]

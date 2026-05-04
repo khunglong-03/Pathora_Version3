@@ -7,21 +7,7 @@ import { toast } from "react-toastify";
 import { handleApiError } from "@/utils/apiResponse";
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────
-const CSS = {
-  accent:       "var(--accent)",
-  accentMuted:  "var(--accent-muted)",
-  border:       "var(--border)",
-  borderSub:    "var(--border-subtle)",
-  textPrimary:  "var(--text-primary)",
-  textSecondary:"var(--text-secondary)",
-  textMuted:    "var(--text-muted)",
-  success:      "var(--success)",
-  successMuted: "var(--success-muted)",
-  danger:       "var(--danger)",
-  dangerMuted:  "var(--danger-muted)",
-  warning:      "var(--warning)",
-  warningMuted: "var(--warning-muted)",
-} as const;
+// Using Tailwind directly to match the-hieu-design.md
 
 // ─── Password Validation ────────────────────────────────────────────────────
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -49,10 +35,17 @@ function getStrengthLevel(score: number): StrengthLevel {
 }
 
 function getStrengthColor(level: StrengthLevel): string {
-  if (level === "weak") return CSS.danger;
-  if (level === "fair") return CSS.warning;
-  if (level === "good") return CSS.accent;
-  return CSS.success;
+  if (level === "weak") return "text-red-500";
+  if (level === "fair") return "text-amber-500";
+  if (level === "good") return "text-orange-500";
+  return "text-green-500";
+}
+
+function getStrengthBgColor(level: StrengthLevel): string {
+  if (level === "weak") return "bg-red-500";
+  if (level === "fair") return "bg-amber-500";
+  if (level === "good") return "bg-orange-500";
+  return "bg-green-500";
 }
 
 function getStrengthLabel(level: StrengthLevel, t: ReturnType<typeof useTranslation>["t"]): string {
@@ -86,7 +79,7 @@ function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onTo
 
   return (
     <div>
-      <label htmlFor={id} style={{ color: CSS.textPrimary }} className="block text-sm font-medium mb-2">
+      <label htmlFor={id} className="block text-sm font-semibold mb-2 text-slate-700">
         {label}
       </label>
       <div className="relative">
@@ -101,19 +94,19 @@ function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onTo
           placeholder={placeholder}
           autoComplete={id === "oldPassword" ? "current-password" : id === "newPassword" ? "new-password" : "confirm-password"}
           style={{
-            borderColor,
-            outline: "none",
-            boxShadow: error ? `0 0 0 3px ${CSS.dangerMuted}` : "none",
             paddingRight: "2.5rem",
           }}
-          className={`w-full px-4 py-2 border rounded-lg transition-all ${!error ? "focus:ring-2" : ""}`}
+          className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+            error 
+              ? "border-red-500 ring-4 ring-red-50" 
+              : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
+          }`}
         />
         <button
           type="button"
           onClick={onToggle}
           disabled={disabled}
-          style={{ color: CSS.textMuted }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 hover:!text-gray-700 transition-colors disabled:opacity-40"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:!text-slate-700 transition-colors disabled:opacity-40"
           aria-label={show ? t("common.hidePassword") || "Hide password" : t("common.showPassword") || "Show password"}
         >
           {show ? (
@@ -128,7 +121,7 @@ function PasswordInput({ id, label, value, onChange, onBlur, onFocus, show, onTo
           )}
         </button>
       </div>
-      {error && <p style={{ color: CSS.danger }} className="text-xs mt-1">{error}</p>}
+      {error && <p className="text-xs mt-1.5 font-medium text-red-500">{error}</p>}
     </div>
   );
 }
@@ -154,13 +147,12 @@ function StrengthMeter({ password, t }: { password: string; t: ReturnType<typeof
         {results.map((r, i) => (
           <div key={i} className="flex items-center gap-2">
             {r.satisfied ? (
-              <FiCheck style={{ color: CSS.success }} className="w-3.5 h-3.5 flex-shrink-0" />
+              <FiCheck className="w-3.5 h-3.5 flex-shrink-0 text-green-500" />
             ) : (
-              <FiX style={{ color: CSS.textMuted }} className="w-3.5 h-3.5 flex-shrink-0" />
+              <FiX className="w-3.5 h-3.5 flex-shrink-0 text-slate-300" />
             )}
             <span
-              style={{ color: r.satisfied ? CSS.success : CSS.textMuted }}
-              className="text-xs"
+              className={`text-xs ${r.satisfied ? "text-green-600" : "text-slate-400"}`}
             >
               {r.label}
             </span>
@@ -177,18 +169,14 @@ function StrengthMeter({ password, t }: { password: string; t: ReturnType<typeof
             return (
               <div
                 key={segment}
-                style={{
-                  flex: 1,
-                  height: "3px",
-                  borderRadius: "9999px",
-                  backgroundColor: filled ? getStrengthColor(segLevel) : CSS.border,
-                  transition: "background-color 0.2s ease",
-                }}
+                className={`flex-1 h-1 rounded-full transition-colors duration-200 ${
+                  filled ? getStrengthBgColor(segLevel) : "bg-slate-200"
+                }`}
               />
             );
           })}
         </div>
-        <p style={{ color }} className="text-xs font-medium">{label}</p>
+        <p className={`text-xs font-medium ${color}`}>{label}</p>
       </div>
     </div>
   );
@@ -339,12 +327,12 @@ export function PasswordTab({ isUpdating, onChangePassword }: PasswordTabProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-md">
-      <div className="pb-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
-        <h2 style={{ color: CSS.textPrimary }} className="text-lg font-semibold">
-          {t("common.profilePage.passwordSectionTitle") || "Account Security"}
+      <div className="pb-4 border-b border-slate-100">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+          {t("common.profilePage.passwordSectionTitle") || "Bảo mật tài khoản"}
         </h2>
-        <p style={{ color: CSS.textSecondary }} className="text-sm mt-1">
-          {t("common.profilePage.passwordSectionDesc") || "Change your password regularly to protect your account"}
+        <p className="text-sm mt-1 text-slate-500">
+          {t("common.profilePage.passwordSectionDesc") || "Thay đổi mật khẩu thường xuyên để bảo vệ tài khoản của bạn"}
         </p>
       </div>
 
@@ -400,18 +388,18 @@ export function PasswordTab({ isUpdating, onChangePassword }: PasswordTabProps) 
         />
         {/* Match indicator */}
         {form.confirmPassword && form.newPassword && (
-          <div className="flex items-center gap-1.5 mt-1.5">
+          <div className="flex items-center gap-1.5 mt-2">
             {confirmMatch ? (
               <>
-                <FiCheck style={{ color: CSS.success }} className="w-3.5 h-3.5" />
-                <p style={{ color: CSS.success }} className="text-xs">
+                <FiCheck className="w-3.5 h-3.5 text-green-500" />
+                <p className="text-xs font-medium text-green-600">
                   {t("common.profilePage.password.passwordsMatch") || "Passwords match"}
                 </p>
               </>
             ) : (
               <>
-                <FiX style={{ color: CSS.danger }} className="w-3.5 h-3.5" />
-                <p style={{ color: CSS.danger }} className="text-xs">
+                <FiX className="w-3.5 h-3.5 text-red-500" />
+                <p className="text-xs font-medium text-red-500">
                   {t("common.profilePage.password.passwordsDontMatch") || "Passwords do not match"}
                 </p>
               </>
@@ -421,16 +409,17 @@ export function PasswordTab({ isUpdating, onChangePassword }: PasswordTabProps) 
       </div>
 
       {/* Submit button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4">
         <button
           type="submit"
           disabled={isDisabled}
-          style={{
-            backgroundColor: isSuccess ? CSS.success : isSaving ? CSS.textMuted : CSS.accent,
-            color: "#fff",
-            cursor: isDisabled ? "not-allowed" : "pointer",
-          }}
-          className="flex items-center gap-2 px-6 py-2 rounded-lg hover:opacity-90 transition-all disabled:opacity-70"
+          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
+            isSuccess
+              ? "bg-green-600 text-white shadow-sm"
+              : isDisabled
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] shadow-sm"
+          }`}
         >
           {isSaving ? (
             <>

@@ -26,6 +26,7 @@ export default function TourOperationDetailPage() {
 
   const [instance, setInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [activityStatuses, setActivityStatuses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export default function TourOperationDetailPage() {
 
         const qualifiedBookings = bookingsData.filter(isQualifiedBooking);
         if (qualifiedBookings.length > 0) {
+          setBookings(qualifiedBookings);
           const mainBooking = qualifiedBookings[0];
           setBookingId(mainBooking.id);
           
@@ -158,57 +160,109 @@ export default function TourOperationDetailPage() {
     })
   );
 
+  const totalAdults = bookings.reduce((sum, b) => sum + (b.numberAdult || 0), 0);
+  const totalChildren = bookings.reduce((sum, b) => sum + (b.numberChild || 0), 0);
+  const totalInfants = bookings.reduce((sum, b) => sum + (b.numberInfant || 0), 0);
+  const hasParticipants = totalAdults > 0 || totalChildren > 0 || totalInfants > 0;
+
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <div className="p-4 md:p-6 pb-0">
         <button 
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-4 font-medium transition-colors"
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-6 font-medium transition-colors w-fit"
         >
-          <CaretLeftIcon weight="bold" /> {t("common.buttons.back") || "Quay lại"}
+          <CaretLeftIcon weight="bold" className="size-4" /> 
+          {t("common.buttons.back", { defaultValue: "Quay lại" }) === "common.buttons.back" ? "Quay lại" : t("common.buttons.back", { defaultValue: "Quay lại" })}
         </button>
         <AdminPageHeader
-          title={instance.tourName}
-          subtitle={`Mã tour: ${instance.tourCode} • Khởi hành: ${format(new Date(instance.startDate), "dd/MM/yyyy")}`}
+          title={instance.tourName || instance.title}
+          subtitle={`Mã tour: ${instance.tourCode} • Khởi hành: ${format(new Date(instance.startDate), "dd/MM/yyyy")} • Kéo dài: ${instance.durationDays} ngày`}
         />
       </div>
 
-      <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full space-y-6 pb-24">
-        {/* Status Card */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/60 flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-slate-900">Trạng thái chuyến đi</h3>
-            <p className="text-sm text-slate-500 mt-1">
-              {isTourCompleted ? "Đã hoàn thành" : isTourInProgress ? "Đang diễn ra" : "Sắp tới"}
-            </p>
-          </div>
-          
-          {isTourInProgress && (
-            <button
-              onClick={handleCompleteTour}
-              disabled={!!actionLoading || !allActivitiesCompleted}
-              className={`py-2 px-4 rounded-xl font-bold flex items-center gap-2 transition-all ${
-                allActivitiesCompleted 
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" 
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
-              }`}
-            >
-              {actionLoading === "complete-tour" ? (
-                <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <CheckCircleIcon weight="fill" className="size-5" /> 
-                  Hoàn Thành Chuyến Đi
-                </>
-              )}
-            </button>
-          )}
-
-          {isTourCompleted && (
-            <div className="py-2 px-4 rounded-xl bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-2">
-              <CheckCircleIcon weight="fill" className="size-5" /> Đã hoàn thành
+      <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full space-y-6 pb-24">
+        {/* Info Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Status Card */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between h-full">
+            <div>
+              <h3 className="font-bold text-slate-900 mb-1">Trạng thái chuyến đi</h3>
+              <div className="inline-flex items-center mt-2">
+                <span className={`px-3 py-1 text-sm font-semibold rounded-full flex items-center gap-2 ${
+                  isTourCompleted ? "bg-emerald-100 text-emerald-800" : 
+                  isTourInProgress ? "bg-indigo-100 text-indigo-800" : 
+                  "bg-slate-100 text-slate-700"
+                }`}>
+                  {isTourCompleted ? <CheckCircleIcon weight="fill" className="size-4" /> : 
+                   isTourInProgress ? <CircleIcon weight="fill" className="size-4 animate-pulse" /> : 
+                   <CircleIcon weight="bold" className="size-4" />}
+                  {isTourCompleted ? "Đã hoàn thành" : isTourInProgress ? "Đang diễn ra" : "Sắp tới"}
+                </span>
+              </div>
             </div>
-          )}
+            
+            {isTourInProgress && (
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <button
+                  onClick={handleCompleteTour}
+                  disabled={!!actionLoading || !allActivitiesCompleted}
+                  className={`w-full py-2.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                    allActivitiesCompleted 
+                      ? "bg-slate-900 hover:bg-slate-800 text-white active:scale-[0.98]" 
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  {actionLoading === "complete-tour" ? (
+                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircleIcon weight="fill" className="size-5" /> 
+                      Hoàn Thành Chuyến Đi
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Participants Card */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h3 className="font-bold text-slate-900 mb-4">Thông tin khách hàng</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="size-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <p className="text-2xl font-black text-slate-900 leading-none">{instance.currentParticipation} <span className="text-sm font-medium text-slate-500">/ {instance.maxParticipation} khách</span></p>
+              </div>
+            </div>
+            
+            {hasParticipants ? (
+              <div className="space-y-2 mt-4">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-600 font-medium">Người lớn</span>
+                  <span className="font-bold text-slate-900">{totalAdults}</span>
+                </div>
+                {totalChildren > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 font-medium">Trẻ em</span>
+                    <span className="font-bold text-slate-900">{totalChildren}</span>
+                  </div>
+                )}
+                {totalInfants > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 font-medium">Em bé</span>
+                    <span className="font-bold text-slate-900">{totalInfants}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-slate-500 italic mt-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                Chưa có dữ liệu khách tham gia chi tiết từ booking.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Itinerary Timeline */}
@@ -247,7 +301,9 @@ export default function TourOperationDetailPage() {
                   <div className="absolute left-8 top-6 bottom-6 w-0.5 bg-slate-100 hidden sm:block" />
                   
                   {(!day.activities || day.activities.length === 0) ? (
-                    <p className="text-slate-500 text-sm sm:pl-12">Không có hoạt động nào trong ngày này.</p>
+                    <div className="text-slate-500 text-sm sm:pl-12 bg-slate-50 p-4 rounded-xl border border-slate-100 italic">
+                      Không có lịch trình nào trong ngày này.
+                    </div>
                   ) : (
                     day.activities.map((act, actIndex) => {
                       // Attempt to find status object
@@ -285,32 +341,40 @@ export default function TourOperationDetailPage() {
                           }`}>
                             <div className="flex justify-between items-start mb-2 gap-4">
                               <div>
-                                <h4 className={`font-bold text-sm sm:text-base ${isCompleted ? "text-slate-600" : "text-slate-900"}`}>
+                                <h4 className={`font-bold text-sm sm:text-base mb-1 ${isCompleted ? "text-slate-600" : "text-slate-900"}`}>
                                   {act.title}
                                 </h4>
                                 {act.startTime && (
-                                  <span className="text-xs font-semibold text-slate-500 mt-0.5 inline-block">
+                                  <span className="text-xs font-semibold text-slate-500 inline-flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     {act.startTime.substring(0, 5)} {act.endTime ? `- ${act.endTime.substring(0, 5)}` : ""}
                                   </span>
                                 )}
                               </div>
-                              <span className={`shrink-0 text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded-md ${
-                                isCompleted ? "bg-emerald-50 text-emerald-600" :
-                                isStarted ? "bg-amber-50 text-amber-600" :
-                                "bg-slate-100 text-slate-500"
+                              <span className={`shrink-0 text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md border ${
+                                isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                                isStarted ? "bg-amber-50 text-amber-700 border-amber-100" :
+                                "bg-slate-50 text-slate-600 border-slate-200"
                               }`}>
-                                {actStatus}
+                                {actStatus === "Pending" ? "Chưa bắt đầu" : actStatus === "Started" ? "Đang diễn ra" : "Hoàn thành"}
                               </span>
                             </div>
                             
-                            <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-                              {act.description || act.transportationName || act.accommodation?.supplierName || "Hoạt động tự do"}
+                            <p className="text-sm text-slate-600 mb-4 leading-relaxed line-clamp-3">
+                              {act.description || act.transportationName || act.accommodation?.supplierName || "Thời gian hoạt động tự do hoặc di chuyển."}
                             </p>
 
-                            <div className="flex flex-col sm:flex-row gap-2 mt-auto pt-2 border-t border-slate-100">
+                            <div className="flex flex-col sm:flex-row gap-3 mt-auto pt-4 border-t border-slate-100">
                               {act.fromLocation && (
-                                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                  <MapPinIcon className="shrink-0" /> {act.fromLocation.locationName}
+                                <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 w-fit">
+                                  <MapPinIcon className="shrink-0 text-slate-400 size-4" weight="fill" /> 
+                                  <span>{act.fromLocation.locationName}</span>
+                                  {act.toLocation && (
+                                    <>
+                                      <span className="text-slate-300 mx-1">→</span>
+                                      <span>{act.toLocation.locationName}</span>
+                                    </>
+                                  )}
                                 </div>
                               )}
                               

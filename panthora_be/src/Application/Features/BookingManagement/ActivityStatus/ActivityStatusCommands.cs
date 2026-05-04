@@ -326,11 +326,7 @@ public sealed class CancelActivityCommandHandler(
     }
 }
 
-public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
-{
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-statuses:{BookingId}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
-}
+public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>;
 
 public sealed class GetActivityStatusesQueryHandler(
     IBookingRepository bookingRepository,
@@ -400,11 +396,7 @@ public sealed class GetActivityStatusesQueryHandler(
 
 public sealed record GetActivityStatusByTourDayQuery(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
-    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
-{
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-status:{BookingId}:{TourDayId}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
-}
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>;
 
 public sealed class GetActivityStatusByTourDayQueryHandler(
     IBookingRepository bookingRepository,
