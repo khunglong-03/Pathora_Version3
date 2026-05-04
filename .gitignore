@@ -135,9 +135,15 @@ ndepend.xml
 /manager_dashboard_redesign_plan.md
 .codex/
 .gemini/
+.cursor/
+.local/
+.serena/
+.superpowers/
+Skills/
+gitnexus-local/
+docs/
 # Cursor Workspace
 .autoplan-restore/
-.codex/
 diagram/
 
 # --- Migrated from backend .gitignore ---
