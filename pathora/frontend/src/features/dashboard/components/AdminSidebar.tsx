@@ -93,11 +93,11 @@ export const MANAGER_NAV_ITEMS = [
     icon: CertificateIcon,
     href: "/manager/dashboard/visa",
   },
-  {
+  /*{
     label: "Bank Accounts",
     icon: BuildingsIcon,
     href: "/manager/bank-accounts",
-  },
+  },*/
   {
     label: "Tài Khoản",
     icon: GearIcon,
