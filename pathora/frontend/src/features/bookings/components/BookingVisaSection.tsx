@@ -99,12 +99,11 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
     return null;
   }
 
-  const requiredParticipants = data.participants.filter(p => p.requiresVisa);
-  if (requiredParticipants.length === 0) {
-    return null;
-  }
+  const displayParticipants = data.participants;
 
-  const approvedCount = requiredParticipants.filter(p => p.latestVisaApplication?.status === "Approved").length;
+  const approvedCount = displayParticipants.filter(p => 
+    !p.requiresVisa || p.latestVisaApplication?.status === "Approved"
+  ).length;
 
   const handleRequestSupport = async (participantId: string) => {
     if (!window.confirm(t("landing.visa.confirmSupportFee"))) {
@@ -159,6 +158,13 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
   };
 
   const renderStatusBadge = (participant: VisaRequirementParticipant) => {
+    if (!participant.requiresVisa) {
+      return (
+        <span className="h-stack items-center gap-1 text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">
+          <CheckCircle weight="fill" /> {t("landing.visa.notRequired", "Miễn Visa")}
+        </span>
+      );
+    }
     if (participant.missingDateOfBirth) {
       return (
         <span className="h-stack items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
@@ -237,13 +243,13 @@ export function BookingVisaSection({ bookingId }: BookingVisaSectionProps) {
         <div className="v-stack items-end">
           <span className="text-sm font-medium text-slate-500">{t("landing.visa.progress")}</span>
           <span className="text-xl font-bold text-slate-900">
-            {approvedCount} <span className="text-slate-400">/ {requiredParticipants.length}</span>
+            {approvedCount} <span className="text-slate-400">/ {displayParticipants.length}</span>
           </span>
         </div>
       </div>
 
       <div className="v-stack gap-4">
-        {requiredParticipants.map((participant) => {
+        {displayParticipants.map((participant) => {
           const app = participant.latestVisaApplication;
           const isFormOpen = activeFormParticipantId === participant.participantId;
           const destinationCountry = app?.destinationCountry || "VN"; // fallback for now if new

@@ -73,14 +73,14 @@ describe("BookingVisaSection", () => {
       isVisaRequired: true,
       participants: [
         {
-          id: "p-1",
+          participantId: "p-1",
           fullName: "John Doe",
           dateOfBirth: null,
           missingDateOfBirth: true,
           passport: null,
           latestVisaApplication: null,
           requiresVisa: true,
-          availableActions: ["Submit"],
+          availableActions: ["submit_visa"],
         },
       ],
     });
@@ -97,14 +97,14 @@ describe("BookingVisaSection", () => {
       isVisaRequired: true,
       participants: [
         {
-          id: "p-1",
+          participantId: "p-1",
           fullName: "John Doe",
           dateOfBirth: "1990-01-01",
           missingDateOfBirth: false,
           passport: null,
           latestVisaApplication: null,
           requiresVisa: true,
-          availableActions: ["Submit"],
+          availableActions: ["submit_visa"],
         },
       ],
     });
@@ -121,7 +121,7 @@ describe("BookingVisaSection", () => {
       isVisaRequired: true,
       participants: [
         {
-          id: "p-1",
+          participantId: "p-1",
           fullName: "John Doe",
           dateOfBirth: "1990-01-01",
           missingDateOfBirth: false,
@@ -140,7 +140,7 @@ describe("BookingVisaSection", () => {
             isSystemAssisted: false,
           },
           requiresVisa: true,
-          availableActions: ["Submit"],
+          availableActions: ["submit_visa"],
         },
       ],
     });
@@ -162,7 +162,7 @@ describe("BookingVisaSection", () => {
       isVisaRequired: true,
       participants: [
         {
-          id: "p-1",
+          participantId: "p-1",
           fullName: "John Doe",
           dateOfBirth: "1990-01-01",
           missingDateOfBirth: false,
@@ -208,14 +208,14 @@ describe("BookingVisaSection", () => {
       isVisaRequired: true,
       participants: [
         {
-          id: "p-1",
+          participantId: "p-1",
           fullName: "John Doe",
           dateOfBirth: "1990-01-01",
           missingDateOfBirth: false,
           passport: null,
           latestVisaApplication: null,
           requiresVisa: true,
-          availableActions: ["RequestSupport"],
+          availableActions: ["request_support"],
         },
       ],
     });

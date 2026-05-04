@@ -27,6 +27,21 @@ export function TourInstanceInfoCard({
     tourInstanceBooking.instanceType === "public" ||
     tourInstanceBooking.instanceType === "Public";
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(d);
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="p-8 md:p-10 flex flex-col items-center text-center">
@@ -92,8 +107,8 @@ export function TourInstanceInfoCard({
                   className="size-4 text-slate-400"
                 />
                 <span className="font-medium font-mono">
-                  {tourInstanceBooking.startDate} —{" "}
-                  {tourInstanceBooking.endDate}
+                  {formatDate(tourInstanceBooking.startDate)} —{" "}
+                  {formatDate(tourInstanceBooking.endDate)}
                 </span>
               </div>
             </div>
@@ -112,26 +127,14 @@ export function TourInstanceInfoCard({
                   : t("landing.checkout.private")}
               </div>
             </div>
-            {!isPublic && (
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                  {t("landing.checkout.estimatedBudget", "Estimated Budget")}
-                </span>
-                <span className="text-lg font-bold text-zinc-900">
-                  {fmtCurrency(tourInstanceBooking.depositPerPerson)}
-                </span>
-              </div>
-            )}
-            {isPublic && (
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                  Deposit Required
-                </span>
-                <span className="text-lg font-bold text-zinc-900">
-                  {fmtCurrency(tourInstanceBooking.depositPerPerson)}
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                {t("landing.checkout.estimatedAmount", "Estimated Amount")}
+              </span>
+              <span className="text-lg font-bold text-zinc-900">
+                {fmtCurrency(tourInstanceBooking.depositPerPerson)}
+              </span>
+            </div>
           </div>
         </div>
 

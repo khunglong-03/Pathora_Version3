@@ -1110,7 +1110,7 @@ public class TourInstanceService(
             ownerSuppliers = suppliers;
         }
 
-        var instance = await _tourInstanceRepository.FindById(instanceId, cancellationToken: cancellationToken);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -1133,44 +1133,40 @@ public class TourInstanceService(
 
         if (providerType == "Hotel" && isApproved)
         {
-            var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
-            if (fullInstance != null)
+            var requestedActivityIds = accommodationActivityIds?.Count > 0
+                ? accommodationActivityIds.ToHashSet()
+                : null;
+
+            var accommodationActivities = instance.InstanceDays
+                .Where(d => !d.IsDeleted)
+                .SelectMany(d => d.Activities)
+                .Where(a =>
+                    a.ActivityType == TourDayActivityType.Accommodation
+                    && a.Accommodation?.SupplierId != null
+                    && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)
+                    && (requestedActivityIds is null || requestedActivityIds.Contains(a.Id)))
+                .ToList();
+
+            var activityIds = accommodationActivities.Select(a => a.Id).ToList();
+            var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
+            var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
+                .ToDictionary(g => g.Key!.Value, g => g.ToList());
+
+            var underAllocated = new List<string>();
+            foreach (var activity in accommodationActivities)
             {
-                var requestedActivityIds = accommodationActivityIds?.Count > 0
-                    ? accommodationActivityIds.ToHashSet()
-                    : null;
+                var planAccom = activity.Accommodation;
+                if (planAccom == null || planAccom.Quantity <= 0) continue;
 
-                var accommodationActivities = fullInstance.InstanceDays
-                    .Where(d => !d.IsDeleted)
-                    .SelectMany(d => d.Activities)
-                    .Where(a =>
-                        a.ActivityType == TourDayActivityType.Accommodation
-                        && a.Accommodation?.SupplierId != null
-                        && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)
-                        && (requestedActivityIds is null || requestedActivityIds.Contains(a.Id)))
-                    .ToList();
+                blocksByActivity.TryGetValue(activity.Id, out var blocks);
+                var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
 
-                var activityIds = accommodationActivities.Select(a => a.Id).ToList();
-                var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
-                var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
-                    .ToDictionary(g => g.Key!.Value, g => g.ToList());
-
-                var underAllocated = new List<string>();
-                foreach (var activity in accommodationActivities)
-                {
-                    var planAccom = activity.Accommodation;
-                    if (planAccom == null || planAccom.Quantity <= 0) continue;
-
-                    blocksByActivity.TryGetValue(activity.Id, out var blocks);
-                    var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
-
-                    if (totalBlocked < planAccom.Quantity)
-                        underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
-                }
-
-                if (underAllocated.Count > 0)
-                    return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
+                if (totalBlocked < planAccom.Quantity)
+                    underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
             }
+
+            if (underAllocated.Count > 0)
+                return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
         }
 
         var statusBeforeApprove = instance.Status;
@@ -1277,6 +1273,9 @@ public class TourInstanceService(
 
                                 if (isApproved)
                                 {
+                                    // Remove any existing block to prevent duplicate key violations (IX_RoomBlocks_TourInstanceDayActivityId_RoomType)
+                                    await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
+
                                     // Tour-level holds are always Hard. Soft holds reserved for unpaid customer bookings.
                                     var block = RoomBlockEntity.Create(
                                         supplierId: act.Accommodation.SupplierId.Value,

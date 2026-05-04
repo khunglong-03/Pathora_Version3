@@ -14,7 +14,7 @@
  * Vé phương tiện (Flight/Train/Boat) gán per-booking qua ExternalTicketAssignmentPanel.
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
@@ -170,58 +170,6 @@ function AccommodationBookingCard({
   onRequirementsSaved?: Props["onRequirementsSaved"];
 }) {
   const { t } = useTranslation();
-  const defaultRoomType = activity.roomType ?? "Standard";
-
-  const [entries, setEntries] = useState<Record<string, RoomAssignmentEntry>>(() => {
-    const init: Record<string, RoomAssignmentEntry> = {};
-    for (const b of bookings) {
-      const adults = b.numberAdult ?? 0;
-      const children = b.numberChild ?? 0;
-      const suggested = suggestRoomCount(adults, children, defaultRoomType);
-      init[b.id] = {
-        bookingId: b.id,
-        customerName: b.customerName,
-        guestCount: adults + children + (b.numberInfant ?? 0),
-        roomsSuggested: suggested,
-        roomCount: suggested,
-        roomType: defaultRoomType,
-        roomNumbers: "",
-        note: "",
-      };
-    }
-    return init;
-  });
-
-  useEffect(() => {
-    setEntries((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      for (const b of bookings) {
-        if (!next[b.id]) {
-          const adults = b.numberAdult ?? 0;
-          const children = b.numberChild ?? 0;
-          const suggested = suggestRoomCount(adults, children, defaultRoomType);
-          next[b.id] = {
-            bookingId: b.id,
-            customerName: b.customerName,
-            guestCount: adults + children + (b.numberInfant ?? 0),
-            roomsSuggested: suggested,
-            roomCount: suggested,
-            roomType: defaultRoomType,
-            roomNumbers: "",
-            note: "",
-          };
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [bookings, defaultRoomType]);
-
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
   // ─── Inline supplier picker state (Tour Operator chọn khách sạn cho activity) ──
   const totalGuests = useMemo(
     () =>
@@ -243,6 +191,80 @@ function AccommodationBookingCard({
     quantity: suggestedQuantity,
     isSubmitting: false,
   });
+
+  const activeRoomType = picker.roomType || activity.roomType || "Standard";
+  const prevActiveRoomTypeRef = useRef(activeRoomType);
+  const prevQuantityRef = useRef(picker.quantity);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  const [entries, setEntries] = useState<Record<string, RoomAssignmentEntry>>(() => {
+    const init: Record<string, RoomAssignmentEntry> = {};
+    for (const b of bookings) {
+      const adults = b.numberAdult ?? 0;
+      const children = b.numberChild ?? 0;
+      const suggested = bookings.length === 1 && picker.quantity > 0 ? picker.quantity : suggestRoomCount(adults, children, activeRoomType);
+      init[b.id] = {
+        bookingId: b.id,
+        customerName: b.customerName,
+        guestCount: adults + children + (b.numberInfant ?? 0),
+        roomsSuggested: suggested,
+        roomCount: suggested,
+        roomType: activeRoomType,
+        roomNumbers: "",
+        note: "",
+      };
+    }
+    return init;
+  });
+
+  useEffect(() => {
+    const isRoomTypeChanged = prevActiveRoomTypeRef.current !== activeRoomType;
+    prevActiveRoomTypeRef.current = activeRoomType;
+
+    const currentQuantity = picker.quantity;
+    const isQuantityChanged = prevQuantityRef.current !== currentQuantity;
+    prevQuantityRef.current = currentQuantity;
+
+    setEntries((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const b of bookings) {
+        if (!next[b.id]) {
+          const adults = b.numberAdult ?? 0;
+          const children = b.numberChild ?? 0;
+          const suggested = bookings.length === 1 && currentQuantity > 0 ? currentQuantity : suggestRoomCount(adults, children, activeRoomType);
+          next[b.id] = {
+            bookingId: b.id,
+            customerName: b.customerName,
+            guestCount: adults + children + (b.numberInfant ?? 0),
+            roomsSuggested: suggested,
+            roomCount: suggested,
+            roomType: activeRoomType,
+            roomNumbers: "",
+            note: "",
+          };
+          changed = true;
+        } else {
+          let entryChanged = false;
+          if (isRoomTypeChanged && !savedIds.has(b.id)) {
+            next[b.id] = { ...next[b.id], roomType: activeRoomType };
+            entryChanged = true;
+          }
+          if (isQuantityChanged && bookings.length === 1 && !savedIds.has(b.id)) {
+            next[b.id] = { ...next[b.id], roomCount: currentQuantity };
+            entryChanged = true;
+          }
+          if (entryChanged) changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [picker.quantity, bookings, activeRoomType, savedIds]);
+
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
   const [suppliersLoading, setSuppliersLoading] = useState(false);
   const [supplierAccommodations, setSupplierAccommodations] = useState<
@@ -302,16 +324,13 @@ function AccommodationBookingCard({
     if (!showSupplierPicker) return;
     if (suppliersLoadedRef.current) return;
     suppliersLoadedRef.current = true;
-    let cancelled = false;
     setSuppliersLoading(true);
     supplierService
       .getSuppliers("Accommodation", continent ?? null)
       .then((list) => {
-        if (cancelled) return;
         setSuppliers(list);
       })
       .catch(() => {
-        if (cancelled) return;
         suppliersLoadedRef.current = false;
         toast.error(
           t(
@@ -321,12 +340,8 @@ function AccommodationBookingCard({
         );
       })
       .finally(() => {
-        if (cancelled) return;
         setSuppliersLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
   }, [showSupplierPicker, continent, t]);
 
   // Lazy load danh sách phòng theo supplier đã chọn (để render dropdown loại phòng cụ thể)
@@ -348,7 +363,6 @@ function AccommodationBookingCard({
         setSupplierAccommodations([]);
       })
       .finally(() => {
-        if (cancelled) return;
         setAccommodationsLoading(false);
       });
     return () => {
@@ -776,7 +790,9 @@ function AccommodationBookingCard({
       {canAssign && bookings.length > 0 && (
         <div className="border-t border-stone-100 bg-stone-50/30">
           <div className="px-6 py-4 lg:px-8 flex items-center justify-between">
-            <h5 className="text-sm font-bold text-stone-800">Phân bổ phòng cho từng booking</h5>
+            <h5 className="text-sm font-bold text-stone-800">
+              {bookings.length === 1 ? "Phân bổ phòng cho booking này" : "Phân bổ phòng cho từng booking"}
+            </h5>
             <span className="text-[10px] font-semibold text-stone-500 bg-white border border-stone-200 px-2 py-0.5 rounded-full">
               {savedIds.size}/{bookings.length} đã phân bổ
             </span>
@@ -1018,10 +1034,12 @@ export default function PublicTourBookingAssignmentPanel({
                 <div className="flex items-start gap-3 rounded-[1.5rem] bg-orange-50/80 border border-orange-200/60 p-5 shadow-sm text-sm text-orange-800">
                   <Icon icon="heroicons:information-circle" className="size-5 shrink-0 mt-0.5 text-orange-500" />
                   <div className="leading-relaxed">
-                    <p className="font-semibold mb-1 text-base tracking-tight">Phân bổ phòng cho từng booking</p>
-                    <p className="max-w-[65ch] text-orange-700">
-                      Hotel supplier đã được chọn và đã duyệt block tổng số phòng. Tại đây, bạn phân bổ
-                      <strong> số phòng cụ thể</strong> cho từng booking dựa trên số khách. Tổng các phân bổ phải nằm trong số phòng đã giữ.
+                    <p className="font-semibold mb-1 text-base tracking-tight">
+                      {bookings.length === 1 ? "Phân bổ phòng cho booking này" : "Phân bổ phòng cho từng booking"}
+                    </p>
+                    <p className="max-w-[75ch] text-orange-700">
+                      Khách sạn được thiết lập ở cấp độ tour. Tại đây, bạn phân bổ
+                      <strong> số phòng cụ thể</strong> cho {bookings.length === 1 ? "khách của booking này" : "từng booking"} dựa trên tổng số phòng đã block cho cả đoàn.
                     </p>
                   </div>
                 </div>

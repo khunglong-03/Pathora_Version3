@@ -281,13 +281,17 @@ export default function BookingAccommodationAssignmentPage({
               tourInstanceService.getBookingRoomAssignments(instanceId, activityId)
             }
             onRoomAssignmentSaved={handleRoomAssignmentSaved}
-            onSetAccommodationRequirements={async (activityId, payload) => {
-              await tourInstanceService.setAccommodationRequirements(
-                instanceId,
-                activityId,
-                payload,
-              );
-            }}
+            onSetAccommodationRequirements={
+              !bookingId
+                ? async (activityId, payload) => {
+                    await tourInstanceService.setAccommodationRequirements(
+                      instanceId,
+                      activityId,
+                      payload,
+                    );
+                  }
+                : undefined
+            }
             onRequirementsSaved={() => {
               void fetchData();
             }}
