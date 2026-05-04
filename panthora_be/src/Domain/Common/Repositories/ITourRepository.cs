@@ -28,6 +28,7 @@ public interface ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
@@ -41,6 +42,7 @@ public interface ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         CancellationToken cancellationToken = default);
     Task<List<(string City, string Country, int ToursCount)>> GetTrendingDestinations(int limit, CancellationToken cancellationToken = default);
     Task<List<TourPlanLocationEntity>> GetTopAttractions(int limit, CancellationToken cancellationToken = default);

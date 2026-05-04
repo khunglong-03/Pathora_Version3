@@ -71,6 +71,7 @@ public class PublicHomeController : BaseApiController
         [FromQuery] decimal? maxPrice,
         [FromQuery] int? minDays,
         [FromQuery] int? maxDays,
+        [FromQuery] Domain.Enums.Continent? continent,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromServices] ILanguageContext? languageContext = null)
@@ -85,6 +86,7 @@ public class PublicHomeController : BaseApiController
             maxPrice,
             minDays,
             maxDays,
+            continent,
             page,
             pageSize,
             languageContext?.CurrentLanguage));
