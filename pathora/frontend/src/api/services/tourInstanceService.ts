@@ -1023,12 +1023,12 @@ export interface BookingRoomAssignmentDto {
 }
 
 export interface BookingTicketDto {
-  id: string;
   bookingId: string;
-  activityId: string;
-  ticketFileUrl: string | null;
-  ticketNumber: string | null;
-  metadata: string | null;
-  createdAt: string;
-  updatedAt: string;
+  flightNumber?: string | null;
+  departureAt?: string | null;
+  arrivalAt?: string | null;
+  seatNumbers?: string | null;
+  eTicketNumbers?: string | null;
+  seatClass?: string | null;
+  note?: string | null;
 }

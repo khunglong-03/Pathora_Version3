@@ -129,6 +129,7 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 - **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
 - **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
 - **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
+- **Tour Operator public instance routes**: public tour detail and per-booking assignment use `/tour-operator/tour-instances/public/[id]`, `/public/[id]/bookings/[bookingId]/assign-accommodation`, and `/public/[id]/bookings/[bookingId]/assign-flight-tickets`. The namespace is guarded by `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES` (default enabled); set it to `false` to roll public row clicks back to the generic `/tour-operator/tour-instances/[id]` fallback.
 
 ---
 

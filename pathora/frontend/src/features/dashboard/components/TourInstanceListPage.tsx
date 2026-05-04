@@ -21,6 +21,7 @@ import { formatDate } from "@/utils/format";
 import { NormalizedTourInstanceVm, TourInstanceStats } from "@/types/tour";
 import { AdminSidebar, TopBar } from "./AdminSidebar";
 import { cn } from "@/lib/cn";
+import { featureFlags } from "@/configs/featureFlags";
 
 /* ── Animation Variants ───────────────────────────────────── */
 const containerVariants = {
@@ -155,6 +156,16 @@ export function TourInstanceListPage({
   instanceTypeFilter,
 }: TourInstanceListPageProps = {}) {
   const basePath = role === "tour-operator" ? "/tour-operator/tour-instances" : "/manager/tour-instances";
+  // For tour-operator with a known type filter, deep-link directly to the typed sub-route
+  // so the correct variant (public/private) is rendered on the detail page.
+  const detailBasePath =
+    role === "tour-operator" &&
+    instanceTypeFilter === "public" &&
+    featureFlags.enablePublicTourSubRoutes
+      ? "/tour-operator/tour-instances/public"
+    : role === "tour-operator" && instanceTypeFilter === "private"
+      ? "/tour-operator/tour-instances/private"
+      : basePath;
   const { t } = useTranslation();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -394,11 +405,15 @@ export function TourInstanceListPage({
                 className="w-full appearance-none px-4 py-3 pl-10 rounded-2xl border-none bg-stone-50/50 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all duration-300 cursor-pointer">
                 <option value="all">All Status</option>
                 <option value="draft">Draft</option>
-                <option value="pendingadjustment">Pending Adjustment</option>
-                <option value="pendingmanagerreview">Pending Manager Review</option>
-                <option value="pendingcustomerapproval">Pending Customer Approval</option>
-                <option value="pendingvisa">Pending Visa</option>
-                <option value="pendingapproval">Pending Approval</option>
+                {instanceTypeFilter !== "public" && (
+                  <>
+                    <option value="pendingadjustment">Pending Adjustment</option>
+                    <option value="pendingmanagerreview">Pending Manager Review</option>
+                    <option value="pendingcustomerapproval">Pending Customer Approval</option>
+                    <option value="pendingvisa">Pending Visa</option>
+                    <option value="pendingapproval">Pending Approval</option>
+                  </>
+                )}
                 <option value="available">Available</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="soldout">Sold Out</option>
@@ -437,19 +452,7 @@ export function TourInstanceListPage({
                 />
               </div>
             )}
-            {/* When locked, show a badge to indicate the filtered type */}
-            {instanceTypeFilter && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold border",
-                  instanceTypeFilter === "public"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-stone-800 text-stone-100 border-stone-700"
-                )}>
-                <Icon icon="heroicons:eye" className="size-3.5" />
-                {instanceTypeFilter === "public" ? "Chỉ Public" : "Chỉ Private"}
-              </span>
-            )}
+            {/* Hidden locked badge because page title already indicates it */}
             
             <label className="h-stack items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer min-w-max ml-2">
               <input 
@@ -591,17 +594,20 @@ export function TourInstanceListPage({
                         <div className="absolute top-2 left-2">
                           <TourStatusBadge status={inst.status} />
                         </div>
-                        <div className="absolute top-2 right-2 h-stack gap-1">
-                          <span
-                            className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md",
-                              isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"
-                            )}>
-                            {isPublic
-                              ? safeT("tourInstance.public", "Public")
-                              : safeT("tourInstance.private", "Private")}
-                          </span>
-                        </div>
+                        {/* Only show public/private badge if not globally filtered */}
+                        {!instanceTypeFilter && (
+                          <div className="absolute top-2 right-2 h-stack gap-1">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-md",
+                                isPublic ? "bg-emerald-500/90 text-white" : "bg-stone-800/90 text-stone-100"
+                              )}>
+                              {isPublic
+                                ? safeT("tourInstance.public", "Public")
+                                : safeT("tourInstance.private", "Private")}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* 2. Primary Info Node */}
@@ -625,15 +631,17 @@ export function TourInstanceListPage({
                               {inst.location || "N/A"}
                             </span>
                           </div>
-                          <div className="h-stack items-center gap-1.5">
-                            <Icon
-                              icon="heroicons:swatch"
-                              className="size-4 text-stone-400"
-                            />
-                            <span className="truncate max-w-[150px]">
-                              {inst.tourName}
-                            </span>
-                          </div>
+                          {inst.title !== inst.tourName && (
+                            <div className="h-stack items-center gap-1.5">
+                              <Icon
+                                icon="heroicons:swatch"
+                                className="size-4 text-stone-400"
+                              />
+                              <span className="truncate max-w-[150px]">
+                                {inst.tourName}
+                              </span>
+                            </div>
+                          )}
                           <div className="h-stack items-center gap-1.5">
                             <Icon
                               icon="heroicons:tag"
@@ -646,7 +654,7 @@ export function TourInstanceListPage({
                         </div>
 
                         {/* Provider Approval Badges */}
-                        {inst.status === "pendingapproval" && (
+                        {!isPublic && inst.status === "pendingapproval" && (
                           <div className="flex flex-wrap gap-2 mt-1">
                             <span
                               className={cn(
@@ -731,7 +739,7 @@ export function TourInstanceListPage({
                         </div>
                         <button
                           onClick={() =>
-                            router.push(`${basePath}/${inst.id}`)
+                            router.push(`${detailBasePath}/${inst.id}`)
                           }
                           className="h-stack items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-sm text-sm font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-600 hover:border-amber-200/50 transition-all duration-200 active:-translate-y-[1px] group/btn focus:outline-none focus:ring-2 focus:ring-amber-500/20">
                           {safeT("common.viewDetails", "Details")}

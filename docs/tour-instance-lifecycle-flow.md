@@ -125,6 +125,16 @@ stateDiagram-v2
 
 ## 3. Luồng chi tiết từng bước
 
+### BỔ SUNG: Tour Operator public instance assignment routes
+
+Frontend Tour Operator tách route public khỏi generic detail để tránh lẫn UI private:
+
+- Public detail: `/tour-operator/tour-instances/public/[id]`
+- Gán khách sạn theo booking: `/tour-operator/tour-instances/public/[id]/bookings/[bookingId]/assign-accommodation`
+- Gán vé phương tiện theo booking: `/tour-operator/tour-instances/public/[id]/bookings/[bookingId]/assign-flight-tickets`
+
+Public tour không duyệt/gán lại vận tải đường bộ trên detail; hệ thống chỉ hiển thị xe đã gán dạng read-only. Rollback nhanh: set `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES=false` để row public quay về generic `/tour-operator/tour-instances/[id]`, hoặc revert các route trong `pathora/frontend/src/app/tour-operator/tour-instances/public/[id]/`.
+
 ### BƯỚC 0: Manager tạo/sửa Tour (tiền điều kiện cho mọi instance)
 
 `TourInstance` luôn sinh từ một `TourEntity` đã tồn tại và `Status = Active`. Các cờ nghiệp vụ ở cấp Tour **được kế thừa xuống mọi instance**; muốn đổi policy (VD: bật/tắt visa, đổi châu lục) → Manager sửa ở Tour gốc, không sửa per-instance.

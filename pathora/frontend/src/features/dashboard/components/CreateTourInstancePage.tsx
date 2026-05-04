@@ -2214,43 +2214,14 @@ export function CreateTourInstancePage({
     [form.classificationId, tourDetail],
   );
 
-  // Fetch tours
+  // Fetch tours using the public endpoint so any logged-in user can select an active tour
   const fetchTours = useCallback(async () => {
     try {
       setLoading(true);
       setLoadError(null);
-      let result;
-      try {
-        result = await tourService.getMyTours(
-          undefined,
-          "1",
-          "all",
-          "all",
-          1,
-          100,
-        );
-      } catch (err) {
-        const handledFallbackError = handleApiError(err);
-        if (
-          handledFallbackError.message === "error_response.UNAUTHORIZED" ||
-          handledFallbackError.message === "error_response.ACCESS_DENIED" ||
-          handledFallbackError.message === "error_response.NETWORK_ERROR" ||
-          handledFallbackError.message === "error_response.TIMEOUT_ERROR"
-        ) {
-          throw err;
-        }
-
-        // Fallback for admins/managers if getMyTours fails
-        result = await tourService.getAdminTourManagement(
-          undefined,
-          "1",
-          "all",
-          "all",
-          1,
-          100,
-        );
-      }
-      setTours(result?.data ?? []);
+      // Fetch all public (active) tours without requiring ownership
+      const result = await tourService.getAllTours(undefined, 1, 100);
+      setTours(result?.data as unknown as SearchTourVm[] ?? []);
     } catch (error: unknown) {
       const handledError = handleApiError(error);
       console.error("Failed to fetch tours:", handledError.message);

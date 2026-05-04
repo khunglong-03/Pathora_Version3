@@ -40,6 +40,7 @@ interface RoomAssignmentForm {
 interface HotelTourAssignmentPageProps {
   instanceId?: string;
   backUrl?: string;
+  filterBookingId?: string;
 }
 
 export default function HotelTourAssignmentPage(props: HotelTourAssignmentPageProps) {

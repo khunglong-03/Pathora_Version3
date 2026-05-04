@@ -53,7 +53,6 @@ public class TourController(
     };
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetMyTours(
         [FromQuery] string? searchText,
         [FromQuery] TourStatus? status,
@@ -68,7 +67,6 @@ public class TourController(
     }
 
     [HttpGet(TourEndpoint.Id)]
-    [AllowAnonymous]
     public async Task<IActionResult> GetDetail(Guid id)
     {
         var result = await Sender.Send(new GetTourDetailQuery(id));
@@ -354,7 +352,6 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpPut(TourEndpoint.Status)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTourStatusRequestDto dto)
     {
@@ -386,7 +383,6 @@ public class TourController(
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpDelete(TourEndpoint.Id + "/purge")]
     public async Task<IActionResult> Purge(Guid id)
     {

@@ -16,11 +16,14 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
 import ExternalTicketAssignmentPanel from "./ExternalTicketAssignmentPanel";
 import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
 import type { BookingRoomAssignmentDto } from "@/api/services/tourInstanceService";
+import { handleApiError } from "@/utils/apiResponse";
+import { logTourOperatorEvent } from "@/utils/telemetry";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,7 +63,7 @@ interface ExternalTransportActivityInfo {
   title: string;
   date: string;
   dayNumber: number;
-  transportType: "Flight" | "Train" | "Boat";
+  transportType: "Flight" | "Train" | "Boat" | "Bus" | "Car";
   confirmed: boolean;
 }
 
@@ -86,6 +89,11 @@ interface Props {
   ) => Promise<void>;
   /** Load existing assignments for an activity */
   onLoadRoomAssignments?: (activityId: string) => Promise<BookingRoomAssignmentDto[]>;
+  /** Notify parent after a room assignment has been saved successfully. */
+  onRoomAssignmentSaved?: (
+    activityId: string,
+    entry: RoomAssignmentEntry,
+  ) => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -116,15 +124,20 @@ function suggestRoomCount(adults: number, children: number, roomType: string): n
 
 function AccommodationBookingCard({
   activity,
+  instanceId,
   bookings,
   onSaveRoomAssignment,
   onLoadRoomAssignments,
+  onRoomAssignmentSaved,
 }: {
   activity: AccommodationActivityInfo;
+  instanceId: string;
   bookings: AdminBookingListResponse[];
   onSaveRoomAssignment?: Props["onSaveRoomAssignment"];
   onLoadRoomAssignments?: Props["onLoadRoomAssignments"];
+  onRoomAssignmentSaved?: Props["onRoomAssignmentSaved"];
 }) {
+  const { t } = useTranslation();
   const defaultRoomType = activity.roomType ?? "Standard";
 
   const [entries, setEntries] = useState<Record<string, RoomAssignmentEntry>>(() => {
@@ -178,13 +191,18 @@ function AccommodationBookingCard({
         setSavedIds(new Set(existing.map((d) => d.bookingId)));
       } catch {
         if (cancelled) return;
-        setLoadError("Không thể tải phân bổ đã lưu trước đó");
+        setLoadError(
+          t(
+            "tourInstance.bookingHotel.loadAssignmentsError",
+            "Không thể tải phân bổ đã lưu trước đó",
+          ),
+        );
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [activity.activityId, onLoadRoomAssignments]);
+  }, [activity.activityId, onLoadRoomAssignments, t]);
 
   // Tổng số phòng đã phân bổ (ngoại trừ booking đang edit) — dùng validate
   const totalAssigned = useMemo(
@@ -200,10 +218,40 @@ function AccommodationBookingCard({
   );
 
   const handleSave = async (bookingId: string) => {
+    if (savingId) return;
     const entry = entries[bookingId];
     if (!entry) return;
+    const booking = bookings.find((item) => item.id === bookingId);
+    const bookingStatus = booking?.status?.toLowerCase() ?? "";
+    const lockedByCheckIn =
+      bookingStatus.includes("checkedin") ||
+      bookingStatus.includes("checked_in") ||
+      bookingStatus.includes("completed");
+
+    if (lockedByCheckIn) {
+      toast.warning(
+        t(
+          "tourInstance.bookingHotel.lockedAfterCheckIn",
+          "Booking đã check-in, không thể sửa phân bổ khách sạn.",
+        ),
+      );
+      return;
+    }
+
     if (entry.roomCount <= 0) {
-      toast.warning("Số phòng phải lớn hơn 0");
+      toast.warning(
+        t("tourInstance.bookingHotel.validation.roomCountPositive", "Số phòng phải lớn hơn 0"),
+      );
+      return;
+    }
+
+    if (entry.roomCount > entry.guestCount) {
+      toast.warning(
+        t("tourInstance.bookingHotel.validation.roomCountTooHigh", {
+          defaultValue: "Số phòng không được vượt quá số khách ({{guestCount}}).",
+          guestCount: entry.guestCount,
+        }),
+      );
       return;
     }
 
@@ -213,13 +261,20 @@ function AccommodationBookingCard({
       .reduce((sum, e) => sum + e.roomCount, 0);
     if (activity.roomBlocksTotal > 0 && otherAssigned + entry.roomCount > activity.roomBlocksTotal) {
       toast.error(
-        `Tổng số phòng phân bổ (${otherAssigned + entry.roomCount}) vượt quá số phòng đã giữ (${activity.roomBlocksTotal}).`,
+        t("tourInstance.bookingHotel.validation.exceedsBlocked", {
+          defaultValue:
+            "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}}).",
+          assigned: otherAssigned + entry.roomCount,
+          blocked: activity.roomBlocksTotal,
+        }),
       );
       return;
     }
 
     if (!onSaveRoomAssignment) {
-      toast.warning("Chức năng lưu chưa được kết nối");
+      toast.warning(
+        t("tourInstance.bookingHotel.saveUnavailable", "Chức năng lưu chưa được kết nối"),
+      );
       return;
     }
 
@@ -233,9 +288,32 @@ function AccommodationBookingCard({
         note: entry.note.trim() || null,
       });
       setSavedIds((prev) => new Set([...prev, bookingId]));
-      toast.success(`Đã lưu phân bổ phòng cho ${entry.customerName}`);
-    } catch (err: any) {
-      toast.error(err?.message ?? "Không thể lưu phân bổ phòng");
+      logTourOperatorEvent("booking_accommodation_assigned", {
+        instanceId,
+        bookingId: entry.bookingId,
+        activityId: activity.activityId,
+        roomCount: entry.roomCount,
+      });
+      toast.success(
+        t("tourInstance.bookingHotel.assignSuccess", {
+          defaultValue: "Đã lưu phân bổ phòng cho {{customerName}}",
+          customerName: entry.customerName,
+        }),
+      );
+      onRoomAssignmentSaved?.(activity.activityId, entry);
+    } catch (error) {
+      const apiError = handleApiError(error);
+      toast.error(
+        t(
+          apiError.code === "409"
+            ? "tourInstance.bookingHotel.assignConflict"
+            : apiError.message,
+          t(
+            "tourInstance.bookingHotel.saveError",
+            "Không thể lưu phân bổ phòng",
+          ),
+        ),
+      );
     } finally {
       setSavingId(null);
     }
@@ -331,6 +409,11 @@ function AccommodationBookingCard({
           const entry = entries[booking.id];
           const isSaved = savedIds.has(booking.id);
           const isSaving = savingId === booking.id;
+          const bookingStatus = booking.status?.toLowerCase() ?? "";
+          const lockedByCheckIn =
+            bookingStatus.includes("checkedin") ||
+            bookingStatus.includes("checked_in") ||
+            bookingStatus.includes("completed");
 
           return (
             <div
@@ -357,7 +440,7 @@ function AccommodationBookingCard({
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
                 {/* Room count */}
-                <div className="md:col-span-2">
+                <div className="md:col-span-3">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
                     Số phòng *
                   </label>
@@ -368,7 +451,7 @@ function AccommodationBookingCard({
                     onChange={(e) =>
                       updateEntry(booking.id, "roomCount", Math.max(1, Number(e.target.value) || 1))
                     }
-                    disabled={!isApproved}
+                    disabled={!isApproved || lockedByCheckIn}
                     className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm font-mono focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50 disabled:text-stone-400"
                   />
                   {entry.roomCount !== entry.roomsSuggested && (
@@ -379,14 +462,14 @@ function AccommodationBookingCard({
                 </div>
 
                 {/* Room type */}
-                <div className="md:col-span-3">
+                <div className="md:col-span-6">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
                     Loại phòng
                   </label>
                   <select
                     value={entry.roomType}
                     onChange={(e) => updateEntry(booking.id, "roomType", e.target.value)}
-                    disabled={!isApproved}
+                    disabled={!isApproved || lockedByCheckIn}
                     className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 bg-white disabled:bg-stone-50 disabled:text-stone-400"
                   >
                     {[
@@ -411,57 +494,35 @@ function AccommodationBookingCard({
                   </select>
                 </div>
 
-                {/* Room numbers */}
-                <div className="md:col-span-3">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                    Số phòng cụ thể
-                  </label>
-                  <input
-                    type="text"
-                    value={entry.roomNumbers}
-                    onChange={(e) => updateEntry(booking.id, "roomNumbers", e.target.value)}
-                    disabled={!isApproved}
-                    placeholder="VD: 201, 202"
-                    className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm font-mono focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50"
-                  />
-                </div>
-
-                {/* Note + Save */}
-                <div className="md:col-span-4">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                    Ghi chú
-                  </label>
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={entry.note}
-                      onChange={(e) => updateEntry(booking.id, "note", e.target.value)}
-                      disabled={!isApproved}
-                      placeholder="Yêu cầu đặc biệt..."
-                      className="flex-1 rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:bg-stone-50"
+                {/* Save */}
+                <div className="md:col-span-3 self-start pt-[22px]">
+                  <button
+                    onClick={() => handleSave(booking.id)}
+                    disabled={!isApproved || lockedByCheckIn || isSaving}
+                    className={`w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isSaved
+                        ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
+                        : "bg-orange-500 hover:bg-orange-600 text-white shadow-sm focus-visible:outline-orange-500"
+                    }`}
+                  >
+                    <Icon
+                      icon={
+                        isSaving
+                          ? "heroicons:arrow-path"
+                          : isSaved
+                          ? "heroicons:check-circle"
+                          : "heroicons:check"
+                      }
+                      className={`size-4 ${isSaving ? "animate-spin" : ""}`}
                     />
-                    <button
-                      onClick={() => handleSave(booking.id)}
-                      disabled={!isApproved || isSaving}
-                      className={`shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                        isSaved
-                          ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
-                          : "bg-orange-500 hover:bg-orange-600 text-white shadow-sm focus-visible:outline-orange-500"
-                      }`}
-                    >
-                      <Icon
-                        icon={
-                          isSaving
-                            ? "heroicons:arrow-path"
-                            : isSaved
-                            ? "heroicons:check-circle"
-                            : "heroicons:check"
-                        }
-                        className={`size-4 ${isSaving ? "animate-spin" : ""}`}
-                      />
-                      {isSaving ? "Đang lưu..." : isSaved ? "Cập nhật" : "Lưu"}
-                    </button>
-                  </div>
+                    {lockedByCheckIn
+                      ? t("tourInstance.bookingHotel.locked", "Đã khóa")
+                      : isSaving
+                        ? t("common.saving", "Đang lưu...")
+                        : isSaved
+                          ? t("common.update", "Cập nhật")
+                          : t("common.save", "Lưu")}
+                  </button>
                 </div>
               </div>
             </div>
@@ -487,6 +548,7 @@ function AccommodationBookingCard({
 type TabType = "accommodation" | "external-transport";
 
 export default function PublicTourBookingAssignmentPanel({
+  instanceId,
   instanceType,
   bookings,
   bookingsLoading,
@@ -496,6 +558,7 @@ export default function PublicTourBookingAssignmentPanel({
   onConfirmExternalTransport,
   onSaveRoomAssignment,
   onLoadRoomAssignments,
+  onRoomAssignmentSaved,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>(
     accommodationActivities.length > 0 ? "accommodation" : "external-transport",
@@ -597,9 +660,11 @@ export default function PublicTourBookingAssignmentPanel({
                   <AccommodationBookingCard
                     key={activity.activityId}
                     activity={activity}
+                    instanceId={instanceId}
                     bookings={bookings}
                     onSaveRoomAssignment={onSaveRoomAssignment}
                     onLoadRoomAssignments={onLoadRoomAssignments}
+                    onRoomAssignmentSaved={onRoomAssignmentSaved}
                   />
                 ))}
               </div>
@@ -652,6 +717,8 @@ export default function PublicTourBookingAssignmentPanel({
                         transportType={activity.transportType}
                         bookings={bookings}
                         activityDate={activity.date}
+                        instanceId={instanceId}
+                        initialConfirmed={activity.confirmed}
                         onSave={(entry) => onSaveTicket?.(activity.activityId, entry)}
                         onConfirmAll={(dep, arr) => onConfirmExternalTransport?.(activity.activityId, dep, arr)}
                       />

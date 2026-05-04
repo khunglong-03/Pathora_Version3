@@ -40,6 +40,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PrivateTourCoDesignOperatorSection } from "@/features/private-co-design/PrivateTourCoDesignOperatorSection";
 import PublicTourBookingAssignmentPanel from "./PublicTourBookingAssignmentPanel";
 import type { BookingTicketEntry } from "./ExternalTicketAssignmentPanel";
+import PublicTourBookingTable from "./PublicTourBookingTable";
+import { restorePublicTourReturnFocus } from "@/utils/publicTourRouteFocus";
 
 
 type EditForm = {
@@ -257,9 +259,11 @@ function ManagerReviewPanel({ instanceId, onAction }: { instanceId: string; onAc
 
 export interface TourInstanceDetailPageProps {
   readOnly?: boolean;
+  /** Explicitly declare variant to gate public/private-specific UI. When omitted, inferred from data.instanceType for backward compat. */
+  variant?: "public" | "private";
 }
 
-export default function TourInstanceDetailPage({ readOnly = false }: TourInstanceDetailPageProps = {}) {
+export default function TourInstanceDetailPage({ readOnly = false, variant: variantProp }: TourInstanceDetailPageProps = {}) {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
@@ -347,20 +351,29 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
     }
   }, [id]);
 
+  // Derive effective variant from prop or data.instanceType (backward compat)
+  const variant = variantProp ?? (data?.instanceType?.toLowerCase() === "private" ? "private" : "public");
+  /** Show full transport approval workflow (private tours only) */
+  const showTransportApproval = variant === "private";
+  // showAccommodationOnlyApproval = variant === "public"  (reserved for future use)
+
   const approvalSummary = useMemo(() => {
     const activities = (data?.days ?? []).flatMap((day) => day.activities ?? []);
 
     return {
-      transport: buildApprovalSummary(
-        activities
-          .filter((activity) => isTransportationActivity(activity.activityType))
-          .map((activity) => ({
-            assigned: Boolean(
-              activity.transportSupplierId || activity.transportSupplierName,
-            ),
-            status: activity.transportationApprovalStatus,
-          })),
-      ),
+      // Skip transport summary for public tours — transport is pre-assigned
+      transport: showTransportApproval
+        ? buildApprovalSummary(
+            activities
+              .filter((activity) => isTransportationActivity(activity.activityType))
+              .map((activity) => ({
+                assigned: Boolean(
+                  activity.transportSupplierId || activity.transportSupplierName,
+                ),
+                status: activity.transportationApprovalStatus,
+              })),
+          )
+        : { total: 0, approved: 0, pending: 0, rejected: 0, unassigned: 0 },
       accommodation: buildApprovalSummary(
         activities
           .filter((activity) => isAccommodationActivity(activity.activityType))
@@ -373,7 +386,8 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
           })),
       ),
     };
-  }, [data]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, showTransportApproval]);
 
   const availableGuides = useMemo(
     () => allUsers.filter((u) => u.roles?.some((r) => r.name === "TourGuide")),
@@ -456,6 +470,11 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (variant !== "public" || dataState !== "ready") return;
+    restorePublicTourReturnFocus();
+  }, [dataState, variant]);
 
   // Load bookings for per-booking assignment panel
   useEffect(() => {
@@ -955,6 +974,28 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
         </div>
       )}
       <div className="mx-auto max-w-[1440px] gap-6 v-stack">
+        {variant === "public" && (
+          <nav
+            aria-label={t("tourInstance.breadcrumb.label", "Breadcrumb")}
+            className="text-xs font-semibold text-stone-500"
+          >
+            <ol className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link
+                  href="/tour-operator/tour-instances/public"
+                  className="text-orange-600 hover:text-orange-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+                >
+                  {t("tourInstance.breadcrumb.publicTours", "Tour Công Cộng")}
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li className="text-stone-700" aria-current="page">
+                {data.title}
+              </li>
+            </ol>
+          </nav>
+        )}
+
         <header className="rounded-2xl border border-stone-200 bg-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] overflow-hidden relative v-stack md:flex-row">
           <button
             type="button"
@@ -1161,20 +1202,23 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                     {t("tourInstance.approvalOverview", "Approval Overview")}
                   </h2>
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4">
-                      <div className="items-center gap-2 h-stack">
-                        <Icon icon="heroicons:truck" className="size-4 text-cyan-600" />
-                        <h3 className="text-sm font-bold text-cyan-900">
-                          {t("tourInstance.transportApprovals", "Transportation")}
-                        </h3>
+                    {/* Transport Approval Overview — private only */}
+                    {showTransportApproval && (
+                      <div data-testid="approval-overview-transport" className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-4">
+                        <div className="items-center gap-2 h-stack">
+                          <Icon icon="heroicons:truck" className="size-4 text-cyan-600" />
+                          <h3 className="text-sm font-bold text-cyan-900">
+                            {t("tourInstance.transportApprovals", "Transportation")}
+                          </h3>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+                          <span>{`${t("tourInstance.approved", "Approved")}: ${approvalSummary.transport.approved}`}</span>
+                          <span>{`${t("tourInstance.pending", "Pending")}: ${approvalSummary.transport.pending}`}</span>
+                          <span>{`${t("tourInstance.rejected", "Rejected")}: ${approvalSummary.transport.rejected}`}</span>
+                          <span>{`${t("tourInstance.unassigned", "Unassigned")}: ${approvalSummary.transport.unassigned}`}</span>
+                        </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
-                        <span>{`${t("tourInstance.approved", "Approved")}: ${approvalSummary.transport.approved}`}</span>
-                        <span>{`${t("tourInstance.pending", "Pending")}: ${approvalSummary.transport.pending}`}</span>
-                        <span>{`${t("tourInstance.rejected", "Rejected")}: ${approvalSummary.transport.rejected}`}</span>
-                        <span>{`${t("tourInstance.unassigned", "Unassigned")}: ${approvalSummary.transport.unassigned}`}</span>
-                      </div>
-                    </div>
+                    )}
 
                     <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
                       <div className="items-center gap-2 h-stack">
@@ -1585,189 +1629,210 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                                       )}
 
                                       {isTransportationActivity(activity.activityType) && (
-                                        <div className="mt-2 space-y-2 rounded-lg border border-cyan-100 bg-cyan-50/70 p-3">
+                                        <div
+                                          data-testid={
+                                            showTransportApproval
+                                              ? "transport-approval-block"
+                                              : "transport-readonly-block"
+                                          }
+                                          className="mt-2 space-y-2 rounded-lg border border-cyan-100 bg-cyan-50/70 p-3"
+                                        >
                                           <div className="items-center justify-between gap-2 h-stack">
                                             <p className="items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-700 h-stack">
                                               <Icon icon="heroicons:truck" className="size-3" />
-                                              {t("tourInstance.transport.approval", "Transportation approval")}
+                                              {showTransportApproval
+                                                ? t("tourInstance.transport.approval", "Transportation approval")
+                                                : t("tourInstance.transport.publicInfo", "Phương tiện di chuyển")}
                                             </p>
-                                            <div className="items-center gap-2 h-stack">
-                                              <span
-                                                className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", getApprovalAppearance(activity.transportationApprovalStatus).ringClassName)}
-                                              >
-                                                <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
-                                                {getApprovalAppearance(activity.transportationApprovalStatus).label}
-                                              </span>
-                                              {canReassign && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setReassignActivity(activity);
-                                                    setReassignType("Transportation");
-                                                  }}
-                                                  aria-label={`Đổi nhà cung cấp cho hoạt động ${activity.title}`}
-                                                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                            {/* Show approval status + Đổi NCC only for private tours */}
+                                            {showTransportApproval && (
+                                              <div className="items-center gap-2 h-stack">
+                                                <span
+                                                  className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", getApprovalAppearance(activity.transportationApprovalStatus).ringClassName)}
                                                 >
-                                                  <Icon icon="heroicons:pencil-square" className="size-3" />
-                                                  Đổi NCC
-                                                </button>
-                                              )}
-                                            </div>
+                                                  <Icon icon={getApprovalAppearance(activity.transportationApprovalStatus).icon} className="size-3" />
+                                                  {getApprovalAppearance(activity.transportationApprovalStatus).label}
+                                                </span>
+                                                {canReassign && (
+                                                  <button
+                                                    data-testid="reassign-transport-btn"
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setReassignActivity(activity);
+                                                      setReassignType("Transportation");
+                                                    }}
+                                                    aria-label={`Đổi nhà cung cấp cho hoạt động ${activity.title}`}
+                                                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                                  >
+                                                    <Icon icon="heroicons:pencil-square" className="size-3" />
+                                                    Đổi NCC
+                                                  </button>
+                                                )}
+                                              </div>
+                                            )}
                                           </div>
 
-                                          <div className="grid gap-2 sm:grid-cols-2">
-                                            <div>
-                                              <p className="text-[10px] font-medium uppercase text-stone-500">
-                                                {t("tourInstance.transport.provider", "Supplier")}
-                                              </p>
-                                              <p className="text-xs font-semibold text-stone-800">
-                                                {activity.transportSupplierName || t("tourInstance.noTransportProvider", "No transport provider assigned")}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <p className="text-[10px] font-medium uppercase text-stone-500">
-                                                {t("tourInstance.transport.requestedVehicleType", "Requested vehicle type")}
-                                              </p>
-                                              <p className="text-xs font-semibold text-stone-800">
-                                                {activity.requestedVehicleType || "—"}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <p className="text-[10px] font-medium uppercase text-stone-500">
-                                                {t("tourInstance.transport.requestedSeatCount", "Requested seats")}
-                                              </p>
-                                              <p className="text-xs font-semibold text-stone-800">
-                                                {activity.requestedSeatCount ?? "—"}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <p className="text-[10px] font-medium uppercase text-stone-500">
-                                                {t("tourInstance.transport.assignedVehicle", "Assigned vehicle")}
-                                              </p>
-                                              {activity.transportAssignments
-                                              && activity.transportAssignments.length > 0 ? (
-                                                <ul className="mt-1 space-y-2">
-                                                  {activity.transportAssignments.map((ta) => (
-                                                    <li
-                                                      key={ta.id}
-                                                      className="rounded-lg border border-stone-100 bg-white/80 px-2 py-1.5"
-                                                    >
-                                                      <div className="flex-wrap items-center gap-2 h-stack">
-                                                        <span className="text-xs font-semibold text-stone-800 font-mono">
-                                                          {[ta.vehicleBrand, ta.vehicleModel].filter(Boolean).join(" ") || "—"}
-                                                        </span>
-                                                        {ta.vehicleType && (
-                                                          <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
-                                                            {ta.vehicleType}
-                                                          </span>
-                                                        )}
-                                                        {ta.vehicleSeatCapacity && (
-                                                          <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
-                                                            <Icon icon="heroicons:user-group" className="size-3" />
-                                                            {ta.vehicleSeatCapacity}
-                                                          </span>
-                                                        )}
-                                                      </div>
-                                                      {(ta.driverName || ta.driverPhone) && (
-                                                        <div className="mt-1 items-center gap-2 h-stack">
-                                                          <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
-                                                          <span className="text-xs text-stone-700">{ta.driverName}</span>
-                                                          {ta.driverPhone && (
-                                                            <span className="text-[10px] text-stone-400">{ta.driverPhone}</span>
+                                          {showTransportApproval ? (
+                                            <>
+                                              <div className="grid gap-2 sm:grid-cols-2">
+                                                <div>
+                                                  <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                    {t("tourInstance.transport.provider", "Supplier")}
+                                                  </p>
+                                                  <p className="text-xs font-semibold text-stone-800">
+                                                    {activity.transportSupplierName || t("tourInstance.noTransportProvider", "No transport provider assigned")}
+                                                  </p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                    {t("tourInstance.transport.requestedVehicleType", "Requested vehicle type")}
+                                                  </p>
+                                                  <p className="text-xs font-semibold text-stone-800">
+                                                    {activity.requestedVehicleType || "—"}
+                                                  </p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                    {t("tourInstance.transport.requestedSeatCount", "Requested seats")}
+                                                  </p>
+                                                  <p className="text-xs font-semibold text-stone-800">
+                                                    {activity.requestedSeatCount ?? "—"}
+                                                  </p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-[10px] font-medium uppercase text-stone-500">
+                                                    {t("tourInstance.transport.assignedVehicle", "Assigned vehicle")}
+                                                  </p>
+                                                  {activity.transportAssignments
+                                                  && activity.transportAssignments.length > 0 ? (
+                                                    <ul className="mt-1 space-y-2">
+                                                      {activity.transportAssignments.map((ta) => (
+                                                        <li
+                                                          key={ta.id}
+                                                          className="rounded-lg border border-stone-100 bg-white/80 px-2 py-1.5"
+                                                        >
+                                                          <div className="flex-wrap items-center gap-2 h-stack">
+                                                            <span className="text-xs font-semibold text-stone-800 font-mono">
+                                                              {[ta.vehicleBrand, ta.vehicleModel].filter(Boolean).join(" ") || "—"}
+                                                            </span>
+                                                            {ta.vehicleType && (
+                                                              <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
+                                                                {ta.vehicleType}
+                                                              </span>
+                                                            )}
+                                                            {ta.vehicleSeatCapacity && (
+                                                              <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
+                                                                <Icon icon="heroicons:user-group" className="size-3" />
+                                                                {ta.vehicleSeatCapacity}
+                                                              </span>
+                                                            )}
+                                                          </div>
+                                                          {(ta.driverName || ta.driverPhone) && (
+                                                            <div className="mt-1 items-center gap-2 h-stack">
+                                                              <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
+                                                              <span className="text-xs text-stone-700">{ta.driverName}</span>
+                                                              {ta.driverPhone && (
+                                                                <span className="text-[10px] text-stone-400">{ta.driverPhone}</span>
+                                                              )}
+                                                            </div>
                                                           )}
-                                                        </div>
+                                                        </li>
+                                                      ))}
+                                                    </ul>
+                                                  ) : activity.vehicleType ? (
+                                                    <div className="flex-wrap items-center gap-2 h-stack">
+                                                      <span className="text-xs font-semibold text-stone-800 font-mono">
+                                                        {[activity.vehicleBrand, activity.vehicleModel].filter(Boolean).join(" ") || "—"}
+                                                      </span>
+                                                      {activity.vehicleType && (
+                                                        <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
+                                                          {activity.vehicleType}
+                                                        </span>
                                                       )}
-                                                    </li>
-                                                  ))}
-                                                </ul>
-                                              ) : activity.vehicleType ? (
-                                                <div className="flex-wrap items-center gap-2 h-stack">
-                                                  <span className="text-xs font-semibold text-stone-800 font-mono">
-                                                    {[activity.vehicleBrand, activity.vehicleModel].filter(Boolean).join(" ") || "—"}
-                                                  </span>
-                                                  {activity.vehicleType && (
-                                                    <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] text-stone-500">
-                                                      {activity.vehicleType}
-                                                    </span>
-                                                  )}
-                                                  {activity.seatCapacity && (
-                                                    <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
-                                                      <Icon icon="heroicons:user-group" className="size-3" />
-                                                      {activity.seatCapacity}
-                                                    </span>
+                                                      {activity.seatCapacity && (
+                                                        <span className="items-center gap-0.5 text-[10px] text-stone-500 h-stack">
+                                                          <Icon icon="heroicons:user-group" className="size-3" />
+                                                          {activity.seatCapacity}
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                  ) : (
+                                                    <p className="text-[10px] italic text-amber-600">
+                                                      {t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}
+                                                    </p>
                                                   )}
                                                 </div>
-                                              ) : (
-                                                <p className="text-[10px] italic text-amber-600">
-                                                  {t("tourInstance.transport.notAssigned", "Chưa có xe được phân công")}
+                                              </div>
+
+                                              <div className="space-y-1">
+                                                {!(
+                                                  activity.transportAssignments
+                                                  && activity.transportAssignments.length > 0
+                                                )
+                                                && activity.driverName && (
+                                                  <div className="items-center gap-2 h-stack">
+                                                    <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
+                                                    <span className="text-xs text-stone-700">{activity.driverName}</span>
+                                                    {activity.driverPhone && (
+                                                      <span className="text-[10px] text-stone-400">{activity.driverPhone}</span>
+                                                    )}
+                                                  </div>
+                                                )}
+                                                {(activity.pickupLocation || activity.dropoffLocation) && (
+                                                  <div className="space-y-0.5">
+                                                    {activity.pickupLocation && (
+                                                      <div className="items-start gap-1.5 h-stack">
+                                                        <Icon icon="heroicons:map-pin" className="size-3 text-emerald-600 mt-0.5 shrink-0" />
+                                                        <div>
+                                                          <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm đón: </span>
+                                                          <span className="text-xs text-stone-700">{activity.pickupLocation}</span>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                    {activity.dropoffLocation && (
+                                                      <div className="items-start gap-1.5 h-stack">
+                                                        <Icon icon="heroicons:map-pin" className="size-3 text-red-500 mt-0.5 shrink-0" />
+                                                        <div>
+                                                          <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm trả: </span>
+                                                          <span className="text-xs text-stone-700">{activity.dropoffLocation}</span>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                )}
+                                                {(activity.departureTime || activity.arrivalTime) && (
+                                                  <div className="items-center gap-3 text-[10px] text-stone-500 h-stack">
+                                                    {activity.departureTime && (
+                                                      <span>Khởi hành: {new Date(activity.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                    )}
+                                                    {activity.arrivalTime && (
+                                                      <span>Đến: {new Date(activity.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                                                    )}
+                                                  </div>
+                                                )}
+                                              </div>
+
+                                              {activity.transportationApprovalNote && (
+                                                <p className="rounded-lg bg-white/70 px-2.5 py-2 text-xs text-stone-600">
+                                                  <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span>{" "}
+                                                  {activity.transportationApprovalNote}
                                                 </p>
                                               )}
+
+                                              {canReassign && isExternalOnlyTransportation(activity.transportationType) && (
+                                                <TicketImageUpload
+                                                  instanceId={data.id}
+                                                  activity={activity}
+                                                  bookingOptions={ticketBookingOptions}
+                                                  bookingOptionsLoading={ticketBookingOptionsLoading}
+                                                  hasBookings={(data.totalBookings ?? 0) > 0}
+                                                />
+                                              )}
+                                            </>
+                                          ) : (
+                                            <div className="text-xs text-stone-600">
+                                              <p>{t("tourInstance.transport.publicAssignedBelow", "Chi tiết phương tiện được quản lý và gán theo từng booking ở phần dưới.")}</p>
                                             </div>
-                                          </div>
-
-                                          <div className="space-y-1">
-                                            {!(
-                                              activity.transportAssignments
-                                              && activity.transportAssignments.length > 0
-                                            )
-                                            && activity.driverName && (
-                                              <div className="items-center gap-2 h-stack">
-                                                <Icon icon="heroicons:user" className="size-3 text-cyan-600 shrink-0" />
-                                                <span className="text-xs text-stone-700">{activity.driverName}</span>
-                                                {activity.driverPhone && (
-                                                  <span className="text-[10px] text-stone-400">{activity.driverPhone}</span>
-                                                )}
-                                              </div>
-                                            )}
-                                            {(activity.pickupLocation || activity.dropoffLocation) && (
-                                              <div className="space-y-0.5">
-                                                {activity.pickupLocation && (
-                                                  <div className="items-start gap-1.5 h-stack">
-                                                    <Icon icon="heroicons:map-pin" className="size-3 text-emerald-600 mt-0.5 shrink-0" />
-                                                    <div>
-                                                      <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm đón: </span>
-                                                      <span className="text-xs text-stone-700">{activity.pickupLocation}</span>
-                                                    </div>
-                                                  </div>
-                                                )}
-                                                {activity.dropoffLocation && (
-                                                  <div className="items-start gap-1.5 h-stack">
-                                                    <Icon icon="heroicons:map-pin" className="size-3 text-red-500 mt-0.5 shrink-0" />
-                                                    <div>
-                                                      <span className="text-[10px] font-medium text-stone-500 uppercase">Điểm trả: </span>
-                                                      <span className="text-xs text-stone-700">{activity.dropoffLocation}</span>
-                                                    </div>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            )}
-                                            {(activity.departureTime || activity.arrivalTime) && (
-                                              <div className="items-center gap-3 text-[10px] text-stone-500 h-stack">
-                                                {activity.departureTime && (
-                                                  <span>Khởi hành: {new Date(activity.departureTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
-                                                )}
-                                                {activity.arrivalTime && (
-                                                  <span>Đến: {new Date(activity.arrivalTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
-                                                )}
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {activity.transportationApprovalNote && (
-                                            <p className="rounded-lg bg-white/70 px-2.5 py-2 text-xs text-stone-600">
-                                              <span className="font-medium">{t("tourInstance.form.note", "Note")}:</span>{" "}
-                                              {activity.transportationApprovalNote}
-                                            </p>
-                                          )}
-
-                                          {canReassign && isExternalOnlyTransportation(activity.transportationType) && (
-                                            <TicketImageUpload
-                                              instanceId={data.id}
-                                              activity={activity}
-                                              bookingOptions={ticketBookingOptions}
-                                              bookingOptionsLoading={ticketBookingOptionsLoading}
-                                              hasBookings={(data.totalBookings ?? 0) > 0}
-                                            />
                                           )}
                                         </div>
                                       )}
@@ -1927,8 +1992,8 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
               )}
             </section>
 
-            {/* ── Per-booking assignment panel ── */}
-            {["public", "private"].includes(data.instanceType?.toLowerCase() || "") && canReassign && (() => {
+            {/* ── Per-booking assignment panel (private only — public uses sub-routes) ── */}
+            {variant === "private" && data.instanceType?.toLowerCase() === "private" && canReassign && (() => {
               const allActivities = (data.days ?? []).flatMap((d) => d.activities ?? []);
 
               // Accommodation activities assigned to a hotel supplier
@@ -1949,16 +2014,18 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                   };
                 });
 
-              // External transport activities (Flight/Train/Boat)
+              // External transport activities (Flight/Train/Boat/Bus/Car)
               const externalActivities = allActivities
-                .filter((a) => isTransportationActivity(a.activityType) && isExternalOnlyTransportation(a.transportationType ?? a.transportationName))
+                .filter((a) => isTransportationActivity(a.activityType))
                 .map((a) => {
                   const day = data.days?.find((d) => d.activities?.some((x) => x.id === a.id));
                   const rawType = (a.transportationType ?? a.transportationName ?? "") as string;
-                  const transportType: "Flight" | "Train" | "Boat" =
+                  const transportType: "Flight" | "Train" | "Boat" | "Bus" | "Car" =
                     rawType.toLowerCase().includes("flight") || rawType === "3" ? "Flight"
                     : rawType.toLowerCase().includes("boat") || rawType === "4" ? "Boat"
-                    : "Train";
+                    : rawType.toLowerCase().includes("train") || rawType === "2" ? "Train"
+                    : rawType.toLowerCase().includes("car") || rawType === "1" ? "Car"
+                    : "Bus";
                   return {
                     activityId: a.id,
                     title: a.title,
@@ -1974,7 +2041,7 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
               return (
                 <PublicTourBookingAssignmentPanel
                   instanceId={data.id}
-                  instanceType={data.instanceType ?? "public"}
+                  instanceType={data.instanceType ?? "private"}
                   bookings={instanceBookings}
                   bookingsLoading={instanceBookingsLoading}
                   accommodationActivities={accomActivities}
@@ -1990,7 +2057,7 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                       seatClass: entry.seatClass,
                       note: entry.note,
                     });
-                    console.info("[PublicTour] Ticket saved for booking", entry.bookingId, "activity", activityId);
+                    console.info("[PrivateTour] Ticket saved for booking", entry.bookingId, "activity", activityId);
                   }}
                   onConfirmExternalTransport={async (activityId, dep, arr) => {
                     await tourInstanceService.confirmExternalTransport(data.id, activityId, true, dep, arr);
@@ -2003,6 +2070,40 @@ export default function TourInstanceDetailPage({ readOnly = false }: TourInstanc
                     tourInstanceService.getBookingRoomAssignments(data.id, activityId)
                   }
                 />
+              );
+            })()
+            }
+
+            {/* ── Public tour booking table (per-booking assignment status + action links) ── */}
+            {variant === "public" && (() => {
+              const allActs = (data.days ?? []).flatMap((d) => d.activities ?? []);
+              const hasAccom = allActs.some((a) => isAccommodationActivity(a.activityType));
+              const accomActs = allActs
+                .filter((a) => isAccommodationActivity(a.activityType))
+                .map((a) => ({
+                  activityId: a.id,
+                  title: a.title,
+                  supplierName: a.accommodation?.supplierName ?? null,
+                }));
+              const extActs = allActs
+                .filter((a) => isTransportationActivity(a.activityType))
+                .map((a) => ({
+                  activityId: a.id,
+                  title: a.title,
+                  confirmed: a.externalTransportConfirmed ?? false,
+                }));
+
+              return (
+                <div className="mt-8">
+                  <PublicTourBookingTable
+                    instanceId={data.id}
+                    bookings={instanceBookings}
+                    loading={instanceBookingsLoading}
+                    externalActivities={extActs}
+                    accommodationActivities={accomActs}
+                    hasAccommodationActivities={hasAccom}
+                  />
+                </div>
               );
             })()}
           </>
