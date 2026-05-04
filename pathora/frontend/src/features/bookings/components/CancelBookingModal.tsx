@@ -71,15 +71,15 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
                       <div className="flex justify-between border-b pb-2">
                         <span>Paid Amount:</span>
                         <span className="font-semibold">
-                          {estimate.paidAmount.toLocaleString()}
+                          {(estimate.paidAmount ?? 0).toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between border-b py-2">
-                        <span>Fee ({estimate.feePercent}%):</span>
+                        <span>Fee ({estimate.feePercent ?? 0}%):</span>
                         <span className="font-semibold text-red-600">
                           -
                           {(
-                            (estimate.paidAmount * estimate.feePercent) /
+                            ((estimate.paidAmount ?? 0) * (estimate.feePercent ?? 0)) /
                             100
                           ).toLocaleString()}
                         </span>
@@ -87,7 +87,7 @@ export const CancelBookingModal: React.FC<CancelBookingModalProps> = ({
                       <div className="flex justify-between pt-2">
                         <span className="font-medium">Estimated Refund:</span>
                         <span className="font-bold text-green-600">
-                          {estimate.refundAmount.toLocaleString()}
+                          {(estimate.refundAmount ?? 0).toLocaleString()}
                         </span>
                       </div>
                     </div>

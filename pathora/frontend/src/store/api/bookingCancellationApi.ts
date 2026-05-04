@@ -66,6 +66,7 @@ export const bookingCancellationApi = apiSlice.injectEndpoints({
         url: BOOKING_CANCELLATION.GET_ESTIMATE(bookingId),
         method: "GET",
       }),
+      transformResponse: (response: any) => response?.data ?? response?.value ?? response,
       providesTags: (_result, _error, bookingId) => [
         { type: "BookingCancellation" as const, id: `estimate-${bookingId}` },
       ],
@@ -97,6 +98,7 @@ export const bookingCancellationApi = apiSlice.injectEndpoints({
         method: "GET",
         params: { page, pageSize, ...(status ? { status } : {}) },
       }),
+      transformResponse: (response: any) => response?.data ?? response?.value ?? response,
       providesTags: [{ type: "BookingCancellation" as const, id: "MY_LIST" }],
     }),
 
@@ -115,6 +117,7 @@ export const bookingCancellationApi = apiSlice.injectEndpoints({
           ...(search ? { search } : {}),
         },
       }),
+      transformResponse: (response: any) => response?.data ?? response?.value ?? response,
       providesTags: [
         { type: "BookingCancellation" as const, id: "MANAGER_LIST" },
       ],

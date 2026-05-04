@@ -56,5 +56,6 @@ export const getBookingDerivedState = (booking: BookingDetail) => ({
   showCancelBooking:
     booking.status !== "completed" &&
     booking.status !== "cancelled" &&
-    booking.status !== "rejected",
+    booking.status !== "rejected" &&
+    booking.status !== "pending_cancellation",
 });

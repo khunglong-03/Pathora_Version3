@@ -139,29 +139,62 @@ export function BookingPaymentSummary({
           </span>
         </div>
 
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          className="v-stack p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
-        >
+        {booking.status === "cancelled" || booking.status === "rejected" ? (
           <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-20 -right-20 w-40 h-40 bg-white/5 rounded-full blur-2xl"
-          />
-          <span className="text-sm font-bold text-slate-400 mb-1 relative z-10">
-            Remaining Balance
-          </span>
-          <div className="h-stack items-center justify-between relative z-10">
-            <span className="text-3xl font-bold font-mono text-white tracking-tighter">
-              {formatCurrency(booking.remainingBalance)}
+            className="v-stack p-6 mt-4 bg-rose-50 rounded-[2rem] border border-rose-100 relative overflow-hidden shadow-sm"
+          >
+            <span className="text-sm font-bold text-rose-500 mb-1 relative z-10">
+              Booking Status
             </span>
-            <span
-              className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-white/10 text-white backdrop-blur-sm border border-white/10`}
-            >
-              {getPaymentStatusLabel(booking.paymentStatus)}
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-2xl font-bold text-rose-600 tracking-tighter capitalize">
+                {booking.status}
+              </span>
+              {booking.cancellationRequests?.some(r => r.status === "Approved" || r.status === "Refunded") && (
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-rose-200 text-rose-700">
+                  Refund Processed
+                </span>
+              )}
+            </div>
+          </motion.div>
+        ) : booking.status === "pending_cancellation" ? (
+          <motion.div 
+            className="v-stack p-6 mt-4 bg-amber-50 rounded-[2rem] border border-amber-100 relative overflow-hidden shadow-sm"
+          >
+            <span className="text-sm font-bold text-amber-500 mb-1 relative z-10">
+              Booking Status
             </span>
-          </div>
-        </motion.div>
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-2xl font-bold text-amber-600 tracking-tighter capitalize">
+                Pending Cancellation
+              </span>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            className="v-stack p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
+          >
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-20 -right-20 w-40 h-40 bg-white/5 rounded-full blur-2xl"
+            />
+            <span className="text-sm font-bold text-slate-400 mb-1 relative z-10">
+              Remaining Balance
+            </span>
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-3xl font-bold font-mono text-white tracking-tighter">
+                {formatCurrency(booking.remainingBalance)}
+              </span>
+              <span
+                className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-white/10 text-white backdrop-blur-sm border border-white/10`}
+              >
+                {getPaymentStatusLabel(booking.paymentStatus)}
+              </span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="v-stack gap-3 mt-8">

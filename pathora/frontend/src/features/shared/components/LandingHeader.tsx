@@ -344,7 +344,7 @@ const MobileSidebar = ({
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("booking.myBookings") || "Tour đã đặt"}
+                      {t("bookings.title") || "Tour đã đặt"}
                     </span>
                   </Link>
                   <Link
@@ -888,16 +888,6 @@ export const LandingHeader = () => {
                       >
                         <FiSettings className="w-4 h-4" />
                         <span>{t("common.settings") || "Cài đặt"}</span>
-                      </Link>
-
-                      {/* My Bookings */}
-                      <Link
-                        href="/bookings"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
-                      >
-                        <FiCalendar className="w-4 h-4" />
-                        <span>{t("booking.myBookings") || "Tour đã đặt"}</span>
                       </Link>
 
                       {/* Custom Tour Requests */}

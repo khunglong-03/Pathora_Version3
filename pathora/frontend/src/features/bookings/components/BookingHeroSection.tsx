@@ -15,7 +15,7 @@ export function BookingHeroSection({ booking, getStatusLabel }: BookingHeroSecti
   const statusCfg = STATUS_CONFIG[booking.status];
   
   let StatusIcon = CheckCircle;
-  if (booking.status === "pending" || booking.status === "pending_approval") {
+  if (booking.status === "pending" || booking.status === "pending_approval" || booking.status === "pending_cancellation") {
     StatusIcon = Clock;
   } else if (booking.status === "cancelled" || booking.status === "rejected") {
     StatusIcon = XCircle;

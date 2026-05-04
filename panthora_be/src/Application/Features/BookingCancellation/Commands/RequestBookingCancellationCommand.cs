@@ -200,13 +200,17 @@ public sealed class RequestBookingCancellationCommandHandler(
 
     private static decimal CalculatePaidAmount(BookingEntity booking)
     {
-        var depositSum = booking.Deposits
+        var transactionSum = booking.PaymentTransactions?
+            .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
+            .Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
+
+        var depositSum = booking.Deposits?
             .Where(d => d.Status == DepositStatus.Paid)
-            .Sum(d => d.ExpectedAmount);
+            .Sum(d => d.ExpectedAmount) ?? 0m;
 
-        var paymentSum = booking.Payments.Sum(p => p.Amount);
+        var paymentSum = booking.Payments?.Sum(p => p.Amount) ?? 0m;
 
-        return depositSum + paymentSum;
+        return transactionSum + depositSum + paymentSum;
     }
 
     private static decimal RoundVnd(decimal value)

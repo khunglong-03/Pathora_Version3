@@ -115,9 +115,13 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
+  let mappedStatusStr = booking.status?.toLowerCase() || "pending";
+  if (mappedStatusStr === "pendingapproval") mappedStatusStr = "pending_approval";
+  if (mappedStatusStr === "pendingcancellation") mappedStatusStr = "pending_cancellation";
+
   const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
     ? "pending_approval" 
-    : (booking.status?.toLowerCase() || "pending");
+    : mappedStatusStr;
   const mappedBooking = { ...booking, status: actualStatus };
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
