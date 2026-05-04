@@ -56,14 +56,17 @@ public sealed class SaveBookingTicketCommandHandler(
 
         var existingTicket = await ticketRepository.GetByActivityAndBookingAsync(request.ActivityId, request.BookingId, cancellationToken);
 
+        var utcDepartureAt = request.DepartureAt?.ToUniversalTime();
+        var utcArrivalAt = request.ArrivalAt?.ToUniversalTime();
+
         if (existingTicket == null)
         {
             var newTicket = TourInstanceBookingTicketEntity.Create(
                 request.ActivityId,
                 request.BookingId,
                 request.FlightNumber,
-                request.DepartureAt,
-                request.ArrivalAt,
+                utcDepartureAt,
+                utcArrivalAt,
                 request.SeatNumbers,
                 request.ETicketNumbers,
                 request.SeatClass,
@@ -77,8 +80,8 @@ public sealed class SaveBookingTicketCommandHandler(
             logger.LogInformation("Updating existing ticket for Activity {ActivityId} and Booking {BookingId}", request.ActivityId, request.BookingId);
             existingTicket.Update(
                 request.FlightNumber,
-                request.DepartureAt,
-                request.ArrivalAt,
+                utcDepartureAt,
+                utcArrivalAt,
                 request.SeatNumbers,
                 request.ETicketNumbers,
                 request.SeatClass,
@@ -88,8 +91,8 @@ public sealed class SaveBookingTicketCommandHandler(
 
         // Sync the common transport details back to the activity entity
         // This is required so that ConfirmExternalTransport has the DepartureTime and ArrivalTime.
-        if (request.DepartureAt.HasValue) activity.DepartureTime = request.DepartureAt;
-        if (request.ArrivalAt.HasValue) activity.ArrivalTime = request.ArrivalAt;
+        if (utcDepartureAt.HasValue) activity.DepartureTime = utcDepartureAt;
+        if (utcArrivalAt.HasValue) activity.ArrivalTime = utcArrivalAt;
         if (!string.IsNullOrWhiteSpace(request.FlightNumber)) activity.ExternalTransportReference = request.FlightNumber;
 
         var savedCount = await unitOfWork.SaveChangeAsync(cancellationToken);

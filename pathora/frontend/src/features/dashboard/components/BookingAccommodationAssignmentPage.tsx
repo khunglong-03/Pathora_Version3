@@ -32,8 +32,9 @@ interface AccommodationActivityInfo {
   supplierApprovalStatus: string | null;
 }
 
-const isAccommodationActivity = (activityType?: string | null): boolean => {
-  const normalized = activityType?.trim().toLowerCase();
+const isAccommodationActivity = (activityType?: string | number | null): boolean => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "accommodation" || normalized === "8";
 };
 
@@ -268,6 +269,7 @@ export default function BookingAccommodationAssignmentPage({
             bookingsLoading={false}
             accommodationActivities={accommodationActivities}
             externalTransportActivities={[]}
+            continent={instance?.continent ?? null}
             onSaveRoomAssignment={async (activityId, payload) => {
               await tourInstanceService.saveBookingRoomAssignment(
                 instanceId,
@@ -279,6 +281,16 @@ export default function BookingAccommodationAssignmentPage({
               tourInstanceService.getBookingRoomAssignments(instanceId, activityId)
             }
             onRoomAssignmentSaved={handleRoomAssignmentSaved}
+            onSetAccommodationRequirements={async (activityId, payload) => {
+              await tourInstanceService.setAccommodationRequirements(
+                instanceId,
+                activityId,
+                payload,
+              );
+            }}
+            onRequirementsSaved={() => {
+              void fetchData();
+            }}
           />
         )}
       </main>

@@ -45,13 +45,15 @@ const ACTIVITY_TYPE_OPTIONS = [
   { value: 99, label: "Khác" },
 ];
 
-const isTransportationActivity = (activityType?: string | null) => {
-  const n = activityType?.trim().toLowerCase();
+const isTransportationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const n = String(activityType).trim().toLowerCase();
   return n === "transportation" || n === "7";
 };
 
-const isAccommodationActivity = (activityType?: string | null) => {
-  const n = activityType?.trim().toLowerCase();
+const isAccommodationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const n = String(activityType).trim().toLowerCase();
   return n === "accommodation" || n === "8";
 };
 

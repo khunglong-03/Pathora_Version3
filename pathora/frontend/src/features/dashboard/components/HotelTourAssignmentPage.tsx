@@ -23,8 +23,9 @@ import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { handleApiError } from "@/utils/apiResponse";
 
 /** Backend maps enum with `.ToString()` → `"Accommodation"`; older clients/tests may send `"8"`. */
-const isAccommodationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase() ?? "";
+const isAccommodationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "accommodation" || normalized === "8";
 };
 
@@ -125,8 +126,9 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                   canonicalRoomOptions[0]?.roomType ??
                   "",
                 roomCount:
-                  act.accommodation?.quantity ??
-                  Math.ceil(data.currentParticipation / 2),
+                  act.accommodation?.quantity && act.accommodation.quantity > 0
+                    ? act.accommodation.quantity
+                    : Math.max(1, Math.ceil((data.currentParticipation ?? 2) / 2)),
                 isSubmitting: false,
               };
             }

@@ -71,13 +71,15 @@ type ApprovalSummary = {
   unassigned: number;
 };
 
-const isTransportationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase();
+const isTransportationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "transportation" || normalized === "7";
 };
 
-const isAccommodationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase();
+const isAccommodationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "accommodation" || normalized === "8";
 };
 
@@ -2016,7 +2018,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
 
               // External transport activities (Flight/Train/Boat/Bus/Car)
               const externalActivities = allActivities
-                .filter((a) => isTransportationActivity(a.activityType))
+                .filter((a) => isTransportationActivity(a.activityType) && !a.transportSupplierId)
                 .map((a) => {
                   const day = data.days?.find((d) => d.activities?.some((x) => x.id === a.id));
                   const rawType = (a.transportationType ?? a.transportationName ?? "") as string;
@@ -2086,7 +2088,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                   supplierName: a.accommodation?.supplierName ?? null,
                 }));
               const extActs = allActs
-                .filter((a) => isTransportationActivity(a.activityType))
+                .filter((a) => isTransportationActivity(a.activityType) && !a.transportSupplierId)
                 .map((a) => ({
                   activityId: a.id,
                   title: a.title,

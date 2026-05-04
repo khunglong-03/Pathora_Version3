@@ -715,33 +715,6 @@ export default function ExternalTicketAssignmentPanel({
         })}
       </div>
 
-      {/* Confirm all button */}
-      <div className="flex justify-end pt-4 pr-2">
-        <button
-          onClick={handleConfirmAll}
-          disabled={!allSaved || confirmingAll || confirmedAll}
-          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500 active:scale-[0.98]"
-            : "bg-stone-100 text-stone-400 cursor-not-allowed"
-            }`}
-        >
-          {confirmingAll ? (
-            <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-          ) : (
-            <Icon icon="heroicons:check-badge" className="size-5" />
-          )}
-          {confirmingAll
-            ? t("tourInstance.bookingFlight.confirming", "Đang xác nhận...")
-            : confirmedAll
-              ? t("tourInstance.bookingFlight.confirmed", "Đã xác nhận vé")
-              : allSaved
-                ? t("tourInstance.bookingFlight.confirmAll", "Xác nhận đã đặt tất cả vé")
-                : t("tourInstance.bookingFlight.remainingBookings", {
-                    defaultValue: "Cần hoàn thành {{count}} booking nữa",
-                    count: bookings.length - savedIds.size,
-                  })}
-        </button>
-      </div>
     </div>
   );
 }

@@ -91,8 +91,9 @@ function activityDraftFromActivity(
   };
 }
 
-const isTransportationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase();
+const isTransportationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "transportation" || normalized === "7";
 };
 
