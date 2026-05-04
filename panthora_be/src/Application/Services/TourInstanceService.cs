@@ -1130,44 +1130,10 @@ public class TourInstanceService(
         if (!hasAccess)
             return Error.Validation("TourInstance.ProviderNotAssigned", $"You are not assigned as the {providerType} provider for this tour instance.");
 
-
-        if (providerType == "Hotel" && isApproved)
-        {
-            var requestedActivityIds = accommodationActivityIds?.Count > 0
-                ? accommodationActivityIds.ToHashSet()
-                : null;
-
-            var accommodationActivities = instance.InstanceDays
-                .Where(d => !d.IsDeleted)
-                .SelectMany(d => d.Activities)
-                .Where(a =>
-                    a.ActivityType == TourDayActivityType.Accommodation
-                    && a.Accommodation?.SupplierId != null
-                    && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)
-                    && (requestedActivityIds is null || requestedActivityIds.Contains(a.Id)))
-                .ToList();
-
-            var activityIds = accommodationActivities.Select(a => a.Id).ToList();
-            var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
-            var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
-                .ToDictionary(g => g.Key!.Value, g => g.ToList());
-
-            var underAllocated = new List<string>();
-            foreach (var activity in accommodationActivities)
-            {
-                var planAccom = activity.Accommodation;
-                if (planAccom == null || planAccom.Quantity <= 0) continue;
-
-                blocksByActivity.TryGetValue(activity.Id, out var blocks);
-                var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
-
-                if (totalBlocked < planAccom.Quantity)
-                    underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
-            }
-
-            if (underAllocated.Count > 0)
-                return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
-        }
+        // NOTE: No pre-validation for room blocks needed here.
+        // When the hotel provider approves, RoomBlocks are auto-created inside the
+        // transaction below (line ~1280) based on the accommodation requirements
+        // (RoomType + Quantity) set by the Tour Operator.
 
         var statusBeforeApprove = instance.Status;
         string notificationProviderName = supplier.Name;
