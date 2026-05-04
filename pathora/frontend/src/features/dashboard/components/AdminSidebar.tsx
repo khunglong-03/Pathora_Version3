@@ -309,7 +309,7 @@ export function AdminSidebar({
                   key={item.label}
                   href={item.href}
                   className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                  onClick={onClose}
+                  onClick={() => onClose()}
                   style={
                     active
                       ? {
@@ -506,7 +506,7 @@ export function AdminSidebar({
               </div>
             </Link>
             <button
-              onClick={onClose}
+              onClick={() => onClose()}
               aria-label="Close sidebar"
               className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
               style={{ color: "var(--sidebar-text-muted)" }}>
@@ -528,7 +528,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -586,7 +586,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -638,7 +638,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -689,7 +689,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -736,7 +736,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -794,7 +794,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {

@@ -143,7 +143,7 @@ export function TourGuideSchedule({ instances }: Props) {
                     {format(new Date(instance.startDate), "dd/MM/yyyy")} - {format(new Date(instance.endDate), "dd/MM/yyyy")}
                   </span>
                   <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
-                    {instance.currentParticipation}/{instance.maxParticipation} khách
+                    Chi tiết &rarr;
                   </span>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { NormalizedTourInstanceDto, TourInstanceDayActivityDto, isExternalOnlyTr
 export const isQualifiedBooking = (booking: any): boolean => {
   if (!booking || typeof booking.status !== "string") return false;
   const s = booking.status.toLowerCase();
-  return s === "deposited" || s === "paid" || s === "completed";
+  return s === "confirmed" || s === "deposited" || s === "paid" || s === "completed";
 };
 
 // 2.2 Add helper to calculate booking pax

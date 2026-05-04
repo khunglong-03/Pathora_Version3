@@ -152,9 +152,6 @@ export default function TourOperationDetailPage() {
   // Check if ALL activities in the entire tour are completed
   const allActivitiesCompleted = instance.days?.every(day => 
     day.activities?.every(act => {
-      // Find status by tourDayId mapping
-      // Note: we might have to use act.id as fallback if tourDayId is not present, but based on previous implementation it uses tourDayId 
-      // We will look for it in activityStatuses by matching ID, or fallback to assuming it's done if the tour is done
       const statusObj = activityStatuses.find(s => s.tourDayActivityId === act.id || s.tourDayId === (act as any).tourDayId);
       return statusObj?.status === "Completed" || statusObj?.status === "Cancelled";
     })
@@ -163,7 +160,9 @@ export default function TourOperationDetailPage() {
   const totalAdults = bookings.reduce((sum, b) => sum + (b.numberAdult || 0), 0);
   const totalChildren = bookings.reduce((sum, b) => sum + (b.numberChild || 0), 0);
   const totalInfants = bookings.reduce((sum, b) => sum + (b.numberInfant || 0), 0);
+  const totalGuests = totalAdults + totalChildren;
   const hasParticipants = totalAdults > 0 || totalChildren > 0 || totalInfants > 0;
+  const displayParticipation = instance.currentParticipation > 0 ? instance.currentParticipation : totalGuests;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">

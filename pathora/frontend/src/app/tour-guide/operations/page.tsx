@@ -127,9 +127,8 @@ export default function TourGuideOperationsPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3 text-sm text-slate-600 font-medium">
-                      <UsersIcon className="text-slate-400 shrink-0" size={18} />
-                      <span>{tour.currentParticipation || 0} hành khách</span>
+                    <div className="flex items-center gap-3 text-sm text-emerald-600 font-semibold">
+                      <span>Xem chi tiết hoạt động &rarr;</span>
                     </div>
                   </div>
                 </Link>

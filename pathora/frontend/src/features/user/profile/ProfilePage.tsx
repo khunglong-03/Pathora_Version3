@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/cn";
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -115,7 +114,7 @@ export function ProfilePage() {
                         router.replace(`?${params.toString()}`);
                       }}
                       
-                      className={cn("h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50", isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                      className={`h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50 ${isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
                     >
                       <Icon className="size-4" />
                       {tab.label}
