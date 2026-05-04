@@ -35,25 +35,55 @@ export const BoldTrendingDestinations = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDestinations = React.useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await homeService.getTrendingDestinations(8);
-      setDestinations(mapTrendingToDestinations(result ?? []));
-    } catch {
-      setError(
-        t("landing.destinations.loadError") || "Unable to load destinations"
-      );
-      setDestinations([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [i18n.language, t]);
-
   React.useEffect(() => {
-    fetchDestinations();
-  }, [fetchDestinations]);
+    // Hardcoded 6 continents for the home screen display
+    const continents: DestinationCard[] = [
+      {
+        id: "asia",
+        name: "Châu Á",
+        country: "Asia",
+        image: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2070&auto=format&fit=crop",
+        tours: 42,
+      },
+      {
+        id: "europe",
+        name: "Châu Âu",
+        country: "Europe",
+        image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2020&auto=format&fit=crop",
+        tours: 35,
+      },
+      {
+        id: "americas",
+        name: "Châu Mỹ",
+        country: "Americas",
+        image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop",
+        tours: 28,
+      },
+      {
+        id: "africa",
+        name: "Châu Phi",
+        country: "Africa",
+        image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=2000&auto=format&fit=crop",
+        tours: 15,
+      },
+      {
+        id: "oceania",
+        name: "Châu Đại Dương",
+        country: "Oceania",
+        image: "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?q=80&w=2000&auto=format&fit=crop",
+        tours: 12,
+      },
+      {
+        id: "antarctica",
+        name: "Châu Nam Cực",
+        country: "Antarctica",
+        image: "https://images.unsplash.com/photo-1517783999520-f068d7431a60?q=80&w=2070&auto=format&fit=crop",
+        tours: 2,
+      },
+    ];
+    setDestinations(continents);
+    setIsLoading(false);
+  }, [t]);
 
   return (
     <section className={cn("py-24 md:py-32 bg-stone-50 overflow-hidden")}>
@@ -86,13 +116,6 @@ export const BoldTrendingDestinations = () => {
         {error ? (
           <div className={cn("rounded-2xl border border-red-200 bg-red-50 p-8 text-center max-w-2xl mx-auto")}>
             <p className={cn("text-red-800 font-medium")}>{error}</p>
-            <button
-              type="button"
-              onClick={fetchDestinations}
-              className={cn("mt-4 inline-flex items-center rounded-xl bg-red-100 px-6 py-2.5 text-sm font-bold text-red-800 hover:bg-red-200 transition-colors")}
-            >
-              {t("landing.destinations.retry") || "Retry"}
-            </button>
           </div>
         ) : isLoading ? (
           <div
