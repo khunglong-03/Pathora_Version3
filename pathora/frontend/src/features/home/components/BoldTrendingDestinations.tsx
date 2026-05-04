@@ -36,11 +36,11 @@ export const BoldTrendingDestinations = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const continents = [
-    { id: 1, name: "Châu Á" },
-    { id: 2, name: "Châu Âu" },
-    { id: 4, name: "Châu Mỹ" },
-    { id: 3, name: "Châu Phi" },
-    { id: 5, name: "Châu Đại Dương" },
+    { id: 1, labelKey: "landing.tourDiscovery.continents.asia", fallback: "Châu Á" },
+    { id: 2, labelKey: "landing.tourDiscovery.continents.europe", fallback: "Châu Âu" },
+    { id: 4, labelKey: "landing.tourDiscovery.continents.americas", fallback: "Châu Mỹ" },
+    { id: 3, labelKey: "landing.tourDiscovery.continents.africa", fallback: "Châu Phi" },
+    { id: 5, labelKey: "landing.tourDiscovery.continents.oceania", fallback: "Châu Đại Dương" },
   ];
   
   const [activeContinent, setActiveContinent] = useState<number>(1);
@@ -104,7 +104,7 @@ export const BoldTrendingDestinations = () => {
                   : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-100"
               )}
             >
-              {continent.name}
+              {t(continent.labelKey, continent.fallback)}
             </button>
           ))}
         </div>

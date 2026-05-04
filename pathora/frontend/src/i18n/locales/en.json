@@ -3502,6 +3502,71 @@
       "title": "Language"
     },
     "tourDiscovery": {
+      "heroTitleLine1": "DISCOVER YOUR NEXT ADVENTURE",
+      "heroTitleLine2": "WITH PATHORA",
+      "packageTours": "Tour Packages",
+      "searchFullPlaceholder": "Search tours, destinations, activities...",
+      "searchButton": "Search",
+      "filtersLabel": "Filters",
+      "filter": "Filters",
+      "clearAll": "Clear all",
+      "classifications": "Classifications",
+      "classificationOptions": {
+        "standard": "Standard Tour",
+        "premium": "Premium Tour",
+        "vipLuxury": "VIP / Luxury Tour",
+        "budget": "Budget Tour",
+        "private": "Private Tour",
+        "group": "Group Tour"
+      },
+      "viewSwitchLabel": "Choose viewing mode",
+      "viewType": {
+        "tour": "By Tour",
+        "tourInstance": "By Departure"
+      },
+      "toursFound": "tours found",
+      "departuresFound": "departures found",
+      "sortBy": "Sort by",
+      "sortAria": "Sort tour results",
+      "sort": {
+        "recommended": "Recommended",
+        "price-low": "Price: Low to High",
+        "price-high": "Price: High to Low",
+        "duration-short": "Duration: Shortest",
+        "duration-long": "Duration: Longest"
+      },
+      "loadingAria": "Loading tour results",
+      "errorLoading": "Failed to load tours",
+      "errorLoadingInstances": "Failed to load departures",
+      "retry": "Retry",
+      "noToursFound": "No tours found",
+      "tryAdjustingFilters": "Try adjusting your filters or search terms",
+      "emptyStats": "Many tours are waiting for you!",
+      "browseAllTours": "Browse All Tours",
+      "exploreDestinations": "Explore Destinations",
+      "noDeparturesFound": "No departures found",
+      "noInstancesDescription": "There are no upcoming departures matching your search. Please check back later.",
+      "resultsRegion": "Tour search results",
+      "paginationAria": "Pagination",
+      "prevPageAria": "Go to previous page",
+      "nextPageAria": "Go to next page",
+      "pageOf": "Page {{current}} of {{total}}",
+      "quickDestinations": {
+        "haLong": "Ha Long",
+        "haNoi": "Hanoi",
+        "saPa": "Sapa",
+        "daNang": "Da Nang",
+        "hoiAn": "Hoi An",
+        "phuQuoc": "Phu Quoc"
+      },
+      "continents": {
+        "all": "All",
+        "asia": "Asia",
+        "europe": "Europe",
+        "americas": "Americas",
+        "africa": "Africa",
+        "oceania": "Oceania"
+      },
       "departureCatalogType": "Departure type",
       "instanceType": {
         "publicDepartures": "Public scheduled departures",

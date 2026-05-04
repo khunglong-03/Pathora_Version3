@@ -3488,6 +3488,71 @@
       "title": "Ngôn ngữ"
     },
     "tourDiscovery": {
+      "heroTitleLine1": "KHÁM PHÁ CHUYẾN ĐI TIẾP THEO",
+      "heroTitleLine2": "CÙNG PATHORA",
+      "packageTours": "Tour du lịch",
+      "searchFullPlaceholder": "Tìm kiếm tour, điểm đến, hoạt động...",
+      "searchButton": "Tìm kiếm",
+      "filtersLabel": "Bộ lọc",
+      "filter": "Bộ lọc",
+      "clearAll": "Xóa tất cả",
+      "classifications": "Phân loại",
+      "classificationOptions": {
+        "standard": "Tour Tiêu chuẩn",
+        "premium": "Tour Cao cấp",
+        "vipLuxury": "Tour VIP / Sang trọng",
+        "budget": "Tour Tiết kiệm",
+        "private": "Tour Riêng",
+        "group": "Tour Nhóm"
+      },
+      "viewSwitchLabel": "Chọn chế độ xem",
+      "viewType": {
+        "tour": "Theo Tour",
+        "tourInstance": "Theo Lịch khởi hành"
+      },
+      "toursFound": "tour được tìm thấy",
+      "departuresFound": "lịch khởi hành được tìm thấy",
+      "sortBy": "Sắp xếp",
+      "sortAria": "Sắp xếp kết quả tour",
+      "sort": {
+        "recommended": "Đề xuất",
+        "price-low": "Giá: Thấp đến Cao",
+        "price-high": "Giá: Cao đến Thấp",
+        "duration-short": "Thời gian: Ngắn nhất",
+        "duration-long": "Thời gian: Dài nhất"
+      },
+      "loadingAria": "Đang tải kết quả tour",
+      "errorLoading": "Không thể tải tour",
+      "errorLoadingInstances": "Không thể tải lịch khởi hành",
+      "retry": "Thử lại",
+      "noToursFound": "Không tìm thấy tour nào",
+      "tryAdjustingFilters": "Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+      "emptyStats": "Nhiều chuyến đi đang chờ bạn!",
+      "browseAllTours": "Xem tất cả Tour",
+      "exploreDestinations": "Khám phá điểm đến",
+      "noDeparturesFound": "Không có lịch khởi hành nào",
+      "noInstancesDescription": "Hiện tại không có lịch khởi hành nào phù hợp. Vui lòng quay lại sau.",
+      "resultsRegion": "Kết quả tìm kiếm tour",
+      "paginationAria": "Phân trang",
+      "prevPageAria": "Trang trước",
+      "nextPageAria": "Trang tiếp theo",
+      "pageOf": "Trang {{current}} / {{total}}",
+      "quickDestinations": {
+        "haLong": "Hạ Long",
+        "haNoi": "Hà Nội",
+        "saPa": "Sa Pa",
+        "daNang": "Đà Nẵng",
+        "hoiAn": "Hội An",
+        "phuQuoc": "Phú Quốc"
+      },
+      "continents": {
+        "all": "Tất cả",
+        "asia": "Châu Á",
+        "europe": "Châu Âu",
+        "americas": "Châu Mỹ",
+        "africa": "Châu Phi",
+        "oceania": "Châu Đại Dương"
+      },
       "departureCatalogType": "Loại khởi hành",
       "instanceType": {
         "publicDepartures": "Lịch khởi hành công khai",

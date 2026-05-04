@@ -50,6 +50,7 @@ export const TourDiscoveryPage = () => {
   const [sortBy, setSortBy] = useState("recommended");
   const [searchText, setSearchText] = useState(() => parseTourDiscoveryFilters(searchParams).destination);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [selectedContinent, setSelectedContinent] = useState<number | null>(null);
   const [apiLanguage, setApiLanguage] = useState(() =>
     normalizeLanguageForApi(i18n.resolvedLanguage || i18n.language),
   );
@@ -142,6 +143,7 @@ export const TourDiscoveryPage = () => {
           const result = await homeService.searchTours({
             q: submittedSearchText || undefined,
             classification: selectedClassifications.length > 0 ? selectedClassifications.join(",") : undefined,
+            continent: selectedContinent ?? undefined,
             page: currentPage,
             pageSize: PAGE_SIZE,
             language: apiLanguage,
@@ -202,6 +204,7 @@ export const TourDiscoveryPage = () => {
     submittedSearchText,
     viewType,
     selectedClassifications,
+    selectedContinent,
     sortBy,
     filters.instanceType,
   ]);
@@ -258,6 +261,7 @@ export const TourDiscoveryPage = () => {
 
   const handleResetAll = () => {
     setSelectedClassifications([]);
+    setSelectedContinent(null);
     setSearchText("");
     syncFilters({ destination: "", page: 1, instanceType: null });
   };
@@ -274,6 +278,10 @@ export const TourDiscoveryPage = () => {
           onSearchChange={setSearchText}
           onSearchSubmit={handleSearchSubmit}
           onFilterToggle={() => setFilterDrawerOpen(true)}
+          activeContinent={selectedContinent}
+          onContinentSelect={(id) => {
+            setSelectedContinent(id);
+          }}
         />
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-10">
