@@ -80,10 +80,10 @@ export const tourService = {
     });
 
     const response = await api.get<ServiceResponse<PaginatedResponse<SearchTourVm>>>(url);
-    const result = extractResult<PaginatedResponse<SearchTourVm>>(response.data);
+    const result = extractResult<PaginatedResponse<SearchTourVm> & { totalCount?: number; items?: SearchTourVm[] }>(response.data);
     return {
-      total: result?.total ?? 0,
-      data: result?.data ?? [],
+      total: result?.total ?? result?.totalCount ?? 0,
+      data: result?.data ?? result?.items ?? [],
     };
   },
 
