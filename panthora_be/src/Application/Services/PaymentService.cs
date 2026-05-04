@@ -499,30 +499,34 @@ public class PaymentService : IPaymentService
                             booking.Id, transaction.TransactionCode);
                     }
 
-                    // Khi thanh toán deposit cho Private tour Draft → xác nhận instance và gán nhà cung cấp
+                    // Khi thanh toán deposit cho Private Custom Tour đã được Manager duyệt (PendingCustomerApproval) → xác nhận instance
                     if (tourInstance.InstanceType == TourType.Private
-                        && tourInstance.Status == TourInstanceStatus.Draft
+                        && tourInstance.Status == TourInstanceStatus.PendingCustomerApproval
                         && booking.BookingType == BookingType.PrivateCustomTourRequest)
                     {
-                        if (tourInstance.WantsCustomization)
-                        {
-                            _logger.LogInformation(
-                                "Private tour instance {InstanceId} requires customization. Keeping in Draft and notifying operator (transaction {TransactionCode}).",
-                                tourInstance.Id,
-                                transaction.TransactionCode);
-                            // TODO: Notify managers that a private custom tour requires their attention.
-                        }
-                        else
-                        {
-                            tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
-                            await _tourInstanceRepository.Update(tourInstance);
-                            _logger.LogInformation(
-                                "Private tour instance {InstanceId} confirmed after deposit payment (transaction {TransactionCode}).",
-                                tourInstance.Id,
-                                transaction.TransactionCode);
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private custom tour instance {InstanceId} confirmed after deposit payment (Manager-approved flow, transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
 
-                            shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
-                        }
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
+                    }
+                    // Khi thanh toán deposit cho Private tour Draft (non-custom, không cần Manager duyệt) → xác nhận instance
+                    else if (tourInstance.InstanceType == TourType.Private
+                        && tourInstance.Status == TourInstanceStatus.Draft
+                        && booking.BookingType == BookingType.PrivateCustomTourRequest
+                        && !tourInstance.WantsCustomization)
+                    {
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private tour instance {InstanceId} confirmed after deposit payment (no customization, transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
+
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
                     }
                     // Khi thanh toán deposit cho Private tour đã Confirmed → check visa gate
                     else if (tourInstance.InstanceType == TourType.Private
@@ -541,31 +545,34 @@ public class PaymentService : IPaymentService
                     _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
                         booking.Id, transaction.TransactionCode);
 
-                    // Khi full pay cho Private tour (Draft hoặc PendingAdjustment) → xác nhận instance
+                    // Khi full pay cho Private Custom Tour đã được Manager duyệt (PendingCustomerApproval) → xác nhận instance
                     if (tourInstance.InstanceType == TourType.Private
-                        && (tourInstance.Status == TourInstanceStatus.Draft
-                            || tourInstance.Status == TourInstanceStatus.PendingAdjustment)
+                        && tourInstance.Status == TourInstanceStatus.PendingCustomerApproval
                         && booking.BookingType == BookingType.PrivateCustomTourRequest)
                     {
-                        if (tourInstance.Status == TourInstanceStatus.Draft && tourInstance.WantsCustomization)
-                        {
-                            _logger.LogInformation(
-                                "Private tour instance {InstanceId} requires customization. Keeping in Draft and notifying operator (transaction {TransactionCode}).",
-                                tourInstance.Id,
-                                transaction.TransactionCode);
-                            // TODO: Notify managers that a private custom tour requires their attention.
-                        }
-                        else
-                        {
-                            tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
-                            await _tourInstanceRepository.Update(tourInstance);
-                            _logger.LogInformation(
-                                "Private tour instance {InstanceId} confirmed after full payment (transaction {TransactionCode}).",
-                                tourInstance.Id,
-                                transaction.TransactionCode);
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private custom tour instance {InstanceId} confirmed after full payment (Manager-approved flow, transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
 
-                            shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
-                        }
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
+                    }
+                    // Khi full pay cho Private tour (Draft non-custom hoặc PendingAdjustment) → xác nhận instance
+                    else if (tourInstance.InstanceType == TourType.Private
+                        && (tourInstance.Status == TourInstanceStatus.PendingAdjustment
+                            || (tourInstance.Status == TourInstanceStatus.Draft && !tourInstance.WantsCustomization))
+                        && booking.BookingType == BookingType.PrivateCustomTourRequest)
+                    {
+                        tourInstance.ChangeStatus(TourInstanceStatus.Confirmed, "SYSTEM");
+                        await _tourInstanceRepository.Update(tourInstance);
+                        _logger.LogInformation(
+                            "Private tour instance {InstanceId} confirmed after full payment (transaction {TransactionCode}).",
+                            tourInstance.Id,
+                            transaction.TransactionCode);
+
+                        shouldTriggerAssignments = await _postPaymentVisaGateService.HandlePostConfirmVisaOrAssignmentsAsync(tourInstance, transaction.TransactionCode);
                     }
                     // Khi full pay cho Private tour đã Confirmed → check visa gate
                     else if (tourInstance.InstanceType == TourType.Private

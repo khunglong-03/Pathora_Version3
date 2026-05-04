@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Icon } from "@/components/ui";
 
 
@@ -185,7 +185,8 @@ export function CheckoutRequestPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const pathname = usePathname();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   /* ── State ─────────────────────────────────────────────── */
   const [paymentOption, setPaymentOption] = useState<"full" | "deposit">("deposit");
@@ -681,6 +682,29 @@ export function CheckoutRequestPage() {
   const showTourInstanceCard = tourInstanceBooking && !checkoutPrice;
   const showBookingSummary = !!checkoutPrice;
 
+  if (!authLoading && !isAuthenticated) {
+    const nextUrl = `${pathname}?${searchParams.toString()}`;
+    return (
+      <main className="bg-[#f9fafb] min-h-[70vh] flex flex-col items-center justify-center">
+        <div className="mx-auto max-w-lg px-4 py-16 text-center bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <Icon icon="heroicons:lock-closed" className="size-16 text-slate-300 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">
+            Vui lòng đăng nhập
+          </h2>
+          <p className="text-slate-500 mb-8 text-sm">
+            Bạn cần đăng nhập để thanh toán tour riêng.
+          </p>
+          <Link
+            href={`/?login=true&next=${encodeURIComponent(nextUrl)}`}
+            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors w-full"
+          >
+            Đăng nhập để tiếp tục
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   if (!isMounted) {
     return null;
   }
@@ -804,7 +828,7 @@ export function CheckoutRequestPage() {
                 </motion.div>
               )}
 
-              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && !isCustomizationOnly && (
+              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && (
                 <motion.div variants={itemVariants}>
                   <TermsConditionsCard
                     agreeTerms={agreeTerms}
@@ -877,10 +901,10 @@ export function CheckoutRequestPage() {
                     {/* Submit Request Button */}
                     <button
                       type="button"
-                      disabled={loading || !hasCustomerInfo}
+                      disabled={loading || !hasCustomerInfo || !agreeTerms || !acknowledgeInfo}
                       onClick={handleConfirmBooking}
                       className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
-                        !loading && hasCustomerInfo
+                        !loading && hasCustomerInfo && agreeTerms && acknowledgeInfo
                           ? "bg-[#fa8b02] text-white hover:bg-[#e07d02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-400/20 cursor-pointer"
                           : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}

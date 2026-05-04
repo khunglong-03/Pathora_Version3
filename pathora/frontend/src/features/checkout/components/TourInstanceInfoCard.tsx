@@ -138,13 +138,6 @@ export function TourInstanceInfoCard({
           </div>
         </div>
 
-        {/* Simple link — middleware handles auth gate for /bookings (redirects guests to /?login=true&next=/bookings) */}
-        <Link
-          href="/bookings"
-          className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all"
-        >
-          {t("landing.checkout.viewMyBookings")}
-        </Link>
       </div>
     </div>
   );

@@ -191,6 +191,10 @@ const AUTH_ERROR_CODE_MAP: Record<string, string> = {
   TOKEN_INVALID: "error_response.UNAUTHORIZED",
   TOKEN_EXPIRED: "error_response.UNAUTHORIZED",
   ACCESS_DENIED: "error_response.ACCESS_DENIED",
+  "Identity.InvalidCredentials": "error_response.INVALID_CREDENTIALS",
+  "Identity.AccountForbidden": "error_response.USER_DISABLED",
+  "Identity.ServiceUnavailable": "error_response.SERVER_ERROR",
+  "Auth.EmailTemporarilyLocked": "error_response.ACCESS_DENIED",
 };
 
 /**
