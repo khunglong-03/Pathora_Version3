@@ -3151,6 +3151,7 @@
     }
   },
   "bookings": {
+    "title": "Tour đã đặt",
     "pageTitle": "Đặt Chỗ",
     "pageSubtitle": "Theo dõi và quản lý tất cả đơn đặt chỗ",
     "openCustomerPage": "Trang khách hàng",

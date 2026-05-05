@@ -3154,6 +3154,7 @@
     }
   },
   "bookings": {
+    "title": "My Bookings",
     "pageTitle": "Bookings",
     "pageSubtitle": "Track and manage all booking orders",
     "openCustomerPage": "Customer view",

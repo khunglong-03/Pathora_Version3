@@ -344,20 +344,7 @@ const MobileSidebar = ({
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("bookings.title") || "Tour đã đặt"}
-                    </span>
-                  </Link>
-                  <Link
-                    href="/bookings"
-                    onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
-                  >
-                    <Icon
-                      icon="heroicons-outline:calendar-days"
-                      className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
-                    />
-                    <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("bookings.title") || "View Booking"}
+                      {t("bookings.title")}
                     </span>
                   </Link>
                 </div>
@@ -883,7 +870,7 @@ export const LandingHeader = () => {
                       >
                         <FiClipboard className="w-4 h-4" />
                         <span>
-                          {t("bookings.title") || "View Booking"}
+                          {t("bookings.title")}
                         </span>
                       </Link>
 
