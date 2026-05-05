@@ -15,6 +15,7 @@ interface TourInstanceInfoCardProps {
     depositPerPerson: number;
     bookingType: string;
     instanceType: string;
+    basePrice?: number;
   };
 }
 
@@ -129,10 +130,10 @@ export function TourInstanceInfoCard({
             </div>
             <div className="flex flex-col items-end">
               <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                {t("landing.checkout.estimatedAmount", "Estimated Amount")}
+                {t("landing.checkout.basePrice", "Base Price")}
               </span>
               <span className="text-lg font-bold text-zinc-900">
-                {fmtCurrency(tourInstanceBooking.depositPerPerson)}
+                {fmtCurrency(tourInstanceBooking.basePrice || tourInstanceBooking.depositPerPerson)}
               </span>
             </div>
           </div>

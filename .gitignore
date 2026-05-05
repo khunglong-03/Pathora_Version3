@@ -1,4 +1,4 @@
-# Claude Opus settings (local config)
+﻿# Claude Opus settings (local config)
 .claude/settings.local.json
 .gstack/
 
@@ -306,3 +306,4 @@ panthora_be/volume/postgres/*
 Serilog*.txt
 panthora_be/src/Api/logs/
 panthora_be/src/Application/Common/Repositories/
+scripts/

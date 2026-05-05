@@ -35,25 +35,28 @@ export const BoldTrendingDestinations = () => {
   const [titleRef, titleVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 });
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const continents = [
-    { id: 1, labelKey: "landing.tourDiscovery.continents.asia", fallback: "Châu Á" },
-    { id: 2, labelKey: "landing.tourDiscovery.continents.europe", fallback: "Châu Âu" },
-    { id: 4, labelKey: "landing.tourDiscovery.continents.americas", fallback: "Châu Mỹ" },
-    { id: 3, labelKey: "landing.tourDiscovery.continents.africa", fallback: "Châu Phi" },
-    { id: 5, labelKey: "landing.tourDiscovery.continents.oceania", fallback: "Châu Đại Dương" },
-  ];
-  
-  const [activeContinent, setActiveContinent] = useState<number>(1);
+  const [destinations, setDestinations] = useState<string[]>([]);
+  const [activeDestination, setActiveDestination] = useState<string>("");
   const [tours, setTours] = useState<SearchTour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchToursByContinent = React.useCallback(async (continentId: number) => {
+  React.useEffect(() => {
+    homeService.getDestinations().then(data => {
+      if (data && data.length > 0) {
+        setDestinations(data.slice(0, 6));
+        setActiveDestination(data[0]);
+      }
+    });
+  }, []);
+
+  const fetchToursByDestination = React.useCallback(async (destination: string) => {
+    if (!destination) return;
     try {
       setIsLoading(true);
       setError(null);
       const data = await homeService.searchTours({
-        continent: continentId,
+        destination: destination,
         pageSize: 6,
         language: i18n.resolvedLanguage ?? i18n.language
       });
@@ -67,8 +70,10 @@ export const BoldTrendingDestinations = () => {
   }, [i18n.language, i18n.resolvedLanguage, t]);
 
   React.useEffect(() => {
-    fetchToursByContinent(activeContinent);
-  }, [activeContinent, fetchToursByContinent]);
+    if (activeDestination) {
+      fetchToursByDestination(activeDestination);
+    }
+  }, [activeDestination, fetchToursByDestination]);
 
   return (
     <section className={cn("py-24 md:py-32 bg-stone-50 overflow-hidden")}>
@@ -81,30 +86,30 @@ export const BoldTrendingDestinations = () => {
         >
           <div className={cn("max-w-2xl")}>
             <span suppressHydrationWarning className={cn("inline-block px-4 py-1.5 rounded-full bg-stone-200/50 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 border border-stone-200/50 shadow-sm")}>
-              {t("landing.destinations.eyebrow") || "Explore By Continent"}
+              {t("landing.destinations.eyebrow", "Explore By Destination")}
             </span>
             <h2
               className={cn("text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]")}
             >
-              {t("landing.destinations.title") || "Tours By Continent"}
+              {t("landing.destinations.title", "Tours By Destination")}
             </h2>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-          {continents.map((continent) => (
+          {destinations.map((dest) => (
             <button
-              key={continent.id}
-              onClick={() => setActiveContinent(continent.id)}
+              key={dest}
+              onClick={() => setActiveDestination(dest)}
               className={cn(
                 "px-6 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all",
-                activeContinent === continent.id
+                activeDestination === dest
                   ? "bg-stone-900 text-white shadow-md"
                   : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-100"
               )}
             >
-              {t(continent.labelKey, continent.fallback)}
+              {dest}
             </button>
           ))}
         </div>
@@ -129,8 +134,7 @@ export const BoldTrendingDestinations = () => {
           </div>
         ) : tours.length === 0 ? (
           <div className={cn("rounded-[2rem] border border-stone-200 bg-white p-12 text-center text-stone-500 font-medium")}>
-            {t("landing.destinations.empty") ||
-              "No tours available for this continent at the moment."}
+            {t("landing.destinations.empty", "No tours available for this destination at the moment.")}
           </div>
         ) : (
           <div
