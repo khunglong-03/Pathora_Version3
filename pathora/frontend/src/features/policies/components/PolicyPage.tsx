@@ -259,26 +259,7 @@ const CTABanner = () => {
   );
 };
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  Floating Buttons                                           */
-/* ═══════════════════════════════════════════════════════════ */
-const FloatingButtons = () => (
-  <div className="fixed right-6 bottom-28 z-50 v-stack gap-3">
-    <a
-      href="#"
-      aria-label="Facebook"
-      className="size-12 rounded-full bg-[#1877f2] shadow-[0_8px_20px_rgba(24,119,242,0.3)] h-stack items-center justify-center hover:-translate-y-1 hover:scale-110 transition-all duration-300"
-    >
-      <Icon icon="mdi:facebook" className="size-6 text-white" />
-    </a>
-    <Button
-      aria-label="Chat"
-      className="size-12 rounded-full bg-[#fa8b02] shadow-[0_8px_20px_rgba(250,139,2,0.3)] h-stack items-center justify-center hover:-translate-y-1 hover:scale-110 transition-all duration-300"
-    >
-      <Icon icon="heroicons-outline:chat-bubble-oval-left" className="size-6 text-white" />
-    </Button>
-  </div>
-);
+
 
 /* ═══════════════════════════════════════════════════════════ */
 /*  Main Policy Page                                          */
@@ -350,7 +331,6 @@ export const PolicyPage = () => {
         </motion.div>
       </div>
 
-      <FloatingButtons />
     </main>
   );
 };
