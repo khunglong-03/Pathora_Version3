@@ -1757,21 +1757,33 @@ public class TourInstanceService(
     private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId)
     {
         var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
-        if (instance != null && instance.InstanceType == TourType.Private)
-        {
-            decimal totalActivitiesPrice = instance.InstanceDays
-                .Where(d => !d.IsDeleted)
-                .SelectMany(d => d.Activities)
-                .Sum(a => a.Price ?? 0);
+        if (instance == null || instance.InstanceType != TourType.Private) return;
 
-            instance.FinalSellPrice = instance.BasePrice + totalActivitiesPrice;
-            instance.BasePrice = instance.FinalSellPrice;
-            await _tourInstanceRepository.Update(instance);
-            
-            if (_unitOfWork != null)
+        // OriginalBasePrice is the immutable per-person snapshot set at creation time.
+        // BasePrice = OriginalBasePrice + sum of all instance activity prices.
+        decimal totalActivitiesPrice = instance.InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Sum(a => a.Price ?? 0);
+
+        instance.BasePrice = instance.OriginalBasePrice + totalActivitiesPrice;
+        await _tourInstanceRepository.Update(instance);
+
+        // Sync associated booking TotalPrice so the booking detail view stays accurate.
+        if (_bookingRepository != null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(instanceId);
+            var booking = bookings.FirstOrDefault();
+            if (booking != null)
             {
-                await _unitOfWork.SaveChangeAsync();
+                booking.TotalPrice = instance.BasePrice * booking.NumberAdult;
+                await _bookingRepository.UpdateWithoutSaveAsync(booking);
             }
+        }
+
+        if (_unitOfWork != null)
+        {
+            await _unitOfWork.SaveChangeAsync();
         }
     }
 

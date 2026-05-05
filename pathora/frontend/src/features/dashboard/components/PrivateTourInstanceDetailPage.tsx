@@ -476,14 +476,14 @@ export default function PrivateTourInstanceDetailPage() {
           animate="show"
           className="space-y-5"
         >
-          {data.finalSellPrice != null && (
+          {data.basePrice != null && data.basePrice > 0 && (
             <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 h-stack items-center justify-between">
               <div className="h-stack items-center gap-2">
                 <Icon icon="heroicons:banknotes" className="size-5 text-emerald-600" />
-                <span className="text-sm font-semibold text-emerald-800">Tổng giá chuyến đi</span>
+                <span className="text-sm font-semibold text-emerald-800">Giá hiện tại (per person)</span>
               </div>
               <span className="text-lg font-bold text-emerald-700">
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.finalSellPrice)}
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.basePrice)}
               </span>
             </div>
           )}

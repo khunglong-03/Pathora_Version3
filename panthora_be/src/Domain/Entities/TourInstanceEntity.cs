@@ -46,12 +46,12 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Số chỗ đã được đặt hiện tại.</summary>
     public int CurrentParticipation { get; set; }
 
-    // BasePrice — snapshot tại thời điểm tạo instance
-    /// <summary>Giá cơ bản tại thời điểm tạo instance (snapshot từ Classification).</summary>
+    // BasePrice — giá hiện tại (bao gồm giá gốc + phụ phí hoạt động)
+    /// <summary>Giá per-person hiện tại. Được cập nhật khi thêm/xóa hoạt động.</summary>
     public decimal BasePrice { get; set; }
 
-    /// <summary>Giá chốt do operator nhập sau co-design (private). Không thay thế <see cref="BasePrice"/>.</summary>
-    public decimal? FinalSellPrice { get; set; }
+    /// <summary>Giá gốc per-person tại thời điểm tạo instance (snapshot từ Classification). Không thay đổi sau khi tạo.</summary>
+    public decimal OriginalBasePrice { get; set; }
 
     // Media & Location
     /// <summary>Địa điểm xuất phát/tour.</summary>
@@ -151,6 +151,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             MaxParticipation = maxParticipation,
             CurrentParticipation = 0,
             BasePrice = basePrice,
+            OriginalBasePrice = basePrice,
             Location = location,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
@@ -409,22 +410,7 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>
-    /// Operator nhập giá chốt sau co-design; chỉ tour riêng đang <see cref="TourInstanceStatus.Draft"/>.
-    /// </summary>
-    public void SetFinalSellPrice(decimal finalSellPrice, string performedBy)
-    {
-        if (InstanceType != TourType.Private)
-            throw new InvalidOperationException("Chỉ tour riêng mới có FinalSellPrice.");
-        if (Status != TourInstanceStatus.Draft)
-            throw new InvalidOperationException("Chỉ được set FinalSellPrice khi instance đang Draft.");
-        if (finalSellPrice < 0)
-            throw new ArgumentOutOfRangeException(nameof(finalSellPrice), "Giá chốt không được âm.");
 
-        FinalSellPrice = finalSellPrice;
-        LastModifiedBy = performedBy;
-        LastModifiedOnUtc = DateTimeOffset.UtcNow;
-    }
 
     private static void EnsureValidDateRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {

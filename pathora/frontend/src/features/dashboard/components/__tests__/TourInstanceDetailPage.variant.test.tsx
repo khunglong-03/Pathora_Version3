@@ -107,7 +107,7 @@ const baseInstance = {
   currentParticipation: 8,
   maxParticipation: 20,
   basePrice: 12000000,
-  finalSellPrice: null,
+  originalBasePrice: 12000000,
   status: "Available",
   instanceType: "Public",
   location: "Ha Noi",

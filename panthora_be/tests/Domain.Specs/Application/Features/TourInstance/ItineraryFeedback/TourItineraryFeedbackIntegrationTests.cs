@@ -171,7 +171,7 @@ public sealed class TourItineraryFeedbackIntegrationTests
             Tour = new TourEntity { TourOperatorId = operatorId }, // Is operator
             InstanceType = TourType.Private,
             Status = TourInstanceStatus.Draft,
-            FinalSellPrice = 1000m
+            BasePrice = 1000m
         };
         _tourInstanceRepo.FindById(instanceId, cancellationToken: Arg.Any<CancellationToken>())
             .Returns(instance);

@@ -573,11 +573,11 @@ export function CustomTourInstanceRequestListPage({
                       </div>
                     )}
 
-                    {/* Final price */}
-                    {drawerDetail.finalSellPrice != null && (
+                    {/* Current base price */}
+                    {drawerDetail.basePrice != null && drawerDetail.basePrice > 0 && (
                       <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-                        <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Giá chốt (co-design)</p>
-                        <p className="text-lg font-bold text-green-700">{new Intl.NumberFormat("vi-VN").format(drawerDetail.finalSellPrice)} ₫</p>
+                        <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Giá hiện tại (per person)</p>
+                        <p className="text-lg font-bold text-green-700">{new Intl.NumberFormat("vi-VN").format(drawerDetail.basePrice)} ₫</p>
                       </div>
                     )}
 

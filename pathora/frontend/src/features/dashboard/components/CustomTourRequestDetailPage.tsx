@@ -596,16 +596,16 @@ export default function CustomTourRequestDetailPage({
               </div>
             )}
 
-            {/* Final Price */}
-            {data.finalSellPrice != null && (
+            {/* Base Price (after co-design recalculation) */}
+            {data.basePrice != null && data.basePrice > 0 && (
               <div className="pt-6 border-t border-slate-100">
                 <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-5 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-1.5">
-                      Giá chốt (Co-design)
+                      Giá hiện tại (per person)
                     </p>
                     <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                      {formatCurrency(data.finalSellPrice)}
+                      {formatCurrency(data.basePrice)}
                     </p>
                   </div>
                   <Icon

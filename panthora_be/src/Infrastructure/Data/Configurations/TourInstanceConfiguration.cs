@@ -66,8 +66,9 @@ public class TourInstanceConfiguration : IEntityTypeConfiguration<TourInstanceEn
             .HasColumnType("numeric(18,2)")
             .IsRequired();
 
-        builder.Property(t => t.FinalSellPrice)
-            .HasColumnType("numeric(18,2)");
+        builder.Property(t => t.OriginalBasePrice)
+            .HasColumnType("numeric(18,2)")
+            .IsRequired();
 
         builder.Property(t => t.IsDeleted)
             .HasDefaultValue(false);

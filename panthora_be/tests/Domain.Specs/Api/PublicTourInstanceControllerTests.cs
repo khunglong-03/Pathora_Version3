@@ -85,7 +85,7 @@ public sealed class PublicTourInstanceControllerTests
             PricingPolicy: null,
             CancellationPolicy: null,
             DepositPolicy: null,
-            FinalSellPrice: null,
+            OriginalBasePrice: 0,
             WantsCustomization: false,
             CustomizationNotes: null,
             Days: null);

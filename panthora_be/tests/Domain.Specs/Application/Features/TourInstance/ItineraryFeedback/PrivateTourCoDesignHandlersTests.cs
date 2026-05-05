@@ -64,11 +64,11 @@ public sealed class PrivateTourCoDesignHandlersTests
     }
 
     [Fact]
-    public async Task SetFinalSellPrice_Fails_WhenInstanceNotDraft()
+    public async Task SetFinalSellPrice_Fails_WhenInstanceNotPrivate()
     {
         var userId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(Guid.NewGuid());
-        instance.Status = TourInstanceStatus.Available;
+        instance.InstanceType = TourType.Public; // Not private
 
         _ownershipValidator.GetCurrentUserId().Returns(userId.ToString());
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
@@ -103,7 +103,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         var customerId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(dayId);
-        instance.FinalSellPrice = 12000m;
+        instance.BasePrice = 12000m;
         instance.Managers.Add(new TourInstanceManagerEntity { UserId = managerId, Role = TourInstanceManagerRole.Manager });
 
         var booking = BookingEntity.Create(
@@ -185,7 +185,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         var customerId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(dayId);
-        instance.FinalSellPrice = 8000m;
+        instance.BasePrice = 8000m;
         instance.Managers.Add(new TourInstanceManagerEntity { UserId = managerId, Role = TourInstanceManagerRole.Manager });
 
         var booking = BookingEntity.Create(

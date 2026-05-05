@@ -37,7 +37,7 @@ public sealed class PrivateTourDomainPersistenceTests
     }
 
     [Fact]
-    public void TourInstance_ShouldExposeFinalSellPrice_WithoutReplacingBasePrice()
+    public void TourInstance_ShouldExposeOriginalBasePrice_SeparateFromBasePrice()
     {
         var ti = TourInstanceEntity.Create(
             Guid.NewGuid(),
@@ -49,10 +49,10 @@ public sealed class PrivateTourDomainPersistenceTests
             2,
             500m,
             "u");
-        ti.FinalSellPrice = 450m;
+        ti.BasePrice = 950m; // simulate activity costs added
 
-        Assert.Equal(500m, ti.BasePrice);
-        Assert.Equal(450m, ti.FinalSellPrice);
+        Assert.Equal(500m, ti.OriginalBasePrice);
+        Assert.Equal(950m, ti.BasePrice);
     }
 
     [Fact]

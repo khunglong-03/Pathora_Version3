@@ -1259,7 +1259,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                   tourInstanceId={data.id}
                   bookingId={primaryPrivateBookingId}
                   days={data.days ?? []}
-                  initialFinalSellPrice={data.finalSellPrice ?? null}
+                  initialFinalSellPrice={data.basePrice ?? null}
                   onFinalPriceSaved={() => void loadData()}
                 />
               </section>

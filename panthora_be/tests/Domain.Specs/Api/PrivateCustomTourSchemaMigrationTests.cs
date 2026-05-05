@@ -2,7 +2,7 @@ namespace Domain.Specs.Api;
 
 /// <summary>
 /// OpenSpec <c>private-custom-tour</c> — DB.1: schema delta must be captured in a named EF migration
-/// (new table <c>TourItineraryFeedbacks</c>, <c>FinalSellPrice</c> on <c>TourInstances</c>, <c>TransactionHistories</c>).
+/// (new table <c>TourItineraryFeedbacks</c>, <c>OriginalBasePrice</c> on <c>TourInstances</c>, <c>TransactionHistories</c>).
 /// </summary>
 public sealed class PrivateCustomTourSchemaMigrationTests
 {
@@ -45,7 +45,7 @@ public sealed class PrivateCustomTourSchemaMigrationTests
 
         var content = File.ReadAllText(snapshotFile);
         Assert.Contains("TourItineraryFeedback", content, StringComparison.Ordinal);
-        Assert.Contains("FinalSellPrice", content, StringComparison.Ordinal);
+        Assert.Contains("OriginalBasePrice", content, StringComparison.Ordinal);
         Assert.Contains("TransactionHistory", content, StringComparison.Ordinal);
     }
 
