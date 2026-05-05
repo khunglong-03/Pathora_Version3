@@ -1764,10 +1764,10 @@ public class TourInstanceService(
                 .SelectMany(d => d.Activities)
                 .Sum(a => a.Price ?? 0);
 
-            instance.FinalSellPrice = totalActivitiesPrice;
-            instance.BasePrice = totalActivitiesPrice;
+            instance.FinalSellPrice = instance.BasePrice + totalActivitiesPrice;
+            instance.BasePrice = instance.FinalSellPrice;
             await _tourInstanceRepository.Update(instance);
-
+            
             if (_unitOfWork != null)
             {
                 await _unitOfWork.SaveChangeAsync();
