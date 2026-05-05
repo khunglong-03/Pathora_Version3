@@ -1145,7 +1145,7 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
 
   const [startTime, setStartTime] = useState(defaultStartTime);
   const [endTime, setEndTime] = useState(initialData?.endTime?.slice(0,5) || "");
-  const [price, setPrice] = useState(initialData?.price ? String(initialData.price) : "");
+  const [price, setPrice] = useState(initialData?.price != null ? String(initialData.price) : "");
   const [note, setNote] = useState(initialData?.note || "");
   const [saving, setSaving] = useState(false);
 
