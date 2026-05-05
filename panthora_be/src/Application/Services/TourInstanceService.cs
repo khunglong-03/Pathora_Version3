@@ -1765,8 +1765,9 @@ public class TourInstanceService(
                 .Sum(a => a.Price ?? 0);
 
             instance.FinalSellPrice = totalActivitiesPrice;
+            instance.BasePrice = totalActivitiesPrice;
             await _tourInstanceRepository.Update(instance);
-            
+
             if (_unitOfWork != null)
             {
                 await _unitOfWork.SaveChangeAsync();
