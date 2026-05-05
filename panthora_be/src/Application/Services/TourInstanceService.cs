@@ -1756,7 +1756,7 @@ public class TourInstanceService(
     }
     private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId)
     {
-        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
         if (instance != null && instance.InstanceType == TourType.Private)
         {
             decimal totalActivitiesPrice = instance.InstanceDays
