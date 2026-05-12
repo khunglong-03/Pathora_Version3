@@ -43,10 +43,11 @@ public static class DependencyInjection
         services.AddSingleton<IDatabaseStartupLifecycle, EfCoreDatabaseStartupLifecycle>();
         services.AddSingleton<DatabaseStartupInitializer>();
 
-        // Background Workers
+        // Background Workers (all workers run ONLY in Private API, not PublicApi)
         services.AddHostedService<OutboxWorkerService>();
         services.AddHostedService<SoftHoldCleanupWorkerService>();
         services.AddHostedService<PrivateTourTopUpDeadlineWorkerService>();
+        services.AddHostedService<global::Infrastructure.Mails.MailProcessor>();
 
         // Data Protection: persist keys to Redis so OAuth correlation cookies and
         // any encrypted cookies survive container restarts and stay consistent
@@ -57,9 +58,19 @@ public static class DependencyInjection
         var redisConnection = configuration["Redis:ConnectionString"];
         if (!string.IsNullOrWhiteSpace(redisConnection))
         {
-            dpBuilder.PersistKeysToStackExchangeRedis(
-                ConnectionMultiplexer.Connect(redisConnection),
-                "panthora-dp-keys");
+            try
+            {
+                var options = ConfigurationOptions.Parse(redisConnection);
+                options.AbortOnConnectFail = true; // Fail fast if Redis is unreachable
+                options.ConnectTimeout = 3000;
+                
+                var multiplexer = ConnectionMultiplexer.Connect(options);
+                dpBuilder.PersistKeysToStackExchangeRedis(multiplexer, "panthora-dp-keys");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to connect to Redis for Data Protection. Falling back to default keyring.");
+            }
         }
 
         return services;

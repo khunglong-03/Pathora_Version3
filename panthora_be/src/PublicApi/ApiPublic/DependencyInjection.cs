@@ -50,15 +50,24 @@ public static class DependencyInjection
         services.AddMonitoringServices(configuration);
         services.AddRateLimiterServices(configuration);
         services.AddResponseCompressionServices();
-        services.AddResponseCompressionServices();
 
         var redisConnectionString = configuration["Redis:ConnectionString"];
         if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
-            services.AddDataProtection().SetApplicationName("panthora")
-            .PersistKeysToStackExchangeRedis(
-                StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString),
-                "panthora-dp-keys");
+            var dpBuilder = services.AddDataProtection().SetApplicationName("panthora");
+            try
+            {
+                var options = StackExchange.Redis.ConfigurationOptions.Parse(redisConnectionString);
+                options.AbortOnConnectFail = true; // Fail fast if Redis is unreachable
+                options.ConnectTimeout = 3000;
+                
+                var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(options);
+                dpBuilder.PersistKeysToStackExchangeRedis(multiplexer, "panthora-dp-keys");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to connect to Redis for Data Protection. Falling back to default keyring.");
+            }
         }
 
         services.AddSingleton<Contracts.Interfaces.IUser, ApiPublic.Infrastructure.CurrentUser>();
