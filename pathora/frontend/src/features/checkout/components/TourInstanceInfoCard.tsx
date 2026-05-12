@@ -3,7 +3,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
-import { fmtCurrency } from "./checkoutHelpers";
 
 interface TourInstanceInfoCardProps {
   tourInstanceBooking: {
@@ -15,7 +14,6 @@ interface TourInstanceInfoCardProps {
     depositPerPerson: number;
     bookingType: string;
     instanceType: string;
-    basePrice?: number;
   };
 }
 
@@ -115,7 +113,7 @@ export function TourInstanceInfoCard({
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center justify-between">
+          <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center">
             <div className="flex items-center gap-2">
               <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
                 {tourInstanceBooking.bookingType === "InstanceJoin"
@@ -127,14 +125,6 @@ export function TourInstanceInfoCard({
                   ? t("landing.checkout.public")
                   : t("landing.checkout.private")}
               </div>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                {t("landing.checkout.basePrice", "Base Price")}
-              </span>
-              <span className="text-lg font-bold text-zinc-900">
-                {fmtCurrency(tourInstanceBooking.basePrice || tourInstanceBooking.depositPerPerson)}
-              </span>
             </div>
           </div>
         </div>
