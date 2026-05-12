@@ -1,0 +1,88 @@
+using Application.Contracts.Identity;
+using Infrastructure.Identity;
+
+namespace ApiPublic.Infrastructure;
+
+public static class AuthCookieWriter
+{
+    private const string AccessTokenCookieName = "access_token";
+    private const string RefreshTokenCookieName = "refresh_token";
+    private const string AuthStatusCookieName = "auth_status";
+    private const string AuthPortalCookieName = "auth_portal";
+
+    public static void WriteAuthCookies(HttpResponse response, ExternalLoginResponse tokens, bool secure, JwtOptions jwtOptions)
+    {
+        var accessTokenLifetime = TimeSpan.FromHours(jwtOptions.AccessTokenCookieExpirationHours);
+        var refreshTokenLifetime = TimeSpan.FromHours(jwtOptions.RefreshTokenExpirationHours);
+        response.Cookies.Append(AccessTokenCookieName, tokens.AccessToken, BuildAccessTokenOptions(accessTokenLifetime, secure));
+        response.Cookies.Append(RefreshTokenCookieName, tokens.RefreshToken, BuildOptions(refreshTokenLifetime, secure));
+        WriteAuthStatusCookie(response, secure);
+        WriteAuthPortalCookie(response, tokens.Portal, secure);
+    }
+
+    public static void WriteAuthCookies(HttpResponse response, LoginResponse tokens, bool secure, JwtOptions jwtOptions)
+    {
+        var accessTokenLifetime = TimeSpan.FromHours(jwtOptions.AccessTokenCookieExpirationHours);
+        var refreshTokenLifetime = TimeSpan.FromHours(jwtOptions.RefreshTokenExpirationHours);
+        response.Cookies.Append(AccessTokenCookieName, tokens.AccessToken, BuildAccessTokenOptions(accessTokenLifetime, secure));
+        response.Cookies.Append(RefreshTokenCookieName, tokens.RefreshToken, BuildOptions(refreshTokenLifetime, secure));
+        WriteAuthStatusCookie(response, secure);
+        WriteAuthPortalCookie(response, tokens.Portal, secure);
+    }
+
+    public static void WriteAuthStatusCookie(HttpResponse response, bool secure)
+    {
+        response.Cookies.Append(AuthStatusCookieName, "1", BuildNonHttpOnlyOptions(TimeSpan.FromHours(168), secure));
+    }
+
+    public static void WriteAuthPortalCookie(HttpResponse response, string? portal, bool secure)
+    {
+        response.Cookies.Append(AuthPortalCookieName, NormalizePortal(portal), BuildNonHttpOnlyOptions(TimeSpan.FromHours(168), secure));
+    }
+
+    public static void ClearAuthCookies(HttpResponse response, bool secure)
+    {
+        response.Cookies.Delete(AccessTokenCookieName, BuildAccessTokenOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(RefreshTokenCookieName, BuildOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(AuthStatusCookieName, BuildNonHttpOnlyOptions(TimeSpan.Zero, secure));
+        response.Cookies.Delete(AuthPortalCookieName, BuildNonHttpOnlyOptions(TimeSpan.Zero, secure));
+    }
+
+    private static CookieOptions BuildOptions(TimeSpan maxAge, bool secure)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = true,
+            IsEssential = true,
+            MaxAge = maxAge,
+            Path = "/",
+            SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
+            Secure = secure
+        };
+    }
+
+    private static CookieOptions BuildAccessTokenOptions(TimeSpan maxAge, bool secure)
+    {
+        return BuildNonHttpOnlyOptions(maxAge, secure);
+    }
+
+    private static CookieOptions BuildNonHttpOnlyOptions(TimeSpan maxAge, bool secure)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = false,
+            IsEssential = true,
+            MaxAge = maxAge,
+            Path = "/",
+            SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
+            Secure = secure
+        };
+    }
+
+    private static string NormalizePortal(string? portal)
+    {
+        return string.Equals(portal, "admin", StringComparison.OrdinalIgnoreCase)
+            ? "admin"
+            : "user";
+    }
+}

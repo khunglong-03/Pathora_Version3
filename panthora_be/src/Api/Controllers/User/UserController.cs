@@ -10,7 +10,7 @@ namespace Api.Controllers.User;
 [Route(UserEndpoint.Base)]
 public class UserController : BaseApiController
 {
-    [AllowAnonymous]
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] Guid departmentId = default,

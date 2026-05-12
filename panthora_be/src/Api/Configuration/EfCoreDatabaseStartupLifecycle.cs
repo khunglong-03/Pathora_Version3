@@ -30,6 +30,24 @@ public sealed class EfCoreDatabaseStartupLifecycle(IServiceScopeFactory scopeFac
         await ExecuteAsync(async (context, token) => await AppDbContextSeed.SeedIfNeededAsync(context, token), cancellationToken);
     }
 
+    public async Task<bool> HasSchemaAsync(CancellationToken cancellationToken)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        try
+        {
+            // Try to query a known table. If it exists, schema is present.
+            _ = await dbContext.Roles.CountAsync(cancellationToken);
+            return true;
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
+        {
+            // 42P01 = relation does not exist → schema not created yet
+            return false;
+        }
+    }
+
     private async Task ExecuteAsync(
         Func<AppDbContext, CancellationToken, Task> action,
         CancellationToken cancellationToken)

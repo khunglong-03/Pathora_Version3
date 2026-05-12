@@ -13,7 +13,7 @@ namespace Api.Controllers.Customer;
 /// </summary>
 [ApiController]
 [Authorize(Policy = "CustomerOnly")]
-[Route(PublicEndpoint.Base + "/bookings/{bookingId:guid}")]
+[Route("api/customer/bookings/{bookingId:guid}")]
 public sealed class CustomerVisaController : BaseApiController
 {
     /// <summary>

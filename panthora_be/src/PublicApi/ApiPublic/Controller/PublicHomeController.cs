@@ -1,10 +1,11 @@
-using Api.Endpoint;
+using ApiPublic.Controller.BaseController;
+using ApiPublic.Endpoint;
 using Application.Features.Public.Queries;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.Public;
+namespace ApiPublic.Controller;
 
 [AllowAnonymous]
 [Route(PublicEndpoint.Base)]

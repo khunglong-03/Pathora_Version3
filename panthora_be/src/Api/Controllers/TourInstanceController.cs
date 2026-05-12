@@ -30,7 +30,6 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> GetDetail(Guid id)
     {
@@ -38,7 +37,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTourInstanceCommand command)
     {
@@ -46,7 +45,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateTourInstanceCommand command)
     {
@@ -63,7 +62,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,TourOperator")]
     [HttpDelete(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -71,7 +70,6 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.Stats)]
     public async Task<IActionResult> GetStats()
     {
@@ -87,7 +85,6 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.CheckDuplicate)]
     public async Task<IActionResult> CheckDuplicate(
         [FromQuery] Guid tourId,
@@ -98,7 +95,6 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.CheckGuideAvailability)]
     public async Task<IActionResult> CheckGuideAvailability(
         [FromQuery] List<Guid> guideUserIds,
@@ -154,7 +150,6 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(TourInstanceEndpoint.ProviderAssigned)]
     public async Task<IActionResult> GetProviderAssigned(
         [FromQuery] int pageNumber = 1,
@@ -165,7 +160,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "HotelProvider,TransportProvider,Admin")]
     [HttpPost(TourInstanceEndpoint.Approve)]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ProviderApproveRequest request)
     {
@@ -240,7 +235,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,Manager,TourOperator,HotelProvider")]
     [HttpPut("{instanceId:guid}/accommodations/{activityId:guid}/assign-rooms")]
     public async Task<IActionResult> AssignRoomToAccommodation(Guid instanceId, Guid activityId, [FromBody] AssignRoomRequest request)
     {
@@ -268,7 +263,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPut("{instanceId:guid}/activities/{activityId:guid}/assign")]
     [Obsolete("Use POST .../transportation/{activityId}/approve instead. Kept for one release.")]
     public async Task<IActionResult> AssignVehicleToActivity(Guid instanceId, Guid activityId, [FromBody] AssignVehicleToRouteRequest request)
@@ -352,7 +347,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize]
     [HttpGet("my-assignments")]
     public async Task<IActionResult> GetMyAssignments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -360,7 +355,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
+    [Authorize]
     [HttpGet("my-assignments/{id:guid}")]
     public async Task<IActionResult> GetMyAssignmentDetail(Guid id)
     {

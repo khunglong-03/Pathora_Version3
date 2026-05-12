@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 
-using Api.Endpoint;
 using Application.Contracts.Payment;
 using Application.Options;
 using Application.Services;
@@ -9,7 +8,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace Api.Controllers;
+using ApiPublic.Controller.BaseController;
+using ApiPublic.Endpoint;
+
+namespace ApiPublic.Controller;
 
 [ApiController]
 [AllowAnonymous]

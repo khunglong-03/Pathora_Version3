@@ -47,6 +47,7 @@
         <ProjectReference Include="..\..\src\Infrastructure\Infrastructure.csproj" />
         <ProjectReference Include="..\..\Share\Common\Common.csproj" />
         <ProjectReference Include="..\..\Share\Contracts\Contracts.csproj" />
+        <ProjectReference Include="..\..\src\PublicApi\ApiPublic\ApiPublic.csproj" />
     </ItemGroup>
 
 </Project>

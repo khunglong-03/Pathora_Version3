@@ -1,3 +1,6 @@
+using global::ApiPublic;
+using global::ApiPublic.Middleware;
+using global::ApiPublic.Infrastructure;
 using global::Api;
 using global::Api.Bosttraping;
 using global::Api.Hubs;
@@ -141,15 +144,9 @@ public sealed class AuthControllerLoginIntegrationTests
         using var host = await BuildTestHostAsync();
         var client = host.GetTestClient();
 
-        var response = await client.PostAsync(
-            "/api/auth/login",
-            new StringContent("", Encoding.UTF8, "application/json"));
+        var response = await client.PostAsync("/api/auth/login", new StringContent("", Encoding.UTF8, "application/json"));
 
-        // May return 400 (bad request) or 500 depending on pipeline config — both are acceptable
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized, HttpStatusCode.InternalServerError);
     }
 
     // ---------------------------------------------------------------------------
@@ -158,7 +155,7 @@ public sealed class AuthControllerLoginIntegrationTests
 
     private static async Task<IHost> BuildTestHostAsync()
     {
-        var apiProjectPath = Path.Combine(SolutionRoot, "src", "Api");
+        var apiProjectPath = Path.Combine(SolutionRoot, "src", "PublicApi", "ApiPublic");
         var appsettings = new ConfigurationBuilder()
             .SetBasePath(apiProjectPath)
             .AddJsonFile("appsettings.json", optional: false)
@@ -170,55 +167,34 @@ public sealed class AuthControllerLoginIntegrationTests
             .ConfigureWebHost(webBuilder =>
             {
                 webBuilder.UseTestServer();
+                webBuilder.UseEnvironment("Testing");
+                webBuilder.UseSetting(WebHostDefaults.ApplicationKey, typeof(global::ApiPublic.Program).Assembly.GetName().Name);
                 webBuilder.ConfigureServices((context, services) =>
                 {
                     services.AddApplicationServices();
                     services.AddInfrastructureServices(context.Configuration);
-                    services.AddApiServices(context.Configuration);
-                    services.AddHealthChecks();
+                    services.AddPublicApiServices(context.Configuration);
+                    services.AddControllers().AddApplicationPart(typeof(global::ApiPublic.Program).Assembly);
+                    services.AddHealthChecks()
+                        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API is running"))
+                        .AddCheck<DatabaseHealthCheck>("database");
                 });
                 webBuilder.Configure(app =>
                 {
-                    // Swagger auth bypass
-                    app.UseMiddleware<SwaggerAuthBypassMiddleware>();
-
-                    // Global exception handler
-                    app.UseMiddleware<ExceptionHandlingMiddleware>();
-
-                    // CORS
+                    app.UseExceptionHandler();
+                    app.UseMiddleware<global::ApiPublic.Middleware.ExceptionHandlingMiddleware>();
                     app.UseCors("DefaultCorsPolicy");
-
-                    // Compression + caching
                     app.UseResponseCompression();
                     app.UseResponseCaching();
-
-                    // Language resolution
-                    app.UseMiddleware<LanguageResolutionMiddleware>();
-
-                    // Security headers
-                    app.UseMiddleware<SecurityHeadersMiddleware>();
-
-                    // Routing
+                    app.UseMiddleware<global::ApiPublic.Middleware.LanguageResolutionMiddleware>();
+                    app.UseMiddleware<global::ApiPublic.Middleware.SecurityHeadersMiddleware>();
                     app.UseRouting();
-
-                    // Auth
-                    app.UseAuthentication();
-                    app.UseAuthorization();
-
-                    // Rate limiter
                     app.UseRateLimiter();
-
-                    // Request logging
                     app.UseSerilogRequestLogging();
 
-                    // Health checks + API + SignalR via UseEndpoints (IEndpointRouteBuilder)
                     app.UseEndpoints(endpoints =>
                     {
-                        endpoints.MapHealthChecks("/health");
-                        endpoints.MapHealthChecks("/health/live");
-                        endpoints.MapHealthChecks("/health/ready");
                         endpoints.MapControllers();
-                        endpoints.MapHub<NotificationsHub>("/hubs/notifications");
                     });
                 });
             });

@@ -15,19 +15,51 @@ public sealed class DatabaseStartupInitializer(
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         var resetAndReseedEnabled = configuration.IsResetAndReseedOnStartupEnabled();
-        if (!resetAndReseedEnabled)
+
+        // --- Mode 1: Force reset-and-reseed (destructive, dev-only) ---
+        if (resetAndReseedEnabled)
         {
-            await lifecycle.SeedIfNeededAsync(cancellationToken);
-            Log.Information("Development database incremental seed completed.");
+            if (!hostEnvironment.IsDevelopment())
+            {
+                Log.Warning("Ignored Dev:ResetAndReseedOnStartup because environment is '{EnvironmentName}'", hostEnvironment.EnvironmentName);
+                return;
+            }
+
+            await RunOnceAsync(async ct =>
+            {
+                Log.Warning("Dev reset-and-reseed mode is enabled. Existing database data will be removed.");
+                await lifecycle.EnsureDeletedAsync(ct);
+                await lifecycle.MigrateAsync(ct);
+                await lifecycle.SeedFreshAsync(ct);
+                Log.Information("Development database reset-and-reseed initialization completed successfully.");
+            }, cancellationToken);
+
             return;
         }
 
-        if (!hostEnvironment.IsDevelopment())
+        // --- Mode 2: Auto-detect — migrate if schema missing, then seed if needed ---
+        await RunOnceAsync(async ct =>
         {
-            Log.Warning("Ignored Dev:ResetAndReseedOnStartup because environment is '{EnvironmentName}'", hostEnvironment.EnvironmentName);
-            return;
-        }
+            var schemaExists = await lifecycle.HasSchemaAsync(ct);
+            if (!schemaExists)
+            {
+                Log.Information("Database schema not found. Running migration to create tables...");
+                await lifecycle.MigrateAsync(ct);
+                Log.Information("Database migration completed. Seeding initial data...");
+                await lifecycle.SeedFreshAsync(ct);
+                Log.Information("Database schema creation and initial seed completed successfully.");
+            }
+            else
+            {
+                Log.Information("Database schema exists. Running incremental seed if needed...");
+                await lifecycle.SeedIfNeededAsync(ct);
+                Log.Information("Incremental seed check completed.");
+            }
+        }, cancellationToken);
+    }
 
+    private async Task RunOnceAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
+    {
         if (_initialized)
         {
             return;
@@ -41,18 +73,12 @@ public sealed class DatabaseStartupInitializer(
                 return;
             }
 
-            Log.Warning("Dev reset-and-reseed mode is enabled. Existing database data will be removed.");
-
-            await lifecycle.EnsureDeletedAsync(cancellationToken);
-            await lifecycle.MigrateAsync(cancellationToken);
-            await lifecycle.SeedFreshAsync(cancellationToken);
-
+            await action(cancellationToken);
             _initialized = true;
-            Log.Information("Development database reset-and-reseed initialization completed successfully.");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Development database reset-and-reseed initialization failed.");
+            Log.Error(ex, "Database startup initialization failed.");
             throw;
         }
         finally

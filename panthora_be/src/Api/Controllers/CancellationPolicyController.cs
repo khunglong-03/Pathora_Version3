@@ -11,7 +11,6 @@ namespace Api.Controllers;
 [Route(CancellationPolicyEndpoint.Base)]
 public class CancellationPolicyController : BaseApiController
 {
-    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

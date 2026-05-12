@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize(Policy = "CustomerOnly")]
-[Route(PublicEndpoint.Base + "/" + PublicEndpoint.TourRequests)]
+[Route("api/customer/tour-requests")]
 public class CustomerTourRequestController : BaseApiController
 {
     [HttpPost]

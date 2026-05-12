@@ -53,13 +53,13 @@ public static class DependencyInjection
         // across multiple instances behind a load balancer (fixes "Correlation failed").
         // Falls back to the default in-memory ephemeral keyring when Redis is not
         // configured (Development).
-        var dpBuilder = services.AddDataProtection().SetApplicationName("Panthora");
+        var dpBuilder = services.AddDataProtection().SetApplicationName("panthora");
         var redisConnection = configuration["Redis:ConnectionString"];
         if (!string.IsNullOrWhiteSpace(redisConnection))
         {
             dpBuilder.PersistKeysToStackExchangeRedis(
                 ConnectionMultiplexer.Connect(redisConnection),
-                "DataProtection-Keys");
+                "panthora-dp-keys");
         }
 
         return services;

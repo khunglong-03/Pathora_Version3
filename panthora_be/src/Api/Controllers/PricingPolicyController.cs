@@ -11,7 +11,6 @@ namespace Api.Controllers;
 [Route(PricingPolicyEndpoint.Base)]
 public class PricingPolicyController : BaseApiController
 {
-    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
