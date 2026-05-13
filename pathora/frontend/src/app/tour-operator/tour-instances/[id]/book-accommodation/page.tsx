@@ -1,6 +1,7 @@
 import React from "react";
-import { TourOperatorBookAccommodation } from "@/features/tour-operator/components/TourOperatorBookAccommodation";
+import HotelTourAssignmentPage from "@/features/dashboard/components/HotelTourAssignmentPage";
 
-export default function BookAccommodationPage({ params }: { params: { id: string } }) {
-  return <TourOperatorBookAccommodation instanceId={params.id || "INST-001"} />;
+export default async function BookAccommodationPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  return <HotelTourAssignmentPage instanceId={resolvedParams.id} backUrl={`/tour-operator/tour-instances/${resolvedParams.id}`} />;
 }

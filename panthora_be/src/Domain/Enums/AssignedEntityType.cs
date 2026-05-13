@@ -9,5 +9,7 @@ public enum AssignedEntityType
     [Description("Tour Guide")]
     TourGuide = 2,
     [Description("Tour")]
-    Tour = 3
+    Tour = 3,
+    [Description("Tour Instance")]
+    TourInstance = 4
 }

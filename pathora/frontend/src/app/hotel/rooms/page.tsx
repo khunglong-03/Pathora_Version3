@@ -80,6 +80,11 @@ export default function RoomsPage() {
   }, [loadAccommodations]);
 
   const handleCreate = async () => {
+    if (accommodations.some(a => a.roomType === createRoomType)) {
+      setCreateError("Loại phòng này đã tồn tại.");
+      return;
+    }
+
     setCreating(true);
     setCreateError(null);
     try {

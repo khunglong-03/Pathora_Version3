@@ -136,4 +136,77 @@ export const managerService = {
     const json = await response.json();
     return json.data ?? [];
   },
+
+  // ── Visa Applications ──
+  getVisaApplication: async (id: string) => {
+    const response = await api.get<ServiceResponse<any>>(
+      `/api/visa-application/${id}`
+    );
+    return extractResult(response.data);
+  },
+
+  updateVisaStatus: async (data: {
+    visaApplicationId: string;
+    status: number;
+    refusalReason?: string;
+    visaFileUrl?: string;
+    visaNumber?: string;
+    entryType?: string;
+    issuedAt?: string;
+    expiresAt?: string;
+    category?: string;
+    format?: string;
+    maxStayDays?: number;
+    issuingAuthority?: string;
+  }) => {
+    const response = await api.put<ServiceResponse<void>>(
+      "/api/visa-application/status",
+      {
+        id: data.visaApplicationId,
+        status: data.status,
+        refusalReason: data.refusalReason,
+        visaFileUrl: data.visaFileUrl,
+        visaNumber: data.visaNumber,
+        entryType: data.entryType,
+        issuedAt: data.issuedAt,
+        expiresAt: data.expiresAt,
+        category: data.category,
+        format: data.format,
+        maxStayDays: data.maxStayDays,
+        issuingAuthority: data.issuingAuthority
+      }
+    );
+    return extractResult(response.data);
+  },
+
+  quoteVisaFee: async (data: {
+    visaApplicationId: string;
+    fee: number;
+  }) => {
+    const response = await api.post<ServiceResponse<string>>(
+      "/api/visa-application/quote-fee",
+      data
+    );
+    return extractResult(response.data);
+  },
+
+  registerVisaDetails: async (data: {
+    visaApplicationId: string;
+    visaNumber: string;
+    issuedAt: string;
+    expiresAt: string;
+    category: string;
+    format: string;
+    entryType?: string;
+    maxStayDays?: number;
+    issuingAuthority?: string;
+    visaFileUrl?: string;
+  }) => {
+    const { visaApplicationId, ...body } = data;
+    const response = await api.post<ServiceResponse<string>>(
+      `/api/visa-application/${visaApplicationId}/register-details`,
+      body
+    );
+    return extractResult(response.data);
+  },
 };

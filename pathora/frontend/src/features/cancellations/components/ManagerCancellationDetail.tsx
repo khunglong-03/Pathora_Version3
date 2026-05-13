@@ -6,9 +6,82 @@ import { motion } from "framer-motion";
 import { CancellationDetail } from "./CancellationData";
 import { CancellationRefundCard } from "./CancellationRefundCard";
 import { CancellationTimeline } from "./CancellationTimeline";
+import { formatCurrency } from "@/utils/format";
+import { toast } from "react-toastify";
+import {
+  useApproveCancellationRequestMutation,
+  useRejectCancellationRequestMutation,
+  useConfirmRefundPaidMutation,
+} from "@/store/api/bookingCancellationApi";
+import { useRouter } from "next/navigation";
 
 export function ManagerCancellationDetail({ data }: { data: CancellationDetail }) {
   const isPending = data.status === "pending";
+  const router = useRouter();
+
+  const [approveReq] = useApproveCancellationRequestMutation();
+  const [rejectReq] = useRejectCancellationRequestMutation();
+  const [confirmRefund] = useConfirmRefundPaidMutation();
+
+  const openModal = (action: "approve" | "reject" | "refund") => {
+    let title = "";
+    let inputPlaceholder = "";
+    let inputValidator = undefined;
+    
+    if (action === "approve") {
+      title = "Approve Cancellation";
+      inputPlaceholder = "Internal Note (Optional)";
+    } else if (action === "reject") {
+      title = "Reject Cancellation";
+      inputValidator = (value: string) => (!value.trim() ? "Please provide a rejection reason" : null);
+    } else {
+      title = "Confirm Refund";
+      inputPlaceholder = "Transaction Ref / Notes (Optional)";
+    }
+
+    import("sweetalert2").then(({ default: Swal }) => {
+      Swal.fire({
+        title,
+        html: `
+          <div style="font-size: 0.875rem; color: #475569; background-color: #f8fafc; padding: 1rem; border-radius: 0.75rem; border: 1px solid #f1f5f9; text-align: left; margin-bottom: 1rem;">
+            <p><strong>Booking ID:</strong> ${data.bookingId}</p>
+            <p><strong>Refund Amount:</strong> ${formatCurrency(data.refundBreakdown.refundAmount)}</p>
+            <p style="margin-top: 0.5rem; color: #64748b; font-style: italic;">"${data.reason}"</p>
+          </div>
+        `,
+        input: "textarea",
+        inputPlaceholder,
+        inputValidator,
+        showCancelButton: true,
+        confirmButtonText: action === "approve" ? "Approve" : action === "reject" ? "Reject" : "Confirm",
+        confirmButtonColor: action === "approve" ? "#059669" : action === "reject" ? "#dc2626" : "#09090b",
+        cancelButtonColor: "#64748b",
+        customClass: {
+          confirmButton: "px-5 py-2.5 rounded-xl font-medium text-white shadow-sm transition-all",
+          cancelButton: "px-4 py-2.5 font-medium text-slate-600 transition-colors"
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const noteValue = result.value || "";
+          try {
+            if (action === "approve") {
+              await approveReq({ requestId: data.id, body: { managerNote: noteValue } }).unwrap();
+              toast.success("Cancellation approved");
+            } else if (action === "reject") {
+              await rejectReq({ requestId: data.id, body: { managerNote: noteValue } }).unwrap();
+              toast.success("Cancellation rejected");
+            } else if (action === "refund") {
+              await confirmRefund({ requestId: data.id, body: { refundProofNote: noteValue } }).unwrap();
+              toast.success("Refund confirmed");
+            }
+            router.refresh();
+          } catch (error: any) {
+            toast.error(error?.data?.message || "Operation failed");
+          }
+        }
+      });
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-8">
@@ -41,10 +114,14 @@ export function ManagerCancellationDetail({ data }: { data: CancellationDetail }
           {/* Action Buttons */}
           {isPending && (
             <div className="flex items-center gap-3">
-              <button className="px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 font-bold hover:bg-slate-50 transition-colors">
+              <button 
+                onClick={() => openModal("reject")}
+                className="px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 font-bold hover:bg-slate-50 transition-colors">
                 Reject Request
               </button>
-              <button className="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold hover:scale-[0.98] transition-transform shadow-lg shadow-slate-900/20">
+              <button 
+                onClick={() => openModal("approve")}
+                className="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold hover:scale-[0.98] transition-transform shadow-lg shadow-slate-900/20">
                 Approve & Refund
               </button>
             </div>

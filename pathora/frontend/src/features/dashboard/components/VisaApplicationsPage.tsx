@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Icon, VisaStatusBadge } from "@/components/ui";
 import Card from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/SkeletonTable";
+import { VisaApplicationDetailModal } from "./VisaApplicationDetailModal";
 import { adminService } from "@/api/services/adminService";
 import { managerService } from "@/api/services/managerService";
 import type { AdminOverview, AdminVisaApplication } from "@/types/admin";
@@ -96,21 +97,7 @@ export function VisaApplicationsPage() {
     };
   }, [reloadToken, t]);
 
-  const VISA_APPLICATIONS: AdminVisaApplication[] = [
-    { id: "VISA-001", booking: "Japan Sakura Tour", applicant: "Nguyen Van A", passport: "P1234567", country: "Japan", type: "Tourist", status: "approved", submittedDate: "Feb 15, 2026", decisionDate: "Mar 1, 2026" },
-    { id: "VISA-002", booking: "Korea Autumn Adventure", applicant: "Tran Thi B", passport: "P7654321", country: "South Korea", type: "Tourist", status: "pending", submittedDate: "Mar 5, 2026", decisionDate: "-" },
-    { id: "VISA-003", booking: "Europe Grand Tour", applicant: "Le Van C", passport: "P9876543", country: "Schengen", type: "Tourist", status: "under_review", submittedDate: "Feb 28, 2026", decisionDate: "-" },
-    { id: "VISA-004", booking: "Thailand Beach Paradise", applicant: "Pham Thi D", passport: "P4567890", country: "Thailand", type: "Tourist", status: "approved", submittedDate: "Mar 1, 2026", decisionDate: "Mar 8, 2026" },
-    { id: "VISA-005", booking: "Singapore Urban Experience", applicant: "Hoang Van E", passport: "P1122334", country: "Singapore", type: "Tourist", status: "rejected", submittedDate: "Feb 10, 2026", decisionDate: "Feb 20, 2026" },
-    { id: "VISA-006", booking: "Vietnam Heritage Tour", applicant: "Nguyen Thi F", passport: "P9988776", country: "Vietnam", type: "E-visa", status: "approved", submittedDate: "Mar 2, 2026", decisionDate: "Mar 5, 2026" },
-    { id: "VISA-007", booking: "Japan Cherry Blossom", applicant: "Tran Van G", passport: "P5566778", country: "Japan", type: "Tourist", status: "pending", submittedDate: "Mar 8, 2026", decisionDate: "-" },
-    { id: "VISA-008", booking: "Bali Eco Retreat", applicant: "Le Thi H", passport: "P4433221", country: "Indonesia", type: "Tourist", status: "under_review", submittedDate: "Mar 6, 2026", decisionDate: "-" },
-  ];
-
-  const visaApplications =
-    overview?.visaApplications && overview.visaApplications.length > 0
-      ? overview.visaApplications
-      : VISA_APPLICATIONS;
+  const visaApplications = overview?.visaApplications ?? [];
 
   const filteredVisas =
     statusFilter === "all"
@@ -126,6 +113,15 @@ export function VisaApplicationsPage() {
   ).length;
   const approvalRate = decidedCount > 0 ? Math.round((approvedCount / decidedCount) * 100) : 0;
 
+  const groupedVisas = useMemo(() => {
+    return filteredVisas.reduce((acc, visa) => {
+      const key = visa.booking || "No Order";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(visa);
+      return acc;
+    }, {} as Record<string, typeof filteredVisas>);
+  }, [filteredVisas]);
+
   const isLoading = dataState === "loading";
   const isError = dataState === "error";
   const isEmpty = dataState === "empty";
@@ -135,9 +131,18 @@ export function VisaApplicationsPage() {
     setReloadToken((value) => value + 1);
   };
 
+  const [selectedVisaId, setSelectedVisaId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const openDetailModal = (id: string) => {
+    setSelectedVisaId(id);
+    setIsDetailModalOpen(true);
+  };
+
   const filters = [
     { key: "all", label: t("common.visaApplications.filterAll", "All") },
     { key: "pending", label: t("common.visaApplications.filterPending", "Pending") },
+    { key: "awaiting_payment", label: t("visa.statusAwaitingPayment", "Awaiting Payment") },
     { key: "under_review", label: t("visa.statusUnderReview", "Under Review") },
     { key: "approved", label: t("common.visaApplications.filterApproved", "Approved") },
     { key: "rejected", label: t("common.visaApplications.filterRejected", "Rejected") },
@@ -372,48 +377,90 @@ export function VisaApplicationsPage() {
                           <th className="text-left px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
                             {t("common.visaApplications.column.decision", "Decision")}
                           </th>
+                          {isManager && (
+                            <th className="text-right px-6 py-3.5 text-xs font-semibold text-stone-400 uppercase tracking-widest">
+                              {t("common.actions", "Actions")}
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-stone-50">
-                        {filteredVisas.map((visa, index) => (
-                          <motion.tr
-                            key={visaRowKeys[index]}
-                            custom={index}
-                            variants={rowVariants}
-                            initial="hidden"
-                            animate="show"
-                            className="group hover:bg-stone-50/50 transition-colors duration-150"
-                          >
-                            <td className="px-6 py-4">
-                              <span className="font-mono text-xs text-stone-500 tracking-tight">{visa.id}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <p className="text-sm font-medium text-stone-800">{visa.applicant}</p>
-                              <p className="text-xs text-stone-400 mt-0.5">{visa.booking}</p>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="font-mono text-xs text-stone-500 tracking-tight">{visa.passport}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm text-stone-800">{visa.country}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-stone-600">{visa.type}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <VisaStatusBadge status={visa.status} />
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-stone-500">{visa.submittedDate}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`text-sm ${visa.decisionDate === "-" ? "text-stone-400" : "text-stone-600"}`}>
-                                {visa.decisionDate}
-                              </span>
-                            </td>
-                          </motion.tr>
+                        {Object.entries(groupedVisas).map(([orderId, visas]) => (
+                          <React.Fragment key={orderId}>
+                            <tr className="bg-stone-50 border-y border-stone-100">
+                              <td colSpan={isManager ? 9 : 8} className="px-6 py-2.5">
+                                <span className="text-xs font-semibold text-stone-600 uppercase tracking-widest flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                  </svg>
+                                  {orderId}
+                                  {visas.length > 0 && visas[0].type && visas[0].type !== "Unknown" && (
+                                    <span className={`ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                      visas[0].type === "Private Tour" 
+                                        ? "bg-purple-100 text-purple-700 border border-purple-200" 
+                                        : "bg-blue-100 text-blue-700 border border-blue-200"
+                                    }`}>
+                                      {visas[0].type}
+                                    </span>
+                                  )}
+                                </span>
+                              </td>
+                            </tr>
+                            {visas.map((visa) => {
+                              const globalIndex = filteredVisas.findIndex(v => v.id === visa.id);
+                              return (
+                                <motion.tr
+                                  key={visaRowKeys[globalIndex]}
+                                  custom={globalIndex}
+                                  variants={rowVariants}
+                                  initial="hidden"
+                                  animate="show"
+                                  className="group hover:bg-stone-50/50 transition-colors duration-150"
+                                >
+                                  <td className="px-6 py-4">
+                                    <span className="font-mono text-xs text-stone-500 tracking-tight" title={visa.id}>{visa.id.length > 8 ? visa.id.substring(0, 8) + '...' : visa.id}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <p className="text-sm font-medium text-stone-800">{visa.applicant}</p>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="font-mono text-xs text-stone-500 tracking-tight">{visa.passport}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-sm text-stone-800">{visa.country}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-stone-600">{visa.type}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <VisaStatusBadge status={visa.status} />
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-sm text-stone-500">{visa.submittedDate}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className={`text-sm ${visa.decisionDate === "-" ? "text-stone-400" : "text-stone-600"}`}>
+                                      {visa.decisionDate}
+                                    </span>
+                                  </td>
+                                  {isManager && (
+                                    <td className="px-6 py-4 text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button
+                                          onClick={() => openDetailModal(visa.id)}
+                                          className="px-3 py-1.5 text-xs font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg transition-colors"
+                                        >
+                                          {t("visa.action.details", "Details & Process")}
+                                        </button>
+                                      </div>
+                                    </td>
+                                  )}
+                                </motion.tr>
+                              );
+                            })}
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>
@@ -423,6 +470,13 @@ export function VisaApplicationsPage() {
             )}
           </>
         ) : null}
+        {/* Detail Modal */}
+        <VisaApplicationDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          visaId={selectedVisaId}
+          onSuccess={retryLoading}
+        />
       </main>
   );
 }

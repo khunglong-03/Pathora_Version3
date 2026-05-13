@@ -9,6 +9,7 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> FindByIds(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindByIdWithInstanceDays(Guid id, CancellationToken cancellationToken = default);
     Task<TourInstanceEntity?> FindByIdWithBookingsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TourInstanceEntity?> FindByIdWithTourForPaymentAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
 
     /// <summary>Tracked graph for commands that mutate activities (e.g. transport assignments).</summary>
     Task<TourInstanceEntity?> FindByIdWithInstanceDaysForUpdate(Guid id, CancellationToken cancellationToken = default);
@@ -42,8 +43,7 @@ public interface ITourInstanceRepository
     /// <summary>
     /// Lightweight lookup for a TourInstanceDayActivity by ID. Used for IDOR validation
     /// in vehicle availability queries (excludeActivityId ownership check).
-    /// </summary>
-    Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, CancellationToken cancellationToken = default);
+    Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, bool asNoTracking = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Private tours in <see cref="TourInstanceStatus.PendingAdjustment"/> whose

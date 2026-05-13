@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<ITaxConfigService, TaxConfigService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentReconciliationService, PaymentReconciliationService>();
+        services.AddScoped<IPostPaymentVisaGateService, PostPaymentVisaGateService>();
         services.AddSingleton<IRateLimitService>(sp =>
         {
             var config = sp.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();

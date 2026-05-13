@@ -32,9 +32,10 @@ public sealed record TourInstanceDto(
     [property: JsonPropertyName("pricingPolicy")] PricingPolicyDto? PricingPolicy = null,
     [property: JsonPropertyName("cancellationPolicy")] CancellationPolicyDto? CancellationPolicy = null,
     [property: JsonPropertyName("depositPolicy")] DepositPolicyDto? DepositPolicy = null,
-    /// <summary>Giá chốt sau co-design (private tour); null khi chưa set.</summary>
-    [property: JsonPropertyName("finalSellPrice")] decimal? FinalSellPrice = null,
+    /// <summary>Giá gốc per-person tại thời điểm tạo (snapshot từ Classification).</summary>
+    [property: JsonPropertyName("originalBasePrice")] decimal OriginalBasePrice = 0,
     [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization = false,
     [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes = null,
     [property: JsonPropertyName("managerReviewNote")] string? ManagerReviewNote = null,
+    [property: JsonPropertyName("continent")] int? Continent = null,
     [property: JsonPropertyName("days")] List<TourInstanceDayDto>? Days = null);

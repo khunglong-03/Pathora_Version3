@@ -5,6 +5,7 @@ using global::Domain.Entities;
 using global::Domain.Enums;
 using global::Domain.UnitOfWork;
 using global::Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 
 namespace Domain.Specs.Application.Services;
@@ -53,6 +54,82 @@ public sealed class CancellationPolicyServiceTests
         new CancellationPolicyTier(7, 13, 50),
         new CancellationPolicyTier(14, int.MaxValue, 0)
     ];
+
+    #region Active policy uniqueness
+
+    [Fact]
+    public async Task Create_WhenActivePolicyAlreadyExistsForScope_ShouldReturnConflict()
+    {
+        // Arrange
+        var existing = CreatePolicy(TourScope.Domestic, CreateDefaultTiers());
+        _repository.FindActiveByTourScopeAsync(TourScope.Domestic)
+            .Returns(existing);
+
+        var request = new CreateCancellationPolicyRequest(
+            TourScope.Domestic,
+            CreateDefaultTiers());
+        var service = CreateService();
+
+        // Act
+        var result = await service.Create(request);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("CancellationPolicy.DuplicateActiveScope", result.Errors[0].Code);
+        await _repository.DidNotReceive().Create(Arg.Any<CancellationPolicyEntity>());
+        await _unitOfWork.DidNotReceive().SaveChangeAsync();
+    }
+
+    [Fact]
+    public async Task Update_WhenAnotherActivePolicyExistsForScope_ShouldReturnConflict()
+    {
+        // Arrange
+        var policy = CreatePolicy(TourScope.Domestic, CreateDefaultTiers());
+        var duplicate = CreatePolicy(TourScope.Domestic, CreateDefaultTiers());
+        _repository.FindById(policy.Id).Returns(policy);
+        _repository.FindActiveByTourScopeAsync(TourScope.Domestic, policy.Id)
+            .Returns(duplicate);
+
+        var request = new UpdateCancellationPolicyRequest(
+            policy.Id,
+            TourScope.Domestic,
+            CreateDefaultTiers(),
+            CancellationPolicyStatus.Active);
+        var service = CreateService();
+
+        // Act
+        var result = await service.Update(request);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("CancellationPolicy.DuplicateActiveScope", result.Errors[0].Code);
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<CancellationPolicyEntity>());
+        await _unitOfWork.DidNotReceive().SaveChangeAsync();
+    }
+
+    [Fact]
+    public async Task Create_WhenDatabaseUniqueIndexRejectsDuplicateActiveScope_ShouldReturnConflict()
+    {
+        // Arrange
+        _repository.FindActiveByTourScopeAsync(TourScope.Domestic)
+            .Returns((CancellationPolicyEntity?)null);
+        _unitOfWork.SaveChangeAsync()
+            .Returns<Task>(_ => throw new DbUpdateException("duplicate active scope"));
+
+        var request = new CreateCancellationPolicyRequest(
+            TourScope.Domestic,
+            CreateDefaultTiers());
+        var service = CreateService();
+
+        // Act
+        var result = await service.Create(request);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal("CancellationPolicy.DuplicateActiveScope", result.Errors[0].Code);
+    }
+
+    #endregion
 
     #region CalculateRefund — Tour not found
 
@@ -135,13 +212,11 @@ public sealed class CancellationPolicyServiceTests
         var tour = CreateTour(TourScope.International);
         _tourRepository.FindById(tour.Id).Returns(tour);
 
-        // Older policy: 0% penalty (full refund for 14+ days)
         var olderPolicy = CreatePolicy(
             TourScope.International,
             [new CancellationPolicyTier(0, int.MaxValue, 0)],
             createdOnUtc: DateTimeOffset.UtcNow.AddDays(-30));
 
-        // Newer policy: 30% penalty for all days
         var newerPolicy = CreatePolicy(
             TourScope.International,
             [new CancellationPolicyTier(0, int.MaxValue, 30)],
@@ -159,7 +234,7 @@ public sealed class CancellationPolicyServiceTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal(CalculationStatus.Calculated, result.Value.Status);
-        Assert.Equal(300, result.Value.PenaltyAmount); // 30% of 1000
+        Assert.Equal(300, result.Value.PenaltyAmount);
         Assert.Equal(700, result.Value.RefundAmount);
     }
 
@@ -178,7 +253,6 @@ public sealed class CancellationPolicyServiceTests
         _repository.FindByTourScope(TourScope.Domestic)
             .Returns(new List<CancellationPolicyEntity> { policy });
 
-        // Cancellation date is in the past
         var request = new CalculateRefundRequest(tour.Id, DateTimeOffset.UtcNow.AddDays(-1), 1000);
         var service = CreateService();
 
@@ -207,7 +281,6 @@ public sealed class CancellationPolicyServiceTests
         _repository.FindByTourScope(TourScope.Domestic)
             .Returns(new List<CancellationPolicyEntity> { policy });
 
-        // 10 days before departure → 7-13 tier → 50% penalty
         var request = new CalculateRefundRequest(tour.Id, DateTimeOffset.UtcNow.AddDays(10), 2000);
         var service = CreateService();
 
@@ -217,7 +290,7 @@ public sealed class CancellationPolicyServiceTests
         // Assert
         Assert.False(result.IsError);
         Assert.Equal(CalculationStatus.Calculated, result.Value.Status);
-        Assert.Equal(1000, result.Value.PenaltyAmount); // 50% of 2000
+        Assert.Equal(1000, result.Value.PenaltyAmount);
         Assert.Equal(1000, result.Value.RefundAmount);
     }
 
@@ -232,7 +305,6 @@ public sealed class CancellationPolicyServiceTests
         _repository.FindByTourScope(TourScope.Domestic)
             .Returns(new List<CancellationPolicyEntity> { policy });
 
-        // 20 days before departure → 14+ tier → 0% penalty
         var request = new CalculateRefundRequest(tour.Id, DateTimeOffset.UtcNow.AddDays(20), 3000);
         var service = CreateService();
 

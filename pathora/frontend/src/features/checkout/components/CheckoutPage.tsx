@@ -187,6 +187,7 @@ export function CheckoutPage() {
     instanceType: string;
     classificationId?: string;
     maxParticipation?: number;
+    basePrice?: number;
   } | null>(null);
 
   /* ── Initialize tour instance booking from URL params ──── */
@@ -208,6 +209,7 @@ export function CheckoutPage() {
         instanceType: instanceTypeParam,
         classificationId: searchParams.get("classificationId") || undefined,
         maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+        basePrice: basePrice,
       });
       setLoadingPrice(false);
     }

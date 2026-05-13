@@ -31,7 +31,7 @@ const itemVariants = {
 const HeroBanner = () => {
   const { t } = useTranslation();
   return (
-    <section className="relative min-h-[100dvh] -mt-20 overflow-hidden flex items-center bg-zinc-950">
+    <section className="relative min-h-[100dvh] -mt-20 overflow-hidden h-stack items-center bg-zinc-950">
       {/* Background Image shifted to Right */}
       <div className="absolute inset-0 w-full h-full lg:w-3/4 lg:left-1/4">
         <Image
@@ -47,12 +47,12 @@ const HeroBanner = () => {
         <div className="absolute inset-0 bg-zinc-950/20" />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 lg:px-12 pt-28 pb-10">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-4 md:px-6 lg:px-8 lg:px-8 pt-28 pb-10">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="max-w-2xl flex flex-col items-start text-left"
+          className="max-w-2xl v-stack items-start text-left"
         >
           <motion.span
             variants={itemVariants}
@@ -63,7 +63,7 @@ const HeroBanner = () => {
           
           <motion.h1
             variants={itemVariants}
-            className={`${outfit.className} text-5xl md:text-7xl font-bold tracking-tighter leading-[1.05] text-white`}
+            className={`${outfit.className} text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05] text-white`}
           >
             {t("landing.aboutUs.weAre")}{" "}
             <span className="text-[#fa8b02] inline-block relative">
@@ -79,7 +79,7 @@ const HeroBanner = () => {
             {t("landing.aboutUs.heroSubtitle")}
           </motion.p>
           
-          <motion.div variants={itemVariants} className="mt-10 flex items-center gap-3 text-sm">
+          <motion.div variants={itemVariants} className="mt-10 h-stack items-center gap-3 text-sm">
             <Link
               href="/"
               className="text-zinc-500 hover:text-white transition-colors border border-zinc-800 bg-zinc-900/50 backdrop-blur-md px-5 py-2.5 rounded-xl block"

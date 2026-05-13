@@ -95,15 +95,24 @@ public static class DependencyInjection
             })
             .WithSerializer(new FusionCacheSystemTextJsonSerializer());
 
-        // Only use Redis in non-Development environments
-        // In Development, use in-memory cache only (faster startup, no Redis required)
-        if (!isDevelopment && !string.IsNullOrEmpty(redisConnection))
+        // Use Redis if configured (allows backplane to sync Private and Public API caches in Development)
+        if (!string.IsNullOrEmpty(redisConnection))
         {
-            var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection);
+            var options = StackExchange.Redis.ConfigurationOptions.Parse(redisConnection);
+            options.AbortOnConnectFail = false; // Prevents startup crash if Redis is unavailable
+            options.ConnectTimeout = 3000;      // Shorter timeout so it doesn't block startup
+
+            var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(options);
             services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexer);
 
-            services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+            services.AddStackExchangeRedisCache(redisOpts => redisOpts.ConfigurationOptions = options);
             fusionCacheBuilder.WithRegisteredDistributedCache();
+
+            // Setup Redis Backplane to invalidate L1 (memory) cache across instances
+            fusionCacheBuilder.WithRegisteredBackplane(new ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions
+            {
+                ConfigurationOptions = options
+            });
         }
         else
         {

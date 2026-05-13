@@ -10,18 +10,7 @@ import type { UserSettings } from "../types";
 import { ToggleSwitch } from "@/features/dashboard/settings/components/ToggleSwitch";
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────
-const CSS = {
-  accent:       "var(--accent)",
-  accentMuted:  "var(--accent-muted)",
-  border:       "var(--border)",
-  borderSub:    "var(--border-subtle)",
-  surface:      "var(--surface)",
-  textPrimary:  "var(--text-primary)",
-  textSecondary:"var(--text-secondary)",
-  textMuted:    "var(--text-muted)",
-  success:      "var(--success)",
-  shadowCard:   "var(--shadow-card)",
-} as const;
+// Using Tailwind directly to match the-hieu-design.md
 
 interface SettingsTabProps {
   user: UserInfo | null;
@@ -30,10 +19,10 @@ interface SettingsTabProps {
 function SettingsSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-20 rounded-lg" style={{ backgroundColor: CSS.borderSub }} />
-      <div className="h-16 rounded-lg" style={{ backgroundColor: CSS.borderSub }} />
-      <div className="h-16 rounded-lg" style={{ backgroundColor: CSS.borderSub }} />
-      <div className="h-16 rounded-lg" style={{ backgroundColor: CSS.borderSub }} />
+      <div className="h-20 rounded-xl bg-slate-100" />
+      <div className="h-16 rounded-xl bg-slate-100" />
+      <div className="h-16 rounded-xl bg-slate-100" />
+      <div className="h-16 rounded-xl bg-slate-100" />
     </div>
   );
 }
@@ -116,20 +105,18 @@ export function SettingsTab({ user }: SettingsTabProps) {
   if (isUnavailable) {
     return (
       <div
-        className="rounded-lg border p-6 text-center space-y-3"
-        style={{ borderColor: CSS.border, backgroundColor: CSS.surface, boxShadow: CSS.shadowCard }}
+        className="rounded-xl border border-slate-200 bg-white p-6 text-center space-y-3 shadow-sm"
       >
-        <h3 style={{ color: CSS.textPrimary }} className="text-base font-semibold">
+        <h3 className="text-base font-semibold text-slate-900">
           {t("common.profilePage.settingsTitle") || "Cài đặt"}
         </h3>
-        <p style={{ color: CSS.textSecondary }} className="text-sm">
+        <p className="text-sm text-slate-500">
           {t("common.profilePage.notificationPreferences.comingSoon") || "Cài đặt sẽ sớm khả dụng."}
         </p>
         <button
           type="button"
           onClick={() => void refetch()}
-          style={{ borderColor: CSS.border, color: CSS.textSecondary }}
-          className="px-4 py-2 text-sm rounded-md border hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-slate-700 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
         >
           {t("common.retry") || "Thử lại"}
         </button>
@@ -139,38 +126,35 @@ export function SettingsTab({ user }: SettingsTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="pb-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
-        <h2 style={{ color: CSS.textPrimary }} className="text-lg font-semibold">
+      <div className="pb-4 border-b border-slate-100">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">
           {t("common.profilePage.settingsTitle") || "Cài đặt"}
         </h2>
-        <p style={{ color: CSS.textSecondary }} className="text-sm mt-1">
+        <p className="text-sm mt-1 text-slate-500">
           {t("common.profilePage.settingsSubtitle") || "Tùy chỉnh thông báo và tùy chọn cá nhân"}
         </p>
       </div>
 
       {/* Language preference — segmented EN/VI control at the top */}
-      <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
+      <div className="flex items-center justify-between py-4 border-b border-slate-100">
         <div>
-          <h3 style={{ color: CSS.textPrimary }} className="font-medium">
+          <h3 className="font-semibold text-slate-700 mb-1">
             {t("common.settingsPage.languagePreference") || "Ngôn ngữ / Language"}
           </h3>
-          <p style={{ color: CSS.textSecondary }} className="text-sm">
+          <p className="text-sm text-slate-500">
             {t("common.settingsPage.languagePreferenceDesc") || "Chọn ngôn ngữ hiển thị"}
           </p>
         </div>
-        <div
-          className="flex rounded-lg overflow-hidden border"
-          style={{ borderColor: CSS.border }}
-        >
+        <div className="flex rounded-xl overflow-hidden border border-slate-200 shadow-sm">
           <button
             type="button"
             disabled={isUpdating}
             onClick={() => void handleLanguageChange("en")}
-            style={{
-              backgroundColor: localSettings.preferredLanguage === "en" ? CSS.accent : "transparent",
-              color: localSettings.preferredLanguage === "en" ? "#fff" : CSS.textSecondary,
-            }}
-            className="px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+            className={`px-6 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+              localSettings.preferredLanguage === "en"
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+            }`}
           >
             EN
           </button>
@@ -178,11 +162,11 @@ export function SettingsTab({ user }: SettingsTabProps) {
             type="button"
             disabled={isUpdating}
             onClick={() => void handleLanguageChange("vi")}
-            style={{
-              backgroundColor: localSettings.preferredLanguage === "vi" ? CSS.accent : "transparent",
-              color: localSettings.preferredLanguage === "vi" ? "#fff" : CSS.textSecondary,
-            }}
-            className="px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 border-l"
+            className={`px-6 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 border-l border-slate-200 ${
+              localSettings.preferredLanguage === "vi"
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+            }`}
             data-testid="lang-vi"
           >
             VI
@@ -191,10 +175,10 @@ export function SettingsTab({ user }: SettingsTabProps) {
       </div>
 
       {/* Email notifications */}
-      <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
+      <div className="flex items-center justify-between py-4 border-b border-slate-100">
         <div>
-          <h3 style={{ color: CSS.textPrimary }} className="font-medium">{t("common.settingsPage.emailNotifications") || "Thông báo qua email"}</h3>
-          <p style={{ color: CSS.textSecondary }} className="text-sm">{t("common.settingsPage.emailNotificationsDesc") || "Nhận thông báo qua email"}</p>
+          <h3 className="font-semibold text-slate-700 mb-1">{t("common.settingsPage.emailNotifications") || "Thông báo qua email"}</h3>
+          <p className="text-sm text-slate-500">{t("common.settingsPage.emailNotificationsDesc") || "Nhận thông báo qua email"}</p>
         </div>
         <ToggleSwitch
           enabled={localSettings.notificationEmail}
@@ -205,13 +189,13 @@ export function SettingsTab({ user }: SettingsTabProps) {
       </div>
 
       {/* SMS notifications */}
-      <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
+      <div className="flex items-center justify-between py-4 border-b border-slate-100">
         <div>
-          <h3 style={{ color: CSS.textPrimary }} className="font-medium">{t("common.settingsPage.smsNotifications") || "Thông báo qua SMS"}</h3>
-          <p style={{ color: CSS.textSecondary }} className="text-sm">{t("common.settingsPage.smsNotificationsDesc") || "Nhận thông báo qua SMS"}</p>
+          <h3 className="font-semibold text-slate-700 mb-1">{t("common.settingsPage.smsNotifications") || "Thông báo qua SMS"}</h3>
+          <p className="text-sm text-slate-500">{t("common.settingsPage.smsNotificationsDesc") || "Nhận thông báo qua SMS"}</p>
           {!canUseSms && (
-            <p style={{ color: CSS.accent }} className="text-xs mt-1">
-              {t("common.profilePage.avatar.smsDisabled") || "Add a phone number to enable SMS"}
+            <p className="text-xs mt-1.5 font-medium text-orange-600">
+              {t("common.profilePage.avatar.smsDisabled") || "Thêm số điện thoại để nhận SMS"}
             </p>
           )}
         </div>

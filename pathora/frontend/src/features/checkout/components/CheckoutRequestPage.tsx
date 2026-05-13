@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Icon } from "@/components/ui";
 
 
@@ -185,7 +185,8 @@ export function CheckoutRequestPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const pathname = usePathname();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   /* ── State ─────────────────────────────────────────────── */
   const [paymentOption, setPaymentOption] = useState<"full" | "deposit">("deposit");
@@ -220,7 +221,8 @@ export function CheckoutRequestPage() {
   const isPrivateTopUpCheckout = false;
   const usePublicBookingCheckoutPrice = true;
   /** True when the user ticked "I want to customize this schedule" — Draft only, no payment. */
-  const isCustomizationOnly = searchParams.get("wantsCustomization") === "true";
+  const wantsCustomization = searchParams.get("wantsCustomization") === "true";
+  const isRequestOnly = true; // All PrivateCustom tours now require manager approval first
 
   const toastPaidSuccess = useCallback(() => {
     toast.success(
@@ -254,18 +256,19 @@ export function CheckoutRequestPage() {
     instanceType: string;
     classificationId?: string;
     maxParticipation?: number;
+    basePrice?: number;
   } | null>(null);
 
   /* ── Initialize tour instance booking from URL params ──── */
   useEffect(() => {
-    if (tourInstanceIdParam && tourNameParam) {
+    if (tourInstanceIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPercentage = Number(depositPercentageParam) || 0.3;
       const depositAmount = Math.round(basePrice * depositPercentage);
 
       setTourInstanceBooking({
         tourInstanceId: tourInstanceIdParam,
-        tourName: tourNameParam,
+        tourName: tourNameParam || "Tour Riêng",
         startDate: startDateParam || "",
         endDate: endDateParam || "",
         location: locationParam || "",
@@ -275,6 +278,7 @@ export function CheckoutRequestPage() {
         instanceType: instanceTypeParam,
         classificationId: searchParams.get("classificationId") || undefined,
         maxParticipation: parseInt(searchParams.get("maxParticipation") || "1", 10),
+        basePrice: basePrice,
       });
       setLoadingPrice(false);
     }
@@ -379,7 +383,7 @@ export function CheckoutRequestPage() {
 
   // Build a CheckoutPriceResponse from URL params when there's no API response (tour instance direct checkout)
   const computedCheckoutPrice: CheckoutPriceResponse | null = React.useMemo(() => {
-    if (tourInstanceIdParam && tourNameParam) {
+    if (tourInstanceIdParam) {
       const basePrice = Number(basePriceParam) || 0;
       const depositPct = Number(depositPercentageParam) || 0.3;
       const adultPrice = adultPriceParam ? Number(adultPriceParam) : basePrice;
@@ -411,7 +415,7 @@ export function CheckoutRequestPage() {
       return {
         bookingId: "",
         tourInstanceId: tourInstanceIdParam,
-        tourName: decodeURIComponent(tourNameParam),
+        tourName: tourNameParam ? decodeURIComponent(tourNameParam) : "Tour Riêng",
         tourCode: "",
         thumbnailUrl: thumbnailUrlParam ? decodeURIComponent(thumbnailUrlParam) : undefined,
         startDate: startDateParam || "",
@@ -595,16 +599,13 @@ export function CheckoutRequestPage() {
             // We just need the bookingId to proceed to payment, requestPrivateTour returns price info including bookingId
             currentBookingId = bookingResult.bookingId;
 
-            // Stop here if the user wants customization; do not proceed to payment
-            const wantsCustomization = searchParams.get("wantsCustomization") === "true";
-            if (wantsCustomization) {
-              toast.success(t("landing.checkout.customRequestSubmitted", "Yêu cầu tuỳ chỉnh của bạn đã được gửi để duyệt!"));
-              // Navigate to the specific booking detail so data is available immediately
-              // Small delay allows the backend to commit before we fetch
-              await new Promise((resolve) => setTimeout(resolve, 600));
-              router.push(`/bookings/${currentBookingId}`);
-              return;
-            }
+            // PRIVATE CUSTOM TOURS ALWAYS REQUIRE MANAGER APPROVAL BEFORE PAYMENT
+            toast.success(t("landing.checkout.customRequestSubmitted", "Yêu cầu đặt tour của bạn đã được gửi để duyệt!"));
+            // Navigate to the specific booking detail so data is available immediately
+            // Small delay allows the backend to commit before we fetch
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            router.push(`/bookings/${currentBookingId}`);
+            return;
           } else {
             throw new Error("Failed to create private custom booking");
           }
@@ -629,6 +630,10 @@ export function CheckoutRequestPage() {
             throw new Error("Failed to create booking");
           }
         }
+      }
+
+      if (!currentBookingId) {
+        throw new Error("MISSING_BOOKING_ID");
       }
 
       // Step 2: Create payment transaction
@@ -662,7 +667,12 @@ export function CheckoutRequestPage() {
       console.error("Failed to create transaction:", handledError.message);
       
       let errorMessage = handledError.details || handledError.message;
-      if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
+      if (error instanceof Error && error.message === "MISSING_BOOKING_ID") {
+        errorMessage = t(
+          "landing.checkout.missingBookingId",
+          "Không tìm thấy thông tin đặt tour. Vui lòng quay lại trang chi tiết tour và thử lại.",
+        );
+      } else if (handledError.validationErrors && Object.keys(handledError.validationErrors).length > 0) {
         // Flatten validation errors into a single string
         errorMessage = Object.values(handledError.validationErrors).flat().join(", ");
       } else if (!errorMessage || errorMessage === "DEFAULT_ERROR") {
@@ -683,6 +693,29 @@ export function CheckoutRequestPage() {
 
   if (!isMounted) {
     return null;
+  }
+
+  if (!authLoading && !isAuthenticated) {
+    const nextUrl = `${pathname}?${searchParams.toString()}`;
+    return (
+      <main className="bg-[#f9fafb] min-h-[70vh] flex flex-col items-center justify-center">
+        <div className="mx-auto max-w-lg px-4 py-16 text-center bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <Icon icon="heroicons:lock-closed" className="size-16 text-slate-300 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">
+            Vui lòng đăng nhập
+          </h2>
+          <p className="text-slate-500 mb-8 text-sm">
+            Bạn cần đăng nhập để thanh toán tour riêng.
+          </p>
+          <Link
+            href={`/?login=true&next=${encodeURIComponent(nextUrl)}`}
+            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors w-full"
+          >
+            Đăng nhập để tiếp tục
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -707,15 +740,15 @@ export function CheckoutRequestPage() {
             className="mb-8 md:mb-12 mt-4"
           >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none mb-3">
-              {isCustomizationOnly
-                ? t("landing.checkout.customRequestPageTitle", "Yêu cầu tuỳ chỉnh lịch trình")
+              {isRequestOnly
+                ? t("landing.checkout.customRequestPageTitle", "Yêu cầu đặt Tour Riêng")
                 : isPrivateTopUpCheckout
                 ? t("landing.checkout.privateTopUpPageTitle")
                 : t("landing.checkout.pageTitle", "Secure Checkout")}
             </h1>
             <p className="text-base text-slate-500 max-w-[65ch]">
-              {isCustomizationOnly
-                ? t("landing.checkout.customRequestPageSubtitle", "Điền thông tin của bạn và gửi yêu cầu đến Manager để bắt đầu thiết kế lịch trình riêng.")
+              {isRequestOnly
+                ? t("landing.checkout.customRequestPageSubtitle", "Điền thông tin của bạn và gửi yêu cầu đến Manager để bắt đầu lên kế hoạch và duyệt giá.")
                 : isPrivateTopUpCheckout
                 ? t("landing.checkout.privateTopUpPageSubtitle")
                 : t("landing.checkout.pageSubtitle", "Complete your booking securely below.")}
@@ -741,8 +774,8 @@ export function CheckoutRequestPage() {
             </div>
           ) : null}
 
-          {/* ── Step Indicator (hidden for customization-only flow) ── */}
-          {!isCustomizationOnly && (
+          {/* ── Step Indicator (hidden for request-only flow) ── */}
+          {!isRequestOnly && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -767,8 +800,8 @@ export function CheckoutRequestPage() {
                 </motion.div>
               )}
 
-              {/* Booking summary — shown when we have price data (hidden for customization-only) */}
-              {!isCustomizationOnly && (isBookingIdPriceFetch || effectivePrice) && (
+              {/* Booking summary — shown when we have price data (hidden for request-only) */}
+              {!isRequestOnly && (isBookingIdPriceFetch || effectivePrice) && (
                 <motion.div variants={itemVariants}>
                   <BookingSummarySection
                     checkoutPrice={effectivePrice}
@@ -804,7 +837,7 @@ export function CheckoutRequestPage() {
                 </motion.div>
               )}
 
-              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && !isCustomizationOnly && (
+              {normalizedStatus !== "paid" && !isPrivateTopUpCheckout && (
                 <motion.div variants={itemVariants}>
                   <TermsConditionsCard
                     agreeTerms={agreeTerms}
@@ -818,8 +851,8 @@ export function CheckoutRequestPage() {
 
             {/* ════════ RIGHT COLUMN (sidebar) ════════════ */}
             <motion.div variants={itemVariants} className="w-full xl:w-[420px] shrink-0 xl:sticky xl:top-8 flex flex-col gap-6 lg:gap-8 self-start">
-              {isCustomizationOnly ? (
-                /* ── Customization-only sidebar: no payment, just submit request ── */
+              {isRequestOnly ? (
+                /* ── Request-only sidebar: no payment, just submit request ── */
                 <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
                   <div className="p-8 md:p-10 flex flex-col gap-6">
                     <div className="flex items-center gap-3">
@@ -828,10 +861,10 @@ export function CheckoutRequestPage() {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold tracking-tight text-slate-900">
-                          {t("landing.checkout.customRequestTitle", "Yêu cầu tuỳ chỉnh")}
+                          {t("landing.checkout.customRequestTitle", "Yêu cầu Đặt Tour")}
                         </h3>
                         <p className="text-xs text-slate-500">
-                          {t("landing.checkout.customRequestSubtitle", "Không cần thanh toán ngay")}
+                          {t("landing.checkout.customRequestSubtitle", "Chưa cần thanh toán ngay")}
                         </p>
                       </div>
                     </div>
@@ -841,10 +874,10 @@ export function CheckoutRequestPage() {
                         {t("landing.checkout.customRequestFlowTitle", "Quy trình sẽ diễn ra:")}
                       </p>
                       <ol className="list-decimal list-inside space-y-1 text-xs text-slate-600">
-                        <li>{t("landing.checkout.customRequestStep1", "Yêu cầu của bạn được gửi đến Manager")}</li>
-                        <li>{t("landing.checkout.customRequestStep2", "Tour Operator sẽ chỉnh sửa lịch trình theo ý bạn")}</li>
-                        <li>{t("landing.checkout.customRequestStep3", "Bạn xem lại và trao đổi qua chat")}</li>
-                        <li>{t("landing.checkout.customRequestStep4", "Khi hài lòng, bạn xác nhận và thanh toán")}</li>
+                        <li>{t("landing.checkout.customRequestStep1", "Yêu cầu được gửi đến Tour Operator")}</li>
+                        <li>{t("landing.checkout.customRequestStep2", wantsCustomization ? "Operator sẽ chỉnh sửa lịch trình theo ý bạn" : "Operator sẽ chuẩn bị lịch trình và tài nguyên")}</li>
+                        <li>{t("landing.checkout.customRequestStep3", "Manager phê duyệt và chốt giá cuối cùng")}</li>
+                        <li>{t("landing.checkout.customRequestStep4", "Bạn xem lại thông tin và tiến hành thanh toán")}</li>
                       </ol>
                     </div>
 
@@ -869,7 +902,7 @@ export function CheckoutRequestPage() {
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1">
-                          {t("landing.checkout.priceWillBeFinalized", "Giá chính thức sẽ được chốt sau khi Operator hoàn tất chỉnh sửa")}
+                          {t("landing.checkout.priceWillBeFinalized", "Giá chính thức sẽ được chốt sau khi Manager duyệt và xác nhận tài nguyên")}
                         </p>
                       </div>
                     )}
@@ -877,10 +910,10 @@ export function CheckoutRequestPage() {
                     {/* Submit Request Button */}
                     <button
                       type="button"
-                      disabled={loading || !hasCustomerInfo}
+                      disabled={loading || !hasCustomerInfo || !agreeTerms || !acknowledgeInfo}
                       onClick={handleConfirmBooking}
                       className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
-                        !loading && hasCustomerInfo
+                        !loading && hasCustomerInfo && agreeTerms && acknowledgeInfo
                           ? "bg-[#fa8b02] text-white hover:bg-[#e07d02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-400/20 cursor-pointer"
                           : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}
@@ -893,7 +926,7 @@ export function CheckoutRequestPage() {
                       ) : (
                         <>
                           <Icon icon="heroicons:paper-airplane" className="size-5" />
-                          <span>{t("landing.checkout.submitCustomRequest", "Gửi yêu cầu tuỳ chỉnh")}</span>
+                          <span>{t("landing.checkout.submitCustomRequest", "Gửi yêu cầu đặt tour")}</span>
                         </>
                       )}
                     </button>

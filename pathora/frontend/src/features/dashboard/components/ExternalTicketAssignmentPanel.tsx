@@ -2,40 +2,50 @@
 
 import React, { useState, useCallback } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import type { AdminBookingListResponse } from "@/api/services/bookingService";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import { handleApiError } from "@/utils/apiResponse";
+import { logTourOperatorEvent } from "@/utils/telemetry";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface TicketDetail {
+  paxIndex: number;
+  seatNumber: string;
+  eTicketNumber: string;
+}
 
 export interface BookingTicketEntry {
   bookingId: string;
   customerName: string;
-  /** Số ghế cần thiết = adult + child */
+  /** Số ghế cần thiết = adult + child + infant */
   requiredSeats: number;
-  /** Số infant không cần ghế (thông tin) */
-  infantCount: number;
   /** Dữ liệu form người dùng nhập */
   flightNumber: string;    // VD: VN 123
   departureAt: string;     // datetime-local input
   arrivalAt: string;       // datetime-local input
-  seatNumbers: string;     // VD: "12A 12B 13C" — cách nhau bằng dấu cách
-  eTicketNumbers: string;  // VD: "001-123456 001-123457" — cách nhau bằng dấu cách
+  tickets: TicketDetail[];
   seatClass: string;       // Economy / Business / First
   note: string;
+  /** Computed: space-separated seat numbers (populated at save time) */
+  seatNumbers?: string;
+  /** Computed: space-separated e-ticket numbers (populated at save time) */
+  eTicketNumbers?: string;
 }
 
 interface Props {
   /** Activity title (e.g. "Chuyến bay HAN → SGN") */
   activityTitle: string;
   /** Loại phương tiện: "Flight" | "Train" | "Boat" */
-  transportType: "Flight" | "Train" | "Boat";
+  transportType: "Flight" | "Train" | "Boat" | "Bus" | "Car";
   /** Danh sách bookings của instance */
   bookings: AdminBookingListResponse[];
   /** Callback khi TourOperator lưu vé cho 1 booking */
   onSave?: (entry: BookingTicketEntry) => Promise<void>;
   /** Callback khi tất cả booking đã được gán vé */
-  onConfirmAll?: () => Promise<void>;
+  onConfirmAll?: (departureTime?: string, arrivalTime?: string) => Promise<void>;
   /** Đang loading */
   loading?: boolean;
   /** Ngày diễn ra hoạt động (YYYY-MM-DD) */
@@ -44,15 +54,15 @@ interface Props {
   activityId?: string;
   /** ID của tour instance để gọi API */
   instanceId?: string;
+  /** Trạng thái confirm đã có từ activity */
+  initialConfirmed?: boolean;
+  /** Giờ khởi hành của activity trên lịch trình */
+  activityStartTime?: string | null;
+  /** Giờ đến của activity trên lịch trình */
+  activityEndTime?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const transportLabel: Record<string, string> = {
-  Flight: "✈️ Máy bay",
-  Train: "🚄 Tàu hỏa",
-  Boat: "🚢 Tàu thuyền",
-};
 
 const seatClassOptions = ["Economy", "Business", "First Class", "Sleeper", "Seat"];
 
@@ -68,29 +78,50 @@ export default function ExternalTicketAssignmentPanel({
   activityDate,
   activityId,
   instanceId,
+  initialConfirmed = false,
+  activityStartTime,
+  activityEndTime,
 }: Props) {
+  const { t } = useTranslation();
   const [dataLoading, setDataLoading] = useState(false);
-  const [commonDetails, setCommonDetails] = useState({
-    flightNumber: "",
-    seatClass: "Economy",
-    departureAt: "",
-    arrivalAt: "",
+  const [commonDetails, setCommonDetails] = useState(() => {
+    let defaultDep = "";
+    let defaultArr = "";
+    
+    if (activityDate) {
+      const datePart = activityDate.slice(0, 10);
+      if (activityStartTime) {
+        defaultDep = `${datePart}T${activityStartTime.slice(0, 5)}`;
+      }
+      if (activityEndTime) {
+        defaultArr = `${datePart}T${activityEndTime.slice(0, 5)}`;
+      }
+    }
+
+    return {
+      flightNumber: "",
+      seatClass: "Economy",
+      departureAt: defaultDep,
+      arrivalAt: defaultArr,
+    };
   });
   // Local state: form entries per booking
   const [entries, setEntries] = useState<Record<string, BookingTicketEntry>>(() => {
     const init: Record<string, BookingTicketEntry> = {};
     for (const b of bookings) {
-      const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0);
+      const requiredSeats = (b.numberAdult ?? 0) + (b.numberChild ?? 0) + (b.numberInfant ?? 0);
       init[b.id.toLowerCase()] = {
         bookingId: b.id.toLowerCase(),
         customerName: b.customerName,
         requiredSeats,
-        infantCount: b.numberInfant ?? 0,
         flightNumber: "",
         departureAt: "",
         arrivalAt: "",
-        seatNumbers: "",
-        eTicketNumbers: "",
+        tickets: Array.from({ length: Math.max(requiredSeats, 1) }).map((_, i) => ({
+          paxIndex: i + 1,
+          seatNumber: "",
+          eTicketNumber: "",
+        })),
         seatClass: "Economy",
         note: "",
       };
@@ -101,6 +132,18 @@ export default function ExternalTicketAssignmentPanel({
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [confirmingAll, setConfirmingAll] = useState(false);
+  const [confirmedAll, setConfirmedAll] = useState(initialConfirmed);
+  const transportLabel: Record<string, string> = {
+    Flight: t("tourInstance.transport.flight", "Chuyến bay"),
+    Train: t("tourInstance.transport.train", "Chuyến tàu"),
+    Boat: t("tourInstance.transport.boat", "Chuyến tàu/phà"),
+    Bus: t("tourInstance.transport.bus", "Chuyến xe bus"),
+    Car: t("tourInstance.transport.car", "Xe ô tô"),
+  };
+
+  React.useEffect(() => {
+    setConfirmedAll(initialConfirmed);
+  }, [initialConfirmed]);
 
   // Khôi phục từ DB khi mount
   React.useEffect(() => {
@@ -111,49 +154,69 @@ export default function ExternalTicketAssignmentPanel({
         setDataLoading(true);
         const fetched = await tourInstanceService.getBookingTickets(instanceId, activityId);
         if (isMounted && fetched && fetched.length > 0) {
-          const loadedEntries: Record<string, Partial<BookingTicketEntry>> = {};
+          const loadedEntries: Record<string, any> = {};
           const loadedIds = new Set<string>();
 
-          console.log("Fetched tickets:", fetched);
           let firstTicket = null;
           for (const t of fetched) {
-            console.log("Processing ticket:", t);
             if (!firstTicket) firstTicket = t;
             // Try different possible property names for the booking ID
-            const rawId = t.bookingId || t.BookingId || t.id || t.Id;
+            const tAny = t as any;
+            const rawId = tAny.bookingId || tAny.BookingId || tAny.id || tAny.Id;
             if (!rawId) {
-              console.warn("Ticket does not have a recognizable booking ID!", t);
               continue;
             }
             const lowerBookingId = String(rawId).toLowerCase();
             loadedEntries[lowerBookingId] = {
-              seatNumbers: t.seatNumbers || t.SeatNumbers || "",
-              eTicketNumbers: t.eTicketNumbers || t.ETicketNumbers || "",
-              note: t.note || t.Note || "",
+              seatNumbers: tAny.seatNumbers || tAny.SeatNumbers || "",
+              eTicketNumbers: tAny.eTicketNumbers || tAny.ETicketNumbers || "",
+              note: tAny.note || tAny.Note || "",
             };
             loadedIds.add(lowerBookingId);
           }
 
           if (firstTicket) {
+            const ft = firstTicket as any;
+            
+            const formatLocal = (dateStr: string) => {
+              if (!dateStr) return "";
+              const d = new Date(dateStr);
+              if (isNaN(d.getTime())) return "";
+              const pad = (n: number) => n.toString().padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            };
+
             setCommonDetails({
-              flightNumber: firstTicket.flightNumber || firstTicket.FlightNumber || "",
-              seatClass: firstTicket.seatClass || firstTicket.SeatClass || "Economy",
-              departureAt: (firstTicket.departureAt || firstTicket.DepartureAt) ? new Date(firstTicket.departureAt || firstTicket.DepartureAt).toISOString().slice(0, 16) : "",
-              arrivalAt: (firstTicket.arrivalAt || firstTicket.ArrivalAt) ? new Date(firstTicket.arrivalAt || firstTicket.ArrivalAt).toISOString().slice(0, 16) : "",
+              flightNumber: ft.flightNumber || ft.FlightNumber || "",
+              seatClass: ft.seatClass || ft.SeatClass || "Economy",
+              departureAt: formatLocal(ft.departureAt || ft.DepartureAt),
+              arrivalAt: formatLocal(ft.arrivalAt || ft.ArrivalAt),
             });
           }
 
-          console.log("Loaded entries map:", loadedEntries);
-
           setEntries((prev) => {
             const next = { ...prev };
-            console.log("Current entries:", next);
             for (const bId of Object.keys(loadedEntries)) {
               if (next[bId]) {
-                console.log(`Applying data for booking ${bId}`);
-                next[bId] = { ...next[bId], ...loadedEntries[bId] };
-              } else {
-                console.warn(`Booking ID ${bId} not found in existing entries!`);
+                const loadedData = loadedEntries[bId];
+                
+                const seatNums = loadedData.seatNumbers.split(" ").filter(Boolean);
+                const eTickets = loadedData.eTicketNumbers.split(" ").filter(Boolean);
+                
+                const currentTickets = [...next[bId].tickets];
+                for (let i = 0; i < currentTickets.length; i++) {
+                   currentTickets[i] = {
+                     ...currentTickets[i],
+                     seatNumber: seatNums[i] || currentTickets[i].seatNumber,
+                     eTicketNumber: eTickets[i] || currentTickets[i].eTicketNumber,
+                   };
+                }
+                
+                next[bId] = { 
+                  ...next[bId], 
+                  note: loadedData.note || next[bId].note, 
+                  tickets: currentTickets 
+                };
               }
             }
             return next;
@@ -161,7 +224,16 @@ export default function ExternalTicketAssignmentPanel({
           setSavedIds((prev) => new Set([...prev, ...loadedIds]));
         }
       } catch (error) {
-        console.error("Failed to load tickets", error);
+        const apiError = handleApiError(error);
+        toast.error(
+          t(
+            apiError.message,
+            t(
+              "tourInstance.bookingFlight.loadTicketsError",
+              "Không thể tải vé đã lưu.",
+            ),
+          ),
+        );
       } finally {
         if (isMounted) setDataLoading(false);
       }
@@ -172,29 +244,59 @@ export default function ExternalTicketAssignmentPanel({
     };
   }, [activityId, instanceId]);
 
+  const updateTicketEntry = useCallback(
+    (bookingId: string, paxIndex: number, field: keyof TicketDetail, value: string) => {
+      setEntries((prev) => {
+        const id = bookingId.toLowerCase();
+        const entry = prev[id];
+        if (!entry) return prev;
+        
+        const newTickets = entry.tickets.map(t => 
+          t.paxIndex === paxIndex ? { ...t, [field]: value } : t
+        );
+        
+        return {
+          ...prev,
+          [id]: { ...entry, tickets: newTickets },
+        };
+      });
+    },
+    []
+  );
 
-  const updateEntry = useCallback(
-    (bookingId: string, field: keyof BookingTicketEntry, value: string) => {
+  const updateEntryNote = useCallback(
+    (bookingId: string, value: string) => {
       setEntries((prev) => ({
         ...prev,
-        [bookingId.toLowerCase()]: { ...prev[bookingId.toLowerCase()], [field]: value },
+        [bookingId.toLowerCase()]: { ...prev[bookingId.toLowerCase()], note: value },
       }));
     },
     []
   );
 
   const handleSave = async (bookingId: string) => {
+    if (savingId) return;
     const entry = entries[bookingId.toLowerCase()];
     if (!entry) return;
 
     // Validate: flight number required
     if (!commonDetails.flightNumber.trim()) {
-      toast.error("Vui lòng nhập số hiệu chuyến bay/tàu ở Thông tin chung");
+      toast.error(
+        t(
+          "tourInstance.bookingFlight.validation.flightNumberRequired",
+          "Vui lòng nhập số hiệu chuyến bay/tàu ở Thông tin chung",
+        ),
+      );
       return;
     }
 
     if (!commonDetails.departureAt || !commonDetails.arrivalAt) {
-      toast.error("Vui lòng nhập đầy đủ giờ đi và giờ đến ở Thông tin chung");
+      toast.error(
+        t(
+          "tourInstance.bookingFlight.validation.timesRequired",
+          "Vui lòng nhập đầy đủ giờ đi và giờ đến ở Thông tin chung",
+        ),
+      );
       return;
     }
 
@@ -202,17 +304,41 @@ export default function ExternalTicketAssignmentPanel({
     const arrDate = new Date(commonDetails.arrivalAt);
 
     if (arrDate <= depDate) {
-      toast.error("Giờ đến phải lớn hơn giờ đi");
+      toast.error(
+        t(
+          "tourInstance.bookingFlight.validation.arrivalAfterDeparture",
+          "Giờ đến phải lớn hơn giờ đi",
+        ),
+      );
       return;
     }
 
     if (activityDate) {
-      const actDate = new Date(activityDate);
-      actDate.setHours(0, 0, 0, 0);
+      const [year, month, day] = activityDate.slice(0, 10).split("-");
+      const actDate = new Date(Number(year), Number(month) - 1, Number(day));
+      
       if (depDate < actDate) {
-        toast.error(`Giờ khởi hành không được trước ngày hoạt động diễn ra (${new Date(activityDate).toLocaleDateString("vi-VN")})`);
+        toast.error(
+          t("tourInstance.bookingFlight.validation.departureBeforeActivity", {
+            defaultValue:
+              "Giờ khởi hành không được trước ngày hoạt động diễn ra ({{date}})",
+            date: `${day}/${month}/${year}`,
+          }),
+        );
         return;
       }
+    }
+
+    const emptyTickets = entry.tickets.filter(t => !t.seatNumber.trim());
+    if (emptyTickets.length > 0) {
+      toast.error(
+        t("tourInstance.bookingFlight.validation.seatsRequired", {
+          defaultValue:
+            "Vui lòng nhập vị trí/mã ghế cho tất cả {{count}} hành khách",
+          count: entry.requiredSeats,
+        }),
+      );
+      return;
     }
 
     try {
@@ -223,29 +349,81 @@ export default function ExternalTicketAssignmentPanel({
         seatClass: commonDetails.seatClass,
         departureAt: commonDetails.departureAt,
         arrivalAt: commonDetails.arrivalAt,
+        // For backwards compatibility we stringify the inputs, the backend might still accept strings
+        seatNumbers: entry.tickets.map(t => t.seatNumber).join(" "),
+        eTicketNumbers: entry.tickets.map(t => t.eTicketNumber).join(" "),
       };
       await onSave?.(fullEntry);
       setSavedIds((prev) => new Set([...prev, bookingId.toLowerCase()]));
-      toast.success(`Đã lưu vé cho ${entry.customerName}`);
-    } catch {
-      toast.error("Lưu vé thất bại. Vui lòng thử lại.");
+      if (instanceId && activityId) {
+        logTourOperatorEvent("booking_flight_confirmed", {
+          instanceId,
+          bookingId: entry.bookingId,
+          activityId,
+        });
+      }
+      toast.success(
+        t("tourInstance.bookingFlight.saveSuccess", {
+          defaultValue: "Đã lưu vé cho {{customerName}}",
+          customerName: entry.customerName,
+        }),
+      );
+    } catch (error) {
+      const apiError = handleApiError(error);
+      toast.error(
+        t(
+          apiError.code === "409"
+            ? "tourInstance.bookingFlight.confirmConflict"
+            : apiError.message,
+          t(
+            "tourInstance.bookingFlight.saveError",
+            "Lưu vé thất bại. Vui lòng thử lại.",
+          ),
+        ),
+      );
     } finally {
       setSavingId(null);
     }
   };
 
   const handleConfirmAll = async () => {
+    if (confirmingAll || confirmedAll) return;
     const allSaved = bookings.every((b) => savedIds.has(b.id.toLowerCase()));
     if (!allSaved) {
-      toast.warning("Vui lòng lưu vé cho tất cả booking trước khi xác nhận");
+      toast.warning(
+        t(
+          "tourInstance.bookingFlight.validation.allBookingsRequired",
+          "Vui lòng lưu vé cho tất cả booking trước khi xác nhận",
+        ),
+      );
       return;
     }
     try {
       setConfirmingAll(true);
-      await onConfirmAll?.();
-      toast.success("Đã xác nhận tất cả vé cho activity này!");
-    } catch {
-      toast.error("Xác nhận thất bại. Vui lòng thử lại.");
+      await onConfirmAll?.(
+        commonDetails.departureAt ? new Date(commonDetails.departureAt).toISOString() : undefined,
+        commonDetails.arrivalAt ? new Date(commonDetails.arrivalAt).toISOString() : undefined
+      );
+      setConfirmedAll(true);
+      toast.success(
+        t(
+          "tourInstance.flight.confirmSuccess",
+          "Đã xác nhận tất cả vé cho hoạt động này!",
+        ),
+      );
+    } catch (error) {
+      const apiError = handleApiError(error);
+      toast.error(
+        t(
+          apiError.code === "409"
+            ? "tourInstance.flight.confirmConflict"
+            : apiError.message,
+          t(
+            "tourInstance.bookingFlight.confirmError",
+            "Xác nhận thất bại. Vui lòng thử lại.",
+          ),
+        ),
+      );
     } finally {
       setConfirmingAll(false);
     }
@@ -257,7 +435,7 @@ export default function ExternalTicketAssignmentPanel({
     return (
       <div className="flex items-center gap-3 p-4 text-stone-500 text-sm">
         <Icon icon="heroicons:arrow-path" className="size-4 animate-spin" />
-        Đang tải danh sách vé...
+        {t("tourInstance.bookingFlight.loadingTickets", "Đang tải danh sách vé...")}
       </div>
     );
   }
@@ -266,7 +444,7 @@ export default function ExternalTicketAssignmentPanel({
     return (
       <div className="rounded-2xl border border-dashed border-stone-200 p-6 text-center text-sm text-stone-400">
         <Icon icon="heroicons:ticket" className="mx-auto mb-2 size-6" />
-        Chưa có booking nào cho tour instance này
+        {t("tourInstance.flight.emptyBookings", "Chưa có khách đặt tour")}
       </div>
     );
   }
@@ -279,11 +457,20 @@ export default function ExternalTicketAssignmentPanel({
           <p className="text-base font-semibold tracking-tight text-stone-900">
             {transportLabel[transportType] ?? transportType} · {activityTitle}
           </p>
+          {(activityDate || activityStartTime || activityEndTime) && (
+            <p className="text-sm font-medium text-blue-600 mt-1 flex items-center gap-1.5">
+              <Icon icon="heroicons:clock" className="size-4" />
+              {t("tourInstance.bookingFlight.expectedSchedule", "Lịch trình dự kiến")}: {activityDate ? (() => {
+                const [y, m, d] = activityDate.slice(0, 10).split("-");
+                return `${d}/${m}/${y}`;
+              })() : ""} {activityStartTime ? activityStartTime.slice(0, 5) : "--:--"} - {activityEndTime ? activityEndTime.slice(0, 5) : "--:--"}
+            </p>
+          )}
           <p className="text-sm text-stone-500 mt-1">
-            Gán vé cho từng booking — nhập đủ số ghế cho người lớn + trẻ em
-            <span className="ml-1 text-orange-600 font-medium">
-              (em bé &lt; 2 tuổi không cần ghế riêng)
-            </span>
+            {t(
+              "tourInstance.bookingFlight.instructions",
+              "Gán vé cho từng booking — nhập đủ số ghế cho tất cả hành khách",
+            )}
           </p>
         </div>
         <span
@@ -296,7 +483,8 @@ export default function ExternalTicketAssignmentPanel({
             icon={allSaved ? "heroicons:check-circle" : "heroicons:clock"}
             className="size-4"
           />
-          {savedIds.size}/{bookings.length} booking
+          {savedIds.size}/{bookings.length}{" "}
+          {t("tourInstance.bookingTable.booking", "booking")}
         </span>
       </div>
 
@@ -305,24 +493,32 @@ export default function ExternalTicketAssignmentPanel({
       <div className="p-6 bg-stone-50 border-t border-stone-100">
         <h4 className="text-sm font-semibold text-stone-800 mb-4 flex items-center gap-2">
           <Icon icon="heroicons:paper-airplane" className="size-4 text-stone-500" />
-          Thông tin chung cho cả đoàn
+          {t("tourInstance.bookingFlight.commonDetails", "Thông tin chung cho cả đoàn")}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           <div className="md:col-span-1">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-              {transportType === "Flight" ? "Chuyến bay *" : transportType === "Train" ? "Chuyến tàu *" : "Tàu thuyền *"}
+              {transportType === "Flight"
+                ? t("tourInstance.flightNumber", "Mã chuyến bay")
+                : transportType === "Train"
+                ? t("tourInstance.trainNumber", "Mã chuyến tàu")
+                : transportType === "Boat"
+                ? t("tourInstance.boatNumber", "Mã tàu/phà")
+                : t("tourInstance.busNumber", "Biển số / Mã xe")}
             </label>
             <input
               type="text"
               value={commonDetails.flightNumber}
               onChange={(e) => setCommonDetails(prev => ({ ...prev, flightNumber: e.target.value }))}
-              placeholder={transportType === "Flight" ? "VN 123" : "SE1"}
+              placeholder={transportType === "Flight" ? "VN 123" : transportType === "Train" ? "SE1" : "29A-123.45"}
               className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
             />
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Hạng ghế</label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              {t("tourInstance.bookingFlight.seatClass", "Hạng ghế")}
+            </label>
             <select
               value={commonDetails.seatClass}
               onChange={(e) => setCommonDetails(prev => ({ ...prev, seatClass: e.target.value }))}
@@ -335,7 +531,9 @@ export default function ExternalTicketAssignmentPanel({
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Giờ đi *</label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              {t("tourInstance.bookingFlight.departureAt", "Giờ đi *")}
+            </label>
             <input
               type="datetime-local"
               value={commonDetails.departureAt}
@@ -345,7 +543,9 @@ export default function ExternalTicketAssignmentPanel({
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Giờ đến *</label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+              {t("tourInstance.bookingFlight.arrivalAt", "Giờ đến *")}
+            </label>
             <input
               type="datetime-local"
               value={commonDetails.arrivalAt}
@@ -364,6 +564,8 @@ export default function ExternalTicketAssignmentPanel({
           const isSaving = savingId === booking.id;
 
           if (!entry) return null;
+
+          const filledCount = entry.tickets.filter(t => t.seatNumber.trim() !== "").length;
 
           return (
             <div
@@ -387,98 +589,107 @@ export default function ExternalTicketAssignmentPanel({
                       {booking.customerName}
                     </p>
                     <p className="text-sm text-stone-500 mt-0.5">
-                      {entry.requiredSeats} ghế cần
-                      {entry.infantCount > 0 && (
-                        <span className="ml-1 text-orange-600">
-                          · {entry.infantCount} em bé kẹp vé
-                        </span>
-                      )}
+                      {entry.requiredSeats}{" "}
+                      {t("tourInstance.bookingFlight.passengers", "hành khách")}
                     </p>
                   </div>
                 </div>
+                {/* Progress Badge */}
+                {!isSaved && (
+                  <span className={`px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md ${
+                    filledCount === entry.requiredSeats 
+                      ? "bg-blue-50 text-blue-600 border border-blue-100" 
+                      : "bg-amber-50 text-amber-600 border border-amber-100"
+                  }`}>
+                    {filledCount === entry.requiredSeats
+                      ? t("tourInstance.bookingFlight.filled", "Đã điền đủ")
+                      : t("tourInstance.bookingFlight.fillingProgress", {
+                          defaultValue: "Đang nhập {{filled}}/{{total}}",
+                          filled: filledCount,
+                          total: entry.requiredSeats,
+                        })}
+                  </span>
+                )}
+                {isSaved && (
+                  <span className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    {t("tourInstance.bookingFlight.saved", "Đã lưu vé")}
+                  </span>
+                )}
               </div>
 
-              {/* Form Grid */}
-              <div className="space-y-5">
-                {/* Infant notice */}
-                {entry.infantCount > 0 && (
-                  <div className="flex items-start gap-3 rounded-[1.5rem] bg-orange-50/80 border border-orange-200/60 p-4 shadow-sm text-sm text-orange-800">
-                    <Icon
-                      icon="heroicons:information-circle"
-                      className="size-5 shrink-0 mt-0.5 text-orange-500"
-                    />
-                    <span className="leading-relaxed">
-                      Booking này có <strong>{entry.infantCount} em bé</strong> dưới 2 tuổi.
-                      Em bé không cần ghế riêng, chỉ cần ghi chú vào vé của người lớn đi kèm.
-                      Chỉ nhập <strong>{entry.requiredSeats} ghế</strong> cho người lớn + trẻ em.
-                    </span>
-                  </div>
-                )}                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Seat numbers — free text */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Vị trí / Mã ghế * <span className="normal-case font-normal">(VD: 12A-12G, Toa 4)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={entry.seatNumbers}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "seatNumbers", e.target.value)
-                      }
-                      placeholder={`Cần xếp ${entry.requiredSeats} chỗ...`}
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 border-stone-200 focus:border-blue-500 focus:ring-blue-500/20`}
-                    />
-                  </div>
+              {/* Form Grid for Individual Tickets */}
+              <div className="space-y-4">
+                {entry.tickets.map((ticket, tIdx) => (
+                  <div key={ticket.paxIndex} className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-4 border-b border-stone-100/50 last:border-0 last:pb-0">
+                    {/* Seat numbers */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                        {t("tourInstance.bookingFlight.seatNumber", "Vị trí / Mã ghế *")}{" "}
+                        <span className="normal-case font-normal">
+                          ({t("tourInstance.bookingFlight.passengerIndex", {
+                            defaultValue: "Hành khách {{index}}",
+                            index: ticket.paxIndex,
+                          })})
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ticket.seatNumber}
+                        onChange={(e) => updateTicketEntry(booking.id, ticket.paxIndex, "seatNumber", e.target.value)}
+                        placeholder="VD: 12A"
+                        className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                      />
+                    </div>
 
-                  {/* E-ticket numbers */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Mã vé điện tử (E-ticket)
-                    </label>
-                    <input
-                      type="text"
-                      value={entry.eTicketNumbers}
-                      onChange={(e) =>
-                        updateEntry(
-                          booking.id,
-                          "eTicketNumbers",
-                          e.target.value
-                        )
-                      }
-                      placeholder="VD: 001-1234567890 001-1234567891"
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
+                    {/* E-ticket numbers */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                        {t("tourInstance.bookingFlight.eTicketNumber", "Mã vé điện tử (E-ticket)")}{" "}
+                        <span className="normal-case font-normal">
+                          ({t("tourInstance.bookingFlight.passengerIndex", {
+                            defaultValue: "Hành khách {{index}}",
+                            index: ticket.paxIndex,
+                          })})
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={ticket.eTicketNumber}
+                        onChange={(e) => updateTicketEntry(booking.id, ticket.paxIndex, "eTicketNumber", e.target.value)}
+                        placeholder="VD: 001-1234567890"
+                        className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                      />
+                    </div>
                   </div>
-                </div>
+                ))}
 
                 {/* Note and Save */}
-                <div className="flex flex-col md:flex-row gap-5 items-start md:items-end">
+                <div className="flex flex-col md:flex-row gap-5 items-start md:items-end pt-2">
                   <div className="flex-1 w-full">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                      Ghi chú
+                      {t("tourInstance.bookingFlight.note", "Ghi chú chung")}
                     </label>
                     <input
                       type="text"
                       value={entry.note}
-                      onChange={(e) =>
-                        updateEntry(booking.id, "note", e.target.value)
-                      }
-                      placeholder="Ghi chú đặc biệt (bữa ăn, hành lý...)"
-                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      onChange={(e) => updateEntryNote(booking.id, e.target.value)}
+                      placeholder={t(
+                        "tourInstance.bookingFlight.notePlaceholder",
+                        "Ghi chú đặc biệt (bữa ăn, hành lý...)",
+                      )}
+                      className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
                     />
-                    {entry.infantCount > 0 && (
-                      <p className="mt-1.5 text-xs text-orange-600">
-                        💡 Nên ghi rõ tên + ngày sinh em bé để hãng xác nhận kẹp vé
-                      </p>
-                    )}
                   </div>
 
                   <button
                     onClick={() => handleSave(booking.id)}
-                    disabled={isSaving}
-                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${isSaved
+                    disabled={isSaving || filledCount < entry.requiredSeats}
+                    className={`shrink-0 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      isSaved
                       ? "bg-stone-100 text-stone-600 hover:bg-stone-200 focus-visible:outline-stone-500"
-                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500"
+                      : filledCount < entry.requiredSeats
+                      ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm focus-visible:outline-blue-500 active:scale-[0.98]"
                       }`}
                   >
                     {isSaving ? (
@@ -492,10 +703,10 @@ export default function ExternalTicketAssignmentPanel({
                       <Icon icon="heroicons:check" className="size-4" />
                     )}
                     {isSaving
-                      ? "Đang lưu..."
+                      ? t("common.saving", "Đang lưu...")
                       : isSaved
-                        ? "Đã lưu"
-                        : "Lưu vé"}
+                        ? t("tourInstance.bookingFlight.saved", "Đã lưu")
+                        : t("tourInstance.bookingFlight.save", "Lưu vé")}
                   </button>
                 </div>
               </div>
@@ -504,28 +715,6 @@ export default function ExternalTicketAssignmentPanel({
         })}
       </div>
 
-      {/* Confirm all button */}
-      <div className="flex justify-end pt-4 pr-2">
-        <button
-          onClick={handleConfirmAll}
-          disabled={!allSaved || confirmingAll}
-          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${allSaved
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_20px_-10px_rgba(5,150,105,0.5)] focus-visible:outline-emerald-500"
-            : "bg-stone-100 text-stone-400 cursor-not-allowed"
-            }`}
-        >
-          {confirmingAll ? (
-            <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
-          ) : (
-            <Icon icon="heroicons:check-badge" className="size-5" />
-          )}
-          {confirmingAll
-            ? "Đang xác nhận..."
-            : allSaved
-              ? "Xác nhận đã đặt tất cả vé"
-              : `Cần hoàn thành ${bookings.length - savedIds.size} booking nữa`}
-        </button>
-      </div>
     </div>
   );
 }

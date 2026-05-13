@@ -2,12 +2,16 @@ using global::Api.Controllers;
 using global::Api.Controllers.Admin;
 using global::Application.Contracts.Booking;
 using global::Application.Features.BookingManagement.Activity;
+using global::Application.Features.BookingManagement.ActivityStatus;
 using global::Application.Features.BookingManagement.Participant;
 using global::Application.Features.BookingManagement.Payable;
+using global::Application.Features.BookingManagement.Queries;
 using global::Application.Features.BookingManagement.Supplier;
+using Contracts.Interfaces;
 using Contracts.ModelResponse;
 using global::Domain.Enums;
 using ErrorOr;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +19,37 @@ namespace Domain.Specs.Api;
 
 public sealed class BookingManagementApiControllerTests
 {
+    [Fact]
+    public void ActivityStatusController_ShouldAllowManagerOrTourGuideWithoutManagerOnlyPolicy()
+    {
+        var activityStatusPolicies = typeof(BookingActivityStatusController)
+            .GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+            .Cast<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .OfType<string>()
+            .ToList();
+
+        Assert.Contains("ManagerOrTourGuideOnly", activityStatusPolicies);
+        Assert.DoesNotContain("ManagerOnly", activityStatusPolicies);
+
+        var bookingManagementPolicies = typeof(BookingManagementController)
+            .GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+            .Cast<AuthorizeAttribute>()
+            .Select(attribute => attribute.Policy)
+            .OfType<string>()
+            .ToList();
+
+        Assert.Contains("ManagerOnly", bookingManagementPolicies);
+    }
+
+    [Fact]
+    public void GuideScopedBookingQueries_ShouldNotBypassHandlerAuthorizationThroughCache()
+    {
+        Assert.False(typeof(ICacheable).IsAssignableFrom(typeof(GetBookingsByTourInstanceQuery)));
+        Assert.False(typeof(ICacheable).IsAssignableFrom(typeof(GetActivityStatusesQuery)));
+        Assert.False(typeof(ICacheable).IsAssignableFrom(typeof(GetActivityStatusByTourDayQuery)));
+    }
+
     [Fact]
     public async Task GetSuppliers_WhenQuerySucceeds_ShouldReturnOkAndCaptureFilter()
     {

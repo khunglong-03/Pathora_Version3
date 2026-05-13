@@ -48,6 +48,9 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>True nếu khách thanh toán đủ, False nếu chỉ đặt cọc.</summary>
     public bool IsFullPay { get; set; }
 
+    /// <summary>Phí hỗ trợ visa (dynamic, do Manager báo giá). Cộng dồn vào TotalPrice khi được thêm.</summary>
+    public decimal VisaServiceFeeTotal { get; private set; }
+
     // Booking type
     /// <summary>Loại booking: Join chuyến đi có sẵn hoặc Private tour riêng.</summary>
     public BookingType BookingType { get; set; } = BookingType.InstanceJoin;
@@ -152,7 +155,7 @@ public class BookingEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>Chờ top-up sau khi <c>FinalSellPrice</c> &gt; tổng đã thanh toán.</summary>
+    /// <summary>Chờ top-up sau khi <c>BasePrice</c> &gt; tổng đã thanh toán.</summary>
     public void MarkPendingAdjustment(string performedBy)
     {
         EnsureValidTransition(Status, BookingStatus.PendingAdjustment);
@@ -183,7 +186,59 @@ public class BookingEntity : Aggregate<Guid>
         AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
     }
 
+    public void RequestCancellation(string performedBy)
+    {
+        EnsureValidTransition(Status, BookingStatus.PendingCancellation);
+        var oldStatus = Status;
+        Status = BookingStatus.PendingCancellation;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.PendingCancellation, performedBy));
+        AddDomainEvent(new BookingCancellationRequestedEvent(Id, oldStatus, performedBy));
+    }
+
+    public void ApproveCancellation(string reason, string performedBy)
+    {
+        EnsureValidTransition(Status, BookingStatus.Cancelled);
+        var oldStatus = Status;
+        Status = BookingStatus.Cancelled;
+        CancelReason = reason;
+        CancelledAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, BookingStatus.Cancelled, performedBy));
+        AddDomainEvent(new BookingCancellationApprovedEvent(Id, performedBy));
+    }
+
+    public void RejectCancellation(BookingStatus restoreTo, string performedBy)
+    {
+        if (restoreTo is not (BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid))
+            throw new InvalidOperationException($"Không thể khôi phục trạng thái hủy về {restoreTo}.");
+
+        EnsureValidTransition(Status, restoreTo);
+        var oldStatus = Status;
+        Status = restoreTo;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        AddDomainEvent(new BookingStatusChangedEvent(Id, oldStatus, restoreTo, performedBy));
+        AddDomainEvent(new BookingCancellationRejectedEvent(Id, restoreTo, performedBy));
+    }
+
     public int TotalParticipants() => NumberAdult + NumberChild + NumberInfant;
+
+    /// <summary>
+    /// Cộng phí hỗ trợ visa vào booking. Không đổi BookingStatus.
+    /// Guard: amount phải dương.
+    /// </summary>
+    public void AddVisaServiceFee(decimal amount, string performedBy)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Phí visa phải lớn hơn 0.");
+        VisaServiceFeeTotal += amount;
+        TotalPrice += amount;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 
     private static void EnsureValidParticipants(int numberAdult, int numberChild, int numberInfant)
     {
@@ -206,10 +261,11 @@ public class BookingEntity : Aggregate<Guid>
         var valid = current switch
         {
             BookingStatus.Pending => next is BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled,
-            BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled,
+            BookingStatus.Confirmed => next is BookingStatus.Deposited or BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
+            BookingStatus.Deposited => next is BookingStatus.Paid or BookingStatus.PendingAdjustment or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
+            BookingStatus.Paid => next is BookingStatus.PendingAdjustment or BookingStatus.Completed or BookingStatus.Confirmed or BookingStatus.Cancelled or BookingStatus.PendingCancellation,
             BookingStatus.PendingAdjustment => next is BookingStatus.Paid or BookingStatus.Cancelled,
+            BookingStatus.PendingCancellation => next is BookingStatus.Cancelled or BookingStatus.Confirmed or BookingStatus.Deposited or BookingStatus.Paid,
             BookingStatus.Completed => false,
             BookingStatus.Cancelled => false,
             _ => false

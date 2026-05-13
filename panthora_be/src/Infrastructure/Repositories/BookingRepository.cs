@@ -23,12 +23,15 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     {
         return await _context.Bookings
             .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti.Tour)
+            .Include(b => b.TourInstance)
                 .ThenInclude(ti => ti.Thumbnail)
             .Include(b => b.User)
             .Include(b => b.TourRequest)
             .Include(b => b.Deposits)
             .Include(b => b.Payments)
             .Include(b => b.PaymentTransactions)
+            .Include(b => b.BookingParticipants)
             .AsSplitQuery()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
@@ -39,6 +42,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .AsNoTracking()
             .Include(b => b.User)
             .Include(b => b.TourInstance)
+            .Include(b => b.BookingParticipants)
             .Where(b => b.TourInstanceId == tourInstanceId)
             .OrderByDescending(b => b.BookingDate)
             .AsSplitQuery()
@@ -149,6 +153,12 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         await _context.Bookings.AddAsync(booking, cancellationToken);
     }
 
+    public Task UpdateWithoutSaveAsync(BookingEntity booking)
+    {
+        _context.Bookings.Update(booking);
+        return Task.CompletedTask;
+    }
+
     public async Task UpdateAsync(BookingEntity booking, CancellationToken cancellationToken = default)
     {
         _context.Bookings.Update(booking);
@@ -199,5 +209,18 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task<BookingEntity?> GetByParticipantIdAsync(Guid participantId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Bookings
+            .Include(b => b.TourInstance)
+                .ThenInclude(ti => ti!.Tour)
+            .Include(b => b.BookingParticipants)
+            .Include(b => b.PaymentTransactions)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(
+                b => b.BookingParticipants.Any(p => p.Id == participantId),
+                cancellationToken);
     }
 }

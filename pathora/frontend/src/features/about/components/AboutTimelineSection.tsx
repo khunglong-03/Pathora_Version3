@@ -7,7 +7,7 @@ const TimelineSection = ({ milestones = MILESTONES }: { milestones?: MilestoneIt
   const { t } = useTranslation();
   return (
     <section className="py-16">
-      <div className="max-w-[48rem] mx-auto px-6">
+      <div className="max-w-[48rem] mx-auto px-4 md:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <p className="text-xs font-bold uppercase tracking-[1.2px] text-[#fa8b02] mb-2">
@@ -23,11 +23,11 @@ const TimelineSection = ({ milestones = MILESTONES }: { milestones?: MilestoneIt
           {/* Vertical line */}
           <div className="absolute left-[18px] top-0 bottom-0 w-0.5 bg-linear-to-b from-[#fa8b02] via-[#ffd6a8] to-transparent" />
 
-          <div className="flex flex-col gap-8">
+          <div className="v-stack gap-8">
             {milestones.map((m) => (
               <div key={m.year} className="relative pl-[60px]">
                 {/* Dot */}
-                <div className="absolute left-0 top-1 w-9 h-9 rounded-full border-[1.6px] border-[#fa8b02] bg-white shadow-sm flex items-center justify-center">
+                <div className="absolute left-0 top-1 w-9 h-9 rounded-full border-[1.6px] border-[#fa8b02] bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] h-stack items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-[#fa8b02]" />
                 </div>
                 {/* Content */}

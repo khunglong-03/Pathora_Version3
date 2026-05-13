@@ -25,10 +25,13 @@ const activePolicy: CancellationPolicy = {
   policyCode: "CP001",
   tourScope: 1,
   tourScopeName: "Domestic",
-  minDaysBeforeDeparture: 7,
-  maxDaysBeforeDeparture: 14,
-  penaltyPercentage: 25,
-  applyOn: "FullAmount",
+  tiers: [
+    {
+      minDaysBeforeDeparture: 7,
+      maxDaysBeforeDeparture: 14,
+      penaltyPercentage: 25,
+    }
+  ],
   status: 1,
   statusName: "Active",
   translations: {},
@@ -42,10 +45,13 @@ const inactivePolicy: CancellationPolicy = {
   policyCode: "CP002",
   tourScope: 2,
   tourScopeName: "International",
-  minDaysBeforeDeparture: 3,
-  maxDaysBeforeDeparture: 7,
-  penaltyPercentage: 50,
-  applyOn: "DepositOnly",
+  tiers: [
+    {
+      minDaysBeforeDeparture: 3,
+      maxDaysBeforeDeparture: 7,
+      penaltyPercentage: 50,
+    }
+  ],
   status: 2,
   statusName: "Inactive",
   translations: {},
@@ -182,21 +188,20 @@ describe("CancellationPolicyList component logic", () => {
     it("exposes all fields needed for table columns", () => {
       expect(activePolicy.policyCode).toBe("CP001");
       expect(activePolicy.tourScopeName).toBe("Domestic");
-      expect(activePolicy.minDaysBeforeDeparture).toBe(7);
-      expect(activePolicy.maxDaysBeforeDeparture).toBe(14);
-      expect(activePolicy.penaltyPercentage).toBe(25);
-      expect(activePolicy.applyOn).toBe("FullAmount");
+      expect(activePolicy.tiers[0].minDaysBeforeDeparture).toBe(7);
+      expect(activePolicy.tiers[0].maxDaysBeforeDeparture).toBe(14);
+      expect(activePolicy.tiers[0].penaltyPercentage).toBe(25);
       expect(activePolicy.status).toBe(1);
     });
 
     it("penalty percentage is displayed with % suffix", () => {
-      expect(`${activePolicy.penaltyPercentage}%`).toBe("25%");
-      expect(`${inactivePolicy.penaltyPercentage}%`).toBe("50%");
+      expect(`${activePolicy.tiers[0].penaltyPercentage}%`).toBe("25%");
+      expect(`${inactivePolicy.tiers[0].penaltyPercentage}%`).toBe("50%");
     });
 
     it("days fields are displayed with 'days' suffix", () => {
-      expect(`${activePolicy.minDaysBeforeDeparture} days`).toBe("7 days");
-      expect(`${activePolicy.maxDaysBeforeDeparture} days`).toBe("14 days");
+      expect(`${activePolicy.tiers[0].minDaysBeforeDeparture} days`).toBe("7 days");
+      expect(`${activePolicy.tiers[0].maxDaysBeforeDeparture} days`).toBe("14 days");
     });
   });
 });

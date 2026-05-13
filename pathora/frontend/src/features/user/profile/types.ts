@@ -1,4 +1,4 @@
-export type ProfileTabType = "profile" | "password" | "settings";
+export type ProfileTabType = "profile" | "password";
 
 export interface ProfileFormData {
   fullName: string;

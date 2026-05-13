@@ -3,7 +3,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
-import { fmtCurrency } from "./checkoutHelpers";
 
 interface TourInstanceInfoCardProps {
   tourInstanceBooking: {
@@ -26,6 +25,21 @@ export function TourInstanceInfoCard({
   const isPublic =
     tourInstanceBooking.instanceType === "public" ||
     tourInstanceBooking.instanceType === "Public";
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(d);
+    } catch {
+      return dateStr;
+    }
+  };
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -92,14 +106,14 @@ export function TourInstanceInfoCard({
                   className="size-4 text-slate-400"
                 />
                 <span className="font-medium font-mono">
-                  {tourInstanceBooking.startDate} —{" "}
-                  {tourInstanceBooking.endDate}
+                  {formatDate(tourInstanceBooking.startDate)} —{" "}
+                  {formatDate(tourInstanceBooking.endDate)}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center justify-between">
+          <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center">
             <div className="flex items-center gap-2">
               <div className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
                 {tourInstanceBooking.bookingType === "InstanceJoin"
@@ -112,24 +126,9 @@ export function TourInstanceInfoCard({
                   : t("landing.checkout.private")}
               </div>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                Deposit Required
-              </span>
-              <span className="text-lg font-bold text-zinc-900">
-                {fmtCurrency(tourInstanceBooking.depositPerPerson)}
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* Simple link — middleware handles auth gate for /bookings (redirects guests to /?login=true&next=/bookings) */}
-        <Link
-          href="/bookings"
-          className="mt-8 text-sm font-medium text-slate-500 hover:text-zinc-900 underline decoration-slate-300 underline-offset-4 hover:decoration-zinc-900 transition-all"
-        >
-          {t("landing.checkout.viewMyBookings")}
-        </Link>
       </div>
     </div>
   );

@@ -32,7 +32,7 @@ public sealed class CreateDriverRequestDtoValidator : AbstractValidator<CreateDr
             .WithMessage(DriverRequestValidationMessages.LicenseNumberExists);
 
         RuleFor(x => x.LicenseType)
-            .IsInEnum().WithMessage(DriverRequestValidationMessages.LicenseTypeInvalid);
+            .Must(x => Enum.IsDefined(typeof(Domain.Enums.DriverLicenseType), x)).WithMessage(DriverRequestValidationMessages.LicenseTypeInvalid);
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage(DriverRequestValidationMessages.PhoneRequired)

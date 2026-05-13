@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Info, MapTrifold, Clock, Tag, MapPin, Users, CheckCircle, Calendar, CaretDown, CaretUp } from "@phosphor-icons/react";
+import { Info, MapTrifold, Clock, Tag, MapPin, Users, CheckCircle, Calendar, CaretDown, CaretUp, Bed, CarProfile, AirplaneTilt, Train, Boat, ArrowRight, IdentificationCard } from "@phosphor-icons/react";
 import { BookingDetail } from "./BookingDetailData";
 import { QuickInfoItem } from "./BookingDetailSubComponents";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,7 @@ interface BookingOverviewTabProps {
 
 export function BookingOverviewTab({ booking, tourInstance, totalGuests, getTierLabel }: BookingOverviewTabProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary">("overview");
+  const isBookingPaid = booking.paymentStatus === "paid" || booking.status === "confirmed" || booking.status === "completed";
 
   return (
     <motion.div 
@@ -160,7 +161,7 @@ export function BookingOverviewTab({ booking, tourInstance, totalGuests, getTier
               {tourInstance?.days && tourInstance.days.length > 0 ? (
                 <div className="flex flex-col gap-4">
                   {tourInstance.days.map((day, index) => (
-                    <ItineraryDayCard key={day.id || index} day={day} index={index} />
+                    <ItineraryDayCard key={day.id || index} day={day} index={index} isBookingPaid={isBookingPaid} />
                   ))}
                 </div>
               ) : (
@@ -185,7 +186,7 @@ export function BookingOverviewTab({ booking, tourInstance, totalGuests, getTier
   );
 }
 
-function ItineraryDayCard({ day, index }: { day: any; index: number }) {
+function ItineraryDayCard({ day, index, isBookingPaid }: { day: any; index: number; isBookingPaid?: boolean }) {
   const [expanded, setExpanded] = useState(index === 0);
 
   return (
@@ -260,6 +261,128 @@ function ItineraryDayCard({ day, index }: { day: any; index: number }) {
                             <p>{activity.note}</p>
                           </div>
                         )}
+                        
+                        {/* Service Assignment Display (Only shown if booking is paid) */}
+                        {isBookingPaid && (() => {
+                          const isTransport = activity.activityType === "Transportation" || activity.activityType === "7"; // Enum 7
+                          const isAccommodation = activity.activityType === "Accommodation" || activity.activityType === "8"; // Enum 8
+                          
+                          const hasTransportAssigned = isTransport && (
+                            (activity.transportAssignments && activity.transportAssignments.length > 0) || 
+                            activity.vehicleType || 
+                            activity.driverName || 
+                            activity.externalTransportConfirmed
+                          );
+                          
+                          const hasAccommodationAssigned = isAccommodation && activity.accommodation?.supplierName;
+
+                          return (
+                            <>
+                              {hasTransportAssigned && (
+                                <div className="mt-3 bg-blue-50/50 border border-blue-100 rounded-xl p-3.5 flex flex-col gap-2 shadow-sm">
+                                  <div className="flex items-center gap-2 text-blue-700 font-bold mb-1 border-b border-blue-100 pb-2">
+                                    {activity.transportationType === "Flight" ? (
+                                      <AirplaneTilt weight="fill" className="size-5" />
+                                    ) : activity.transportationType === "Train" ? (
+                                      <Train weight="fill" className="size-5" />
+                                    ) : activity.transportationType === "Boat" ? (
+                                      <Boat weight="fill" className="size-5" />
+                                    ) : (
+                                      <CarProfile weight="fill" className="size-5" />
+                                    )}
+                                    <span>Thông tin di chuyển</span>
+                                    {activity.externalTransportConfirmed && (
+                                      <span className="ml-auto text-[10px] uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Đã xác nhận</span>
+                                    )}
+                                  </div>
+                                  
+                                  {activity.transportationName && (
+                                    <div className="text-sm font-semibold text-slate-800">
+                                      {activity.transportationName}
+                                    </div>
+                                  )}
+
+                                  {(activity.fromLocationName || activity.toLocationName) && (
+                                    <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
+                                      <span>{activity.fromLocationName || "N/A"}</span>
+                                      <ArrowRight className="size-3 text-slate-400" />
+                                      <span>{activity.toLocationName || "N/A"}</span>
+                                    </div>
+                                  )}
+
+                                  {activity.externalTransportReference && (
+                                    <div className="text-sm flex items-center gap-1.5 text-slate-600 mt-1">
+                                      <IdentificationCard weight="fill" className="size-4 text-slate-400" />
+                                      <span className="text-slate-500">Mã đặt chỗ:</span> 
+                                      <span className="font-bold text-slate-800">{activity.externalTransportReference}</span>
+                                    </div>
+                                  )}
+
+                                  {/* In-app vehicle assignments */}
+                                  {activity.transportAssignments && activity.transportAssignments.length > 0 ? (
+                                    <div className="flex flex-col gap-2 mt-1">
+                                      {activity.transportAssignments.map((ta: any, idx: number) => (
+                                        <div key={ta.id || idx} className="text-sm bg-white border border-blue-100 p-2.5 rounded-lg">
+                                          <div className="flex justify-between items-start mb-1">
+                                            <span className="font-bold text-slate-800">{ta.vehicleBrand || "Phương tiện"} {ta.vehicleModel}</span>
+                                            {ta.vehicleType && <span className="text-xs font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{ta.vehicleType}</span>}
+                                          </div>
+                                          {ta.driverName && (
+                                            <div className="text-slate-600 flex items-center gap-1 mt-1 pt-1 border-t border-slate-100">
+                                              Tài xế: <span className="font-medium text-slate-800">{ta.driverName}</span>
+                                              {ta.driverPhone && <span>- {ta.driverPhone}</span>}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    (activity.vehicleType || activity.driverName || activity.vehicleBrand) && (
+                                      <div className="text-sm bg-white border border-blue-100 p-2.5 rounded-lg mt-1">
+                                        <div className="flex justify-between items-start mb-1">
+                                          <span className="font-bold text-slate-800">{activity.vehicleBrand || "Phương tiện"} {activity.vehicleModel}</span>
+                                          {activity.vehicleType && <span className="text-xs font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{activity.vehicleType}</span>}
+                                        </div>
+                                        {activity.driverName && (
+                                          <div className="text-slate-600 flex items-center gap-1 mt-1 pt-1 border-t border-slate-100">
+                                            Tài xế: <span className="font-medium text-slate-800">{activity.driverName}</span>
+                                            {activity.driverPhone && <span>- {activity.driverPhone}</span>}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              )}
+                              
+                              {hasAccommodationAssigned && (
+                                <div className="mt-3 bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5 flex flex-col gap-2 shadow-sm">
+                                  <div className="flex items-center gap-2 text-emerald-700 font-bold mb-1 border-b border-emerald-100 pb-2">
+                                    <Bed weight="fill" className="size-5" />
+                                    <span>Thông tin chỗ ở</span>
+                                  </div>
+                                  <div className="text-sm font-bold text-slate-800">
+                                    {activity.accommodation?.supplierName}
+                                  </div>
+                                  {activity.accommodationName && activity.accommodationName !== activity.accommodation?.supplierName && (
+                                    <div className="text-sm text-slate-600 font-medium">
+                                      {activity.accommodationName}
+                                    </div>
+                                  )}
+                                  <div className="text-sm text-slate-600 flex items-center gap-1.5">
+                                    Loại phòng: <span className="font-medium text-slate-800">{activity.accommodation?.roomType || "Tiêu chuẩn"}</span>
+                                  </div>
+                                  {activity.accommodationAddress && (
+                                    <div className="text-sm text-slate-500 flex items-start gap-1.5 mt-1">
+                                      <MapPin weight="fill" className="size-4 shrink-0 mt-0.5 text-slate-400" />
+                                      <span>{activity.accommodationAddress}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))

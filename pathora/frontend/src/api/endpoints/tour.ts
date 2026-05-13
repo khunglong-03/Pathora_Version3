@@ -26,6 +26,8 @@ export interface TourInstanceEndpoints {
   GET_PRICING_TIERS: EndpointWithId;
   CREATE: string;
   UPDATE: string;
+  ASSIGN_GUIDES: EndpointWithId;
+  GUIDE_APPROVE: EndpointWithId;
   DELETE: EndpointWithId;
   CHANGE_STATUS: EndpointWithId;
   UPSERT_PRICING_TIERS: EndpointWithId;
@@ -46,6 +48,7 @@ export interface TourInstanceEndpoints {
   CUSTOMER_REJECT: (id: string) => string;
   ASSIGN_ACTIVITY_VEHICLE: (instanceId: string, activityId: string) => string;
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string) => string;
+  SET_ACCOMMODATION_REQUIREMENTS: (instanceId: string, activityId: string) => string;
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string) => string;
   ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string) => string;
   APPROVE_TRANSPORTATION: (instanceId: string, activityId: string) => string;
@@ -103,6 +106,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
   GET_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
   CREATE: "/api/tour-instance",
   UPDATE: "/api/tour-instance",
+  ASSIGN_GUIDES: (id: string): string => `/api/tour-instance/${id}/guides`,
+  GUIDE_APPROVE: (id: string): string => `/api/tour-instance/${id}/guide-approve`,
   DELETE: (id: string): string => `/api/tour-instance/${id}`,
   CHANGE_STATUS: (id: string): string => `/api/tour-instance/${id}/status`,
   UPSERT_PRICING_TIERS: (id: string): string => `/api/tour-instance/${id}/pricing-tiers`,
@@ -135,6 +140,8 @@ export const TOUR_INSTANCE: TourInstanceEndpoints = {
     `/api/tour-instance/${instanceId}/activities/${activityId}/assign`,
   ASSIGN_ACCOMMODATION_SUPPLIER: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-supplier`,
+  SET_ACCOMMODATION_REQUIREMENTS: (instanceId: string, activityId: string): string =>
+    `/api/tour-instance/${instanceId}/accommodations/${activityId}/set-requirements`,
   ASSIGN_ROOM_TO_ACCOMMODATION: (instanceId: string, activityId: string): string =>
     `/api/tour-instance/${instanceId}/accommodations/${activityId}/assign-rooms`,
   ASSIGN_TRANSPORT_SUPPLIER: (instanceId: string, activityId: string): string =>

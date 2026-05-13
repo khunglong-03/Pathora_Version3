@@ -139,6 +139,16 @@ export const menuItems: MenuItem[] = [
     link: "profile",
   },
   {
+    title: "Rút tiền",
+    icon: "heroicons:currency-dollar",
+    link: "/manager/withdrawals",
+  },
+  {
+    title: "Yêu cầu rút tiền",
+    icon: "heroicons:banknotes",
+    link: "/admin/withdrawals",
+  },
+  {
     title: "Settings",
     icon: "heroicons:cog-6-tooth",
     link: "settings",

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize(Policy = "CustomerOnly")]
-[Route(PublicEndpoint.Base + "/" + PublicEndpoint.Bookings)]
+[Route("api/customer/bookings")]
 public class CustomerBookingController : BaseApiController
 {
     /// <summary>Get recent bookings for the authenticated customer.</summary>
@@ -29,6 +29,30 @@ public class CustomerBookingController : BaseApiController
     public async Task<IActionResult> GetCustomerCheckoutPrice(Guid bookingId)
     {
         var result = await Sender.Send(new Application.Features.BookingManagement.Queries.GetCheckoutPriceQuery(bookingId));
+        return HandleResult(result);
+    }
+
+    [HttpGet("{bookingId:guid}/participants")]
+    public async Task<IActionResult> GetParticipants(Guid bookingId)
+    {
+        var result = await Sender.Send(new Application.Features.BookingManagement.Participant.GetBookingParticipantsQuery(bookingId));
+        return HandleResult(result);
+    }
+
+    [HttpPost("{bookingId:guid}/participants")]
+    public async Task<IActionResult> CreateParticipant(Guid bookingId, [FromBody] Application.Features.BookingManagement.Participant.CreateParticipantCommand request)
+    {
+        // Ensure the bookingId in path matches the body
+        var command = request with { BookingId = bookingId };
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
+
+    [HttpPut("{bookingId:guid}/participants/{participantId:guid}")]
+    public async Task<IActionResult> UpdateParticipant(Guid bookingId, Guid participantId, [FromBody] Application.Features.BookingManagement.Participant.UpdateParticipantCommand request)
+    {
+        var command = request with { ParticipantId = participantId };
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 }

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
-import { SAMPLE_BOOKINGS } from "./BookingDetailData";
+import { BookingVisaSection } from "./BookingVisaSection";
 import { bookingService } from "@/api/services";
 import {
   getStatusLabel,
@@ -22,6 +22,7 @@ import { BookingPaymentSummary } from "./BookingPaymentSummary";
 import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
+import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
 
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
@@ -69,16 +70,11 @@ export function BookingDetailPage() {
             if (cancelled) return;
             continue;
           }
-          // Exhausted retries and still no real data — fall back to sample
-          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
-        } catch (error) {
-          console.error(`Failed to fetch booking (attempt ${attempt + 1})`, error);
-          if (cancelled) return;
           if (attempt < MAX_RETRIES) {
             await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
             continue;
           }
-          setBooking(SAMPLE_BOOKINGS[bookingId] ?? SAMPLE_BOOKINGS["1"]);
+          // Do not set sample booking
         } finally {
           if (!cancelled) setLoading(false);
         }
@@ -99,6 +95,16 @@ export function BookingDetailPage() {
     }
   };
 
+  useEffect(() => {
+    if (loading || !booking) return;
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#visa") return;
+    const el = document.getElementById("visa");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading, booking]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -109,12 +115,16 @@ export function BookingDetailPage() {
 
   if (!booking) return null;
 
+  let mappedStatusStr = booking.status?.toLowerCase() || "pending";
+  if (mappedStatusStr === "pendingapproval") mappedStatusStr = "pending_approval";
+  if (mappedStatusStr === "pendingcancellation") mappedStatusStr = "pending_cancellation";
+
   const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
     ? "pending_approval" 
-    : (booking.status?.toLowerCase() || "pending");
+    : mappedStatusStr;
   const mappedBooking = { ...booking, status: actualStatus };
 
-  const { totalGuests, showPayRemaining, showVisaStatus, showCancelBooking } =
+  const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);
 
   const labelFns = {
@@ -143,6 +153,11 @@ export function BookingDetailPage() {
                 getPaymentMethodLabel={labelFns.getPaymentMethodLabel}
               />
               <GuestDetailsCard booking={mappedBooking} totalGuests={totalGuests} />
+              {showVisaSection && (
+                <div id="visa" className="scroll-mt-24">
+                  <BookingVisaSection bookingId={mappedBooking.id} />
+                </div>
+              )}
               <BookingOverviewTab
                 booking={mappedBooking}
                 tourInstance={tourInstance}
@@ -165,10 +180,10 @@ export function BookingDetailPage() {
                 booking={mappedBooking}
                 totalGuests={totalGuests}
                 showPayRemaining={showPayRemaining}
-                showVisaStatus={showVisaStatus}
                 showCancelBooking={showCancelBooking}
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
               />
+              <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
               <BookingNeedHelp />
             </div>
           </div>

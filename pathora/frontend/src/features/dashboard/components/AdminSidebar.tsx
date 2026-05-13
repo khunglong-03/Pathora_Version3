@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   SquaresFourIcon,
@@ -16,6 +18,7 @@ import {
   CertificateIcon,
   GearIcon,
   XIcon,
+  XCircleIcon,
   ListIcon,
   BellIcon,
   BuildingsIcon,
@@ -35,6 +38,9 @@ import { AdminLogoutButton } from "./AdminLogoutButton";
 import { useTranslation } from "react-i18next";
 import { signalRService, CustomTourRequestUpdate } from "@/api/services/signalRService";
 import { toast } from "react-toastify";
+import axiosInstance from "@/api/axiosInstance";
+import { BOOKING_CANCELLATION } from "@/api/endpoints/bookingCancellation";
+import { CancellationRequestUpdate } from "@/api/services/signalRService";
 
 /* ══════════════════════════════════════════════════════════════
    Navigation Items - Single Source of Truth
@@ -63,6 +69,11 @@ export const MANAGER_NAV_ITEMS = [
   },
   { label: "Bookings", icon: TicketIcon, href: "/manager/dashboard/bookings" },
   {
+    label: "Cancellations",
+    icon: XCircleIcon,
+    href: "/manager/dashboard/cancellations",
+  },
+  {
     label: "Payments",
     icon: CreditCardIcon,
     href: "/manager/dashboard/payments",
@@ -72,20 +83,25 @@ export const MANAGER_NAV_ITEMS = [
     icon: CalendarDotsIcon,
     href: "/manager/staff-schedule",
   },
-  {
+  /*{
     label: "Insurance",
     icon: ShieldCheckIcon,
     href: "/manager/dashboard/insurance",
-  },
+  },*/
   {
     label: "Visa Applications",
     icon: CertificateIcon,
     href: "/manager/dashboard/visa",
   },
-  {
+  /*{
     label: "Bank Accounts",
     icon: BuildingsIcon,
     href: "/manager/bank-accounts",
+  },*/
+  {
+    label: "Tài Khoản",
+    icon: GearIcon,
+    href: "/manager/profile",
   },
 ] as const;
 
@@ -122,6 +138,7 @@ export const ADMIN_TOUR_ITEMS = [
 
 export const ADMIN_SETTINGS_ITEMS = [
   { label: "Cấu hình hệ thống", icon: GearIcon, href: "/admin/settings" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/admin/profile" },
 ] as const;
 
 // Flat nav items list (used by the component)
@@ -151,6 +168,7 @@ export const TOUROPERATOR_BASE_NAV_ITEMS = [
   { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-operator" },
   { label: "Tour Của Tôi", icon: HouseIcon, href: "/tour-operator/tours" },
   { label: "Tạo Tour", icon: PlusIcon, href: "/tour-operator/tours/create" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/tour-operator/profile" },
 ] as const;
 
 // Public tour section — xe/khách sạn đã đăng ký sẵn
@@ -184,7 +202,9 @@ export const TOUROPERATOR_NAV_ITEMS = [
 ] as const;
 
 export const TOURGUIDE_NAV_ITEMS = [
-  { label: "Trang chủ", icon: SquaresFourIcon, href: "/tour-guide" },
+  { label: "Lịch Trình", icon: CalendarDotsIcon, href: "/tour-guide/schedule" },
+  { label: "Hoạt Động", icon: ClipboardTextIcon, href: "/tour-guide/operations" },
+  { label: "Tài Khoản", icon: GearIcon, href: "/tour-guide/profile" },
 ] as const;
 
 export const TRANSPORT_PROVIDER_NAV_ITEMS = [
@@ -235,7 +255,9 @@ export function AdminSidebar({
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingCancellationCount, setPendingCancellationCount] = useState(0);
   const [companyName, setCompanyName] = useState<string>("");
+  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     setMounted(true);
@@ -300,7 +322,7 @@ export function AdminSidebar({
                   key={item.label}
                   href={item.href}
                   className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                  onClick={onClose}
+                  onClick={() => onClose()}
                   style={
                     active
                       ? {
@@ -362,10 +384,25 @@ export function AdminSidebar({
     }
   }, []);
 
+  const loadPendingCancellationCount = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(BOOKING_CANCELLATION.MANAGER_LIST, {
+        params: { status: "PendingManagerReview", page: 1, pageSize: 1 }
+      });
+      if (response.data && response.data.totalCount !== undefined) {
+        setPendingCancellationCount(response.data.totalCount);
+      }
+    } catch {
+      setPendingCancellationCount(0);
+    }
+  }, []);
+
   useEffect(() => {
     if (variant === "manager") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadPendingCount();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadPendingCancellationCount();
 
       const handleCustomRequest = (update: CustomTourRequestUpdate) => {
         toast.info(`Yêu cầu Custom Tour mới từ ${update.customerName}`);
@@ -374,22 +411,30 @@ export function AdminSidebar({
       };
 
       const unsubscribe = signalRService.onCustomTourRequest(handleCustomRequest);
+      
+      const handleCancellationRequest = (update: CancellationRequestUpdate) => {
+        toast.info(`Yêu cầu hủy từ booking ${update.bookingId.substring(0, 8)}...`);
+        setPendingCancellationCount((prev) => prev + 1);
+        window.dispatchEvent(new CustomEvent("refresh-cancellation-requests"));
+      };
+      const unsubscribeCancellation = signalRService.onCancellationRequest(handleCancellationRequest);
+
       return () => {
         unsubscribe();
+        unsubscribeCancellation();
       };
     }
     if (variant === "provider") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       void loadCompanyName();
     }
-  }, [variant, loadPendingCount, loadCompanyName]);
+  }, [variant, loadPendingCount, loadPendingCancellationCount, loadCompanyName]);
 
   const isActive = (href: string) => {
     const exactMatchHrefs = [
       "/manager/dashboard",
       "/admin/users",
       "/tour-operator",
-      "/tour-guide",
       "/hotel",
       "/transport",
       "/manager/staff-schedule",
@@ -429,11 +474,10 @@ export function AdminSidebar({
     <>
       {/* Sidebar */}
       {mounted ? (
-        <motion.aside
-          initial={false}
-          animate={{ x: 0 }}
-          transition={{ type: "spring", stiffness: 100, damping: 20 }}
-          className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col lg:translate-x-0"
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
           style={{
             backgroundColor: "var(--sidebar-bg)",
             borderRight: "1px solid var(--sidebar-border)",
@@ -499,7 +543,7 @@ export function AdminSidebar({
               </div>
             </Link>
             <button
-              onClick={onClose}
+              onClick={() => onClose()}
               aria-label="Close sidebar"
               className="lg:hidden rounded-lg p-1.5 transition-all duration-200 hover:bg-white/5"
               style={{ color: "var(--sidebar-text-muted)" }}>
@@ -521,7 +565,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -579,7 +623,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -631,7 +675,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -682,7 +726,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -729,7 +773,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -787,7 +831,7 @@ export function AdminSidebar({
                       key={item.label}
                       href={item.href}
                       className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
-                      onClick={onClose}
+                      onClick={() => onClose()}
                       style={
                         active
                           ? {
@@ -832,6 +876,21 @@ export function AdminSidebar({
                         </motion.span>
                       )}
 
+                      {/* Pending count badge for Cancellations */}
+                      {item.label === "Cancellations" && pendingCancellationCount > 0 && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 15,
+                          }}
+                          className="relative z-10 inline-flex min-w-6 justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ml-auto">
+                          {pendingCancellationCount > 99 ? "99+" : pendingCancellationCount}
+                        </motion.span>
+                      )}
+
                       {/* Active indicator — amber pill bar on the left */}
                       <AnimatePresence>
                         {active && (
@@ -868,22 +927,26 @@ export function AdminSidebar({
               className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
               style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
               <div
-                className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+                className="relative w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
                 style={{
                   backgroundColor: "var(--accent)",
                 }}>
-                {providerPortal === "transport" && companyName
-                  ? companyName
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((w) => w[0] ?? "")
-                      .join("")
-                      .toUpperCase()
-                  : providerPortal === "tour-operator"
-                    ? "TD"
-                    : providerPortal === "tour-guide"
-                      ? "TG"
-                      : "AD"}
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  providerPortal === "transport" && companyName
+                    ? companyName
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((w) => w[0] ?? "")
+                        .join("")
+                        .toUpperCase()
+                    : providerPortal === "tour-operator"
+                      ? "TD"
+                      : providerPortal === "tour-guide"
+                        ? "TG"
+                        : "AD"
+                )}
                 {/* Online dot */}
                 <span
                   className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
@@ -922,9 +985,9 @@ export function AdminSidebar({
             </div>
             <AdminLogoutButton />
           </div>
-        </motion.aside>
+        </aside>
       ) : (
-        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] lg:translate-x-0" />
+        <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] -translate-x-full lg:translate-x-0" />
       )}
 
       {/* Backdrop for mobile */}

@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Icon, Modal, Select, Textarea } from "@/components/ui";
+import { cn } from "@/lib/cn";
 import BulkApproveConfirmationModal, { type BulkApproveItem } from "./BulkApproveConfirmationModal";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
 import {
@@ -90,8 +91,9 @@ function activityDraftFromActivity(
   };
 }
 
-const isTransportationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase();
+const isTransportationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "transportation" || normalized === "7";
 };
 
@@ -998,7 +1000,7 @@ export default function TransportTourAssignmentPage() {
         <button
           type="button"
           onClick={() => router.push("/transport/tour-approvals")}
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98]"
         >
           {t("common.back", "Quay lai")}
         </button>
@@ -1007,8 +1009,8 @@ export default function TransportTourAssignmentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] p-4 md:p-6 lg:p-10 font-sans text-slate-800">
-      <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div className={cn("mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-10", "v-stack gap-8 font-sans text-slate-800")}>
+      <div className="v-stack lg:h-stack lg:items-end lg:justify-between gap-6 mb-10">
         <div className="relative">
           <button
             type="button"
@@ -1021,10 +1023,10 @@ export default function TransportTourAssignmentPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">
               {t("tourInstance.transport.assignmentLabel", "Transport approval")}
             </p>
-            <h1 className="mt-2 text-4xl md:text-5xl font-black tracking-tighter text-slate-950">
+            <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none">
               {tour.title}
             </h1>
-            <p className="mt-3 text-sm font-medium text-slate-500 flex items-center gap-2">
+            <p className="mt-3 text-sm font-medium text-slate-500 h-stack items-center gap-2">
               <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs">{tour.tourCode}</span>
               <span>•</span>
               <span className="font-semibold text-slate-700">{tour.currentParticipation}/{tour.maxParticipation}</span> {t("tourInstance.transport.guests", "khach")}
@@ -1035,15 +1037,15 @@ export default function TransportTourAssignmentPage() {
         </div>
 
         {bulkEligibleActivities.length > 0 && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex flex-col gap-2 self-start lg:self-end">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.1 }} className="v-stack gap-2 self-start lg:self-end">
             <button
               type="button"
               disabled={bulkIncompleteTitles.length > 0}
               onClick={() => setIsBulkApproveModalOpen(true)}
-              className="group relative overflow-hidden rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_-10px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-[1px] hover:shadow-[0_15px_25px_-10px_rgba(0,0,0,0.4)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              className="group relative overflow-hidden rounded-[1.5rem] bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-[1px] hover:shadow-[0_15px_25px_-10px_rgba(0,0,0,0.4)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
               aria-describedby={bulkIncompleteTitles.length > 0 ? "bulk-incomplete-reason" : undefined}
             >
-              <div className="relative z-10 flex items-center gap-2">
+              <div className="relative z-10 h-stack items-center gap-2">
                 <Icon icon="heroicons:bolt" className="size-4" />
                 {t("tourInstance.transport.bulkApprove", "Duyệt hàng loạt ({{count}})", { count: bulkEligibleActivities.length })}
               </div>
@@ -1059,28 +1061,28 @@ export default function TransportTourAssignmentPage() {
 
       <div className="grid gap-8 xl:grid-cols-[380px_1fr]">
         {/* LEFT COLUMN: BENTO STATS */}
-        <div className="flex flex-col gap-6 lg:sticky lg:top-10 lg:h-max">
+        <div className="v-stack gap-6 lg:sticky lg:top-10 lg:h-max">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, type: "spring", stiffness: 100 }} className="grid grid-cols-2 gap-4">
-            <div className="rounded-[2rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Activities</p>
-              <p className="mt-2 font-mono text-4xl font-black tracking-tight text-slate-900">{transportActivities.length}</p>
+            <div className="rounded-[1.5rem] border border-slate-200/50 bg-white p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Activities</p>
+              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-slate-900">{transportActivities.length}</p>
             </div>
-            <div className="rounded-[2rem] border border-amber-200/50 bg-amber-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(251,191,36,0.1)]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Pending</p>
-              <p className="mt-2 font-mono text-4xl font-black tracking-tight text-amber-900">{approvalSummary.pending}</p>
+            <div className="rounded-[1.5rem] border border-amber-200/50 bg-amber-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(251,191,36,0.1)]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600">Pending</p>
+              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-amber-900">{approvalSummary.pending}</p>
             </div>
-            <div className="rounded-[2rem] border border-emerald-200/50 bg-emerald-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(16,185,129,0.1)]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Approved</p>
-              <p className="mt-2 font-mono text-4xl font-black tracking-tight text-emerald-900">{approvalSummary.approved}</p>
+            <div className="rounded-[1.5rem] border border-emerald-200/50 bg-emerald-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(16,185,129,0.1)]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Approved</p>
+              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-emerald-900">{approvalSummary.approved}</p>
             </div>
-            <div className="rounded-[2rem] border border-rose-200/50 bg-rose-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(244,63,94,0.1)]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-600">Rejected</p>
-              <p className="mt-2 font-mono text-4xl font-black tracking-tight text-rose-900">{approvalSummary.rejected}</p>
+            <div className="rounded-[1.5rem] border border-rose-200/50 bg-rose-50/50 p-6 shadow-[0_20px_40px_-15px_rgba(244,63,94,0.1)]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600">Rejected</p>
+              <p className="mt-2 font-mono text-4xl font-bold tracking-tight text-rose-900">{approvalSummary.rejected}</p>
             </div>
           </motion.div>
           
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 100 }} className="rounded-[2rem] border border-slate-200/50 bg-white p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.03)] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500" />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 100 }} className="rounded-[1.5rem] border border-slate-200/50 bg-white p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-slate-900" />
             <div className="flex items-center gap-3 mb-6">
               <div className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                 <Icon icon="heroicons:information-circle" className="size-5" />
@@ -1088,16 +1090,16 @@ export default function TransportTourAssignmentPage() {
               <h3 className="text-lg font-bold tracking-tight text-slate-900">Quy định phê duyệt</h3>
             </div>
             <ul className="space-y-4 text-sm text-slate-600 leading-relaxed">
-              <li className="flex items-start gap-3">
-                <Icon icon="heroicons:check-badge" className="size-5 text-indigo-500 shrink-0 mt-0.5" />
+              <li className="h-stack items-start gap-3">
+                <Icon icon="heroicons:check-badge" className="size-5 text-slate-900 shrink-0 mt-0.5" />
                 <span>Nếu <strong>bên quản lý</strong> đã gán nhà xe + loại + số lượng, bạn <strong>chỉ phân đủ tài xế</strong> (bao nhiêu xe được yêu cầu bấy nhiêu tài xế, mỗi dòng một tài xế). Các hoạt động không chế độ đó phải chọn đủ <strong>Xe</strong> và <strong>Tài xế</strong> trước khi duyệt.</span>
               </li>
-              <li className="flex items-start gap-3">
-                <Icon icon="heroicons:squares-2x2" className="size-5 text-indigo-500 shrink-0 mt-0.5" />
+              <li className="h-stack items-start gap-3">
+                <Icon icon="heroicons:squares-2x2" className="size-5 text-slate-900 shrink-0 mt-0.5" />
                 <span>Số lượng ghế tổng cộng phải <strong>{">="} {tour.maxParticipation}</strong> hoặc bằng số ghế yêu cầu.</span>
               </li>
-              <li className="flex items-start gap-3">
-                <Icon icon="heroicons:truck" className="size-5 text-indigo-500 shrink-0 mt-0.5" />
+              <li className="h-stack items-start gap-3">
+                <Icon icon="heroicons:truck" className="size-5 text-slate-900 shrink-0 mt-0.5" />
                 <span>Nên ưu tiên gán các xe có ghi chú <strong>Còn trống</strong> để tối ưu hiệu suất.</span>
               </li>
             </ul>
@@ -1107,7 +1109,7 @@ export default function TransportTourAssignmentPage() {
         {/* RIGHT COLUMN: ACTIVITY LIST */}
         <div>
           {transportActivities.length === 0 ? (
-            <div className="flex min-h-[400px] flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-slate-300 bg-white p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.02)]">
+            <div className={cn("center v-stack min-h-[400px] rounded-[2.5rem] border border-dashed border-slate-300 bg-white p-12 text-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.02)]")}>
               <div className="rounded-full bg-slate-50 p-4 mb-4">
                 <Icon icon="heroicons:document-text" className="size-8 text-slate-300" />
               </div>
@@ -1136,9 +1138,9 @@ export default function TransportTourAssignmentPage() {
                       {/* Inner Glass Refraction */}
                       <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" />
 
-                      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex flex-wrap items-center gap-3">
+                      <div className="relative z-10 v-stack gap-6 md:h-stack md:items-start md:justify-between">
+                        <div className="spacer v-stack gap-3">
+                          <div className="h-stack flex-wrap items-center gap-3">
                             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                               Day {item.dayNumber}
                             </span>
@@ -1151,13 +1153,13 @@ export default function TransportTourAssignmentPage() {
                             {item.activity.title}
                           </h2>
                           
-                          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-500">
-                            <span className="flex items-center gap-1.5">
+                          <div className="h-stack flex-wrap items-center gap-4 text-sm font-medium text-slate-500">
+                            <span className="h-stack items-center gap-1.5">
                               <Icon icon="heroicons:calendar" className="size-4 opacity-70" />
                               {formatDateLabel(item.date)}
                             </span>
                             {timeRange && (
-                              <span className="flex items-center gap-1.5">
+                              <span className="h-stack items-center gap-1.5">
                                 <Icon icon="heroicons:clock" className="size-4 opacity-70" />
                                 {timeRange}
                               </span>
@@ -1166,12 +1168,12 @@ export default function TransportTourAssignmentPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
+                        <div className="h-stack shrink-0 flex-wrap items-center gap-3">
                           <button
                             type="button"
                             onClick={() => openRejectModal(item.activity)}
                             disabled={actionKey === `reject:${item.activity.id}` || actionKey === "bulk-approve"}
-                            className="group/btn flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-[1px] disabled:opacity-50"
+                            className="group/btn center rounded-2xl border border-slate-200 bg-white p-3 text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-[1px] disabled:opacity-50"
                             aria-label={t("tourInstance.transport.reject", "Tu choi")}
                           >
                             <Icon icon={actionKey === `reject:${item.activity.id}` ? "heroicons:arrow-path" : "heroicons:x-mark"} className={`size-5 ${actionKey === `reject:${item.activity.id}` ? "animate-spin" : ""}`} />
@@ -1180,7 +1182,7 @@ export default function TransportTourAssignmentPage() {
                             type="button"
                             disabled={actionKey === `approve:${item.activity.id}` || actionKey === "bulk-approve"}
                             onClick={() => openApproveModal(item.activity)}
-                            className="group/btn flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-indigo-600 hover:-translate-y-[1px] hover:shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] disabled:opacity-50"
+                            className="group/btn h-stack items-center gap-2 rounded-[1.5rem] bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400"
                           >
                             <Icon icon={actionKey === `approve:${item.activity.id}` ? "heroicons:arrow-path" : isApproved ? "heroicons:pencil-square" : "heroicons:plus"} className={`size-4 ${actionKey === `approve:${item.activity.id}` ? "animate-spin" : ""}`} />
                             {isApproved ? t("tourInstance.transport.updateApproval", "Cap nhat") : t("tourInstance.transport.approveAction", "Gan xe")}
@@ -1215,30 +1217,37 @@ export default function TransportTourAssignmentPage() {
                       </div>
 
                       {/* Current Assignments */}
-                      {item.activity.transportAssignments && item.activity.transportAssignments.length > 0 && (
-                        <div className="relative z-10 mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-5">
-                          <div className="mb-4 flex items-center gap-2">
-                            <div className="flex size-6 items-center justify-center rounded-full bg-indigo-200/50 text-indigo-700">
+                      {((item.activity.transportAssignments && item.activity.transportAssignments.length > 0) || item.activity.vehicleId || item.activity.driverId) && (
+                        <div className="relative z-10 mt-4 rounded-[1.5rem] border border-indigo-100 bg-indigo-50/50 p-5">
+                          <div className="mb-4 h-stack items-center gap-2">
+                            <div className="center size-6 rounded-full bg-indigo-200/50 text-indigo-700">
                               <Icon icon="heroicons:truck" className="size-3.5" />
                             </div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-indigo-900">Đã phân công</p>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-900">Đã phân công</p>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2">
-                            {item.activity.transportAssignments.map((ta) => (
-                              <div key={ta.id} className="flex flex-col gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-100/50">
-                                <span className="text-sm font-bold text-slate-900">{ta.vehicleType || "Chưa chọn xe"}</span>
-                                <span className="text-xs font-medium text-slate-500">{ta.driverName || "Chưa chọn tài xế"}</span>
+                            {item.activity.transportAssignments && item.activity.transportAssignments.length > 0 ? (
+                              item.activity.transportAssignments.map((ta) => (
+                                <div key={ta.id} className="v-stack gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-100/50">
+                                  <span className="text-sm font-bold text-slate-900">{ta.vehicleType || "Chưa chọn xe"}</span>
+                                  <span className="text-xs font-medium text-slate-500">{ta.driverName || "Chưa chọn tài xế"}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="v-stack gap-1 rounded-xl bg-white p-3 shadow-sm border border-indigo-100/50">
+                                <span className="text-sm font-bold text-slate-900">{item.activity.vehicleType || item.activity.vehicleBrand ? `${item.activity.vehicleType || ""} ${item.activity.vehicleBrand || ""}`.trim() : "Chưa chọn xe"}</span>
+                                <span className="text-xs font-medium text-slate-500">{item.activity.driverName || "Chưa chọn tài xế"}</span>
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                       )}
 
                       {activityErrors[item.activity.id] && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="relative z-10 mt-4 overflow-hidden rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-                          <div className="flex items-start gap-3">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="relative z-10 mt-4 overflow-hidden rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+                          <div className="h-stack items-start gap-3">
                             <Icon icon="heroicons:exclamation-triangle" className="size-5 shrink-0 text-rose-500" />
-                            <div className="flex-1">
+                            <div className="spacer">
                               <p className="font-bold">Thao tác thất bại</p>
                               <p className="mt-1">{activityErrors[item.activity.id]}</p>
                             </div>
@@ -1266,23 +1275,23 @@ export default function TransportTourAssignmentPage() {
             : t("tourInstance.transport.approveModal", "Gan xe va duyet")
         }
         footerContent={(
-          <div className="flex gap-3 w-full sm:w-auto">
+          <div className="h-stack gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setApproveActivityId(null)}
-              className="flex-1 sm:flex-none rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              className="spacer sm:flex-none rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-[0.98]"
             >
               {t("common.cancel", "Huy")}
             </button>
             <div
               title={approvePrimaryHint}
-              className={approvePrimaryDisabled ? "cursor-not-allowed flex-1 sm:flex-none" : "flex-1 sm:flex-none"}
+              className={approvePrimaryDisabled ? "cursor-not-allowed spacer sm:flex-none" : "spacer sm:flex-none"}
             >
               <button
                 type="button"
                 onClick={handleApproveActivity}
                 disabled={approvePrimaryDisabled}
-                className="w-full h-full rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 disabled:pointer-events-none disabled:bg-slate-300"
+                className="w-full h-full rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {actionKey === `approve:${approveActivityId}`
                   ? t("common.processing", "Dang xu ly...")

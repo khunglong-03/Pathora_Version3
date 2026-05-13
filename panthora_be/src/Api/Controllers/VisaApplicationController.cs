@@ -38,11 +38,51 @@ public sealed class VisaApplicationController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "ManagerOnly")]
     [HttpPut("status")]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateVisaApplicationStatusCommand command)
     {
         var result = await Sender.Send(command);
         return HandleResult(result);
     }
+
+    [Authorize(Policy = "ManagerOnly")]
+    [HttpPost("quote-fee")]
+    public async Task<IActionResult> QuoteFee([FromBody] QuoteVisaSupportFeeCommand command)
+    {
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
+
+    [Authorize(Policy = "ManagerOnly")]
+    [HttpPost("{id:guid}/register-details")]
+    public async Task<IActionResult> RegisterDetails(Guid id, [FromBody] RegisterVisaDetailsRequest body)
+    {
+        if (body is null) return BadRequest("Request payload is required.");
+
+        var command = new RegisterVisaDetailsCommand(
+            VisaApplicationId: id,
+            VisaNumber: body.VisaNumber,
+            IssuedAt: body.IssuedAt,
+            ExpiresAt: body.ExpiresAt,
+            Category: body.Category,
+            Format: body.Format,
+            EntryType: body.EntryType,
+            MaxStayDays: body.MaxStayDays,
+            IssuingAuthority: body.IssuingAuthority,
+            VisaFileUrl: body.VisaFileUrl);
+        var result = await Sender.Send(command);
+        return HandleResult(result);
+    }
 }
+
+public sealed record RegisterVisaDetailsRequest(
+    [property: System.Text.Json.Serialization.JsonPropertyName("visaNumber")] string VisaNumber,
+    [property: System.Text.Json.Serialization.JsonPropertyName("issuedAt")] DateTimeOffset IssuedAt,
+    [property: System.Text.Json.Serialization.JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt,
+    [property: System.Text.Json.Serialization.JsonPropertyName("category")] Domain.Enums.VisaCategory? Category,
+    [property: System.Text.Json.Serialization.JsonPropertyName("format")] Domain.Enums.VisaFormat? Format,
+    [property: System.Text.Json.Serialization.JsonPropertyName("entryType")] Domain.Enums.VisaEntryType? EntryType = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("maxStayDays")] int? MaxStayDays = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("issuingAuthority")] string? IssuingAuthority = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("visaFileUrl")] string? VisaFileUrl = null);

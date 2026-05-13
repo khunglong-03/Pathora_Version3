@@ -42,6 +42,8 @@ D:\DoAn\
 │   │   ├── Application/             # CQRS: Commands, Queries, Handlers, Validators
 │   │   ├── Domain/                  # Entities, value objects, domain events
 │   │   └── Infrastructure/          # EF Core, JWT auth, external services
+│   ├── src/PublicApi/
+│   │   └── ApiPublic/               # Controllers, middleware (Anonymous / Public)
 │   ├── tests/
 │   │   └── Domain.Specs/            # xUnit integration tests
 │   ├── LocalService.slnx
@@ -77,6 +79,12 @@ D:\DoAn\
 > - `panthora_be/` là backend, **không phải** `backend/`
 
 > - Docs cũ có thể ghi sai port (3000/3001), React version (19), hoặc không có tests. Thực tế: **port 3003, React 18.3.1, Vitest có sẵn**
+
+> **WARNING (Backend Architecture Boundary):**
+> Khi thêm endpoint mới, phải quyết định ngay từ đầu:
+> - **PublicApi (`panthora_be/src/PublicApi/ApiPublic`)**: cho các endpoint anonymous (không cần JWT token, ví dụ lấy danh sách tour public, webhook, etc.).
+> - **Api (`panthora_be/src/Api`)**: cho các endpoint nội bộ cần authentication (JWT token, ví dụ `/api/customer/*`, `/api/admin/*`, v.v.).
+> **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
 
 ---
 
@@ -129,6 +137,7 @@ dotnet run --project "panthora_be/src/Api/Api.csproj"                    # Chạ
 - **`SupplierReassignmentModal` (`src/features/dashboard/components/SupplierReassignmentModal.tsx`)**: Reusable modal for reassigning suppliers. Handles backend API calls and re-renders smoothly.
 - **`handleApiError` (`src/utils/apiResponse.ts`)**: Extended to localize backend error codes via a sentinel-list pattern (`TOUR_INSTANCE_TRANSPORT_ERROR_CODES`). Do not use raw error messages in `toast`; instead map through `handleApiError` and translate via `t()`.
 - **Bulk Approve Button**: Present in `TransportTourAssignmentPage`. Provides a `BulkApproveConfirmationModal` with inline error localization, `failedState` tracking, and a disabled-state warning list for incomplete drafts.
+- **Tour Operator public instance routes**: public tour detail and per-booking assignment use `/tour-operator/tour-instances/public/[id]`, `/public/[id]/bookings/[bookingId]/assign-accommodation`, and `/public/[id]/bookings/[bookingId]/assign-flight-tickets`. The namespace is guarded by `NEXT_PUBLIC_ENABLE_PUBLIC_TOUR_SUB_ROUTES` (default enabled); set it to `false` to roll public row clicks back to the generic `/tour-operator/tour-instances/[id]` fallback.
 
 ---
 

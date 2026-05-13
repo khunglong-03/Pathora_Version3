@@ -56,6 +56,7 @@ export type TransportTypeString = "Bus" | "Train" | "Flight" | "Boat" | "Car" | 
 
 // Sub-DTOs
 export interface PassportDto {
+  id?: string;
   passportNumber: string | null;
   issuedDate: string | null;
   expiryDate: string | null;
@@ -214,17 +215,33 @@ export interface TourDayActivityStatusDto {
 }
 
 // Main booking detail response
+// NOTE: The CustomerBooking endpoint (GET /api/public/bookings/{id}) returns
+// `adults`, `children`, `infants` from BookingDetailDto.
+// The admin endpoint uses `numberAdult`, `numberChild`, `numberInfant`.
+// Both field names are declared here for compatibility.
 export interface BookingDetailResponse {
   bookingId: string;
   tourInstanceId: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
+  /** @deprecated Use `adults` — kept for admin endpoint compatibility */
   numberAdult: number;
+  /** @deprecated Use `children` — kept for admin endpoint compatibility */
   numberChild: number;
+  /** @deprecated Use `infants` — kept for admin endpoint compatibility */
   numberInfant: number;
+  /** Customer endpoint field name */
+  adults?: number;
+  /** Customer endpoint field name */
+  children?: number;
+  /** Customer endpoint field name */
+  infants?: number;
   totalPrice: number;
   status: BookingStatusEnum;
+  isVisaRequired?: boolean;
+  visaServiceFeeTotal?: number;
+  pendingTransactions?: BookingPendingTransaction[];
   activityReservations: BookingActivityReservationDto[];
   transportDetails: TransportDetailDto[];
   accommodationDetails: AccommodationDetailDto[];
@@ -232,6 +249,20 @@ export interface BookingDetailResponse {
   supplierPayables: SupplierPayableDto[];
   assignedTourGuides: BookingTourGuideDto[];
   activityStatuses: TourDayActivityStatusDto[];
+  cancellationRequest?: BookingCancellationRequestSummaryDto;
+  cancellationRequests: BookingCancellationRequestSummaryDto[];
+}
+
+export interface BookingCancellationRequestSummaryDto {
+  requestId: string;
+  status: string;
+  feePercent: number;
+  paidAmountSnapshot: number;
+  refundAmount: number;
+  managerNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  refundConfirmedAt: string | null;
 }
 
 // Helper functions to convert string to enum
@@ -252,3 +283,112 @@ export const toPaymentStatus = (value: number): PaymentStatusEnum => {
 export const toBookingStatus = (value: number): BookingStatusEnum => {
   return value as BookingStatusEnum;
 };
+
+// --- Visa Types ---
+export enum VisaCategory {
+  Tourist = "Tourist",
+  Business = "Business",
+  FamilyVisit = "FamilyVisit",
+  Student = "Student",
+  Transit = "Transit",
+  Other = "Other",
+}
+
+export enum VisaFormat {
+  Sticker = "Sticker",
+  EVisa = "EVisa",
+  VisaOnArrival = "VisaOnArrival",
+}
+
+export interface VisaRequirementParticipant {
+  participantId: string;
+  fullName: string;
+  requiresVisa: boolean;
+  missingDateOfBirth: boolean;
+  passport: PassportDto | null;
+  latestVisaApplication: VisaApplicationSummaryDto | null;
+  availableActions: string[];
+}
+
+export interface VisaApplicationSummaryDto {
+  id: string;
+  status: string;
+  destinationCountry: string;
+  minReturnDate: string | null;
+  refusalReason: string | null;
+  visaFileUrl: string | null;
+  isSystemAssisted: boolean;
+  serviceFee: number | null;
+  serviceFeePaidAt: string | null;
+  hasPendingServiceFee: boolean;
+  category: string | null;
+  format: string | null;
+  maxStayDays: number | null;
+  issuingAuthority: string | null;
+  visaNumber: string | null;
+  entryType: string | null;
+  issuedAt: string | null;
+  expiresAt: string | null;
+}
+
+export interface VisaRequirementResponse {
+  bookingId: string;
+  tourInstanceId: string;
+  tourStatus: string;
+  isVisaRequired: boolean;
+  visaServiceFeeTotal: number;
+  participants: VisaRequirementParticipant[];
+}
+
+export interface CustomerPassportPayload {
+  passportNumber: string;
+  nationality: string | null;
+  issuedAt: string | null;
+  expiresAt: string | null;
+  fileUrl: string | null;
+}
+
+export interface SubmitVisaApplicationPayload {
+  bookingParticipantId: string;
+  passportId: string;
+  destinationCountry: string;
+  minReturnDate?: string;
+  visaFileUrl?: string;
+  category?: number;
+  format?: number;
+  maxStayDays?: number;
+  issuingAuthority?: string;
+  visaNumber?: string;
+  entryType?: number;
+  issuedAt?: string;
+  expiresAt?: string;
+}
+
+export interface UpdateVisaApplicationPayload {
+  destinationCountry?: string;
+  minReturnDate?: string;
+  visaFileUrl?: string;
+  isResubmitting?: boolean;
+  category?: number;
+  format?: number;
+  maxStayDays?: number;
+  issuingAuthority?: string;
+  visaNumber?: string;
+  entryType?: number;
+  issuedAt?: string;
+  expiresAt?: string;
+}
+
+export interface RequestVisaSupportResponse {
+  serviceFeeQuoted: boolean;
+  message: string;
+}
+
+export interface BookingPendingTransaction {
+  transactionCode: string;
+  amount: number;
+  type: string;
+  purpose: string;
+  createdAt: string;
+  expiresAt: string | null;
+}

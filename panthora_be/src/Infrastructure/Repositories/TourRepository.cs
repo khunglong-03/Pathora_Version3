@@ -387,6 +387,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -400,7 +401,8 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 minPrice,
                 maxPrice,
                 minDays,
-                maxDays)
+                maxDays,
+                continent)
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
             .Include(t => t.PlanLocations)
@@ -422,6 +424,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         CancellationToken cancellationToken = default)
     {
         return await BuildSearchQuery(
@@ -433,7 +436,8 @@ public class TourRepository(AppDbContext context) : ITourRepository
             minPrice,
             maxPrice,
             minDays,
-            maxDays).CountAsync(cancellationToken);
+            maxDays,
+            continent).CountAsync(cancellationToken);
     }
 
     private IQueryable<TourEntity> BuildSearchQuery(
@@ -445,12 +449,18 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? minPrice,
         decimal? maxPrice,
         int? minDays,
-        int? maxDays)
+        int? maxDays,
+        Continent? continent)
     {
         var query = _context.Tours
             .AsNoTracking()
             .Where(t => !t.IsDeleted && t.Status == TourStatus.Active)
             .AsQueryable();
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(q))
         {
@@ -544,6 +554,11 @@ public class TourRepository(AppDbContext context) : ITourRepository
                         l.TourDayActivity.TourDay.Classification.Tour != null &&
                         l.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
                         !l.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
+            .Where(l => _context.TourInstances.Any(i => 
+                        i.TourId == l.TourDayActivity!.TourDay!.Classification!.Tour!.Id && 
+                        !i.IsDeleted && 
+                        i.InstanceType == TourType.Public && 
+                        (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)))
             .GroupBy(l => new { l.City, l.Country })
             .Select(g => new { g.Key.City, g.Key.Country, ToursCount = g.Select(l => l.TourDayActivity!.TourDay!.Classification!.Tour!.Id).Distinct().Count() })
             .OrderByDescending(x => x.ToursCount)
@@ -562,6 +577,16 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .AsNoTracking()
             .Where(l => Enumerable.Contains(attractionTypes, l.LocationType))
             .Where(l => l.City != null && l.Country != null)
+            .Where(l => l.TourDayActivity != null && l.TourDayActivity.TourDay != null &&
+                        l.TourDayActivity.TourDay.Classification != null &&
+                        l.TourDayActivity.TourDay.Classification.Tour != null &&
+                        l.TourDayActivity.TourDay.Classification.Tour.Status == TourStatus.Active &&
+                        !l.TourDayActivity.TourDay.Classification.Tour.IsDeleted)
+            .Where(l => _context.TourInstances.Any(i => 
+                        i.TourId == l.TourDayActivity!.TourDay!.Classification!.Tour!.Id && 
+                        !i.IsDeleted && 
+                        i.InstanceType == TourType.Public && 
+                        (i.Status == TourInstanceStatus.Available || i.Status == TourInstanceStatus.Confirmed || i.Status == TourInstanceStatus.SoldOut)))
             .Take(limit)
             .ToListAsync(cancellationToken);
     }

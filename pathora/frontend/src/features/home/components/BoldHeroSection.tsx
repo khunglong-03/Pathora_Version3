@@ -44,28 +44,10 @@ export const BoldHeroSection = () => {
           image: imageUrl || getFallbackImage(t.id + i),
         };
       });
-      // Mock if < 3
-      if (mapped.length < 3) {
-        setTours([
-          ...mapped,
-          ...[0, 1, 2].slice(mapped.length).map(i => ({
-            id: `hero-mock-${i}`,
-            name: "Exclusive Escape",
-            location: "Asia",
-            image: getFallbackImage(i)
-          }))
-        ]);
-      } else {
-        setTours(mapped);
-      }
+      setTours(mapped);
     }).catch(() => {
       if (cancelled) return;
-      setTours([0, 1, 2].map(i => ({
-        id: `hero-mock-${i}`,
-        name: "Discovery Expedition",
-        location: "Global",
-        image: getFallbackImage(i)
-      })));
+      setTours([]);
     });
     return () => { cancelled = true; };
   }, [i18n.resolvedLanguage]);

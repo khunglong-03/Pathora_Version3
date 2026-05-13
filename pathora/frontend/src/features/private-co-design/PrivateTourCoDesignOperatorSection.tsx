@@ -339,7 +339,7 @@ export function PrivateTourCoDesignOperatorSection({
                 <p>{f.content}</p>
                 {f.status === "ManagerRejected" && f.rejectionReason && (
                   <div className="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
-                    <span className="font-bold">Manager's Reason:</span> {f.rejectionReason}
+                    <span className="font-bold">Manager&apos;s Reason:</span> {f.rejectionReason}
                   </div>
                 )}
               </li>

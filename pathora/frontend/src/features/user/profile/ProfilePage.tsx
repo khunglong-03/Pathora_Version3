@@ -3,8 +3,9 @@
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/cn";
 import { motion } from "framer-motion";
-import { FiLock, FiSettings, FiUser } from "react-icons/fi";
+import { FiLock, FiUser } from "react-icons/fi";
 import { LandingHeader } from "@/features/shared/components";
 import { extractResult } from "@/utils/apiResponse";
 import { useChangePasswordMutation, useGetUserInfoQuery, useUpdateUserMutation } from "@/store/api/auth/authApiSlice";
@@ -12,28 +13,8 @@ import type { UserInfo } from "@/store/domain/auth";
 import type { ProfileTabType } from "./types";
 import { ProfileTab } from "./components/ProfileTab";
 import { PasswordTab } from "./components/PasswordTab";
-import { SettingsTab } from "./components/SettingsTab";
 
-// ─── Design Tokens ─────────────────────────────────────────────────────────
-const CSS = {
-  background:   "var(--background)",
-  surface:      "var(--surface)",
-  accent:       "var(--accent)",
-  accentMuted:  "var(--accent-muted)",
-  border:       "var(--border)",
-  borderSub:    "var(--border-subtle)",
-  textPrimary:  "var(--text-primary)",
-  textSecondary:"var(--text-secondary)",
-  textMuted:    "var(--text-muted)",
-  success:      "var(--success)",
-  successMuted: "var(--success-muted)",
-  danger:       "var(--danger)",
-  dangerMuted:  "var(--danger-muted)",
-  warning:      "var(--warning)",
-  warningMuted: "var(--warning-muted)",
-  shadowCard:   "var(--shadow-card)",
-} as const;
-
+// Using Tailwind directly to match the-hieu-design.md
 const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
 
 const containerVariants = {
@@ -46,7 +27,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: SPRING },
 };
 
-const VALID_TABS: ProfileTabType[] = ["profile", "password", "settings"];
+const VALID_TABS: ProfileTabType[] = ["profile", "password"];
 
 export function ProfilePage() {
   const { t } = useTranslation();
@@ -66,7 +47,6 @@ export function ProfilePage() {
   const tabs = [
     { id: "profile" as const, label: t("common.profile") || "Thông tin cá nhân", icon: FiUser },
     { id: "password" as const, label: t("common.changePassword") || "Đổi mật khẩu", icon: FiLock },
-    { id: "settings" as const, label: t("common.settings") || "Cài đặt", icon: FiSettings },
   ];
 
   const headerConfig: Record<ProfileTabType, { icon: typeof FiUser; title: string; subtitle: string }> = {
@@ -80,11 +60,6 @@ export function ProfilePage() {
       title: t("common.profilePage.passwordTitle") || "Đổi mật khẩu",
       subtitle: t("common.profilePage.passwordSubtitle") || "Cập nhật mật khẩu để bảo mật tài khoản",
     },
-    settings: {
-      icon: FiSettings,
-      title: t("common.profilePage.settingsTitle") || "Cài đặt",
-      subtitle: t("common.profilePage.settingsSubtitle") || "Tùy chỉnh thông báo và tùy chọn cá nhân",
-    },
   };
 
   const currentHeader = headerConfig[activeTab];
@@ -93,35 +68,37 @@ export function ProfilePage() {
   return (
     <>
       
-      <div style={{ backgroundColor: CSS.background }} className="min-h-screen pt-20">
-        <div className="max-w-4xl mx-auto px-4 pb-8">
+      <div className="min-h-screen py-8 md:py-10 bg-slate-50/30">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={SPRING}
-            style={{ backgroundColor: CSS.surface, boxShadow: CSS.shadowCard }}
-            className="rounded-2xl overflow-hidden"
-          >
-            {/* Accent bar header */}
+            className="bg-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-200/50 rounded-[1.5rem] overflow-hidden"
+          >            {/* Accent bar header */}
             <div
-              style={{ backgroundColor: CSS.accentMuted, borderTop: `3px solid ${CSS.accent}` }}
-              className="px-6 py-8 transition-all duration-300"
+              className="px-6 md:px-8 py-8 bg-slate-50/50 border-t-[3px] border-t-slate-900"
+              
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${CSS.accent} 15%, transparent)` }}>
-                  <HeaderIcon style={{ color: CSS.accent }} className="w-5 h-5" />
+              <div className="h-stack items-center gap-3">
+                <div className="size-10 rounded-full center bg-slate-100 overflow-hidden">
+                  {activeTab === "profile" && user?.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <HeaderIcon className="size-5 text-slate-700" />
+                  )}
                 </div>
                 <div>
-                  <h1 style={{ color: CSS.textPrimary, fontFamily: "var(--font-display)" }} className="text-2xl font-bold">{currentHeader.title}</h1>
-                  <p style={{ color: CSS.textSecondary }} className="mt-0.5 text-sm">{currentHeader.subtitle}</p>
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{currentHeader.title}</h1>
+                  <p className="mt-1 text-sm font-medium text-slate-500">{currentHeader.subtitle}</p>
                 </div>
               </div>
-              {user?.email && <p style={{ color: CSS.textMuted }} className="text-xs mt-3 ml-[52px]">{user.email}</p>}
+              {user?.email && <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-4 ml-[52px]">{user.email}</p>}
             </div>
 
             {/* Tab navigation */}
-            <div style={{ borderBottom: `1px solid ${CSS.border}` }}>
-              <nav className="flex">
+            <div className="border-b border-slate-200">
+              <nav className="flex overflow-x-auto scrollbar-hide">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -134,31 +111,25 @@ export function ProfilePage() {
                         params.set("tab", tab.id);
                         router.replace(`?${params.toString()}`);
                       }}
-                      style={{
-                        color: isActive ? CSS.accent : CSS.textSecondary,
-                      }}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative hover:opacity-80 ${
-                        isActive ? "" : "hover:!text-gray-700"
-                      }`}
+                      
+                      className={`h-stack items-center gap-2 px-6 py-4 text-sm font-bold transition-all shrink-0 relative hover:bg-slate-50 ${isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="size-4" />
                       {tab.label}
                       {isActive && (
                         <motion.span
                           layoutId="tab-indicator"
-                          style={{ backgroundColor: CSS.accent }}
-                          className="absolute bottom-0 left-0 right-0 h-0.5"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900"
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
-                      )}
-                    </button>
+                      )}                    </button>
                   );
                 })}
               </nav>
             </div>
 
             {/* Tab content with stagger animation */}
-            <div className="p-6">
+            <div className="p-6 md:p-8">
               <motion.div
                 key={activeTab}
                 variants={containerVariants}
@@ -186,12 +157,6 @@ export function ProfilePage() {
                         await changePassword(payload).unwrap();
                       }}
                     />
-                  </motion.div>
-                ) : null}
-
-                {activeTab === "settings" ? (
-                  <motion.div variants={itemVariants}>
-                    <SettingsTab user={user ?? null} />
                   </motion.div>
                 ) : null}
               </motion.div>

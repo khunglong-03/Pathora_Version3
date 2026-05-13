@@ -79,10 +79,10 @@ describe("api endpoint contracts", () => {
     expect(API_ENDPOINTS.PUBLIC_TOUR_INSTANCE.RESOLVE_PRICING("instance-id", 2)).toBe(
       "/api/public/tour-instances/instance-id/pricing/resolve?participants=2",
     );
-    expect(API_ENDPOINTS.TOUR_REQUESTS.CREATE).toBe("/api/public/tour-requests");
-    expect(API_ENDPOINTS.TOUR_REQUESTS.MY).toBe("/api/public/tour-requests/my");
+    expect(API_ENDPOINTS.TOUR_REQUESTS.CREATE).toBe("/api/customer/tour-requests");
+    expect(API_ENDPOINTS.TOUR_REQUESTS.MY).toBe("/api/customer/tour-requests/my");
     expect(API_ENDPOINTS.TOUR_REQUESTS.DETAIL("request-id")).toBe(
-      "/api/public/tour-requests/request-id",
+      "/api/customer/tour-requests/request-id",
     );
     expect(API_ENDPOINTS.TOUR_REQUESTS.ADMIN_LIST).toBe("/api/tour-requests");
     expect(API_ENDPOINTS.TOUR_REQUESTS.ADMIN_DETAIL("request-id")).toBe(

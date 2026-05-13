@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import CheckImage from "@/assets/images/icon/ck-white.svg";
+import { Icon } from "@/components/ui";
 
 type CheckboxProps = {
   id?: string;
@@ -21,12 +21,12 @@ const Checkbox = ({
   value,
   name,
   onChange,
-  activeClass = "ring-black-500 bg-slate-900 dark:bg-slate-700 dark:ring-slate-700",
+  activeClass = "bg-zinc-900 border-zinc-900 ring-zinc-900",
   className = "",
 }: CheckboxProps) => {
   return (
     <label
-      className={`relative flex items-start ${
+      className={`relative flex items-start group ${
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       }`}
       htmlFor={id}
@@ -42,23 +42,22 @@ const Checkbox = ({
         aria-checked={value}
       />
       <span
-        className={`relative inline-flex h-4 w-4 mt-1 flex-none rounded border border-slate-100 transition-all duration-150 ltr:mr-3 rtl:ml-3 dark:border-slate-800 peer-focus-visible:ring-2 peer-focus-visible:ring-orange-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-white dark:peer-focus-visible:ring-offset-slate-800 ${
+        className={`relative inline-flex size-5 mt-0.5 flex-none rounded-md border transition-all duration-200 ease-out ltr:mr-3 rtl:ml-3 peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-white ${
           value
-            ? `${activeClass} ring-2 ring-offset-2 dark:ring-offset-slate-800`
-            : "bg-slate-100 dark:border-slate-600 dark:bg-slate-600"
+            ? `${activeClass} shadow-sm`
+            : "bg-white border-slate-300 group-hover:border-zinc-400 group-hover:bg-slate-50"
         }`}
         aria-hidden="true"
       >
-        {value && (
-          <img
-            src={CheckImage.src}
-            alt=""
-            className="m-auto block h-2.5 w-2.5"
-          />
-        )}
+        <Icon 
+          icon="heroicons:check" 
+          className={`absolute inset-0 m-auto size-3.5 text-white transition-transform duration-200 ease-out ${
+            value ? "scale-100 opacity-100" : "scale-50 opacity-0"
+          }`} 
+        />
       </span>
       <span
-        className={`text-sm leading-6 text-slate-500 dark:text-slate-400 ${className}`}
+        className={`text-sm leading-6 text-slate-600 font-medium select-none ${className}`}
       >
         {label}
       </span>

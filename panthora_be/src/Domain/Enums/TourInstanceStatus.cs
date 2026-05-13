@@ -25,5 +25,7 @@ public enum TourInstanceStatus
     [Description("Pending Manager Review")]
     PendingManagerReview = 10,
     [Description("Pending Customer Approval")]
-    PendingCustomerApproval = 11
+    PendingCustomerApproval = 11,
+    [Description("Pending Visa")]
+    PendingVisa = 12
 }

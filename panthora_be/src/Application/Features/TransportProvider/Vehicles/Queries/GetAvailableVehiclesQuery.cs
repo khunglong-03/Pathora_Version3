@@ -61,7 +61,7 @@ public sealed class GetAvailableVehiclesQueryHandler(
         if (request.ExcludeActivityId.HasValue)
         {
             var activity = await tourInstanceRepository.FindActivityByIdAsync(
-                request.ExcludeActivityId.Value, cancellationToken);
+                request.ExcludeActivityId.Value, true, cancellationToken);
 
             if (activity is null || !activity.TransportSupplierId.HasValue
                 || !transportSupplierIds.Contains(activity.TransportSupplierId.Value))

@@ -15,6 +15,7 @@ import {
   type TourInstanceDayActivityDto,
 } from "@/types/tour";
 import { normalizeApprovalStatus } from "@/utils/approvalStatusHelper";
+import type { TransportProviderDetail } from "@/types/admin";
 
 interface SupplierReassignmentModalProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface SupplierReassignmentModalProps {
   activity: TourInstanceDayActivityDto;
   activityType: "Transportation" | "Accommodation";
   tourInstanceId: string;
+  minRequiredSeats?: number;
   onSuccess: () => void;
 }
 
@@ -50,6 +52,7 @@ export default function SupplierReassignmentModal({
   activity,
   activityType,
   tourInstanceId,
+  minRequiredSeats,
   onSuccess,
 }: SupplierReassignmentModalProps) {
   const { t } = useTranslation();
@@ -66,21 +69,30 @@ export default function SupplierReassignmentModal({
   const [requestedSeatCount, setRequestedSeatCount] = useState<number>(
     activity.requestedSeatCount ?? 0,
   );
+  const [requestedVehicleCount, setRequestedVehicleCount] = useState<number>(
+    activity.requestedVehicleCount ?? 1,
+  );
   const [submitting, setSubmitting] = useState(false);
+
+  // Transport provider details for vehicle type filtering
+  const [providerDetail, setProviderDetail] = useState<TransportProviderDetail | null>(null);
+  const [providerDetailLoading, setProviderDetailLoading] = useState(false);
 
   // Track dirty state for Esc guard
   const initialValues = useRef({
     supplierId: "",
     vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
     seatCount: activity.requestedSeatCount ?? 0,
+    vehicleCount: activity.requestedVehicleCount ?? 1,
   });
 
   const isDirty = useMemo(
     () =>
       selectedSupplierId !== initialValues.current.supplierId ||
       requestedVehicleType !== initialValues.current.vehicleType ||
-      requestedSeatCount !== initialValues.current.seatCount,
-    [selectedSupplierId, requestedVehicleType, requestedSeatCount],
+      requestedSeatCount !== initialValues.current.seatCount ||
+      requestedVehicleCount !== initialValues.current.vehicleCount,
+    [selectedSupplierId, requestedVehicleType, requestedSeatCount, requestedVehicleCount],
   );
 
   // Refs for focus management
@@ -125,17 +137,66 @@ export default function SupplierReassignmentModal({
       }
       // Reset form
       setSelectedSupplierId("");
+      setProviderDetail(null);
       setRequestedVehicleType(
         toVehicleTypeSelectValue(activity.requestedVehicleType),
       );
       setRequestedSeatCount(activity.requestedSeatCount ?? 0);
+      setRequestedVehicleCount(activity.requestedVehicleCount ?? 1);
       initialValues.current = {
         supplierId: "",
         vehicleType: toVehicleTypeSelectValue(activity.requestedVehicleType),
         seatCount: activity.requestedSeatCount ?? 0,
+        vehicleCount: activity.requestedVehicleCount ?? 1,
       };
     }
   }, [open, fetchSuppliers, activity, isExternalOnly]);
+
+  // Fetch transport provider detail when supplier changes to filter vehicle types
+  useEffect(() => {
+    if (!selectedSupplierId || activityType !== "Transportation") {
+      setProviderDetail(null);
+      return;
+    }
+    
+    let isMounted = true;
+    const fetchDetail = async () => {
+      setProviderDetailLoading(true);
+      try {
+        const detail = await supplierService.getSupplierTransportDetail(selectedSupplierId);
+        if (isMounted) {
+          setProviderDetail(detail);
+        }
+      } catch (err) {
+        console.error("Failed to fetch provider detail", err);
+        if (isMounted) {
+          setProviderDetail(null);
+        }
+      } finally {
+        if (isMounted) {
+          setProviderDetailLoading(false);
+        }
+      }
+    };
+    
+    void fetchDetail();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedSupplierId, activityType]);
+
+  const allowedVehicleKeys = useMemo(() => {
+    if (!providerDetail || !providerDetail.vehicles) return null;
+    const keys = new Set<number>();
+    providerDetail.vehicles.forEach(v => {
+      if (v.isActive) {
+        const key = vehicleTypeNameToKey(v.vehicleType);
+        if (key !== undefined) keys.add(key);
+      }
+    });
+    return keys;
+  }, [providerDetail]);
 
   // Focus management after load
   useEffect(() => {
@@ -197,7 +258,8 @@ export default function SupplierReassignmentModal({
           supplierId: selectedSupplierId,
           requestedVehicleType: Number(requestedVehicleType),
           requestedSeatCount,
-        });
+          requestedVehicleCount,
+        } as any); // Using any because the type in service might not have requestedVehicleCount yet
       } else {
         await tourInstanceService.assignAccommodationSupplier(
           tourInstanceId,
@@ -231,6 +293,10 @@ export default function SupplierReassignmentModal({
       value,
     })),
   ];
+
+  const filteredVehicleTypeOptions = allowedVehicleKeys
+    ? vehicleTypeOptions.filter(opt => allowedVehicleKeys.has(Number(opt.value)))
+    : vehicleTypeOptions;
 
   const actionLabel = isApproved ? "Đổi và huỷ phê duyệt" : "Đổi nhà cung cấp";
 
@@ -385,7 +451,7 @@ export default function SupplierReassignmentModal({
             </div>
 
             {activityType === "Transportation" && (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <label htmlFor="vehicle-type-select" className="mb-1 block text-sm font-medium text-slate-700">
                     Loại xe yêu cầu
@@ -394,16 +460,27 @@ export default function SupplierReassignmentModal({
                     id="vehicle-type-select"
                     value={requestedVehicleType}
                     onChange={(e) => setRequestedVehicleType(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    disabled={!selectedSupplierId || providerDetailLoading || (allowedVehicleKeys !== null && allowedVehicleKeys.size === 0)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50 disabled:text-slate-500"
                   >
-                    <option value="">
-                      {t("tourInstance.transport.selectVehicleType", "Select vehicle type...")}
-                    </option>
-                    {vehicleTypeOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+                    {providerDetailLoading ? (
+                      <option value="">{t("common.loading", "Đang tải...")}</option>
+                    ) : !selectedSupplierId ? (
+                      <option value="">{t("tourInstance.transport.selectProviderFirst", "Vui lòng chọn nhà cung cấp trước")}</option>
+                    ) : allowedVehicleKeys !== null && allowedVehicleKeys.size === 0 ? (
+                      <option value="">{t("tourInstance.transport.noActiveVehicles", "Nhà cung cấp này chưa có xe hoạt động")}</option>
+                    ) : (
+                      <>
+                        <option value="">
+                          {t("tourInstance.transport.selectVehicleType", "Select vehicle type...")}
+                        </option>
+                        {filteredVehicleTypeOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
                 <div>
@@ -419,6 +496,35 @@ export default function SupplierReassignmentModal({
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
+                <div>
+                  <label htmlFor="vehicle-count-input" className="mb-1 block text-sm font-medium text-slate-700">
+                    Số lượng xe
+                  </label>
+                  <input
+                    id="vehicle-count-input"
+                    type="number"
+                    min={1}
+                    value={requestedVehicleCount}
+                    onChange={(e) => setRequestedVehicleCount(Number(e.target.value))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {activityType === "Transportation" && minRequiredSeats !== undefined && (
+              <div className="text-sm">
+                {requestedSeatCount * requestedVehicleCount < minRequiredSeats ? (
+                  <p className="text-rose-600 flex items-center gap-1.5 mt-2">
+                    <Icon icon="heroicons:exclamation-circle" className="size-4" />
+                    Tổng số chỗ ngồi ({requestedSeatCount * requestedVehicleCount}) đang ít hơn số lượng khách ({minRequiredSeats})
+                  </p>
+                ) : (
+                  <p className="text-emerald-600 flex items-center gap-1.5 mt-2">
+                    <Icon icon="heroicons:check-circle" className="size-4" />
+                    Tổng số chỗ ngồi: {requestedSeatCount * requestedVehicleCount} (Đủ cho {minRequiredSeats} khách)
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -442,6 +548,7 @@ export default function SupplierReassignmentModal({
                 !selectedSupplierId
                 || submitting
                 || (activityType === "Transportation" && !requestedVehicleType)
+                || (activityType === "Transportation" && minRequiredSeats !== undefined && (requestedSeatCount * requestedVehicleCount < minRequiredSeats))
               }
               className={`rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
                 isApproved

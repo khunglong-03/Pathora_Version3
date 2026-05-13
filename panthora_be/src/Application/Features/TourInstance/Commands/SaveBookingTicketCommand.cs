@@ -4,6 +4,7 @@ using Domain.Common.Repositories;
 using Domain.Entities;
 using ErrorOr;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Features.TourInstance.Commands;
 
@@ -38,18 +39,25 @@ public sealed class SaveBookingTicketCommandHandler(
     ITourInstanceBookingTicketRepository ticketRepository,
     ITourInstanceRepository instanceRepository,
     IUser user,
-    Domain.UnitOfWork.IUnitOfWork unitOfWork)
+    Domain.UnitOfWork.IUnitOfWork unitOfWork,
+    Microsoft.Extensions.Logging.ILogger<SaveBookingTicketCommandHandler> logger)
     : ICommandHandler<SaveBookingTicketCommand, ErrorOr<Success>>
 {
     public async Task<ErrorOr<Success>> Handle(SaveBookingTicketCommand request, CancellationToken cancellationToken)
     {
-        var activity = await instanceRepository.FindActivityByIdAsync(request.ActivityId, cancellationToken);
+        var activity = await instanceRepository.FindActivityByIdAsync(request.ActivityId, asNoTracking: false, cancellationToken);
         if (activity == null || activity.TourInstanceDay.TourInstanceId != request.TourInstanceId)
         {
+            logger.LogWarning("SaveBookingTicket failed: Activity {ActivityId} not found or mismatched with TourInstanceId {TourInstanceId}", request.ActivityId, request.TourInstanceId);
             return Error.NotFound("TourInstance.ActivityNotFound", "Activity not found");
         }
 
+        logger.LogInformation("Processing SaveBookingTicketCommand payload: {@Payload}", request);
+
         var existingTicket = await ticketRepository.GetByActivityAndBookingAsync(request.ActivityId, request.BookingId, cancellationToken);
+
+        var utcDepartureAt = request.DepartureAt?.ToUniversalTime();
+        var utcArrivalAt = request.ArrivalAt?.ToUniversalTime();
 
         if (existingTicket == null)
         {
@@ -57,8 +65,8 @@ public sealed class SaveBookingTicketCommandHandler(
                 request.ActivityId,
                 request.BookingId,
                 request.FlightNumber,
-                request.DepartureAt,
-                request.ArrivalAt,
+                utcDepartureAt,
+                utcArrivalAt,
                 request.SeatNumbers,
                 request.ETicketNumbers,
                 request.SeatClass,
@@ -69,10 +77,11 @@ public sealed class SaveBookingTicketCommandHandler(
         }
         else
         {
+            logger.LogInformation("Updating existing ticket for Activity {ActivityId} and Booking {BookingId}", request.ActivityId, request.BookingId);
             existingTicket.Update(
                 request.FlightNumber,
-                request.DepartureAt,
-                request.ArrivalAt,
+                utcDepartureAt,
+                utcArrivalAt,
                 request.SeatNumbers,
                 request.ETicketNumbers,
                 request.SeatClass,
@@ -80,7 +89,14 @@ public sealed class SaveBookingTicketCommandHandler(
                 user.Id ?? "SYSTEM");
         }
 
-        await unitOfWork.SaveChangeAsync(cancellationToken);
+        // Sync the common transport details back to the activity entity
+        // This is required so that ConfirmExternalTransport has the DepartureTime and ArrivalTime.
+        if (utcDepartureAt.HasValue) activity.DepartureTime = utcDepartureAt;
+        if (utcArrivalAt.HasValue) activity.ArrivalTime = utcArrivalAt;
+        if (!string.IsNullOrWhiteSpace(request.FlightNumber)) activity.ExternalTransportReference = request.FlightNumber;
+
+        var savedCount = await unitOfWork.SaveChangeAsync(cancellationToken);
+        logger.LogInformation("SaveChangeAsync completed. Changes saved: {Count}", savedCount);
         return Result.Success;
     }
 }

@@ -277,8 +277,8 @@ public sealed class CreatePassportCommandHandler(
             request.PassportNumber,
             performedBy: performedBy,
             request.Nationality,
-            request.IssuedAt,
-            request.ExpiresAt,
+            request.IssuedAt?.ToUniversalTime(),
+            request.ExpiresAt?.ToUniversalTime(),
             request.FileUrl);
 
         await passportRepository.AddAsync(entity);
@@ -359,8 +359,8 @@ public sealed class UpdatePassportCommandHandler(
             request.PassportNumber,
             performedBy: performedBy,
             request.Nationality,
-            request.IssuedAt,
-            request.ExpiresAt,
+            request.IssuedAt?.ToUniversalTime(),
+            request.ExpiresAt?.ToUniversalTime(),
             request.FileUrl);
 
         passportRepository.Update(entity);

@@ -326,19 +326,12 @@ public sealed class CancelActivityCommandHandler(
     }
 }
 
-public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>, ICacheable
-{
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-statuses:{BookingId}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
-}
+public sealed record GetActivityStatusesQuery([property: JsonPropertyName("bookingId")] Guid BookingId) : IQuery<ErrorOr<List<TourDayActivityStatusDto>>>;
 
 public sealed class GetActivityStatusesQueryHandler(
     IBookingRepository bookingRepository,
     ITourDayActivityStatusRepository tourDayActivityStatusRepository,
-    ITourDayActivityGuideRepository tourDayActivityGuideRepository,
-    IOwnershipValidator ownershipValidator,
-    ITourInstanceRepository tourInstanceRepository,
-    IUser user)
+    ITourDayActivityGuideRepository tourDayActivityGuideRepository)
     : IQueryHandler<GetActivityStatusesQuery, ErrorOr<List<TourDayActivityStatusDto>>>
 {
     public async Task<ErrorOr<List<TourDayActivityStatusDto>>> Handle(GetActivityStatusesQuery request, CancellationToken cancellationToken)
@@ -346,25 +339,7 @@ public sealed class GetActivityStatusesQueryHandler(
         var booking = await bookingRepository.GetByIdAsync(request.BookingId);
         if (booking is null)
         {
-            return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-        }
-
-        // Check access: either owner/admin OR guide assigned to the tour instance
-        var hasAccess = await ownershipValidator.CanAccessAsync(booking.UserId ?? Guid.Empty, cancellationToken);
-        if (!hasAccess)
-        {
-            if (Guid.TryParse(user.Id, out var currentUserId))
-            {
-                var isAssignedGuide = await tourInstanceRepository.HasGuideAssignmentAsync(booking.TourInstanceId, currentUserId, cancellationToken);
-                if (!isAssignedGuide)
-                {
-                    return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-                }
-            }
-            else
-            {
-                return Error.NotFound(ErrorConstants.Booking.NotFoundCode, ErrorConstants.Booking.NotFoundDescription);
-            }
+            return Error.NotFound("Booking.IsNull", "Booking is null.");
         }
 
         var statuses = await tourDayActivityStatusRepository.GetByBookingIdAsync(request.BookingId);
@@ -400,11 +375,7 @@ public sealed class GetActivityStatusesQueryHandler(
 
 public sealed record GetActivityStatusByTourDayQuery(
     [property: JsonPropertyName("bookingId")] Guid BookingId,
-    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>, ICacheable
-{
-    public string CacheKey => $"{Application.Common.CacheKey.Booking}:activity-status:{BookingId}:{TourDayId}";
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
-}
+    [property: JsonPropertyName("tourDayId")] Guid TourDayId) : IQuery<ErrorOr<TourDayActivityStatusDto>>;
 
 public sealed class GetActivityStatusByTourDayQueryHandler(
     IBookingRepository bookingRepository,

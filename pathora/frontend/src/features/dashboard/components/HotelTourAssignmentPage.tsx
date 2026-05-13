@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, X, Bed } from "@phosphor-icons/react";
@@ -23,30 +23,43 @@ import { buildProviderRoomOptions } from "@/utils/providerRoomOptions";
 import { handleApiError } from "@/utils/apiResponse";
 
 /** Backend maps enum with `.ToString()` → `"Accommodation"`; older clients/tests may send `"8"`. */
-const isAccommodationActivity = (activityType?: string | null) => {
-  const normalized = activityType?.trim().toLowerCase() ?? "";
+const isAccommodationActivity = (activityType?: string | number | null) => {
+  if (activityType == null) return false;
+  const normalized = String(activityType).trim().toLowerCase();
   return normalized === "accommodation" || normalized === "8";
 };
 
 interface RoomAssignmentForm {
   [activityId: string]: {
+    supplierId: string;
     roomType: string;
     roomCount: number;
     isSubmitting: boolean;
   };
 }
 
-export default function HotelTourAssignmentPage() {
+interface HotelTourAssignmentPageProps {
+  instanceId?: string;
+  backUrl?: string;
+  filterBookingId?: string;
+}
+
+export default function HotelTourAssignmentPage(props: HotelTourAssignmentPageProps) {
   const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
-  const instanceId = params.id as string;
+  const instanceId = props.instanceId || (params.id as string);
+  const backUrl = props.backUrl || "/hotel/tour-approvals";
 
   const [instance, setInstance] = useState<TourInstanceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [assignments, setAssignments] = useState<RoomAssignmentForm>({});
   const [inventory, setInventory] = useState<AccommodationItem[]>([]);
   const [availability, setAvailability] = useState<RoomAvailability[]>([]);
+  const [hotelSuppliers, setHotelSuppliers] = useState<any[]>([]); // Using any to avoid importing SupplierItem if it's messy, but we can import it.
+  const [accommodationsBySupplier, setAccommodationsBySupplier] = useState<Record<string, any[]>>({});
+  const [providerSupplierIds, setProviderSupplierIds] = useState<string[]>([]);
+  const inFlightActivitiesRef = useRef<Set<string>>(new Set());
 
   // Approval Modals
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
@@ -70,22 +83,38 @@ export default function HotelTourAssignmentPage() {
   const fetchDetail = async () => {
     setIsLoading(true);
     try {
-      const data = await tourInstanceService.getMyAssignedInstanceDetail(instanceId);
+      const data = props.instanceId
+        ? await tourInstanceService.getInstanceDetail(instanceId)
+        : await tourInstanceService.getMyAssignedInstanceDetail(instanceId);
       if (data) {
         setInstance(data);
         let canonicalRoomOptions = buildProviderRoomOptions([]);
         
-        try {
-          const invData = await hotelProviderService.getAccommodations();
-          const availData = await hotelProviderService.getRoomAvailability(
-            format(new Date(data.startDate), "yyyy-MM-dd"),
-            format(new Date(data.endDate), "yyyy-MM-dd")
-          );
-          canonicalRoomOptions = buildProviderRoomOptions(invData || []);
-          setInventory(invData || []);
-          setAvailability(availData || []);
-        } catch (e) {
-          console.error("Failed to load inventory:", e);
+        // Only fetch inventory and availability if the user is a Hotel Provider (not passing instanceId)
+        if (!props.instanceId) {
+          try {
+            const supplierInfo = await hotelProviderService.getSupplierInfo();
+            setProviderSupplierIds(supplierInfo.map((s) => s.id));
+            const invData = await hotelProviderService.getAccommodations();
+            const availData = await hotelProviderService.getRoomAvailability(
+              format(new Date(data.startDate), "yyyy-MM-dd"),
+              format(new Date(data.endDate), "yyyy-MM-dd")
+            );
+            canonicalRoomOptions = buildProviderRoomOptions(invData || []);
+            setInventory(invData || []);
+            setAvailability(availData || []);
+          } catch (e) {
+            console.error("Failed to load inventory:", e);
+          }
+        } else {
+          // Tour Operator view: Fetch hotel suppliers matching continent
+          try {
+            const { supplierService } = await import("@/api/services/supplierService");
+            const suppliers = await supplierService.getSuppliers("Accommodation", data.continent);
+            setHotelSuppliers(suppliers);
+          } catch (e) {
+            console.error("Failed to load suppliers:", e);
+          }
         }
 
         // Initialize form state out of currently assigned accommodations
@@ -94,19 +123,38 @@ export default function HotelTourAssignmentPage() {
           day.activities?.forEach((act) => {
             if (isAccommodationActivity(act.activityType)) {
               tempAssigns[act.id] = {
+                supplierId: act.accommodation?.supplierId ?? "",
                 roomType:
                   act.accommodation?.roomType ??
                   canonicalRoomOptions[0]?.roomType ??
                   "",
                 roomCount:
-                  act.accommodation?.quantity ??
-                  Math.ceil(data.currentParticipation / 2),
+                  act.accommodation?.quantity && act.accommodation.quantity > 0
+                    ? act.accommodation.quantity
+                    : Math.max(1, Math.ceil((data.currentParticipation ?? 2) / 2)),
                 isSubmitting: false,
               };
             }
           });
         });
         setAssignments(tempAssigns);
+
+        if (props.instanceId) {
+          const sids = Object.values(tempAssigns).map(a => a.supplierId).filter(id => id);
+          const uniqueSids = Array.from(new Set(sids));
+          if (uniqueSids.length > 0) {
+            try {
+              const { supplierService } = await import("@/api/services/supplierService");
+              const accommsMap: Record<string, any[]> = {};
+              await Promise.all(uniqueSids.map(async sid => {
+                accommsMap[sid] = await supplierService.getSupplierAccommodations(sid);
+              }));
+              setAccommodationsBySupplier(accommsMap);
+            } catch (e) {
+              console.error("Failed to load supplier accommodations:", e);
+            }
+          }
+        }
       }
     } catch (error) {
       const apiError = handleApiError(error);
@@ -138,6 +186,11 @@ export default function HotelTourAssignmentPage() {
     instance.days.forEach((day) => {
       day.activities?.forEach((act) => {
         if (isAccommodationActivity(act.activityType)) {
+          if (!props.instanceId) {
+            if (!act.accommodation?.supplierId || !providerSupplierIds.includes(act.accommodation.supplierId)) {
+              return;
+            }
+          }
           acts.push({
             dayId: day.id,
             dayNumber: day.instanceDayNumber,
@@ -152,7 +205,30 @@ export default function HotelTourAssignmentPage() {
     });
 
     return acts;
-  }, [instance]);
+  }, [instance, props.instanceId, providerSupplierIds]);
+
+  const groupedAccommodationDays = useMemo(() => {
+    const dayMap = new Map<number, {
+      dayId: string;
+      dayNumber: number;
+      date: string;
+      activities: typeof accommodationActivities;
+    }>();
+
+    accommodationActivities.forEach(act => {
+      if (!dayMap.has(act.dayNumber)) {
+        dayMap.set(act.dayNumber, {
+          dayId: act.dayId,
+          dayNumber: act.dayNumber,
+          date: act.date,
+          activities: []
+        });
+      }
+      dayMap.get(act.dayNumber)!.activities.push(act);
+    });
+
+    return Array.from(dayMap.values()).sort((a, b) => a.dayNumber - b.dayNumber);
+  }, [accommodationActivities]);
 
   const approvableActivityIds = useMemo(
     () => accommodationActivities.map((activity) => activity.activityId),
@@ -217,7 +293,8 @@ export default function HotelTourAssignmentPage() {
       total++;
       if (act.accommodation) {
         const blocks = act.accommodation.roomBlocksTotal ?? 0;
-        if (blocks >= act.accommodation.quantity) {
+        const qty = act.accommodation.quantity ?? 0;
+        if ((qty > 0 && blocks >= qty) || (qty === 0 && blocks > 0)) {
           assigned++;
         }
       }
@@ -240,7 +317,29 @@ export default function HotelTourAssignmentPage() {
     return availItem.availableRooms + ownBlocks;
   };
 
-  const handleAssignmentChange = (activityId: string, field: "roomType" | "roomCount", value: string | number) => {
+  const handleAssignmentChange = async (activityId: string, field: "supplierId" | "roomType" | "roomCount", value: string | number) => {
+    if (field === "supplierId" && value) {
+      const sid = value as string;
+      if (!accommodationsBySupplier[sid]) {
+        try {
+          const { supplierService } = await import("@/api/services/supplierService");
+          const accomms = await supplierService.getSupplierAccommodations(sid);
+          setAccommodationsBySupplier(prev => ({ ...prev, [sid]: accomms }));
+        } catch (e) {
+          console.error("Failed to load supplier accommodations:", e);
+        }
+      }
+      setAssignments((prev) => ({
+        ...prev,
+        [activityId]: {
+          ...prev[activityId],
+          supplierId: sid,
+          roomType: "", // reset roomType when supplier changes
+        },
+      }));
+      return;
+    }
+
     setAssignments((prev) => ({
       ...prev,
       [activityId]: {
@@ -276,6 +375,40 @@ export default function HotelTourAssignmentPage() {
       const apiError = handleApiError(error);
       toast.error(t(apiError.message));
     } finally {
+      setAssignments((prev) => ({
+        ...prev,
+        [activityId]: { ...prev[activityId], isSubmitting: false },
+      }));
+    }
+  };
+
+  const handleSetRequirements = async (activityId: string) => {
+    const currentState = assignments[activityId];
+    if (!currentState) return;
+    if (inFlightActivitiesRef.current.has(activityId)) return;
+    inFlightActivitiesRef.current.add(activityId);
+
+    setAssignments((prev) => ({
+      ...prev,
+      [activityId]: { ...prev[activityId], isSubmitting: true },
+    }));
+
+    try {
+      const res = await tourInstanceService.setAccommodationRequirements(instanceId, activityId, {
+        supplierId: currentState.supplierId,
+        roomType: currentState.roomType,
+        quantity: currentState.roomCount,
+      });
+
+      if (res) {
+        toast.success(t("requirements_set_successfully") || "Requirements set successfully.");
+        await fetchDetail();
+      }
+    } catch (error: any) {
+      const apiError = handleApiError(error);
+      toast.error(t(apiError.message));
+    } finally {
+      inFlightActivitiesRef.current.delete(activityId);
       setAssignments((prev) => ({
         ...prev,
         [activityId]: { ...prev[activityId], isSubmitting: false },
@@ -327,16 +460,13 @@ export default function HotelTourAssignmentPage() {
 
   // Derive aggregate hotel approval from per-accommodation supplier statuses
   const aggregateHotelApproval = useMemo(() => {
-    if (!instance?.days) return 0; // NotAssigned
-    const statuses = instance.days
-      .flatMap((d) => d.activities ?? [])
-      .filter((a) => isAccommodationActivity(a.activityType))
-      .map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
+    if (accommodationActivities.length === 0) return 0; // NotAssigned
+    const statuses = accommodationActivities.map((a) => a.accommodation?.supplierApprovalStatus ?? "NotAssigned");
     if (statuses.length === 0) return 0;
     if (statuses.some((s) => s === "Rejected")) return 3;
     if (statuses.every((s) => s === "Approved")) return 2;
     return 1; // Pending
-  }, [instance]);
+  }, [accommodationActivities]);
 
   const isApproved = aggregateHotelApproval === 2;
 
@@ -352,7 +482,7 @@ export default function HotelTourAssignmentPage() {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <p className="mb-4 text-slate-500">{t("tour_not_found") || "Tour not found"}</p>
-        <Button variant="outline" onClick={() => router.push("/hotel/tour-approvals")}>
+        <Button variant="outline" onClick={() => router.push(backUrl)}>
           <ArrowLeft className="mr-2" /> {t("back_to_list") || "Back to list"}
         </Button>
       </div>
@@ -360,28 +490,34 @@ export default function HotelTourAssignmentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.push("/hotel/tour-approvals")} className="-ml-3">
-            <ArrowLeft size={20} />
+    <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8 md:py-10 space-y-8 bg-[#f9fafb] min-h-screen">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <Button variant="ghost" onClick={() => router.push(backUrl)} className="-ml-3 mt-1 md:mt-0 shrink-0 hover:bg-slate-200/50 transition-colors">
+            <ArrowLeft size={24} weight="bold" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{instance.title}</h1>
-            <p className="text-sm text-slate-500">
+          <div className="min-w-0 flex flex-col gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wider w-fit border border-indigo-100">
+              <Bed size={14} weight="bold" />
+              {t("accommodation_assignment") || "Accommodation Assignment"}
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter text-slate-900 leading-none break-words">
+              {instance.title}
+            </h1>
+            <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
               {instance.tourInstanceCode} • {format(new Date(instance.startDate), "MMM dd, yyyy")} - {format(new Date(instance.endDate), "MMM dd, yyyy")}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pl-12 md:pl-0">
           {aggregateHotelApproval === 1 && (
-            <Badge className="bg-warning-500 text-white px-2.5 py-0.5 text-xs">{t("pending_approval") || "Pending Approval"}</Badge>
+            <Badge className="bg-warning-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("pending_approval") || "Pending Approval"}</Badge>
           )}
           {aggregateHotelApproval === 2 && (
-            <Badge className="bg-success-500 text-white px-2.5 py-0.5 text-xs">{t("approved") || "Approved"}</Badge>
+            <Badge className="bg-success-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("approved") || "Approved"}</Badge>
           )}
           {aggregateHotelApproval === 3 && (
-            <Badge className="bg-danger-500 text-white px-2.5 py-0.5 text-xs">{t("rejected") || "Rejected"}</Badge>
+            <Badge className="bg-danger-500 text-white px-3 py-1 text-xs md:text-sm font-semibold tracking-wide uppercase rounded-full shadow-sm">{t("rejected") || "Rejected"}</Badge>
           )}
         </div>
       </div>
@@ -389,31 +525,31 @@ export default function HotelTourAssignmentPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Info Column */}
         <div className="space-y-6 md:col-span-1">
-          <Card className="p-5">
-            <h3 className="mb-4 font-semibold text-slate-800">{t("tour_summary") || "Tour Summary"}</h3>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-slate-500">{t("participants") || "Participants"}</dt>
-                <dd className="font-medium">{instance.currentParticipation} / {instance.maxParticipation}</dd>
+          <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+            <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("tour_summary") || "Tour Summary"}</h3>
+            <dl className="space-y-4 text-sm md:text-base text-slate-600">
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <dt>{t("participants") || "Participants"}</dt>
+                <dd className="font-semibold text-slate-900">{instance.currentParticipation} / {instance.maxParticipation}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-slate-500">{t("duration") || "Duration"}</dt>
-                <dd className="font-medium">{instance.durationDays} {t("days", { count: instance.durationDays })}</dd>
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <dt>{t("duration") || "Duration"}</dt>
+                <dd className="font-semibold text-slate-900">{instance.durationDays} {t("days", { count: instance.durationDays })}</dd>
               </div>
             </dl>
           </Card>
 
           {/* Action Card */}
-          {aggregateHotelApproval === 1 && (
-            <Card className="p-5">
-              <h3 className="mb-4 font-semibold text-slate-800">{t("action_required") || "Action Required"}</h3>
+          {aggregateHotelApproval === 1 && !props.instanceId && (
+            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">{t("action_required") || "Action Required"}</h3>
               <p className="mb-4 text-sm text-slate-600">
-                {t("review_rooms_desc") || "Please assign room availability for each accommodation requirement before approving this tour."}
+                Vui lòng xem xét các yêu cầu đặt phòng dưới đây và phản hồi đồng ý hoặc từ chối. Hệ thống sẽ tự động cấu hình việc gán phòng.
               </p>
               <p className="mb-4 text-xs font-medium text-slate-500">
                 {pendingApprovalCount > 0
-                  ? `${pendingApprovalCount} accommodation activities are still awaiting your approval.`
-                  : "All assigned accommodation activities are ready for a bulk approval decision."}
+                  ? `Có ${pendingApprovalCount} hoạt động cần bạn duyệt.`
+                  : "Tất cả đã được xử lý xong."}
               </p>
               {pendingApprovalActivities.length > 0 && (
                 <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -437,8 +573,6 @@ export default function HotelTourAssignmentPage() {
                   variant="primary" 
                   className="w-full justify-center" 
                   onClick={() => setIsApproveModalOpen(true)}
-                  disabled={totalAccoms > 0 && assignedAccoms < totalAccoms}
-                  title={totalAccoms > 0 && assignedAccoms < totalAccoms ? (t("please_assign_rooms_first") || "Please assign all rooms before approving") : ""}
                 >
                   <Check className="mr-2" />{" "}
                   {t("approve_assignment", { defaultValue: "Approve All Activities" })}
@@ -456,8 +590,8 @@ export default function HotelTourAssignmentPage() {
         <div className="space-y-6 md:col-span-2">
           {/* Inventory Summary Table */}
           {inventory.length > 0 && (
-            <Card className="p-5">
-              <h3 className="mb-4 font-semibold text-slate-800">Tổng quan phòng của tôi</h3>
+            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+              <h3 className="mb-6 text-xl font-semibold tracking-tight text-slate-800">Tổng quan phòng của tôi</h3>
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
@@ -501,45 +635,65 @@ export default function HotelTourAssignmentPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-2 text-xs text-slate-400">* "Còn có thể gán" = tổng phòng trống + phòng đang giữ cho tour này (để không bị trừ 2 lần)</p>
+              <p className="mt-2 text-xs text-slate-400">* &quot;Còn có thể gán&quot; = tổng phòng trống + phòng đang giữ cho tour này (để không bị trừ 2 lần)</p>
             </Card>
           )}
 
           {/* Progress Bar */}
-          <Card className="p-5">
-             <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
-                <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned") || "Assigned"}</span>
-             </div>
-             <div className="w-full bg-slate-200 rounded-full h-2.5">
-                <div 
-                  className={`h-2.5 rounded-full transition-all duration-500 ${progressPercent === 100 ? 'bg-success-500' : 'bg-primary'}`} 
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
-             </div>
-             {progressPercent === 100 && aggregateHotelApproval === 1 && (
-                <p className="mt-3 text-sm text-success-600 flex items-center gap-1.5 font-medium">
-                  <Check size={16} weight="bold" /> {t("ready_to_approve") || "All rooms are assigned. You can now approve the tour."}
-                </p>
-             )}
-          </Card>
+          {!!props.instanceId && (
+            <Card className="p-6 lg:p-8 rounded-[1.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] bg-white">
+               <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+                  <h3 className="text-xl font-semibold tracking-tight text-slate-800">{t("assignment_progress") || "Assignment Progress"}</h3>
+                  <span className="text-sm font-medium text-slate-600">{assignedAccoms} / {totalAccoms} {t("assigned") || "Assigned"}</span>
+               </div>
+               <div className="w-full bg-slate-200 rounded-full h-2.5">
+                  <div 
+                    className={`h-2.5 rounded-full transition-all duration-500 ${progressPercent === 100 ? 'bg-success-500' : 'bg-primary'}`} 
+                    style={{ width: `${progressPercent}%` }}
+                  ></div>
+               </div>
+               {progressPercent === 100 && aggregateHotelApproval === 1 && (
+                  <p className="mt-3 text-sm text-success-600 flex items-center gap-1.5 font-medium">
+                    <Check size={16} weight="bold" /> {t("ready_to_approve") || "All rooms are assigned. You can now approve the tour."}
+                  </p>
+               )}
+            </Card>
+          )}
 
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-            <Bed size={24} className="text-primary-600" />
-            {t("accommodation_requirements") || "Accommodation Requirements"}
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-8 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
+              <div className="p-2.5 bg-indigo-100 rounded-xl">
+                <Bed size={24} weight="bold" className="text-indigo-600 shrink-0" />
+              </div>
+              <span className="break-words leading-tight">{t("accommodation_requirements") || "Accommodation Requirements"}</span>
+            </h2>
+          </div>
           
-          {accommodationActivities.length === 0 ? (
-            <Card className="p-8 text-center text-slate-500">
+          {groupedAccommodationDays.length === 0 ? (
+            <Card className="p-12 text-center text-slate-500 rounded-[1.5rem] border border-slate-200/50 border-dashed bg-slate-50">
+              <Bed size={48} className="mx-auto mb-4 text-slate-300" weight="light" />
               {t("no_accommodation_requirements") || "No accommodation requirements for this tour."}
             </Card>
           ) : (
-            accommodationActivities.map((act) => {
+            groupedAccommodationDays.map((dayGroup) => (
+              <div key={dayGroup.dayId} className="flex flex-col gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                   <div className="flex flex-col justify-center items-center bg-indigo-50 border border-indigo-100 rounded-xl p-3 min-w-[80px]">
+                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Day</span>
+                      <span className="text-2xl font-black text-indigo-700">{dayGroup.dayNumber}</span>
+                   </div>
+                   <div>
+                     <h3 className="text-lg font-bold text-slate-800">{format(new Date(dayGroup.date), "EEEE, MMM d, yyyy")}</h3>
+                     <p className="text-sm text-slate-500">{dayGroup.activities.length} accommodation activities</p>
+                   </div>
+                </div>
+                
+                {dayGroup.activities.map((act) => {
               const state = assignments[act.activityId];
               // ✅ Phòng được coi là "đã gán đủ" chỉ khi roomBlocksTotal >= quantity (hard block tồn tại)
               const roomBlocks = act.accommodation?.roomBlocksTotal ?? 0;
               const requiredQty = act.accommodation?.quantity ?? 0;
-              const isFullyBlocked = requiredQty > 0 && roomBlocks >= requiredQty;
+              const isFullyBlocked = (requiredQty > 0 && roomBlocks >= requiredQty) || (requiredQty === 0 && roomBlocks > 0);
               // roomType đã được chọn (form đã điền) nhưng chưa chắc đã block đủ
               const hasRoomTypeSet = !!act.accommodation?.roomType;
 
@@ -551,10 +705,10 @@ export default function HotelTourAssignmentPage() {
               return (
                 <Card
                   key={act.activityId}
-                  className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between transition-all ${
+                  className={`flex flex-col gap-4 p-6 lg:p-8 rounded-[1.5rem] border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] sm:flex-row sm:items-start sm:justify-between transition-all duration-300 ${
                     isFullyBlocked
-                      ? "ring-2 ring-emerald-200 bg-emerald-50/30"
-                      : "bg-white"
+                      ? "ring-1 ring-emerald-200 border-emerald-200 bg-emerald-50/20"
+                      : "border-slate-200/50 bg-white hover:border-slate-300/80 hover:shadow-md"
                   }`}
                 >
                   {/* ── LEFT: Activity info ── */}
@@ -578,39 +732,39 @@ export default function HotelTourAssignmentPage() {
                       )}
                     </div>
 
-                    <h4 className="font-semibold text-slate-800">{act.title}</h4>
+                    <h4 className="text-xl font-bold tracking-tight text-slate-800 leading-tight mt-1">{act.title}</h4>
                     {act.description && (
-                      <p className="mt-1 text-sm text-slate-600 line-clamp-2">{act.description}</p>
+                      <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{act.description}</p>
                     )}
 
                     {/* Current assignment summary */}
                     {hasRoomTypeSet && (
-                      <div className="mt-3 flex gap-2 text-sm flex-wrap">
-                        <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                          <Bed size={14} className="text-slate-400" />
-                          <span className="text-slate-500">Loại:</span>
-                          <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
+                      <div className="mt-4 flex gap-3 text-sm flex-wrap">
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                          <Bed size={16} className="text-slate-400" />
+                          <span className="text-slate-500 font-medium">Loại:</span>
+                          <span className="font-bold text-slate-800">{act.accommodation?.roomType}</span>
                         </div>
-                        <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                          <span className="text-slate-500">Yêu cầu:</span>
-                          <span className="font-semibold text-slate-800">{requiredQty} phòng</span>
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                          <span className="text-slate-500 font-medium">Yêu cầu:</span>
+                          <span className="font-bold text-slate-800">{requiredQty} phòng</span>
                         </div>
-                        <div className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 ${
+                        <div className={`inline-flex items-center gap-2 rounded-xl border shadow-sm px-3.5 py-2 ${
                           isFullyBlocked
-                            ? "bg-emerald-50 border-emerald-100"
-                            : "bg-amber-50 border-amber-100"
+                            ? "bg-emerald-50 border-emerald-200"
+                            : "bg-amber-50 border-amber-200"
                         }`}>
-                          <span className="text-slate-500">Đã block:</span>
-                          <span className={`font-semibold ${
-                            isFullyBlocked ? "text-emerald-700" : "text-amber-700"
+                          <span className={`${isFullyBlocked ? "text-emerald-700/80" : "text-amber-700/80"} font-medium`}>Đã block:</span>
+                          <span className={`font-bold ${
+                            isFullyBlocked ? "text-emerald-800" : "text-amber-800"
                           }`}>
                             {roomBlocks} / {requiredQty}
                           </span>
                         </div>
-                        {act.accommodation.supplierApprovalStatus && (
-                          <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5">
-                            <span className="text-slate-500">Duyệt:</span>
-                            <span className="font-medium text-slate-800">{act.accommodation.supplierApprovalStatus}</span>
+                        {act.accommodation?.supplierApprovalStatus && (
+                          <div className="inline-flex items-center gap-2 rounded-xl bg-white border border-slate-200 shadow-sm px-3.5 py-2">
+                            <span className="text-slate-500 font-medium">Duyệt:</span>
+                            <span className="font-bold text-slate-800">{act.accommodation?.supplierApprovalStatus}</span>
                           </div>
                         )}
                       </div>
@@ -618,97 +772,91 @@ export default function HotelTourAssignmentPage() {
                   </div>
 
                   {/* ── RIGHT: Assignment form ── */}
-                  {aggregateHotelApproval === 1 && state && (
+                  {state && !!props.instanceId && (
                     <div className="flex flex-col gap-3 sm:w-[300px] sm:flex-none">
-                      {isFullyBlocked ? (
-                        /* ✅ Đã gán đủ: form read-only, chỉ cho phép cập nhật nếu muốn */
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                          <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
-                            <Check size={14} weight="bold" /> Phòng đã được giữ chỗ thành công
-                          </p>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-slate-500">Loại:</span>
-                            <span className="font-semibold text-slate-800">{act.accommodation.roomType}</span>
-                            <span className="mx-1 text-slate-300">•</span>
-                            <span className="text-slate-500">Số lượng:</span>
-                            <span className="font-semibold text-emerald-700">{roomBlocks} phòng</span>
-                          </div>
-                          <button
-                            className="mt-2 text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 transition-colors"
-                            onClick={() => {
-                              // Expand inline edit
-                              setAssignments(prev => ({
-                                ...prev,
-                                [act.activityId]: { ...prev[act.activityId], _editing: true } as any,
-                              }));
-                            }}
-                          >
-                            Thay đổi phân bổ phòng
-                          </button>
-                        </div>
-                      ) : (
-                        /* 📝 Chưa đủ block: form nhập phòng */
-                        <>
-                          {/* Available rooms indicator */}
-                          {effectiveAvail !== null && (
-                            <div className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium ${
-                              effectiveAvail === 0
-                                ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                                : effectiveAvail < (state.roomCount ?? 1)
-                                ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
-                                : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            }`}>
-                              <span>
-                                {effectiveAvail === 0
-                                  ? "⛔ Hết phòng loại này vào ngày này"
-                                  : effectiveAvail < (state.roomCount ?? 1)
-                                  ? `⚠️ Chỉ còn ${effectiveAvail} phòng — ít hơn yêu cầu`
-                                  : `✓ Còn ${effectiveAvail} phòng có thể gán`}
-                              </span>
-                              <span className="opacity-60">/ {(() => {
-                                const actDateStr = format(new Date(act.date), "yyyy-MM-dd");
-                                const av = availability.find(a => a.date.startsWith(actDateStr) && a.roomType === state.roomType);
-                                return av?.totalRooms ?? "?";
-                              })()} tổng</span>
+                      {/* Tour Operator View */}
+                          {act.accommodation?.supplierApprovalStatus === "Approved" ? (
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                              <p className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-1">
+                                <Check size={14} weight="bold" /> Yêu cầu đã được duyệt
+                              </p>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-slate-500">Loại:</span>
+                                <span className="font-semibold text-slate-800">{act.accommodation?.roomType}</span>
+                                <span className="mx-1 text-slate-300">•</span>
+                                <span className="text-slate-500">Yêu cầu:</span>
+                                <span className="font-semibold text-emerald-700">{requiredQty} phòng</span>
+                              </div>
                             </div>
+                          ) : (
+                            <>
+                              <div className="flex flex-col gap-3">
+                                <div>
+                                  <Select
+                                    label="Khách sạn / Nhà cung cấp (Tùy chọn)"
+                                    options={[
+                                      { value: "", label: "Chưa chọn (Chỉ đặt phòng)..." },
+                                      ...hotelSuppliers.map((s) => ({ value: s.id, label: s.name }))
+                                    ]}
+                                    value={state.supplierId}
+                                    onChange={(e) => handleAssignmentChange(act.activityId, "supplierId", e.target.value)}
+                                  />
+                                </div>
+                                <div className="flex items-end gap-3">
+                                  <div className="flex-1">
+                                    <Select
+                                      label="Loại phòng"
+                                      options={state.supplierId ? [
+                                        { value: "", label: "Chọn loại phòng..." },
+                                        ...(accommodationsBySupplier[state.supplierId] || []).map((a: any) => ({
+                                          value: a.roomType,
+                                          label: `${a.name || a.roomType} (${a.totalRooms} phòng)`,
+                                        }))
+                                      ] : [
+                                        { value: "", label: "Chọn loại phòng cơ bản..." },
+                                        { value: "Single", label: "Single" },
+                                        { value: "Double", label: "Double" },
+                                        { value: "Twin", label: "Twin" },
+                                        { value: "Triple", label: "Triple" },
+                                        { value: "Quad", label: "Quad" },
+                                        { value: "Family", label: "Family" },
+                                        { value: "Suite", label: "Suite" },
+                                        { value: "Dormitory", label: "Dormitory" },
+                                        { value: "Standard", label: "Standard" },
+                                        { value: "Deluxe", label: "Deluxe" }
+                                      ]}
+                                      value={state.roomType}
+                                      onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="w-24">
+                                    <TextInput
+                                      label="Số phòng"
+                                      type="number"
+                                      min={1}
+                                      value={state.roomCount.toString()}
+                                      onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                                <Button
+                                  variant="primary"
+                                  className="w-full justify-center"
+                                  onClick={() => handleSetRequirements(act.activityId)}
+                                  disabled={state.isSubmitting || !state.roomType}
+                                >
+                                {state.isSubmitting ? "Đang lưu..." : "Lưu yêu cầu phòng"}
+                              </Button>
+                            </>
                           )}
-
-                          <div className="flex items-end gap-3">
-                            <div className="flex-1">
-                              <Select
-                                label="Loại phòng"
-                                options={roomTypeOptions}
-                                value={state.roomType}
-                                onChange={(e) => handleAssignmentChange(act.activityId, "roomType", e.target.value)}
-                              />
-                            </div>
-                            <div className="w-24">
-                              <TextInput
-                                label={`Số phòng (cần ${requiredQty})`}
-                                type="number"
-                                min={1}
-                                max={requiredQty}
-                                value={state.roomCount.toString()}
-                                onChange={(e) => handleAssignmentChange(act.activityId, "roomCount", parseInt(e.target.value) || 1)}
-                              />
-                            </div>
-                          </div>
-
-                          <Button
-                            variant="primary"
-                            className="w-full justify-center"
-                            onClick={() => handleAssignRoom(act.activityId)}
-                            disabled={state.isSubmitting || effectiveAvail === 0}
-                          >
-                            {state.isSubmitting ? "Đang gán..." : roomBlocks > 0 ? `Cập nhật (đang giữ ${roomBlocks})` : "Gán phòng"}
-                          </Button>
-                        </>
-                      )}
                     </div>
                   )}
                 </Card>
               );
-            })
+                })}
+              </div>
+            ))
           )}
         </div>
       </div>

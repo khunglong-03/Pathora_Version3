@@ -293,6 +293,42 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body: { request: body },
       }),
       invalidatesTags: ["Auth"],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          
+          // Pessimistically update the Redux auth user state
+          dispatch((dispatchFn, getState) => {
+            const state = getState() as import("@/store").RootState;
+            const user = state.auth.user;
+            if (user) {
+              dispatchFn(
+                setUser({
+                  ...user,
+                  fullName: arg.fullName ?? user.fullName,
+                  phoneNumber: arg.phoneNumber ?? user.phoneNumber,
+                  address: arg.address ?? user.address,
+                  avatar: arg.avatar ?? user.avatar,
+                })
+              );
+            }
+          });
+
+          // Also pessimistically update the cached data for getUserInfo
+          dispatch(
+            authApiSlice.util.updateQueryData("getUserInfo", undefined, (draft) => {
+              if (draft.data) {
+                if (arg.fullName !== undefined) draft.data.fullName = arg.fullName;
+                if (arg.phoneNumber !== undefined) draft.data.phoneNumber = arg.phoneNumber;
+                if (arg.address !== undefined) draft.data.address = arg.address;
+                if (arg.avatar !== undefined) draft.data.avatar = arg.avatar;
+              }
+            })
+          );
+        } catch {
+          // Do nothing on failure, let invalidatesTags handle it
+        }
+      },
     }),
 
     /**

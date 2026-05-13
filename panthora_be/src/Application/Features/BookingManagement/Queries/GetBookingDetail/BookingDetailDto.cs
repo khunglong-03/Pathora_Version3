@@ -11,6 +11,7 @@ public class BookingDetailDto
     public string Status { get; set; } = string.Empty;
     public string TourStatus { get; set; } = string.Empty;
     public Guid TourInstanceId { get; set; }
+    public bool IsVisaRequired { get; set; }
     public string PaymentStatus { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
@@ -25,9 +26,37 @@ public class BookingDetailDto
     public decimal TotalAmount { get; set; }
     public decimal PaidAmount { get; set; }
     public decimal RemainingBalance { get; set; }
+    public decimal VisaServiceFeeTotal { get; set; }
     public string Image { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public List<string> Highlights { get; set; } = [];
     public List<string> ImportantInfo { get; set; } = [];
     public string? PendingTransactionCode { get; set; }
+    public List<PendingTransactionDto> PendingTransactions { get; set; } = [];
+    public BookingCancellationRequestSummaryDto? CancellationRequest { get; set; }
+    public List<BookingCancellationRequestSummaryDto> CancellationRequests { get; set; } = [];
 }
+
+public class PendingTransactionDto
+{
+    public string TransactionCode { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Purpose { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
+}
+
+public class BookingCancellationRequestSummaryDto
+{
+    public Guid RequestId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public int FeePercent { get; set; }
+    public decimal PaidAmountSnapshot { get; set; }
+    public decimal RefundAmount { get; set; }
+    public string? ManagerNote { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public DateTimeOffset? RefundConfirmedAt { get; set; }
+}
+

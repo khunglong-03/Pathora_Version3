@@ -30,7 +30,7 @@ public sealed class CreateVehicleRequestDtoValidator : AbstractValidator<CreateV
             .WithMessage(ValidationMessages.VehicleOperatingCountriesInvalidFormat);
 
         RuleFor(x => x.LocationArea)
-            .IsInEnum().When(x => x.LocationArea.HasValue)
+            .Must(x => Enum.IsDefined(typeof(Domain.Enums.Continent), x!.Value)).When(x => x.LocationArea.HasValue)
             .WithMessage(ValidationMessages.VehicleLocationAreaInvalid);
     }
 

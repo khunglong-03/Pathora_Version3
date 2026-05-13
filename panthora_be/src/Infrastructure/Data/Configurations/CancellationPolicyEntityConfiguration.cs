@@ -64,6 +64,10 @@ public class CancellationPolicyEntityConfiguration : IEntityTypeConfiguration<Ca
                         (JsonSerializerOptions?)null) ?? new Dictionary<string, Domain.Entities.Translations.CancellationPolicyTranslationData>()));
 
         // Indexes
+        builder.HasIndex(p => p.TourScope)
+            .IsUnique()
+            .HasFilter("\"Status\" = 'Active' AND \"IsDeleted\" = false");
+
         builder.HasIndex(p => new { p.TourScope, p.Status, p.IsDeleted });
         builder.HasIndex(p => new { p.Status, p.IsDeleted });
         builder.HasIndex(p => p.CreatedOnUtc);

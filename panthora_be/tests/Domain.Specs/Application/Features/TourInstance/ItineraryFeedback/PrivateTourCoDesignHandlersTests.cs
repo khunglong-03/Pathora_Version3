@@ -64,11 +64,11 @@ public sealed class PrivateTourCoDesignHandlersTests
     }
 
     [Fact]
-    public async Task SetFinalSellPrice_Fails_WhenInstanceNotDraft()
+    public async Task SetFinalSellPrice_Fails_WhenInstanceNotPrivate()
     {
         var userId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(Guid.NewGuid());
-        instance.Status = TourInstanceStatus.Available;
+        instance.InstanceType = TourType.Public; // Not private
 
         _ownershipValidator.GetCurrentUserId().Returns(userId.ToString());
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
@@ -103,7 +103,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         var customerId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(dayId);
-        instance.FinalSellPrice = 12000m;
+        instance.BasePrice = 12000m;
         instance.Managers.Add(new TourInstanceManagerEntity { UserId = managerId, Role = TourInstanceManagerRole.Manager });
 
         var booking = BookingEntity.Create(
@@ -150,6 +150,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
         _bookingRepository.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
         _bookingRepository.UpdateAsync(Arg.Any<BookingEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
 
@@ -169,6 +170,7 @@ public sealed class PrivateTourCoDesignHandlersTests
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
             CancellationToken.None);
 
+        if (result.IsError) Assert.Fail(result.FirstError.Description);
         Assert.False(result.IsError);
         Assert.Equal(9000m, result.Value.Delta); // Delta expected to be 9000
         Assert.NotNull(result.Value.TopUpTransactionId);
@@ -183,7 +185,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         var customerId = Guid.NewGuid();
         var dayId = Guid.NewGuid();
         var instance = PrivateInstanceWithOneDay(dayId);
-        instance.FinalSellPrice = 8000m;
+        instance.BasePrice = 8000m;
         instance.Managers.Add(new TourInstanceManagerEntity { UserId = managerId, Role = TourInstanceManagerRole.Manager });
 
         var booking = BookingEntity.Create(
@@ -214,6 +216,7 @@ public sealed class PrivateTourCoDesignHandlersTests
         _ownershipValidator.GetCurrentUserId().Returns(managerId.ToString());
         _ownershipValidator.IsAdminAsync(Arg.Any<CancellationToken>()).Returns(false);
         _bookingRepository.GetByIdWithDetailsAsync(booking.Id, Arg.Any<CancellationToken>()).Returns(booking);
+        _tourInstanceRepository.FindById(instance.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(instance);
         _tourInstanceRepository.Update(Arg.Any<TourInstanceEntity>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _unitOfWork.SaveChangeAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(1));
 
@@ -233,6 +236,7 @@ public sealed class PrivateTourCoDesignHandlersTests
             new ApplyPrivateTourSettlementCommand(instance.Id, booking.Id),
             CancellationToken.None);
 
+        if (result.IsError) Assert.Fail(result.FirstError.Description);
         Assert.False(result.IsError);
         Assert.Equal(-2000m, result.Value.Delta);
         Assert.Equal(2000m, result.Value.CreditAmount);

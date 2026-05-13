@@ -120,4 +120,14 @@ public class UserEntity : Aggregate<Guid>
         Balance += amount;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
+
+    public void DebitBalance(decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Debit amount must be greater than 0.");
+        if (Balance < amount)
+            throw new InvalidOperationException("Insufficient balance.");
+        Balance -= amount;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 }

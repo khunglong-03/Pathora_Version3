@@ -2,7 +2,6 @@
 
 import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
-import TextInput from "@/components/ui/TextInput";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
 
@@ -12,15 +11,19 @@ interface SearchBarProps {
   onSearchSubmit: () => void;
   onFilterToggle?: () => void;
   showFilterButton?: boolean;
+  onContinentSelect?: (continentId: number | null) => void;
+  activeContinent?: number | null;
 }
 
-const QUICK_DESTINATIONS = [
-  { label: "Ha Long Bay", value: "Ha Long Bay" },
-  { label: "Hanoi", value: "Hanoi" },
-  { label: "Sapa", value: "Sapa" },
-  { label: "Mekong Delta", value: "Mekong Delta" },
-  { label: "Da Nang", value: "Da Nang" },
-  { label: "Hoi An", value: "Hoi An" },
+/** Continent chips matching the backend Continent enum values.
+ *  These mirror the home page "Bạn muốn đi đâu?" section for consistency. */
+const CONTINENT_CHIPS = [
+  { id: null, labelKey: "landing.tourDiscovery.continents.all", fallback: "Tất cả" },
+  { id: 1,    labelKey: "landing.tourDiscovery.continents.asia", fallback: "Châu Á" },
+  { id: 2,    labelKey: "landing.tourDiscovery.continents.europe", fallback: "Châu Âu" },
+  { id: 4,    labelKey: "landing.tourDiscovery.continents.americas", fallback: "Châu Mỹ" },
+  { id: 3,    labelKey: "landing.tourDiscovery.continents.africa", fallback: "Châu Phi" },
+  { id: 5,    labelKey: "landing.tourDiscovery.continents.oceania", fallback: "Châu Đại Dương" },
 ];
 
 export const SearchBar = ({
@@ -29,6 +32,8 @@ export const SearchBar = ({
   onSearchSubmit,
   onFilterToggle,
   showFilterButton = true,
+  onContinentSelect,
+  activeContinent = null,
 }: SearchBarProps) => {
   const { t } = useTranslation();
   const mounted = useSyncExternalStore(
@@ -39,11 +44,6 @@ export const SearchBar = ({
 
   const safeT = (key: string, fallback: string) => {
     return mounted ? t(key, fallback) : fallback;
-  };
-
-  const handleChipClick = (destination: string) => {
-    onSearchChange(destination);
-    onSearchSubmit();
   };
 
   return (
@@ -69,7 +69,7 @@ export const SearchBar = ({
                   type="text"
                   value={searchText}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder={safeT("landing.tourDiscovery.searchFullPlaceholder", "Search tours, destinations, activities...")}
+                  placeholder={safeT("landing.tourDiscovery.searchFullPlaceholder", "Tìm kiếm tour, điểm đến, hoạt động...")}
                   className="w-full h-full bg-transparent text-slate-900 placeholder:text-slate-400 pl-11 pr-4 outline-none border-none text-[15px] font-medium"
                 />
               </div>
@@ -79,8 +79,9 @@ export const SearchBar = ({
                   type="submit"
                   className="h-11 px-6 bg-[#fa8b02] text-white font-semibold rounded-xl hover:bg-[#e67a00] transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <span className="hidden sm:inline">{safeT("landing.hero.exploreTours", "Search")}</span>
-                  <Icon icon="heroicons-outline:arrow-right" className="w-4 h-4 sm:hidden" />
+                  <Icon icon="heroicons-outline:magnifying-glass" className="w-4 h-4 sm:hidden" />
+                  <span className="hidden sm:inline">{safeT("landing.tourDiscovery.searchButton", "Tìm kiếm")}</span>
+                  <Icon icon="heroicons-outline:arrow-right" className="w-4 h-4 hidden sm:block" />
                 </button>
               </div>
             </div>
@@ -94,25 +95,30 @@ export const SearchBar = ({
               className="lg:hidden flex items-center gap-2 h-12 bg-white border border-slate-200 rounded-xl px-4 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shrink-0"
             >
               <Icon icon="lucide:sliders-horizontal" className="w-5 h-5" />
-              <span>{safeT("landing.tourDiscovery.filtersLabel", "Filters")}</span>
+              <span>{safeT("landing.tourDiscovery.filtersLabel", "Bộ lọc")}</span>
             </Button>
           )}
         </div>
 
-        {/* Quick destination chips */}
-        <div className="mt-4 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-          {QUICK_DESTINATIONS.map((dest) => (
-            <button
-              key={dest.value}
-              type="button"
-              onClick={() => handleChipClick(dest.value)}
-              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-landing-heading bg-white border border-white/40 shadow-sm rounded-full hover:bg-slate-50 hover:-translate-y-0.5 transition-all"
-            >
-              <Icon icon="heroicons-outline:map-pin" className="w-4 h-4 text-[#fa8b02]" />
-              {dest.label}
-            </button>
-          ))}
-        </div>
+        {/* Continent filter chips — matches home page "Bạn muốn đi đâu?" */}
+        {onContinentSelect && (
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+            {CONTINENT_CHIPS.map((chip) => (
+              <button
+                key={chip.id ?? "all"}
+                type="button"
+                onClick={() => onContinentSelect(chip.id)}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full transition-all ${
+                  activeContinent === chip.id
+                    ? "bg-stone-900 text-white shadow-md"
+                    : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-100"
+                }`}
+              >
+                {safeT(chip.labelKey, chip.fallback)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

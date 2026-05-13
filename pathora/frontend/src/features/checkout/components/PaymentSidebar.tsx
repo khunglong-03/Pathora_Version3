@@ -90,7 +90,7 @@ function PaymentStatusPanel({
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { seconds: refreshCooldown, rateLimitMsg, clearCooldown } = useRefreshCooldown();
-  const [verifyingPayment, setVerifyingPayment] = useState(false); // Task 5.4.1: optimistic UI state
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   const isTerminal = normalizedStatus === "paid" || normalizedStatus === "failed" || normalizedStatus === "cancelled" || normalizedStatus === "expired";
 
@@ -321,21 +321,6 @@ function PaymentStatusPanel({
         }`}>
         <Icon icon="heroicons:arrow-path" className={`size-4 ${refreshCooldown > 0 ? "animate-spin" : ""}`} />
         {refreshCooldown > 0 ? t("landing.payment.retryAfterMessage", { seconds: refreshCooldown }) : t("landing.payment.refreshButton")}
-      </Button>
-
-      {/* Task 5.4.1: "I have transferred" button with optimistic UI */}
-      <Button
-        type="button"
-        onClick={handleIHaveTransferred}
-        disabled={verifyingPayment}
-        className={`w-full h-10 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-colors ${
-          verifyingPayment
-            ? "bg-green-400 cursor-not-allowed"
-            : "bg-green-600 hover:bg-green-700 shadow-[0_2px_4px_0_#bbf7d0] cursor-pointer"
-        }`}
-        aria-label={t("landing.checkout.iHaveTransferredTooltip")}>
-        <Icon icon={verifyingPayment ? "heroicons:arrow-path" : "heroicons:check-circle"} className={`size-4 ${verifyingPayment ? "animate-spin" : ""}`} />
-        {verifyingPayment ? t("landing.checkout.verifyingPayment") : t("landing.checkout.iHaveTransferred")}
       </Button>
     </div>
   );

@@ -603,7 +603,7 @@ export default function PaymentStatusPage() {
             <li>Select <strong>&ldquo;Scan QR&rdquo;</strong> and scan the code above</li>
             <li>Verify the payment amount and content exactly</li>
             <li>Confirm the payment in your app</li>
-            <li>Click <strong>&ldquo;I have transferred&rdquo;</strong> above to verify immediately</li>
+            <li>The system will automatically verify the payment shortly</li>
           </ol>
         </div>
 

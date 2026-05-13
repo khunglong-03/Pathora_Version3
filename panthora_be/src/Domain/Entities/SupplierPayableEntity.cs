@@ -89,8 +89,17 @@ public class SupplierPayableEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    public void Cancel(string performedBy)
+    {
+        Status = PaymentStatus.Cancelled;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
     private void RecalculateStatus()
     {
+        if (Status == PaymentStatus.Cancelled)
+            return;
         if (PaidAmount <= 0)
         {
             Status = PaymentStatus.Unpaid;

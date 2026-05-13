@@ -50,11 +50,20 @@ export interface CustomTourRequestUpdate {
   event: string;
 }
 
+export interface CancellationRequestUpdate {
+  requestId: string;
+  bookingId: string;
+  status: string;
+  customerName: string;
+  event: string;
+}
+
 type NotificationHandler = (notification: Notification) => void;
 type BookingUpdateHandler = (update: BookingUpdate) => void;
 type TourInstanceUpdateHandler = (update: TourInstanceUpdate) => void;
 type PaymentUpdateHandler = (update: PaymentUpdate) => void;
 type CustomTourRequestHandler = (update: CustomTourRequestUpdate) => void;
+type CancellationRequestHandler = (update: CancellationRequestUpdate) => void;
 type ConnectionHandler = () => void;
 
 class SignalRService {
@@ -65,6 +74,7 @@ class SignalRService {
   private paymentUpdateHandlers: PaymentUpdateHandler[] = [];
   private itineraryFeedbackHandlers: ((event: ItineraryFeedbackEvent) => void)[] = [];
   private customTourRequestHandlers: CustomTourRequestHandler[] = [];
+  private cancellationRequestHandlers: CancellationRequestHandler[] = [];
   private connectedHandlers: ConnectionHandler[] = [];
   private disconnectedHandlers: ConnectionHandler[] = [];
   private isConnecting = false;
@@ -121,6 +131,10 @@ class SignalRService {
 
       this.connection.on("ReceiveCustomTourRequest", (update: CustomTourRequestUpdate) => {
         this.customTourRequestHandlers.forEach((handler) => handler(update));
+      });
+
+      this.connection.on("ReceiveCancellationRequest", (update: CancellationRequestUpdate) => {
+        this.cancellationRequestHandlers.forEach((handler) => handler(update));
       });
 
       // Connection state handlers
@@ -227,6 +241,20 @@ class SignalRService {
     const index = this.customTourRequestHandlers.indexOf(handler);
     if (index > -1) {
       this.customTourRequestHandlers.splice(index, 1);
+    }
+  }
+
+  onCancellationRequest(handler: CancellationRequestHandler): () => void {
+    this.cancellationRequestHandlers.push(handler);
+    return () => {
+      this.offCancellationRequest(handler);
+    };
+  }
+
+  offCancellationRequest(handler: CancellationRequestHandler): void {
+    const index = this.cancellationRequestHandlers.indexOf(handler);
+    if (index > -1) {
+      this.cancellationRequestHandlers.splice(index, 1);
     }
   }
 

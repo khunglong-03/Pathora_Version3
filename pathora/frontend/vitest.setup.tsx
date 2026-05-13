@@ -78,6 +78,10 @@ vi.mock("@phosphor-icons/react", () => ({
   Check: () => <span data-testid="mock-icon-check">Check</span>,
   CheckCircle: () => <span data-testid="mock-icon-check-circle">CheckCircle</span>,
   XCircle: () => <span data-testid="mock-icon-x-circle">XCircle</span>,
+  AirplaneTilt: () => <span data-testid="mock-icon-airplane-tilt">AirplaneTilt</span>,
+  IdentificationCard: () => <span data-testid="mock-icon-identification-card">IdentificationCard</span>,
+  WarningCircle: () => <span data-testid="mock-icon-warning-circle">WarningCircle</span>,
+  HandHeart: () => <span data-testid="mock-icon-hand-heart">HandHeart</span>,
 }));
 
 // Mock next/link

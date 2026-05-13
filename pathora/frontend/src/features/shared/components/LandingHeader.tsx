@@ -26,8 +26,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { handleCustomizer } from "@/store/layout";
 import { logOut } from "@/store/infrastructure/authSlice";
 import { useLogoutMutation } from "@/store/api/auth/authApiSlice";
+import { Globe } from "@phosphor-icons/react";
 import {
-  FiGlobe,
   FiChevronDown,
   FiCheck,
   FiSliders,
@@ -161,6 +161,13 @@ const MobileSidebar = ({
   const { t, i18n } = useTranslation();
   const { isAuth, user } = useSelector((state: RootState) => state.auth);
   const panelRef = useRef<HTMLDivElement>(null);
+  
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  
   const normalizedLanguage = (i18n.resolvedLanguage || i18n.language || "en")
     .toLowerCase()
     .split("-")[0];
@@ -213,7 +220,7 @@ const MobileSidebar = ({
 
   return (
     <Transition show={open} as={Fragment}>
-      <div className="fixed inset-0 z-50 md:hidden">
+      <div className="fixed inset-0 z-50 lg:hidden">
         <TransitionChild
           as={Fragment}
           enter="transition-opacity duration-300 ease-out"
@@ -337,21 +344,7 @@ const MobileSidebar = ({
                       className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
                     />
                     <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("booking.myBookings") || "Tour đã đặt"}
-                    </span>
-                  </Link>
-                  <Link
-                    href="/tours/my-requests"
-                    onClick={onClose}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group"
-                  >
-                    <Icon
-                      icon="heroicons-outline:clipboard-document-list"
-                      className="w-5 h-5 text-gray-400 group-hover:text-[#fa8b02] transition-colors"
-                    />
-                    <span className="text-base text-gray-200 group-hover:text-white font-medium transition-colors">
-                      {t("tourRequest.page.myRequests.title") ||
-                        "Yêu cầu thiết kế tour"}
+                      {t("bookings.title")}
                     </span>
                   </Link>
                 </div>
@@ -370,7 +363,7 @@ const MobileSidebar = ({
                       key={lang.code}
                       type="button"
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        normalizedLanguage === lang.code
+                        mounted && normalizedLanguage === lang.code
                           ? "bg-[#fa8b02] text-white"
                           : "text-gray-300 hover:text-white"
                       } min-h-9 min-w-14`}
@@ -721,7 +714,8 @@ export const LandingHeader = () => {
                   aria-expanded={languageMenuOpen}
                   aria-controls={languageMenuId}
                 >
-                  <FiGlobe
+                  <Globe
+                    weight="bold"
                     suppressHydrationWarning
                     className="w-4 h-4 text-white/70"
                   />
@@ -832,19 +826,6 @@ export const LandingHeader = () => {
                       </div>
                     </div>
 
-                    {/* My Bookings quick link */}
-                    {clientIsAuth && isCustomer && (
-                      <div className="border-t border-white/10">
-                        <Link
-                          href="/bookings"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm text-[#fa8b02] hover:bg-white/5 transition-colors"
-                        >
-                          <span>{t("booking.viewAll") || "Xem tất cả"}</span>
-                          <FiArrowRight className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    )}
 
                     {/* Menu Items */}
                     <div className="py-2 border-t border-white/10">
@@ -882,26 +863,14 @@ export const LandingHeader = () => {
                         <span>{t("common.settings") || "Cài đặt"}</span>
                       </Link>
 
-                      {/* My Bookings */}
                       <Link
                         href="/bookings"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
                       >
-                        <FiCalendar className="w-4 h-4" />
-                        <span>{t("booking.myBookings") || "Tour đã đặt"}</span>
-                      </Link>
-
-                      {/* Custom Tour Requests */}
-                      <Link
-                        href="/tours/my-requests"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
-                      >
                         <FiClipboard className="w-4 h-4" />
                         <span>
-                          {t("tourRequest.page.myRequests.title") ||
-                            "Yêu cầu thiết kế tour"}
+                          {t("bookings.title")}
                         </span>
                       </Link>
 

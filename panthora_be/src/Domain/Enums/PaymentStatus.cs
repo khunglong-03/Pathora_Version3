@@ -17,5 +17,8 @@ public enum PaymentStatus
     Settled = 4,
 
     [Description("Overpaid")]
-    Overpaid = 5
+    Overpaid = 5,
+
+    [Description("Cancelled")]
+    Cancelled = 6
 }

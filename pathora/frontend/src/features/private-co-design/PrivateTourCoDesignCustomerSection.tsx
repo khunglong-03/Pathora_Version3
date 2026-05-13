@@ -118,7 +118,8 @@ export function PrivateTourCoDesignCustomerSection({
           </h2>
           <p className="text-sm text-slate-500">{t("landing.privateCoDesign.draftItinerary")}</p>
         </div>
-        {finalSellPrice != null && finalSellPrice >= 0 ? (
+        {/* Show "Accept & Pay" ONLY when Manager has approved (PendingCustomerApproval) and price is finalized */}
+        {tourStatus === "pendingcustomerapproval" && finalSellPrice != null && finalSellPrice >= 0 ? (
           <div className="rounded-xl border border-[#fa8b02]/30 bg-orange-50/80 px-4 py-2 text-right">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               {t("landing.privateCoDesign.finalPriceLabel", "Final Price")}
@@ -153,6 +154,19 @@ export function PrivateTourCoDesignCustomerSection({
               )}
               {t("landing.privateCoDesign.acceptAndPay", "Accept & Pay")}
             </button>
+          </div>
+        ) : finalSellPrice != null && finalSellPrice >= 0 ? (
+          /* Price is finalized but manager hasn't approved yet — show info banner */
+          <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-2 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              {t("landing.privateCoDesign.estimatedPriceLabel", "Estimated Price")}
+            </p>
+            <p className="text-base font-bold text-slate-900 mb-1" data-final-sell-price-display>
+              {fmtVnd(finalSellPrice)}
+            </p>
+            <p className="text-[11px] text-sky-700">
+              {t("landing.privateCoDesign.waitingManagerApproval", "Đang chờ Manager duyệt lịch trình. Bạn sẽ được thanh toán sau khi duyệt xong.")}
+            </p>
           </div>
         ) : null}
       </div>

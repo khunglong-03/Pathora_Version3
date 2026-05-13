@@ -10,12 +10,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { paymentService } from "@/api/services/paymentService";
 import { handleApiError } from "@/utils/apiResponse";
 import { useAuth } from "@/contexts/AuthContext";
+import { CancelBookingModal } from "./CancelBookingModal";
+import { useCancellationEstimate } from "../hooks/useCancellationEstimate";
+import { useRequestCancellationMutation } from "@/store/api/bookingCancellationApi";
+import { useTranslation } from "react-i18next";
 
 interface BookingPaymentSummaryProps {
   booking: BookingDetail;
   totalGuests: number;
   showPayRemaining: boolean;
-  showVisaStatus: boolean;
   showCancelBooking: boolean;
   getPaymentStatusLabel: (s: BookingDetail["paymentStatus"]) => string;
 }
@@ -24,13 +27,34 @@ export function BookingPaymentSummary({
   booking,
   totalGuests,
   showPayRemaining,
-  showVisaStatus,
   showCancelBooking,
   getPaymentStatusLabel,
 }: BookingPaymentSummaryProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [creatingTransaction, setCreatingTransaction] = useState(false);
+
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const { estimate, isLoading: isEstimateLoading } = useCancellationEstimate(
+    isCancelModalOpen ? booking.id : null
+  );
+  const [requestCancellation, { isLoading: isRequesting }] =
+    useRequestCancellationMutation();
+
+  const handleConfirmCancel = async (reason: string) => {
+    try {
+      await requestCancellation({
+        bookingId: booking.id,
+        reason,
+      }).unwrap();
+      toast.success("Cancellation request submitted successfully.");
+      setIsCancelModalOpen(false);
+    } catch (error: unknown) {
+      const handledError = handleApiError(error);
+      toast.error(handledError.message || "Failed to submit cancellation request.");
+    }
+  };
 
   const handlePayRemaining = async () => {
     if (creatingTransaction) return;
@@ -115,29 +139,62 @@ export function BookingPaymentSummary({
           </span>
         </div>
 
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          className="v-stack p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
-        >
+        {booking.status === "cancelled" || booking.status === "rejected" ? (
           <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-20 -right-20 w-40 h-40 bg-white/5 rounded-full blur-2xl"
-          />
-          <span className="text-sm font-bold text-slate-400 mb-1 relative z-10">
-            Remaining Balance
-          </span>
-          <div className="h-stack items-center justify-between relative z-10">
-            <span className="text-3xl font-bold font-mono text-white tracking-tighter">
-              {formatCurrency(booking.remainingBalance)}
+            className="v-stack p-6 mt-4 bg-rose-50 rounded-[2rem] border border-rose-100 relative overflow-hidden shadow-sm"
+          >
+            <span className="text-sm font-bold text-rose-500 mb-1 relative z-10">
+              Booking Status
             </span>
-            <span
-              className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-white/10 text-white backdrop-blur-sm border border-white/10`}
-            >
-              {getPaymentStatusLabel(booking.paymentStatus)}
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-2xl font-bold text-rose-600 tracking-tighter capitalize">
+                {booking.status}
+              </span>
+              {booking.cancellationRequests?.some(r => r.status === "Approved" || r.status === "Refunded") && (
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-rose-200 text-rose-700">
+                  Refund Processed
+                </span>
+              )}
+            </div>
+          </motion.div>
+        ) : booking.status === "pending_cancellation" ? (
+          <motion.div 
+            className="v-stack p-6 mt-4 bg-amber-50 rounded-[2rem] border border-amber-100 relative overflow-hidden shadow-sm"
+          >
+            <span className="text-sm font-bold text-amber-500 mb-1 relative z-10">
+              Booking Status
             </span>
-          </div>
-        </motion.div>
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-2xl font-bold text-amber-600 tracking-tighter capitalize">
+                Pending Cancellation
+              </span>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            className="v-stack p-6 mt-4 bg-slate-900 rounded-[2rem] border border-slate-800 relative overflow-hidden shadow-xl shadow-slate-900/10"
+          >
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-20 -right-20 w-40 h-40 bg-white/5 rounded-full blur-2xl"
+            />
+            <span className="text-sm font-bold text-slate-400 mb-1 relative z-10">
+              Remaining Balance
+            </span>
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-3xl font-bold font-mono text-white tracking-tighter">
+                {formatCurrency(booking.remainingBalance)}
+              </span>
+              <span
+                className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-md bg-white/10 text-white backdrop-blur-sm border border-white/10`}
+              >
+                {getPaymentStatusLabel(booking.paymentStatus)}
+              </span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="v-stack gap-3 mt-8">
@@ -147,12 +204,13 @@ export function BookingPaymentSummary({
               <button
                 type="button"
                 onClick={handlePayRemaining}
-                disabled={creatingTransaction}
+                disabled={creatingTransaction || booking.status === "pending_cancellation"}
                 className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
-                  creatingTransaction
-                    ? "bg-emerald-400 cursor-not-allowed"
-                    : "bg-emerald-500 cursor-pointer"
+                  creatingTransaction || booking.status === "pending_cancellation"
+                    ? "bg-slate-400 cursor-not-allowed"
+                    : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
                 }`}
+                title={booking.status === "pending_cancellation" ? t("landing.bookings.paymentDisabledPendingCancellation") : ""}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <CurrencyCircleDollar weight="bold" className="size-5 relative z-10" />
@@ -165,33 +223,29 @@ export function BookingPaymentSummary({
             </motion.div>
           )}
 
-          {showVisaStatus && (
-            <motion.button
-              key="btn-visa"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors"
-            >
-              <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-                <AirplaneTilt weight="bold" className="size-5 text-blue-500" />
-              </motion.div>
-              Visa Status
-            </motion.button>
-          )}
-
           {showCancelBooking && (
             <motion.div key="btn-cancel" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href={`/bookings/${booking.id}/cancellation`}
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(true)}
                 className="h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] border border-red-100 bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100/50 transition-colors mt-2"
               >
                 <XCircle weight="bold" className="size-5" />
                 Cancel Booking
-              </Link>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      <CancelBookingModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+        isLoading={isEstimateLoading}
+        isRequesting={isRequesting}
+        estimate={estimate}
+      />
     </motion.div>
   );
 }

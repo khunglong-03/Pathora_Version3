@@ -412,6 +412,7 @@ export interface TourInstanceManagerDto {
   userName: string;
   userAvatar: string | null;
   role: "Guide" | "Manager";
+  isAccepted: boolean;
 }
 
 export interface DynamicPricingDto {
@@ -629,14 +630,15 @@ export interface TourInstanceDto {
   pricingPolicy?: PricingPolicyDto | null;
   cancellationPolicy?: CancellationPolicyDto | null;
   depositPolicy?: DepositPolicyDto | null;
-  /** Giá chốt sau co-design (private tour); từ API khi đã set. */
-  finalSellPrice?: number | null;
+  /** Giá gốc per-person tại thời điểm tạo (snapshot từ Classification). */
+  originalBasePrice?: number;
   /** Khách muốn tùy chỉnh lịch trình (private custom tour). */
   wantsCustomization?: boolean;
   /** Ghi chú tùy chỉnh từ khách. */
   customizationNotes?: string | null;
   /** Lý do Manager từ chối lịch trình; chỉ có khi status = PendingAdjustment. */
   managerReviewNote?: string | null;
+  continent?: number | null;
 }
 
 export type NormalizedTourInstanceVm = TourInstanceVm & {

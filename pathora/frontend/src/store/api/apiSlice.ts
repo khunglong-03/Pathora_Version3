@@ -106,6 +106,6 @@ export const baseQueryWithReauth = createBaseQueryWithReauth(rawBaseQuery);
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Products", "Orders", "Customers", "Dashboard", "events", "Auth"],
+  tagTypes: ["Products", "Orders", "Customers", "Dashboard", "events", "Auth", "BookingCancellation", "BookingDetail"],
   endpoints: () => ({}),
 });

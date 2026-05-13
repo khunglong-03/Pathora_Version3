@@ -1,0 +1,31 @@
+namespace ApiPublic.Middleware;
+
+public sealed class SecurityHeadersMiddleware(RequestDelegate next)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (context.Response.HasStarted)
+        {
+            await next(context);
+            return;
+        }
+
+        var headers = context.Response.Headers;
+
+        headers.XContentTypeOptions = "nosniff";
+        headers.XFrameOptions = "DENY";
+        headers.XXSSProtection = "0";
+        {
+            headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+
+            var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            if (!env.IsDevelopment())
+            {
+                headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+            }
+        }
+
+        await next(context);
+    }
+}

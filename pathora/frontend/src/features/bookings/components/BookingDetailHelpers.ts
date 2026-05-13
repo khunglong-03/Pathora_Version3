@@ -17,6 +17,7 @@ export const getStatusLabel = (t: (key: string) => string, s: BookingStatus) => 
     approved: t("landing.bookingDetail.statusApproved"),
     cancelled: t("landing.bookingDetail.statusCancelled"),
     rejected: t("landing.bookingDetail.statusRejected"),
+    pending_cancellation: t("landing.bookingDetail.statusPendingCancellation"),
   };
   return map[s];
 };
@@ -48,15 +49,25 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
   return map[tier];
 };
 
-export const getBookingDerivedState = (booking: BookingDetail) => ({
-  totalGuests: booking.adults + booking.children,
-  showPayRemaining: (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") && booking.status !== "cancelled" && booking.status !== "rejected",
-  showVisaStatus:
-    booking.status !== "completed" &&
-    booking.status !== "cancelled" &&
-    booking.status !== "rejected",
-  showCancelBooking:
-    booking.status !== "completed" &&
-    booking.status !== "cancelled" &&
-    booking.status !== "rejected",
-});
+export const getBookingDerivedState = (booking: BookingDetail) => {
+  const isCustomTourPending = [
+    "PendingManagerReview",
+    "PendingAdjustment",
+    "PendingCustomerApproval",
+  ].includes(booking.tourStatus ?? "");
+
+  return {
+    totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
+    showPayRemaining:
+      (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
+      booking.status !== "cancelled" &&
+      booking.status !== "rejected" &&
+      !isCustomTourPending,
+    showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
+    showCancelBooking:
+      booking.status !== "completed" &&
+      booking.status !== "cancelled" &&
+      booking.status !== "rejected" &&
+      booking.status !== "pending_cancellation",
+  };
+};

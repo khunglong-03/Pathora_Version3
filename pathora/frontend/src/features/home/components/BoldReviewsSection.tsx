@@ -81,6 +81,10 @@ export const BoldReviewsSection = () => {
     }, 6000);
   };
 
+  if (!isLoading && !error && reviews.length === 0) {
+    return null;
+  }
+
   return (
     <section
       ref={ref}
@@ -126,10 +130,6 @@ export const BoldReviewsSection = () => {
                 <div className={cn("h-4 w-24 bg-stone-800 rounded")} />
               </div>
             </div>
-          </div>
-        ) : reviews.length === 0 ? (
-          <div className={cn("rounded-[2rem] border border-white/5 bg-stone-900 p-12 text-center text-stone-500 font-medium")}>
-            {t("landing.reviews.empty") || "No reviews available yet."}
           </div>
         ) : (
           <>

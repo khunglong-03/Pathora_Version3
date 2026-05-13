@@ -70,4 +70,11 @@ public class BookingTourGuideEntity : Aggregate<Guid>
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
+
+    public void Cancel(string performedBy)
+    {
+        Status = AssignmentStatus.Cancelled;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
 }

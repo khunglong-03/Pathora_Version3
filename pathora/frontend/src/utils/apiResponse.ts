@@ -119,6 +119,10 @@ export const TOUR_INSTANCE_TRANSPORT_ERROR_CODES = [
   "TourInstance.ProviderNotAssigned",
   "TourInstance.BulkApproveFailed",
   "TourInstance.CapacityExceeded",
+  "TourInstance.ActivityNotFound",
+  "TourInstance.NotAccommodationActivity",
+  "TourInstance.AccommodationNotApproved",
+  "TourInstance.RoomAssignmentExceedsBlocked",
   // Vehicle availability & schedule
   "VehicleAvailability.NoSupplier",
   "VehicleAvailability.ActivityNotOwned",
@@ -152,6 +156,10 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TourInstance.ProviderNotAssigned": "tourInstance.transport.errors.providerNotAssigned",
   "TourInstance.BulkApproveFailed": "tourInstance.transport.errors.bulkApproveFailed",
   "TourInstance.CapacityExceeded": "tourInstance.transport.errors.capacityExceeded",
+  "TourInstance.ActivityNotFound": "tourInstance.errors.activityNotFound",
+  "TourInstance.NotAccommodationActivity": "tourInstance.errors.notAccommodationActivity",
+  "TourInstance.AccommodationNotApproved": "tourInstance.errors.accommodationNotApproved",
+  "TourInstance.RoomAssignmentExceedsBlocked": "tourInstance.errors.roomAssignmentExceedsBlocked",
   "TourInstanceActivity.VehicleCountMismatch": "tourInstance.transport.errors.vehicleCountMismatch",
   "TourInstanceActivity.VehicleCountExceedsFleet": "tourInstance.transport.errors.vehicleCountExceedsFleet",
   "TourInstanceActivity.RoomCountExceedsInventory": "tourInstance.transport.errors.roomCountExceedsInventory",
@@ -183,6 +191,10 @@ const AUTH_ERROR_CODE_MAP: Record<string, string> = {
   TOKEN_INVALID: "error_response.UNAUTHORIZED",
   TOKEN_EXPIRED: "error_response.UNAUTHORIZED",
   ACCESS_DENIED: "error_response.ACCESS_DENIED",
+  "Identity.InvalidCredentials": "error_response.INVALID_CREDENTIALS",
+  "Identity.AccountForbidden": "error_response.USER_DISABLED",
+  "Identity.ServiceUnavailable": "error_response.SERVER_ERROR",
+  "Auth.EmailTemporarilyLocked": "error_response.ACCESS_DENIED",
 };
 
 /**
@@ -254,6 +266,17 @@ export const mapToTranslationKey = (errorMessage: string): string => {
   }
   if (errorMessage === "Current password is incorrect.") {
     return "error_response.INVALID_CREDENTIALS";
+  }
+
+  // Common validation errors (FluentValidation default messages in English)
+  if (errorMessage === "Email is required." || errorMessage === "'email' must not be empty.") {
+    return "error_response.EMAIL_REQUIRED";
+  }
+  if (errorMessage === "Invalid email address." || errorMessage === "'email' is not a valid email address.") {
+    return "error_response.EMAIL_INVALID";
+  }
+  if (errorMessage === "Password is required." || errorMessage === "'password' must not be empty.") {
+    return "error_response.PASSWORD_IS_REQUIRED";
   }
 
   // Unknown-code safety: never echo a raw backend code as a translation key lookup

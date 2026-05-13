@@ -1015,8 +1015,31 @@ public class TourInstanceService(
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
+        // ER-Security: If the user is a TourGuide (and not an Admin/Manager/TourOperator), they can only start/complete their assigned instances.
+        if (_user.Roles.Contains("TourGuide") && !_user.Roles.Contains("Admin") && !_user.Roles.Contains("Manager") && !_user.Roles.Contains("TourOperator"))
+        {
+            if (!Guid.TryParse(_user.Id, out var currentUserId))
+                return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
+                
+            var isAssigned = entity.Managers.Any(m => m.UserId == currentUserId && m.Role == TourInstanceManagerRole.Guide);
+            if (!isAssigned)
+                return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Bạn không được phân công hướng dẫn tour này.");
+            
+            // TourGuide can only transition to InProgress or Completed
+            if (newStatus != TourInstanceStatus.InProgress && newStatus != TourInstanceStatus.Completed)
+                return Error.Validation("TourInstance.InvalidStatus", "Hướng dẫn viên chỉ có thể Bắt đầu (InProgress) hoặc Kết thúc (Completed) tour.");
+        }
+
         var performedBy = _user.Id ?? string.Empty;
-        entity.ChangeStatus(newStatus, performedBy);
+        try
+        {
+            entity.ChangeStatus(newStatus, performedBy);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("TourInstance.InvalidTransition", ex.Message);
+        }
+
         await _tourInstanceRepository.Update(entity);
 
         // ER-3: whenever the tour transitions into Cancelled, free all inventory holds.
@@ -1087,7 +1110,7 @@ public class TourInstanceService(
             ownerSuppliers = suppliers;
         }
 
-        var instance = await _tourInstanceRepository.FindById(instanceId, cancellationToken: cancellationToken);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
         if (instance is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
@@ -1107,48 +1130,10 @@ public class TourInstanceService(
         if (!hasAccess)
             return Error.Validation("TourInstance.ProviderNotAssigned", $"You are not assigned as the {providerType} provider for this tour instance.");
 
-
-        if (providerType == "Hotel" && isApproved)
-        {
-            var fullInstance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
-            if (fullInstance != null)
-            {
-                var requestedActivityIds = accommodationActivityIds?.Count > 0
-                    ? accommodationActivityIds.ToHashSet()
-                    : null;
-
-                var accommodationActivities = fullInstance.InstanceDays
-                    .Where(d => !d.IsDeleted)
-                    .SelectMany(d => d.Activities)
-                    .Where(a =>
-                        a.ActivityType == TourDayActivityType.Accommodation
-                        && a.Accommodation?.SupplierId != null
-                        && ownerSupplierIds.Contains(a.Accommodation.SupplierId.Value)
-                        && (requestedActivityIds is null || requestedActivityIds.Contains(a.Id)))
-                    .ToList();
-
-                var activityIds = accommodationActivities.Select(a => a.Id).ToList();
-                var allBlocks = await _roomBlockRepository.GetByTourInstanceDayActivityIdsAsync(activityIds, cancellationToken);
-                var blocksByActivity = allBlocks.GroupBy(b => b.TourInstanceDayActivityId)
-                    .ToDictionary(g => g.Key!.Value, g => g.ToList());
-
-                var underAllocated = new List<string>();
-                foreach (var activity in accommodationActivities)
-                {
-                    var planAccom = activity.Accommodation;
-                    if (planAccom == null || planAccom.Quantity <= 0) continue;
-
-                    blocksByActivity.TryGetValue(activity.Id, out var blocks);
-                    var totalBlocked = blocks?.Sum(b => b.RoomCountBlocked) ?? 0;
-
-                    if (totalBlocked < planAccom.Quantity)
-                        underAllocated.Add($"Ngày {activity.TourInstanceDay.InstanceDayNumber}: cần {planAccom.Quantity} phòng, đã gán {totalBlocked}");
-                }
-
-                if (underAllocated.Count > 0)
-                    return Error.Validation("TourInstance.RoomsNotAllocated", $"Chưa đủ phòng: {string.Join("; ", underAllocated)}");
-            }
-        }
+        // NOTE: No pre-validation for room blocks needed here.
+        // When the hotel provider approves, RoomBlocks are auto-created inside the
+        // transaction below (line ~1280) based on the accommodation requirements
+        // (RoomType + Quantity) set by the Tour Operator.
 
         var statusBeforeApprove = instance.Status;
         string notificationProviderName = supplier.Name;
@@ -1219,7 +1204,7 @@ public class TourInstanceService(
                 // RoomBlock INSERT/DELETE and activity status flips commit atomically.
                 await RunTransactional(async () =>
                 {
-                    var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId, cancellationToken);
+                    var fullInst = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId, cancellationToken);
                     if (fullInst is null) return;
 
                     var requestedActivityIds = accommodationActivityIds?.Count > 0
@@ -1254,6 +1239,9 @@ public class TourInstanceService(
 
                                 if (isApproved)
                                 {
+                                    // Remove any existing block to prevent duplicate key violations (IX_RoomBlocks_TourInstanceDayActivityId_RoomType)
+                                    await _roomBlockRepository.DeleteByTourInstanceDayActivityIdAsync(act.Id, cancellationToken);
+
                                     // Tour-level holds are always Hard. Soft holds reserved for unpaid customer bookings.
                                     var block = RoomBlockEntity.Create(
                                         supplierId: act.Accommodation.SupplierId.Value,
@@ -1337,7 +1325,13 @@ public class TourInstanceService(
         var entities = await _tourInstanceRepository.FindProviderAssigned(supplierIds, pageNumber, pageSize, approvalStatus, cancellationToken);
         var total = await _tourInstanceRepository.CountProviderAssigned(supplierIds, approvalStatus, cancellationToken);
 
-        var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
+        var vms = entities.Select(e =>
+        {
+            var vm = _mapper.Map<TourInstanceVm>(e);
+            var supplierIdSet = new HashSet<Guid>(supplierIds);
+            var rollup = ComputeTransportApprovalRollup(e, supplierIdSet);
+            return vm with { TransportApprovalStatus = rollup };
+        }).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
 
@@ -1396,8 +1390,13 @@ public class TourInstanceService(
             return new PaginatedList<TourInstanceVm>(0, [], request.PageNumber, request.PageSize);
         }
 
-        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, principalId);
-        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, principalId);
+        // If the user is an Admin or Manager, and they are viewing Custom Tour Requests (wantsCustomization = true),
+        // we bypass the principalId scoping so they can see all custom requests for review.
+        var isAdminOrManager = _user.Roles != null && (_user.Roles.Contains("Admin") || _user.Roles.Contains("Manager"));
+        Guid? effectivePrincipalId = (isAdminOrManager && request.WantsCustomization == true) ? null : principalId;
+
+        var entities = await _tourInstanceRepository.FindAll(request.SearchText, request.Status, request.PageNumber, request.PageSize, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
+        var total = await _tourInstanceRepository.CountAll(request.SearchText, request.Status, request.ExcludePast, request.WantsCustomization, effectivePrincipalId);
 
         var vms = entities.Select(e => _mapper.Map<TourInstanceVm>(e)).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, request.PageNumber, request.PageSize);
@@ -1757,22 +1756,84 @@ public class TourInstanceService(
     }
     private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId)
     {
-        var instance = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId);
-        if (instance != null && instance.InstanceType == TourType.Private)
-        {
-            decimal totalActivitiesPrice = instance.InstanceDays
-                .Where(d => !d.IsDeleted)
-                .SelectMany(d => d.Activities)
-                .Sum(a => a.Price ?? 0);
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
+        if (instance == null || instance.InstanceType != TourType.Private) return;
 
-            instance.FinalSellPrice = totalActivitiesPrice;
-            await _tourInstanceRepository.Update(instance);
-            
-            if (_unitOfWork != null)
+        // OriginalBasePrice is the immutable per-person snapshot set at creation time.
+        // BasePrice = OriginalBasePrice + sum of all instance activity prices.
+        decimal totalActivitiesPrice = instance.InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Sum(a => a.Price ?? 0);
+
+        instance.BasePrice = instance.OriginalBasePrice + totalActivitiesPrice;
+        await _tourInstanceRepository.Update(instance);
+
+        // Sync associated booking TotalPrice so the booking detail view stays accurate.
+        if (_bookingRepository != null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(instanceId);
+            var booking = bookings.FirstOrDefault();
+            if (booking != null)
             {
-                await _unitOfWork.SaveChangeAsync();
+                booking.TotalPrice = instance.BasePrice * booking.NumberAdult;
+                await _bookingRepository.UpdateWithoutSaveAsync(booking);
             }
         }
+
+        if (_unitOfWork != null)
+        {
+            await _unitOfWork.SaveChangeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Compute a worst-status-wins rollup from per-activity <c>TransportationApprovalStatus</c>.
+    /// Returns <see cref="ProviderApprovalStatus"/> as int: 0 = unassigned, 1 = Pending, 2 = Approved, 3 = Rejected.
+    /// </summary>
+    private static int ComputeTransportApprovalRollup(TourInstanceEntity entity, HashSet<Guid> supplierIds)
+    {
+        var activities = entity.InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => a.ActivityType == TourDayActivityType.Transportation
+                     && a.TransportSupplierId.HasValue
+                     && supplierIds.Contains(a.TransportSupplierId.Value))
+            .ToList();
+
+        if (activities.Count == 0) return 0;
+
+        var hasRejected = false;
+        var hasPending = false;
+        var hasApproved = false;
+        var allApproved = true;
+
+        foreach (var a in activities)
+        {
+            switch (a.TransportationApprovalStatus)
+            {
+                case ProviderApprovalStatus.Rejected:
+                    hasRejected = true;
+                    allApproved = false;
+                    break;
+                case ProviderApprovalStatus.Pending:
+                    hasPending = true;
+                    allApproved = false;
+                    break;
+                case ProviderApprovalStatus.Approved:
+                    hasApproved = true;
+                    break;
+                default:
+                    allApproved = false;
+                    break;
+            }
+        }
+
+        // Worst-status-wins: Rejected > Pending > Approved > Unassigned
+        if (hasRejected) return (int)ProviderApprovalStatus.Rejected;
+        if (hasPending) return (int)ProviderApprovalStatus.Pending;
+        if (allApproved && hasApproved) return (int)ProviderApprovalStatus.Approved;
+        return 0;
     }
 }
 

@@ -121,5 +121,5 @@ public sealed class CreateTourItineraryFeedbackCommandHandler(
 
     private static TourItineraryFeedbackDto Map(TourItineraryFeedbackEntity f) =>
         new(f.Id, f.TourInstanceDayId, f.BookingId, f.Content, f.IsFromCustomer, f.CreatedOnUtc,
-            f.Status, f.ForwardedByManagerId, f.ForwardedAt, f.RespondedByOperatorId, f.RespondedAt, f.ApprovedByManagerId, f.ApprovedAt, f.RejectionReason, Convert.ToBase64String(f.RowVersion));
+            f.Status, f.ForwardedByManagerId, f.ForwardedAt, f.RespondedByOperatorId, f.RespondedAt, f.ApprovedByManagerId, f.ApprovedAt, f.RejectionReason, f.RowVersion != null ? Convert.ToBase64String(f.RowVersion) : string.Empty);
 }

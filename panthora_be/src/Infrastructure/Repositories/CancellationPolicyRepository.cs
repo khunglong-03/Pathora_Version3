@@ -55,6 +55,23 @@ public class CancellationPolicyRepository(AppDbContext context) : ICancellationP
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<CancellationPolicyEntity?> FindActiveByTourScopeAsync(
+        TourScope tourScope,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.CancellationPolicies
+            .AsNoTracking()
+            .Where(p => p.TourScope == tourScope
+                    && p.Status == CancellationPolicyStatus.Active
+                    && !p.IsDeleted);
+
+        if (excludeId.HasValue)
+            query = query.Where(p => p.Id != excludeId.Value);
+
+        return await query.FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task Create(CancellationPolicyEntity entity, CancellationToken cancellationToken = default)
     {
         await _context.CancellationPolicies.AddAsync(entity, cancellationToken);

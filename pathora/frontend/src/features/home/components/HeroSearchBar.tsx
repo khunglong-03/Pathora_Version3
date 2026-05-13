@@ -16,12 +16,12 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 /* ── Constants ─────────────────────────────────────────────── */
 export const DEFAULT_DESTINATIONS = [
-  "Ho Chi Minh City",
-  "Ha Noi",
-  "Da Nang",
-  "Moscow",
-  "New York",
-  "California",
+  "Hồ Chí Minh",
+  "Hà Nội",
+  "Đà Nẵng",
+  "Nhật Bản",
+  "Hàn Quốc",
+  "Thái Lan",
 ];
 export const DEFAULT_CLASSIFICATIONS = ["Standard", "VIP", "Luxury"];
 export const DEFAULT_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

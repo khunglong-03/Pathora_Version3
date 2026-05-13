@@ -46,12 +46,12 @@ public class TourInstanceEntity : Aggregate<Guid>
     /// <summary>Số chỗ đã được đặt hiện tại.</summary>
     public int CurrentParticipation { get; set; }
 
-    // BasePrice — snapshot tại thời điểm tạo instance
-    /// <summary>Giá cơ bản tại thời điểm tạo instance (snapshot từ Classification).</summary>
+    // BasePrice — giá hiện tại (bao gồm giá gốc + phụ phí hoạt động)
+    /// <summary>Giá per-person hiện tại. Được cập nhật khi thêm/xóa hoạt động.</summary>
     public decimal BasePrice { get; set; }
 
-    /// <summary>Giá chốt do operator nhập sau co-design (private). Không thay thế <see cref="BasePrice"/>.</summary>
-    public decimal? FinalSellPrice { get; set; }
+    /// <summary>Giá gốc per-person tại thời điểm tạo instance (snapshot từ Classification). Không thay đổi sau khi tạo.</summary>
+    public decimal OriginalBasePrice { get; set; }
 
     // Media & Location
     /// <summary>Địa điểm xuất phát/tour.</summary>
@@ -83,11 +83,11 @@ public class TourInstanceEntity : Aggregate<Guid>
     public bool IsDeleted { get; set; }
 
     /// <summary>
-    /// Concurrency token (ER-2). EF is configured with <c>IsRowVersion()</c> so that
-    /// concurrent status transitions throw <c>DbUpdateConcurrencyException</c>, which the
-    /// service layer catches and converts into an idempotent success (or a re-read retry).
+    /// RowVersion column kept for schema compat. NOT a concurrency token —
+    /// Npgsql bytea doesn't auto-increment, so [Timestamp]/IsRowVersion() produces
+    /// false-positive DbUpdateConcurrencyException on every Modified save.
+    /// Concurrency for status transitions handled at service layer (re-read + re-check).
     /// </summary>
-    [System.ComponentModel.DataAnnotations.Timestamp]
     public byte[] RowVersion { get; set; } = [];
 
     // Translations (vi/en)
@@ -151,6 +151,7 @@ public class TourInstanceEntity : Aggregate<Guid>
             MaxParticipation = maxParticipation,
             CurrentParticipation = 0,
             BasePrice = basePrice,
+            OriginalBasePrice = basePrice,
             Location = location,
             Thumbnail = thumbnail ?? new ImageEntity(),
             Images = images ?? [],
@@ -409,22 +410,7 @@ public class TourInstanceEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>
-    /// Operator nhập giá chốt sau co-design; chỉ tour riêng đang <see cref="TourInstanceStatus.Draft"/>.
-    /// </summary>
-    public void SetFinalSellPrice(decimal finalSellPrice, string performedBy)
-    {
-        if (InstanceType != TourType.Private)
-            throw new InvalidOperationException("Chỉ tour riêng mới có FinalSellPrice.");
-        if (Status != TourInstanceStatus.Draft)
-            throw new InvalidOperationException("Chỉ được set FinalSellPrice khi instance đang Draft.");
-        if (finalSellPrice < 0)
-            throw new ArgumentOutOfRangeException(nameof(finalSellPrice), "Giá chốt không được âm.");
 
-        FinalSellPrice = finalSellPrice;
-        LastModifiedBy = performedBy;
-        LastModifiedOnUtc = DateTimeOffset.UtcNow;
-    }
 
     private static void EnsureValidDateRange(DateTimeOffset startDate, DateTimeOffset endDate)
     {
@@ -444,13 +430,14 @@ public class TourInstanceEntity : Aggregate<Guid>
         {
             TourInstanceStatus.PendingApproval => next is TourInstanceStatus.Available or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Available => next is TourInstanceStatus.Confirmed or TourInstanceStatus.SoldOut or TourInstanceStatus.Cancelled,
-            TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.Confirmed => next is TourInstanceStatus.InProgress or TourInstanceStatus.PendingVisa or TourInstanceStatus.Cancelled,
             TourInstanceStatus.SoldOut => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.InProgress => next is TourInstanceStatus.Completed,
             TourInstanceStatus.Draft => next is TourInstanceStatus.PendingAdjustment or TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingAdjustment => next is TourInstanceStatus.PendingManagerReview or TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingManagerReview => next is TourInstanceStatus.PendingCustomerApproval or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
             TourInstanceStatus.PendingCustomerApproval => next is TourInstanceStatus.Confirmed or TourInstanceStatus.PendingAdjustment or TourInstanceStatus.Cancelled,
+            TourInstanceStatus.PendingVisa => next is TourInstanceStatus.Confirmed or TourInstanceStatus.Cancelled,
             TourInstanceStatus.Completed => false,
             TourInstanceStatus.Cancelled => false,
             _ => false
@@ -538,6 +525,46 @@ public class TourInstanceEntity : Aggregate<Guid>
         EnsureValidTransition(Status, TourInstanceStatus.PendingAdjustment);
         Status = TourInstanceStatus.PendingAdjustment;
         ManagerReviewNote = string.IsNullOrWhiteSpace(reason) ? null : $"[Customer] {reason.Trim()}";
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Kích hoạt visa gate sau khi khách thanh toán. Chỉ cho Private tour đang Confirmed có IsVisa=true.
+    /// Idempotent: nếu đã PendingVisa thì chỉ cập nhật audit fields.
+    /// </summary>
+    public void EnterVisaGate(string performedBy)
+    {
+        if (InstanceType != TourType.Private)
+            throw new InvalidOperationException("Chỉ Private tour mới có visa gate.");
+
+        // Idempotent: đã PendingVisa thì skip transition, chỉ update audit
+        if (Status == TourInstanceStatus.PendingVisa)
+        {
+            LastModifiedBy = performedBy;
+            LastModifiedOnUtc = DateTimeOffset.UtcNow;
+            return;
+        }
+
+        EnsureValidTransition(Status, TourInstanceStatus.PendingVisa);
+        Status = TourInstanceStatus.PendingVisa;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Hoàn tất visa gate sau khi tất cả visa required được duyệt.
+    /// Chuyển về <see cref="TourInstanceStatus.Confirmed"/> để tiếp tục flow gán nhà cung cấp.
+    /// Idempotent: nếu đã Confirmed thì không throw.
+    /// </summary>
+    public void CompleteVisaGate(string performedBy)
+    {
+        // Idempotent: đã Confirmed thì bỏ qua
+        if (Status == TourInstanceStatus.Confirmed)
+            return;
+
+        EnsureValidTransition(Status, TourInstanceStatus.Confirmed);
+        Status = TourInstanceStatus.Confirmed;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }

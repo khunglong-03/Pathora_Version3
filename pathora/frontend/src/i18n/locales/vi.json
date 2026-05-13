@@ -245,7 +245,9 @@
     "bankAccounts": {
       "pageTitle": "Tài Khoản Ngân Hàng",
       "pageSubtitle": "Quản lý các tài khoản ngân hàng để nhận thanh toán"
-    }
+    },
+    "select": "Chọn",
+    "submitting": "Đang gửi..."
   },
   "placeholder": {
     "searchAnything": "Tìm kiếm...",
@@ -1086,6 +1088,9 @@
     "BAD_REQUEST": "Yêu cầu không hợp lệ",
     "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
     "INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng",
+    "EMAIL_REQUIRED": "Vui lòng nhập email",
+    "EMAIL_INVALID": "Địa chỉ email không hợp lệ",
+    "PASSWORD_IS_REQUIRED": "Vui lòng nhập mật khẩu",
     "USER_DISABLED": "Tài khoản đã bị vô hiệu hóa. Vui liên hệ hỗ trợ.",
     "FORBIDDEN": "Bạn không có quyền truy cập tài nguyên này",
     "NOT_FOUND": "Không tìm thấy tài nguyên yêu cầu",
@@ -1308,7 +1313,7 @@
         "subtitle": "Hãy cho chúng tôi biết mong muốn chuyến đi của bạn để đội ngũ tư vấn chuẩn bị lịch trình phù hợp."
       },
       "myRequests": {
-        "title": "Yêu cầu tour của tôi",
+        "title": "View booking",
         "subtitle": "Theo dõi trạng thái duyệt của các yêu cầu bạn đã gửi."
       },
       "adminRequests": {
@@ -1390,32 +1395,32 @@
       "hideDetails": "Ẩn chi tiết"
     },
     "admin": {
-    "staff": {
-      "title": "Tạo mới nhân viên",
-      "type": "Loại nhân viên",
-      "designer": "Tour Operator",
-      "designerDesc": "Điều phối và lên kế hoạch tour",
-      "guide": "Tour Guide",
-      "guideDesc": "Hướng dẫn và điều hành tour",
-      "username": "Tên đăng nhập (Username)",
-      "email": "Email",
-      "fullName": "Họ và tên",
-      "password": "Mật khẩu",
-      "confirmPassword": "Xác nhận mật khẩu",
-      "passwordHint": "* Để trống mật khẩu nếu muốn sử dụng mật khẩu mặc định \"password123\"",
-      "submit": "Tạo nhân viên",
-      "submitting": "Đang tạo...",
-      "cancel": "Hủy",
-      "validation": {
-        "required": "Vui lòng nhập đầy đủ thông tin",
-        "invalidUsername": "Tên đăng nhập không hợp lệ (chỉ cho phép chữ, số, dấu chấm, gạch dưới)",
-        "invalidEmail": "Định dạng email không hợp lệ",
-        "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
-        "passwordMismatch": "Mật khẩu xác nhận không khớp"
+      "staff": {
+        "title": "Tạo mới nhân viên",
+        "type": "Loại nhân viên",
+        "designer": "Tour Operator",
+        "designerDesc": "Điều phối và lên kế hoạch tour",
+        "guide": "Tour Guide",
+        "guideDesc": "Hướng dẫn và điều hành tour",
+        "username": "Tên đăng nhập (Username)",
+        "email": "Email",
+        "fullName": "Họ và tên",
+        "password": "Mật khẩu",
+        "confirmPassword": "Xác nhận mật khẩu",
+        "passwordHint": "* Để trống mật khẩu nếu muốn sử dụng mật khẩu mặc định \"password123\"",
+        "submit": "Tạo nhân viên",
+        "submitting": "Đang tạo...",
+        "cancel": "Hủy",
+        "validation": {
+          "required": "Vui lòng nhập đầy đủ thông tin",
+          "invalidUsername": "Tên đăng nhập không hợp lệ (chỉ cho phép chữ, số, dấu chấm, gạch dưới)",
+          "invalidEmail": "Định dạng email không hợp lệ",
+          "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
+          "passwordMismatch": "Mật khẩu xác nhận không khớp"
+        },
+        "createSuccess": "Tạo nhân viên thành công",
+        "createError": "Không thể thêm nhân viên. Vui lòng thử lại."
       },
-      "createSuccess": "Tạo nhân viên thành công",
-      "createError": "Không thể thêm nhân viên. Vui lòng thử lại."
-    },
       "table": {
         "index": "#",
         "destination": "Điểm đến",
@@ -1581,7 +1586,8 @@
         "basePriceNonNegative": "Giá cơ bản không được nhỏ hơn 0",
         "startDatePast": "Ngày bắt đầu không được nằm trong quá khứ"
       }
-      },    "stat": {
+    },
+    "stat": {
       "totalTours": "Tổng Tours",
       "active": "Hoạt Động",
       "inactive": "Không Hoạt Động",
@@ -2139,7 +2145,11 @@
       "createFailed": "Không thể tạo lịch khởi hành. Vui lòng kiểm tra lại dữ liệu và thử lại.",
       "updateFailed": "Không thể cập nhật lịch khởi hành. Vui lòng thử lại.",
       "deleteFailed": "Không thể xóa lịch khởi hành. Vui lòng thử lại.",
-      "notFound": "Không tìm thấy lịch khởi hành."
+      "notFound": "Không tìm thấy lịch khởi hành.",
+      "activityNotFound": "Không tìm thấy hoạt động thuộc lịch khởi hành này.",
+      "notAccommodationActivity": "Hoạt động này không phải khách sạn.",
+      "accommodationNotApproved": "Khách sạn chưa duyệt hoạt động này nên chưa thể phân phòng.",
+      "roomAssignmentExceedsBlocked": "Tổng số phòng phân bổ vượt quá số phòng đã giữ."
     },
     "backToInstances": "Quay Lại Danh Sách",
     "overview": "Tổng Quan",
@@ -2218,6 +2228,119 @@
     "public": "Công khai",
     "selectClassification": "Chọn phân loại...",
     "viewDetails": "Xem chi tiết",
+    "assignFlightTickets": "Gán vé phương tiện",
+    "assignAccommodation": "Gán khách sạn",
+    "assignedVehicleReadOnly": "Xe đã gán (read-only)",
+    "flight": {
+      "emptyActivity": "Tour này không có vé máy bay / tàu / thuyền cần gán",
+      "emptyBookings": "Chưa có khách đặt tour",
+      "confirmSuccess": "Đã xác nhận tất cả vé cho hoạt động này!",
+      "confirmConflict": "Đã có người khác cập nhật, vui lòng thử lại",
+      "loadingData": "Đang tải dữ liệu...",
+      "loadError": "Không thể tải dữ liệu. Vui lòng thử lại."
+    },
+    "bookingHotel": {
+      "titleSingle": "Gán khách sạn cho booking",
+      "titleOverview": "Gán khách sạn theo booking",
+      "bookingNotFound": "Booking không thuộc tour instance này.",
+      "loadError": "Không thể tải dữ liệu gán khách sạn.",
+      "emptyAccommodation": "Không có hoạt động khách sạn cần gán.",
+      "loadAssignmentsError": "Không thể tải phân bổ đã lưu trước đó",
+      "lockedAfterCheckIn": "Booking đã check-in, không thể sửa phân bổ khách sạn.",
+      "locked": "Đã khóa",
+      "saveUnavailable": "Chức năng lưu chưa được kết nối",
+      "saveError": "Không thể lưu phân bổ phòng",
+      "assignSuccess": "Đã lưu phân bổ phòng cho {{customerName}}",
+      "assignConflict": "Đã có người khác cập nhật phân bổ phòng này, vui lòng tải lại.",
+      "validation": {
+        "roomCountPositive": "Số phòng phải lớn hơn 0",
+        "roomCountTooHigh": "Số phòng không được vượt quá số khách ({{guestCount}}).",
+        "exceedsBlocked": "Tổng số phòng phân bổ ({{assigned}}) vượt quá số phòng đã giữ ({{blocked}})."
+      }
+    },
+    "bookingFlight": {
+      "title": "Gán vé phương tiện",
+      "bookingNotFound": "Booking không thuộc tour instance này.",
+      "loadingTickets": "Đang tải danh sách vé...",
+      "loadTicketsError": "Không thể tải vé đã lưu.",
+      "save": "Lưu vé",
+      "saved": "Đã lưu",
+      "saveSuccess": "Đã lưu vé cho {{customerName}}",
+      "saveError": "Lưu vé thất bại. Vui lòng thử lại.",
+      "confirmError": "Xác nhận thất bại. Vui lòng thử lại.",
+      "confirming": "Đang xác nhận...",
+      "confirmed": "Đã xác nhận vé",
+      "confirmAll": "Xác nhận đã đặt tất cả vé",
+      "remainingBookings": "Cần hoàn thành {{count}} booking nữa",
+      "expectedSchedule": "Lịch trình dự kiến",
+      "instructions": "Gán vé cho từng booking — nhập đủ số ghế cho tất cả hành khách",
+      "commonDetails": "Thông tin chung cho cả đoàn",
+      "flightNumber": "Chuyến bay *",
+      "trainNumber": "Chuyến tàu *",
+      "boatNumber": "Tàu thuyền *",
+      "seatClass": "Hạng ghế",
+      "departureAt": "Giờ đi *",
+      "arrivalAt": "Giờ đến *",
+      "passengers": "hành khách",
+      "filled": "Đã điền đủ",
+      "fillingProgress": "Đang nhập {{filled}}/{{total}}",
+      "seatNumber": "Vị trí / Mã ghế *",
+      "eTicketNumber": "Mã vé điện tử (E-ticket)",
+      "passengerIndex": "Hành khách {{index}}",
+      "note": "Ghi chú chung",
+      "notePlaceholder": "Ghi chú đặc biệt (bữa ăn, hành lý...)",
+      "emptyActivityDescription": "Tour này không có hoạt động phương tiện ngoại cỡ.",
+      "emptyBookingsDescription": "Khi có booking, danh sách vé cần gán sẽ hiển thị ở đây.",
+      "transport": {
+        "flight": "Máy bay",
+        "train": "Tàu hỏa",
+        "boat": "Tàu thuyền",
+        "fallback": "Phương tiện"
+      },
+      "validation": {
+        "flightNumberRequired": "Vui lòng nhập số hiệu chuyến bay/tàu ở Thông tin chung",
+        "timesRequired": "Vui lòng nhập đầy đủ giờ đi và giờ đến ở Thông tin chung",
+        "arrivalAfterDeparture": "Giờ đến phải lớn hơn giờ đi",
+        "departureBeforeActivity": "Giờ khởi hành không được trước ngày hoạt động diễn ra ({{date}})",
+        "seatsRequired": "Vui lòng nhập vị trí/mã ghế cho tất cả {{count}} hành khách",
+        "allBookingsRequired": "Vui lòng lưu vé cho tất cả booking trước khi xác nhận"
+      }
+    },
+    "bookingTable": {
+      "title": "Danh sách booking",
+      "booking": "booking",
+      "column": {
+        "booking": "Mã booking",
+        "customer": "Khách hàng",
+        "guests": "Số khách",
+        "accommodation": "Khách sạn",
+        "flight": "Vé bay",
+        "action": "Thao tác"
+      },
+      "assignAccommodation": "Gán KS",
+      "editAccommodation": "Sửa KS",
+      "assignFlight": "Gán vé",
+      "editFlight": "Sửa vé",
+      "assignAccommodationAria": "Gán khách sạn cho {{customerName}}",
+      "assignFlightAria": "Gán vé phương tiện cho {{customerName}}",
+      "notAssigned": "Chưa gán",
+      "confirmed": "đã xác nhận",
+      "empty": "Chưa có booking",
+      "emptyDescription": "Khi có khách đặt tour, danh sách booking sẽ hiển thị ở đây.",
+      "accommodationAssigned": "{{roomType}} · {{roomCount}} phòng",
+      "flightAssignedNamed": "{{label}}",
+      "flightAssigned": "{{count}}/{{total}} đã gán",
+      "partialAssigned": "{{assigned}}/{{total}} đã gán",
+      "statusLoadPartial": "Một số trạng thái gán dịch vụ chưa tải được.",
+      "statusLoadError": "Không thể tải trạng thái gán dịch vụ."
+    },
+    "breadcrumb": {
+      "label": "Điều hướng",
+      "publicTours": "Tour Công Cộng",
+      "publicTourDetail": "Chi tiết tour public",
+      "assignFlightTickets": "Gán vé phương tiện",
+      "assignAccommodation": "Gán khách sạn"
+    },
     "backToTour": "Quay lại tour",
     "location": "Địa điểm",
     "pricingDetails": "Chi Tiết Giá",
@@ -3028,6 +3151,7 @@
     }
   },
   "bookings": {
+    "title": "Tour đã đặt",
     "pageTitle": "Đặt Chỗ",
     "pageSubtitle": "Theo dõi và quản lý tất cả đơn đặt chỗ",
     "openCustomerPage": "Trang khách hàng",
@@ -3205,7 +3329,48 @@
       "infoItem2": "Bạn sẽ nhận được email khi trạng thái thay đổi.",
       "infoItem3": "Vui lòng đảm bảo thông tin hộ chiếu chính xác.",
       "infoItem4": "Liên hệ hỗ trợ nếu bạn cần cập nhật thông tin.",
-      "selectParticipant": "Chọn một người tham gia để xem chi tiết"
+      "errorLoading": "Không thể tải thông tin visa.",
+      "missingDob": "Thiếu ngày sinh",
+      "missingPassport": "Thiếu hộ chiếu",
+      "notSubmitted": "Chưa nộp",
+      "pendingReview": "Đang duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Bị từ chối",
+      "supportFeePending": "Chờ báo giá phí hỗ trợ",
+      "supportFeePaid": "Đã thanh toán phí hỗ trợ",
+      "sectionTitle": "Quản lý Visa",
+      "sectionDescription": "Cung cấp thông tin hộ chiếu và visa để hoàn tất thủ tục chuyến đi.",
+      "progress": "Tiến độ",
+      "requestSupport": "Yêu cầu hỗ trợ visa",
+      "resubmit": "Nộp lại",
+      "provideDetails": "Cung cấp thông tin",
+      "refusalReason": "Lý do từ chối",
+      "submitSuccess": "Đã gửi thông tin thành công!",
+      "passportRequired": "Số hộ chiếu là bắt buộc",
+      "nationalityRequired": "Quốc tịch là bắt buộc",
+      "issuedAtRequired": "Ngày cấp là bắt buộc",
+      "expiresAtRequired": "Ngày hết hạn là bắt buộc",
+      "passportMustExpireAfterReturn": "Hộ chiếu phải còn hạn sau ngày về",
+      "passportFileRequired": "File/Hình ảnh hộ chiếu là bắt buộc",
+      "countryRequired": "Quốc gia đến là bắt buộc",
+      "passportDetails": "Thông tin Hộ chiếu",
+      "passportNumber": "Số hộ chiếu",
+      "nationality": "Quốc tịch",
+      "issuedAt": "Ngày cấp",
+      "expiresAt": "Ngày hết hạn",
+      "passportFileUrl": "URL File/Hình ảnh hộ chiếu",
+      "visaApplicationDetails": "Thông tin Hồ sơ Visa",
+      "destinationCountry": "Quốc gia đến",
+      "minReturnDate": "Ngày về dự kiến",
+      "visaFileUrlOptional": "URL File Visa (Tùy chọn)",
+      "confirmSupportFee": "Bằng việc yêu cầu hỗ trợ visa, bạn đồng ý sẽ thanh toán phí dịch vụ sau khi nhân viên chúng tôi kiểm tra và báo giá. Tiếp tục?",
+      "selectParticipant": "Chọn một người tham gia để xem chi tiết",
+      "category": "Loại Visa",
+      "format": "Định dạng Visa",
+      "maxStayDays": "Số ngày lưu trú tối đa",
+      "issuingAuthority": "Cơ quan cấp",
+      "visaNumber": "Số Visa",
+      "entryType": "Loại nhập cảnh"
     },
     "auth": {
       "login": "Đăng nhập",
@@ -3317,7 +3482,78 @@
       "tourPackages": "Tour du lịch",
       "ourPolicies": "Chính sách"
     },
+    "sidebar": {
+      "tourDiscovery": "Khám phá Tour"
+    },
+    "language": {
+      "title": "Ngôn ngữ"
+    },
     "tourDiscovery": {
+      "heroTitleLine1": "KHÁM PHÁ CHUYẾN ĐI TIẾP THEO",
+      "heroTitleLine2": "CÙNG PATHORA",
+      "packageTours": "Tour du lịch",
+      "searchFullPlaceholder": "Tìm kiếm tour, điểm đến, hoạt động...",
+      "searchButton": "Tìm kiếm",
+      "filtersLabel": "Bộ lọc",
+      "filter": "Bộ lọc",
+      "clearAll": "Xóa tất cả",
+      "classifications": "Phân loại",
+      "classificationOptions": {
+        "standard": "Tour Tiêu chuẩn",
+        "premium": "Tour Cao cấp",
+        "vipLuxury": "Tour VIP / Sang trọng",
+        "budget": "Tour Tiết kiệm",
+        "private": "Tour Riêng",
+        "group": "Tour Nhóm"
+      },
+      "viewSwitchLabel": "Chọn chế độ xem",
+      "viewType": {
+        "tour": "Theo Tour",
+        "tourInstance": "Theo Lịch khởi hành"
+      },
+      "toursFound": "tour được tìm thấy",
+      "departuresFound": "lịch khởi hành được tìm thấy",
+      "sortBy": "Sắp xếp",
+      "sortAria": "Sắp xếp kết quả tour",
+      "sort": {
+        "recommended": "Đề xuất",
+        "price-low": "Giá: Thấp đến Cao",
+        "price-high": "Giá: Cao đến Thấp",
+        "duration-short": "Thời gian: Ngắn nhất",
+        "duration-long": "Thời gian: Dài nhất"
+      },
+      "loadingAria": "Đang tải kết quả tour",
+      "errorLoading": "Không thể tải tour",
+      "errorLoadingInstances": "Không thể tải lịch khởi hành",
+      "retry": "Thử lại",
+      "noToursFound": "Không tìm thấy tour nào",
+      "tryAdjustingFilters": "Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+      "emptyStats": "Nhiều chuyến đi đang chờ bạn!",
+      "browseAllTours": "Xem tất cả Tour",
+      "exploreDestinations": "Khám phá điểm đến",
+      "noDeparturesFound": "Không có lịch khởi hành nào",
+      "noInstancesDescription": "Hiện tại không có lịch khởi hành nào phù hợp. Vui lòng quay lại sau.",
+      "resultsRegion": "Kết quả tìm kiếm tour",
+      "paginationAria": "Phân trang",
+      "prevPageAria": "Trang trước",
+      "nextPageAria": "Trang tiếp theo",
+      "pageOf": "Trang {{current}} / {{total}}",
+      "quickDestinations": {
+        "haLong": "Hạ Long",
+        "haNoi": "Hà Nội",
+        "saPa": "Sa Pa",
+        "daNang": "Đà Nẵng",
+        "hoiAn": "Hội An",
+        "phuQuoc": "Phú Quốc"
+      },
+      "continents": {
+        "all": "Tất cả",
+        "asia": "Châu Á",
+        "europe": "Châu Âu",
+        "americas": "Châu Mỹ",
+        "africa": "Châu Phi",
+        "oceania": "Châu Đại Dương"
+      },
       "departureCatalogType": "Loại khởi hành",
       "instanceType": {
         "publicDepartures": "Lịch khởi hành công khai",
@@ -3442,7 +3678,8 @@
       "ctaTitle": "Bắt đầu hành trình",
       "ctaTitleWith": "cùng Pathora",
       "ctaDescription": "Gia nhập hàng ngàn khách du lịch hài lòng. Đặt ngay kỳ nghỉ trong mơ của bạn và để chúng tôi lo phần còn lại.",
-      "browsePackageTours": "Xem các gói Tour"
+      "browsePackageTours": "Xem các gói Tour",
+      "toursLed": "Chuyến đi đã dẫn"
     },
     "checkout": {
       "accountHolder": "Chủ tài khoản",
@@ -3456,6 +3693,7 @@
       "agreeTermsPrefix": "Tôi đồng ý với",
       "and": "và",
       "awaitingPayment": "Đang chờ thanh toán",
+      "backToHome": "Về trang chủ",
       "backToTour": "Quay lại trang Tour",
       "bankAccountInfo": "Thông tin tài khoản ngân hàng",
       "bankName": "Ngân hàng",
@@ -3478,7 +3716,6 @@
       "dataProtected": "Dữ liệu được bảo vệ an toàn",
       "day": "Ngày",
       "days": "Ngày",
-      "deposit": "Đặt cọc",
       "depositDesc": "Thanh toán một phần để giữ chỗ",
       "email": "Email",
       "emailPlaceholder": "Nhập địa chỉ email",
@@ -3560,6 +3797,7 @@
       "guestBookingNote": "Đặt tour không cần tài khoản. Đăng nhập bằng email {{email}} để theo dõi booking.",
       "statusPending": "Đang chờ",
       "statusProcessing": "Đang xử lý",
+      "statusCompleted": "Hoàn tất",
       "statusPaid": "Đã thanh toán",
       "statusFailed": "Thất bại",
       "statusCancelled": "Đã hủy",
@@ -3740,6 +3978,13 @@
       "totalAmount": "Tổng Tiền",
       "remaining": "Còn lại",
       "payRemaining": "Thanh Toán Còn Lại",
+      "paymentDisabledPendingCancellation": "Yêu cầu hủy đang chờ duyệt",
+      "cancellationRequests": "Lịch sử yêu cầu hủy",
+      "requestApproved": "Đã chấp thuận",
+      "requestRejected": "Đã từ chối",
+      "requestPending": "Đang chờ duyệt",
+      "managerNote": "Lý do",
+      "refundAmount": "Số tiền hoàn lại",
       "addParticipants": "Thêm Khách",
       "visaStatus": "Tình Trạng Visa",
       "invoice": "Tải Hóa Đơn",
@@ -3753,6 +3998,7 @@
       "statusApproved": "Đã Duyệt",
       "statusCancelled": "Đã Hủy",
       "statusRejected": "Bị Từ Chối",
+      "statusPendingCancellation": "Chờ Hủy",
       "tierStandard": "Tiêu Chuẩn",
       "tierLuxury": "Cao Cấp",
       "tierPremium": "Đặc Biệt",
@@ -3826,6 +4072,24 @@
       "americas": "Châu Mỹ",
       "oceania": "Châu Đại Dương",
       "antarctica": "Châu Nam Cực"
+    }
+  },
+  "tourGuide": {
+    "portalTitle": "Cổng thông tin Hướng dẫn viên",
+    "portalSubtitle": "Quản lý công việc và hoạt động tour",
+    "schedule": {
+      "calendarTitle": "Lịch làm việc",
+      "noToursOnDate": "Bạn không có lịch trình tour nào trong ngày này."
+    },
+    "operations": {
+      "title": "Hoạt động",
+      "emptyState": "Chưa có tour nào được phân công",
+      "completeTour": "Hoàn thành chuyến đi"
+    },
+    "profile": {
+      "title": "Tài khoản",
+      "avatar": "Ảnh đại diện",
+      "changePassword": "Đổi mật khẩu"
     }
   }
 }

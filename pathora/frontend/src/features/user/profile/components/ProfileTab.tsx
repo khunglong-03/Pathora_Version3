@@ -12,21 +12,7 @@ import type { ProfileFormData } from "../types";
 import { VIETNAM_PHONE_REGEX } from "../types";
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────
-const CSS = {
-  accent:       "var(--accent)",
-  accentMuted:  "var(--accent-muted)",
-  border:       "var(--border)",
-  borderSub:    "var(--border-subtle)",
-  muted:        "var(--muted)",
-  textPrimary:  "var(--text-primary)",
-  textSecondary:"var(--text-secondary)",
-  textMuted:    "var(--text-muted)",
-  success:      "var(--success)",
-  successMuted: "var(--success-muted)",
-  danger:       "var(--danger)",
-  dangerMuted:  "var(--danger-muted)",
-  shadowCard:   "var(--shadow-card)",
-} as const;
+// Using Tailwind directly to match the-hieu-design.md
 
 interface ProfileTabProps {
   user: UserInfo | null;
@@ -38,13 +24,13 @@ interface ProfileTabProps {
 function ProfileTabSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-6 w-56 rounded" style={{ backgroundColor: CSS.muted }} />
-      <div className="h-24 w-24 rounded-full" style={{ backgroundColor: CSS.muted }} />
+      <div className="h-6 w-56 rounded bg-slate-100" />
+      <div className="h-24 w-24 rounded-full bg-slate-100" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="h-10 rounded-lg" style={{ backgroundColor: CSS.muted }} />
-        <div className="h-10 rounded-lg" style={{ backgroundColor: CSS.muted }} />
-        <div className="md:col-span-2 h-10 rounded-lg" style={{ backgroundColor: CSS.muted }} />
-        <div className="h-10 rounded-lg" style={{ backgroundColor: CSS.muted }} />
+        <div className="h-10 rounded-xl bg-slate-100" />
+        <div className="h-10 rounded-xl bg-slate-100" />
+        <div className="md:col-span-2 h-10 rounded-xl bg-slate-100" />
+        <div className="h-10 rounded-xl bg-slate-100" />
       </div>
     </div>
   );
@@ -144,9 +130,9 @@ export function ProfileTab({ user, isLoading, isUpdating, onUpdate }: ProfileTab
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
-      <div className="pb-4" style={{ borderBottom: `1px solid ${CSS.borderSub}` }}>
-        <h2 style={{ color: CSS.textPrimary }} className="text-lg font-semibold">{t("common.profilePage.profileSectionTitle") || "Thông tin cá nhân"}</h2>
-        <p style={{ color: CSS.textSecondary }} className="text-sm mt-1">
+      <div className="pb-4 border-b border-slate-100">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">{t("common.profilePage.profileSectionTitle") || "Thông tin cá nhân"}</h2>
+        <p className="text-sm mt-1 text-slate-500">
           {t("common.profilePage.profileSectionDesc") || "Cập nhật họ tên, số điện thoại và địa chỉ của bạn"}
         </p>
       </div>
@@ -161,93 +147,82 @@ export function ProfileTab({ user, isLoading, isUpdating, onUpdate }: ProfileTab
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label style={{ color: CSS.textPrimary }} className="block text-sm font-medium mb-2">{t("common.auth.fullName") || "Họ và tên"}</label>
+          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.fullName") || "Họ và tên"}</label>
           <input
             type="text"
             value={profileData.fullName}
             onChange={(e) => setProfileData((prev) => ({ ...prev, fullName: e.target.value }))}
-            style={{
-              borderColor: fullNameError ? CSS.danger : CSS.border,
-              outline: "none",
-              boxShadow: `0 0 0 3px ${fullNameError ? CSS.dangerMuted : "transparent"}`,
-            }}
-            className={`w-full px-4 py-2 border rounded-lg transition-all ${
-              fullNameError ? "" : "focus:ring-2"
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+              fullNameError 
+                ? "border-red-500 ring-4 ring-red-50" 
+                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
             }`}
           />
-          {fullNameError ? <p style={{ color: CSS.danger }} className="text-xs mt-1">{fullNameError}</p> : null}
+          {fullNameError ? <p className="text-xs mt-1.5 font-medium text-red-500">{fullNameError}</p> : null}
         </div>
 
         <div>
-          <label style={{ color: CSS.textPrimary }} className="block text-sm font-medium mb-2">{t("common.auth.phoneNumber") || "Số điện thoại"}</label>
+          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.phoneNumber") || "Số điện thoại"}</label>
           <input
             type="tel"
             value={profileData.phoneNumber}
             onChange={(e) => setProfileData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
             placeholder="0912345678"
-            style={{
-              borderColor: phoneError ? CSS.danger : CSS.border,
-              outline: "none",
-              boxShadow: `0 0 0 3px ${phoneError ? CSS.dangerMuted : "transparent"}`,
-            }}
-            className={`w-full px-4 py-2 border rounded-lg transition-all ${
-              phoneError ? "" : "focus:ring-2"
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+              phoneError 
+                ? "border-red-500 ring-4 ring-red-50" 
+                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
             }`}
           />
-          {phoneError ? <p style={{ color: CSS.danger }} className="text-xs mt-1">{phoneError}</p> : null}
+          {phoneError ? <p className="text-xs mt-1.5 font-medium text-red-500">{phoneError}</p> : null}
         </div>
 
         <div className="md:col-span-2">
-          <label style={{ color: CSS.textPrimary }} className="block text-sm font-medium mb-2">{t("common.auth.address") || "Địa chỉ"}</label>
+          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.auth.address") || "Địa chỉ"}</label>
           <input
             type="text"
             value={profileData.address}
             onChange={(e) => setProfileData((prev) => ({ ...prev, address: e.target.value }))}
-            style={{
-              borderColor: addressError ? CSS.danger : CSS.border,
-              outline: "none",
-              boxShadow: `0 0 0 3px ${addressError ? CSS.dangerMuted : "transparent"}`,
-            }}
-            className={`w-full px-4 py-2 border rounded-lg transition-all ${
-              addressError ? "" : "focus:ring-2"
+            className={`w-full px-4 py-2.5 border rounded-xl transition-all outline-none ${
+              addressError 
+                ? "border-red-500 ring-4 ring-red-50" 
+                : "border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-4 focus:ring-slate-100"
             }`}
           />
-          {addressError ? <p style={{ color: CSS.danger }} className="text-xs mt-1">{addressError}</p> : null}
+          {addressError ? <p className="text-xs mt-1.5 font-medium text-red-500">{addressError}</p> : null}
         </div>
 
         <div>
-          <label style={{ color: CSS.textPrimary }} className="block text-sm font-medium mb-2">{t("common.email") || "Email"}</label>
+          <label className="block text-sm font-semibold mb-2 text-slate-700">{t("common.email") || "Email"}</label>
           <input
             type="email"
             value={user?.email || ""}
             disabled
-            style={{
-              backgroundColor: CSS.muted,
-              color: CSS.textMuted,
-              borderColor: CSS.borderSub,
-            }}
-            className="w-full px-4 py-2 border rounded-lg"
+            className="w-full px-4 py-2.5 border border-slate-200 bg-slate-50 text-slate-400 rounded-xl cursor-not-allowed"
           />
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4">
         <Button
           type="submit"
           disabled={isSubmitDisabled}
-          style={{
-            backgroundColor: isSubmitDisabled ? CSS.muted : CSS.accent,
-            color: isSubmitDisabled ? CSS.textMuted : "#fff",
-            cursor: isSubmitDisabled ? "not-allowed" : "pointer",
-          }}
-          className="flex items-center gap-2 px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+          className={`flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
+            isSubmitDisabled
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] shadow-sm"
+          }`}
         >
-          <FiSave className="w-4 h-4" />
+          {saveState === "saving" || isUpdating ? (
+            <div className="size-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiSave className="w-4 h-4" />
+          )}
           {saveState === "saving" || isUpdating
             ? t("common.saving") || "Đang lưu..."
             : saveState === "saved"
-              ? t("common.saved") || "✓ Saved"
-              : t("common.save") || "Lưu"}
+              ? t("common.saved") || "✓ Đã lưu"
+              : t("common.save") || "Lưu thay đổi"}
         </Button>
       </div>
     </form>

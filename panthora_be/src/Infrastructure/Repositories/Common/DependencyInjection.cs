@@ -81,12 +81,15 @@ internal static class DependencyInjection
         services.AddScoped<IGuestArrivalRepository, GuestArrivalRepository>();
 
         services.AddScoped<IManagerBankAccountRepository, ManagerBankAccountRepository>();
+        services.AddScoped<IWithdrawalRequestRepository, WithdrawalRequestRepository>();
 
         services.AddScoped<IInsuranceRepository, InsuranceRepository>();
 
         services.AddScoped<ITicketImageRepository, TicketImageRepository>();
         services.AddScoped<ITourInstanceBookingTicketRepository, TourInstanceBookingTicketRepository>();
         services.AddScoped<ITourInstanceBookingRoomAssignmentRepository, TourInstanceBookingRoomAssignmentRepository>();
+
+        services.AddScoped<IBookingCancellationRequestRepository, BookingCancellationRequestRepository>();
 
         return services;
     }

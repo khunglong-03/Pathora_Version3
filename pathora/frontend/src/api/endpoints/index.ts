@@ -40,6 +40,7 @@ import type {
   TourRequestEndpoints,
   PaymentEndpoints,
 } from "./booking";
+import type { BookingCancellationEndpoints } from "./bookingCancellation";
 import type {
   PricingPolicyEndpoints,
   DepositPolicyEndpoints,
@@ -49,6 +50,7 @@ import type {
 import type { UserEndpoints } from "./user";
 import { USER } from "./user";
 import type { ManagerEndpoints } from "./manager";
+import type { WithdrawalEndpoints } from "./withdrawal";
 import { MANAGER } from "./manager";
 import type { RoleEndpoints } from "./role";
 import type { AdminHotelEndpoints } from "./adminHotel";
@@ -84,6 +86,7 @@ export type {
   TourRequestEndpoints,
   PaymentEndpoints,
 } from "./booking";
+export type { BookingCancellationEndpoints } from "./bookingCancellation";
 export type {
   PricingPolicyEndpoints,
   DepositPolicyEndpoints,
@@ -104,6 +107,7 @@ export type {
 } from "./admin";
 
 export type { ManagerEndpoints } from "./manager";
+export type { WithdrawalEndpoints } from "./withdrawal";
 export type { RoleEndpoints } from "./role";
 export type { AdminHotelEndpoints } from "./adminHotel";
 
@@ -124,6 +128,7 @@ import {
   TOUR_REQUESTS,
   PAYMENT,
 } from "./booking";
+import { BOOKING_CANCELLATION } from "./bookingCancellation";
 import {
   PRICING_POLICY,
   DEPOSIT_POLICY,
@@ -160,6 +165,7 @@ export {
   TOUR_REQUESTS,
   PAYMENT,
 } from "./booking";
+export { BOOKING_CANCELLATION } from "./bookingCancellation";
 export {
   PRICING_POLICY,
   DEPOSIT_POLICY,
@@ -182,7 +188,9 @@ export { USER } from "./user";
 export { ROLE } from "./role";
 export { ADMIN_HOTEL } from "./adminHotel";
 export { MANAGER } from "./manager";
+export { WITHDRAWAL } from "./withdrawal";
 
+import { WITHDRAWAL } from "./withdrawal";
 import { HOTEL_PROVIDER } from "./hotelProvider";
 export { HOTEL_PROVIDER };
 
@@ -216,7 +224,9 @@ export interface ApiEndpoints {
   HOTEL: AdminHotelEndpoints;
   TOUR_MANAGER_ASSIGNMENT: TourManagerAssignmentEndpoints;
   MANAGER: ManagerEndpoints;
+  WITHDRAWAL: WithdrawalEndpoints;
   HOTEL_PROVIDER: HotelProviderEndpoints;
+  BOOKING_CANCELLATION: BookingCancellationEndpoints;
 }
 
 // Main endpoint object
@@ -250,6 +260,8 @@ export const API_ENDPOINTS: ApiEndpoints = {
   HOTEL_PROVIDER,
   TOUR_MANAGER_ASSIGNMENT,
   MANAGER,
+  WITHDRAWAL,
+  BOOKING_CANCELLATION,
 };
 
 // Backwards-compatible default export

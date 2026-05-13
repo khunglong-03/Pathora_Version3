@@ -10,6 +10,10 @@ using System.Text.Json.Serialization;
 
 namespace Application.Features.TourInstance.ItineraryFeedback;
 
+/// <summary>
+/// Sets the BasePrice on a private tour instance (operator co-design flow).
+/// Kept as a separate command so the PATCH endpoint still works.
+/// </summary>
 public sealed record SetPrivateTourFinalSellPriceCommand(
     [property: JsonPropertyName("tourInstanceId")] Guid TourInstanceId,
     [property: JsonPropertyName("finalSellPrice")] decimal FinalSellPrice)
@@ -54,9 +58,17 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
         if (!isAdmin && !isGlobalManager && !isOperator && !PrivateTourCoDesignAccess.EnsureInstanceManagerOnly(instance, userId))
             return Error.Forbidden(ErrorConstants.ItineraryFeedback.ForbiddenCode, ErrorConstants.ItineraryFeedback.ForbiddenDescription);
 
+        if (instance.InstanceType != TourType.Private)
+            return Error.Validation("PrivateTour.NotPrivate", "Chỉ tour riêng mới được set giá.");
+        if (request.FinalSellPrice < 0)
+            return Error.Validation("PrivateTour.PriceInvalid", "Giá không được âm.");
+
         try
         {
-            instance.SetFinalSellPrice(request.FinalSellPrice, userId.ToString());
+            // Write directly to BasePrice (FinalSellPrice has been dropped).
+            instance.BasePrice = request.FinalSellPrice;
+            instance.LastModifiedBy = userId.ToString();
+            instance.LastModifiedOnUtc = DateTimeOffset.UtcNow;
             
             if (isOperator)
             {
@@ -87,7 +99,7 @@ public sealed class SetPrivateTourFinalSellPriceCommandHandler(
         }
         catch (InvalidOperationException ex)
         {
-            return Error.Validation("PrivateTour.FinalSellPriceInvalid", ex.Message);
+            return Error.Validation("PrivateTour.PriceInvalid", ex.Message);
         }
 
         try

@@ -7,4 +7,6 @@ public sealed record TourInstanceManagerDto(
     [property: JsonPropertyName("userId")] Guid UserId,
     [property: JsonPropertyName("userName")] string UserName,
     [property: JsonPropertyName("userAvatar")] string? UserAvatar,
-    [property: JsonPropertyName("role")] string Role);
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("isAccepted")] bool IsAccepted
+);

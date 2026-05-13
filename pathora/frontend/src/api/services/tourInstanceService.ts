@@ -203,6 +203,11 @@ export interface UpdateTourInstancePayload {
   imageUrls?: string[];
 }
 
+export interface AssignTourInstanceGuidesPayload {
+  id: string;
+  guideUserIds: string[];
+}
+
 export interface TourInstanceRequestError {
   status?: number;
   response?: {
@@ -306,7 +311,7 @@ export const tourInstanceService = {
 
   getInstanceDetail: async (id: string) => {
     const response = await api.get<ServiceResponse<TourInstanceDto>>(
-      API_ENDPOINTS.TOUR_INSTANCE.GET_DETAIL(id),
+      `${API_ENDPOINTS.TOUR_INSTANCE.GET_DETAIL(id)}?_t=${Date.now()}`
     );
 
     const result = extractResult<TourInstanceDto>(response.data);
@@ -441,6 +446,21 @@ export const tourInstanceService = {
     const response = await api.put<ServiceResponse<string>>(
       API_ENDPOINTS.TOUR_INSTANCE.UPDATE,
       payload,
+    );
+    return extractResult<string>(response.data);
+  },
+
+  assignGuides: async (data: AssignTourInstanceGuidesPayload) => {
+    const response = await api.put<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_GUIDES(data.id),
+      data,
+    );
+    return extractResult<string>(response.data);
+  },
+
+  guideApprove: async (id: string) => {
+    const response = await api.post<ServiceResponse<string>>(
+      API_ENDPOINTS.TOUR_INSTANCE.GUIDE_APPROVE(id),
     );
     return extractResult<string>(response.data);
   },
@@ -678,7 +698,7 @@ export const tourInstanceService = {
   assignTransportSupplier: async (
     instanceId: string,
     activityId: string,
-    data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number }
+    data: { supplierId: string; requestedVehicleType: number; requestedSeatCount: number; requestedVehicleCount?: number }
   ) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.ASSIGN_TRANSPORT_SUPPLIER(instanceId, activityId),
@@ -737,6 +757,18 @@ export const tourInstanceService = {
     return extractResult<unknown>(response.data);
   },
 
+  setAccommodationRequirements: async (
+    instanceId: string,
+    activityId: string,
+    data: { supplierId?: string | null; roomType: string; quantity: number },
+  ) => {
+    const response = await api.put<ServiceResponse<unknown>>(
+      API_ENDPOINTS.TOUR_INSTANCE.SET_ACCOMMODATION_REQUIREMENTS(instanceId, activityId),
+      data,
+    );
+    return extractResult<unknown>(response.data);
+  },
+
   assignRoomToAccommodation: async (
     instanceId: string,
     activityId: string,
@@ -775,10 +807,12 @@ export const tourInstanceService = {
     instanceId: string,
     activityId: string,
     confirm: boolean = true,
+    departureTime?: string,
+    arrivalTime?: string
   ) => {
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.TOUR_INSTANCE.CONFIRM_EXTERNAL_TRANSPORT(instanceId, activityId),
-      { confirm },
+      { confirm, departureTime, arrivalTime },
     );
     return extractResult<unknown>(response.data);
   },
@@ -923,11 +957,11 @@ export const tourInstanceService = {
     return extractResult<PrivateTourSettlementResultDto>(response.data);
   },
 
-  getBookingTickets: async (instanceId: string, activityId: string) => {
-    const response = await api.get<ServiceResponse<any[]>>(
+  getBookingTickets: async (instanceId: string, activityId: string): Promise<BookingTicketDto[]> => {
+    const response = await api.get<ServiceResponse<BookingTicketDto[]>>(
       API_ENDPOINTS.TOUR_INSTANCE.BOOKING_TICKETS(instanceId, activityId),
     );
-    return extractResult<any[]>(response.data) ?? [];
+    return extractResult<BookingTicketDto[]>(response.data) ?? [];
   },
 
   saveBookingTicket: async (
@@ -985,5 +1019,16 @@ export interface BookingRoomAssignmentDto {
   roomType: string | number;
   roomCount: number;
   roomNumbers?: string | null;
+  note?: string | null;
+}
+
+export interface BookingTicketDto {
+  bookingId: string;
+  flightNumber?: string | null;
+  departureAt?: string | null;
+  arrivalAt?: string | null;
+  seatNumbers?: string | null;
+  eTicketNumbers?: string | null;
+  seatClass?: string | null;
   note?: string | null;
 }
