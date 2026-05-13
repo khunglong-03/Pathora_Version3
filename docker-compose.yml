@@ -104,10 +104,6 @@ x-backend-env: &backend-env
 
 services:
   # ════════════════════════════════════════════════════════
-  #  Infrastructure
-  # ════════════════════════════════════════════════════════
-
-  # ════════════════════════════════════════════════════════
   #  Backend — Private Api (dashboard, admin, management)
   # ════════════════════════════════════════════════════════
   backend:
@@ -121,6 +117,13 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
     expose:
       - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pathora-backend.rule=Host(`cbbo-g99.io.vn`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.pathora-backend.entrypoints=websecure"
+      - "traefik.http.routers.pathora-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pathora-backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.pathora-backend.priority=1"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
       interval: 15s
@@ -143,6 +146,13 @@ services:
       ASPNETCORE_HTTP_PORTS: "8081"
     expose:
       - "8081"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pathora-publicapi.rule=Host(`cbbo-g99.io.vn`) && (PathPrefix(`/api/auth`) || PathPrefix(`/api/public`) || PathPrefix(`/api/payment`))"
+      - "traefik.http.routers.pathora-publicapi.entrypoints=websecure"
+      - "traefik.http.routers.pathora-publicapi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pathora-publicapi.loadbalancer.server.port=8081"
+      - "traefik.http.routers.pathora-publicapi.priority=2"
     depends_on:
       backend:
         condition: service_healthy
@@ -152,31 +162,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
-
-  # ════════════════════════════════════════════════════════
-  #  Nginx Reverse Proxy
-  # ════════════════════════════════════════════════════════
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: pathora-nginx-v2
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      backend:
-        condition: service_healthy
-      publicapi:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1/health/api"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
     restart: unless-stopped
 
   # ════════════════════════════════════════════════════════
@@ -196,10 +181,17 @@ services:
       NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
       NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
       NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
-      # Server-side fetch dùng nginx internal Docker network URL
-      INTERNAL_API_URL: "http://nginx"
+      # Server-side fetch dùng backend/publicapi internal URLs
+      INTERNAL_API_URL: "http://backend:8080"
     expose:
       - "3003"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pathora-frontend.rule=Host(`cbbo-g99.io.vn`)"
+      - "traefik.http.routers.pathora-frontend.entrypoints=websecure"
+      - "traefik.http.routers.pathora-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pathora-frontend.loadbalancer.server.port=3003"
+      - "traefik.http.routers.pathora-frontend.priority=0"
     depends_on:
       backend:
         condition: service_healthy
