@@ -1,7 +1,7 @@
 namespace Domain.Entities;
 
 /// <summary>
-/// Lịch sử ghi có vào ví khách (ví dụ hoàn chênh <c>FinalSellPrice</c> so với đã thanh toán). Spec OpenSpec: TransactionHistory.
+/// Lịch sử ghi có vào ví khách (ví dụ hoàn chênh <c>BasePrice</c> so với đã thanh toán). Spec OpenSpec: TransactionHistory.
 /// </summary>
 public class TransactionHistoryEntity : Aggregate<Guid>
 {

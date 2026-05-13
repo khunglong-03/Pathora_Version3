@@ -68,26 +68,26 @@ export interface PaymentEndpoints {
 
 export const PUBLIC_BOOKING: PublicBookingEndpoints = {
   CREATE: "/api/public/bookings",
-  GET_DETAIL: (id: string): string => `/api/public/bookings/${id}`,
+  GET_DETAIL: (id: string): string => `/api/customer/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/public/bookings/${id}/checkout-price`,
-  GET_VISA_REQUIREMENTS: (id: string): string => `/api/public/bookings/${id}/visa-requirements`,
-  UPSERT_PARTICIPANT_PASSPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/participants/${participantId}/passport`,
-  SUBMIT_VISA_APPLICATION: (id: string): string => `/api/public/bookings/${id}/visa-applications`,
-  UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${applicationId}`,
-  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/public/bookings/${bookingId}/visa-applications/${participantId}/request-support`,
-  GET_PARTICIPANTS: (id: string): string => `/api/public/bookings/${id}/participants`,
-  CREATE_PARTICIPANT: (id: string): string => `/api/public/bookings/${id}/participants`,
-  UPDATE_PARTICIPANT: (id: string, participantId: string): string => `/api/public/bookings/${id}/participants/${participantId}`
+  GET_VISA_REQUIREMENTS: (id: string): string => `/api/customer/bookings/${id}/visa-requirements`,
+  UPSERT_PARTICIPANT_PASSPORT: (bookingId: string, participantId: string): string => `/api/customer/bookings/${bookingId}/participants/${participantId}/passport`,
+  SUBMIT_VISA_APPLICATION: (id: string): string => `/api/customer/bookings/${id}/visa-applications`,
+  UPDATE_VISA_APPLICATION: (bookingId: string, applicationId: string): string => `/api/customer/bookings/${bookingId}/visa-applications/${applicationId}`,
+  REQUEST_VISA_SUPPORT: (bookingId: string, participantId: string): string => `/api/customer/bookings/${bookingId}/visa-applications/${participantId}/request-support`,
+  GET_PARTICIPANTS: (id: string): string => `/api/customer/bookings/${id}/participants`,
+  CREATE_PARTICIPANT: (id: string): string => `/api/customer/bookings/${id}/participants`,
+  UPDATE_PARTICIPANT: (id: string, participantId: string): string => `/api/customer/bookings/${id}/participants/${participantId}`
 };
 
 export const BOOKING: BookingEndpoints = {
   GET_LIST: "/api/bookings",
   GET_BY_TOUR_INSTANCE: (tourInstanceId: string): string => `/api/bookings/by-tour-instance/${tourInstanceId}`,
-  GET_MY_RECENT: "/api/public/bookings/my-recent-bookings",
-  GET_MY_BOOKINGS: "/api/public/bookings/my-bookings",
+  GET_MY_RECENT: "/api/customer/bookings/my-recent-bookings",
+  GET_MY_BOOKINGS: "/api/customer/bookings/my-bookings",
   GET_DETAIL: (id: string): string => `/api/bookings/${id}`,
   GET_CHECKOUT_PRICE: (id: string): string => `/api/bookings/${id}/checkout-price`,
-  GET_CUSTOMER_CHECKOUT_PRICE: (id: string): string => `/api/public/bookings/${id}/customer-checkout-price`,
+  GET_CUSTOMER_CHECKOUT_PRICE: (id: string): string => `/api/customer/bookings/${id}/customer-checkout-price`,
   GET_ACTIVITIES: (id: string): string => `/api/bookings/${id}/activities`,
   GET_ACTIVITY_DETAIL: (id: string, activityId: string): string =>
     `/api/bookings/${id}/activities/${activityId}`,
@@ -115,9 +115,9 @@ export const BOOKING: BookingEndpoints = {
 };
 
 export const TOUR_REQUESTS: TourRequestEndpoints = {
-  CREATE: "/api/public/tour-requests",
-  MY: "/api/public/tour-requests/my",
-  DETAIL: (id: string): string => `/api/public/tour-requests/${id}`,
+  CREATE: "/api/customer/tour-requests",
+  MY: "/api/customer/tour-requests/my",
+  DETAIL: (id: string): string => `/api/customer/tour-requests/${id}`,
   ADMIN_LIST: "/api/tour-requests",
   ADMIN_DETAIL: (id: string): string => `/api/tour-requests/${id}`,
   REVIEW: (id: string): string => `/api/tour-requests/${id}/review`,

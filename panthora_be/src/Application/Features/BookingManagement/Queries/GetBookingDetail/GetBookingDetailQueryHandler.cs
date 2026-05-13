@@ -80,7 +80,7 @@ public class GetBookingDetailQueryHandler(
             Adults = booking.NumberAdult,
             Children = booking.NumberChild,
             Infants = booking.NumberInfant,
-            PricePerPerson = booking.NumberAdult > 0 ? (booking.TotalPrice / booking.NumberAdult) : 0, // Simplify
+            PricePerPerson = booking.TourInstance?.BasePrice ?? (booking.NumberAdult > 0 ? (booking.TotalPrice / booking.NumberAdult) : 0),
             TotalAmount = booking.TotalPrice,
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,

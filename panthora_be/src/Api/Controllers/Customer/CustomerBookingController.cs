@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize(Policy = "CustomerOnly")]
-[Route(PublicEndpoint.Base + "/" + PublicEndpoint.Bookings)]
+[Route("api/customer/bookings")]
 public class CustomerBookingController : BaseApiController
 {
     /// <summary>Get recent bookings for the authenticated customer.</summary>

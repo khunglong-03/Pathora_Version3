@@ -88,31 +88,62 @@ export function TermsConditionsCard({
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-4">
-          <Checkbox
-            value={agreeTerms}
-            onChange={() => setAgreeTerms(!agreeTerms)}
-            activeClass="!bg-zinc-900 !ring-zinc-900 !border-zinc-900"
-            label={
-              <span className="text-sm text-slate-600 font-medium leading-relaxed">
-                {t("landing.checkout.agreeTermsPrefix")}{" "}
-                <span className="font-semibold text-zinc-900 underline decoration-zinc-300 underline-offset-4 cursor-pointer">{t("landing.checkout.cancellationPolicyLink")}</span>{" "}
-                {t("landing.checkout.and")}{" "}
-                <span className="font-semibold text-zinc-900 underline decoration-zinc-300 underline-offset-4 cursor-pointer">{t("landing.checkout.paymentTermsLink")}</span>
-              </span>
-            }
-          />
-          <Checkbox
-            value={acknowledgeInfo}
-            onChange={() => setAcknowledgeInfo(!acknowledgeInfo)}
-            activeClass="!bg-zinc-900 !ring-zinc-900 !border-zinc-900"
-            label={
-              <span className="text-sm text-slate-600 font-medium leading-relaxed">
-                {t("landing.checkout.acknowledgePrefix")}{" "}
-                <span className="font-semibold text-zinc-900 underline decoration-zinc-300 underline-offset-4 cursor-pointer">{t("landing.checkout.importantInfoLink")}</span>{" "}
-                {t("landing.checkout.acknowledgeSuffix")}
-              </span>
-            }
-          />
+          <div
+            className={`p-4 rounded-2xl border transition-all ${
+              agreeTerms
+                ? "bg-zinc-50/50 border-zinc-900 shadow-sm"
+                : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            <Checkbox
+              value={agreeTerms}
+              onChange={() => setAgreeTerms(!agreeTerms)}
+              activeClass="!bg-zinc-900 !ring-zinc-900 !border-zinc-900"
+              label={
+                <span className="text-sm text-slate-600 font-medium leading-relaxed block mt-0.5">
+                  {t("landing.checkout.agreeTermsPrefix")}{" "}
+                  <span
+                    className="font-semibold text-zinc-900 hover:text-orange-600 underline decoration-zinc-300 hover:decoration-orange-400 underline-offset-4 cursor-pointer transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("landing.checkout.cancellationPolicyLink")}
+                  </span>{" "}
+                  {t("landing.checkout.and")}{" "}
+                  <span
+                    className="font-semibold text-zinc-900 hover:text-orange-600 underline decoration-zinc-300 hover:decoration-orange-400 underline-offset-4 cursor-pointer transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("landing.checkout.paymentTermsLink")}
+                  </span>
+                </span>
+              }
+            />
+          </div>
+          <div
+            className={`p-4 rounded-2xl border transition-all ${
+              acknowledgeInfo
+                ? "bg-zinc-50/50 border-zinc-900 shadow-sm"
+                : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            <Checkbox
+              value={acknowledgeInfo}
+              onChange={() => setAcknowledgeInfo(!acknowledgeInfo)}
+              activeClass="!bg-zinc-900 !ring-zinc-900 !border-zinc-900"
+              label={
+                <span className="text-sm text-slate-600 font-medium leading-relaxed block mt-0.5">
+                  {t("landing.checkout.acknowledgePrefix")}{" "}
+                  <span
+                    className="font-semibold text-zinc-900 hover:text-orange-600 underline decoration-zinc-300 hover:decoration-orange-400 underline-offset-4 cursor-pointer transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("landing.checkout.importantInfoLink")}
+                  </span>{" "}
+                  {t("landing.checkout.acknowledgeSuffix")}
+                </span>
+              }
+            />
+          </div>
         </div>
       </div>
     </div>

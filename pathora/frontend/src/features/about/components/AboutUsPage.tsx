@@ -6,7 +6,7 @@ import { WhoWeAreSection } from "./AboutWhoWeAre";
 import { ValuesSection } from "./AboutValuesSection";
 import { TimelineSection } from "./AboutTimelineSection";
 import { TeamSection } from "./AboutTeamSection";
-import { CTABanner } from "./AboutCTABanner";
+
 import { FloatingButtons } from "./AboutFloatingButtons";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import {
@@ -62,8 +62,7 @@ export const AboutUsPage = () => {
       {/* Team */}
       <TeamSection teamMembers={teamMembers} />
 
-      {/* CTA */}
-      <CTABanner />
+      {/* CTA section removed */}
 
       {/* Floating Buttons */}
       <FloatingButtons />

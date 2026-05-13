@@ -115,6 +115,7 @@ export const homeService = {
     maxPrice?: number;
     minDays?: number;
     maxDays?: number;
+    continent?: number;
     page?: number;
     pageSize?: number;
     language?: string;

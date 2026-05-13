@@ -311,7 +311,7 @@ export const tourInstanceService = {
 
   getInstanceDetail: async (id: string) => {
     const response = await api.get<ServiceResponse<TourInstanceDto>>(
-      API_ENDPOINTS.TOUR_INSTANCE.GET_DETAIL(id),
+      `${API_ENDPOINTS.TOUR_INSTANCE.GET_DETAIL(id)}?_t=${Date.now()}`
     );
 
     const result = extractResult<TourInstanceDto>(response.data);

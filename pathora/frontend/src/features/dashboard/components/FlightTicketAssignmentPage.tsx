@@ -50,9 +50,9 @@ interface Props {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const isTransportationActivity = (activityType?: string | null): boolean => {
-  if (!activityType) return false;
-  const t = activityType.toLowerCase();
+const isTransportationActivity = (activityType?: string | number | null): boolean => {
+  if (activityType == null) return false;
+  const t = String(activityType).trim().toLowerCase();
   return t === "transportation" || t === "2";
 };
 
@@ -102,7 +102,7 @@ export default function FlightTicketAssignmentPage({ instanceId, backUrl, filter
       const externalActivities: ExternalActivity[] = [];
       for (const day of instance?.days ?? []) {
         for (const activity of day.activities ?? []) {
-          if (isTransportationActivity(activity.activityType)) {
+          if (isTransportationActivity(activity.activityType) && !activity.transportSupplierId) {
             externalActivities.push({
               activityId: activity.id,
               title: activity.title ?? t("tourInstance.bookingFlight.transport.fallback", "Phương tiện"),

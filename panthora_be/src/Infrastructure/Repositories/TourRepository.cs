@@ -387,6 +387,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -400,7 +401,8 @@ public class TourRepository(AppDbContext context) : ITourRepository
                 minPrice,
                 maxPrice,
                 minDays,
-                maxDays)
+                maxDays,
+                continent)
             .Include(t => t.Thumbnail)
             .Include(t => t.Classifications)
             .Include(t => t.PlanLocations)
@@ -422,6 +424,7 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? maxPrice,
         int? minDays,
         int? maxDays,
+        Continent? continent,
         CancellationToken cancellationToken = default)
     {
         return await BuildSearchQuery(
@@ -433,7 +436,8 @@ public class TourRepository(AppDbContext context) : ITourRepository
             minPrice,
             maxPrice,
             minDays,
-            maxDays).CountAsync(cancellationToken);
+            maxDays,
+            continent).CountAsync(cancellationToken);
     }
 
     private IQueryable<TourEntity> BuildSearchQuery(
@@ -445,12 +449,18 @@ public class TourRepository(AppDbContext context) : ITourRepository
         decimal? minPrice,
         decimal? maxPrice,
         int? minDays,
-        int? maxDays)
+        int? maxDays,
+        Continent? continent)
     {
         var query = _context.Tours
             .AsNoTracking()
             .Where(t => !t.IsDeleted && t.Status == TourStatus.Active)
             .AsQueryable();
+
+        if (continent.HasValue)
+        {
+            query = query.Where(t => t.Continent == continent.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(q))
         {

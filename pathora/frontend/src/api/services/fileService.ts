@@ -14,9 +14,7 @@ export const fileService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await api.post<FileMetadata>("/api/file/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await api.post<FileMetadata>("/api/file/upload", formData);
     return res.data;
   },
 
@@ -31,8 +29,7 @@ export const fileService = {
 
     const res = await api.post<FileMetadata[]>(
       "/api/file/upload-multiple",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      formData
     );
     return res.data;
   },

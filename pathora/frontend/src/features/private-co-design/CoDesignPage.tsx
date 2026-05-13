@@ -44,7 +44,7 @@ export function CoDesignPage() {
           return;
         }
         setDays(detail.days ?? []);
-        setFinalPrice(detail.finalSellPrice ?? null);
+        setFinalPrice(detail.basePrice ?? null);
         setTourStatus(detail.status ?? "");
         
         const hasManagerRole = user?.roles?.some((r: any) => r.name === "Admin" || r.name === "Manager");

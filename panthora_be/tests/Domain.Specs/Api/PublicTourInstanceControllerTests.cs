@@ -1,4 +1,4 @@
-using global::Api.Controllers.Public;
+using global::ApiPublic.Controller;
 using global::Application.Dtos;
 using global::Application.Features.Public.Queries;
 using Contracts;
@@ -85,7 +85,7 @@ public sealed class PublicTourInstanceControllerTests
             PricingPolicy: null,
             CancellationPolicy: null,
             DepositPolicy: null,
-            FinalSellPrice: null,
+            OriginalBasePrice: 0,
             WantsCustomization: false,
             CustomizationNotes: null,
             Days: null);

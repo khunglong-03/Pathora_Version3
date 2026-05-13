@@ -128,6 +128,21 @@ ndepend.xml
 .gitnexus
 
 
+# AI tool configs (root level)
+.claude.json
+.codex.json
+skills-lock.json
+
+# Scratch scripts and temp files (root level)
+/*.js
+/*.csx
+/*.diff
+/*.txt
+/*.nupkg
+/CheckBookingQuery.cs
+/package-lock.json
+/seed/
+
 # Local workspace clutter
 /obj/
 /bin/
@@ -135,9 +150,15 @@ ndepend.xml
 /manager_dashboard_redesign_plan.md
 .codex/
 .gemini/
+.cursor/
+.local/
+.serena/
+.superpowers/
+Skills/
+gitnexus-local/
+docs/
 # Cursor Workspace
 .autoplan-restore/
-.codex/
 diagram/
 
 # --- Migrated from backend .gitignore ---
@@ -286,3 +307,5 @@ Serilog*.txt
 panthora_be/src/Api/logs/
 panthora_be/src/Application/Common/Repositories/
 *.docx
+
+scripts/

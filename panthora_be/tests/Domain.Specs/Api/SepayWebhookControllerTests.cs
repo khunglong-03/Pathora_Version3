@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 
 using global::Api.Controllers;
+using global::ApiPublic.Controller;
 using global::Application.Contracts.Payment;
 using global::Application.Options;
 using global::Application.Services;

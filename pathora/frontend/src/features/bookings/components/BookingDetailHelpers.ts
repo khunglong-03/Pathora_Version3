@@ -49,13 +49,25 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
   return map[tier];
 };
 
-export const getBookingDerivedState = (booking: BookingDetail) => ({
-  totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
-  showPayRemaining: (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") && booking.status !== "cancelled" && booking.status !== "rejected",
-  showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
-  showCancelBooking:
-    booking.status !== "completed" &&
-    booking.status !== "cancelled" &&
-    booking.status !== "rejected" &&
-    booking.status !== "pending_cancellation",
-});
+export const getBookingDerivedState = (booking: BookingDetail) => {
+  const isCustomTourPending = [
+    "PendingManagerReview",
+    "PendingAdjustment",
+    "PendingCustomerApproval",
+  ].includes(booking.tourStatus ?? "");
+
+  return {
+    totalGuests: booking.adults + booking.children + (booking.infants ?? 0),
+    showPayRemaining:
+      (booking.paymentStatus === "partial" || booking.paymentStatus === "unpaid") &&
+      booking.status !== "cancelled" &&
+      booking.status !== "rejected" &&
+      !isCustomTourPending,
+    showVisaSection: booking.isVisaRequired || booking.tourStatus === "PendingVisa",
+    showCancelBooking:
+      booking.status !== "completed" &&
+      booking.status !== "cancelled" &&
+      booking.status !== "rejected" &&
+      booking.status !== "pending_cancellation",
+  };
+};

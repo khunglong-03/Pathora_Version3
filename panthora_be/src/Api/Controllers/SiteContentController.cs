@@ -28,7 +28,6 @@ public class SiteContentController : ControllerBase
     /// Get all content for a specific page (public endpoint)
     /// </summary>
     [HttpGet]
-    [AllowAnonymous]
     [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "pageKey", "lang" })]
     public async Task<IActionResult> GetByPage(
         [FromQuery] string pageKey,
@@ -124,7 +123,6 @@ public class SiteContentController : ControllerBase
     /// Get specific content item by page and content key (public endpoint)
     /// </summary>
     [HttpGet(SiteContentEndpoint.ByKey)]
-    [AllowAnonymous]
     [ResponseCache(Duration = 300, VaryByQueryKeys = new[] { "lang" })]
     public async Task<IActionResult> GetByKey(
         string pageKey,

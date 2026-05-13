@@ -42,6 +42,8 @@ D:\DoAn\
 │   │   ├── Application/             # CQRS: Commands, Queries, Handlers, Validators
 │   │   ├── Domain/                  # Entities, value objects, domain events
 │   │   └── Infrastructure/          # EF Core, JWT auth, external services
+│   ├── src/PublicApi/
+│   │   └── ApiPublic/               # Controllers, middleware (Anonymous / Public)
 │   ├── tests/
 │   │   └── Domain.Specs/            # xUnit integration tests
 │   ├── LocalService.slnx
@@ -77,6 +79,12 @@ D:\DoAn\
 > - `panthora_be/` là backend, **không phải** `backend/`
 
 > - Docs cũ có thể ghi sai port (3000/3001), React version (19), hoặc không có tests. Thực tế: **port 3003, React 18.3.1, Vitest có sẵn**
+
+> **WARNING (Backend Architecture Boundary):**
+> Khi thêm endpoint mới, phải quyết định ngay từ đầu:
+> - **PublicApi (`panthora_be/src/PublicApi/ApiPublic`)**: cho các endpoint anonymous (không cần JWT token, ví dụ lấy danh sách tour public, webhook, etc.).
+> - **Api (`panthora_be/src/Api`)**: cho các endpoint nội bộ cần authentication (JWT token, ví dụ `/api/customer/*`, `/api/admin/*`, v.v.).
+> **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
 
 ---
 

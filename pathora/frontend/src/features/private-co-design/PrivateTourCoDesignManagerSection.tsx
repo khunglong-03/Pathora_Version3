@@ -78,61 +78,108 @@ export function PrivateTourCoDesignManagerSection({
     return () => unsub();
   }, [events, tourInstanceId, loadFeedback, t]);
 
-  const handleForward = async (feedback: TourItineraryFeedbackDto) => {
-    setProcessingId(feedback.id);
-    try {
-      await tourInstanceService.forwardItineraryFeedbackToOperator(
-        tourInstanceId,
-        feedback.tourInstanceDayId,
-        feedback.id,
-        feedback.rowVersion
-      );
-      toast.success(t("manager.coDesign.forwardSuccess", "Forwarded to Operator successfully."));
-      await loadFeedback();
-    } catch (err) {
-      toast.error(handleApiError(err).message);
-    } finally {
-      setProcessingId(null);
-    }
+  const handleForward = (feedback: TourItineraryFeedbackDto) => {
+    import("sweetalert2").then(({ default: Swal }) => {
+      Swal.fire({
+        title: t("manager.coDesign.confirmForward", "Forward to Operator?"),
+        text: t("manager.coDesign.confirmForwardText", "Are you sure you want to forward this feedback to the operator?"),
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#4f46e5",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: t("manager.coDesign.forward", "Forward"),
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setProcessingId(feedback.id);
+          try {
+            await tourInstanceService.forwardItineraryFeedbackToOperator(
+              tourInstanceId,
+              feedback.tourInstanceDayId,
+              feedback.id,
+              feedback.rowVersion
+            );
+            toast.success(t("manager.coDesign.forwardSuccess", "Forwarded to Operator successfully."));
+            await loadFeedback();
+          } catch (err) {
+            toast.error(handleApiError(err).message);
+          } finally {
+            setProcessingId(null);
+          }
+        }
+      });
+    });
   };
 
-  const handleApprove = async (feedback: TourItineraryFeedbackDto) => {
-    setProcessingId(feedback.id);
-    try {
-      await tourInstanceService.managerApproveItineraryFeedback(
-        tourInstanceId,
-        feedback.tourInstanceDayId,
-        feedback.id,
-        feedback.rowVersion
-      );
-      toast.success(t("manager.coDesign.approveSuccess", "Approved and sent to Customer."));
-      await loadFeedback();
-    } catch (err) {
-      toast.error(handleApiError(err).message);
-    } finally {
-      setProcessingId(null);
-    }
+  const handleApprove = (feedback: TourItineraryFeedbackDto) => {
+    import("sweetalert2").then(({ default: Swal }) => {
+      Swal.fire({
+        title: t("manager.coDesign.confirmApprove", "Approve Feedback?"),
+        text: t("manager.coDesign.confirmApproveText", "Are you sure you want to approve this feedback? It will be sent to the customer."),
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#059669",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: t("manager.coDesign.approve", "Approve"),
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setProcessingId(feedback.id);
+          try {
+            await tourInstanceService.managerApproveItineraryFeedback(
+              tourInstanceId,
+              feedback.tourInstanceDayId,
+              feedback.id,
+              feedback.rowVersion
+            );
+            toast.success(t("manager.coDesign.approveSuccess", "Approved and sent to Customer."));
+            await loadFeedback();
+          } catch (err) {
+            toast.error(handleApiError(err).message);
+          } finally {
+            setProcessingId(null);
+          }
+        }
+      });
+    });
   };
 
-  const handleReject = async (feedback: TourItineraryFeedbackDto) => {
-    setProcessingId(feedback.id);
+  const handleReject = (feedback: TourItineraryFeedbackDto) => {
     const reason = rejectReasons[feedback.id] || "";
-    try {
-      await tourInstanceService.managerRejectItineraryFeedback(
-        tourInstanceId,
-        feedback.tourInstanceDayId,
-        feedback.id,
-        reason,
-        feedback.rowVersion
-      );
-      toast.success(t("manager.coDesign.rejectSuccess", "Rejected and sent back to Operator."));
-      setRejectReasons((prev) => ({ ...prev, [feedback.id]: "" }));
-      await loadFeedback();
-    } catch (err) {
-      toast.error(handleApiError(err).message);
-    } finally {
-      setProcessingId(null);
+    if (!reason.trim()) {
+      toast.error(t("manager.coDesign.rejectReasonRequired", "Please provide a reason for rejection."));
+      return;
     }
+
+    import("sweetalert2").then(({ default: Swal }) => {
+      Swal.fire({
+        title: t("manager.coDesign.confirmReject", "Reject Feedback?"),
+        text: t("manager.coDesign.confirmRejectText", "Are you sure you want to reject this feedback? It will be sent back to the operator."),
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: t("manager.coDesign.reject", "Reject"),
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setProcessingId(feedback.id);
+          try {
+            await tourInstanceService.managerRejectItineraryFeedback(
+              tourInstanceId,
+              feedback.tourInstanceDayId,
+              feedback.id,
+              reason,
+              feedback.rowVersion
+            );
+            toast.success(t("manager.coDesign.rejectSuccess", "Rejected and sent back to Operator."));
+            setRejectReasons((prev) => ({ ...prev, [feedback.id]: "" }));
+            await loadFeedback();
+          } catch (err) {
+            toast.error(handleApiError(err).message);
+          } finally {
+            setProcessingId(null);
+          }
+        }
+      });
+    });
   };
 
   if (!sortedDays.length) {

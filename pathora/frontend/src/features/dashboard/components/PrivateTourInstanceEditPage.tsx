@@ -25,6 +25,9 @@ const labelCls = "block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tr
 const toDateInput = (iso?: string | null) =>
   iso ? iso.split("T")[0] : "";
 
+const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidGuid = (v?: string | null): boolean => !!v && GUID_REGEX.test(v.trim());
+
 /* ── form shape ───────────────────────────────────────────── */
 interface EditForm {
   title: string;
@@ -609,8 +612,8 @@ function ItineraryEditor({ instanceId, days, startDate, endDate, onRefresh, read
           ? {
               transportationType: Number(actTransportFields.transportationType),
               transportationName: actTransportFields.transportationName || null,
-              fromLocationId: actTransportFields.fromLocation || null,
-              toLocationId: actTransportFields.toLocation || null,
+              fromLocationId: isValidGuid(actTransportFields.fromLocation) ? actTransportFields.fromLocation : null,
+              toLocationId: isValidGuid(actTransportFields.toLocation) ? actTransportFields.toLocation : null,
               departureTime: actTransportFields.departureTime ? `${actTransportFields.departureTime}:00` : null,
               arrivalTime: actTransportFields.arrivalTime ? `${actTransportFields.arrivalTime}:00` : null,
               requestedVehicleType: actTransportFields.requestedVehicleType ? Number(actTransportFields.requestedVehicleType) : null,
@@ -1142,7 +1145,7 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
 
   const [startTime, setStartTime] = useState(defaultStartTime);
   const [endTime, setEndTime] = useState(initialData?.endTime?.slice(0,5) || "");
-  const [price, setPrice] = useState(initialData?.price ? String(initialData.price) : "");
+  const [price, setPrice] = useState(initialData?.price != null ? String(initialData.price) : "");
   const [note, setNote] = useState(initialData?.note || "");
   const [saving, setSaving] = useState(false);
 
@@ -1254,8 +1257,8 @@ function ActivityForm({ instanceId, dayId, initialData, dayActivities, onCancel,
 
     const baseTransportPayload = isTransportation ? {
       transportationType: Number(transportFields.transportationType),
-      fromLocationId: transportFields.fromLocation ? transportFields.fromLocation : null, // Backend uses LocationId but we only have string name for now. If BE expects ID, this is a known gap, we might need a location picker.
-      toLocationId: transportFields.toLocation ? transportFields.toLocation : null,
+      fromLocationId: isValidGuid(transportFields.fromLocation) ? transportFields.fromLocation : null,
+      toLocationId: isValidGuid(transportFields.toLocation) ? transportFields.toLocation : null,
       departureTime: transportFields.departureTime ? `${transportFields.departureTime}:00` : null,
       arrivalTime: transportFields.arrivalTime ? `${transportFields.arrivalTime}:00` : null,
       requestedVehicleType: transportFields.requestedVehicleType ? Number(transportFields.requestedVehicleType) : null,

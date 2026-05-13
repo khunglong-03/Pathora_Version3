@@ -38,7 +38,7 @@ const CancellationPoliciesPage = dynamic(
 );
 
 const VALID_TAB_IDS = [
-  "general",
+  // "general",
   "tax-configs",
   "policies",
   "pricing-policies",
@@ -63,8 +63,8 @@ function TabUrlSync({ onTabChange }: { onTabChange: (tab: SettingsTabId) => void
 
 function renderTab(tab: SettingsTabId) {
   switch (tab) {
-    case "general":
-      return <GeneralTab />;
+    // case "general":
+    //   return <GeneralTab />;
     case "tax-configs":
       return <TaxConfigsPage />;
     case "policies":
@@ -77,17 +77,17 @@ function renderTab(tab: SettingsTabId) {
       return <DepositPoliciesSettings />;
 
     default:
-      return <GeneralTab />;
+      return <TaxConfigsPage />;
   }
 }
 
 export function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<SettingsTabId>("general");
+  const [activeTab, setActiveTab] = useState<SettingsTabId>("tax-configs");
 
   const tabs: SettingsTabMeta[] = [
-    { id: "general", label: t("settings.tabs.general") },
+    // { id: "general", label: t("settings.tabs.general") },
     { id: "tax-configs", label: t("settings.tabs.taxConfigs") },
     { id: "policies", label: t("settings.tabs.policies") },
     { id: "pricing-policies", label: t("settings.tabs.pricingPolicies") },

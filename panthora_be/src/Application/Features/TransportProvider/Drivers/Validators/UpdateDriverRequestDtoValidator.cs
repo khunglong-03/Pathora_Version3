@@ -17,7 +17,7 @@ public sealed class UpdateDriverRequestDtoValidator : AbstractValidator<UpdateDr
             .When(x => !string.IsNullOrEmpty(x.LicenseNumber));
 
         RuleFor(x => x.LicenseType)
-            .IsInEnum().When(x => x.LicenseType.HasValue)
+            .Must(x => Enum.IsDefined(typeof(Domain.Enums.DriverLicenseType), x!.Value)).When(x => x.LicenseType.HasValue)
             .WithMessage(DriverRequestValidationMessages.LicenseTypeInvalid);
 
         RuleFor(x => x.PhoneNumber)

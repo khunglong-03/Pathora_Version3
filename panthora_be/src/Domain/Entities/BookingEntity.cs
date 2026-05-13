@@ -155,7 +155,7 @@ public class BookingEntity : Aggregate<Guid>
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>Chờ top-up sau khi <c>FinalSellPrice</c> &gt; tổng đã thanh toán.</summary>
+    /// <summary>Chờ top-up sau khi <c>BasePrice</c> &gt; tổng đã thanh toán.</summary>
     public void MarkPendingAdjustment(string performedBy)
     {
         EnsureValidTransition(Status, BookingStatus.PendingAdjustment);

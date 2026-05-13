@@ -16,7 +16,9 @@ internal static class DependencyInjection
 
         services.AddSingleton<IMailBodyBuilder, MailBodyBuilder>();
 
-        services.AddHostedService<MailProcessor>();
+        // NOTE: MailProcessor (BackgroundService) is NOT registered here.
+        // It is registered ONLY in the Private API (Api/DependencyInjection.cs)
+        // to avoid duplicate mail processing when both Api and PublicApi run.
 
         services.AddResiliencePipeline("mail-pipeline", cfg =>
         {

@@ -630,8 +630,8 @@ export interface TourInstanceDto {
   pricingPolicy?: PricingPolicyDto | null;
   cancellationPolicy?: CancellationPolicyDto | null;
   depositPolicy?: DepositPolicyDto | null;
-  /** Giá chốt sau co-design (private tour); từ API khi đã set. */
-  finalSellPrice?: number | null;
+  /** Giá gốc per-person tại thời điểm tạo (snapshot từ Classification). */
+  originalBasePrice?: number;
   /** Khách muốn tùy chỉnh lịch trình (private custom tour). */
   wantsCustomization?: boolean;
   /** Ghi chú tùy chỉnh từ khách. */

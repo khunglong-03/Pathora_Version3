@@ -35,8 +35,9 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status201Created,
-            expectedInstance: "api/payment",
-            expectedData: qrUrl);
+            expectedInstance: "/api/payment/getQR",
+            expectedData: qrUrl,
+            expectedMessage: "Tạo thành công");
 
         var captured = Assert.IsType<GetQRCommand>(probe.CapturedRequest);
         Assert.Equal(command.note, captured.note);
@@ -111,8 +112,9 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status201Created,
-            expectedInstance: "api/payment",
-            expectedData: transaction);
+            expectedInstance: "/api/payment/create-transaction",
+            expectedData: transaction,
+            expectedMessage: "Tạo thành công");
 
         var captured = Assert.IsType<CreatePaymentTransactionCommand>(probe.CapturedRequest);
         Assert.Equal(command.BookingId, captured.BookingId);
@@ -190,7 +192,7 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "api/payment",
+            expectedInstance: $"/api/payment/transaction/{transactionCode}",
             expectedData: transaction);
 
         var captured = Assert.IsType<GetPaymentTransactionQuery>(probe.CapturedRequest);
@@ -251,7 +253,7 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "api/payment",
+            expectedInstance: $"/api/payment/transaction/{transactionCode}/check",
             expectedData: snapshot);
 
         var captured = Assert.IsType<CheckPaymentNowCommand>(probe.CapturedRequest);
@@ -264,6 +266,7 @@ public sealed class PaymentControllerTests
         // Arrange
         var rateLimitService = Substitute.For<IRateLimitService>();
         var transactionCode = "PAY-TEST-001";
+        rateLimitService.CheckRateLimit(transactionCode).Returns((true, 0));
         var snapshot = new PaymentStatusSnapshot(
             transactionCode,
             "pending",
@@ -287,7 +290,7 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "api/payment",
+            expectedInstance: $"/api/payment/transaction/{transactionCode}/status",
             expectedData: snapshot);
 
         var captured = Assert.IsType<GetNormalizedPaymentStatusQuery>(probe.CapturedRequest);
@@ -350,7 +353,7 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "api/payment",
+            expectedInstance: "/api/payment/return",
             expectedData: snapshot);
 
         var captured = Assert.IsType<ReconcilePaymentReturnCommand>(probe.CapturedRequest);
@@ -432,12 +435,11 @@ public sealed class PaymentControllerTests
         var actionResult = await controller.ReconcileReturn(null, null, null);
 
         // Assert
-        var objectResult = Assert.IsType<ObjectResult>(actionResult);
+        var objectResult = Assert.IsType<BadRequestObjectResult>(actionResult);
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
 
-        var payload = Assert.IsType<ResultSharedResponse<object>>(objectResult.Value);
-        Assert.Equal(StatusCodes.Status400BadRequest, payload.StatusCode);
-        Assert.Contains("Missing transaction code", payload.Message);
+        Assert.NotNull(objectResult.Value);
+        Assert.Contains("Missing transaction code", objectResult.Value.ToString());
     }
 
     [Fact]
@@ -529,7 +531,7 @@ public sealed class PaymentControllerTests
         ApiControllerTestHelper.AssertSuccessResponse(
             actionResult,
             expectedStatusCode: StatusCodes.Status200OK,
-            expectedInstance: "api/payment",
+            expectedInstance: $"/api/payment/transaction/{transactionCode}/expire",
             expectedData: transaction);
 
         var captured = Assert.IsType<ExpirePaymentTransactionCommand>(probe.CapturedRequest);

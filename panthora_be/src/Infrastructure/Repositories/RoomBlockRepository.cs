@@ -99,11 +99,12 @@ public class RoomBlockRepository(AppDbContext context)
     public async Task DeleteByTourInstanceDayActivityIdAsync(
         Guid tourInstanceDayActivityId, CancellationToken cancellationToken = default)
     {
-        // ExecuteDeleteAsync: idempotent bulk delete via raw SQL.
-        // Bypasses change tracker → no DbUpdateConcurrencyException on concurrent calls.
-        await _dbSet
-            .Where(x => x.TourInstanceDayActivityId == tourInstanceDayActivityId)
-            .ExecuteDeleteAsync(cancellationToken);
+        // Raw SQL DELETE bypasses ALL EF Core query filters and change tracker.
+        // The global QueryFilter on RoomBlocks JOINs to Supplier → Owner, which even with
+        // IgnoreQueryFilters() may produce incorrect DELETE SQL in some EF Core versions.
+        await _context.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM \"RoomBlocks\" WHERE \"TourInstanceDayActivityId\" = {tourInstanceDayActivityId}",
+            cancellationToken);
     }
 
     public async Task<IReadOnlyList<RoomBlockEntity>> GetByTourInstanceDayActivityIdsAsync(
@@ -117,11 +118,13 @@ public class RoomBlockRepository(AppDbContext context)
 
     public async Task DeleteByTourInstanceAsync(Guid tourInstanceId, CancellationToken cancellationToken = default)
     {
-        var blocks = await _dbSet
-            .Where(x => x.TourInstanceDayActivity != null
-                        && x.TourInstanceDayActivity.TourInstanceDay.TourInstanceId == tourInstanceId)
-            .ToListAsync(cancellationToken);
-
-        _dbSet.RemoveRange(blocks);
+        // Raw SQL DELETE with subquery — bypasses all EF Core query filters.
+        await _context.Database.ExecuteSqlInterpolatedAsync(
+            $@"DELETE FROM ""RoomBlocks"" WHERE ""TourInstanceDayActivityId"" IN (
+                SELECT a.""Id"" FROM ""TourInstanceDayActivities"" a
+                INNER JOIN ""TourInstanceDays"" d ON a.""TourInstanceDayId"" = d.""Id""
+                WHERE d.""TourInstanceId"" = {tourInstanceId}
+            )",
+            cancellationToken);
     }
 }

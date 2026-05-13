@@ -3373,9 +3373,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal?>("FinalSellPrice")
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<string>("IncludedServices")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -3405,6 +3402,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("MaxParticipation")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("OriginalBasePrice")
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()

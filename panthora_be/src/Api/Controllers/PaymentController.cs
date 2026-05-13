@@ -26,7 +26,6 @@ public class PaymentController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.CreatePrivateCustomInitial)]
     public async Task<IActionResult> CreatePrivateCustomInitial([FromBody] CreatePrivateTourInitialPaymentCommand command)
     {
@@ -34,7 +33,6 @@ public class PaymentController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.CreateTransaction)]
     public async Task<IActionResult> CreateTransaction([FromBody] CreatePaymentTransactionCommand command)
     {
@@ -42,7 +40,6 @@ public class PaymentController : BaseApiController
         return HandleCreated(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.GetTransaction)]
     public async Task<IActionResult> GetTransaction([FromRoute] string code)
     {
@@ -50,7 +47,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.CheckPayment)]
     public async Task<IActionResult> CheckPayment([FromRoute] string code)
     {
@@ -58,7 +54,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.GetTransactionStatus)]
     public async Task<IActionResult> GetTransactionStatus([FromRoute] string code)
     {
@@ -73,7 +68,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.Return)]
     public async Task<IActionResult> ReconcileReturn(
         [FromQuery] string? transactionCode,
@@ -90,7 +84,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet(PaymentEndpoint.Cancel)]
     public async Task<IActionResult> ReconcileCancel(
         [FromQuery] string? transactionCode,
@@ -107,7 +100,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpPost(PaymentEndpoint.ExpireTransaction)]
     public async Task<IActionResult> ExpireTransaction([FromRoute] string code)
     {
@@ -115,7 +107,6 @@ public class PaymentController : BaseApiController
         return HandleResult(result);
     }
 
-    [AllowAnonymous]
     [HttpGet("pending-by-booking/{bookingId:guid}")]
     public async Task<IActionResult> GetPendingByBooking(Guid bookingId)
     {

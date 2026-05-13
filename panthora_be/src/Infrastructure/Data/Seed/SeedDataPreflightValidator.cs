@@ -58,8 +58,7 @@ internal static class SeedDataPreflightValidator
 
     private static void ValidateDuplicateIds(string? basePath, List<SeedPreflightIssue> issues)
     {
-        var repoRoot = ResolveRepositoryRoot(basePath);
-        var seedDataDir = Path.Combine(repoRoot, "src", "Infrastructure", "Data", "Seed", "Seeddata");
+        var seedDataDir = ResolveSeedDataDir(basePath);
 
         foreach (var definition in SeedFileManifest.Definitions)
         {
@@ -119,8 +118,7 @@ internal static class SeedDataPreflightValidator
 
     private static void ValidateCrossFileReferences(string? basePath, List<SeedPreflightIssue> issues)
     {
-        var repoRoot = ResolveRepositoryRoot(basePath);
-        var seedDataDir = Path.Combine(repoRoot, "src", "Infrastructure", "Data", "Seed", "Seeddata");
+        var seedDataDir = ResolveSeedDataDir(basePath);
 
         // Build lookup tables for all ID-bearing files
         var idLookups = BuildIdLookups(seedDataDir);
@@ -266,34 +264,21 @@ internal static class SeedDataPreflightValidator
         return referenceMap.TryGetValue(referenceField, out var targetFile) ? targetFile : null;
     }
 
-    private static string ResolveRepositoryRoot(string? basePath)
+    private static string ResolveSeedDataDir(string? basePath)
     {
-        if (!string.IsNullOrEmpty(basePath))
-        {
-            return basePath;
-        }
+        // Match SeedDataLoader.ResolveSeedFilePath: seed JSONs are copied next to the
+        // Infrastructure assembly at "<AssemblyDir>/Data/Seed/Seeddata" (see Infrastructure.csproj).
+        // basePath, when supplied (tests), is treated as the runtime base — same as the loader.
+        var runtimeBasePath = !string.IsNullOrEmpty(basePath)
+            ? basePath
+            : Path.GetDirectoryName(typeof(SeedDataPreflightValidator).Assembly.Location) ?? AppContext.BaseDirectory;
 
-        var current = AppContext.BaseDirectory;
-        var directory = new DirectoryInfo(current);
-
-        while (directory != null)
-        {
-            var solutionFile = Path.Combine(directory.FullName, "LocalService.slnx");
-            if (File.Exists(solutionFile))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new InvalidOperationException("Could not resolve repository root for seed validation.");
+        return Path.Combine(runtimeBasePath, "Data", "Seed", "Seeddata");
     }
 
     private static void ValidateRoleConstants(string? basePath, List<SeedPreflightIssue> issues)
     {
-        var repoRoot = ResolveRepositoryRoot(basePath);
-        var seedDataDir = Path.Combine(repoRoot, "src", "Infrastructure", "Data", "Seed", "Seeddata");
+        var seedDataDir = ResolveSeedDataDir(basePath);
         var roleJsonPath = Path.Combine(seedDataDir, "role.json");
 
         if (!File.Exists(roleJsonPath))

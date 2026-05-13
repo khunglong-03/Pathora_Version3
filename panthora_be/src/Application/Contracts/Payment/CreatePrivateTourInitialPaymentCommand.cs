@@ -62,11 +62,22 @@ public sealed class CreatePrivateTourInitialPaymentCommandHandler(
             instance = await tourInstanceRepository.FindById(booking.TourInstanceId);
         }
 
-        if (instance is null || instance.InstanceType != TourType.Private || instance.Status != TourInstanceStatus.Draft)
+        if (instance is null || instance.InstanceType != TourType.Private)
         {
             return Error.Validation(
                 "PrivateTour.InvalidInstanceState",
-                "Chỉ tour riêng ở trạng thái Draft mới dùng thanh toán ban đầu này.");
+                "Chỉ tour riêng mới dùng thanh toán ban đầu này.");
+        }
+
+        // Gate: chỉ cho phép thanh toán khi Manager đã duyệt xong lịch trình
+        // (PendingCustomerApproval = Manager đã duyệt, chờ khách chấp nhận & thanh toán)
+        // hoặc Confirmed (khách đã chấp nhận, chờ thanh toán)
+        if (instance.Status != TourInstanceStatus.PendingCustomerApproval
+            && instance.Status != TourInstanceStatus.Confirmed)
+        {
+            return Error.Validation(
+                "PrivateTour.ManagerNotApprovedYet",
+                "Lịch trình tour chưa được Manager duyệt. Vui lòng đợi Manager hoàn tất xét duyệt trước khi thanh toán.");
         }
 
         var createdBy = booking.UserId?.ToString() ?? "PUBLIC_USER";

@@ -83,21 +83,21 @@ export const MANAGER_NAV_ITEMS = [
     icon: CalendarDotsIcon,
     href: "/manager/staff-schedule",
   },
-  {
+  /*{
     label: "Insurance",
     icon: ShieldCheckIcon,
     href: "/manager/dashboard/insurance",
-  },
+  },*/
   {
     label: "Visa Applications",
     icon: CertificateIcon,
     href: "/manager/dashboard/visa",
   },
-  {
+  /*{
     label: "Bank Accounts",
     icon: BuildingsIcon,
     href: "/manager/bank-accounts",
-  },
+  },*/
   {
     label: "Tài Khoản",
     icon: GearIcon,

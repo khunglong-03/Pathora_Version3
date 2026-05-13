@@ -25,6 +25,7 @@ public sealed record SearchToursQuery(
     [property: JsonPropertyName("maxPrice")] decimal? MaxPrice,
     [property: JsonPropertyName("minDays")] int? MinDays,
     [property: JsonPropertyName("maxDays")] int? MaxDays,
+    [property: JsonPropertyName("continent")] Domain.Enums.Continent? Continent = null,
     [property: JsonPropertyName("page")] int Page = 1,
     [property: JsonPropertyName("pageSize")] int PageSize = 10,
     [property: JsonPropertyName("language")] string? Language = null) : IQuery<ErrorOr<PaginatedList<SearchTourVm>>>, ICacheable
@@ -32,7 +33,7 @@ public sealed record SearchToursQuery(
     public string ResolvedLanguage => PublicLanguageResolver.Resolve(Language);
 
     public string CacheKey =>
-        $"{Common.CacheKey.Tour}:search:{Q}:{Destination}:{Classification}:{Date}:{People}:{MinPrice}:{MaxPrice}:{MinDays}:{MaxDays}:{Page}:{PageSize}:{ResolvedLanguage}";
+        $"{Common.CacheKey.Tour}:search:{Q}:{Destination}:{Classification}:{Date}:{People}:{MinPrice}:{MaxPrice}:{MinDays}:{MaxDays}:{Continent}:{Page}:{PageSize}:{ResolvedLanguage}";
     public TimeSpan? Expiration => TimeSpan.FromMinutes(10);
 }
 
@@ -53,6 +54,7 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
             request.MaxPrice,
             request.MinDays,
             request.MaxDays,
+            request.Continent,
             request.Page,
             request.PageSize,
             cancellationToken);
@@ -67,6 +69,7 @@ public sealed class SearchToursQueryHandler(ITourRepository tourRepository)
             request.MaxPrice,
             request.MinDays,
             request.MaxDays,
+            request.Continent,
             cancellationToken);
 
         foreach (var tour in tours)

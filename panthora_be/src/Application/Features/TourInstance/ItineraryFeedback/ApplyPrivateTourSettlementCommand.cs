@@ -70,15 +70,14 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
         if (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Deposited && booking.Status != BookingStatus.Pending && booking.Status != BookingStatus.Confirmed && booking.Status != BookingStatus.PendingAdjustment)
             return Error.Validation("PrivateTour.SettlementRequiresPaidBooking", "Booking phải ở trạng thái hợp lệ trước khi quyết toán (Pending/Confirmed/Deposited/Paid/PendingAdjustment).");
 
-        if (instance.FinalSellPrice is null)
-            return Error.Validation("PrivateTour.FinalSellPriceMissing", "Cần set FinalSellPrice trước khi quyết toán.");
+        // BasePrice already includes activity costs from recalculation
+        var final = instance.BasePrice;
 
         var txs = await paymentTransactionRepository.GetByBookingIdListAsync(booking.Id, cancellationToken);
         var totalPaid = txs
             .Where(t => t.Status == TransactionStatus.Completed)
             .Sum(t => t.PaidAmount ?? t.Amount);
 
-        var final = instance.FinalSellPrice.Value;
         var delta = final - totalPaid;
 
         if (delta > 0)
@@ -121,7 +120,7 @@ public sealed class ApplyPrivateTourSettlementCommandHandler(
             var history = TransactionHistoryEntity.CreateCredit(
                 customerId,
                 credit,
-                $"Hoàn chênh FinalSellPrice so với đã thanh toán (booking {booking.Id})",
+                $"Hoàn chênh BasePrice so với đã thanh toán (booking {booking.Id})",
                 userId.ToString(),
                 booking.Id);
 

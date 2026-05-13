@@ -1088,6 +1088,9 @@
     "BAD_REQUEST": "Yêu cầu không hợp lệ",
     "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
     "INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng",
+    "EMAIL_REQUIRED": "Vui lòng nhập email",
+    "EMAIL_INVALID": "Địa chỉ email không hợp lệ",
+    "PASSWORD_IS_REQUIRED": "Vui lòng nhập mật khẩu",
     "USER_DISABLED": "Tài khoản đã bị vô hiệu hóa. Vui liên hệ hỗ trợ.",
     "FORBIDDEN": "Bạn không có quyền truy cập tài nguyên này",
     "NOT_FOUND": "Không tìm thấy tài nguyên yêu cầu",
@@ -1310,7 +1313,7 @@
         "subtitle": "Hãy cho chúng tôi biết mong muốn chuyến đi của bạn để đội ngũ tư vấn chuẩn bị lịch trình phù hợp."
       },
       "myRequests": {
-        "title": "Yêu cầu tour của tôi",
+        "title": "View booking",
         "subtitle": "Theo dõi trạng thái duyệt của các yêu cầu bạn đã gửi."
       },
       "adminRequests": {
@@ -3148,6 +3151,7 @@
     }
   },
   "bookings": {
+    "title": "Tour đã đặt",
     "pageTitle": "Đặt Chỗ",
     "pageSubtitle": "Theo dõi và quản lý tất cả đơn đặt chỗ",
     "openCustomerPage": "Trang khách hàng",
@@ -3485,6 +3489,71 @@
       "title": "Ngôn ngữ"
     },
     "tourDiscovery": {
+      "heroTitleLine1": "KHÁM PHÁ CHUYẾN ĐI TIẾP THEO",
+      "heroTitleLine2": "CÙNG PATHORA",
+      "packageTours": "Tour du lịch",
+      "searchFullPlaceholder": "Tìm kiếm tour, điểm đến, hoạt động...",
+      "searchButton": "Tìm kiếm",
+      "filtersLabel": "Bộ lọc",
+      "filter": "Bộ lọc",
+      "clearAll": "Xóa tất cả",
+      "classifications": "Phân loại",
+      "classificationOptions": {
+        "standard": "Tour Tiêu chuẩn",
+        "premium": "Tour Cao cấp",
+        "vipLuxury": "Tour VIP / Sang trọng",
+        "budget": "Tour Tiết kiệm",
+        "private": "Tour Riêng",
+        "group": "Tour Nhóm"
+      },
+      "viewSwitchLabel": "Chọn chế độ xem",
+      "viewType": {
+        "tour": "Theo Tour",
+        "tourInstance": "Theo Lịch khởi hành"
+      },
+      "toursFound": "tour được tìm thấy",
+      "departuresFound": "lịch khởi hành được tìm thấy",
+      "sortBy": "Sắp xếp",
+      "sortAria": "Sắp xếp kết quả tour",
+      "sort": {
+        "recommended": "Đề xuất",
+        "price-low": "Giá: Thấp đến Cao",
+        "price-high": "Giá: Cao đến Thấp",
+        "duration-short": "Thời gian: Ngắn nhất",
+        "duration-long": "Thời gian: Dài nhất"
+      },
+      "loadingAria": "Đang tải kết quả tour",
+      "errorLoading": "Không thể tải tour",
+      "errorLoadingInstances": "Không thể tải lịch khởi hành",
+      "retry": "Thử lại",
+      "noToursFound": "Không tìm thấy tour nào",
+      "tryAdjustingFilters": "Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+      "emptyStats": "Nhiều chuyến đi đang chờ bạn!",
+      "browseAllTours": "Xem tất cả Tour",
+      "exploreDestinations": "Khám phá điểm đến",
+      "noDeparturesFound": "Không có lịch khởi hành nào",
+      "noInstancesDescription": "Hiện tại không có lịch khởi hành nào phù hợp. Vui lòng quay lại sau.",
+      "resultsRegion": "Kết quả tìm kiếm tour",
+      "paginationAria": "Phân trang",
+      "prevPageAria": "Trang trước",
+      "nextPageAria": "Trang tiếp theo",
+      "pageOf": "Trang {{current}} / {{total}}",
+      "quickDestinations": {
+        "haLong": "Hạ Long",
+        "haNoi": "Hà Nội",
+        "saPa": "Sa Pa",
+        "daNang": "Đà Nẵng",
+        "hoiAn": "Hội An",
+        "phuQuoc": "Phú Quốc"
+      },
+      "continents": {
+        "all": "Tất cả",
+        "asia": "Châu Á",
+        "europe": "Châu Âu",
+        "americas": "Châu Mỹ",
+        "africa": "Châu Phi",
+        "oceania": "Châu Đại Dương"
+      },
       "departureCatalogType": "Loại khởi hành",
       "instanceType": {
         "publicDepartures": "Lịch khởi hành công khai",
@@ -3609,7 +3678,8 @@
       "ctaTitle": "Bắt đầu hành trình",
       "ctaTitleWith": "cùng Pathora",
       "ctaDescription": "Gia nhập hàng ngàn khách du lịch hài lòng. Đặt ngay kỳ nghỉ trong mơ của bạn và để chúng tôi lo phần còn lại.",
-      "browsePackageTours": "Xem các gói Tour"
+      "browsePackageTours": "Xem các gói Tour",
+      "toursLed": "Chuyến đi đã dẫn"
     },
     "checkout": {
       "accountHolder": "Chủ tài khoản",
@@ -3727,6 +3797,7 @@
       "guestBookingNote": "Đặt tour không cần tài khoản. Đăng nhập bằng email {{email}} để theo dõi booking.",
       "statusPending": "Đang chờ",
       "statusProcessing": "Đang xử lý",
+      "statusCompleted": "Hoàn tất",
       "statusPaid": "Đã thanh toán",
       "statusFailed": "Thất bại",
       "statusCancelled": "Đã hủy",

@@ -39,6 +39,7 @@ export interface SearchToursParams {
   maxPrice?: number;
   minDays?: number;
   maxDays?: number;
+  continent?: number;
   page?: number;
   pageSize?: number;
 }
@@ -86,6 +87,7 @@ export const PUBLIC_HOME: PublicHomeEndpoints = {
     if (params?.maxPrice !== undefined) url.append("maxPrice", params.maxPrice.toString());
     if (params?.minDays !== undefined) url.append("minDays", params.minDays.toString());
     if (params?.maxDays !== undefined) url.append("maxDays", params.maxDays.toString());
+    if (params?.continent !== undefined) url.append("continent", params.continent.toString());
     if (params?.page) url.append("page", params.page.toString());
     if (params?.pageSize) url.append("pageSize", params.pageSize.toString());
     return `/api/public/tours/search?${url.toString()}`;

@@ -1,4 +1,4 @@
-using global::Api.Controllers.Public;
+using global::ApiPublic.Controller;
 using global::Application.Contracts.Public;
 using global::Application.Features.Public.Queries;
 using Contracts;
@@ -40,6 +40,7 @@ public sealed class PublicHomeControllerTests
             maxPrice: null,
             minDays: null,
             maxDays: null,
+            continent: null,
             page: 1,
             pageSize: 10,
             languageContext);
@@ -51,7 +52,7 @@ public sealed class PublicHomeControllerTests
             expectedData: response);
 
         Assert.Equal(
-            new SearchToursQuery("ha long", null, null, null, null, null, null, null, null, 1, 10, "en"),
+            new SearchToursQuery("ha long", null, null, null, null, null, null, null, null, null, 1, 10, "en"),
             probe.CapturedRequest);
     }
 

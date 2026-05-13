@@ -26,7 +26,7 @@ public sealed class TourInstanceProfile : Profile
             .ForCtorParam(nameof(TourInstanceDto.Rating), opt => opt.MapFrom(_ => 0m))
             .ForCtorParam(nameof(TourInstanceDto.TotalBookings), opt => opt.MapFrom(_ => 0))
             .ForCtorParam(nameof(TourInstanceDto.Revenue), opt => opt.MapFrom(_ => 0m))
-            .ForCtorParam(nameof(TourInstanceDto.FinalSellPrice), opt => opt.MapFrom(src => src.FinalSellPrice))
+            .ForCtorParam(nameof(TourInstanceDto.OriginalBasePrice), opt => opt.MapFrom(src => src.OriginalBasePrice))
             .ForCtorParam(nameof(TourInstanceDto.WantsCustomization), opt => opt.MapFrom(src => src.WantsCustomization))
             .ForCtorParam(nameof(TourInstanceDto.CustomizationNotes), opt => opt.MapFrom(src => src.CustomizationNotes))
             .ForCtorParam(nameof(TourInstanceDto.ManagerReviewNote), opt => opt.MapFrom(src => src.ManagerReviewNote))
