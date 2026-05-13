@@ -1,5 +1,6 @@
 using Application;
 using Infrastructure;
+using Infrastructure.Options;
 
 namespace ApiPublic;
 
@@ -13,7 +14,6 @@ public class Program
         builder.Services.AddApplicationServices();
         builder.Services.AddInfrastructureServices(builder.Configuration);
         builder.Services.AddPublicApiServices(builder.Configuration);
-
         builder.AddCorsPolicy();
         builder.AddHealthChecks();
 

@@ -41,14 +41,18 @@ public static class DependencyInjection
         return services
            .AddScoped<HotelServiceProviderSupplierMapper>()
            .AddScoped<Application.Common.Interfaces.ICurrentUser, CurrentUserService>()
-           .AddDbContext<AppDbContext>(options =>
-            {
-                options.UseNpgsql(configuration.GetConnectionString("Default"), npgsqlOptions =>
-                {
-                    npgsqlOptions.CommandTimeout(databaseOptions.CommandTimeoutSeconds);
-                    npgsqlOptions.EnableRetryOnFailure(databaseOptions.MaxRetryCount);
-                });
-            })
+          .AddDbContext<AppDbContext>(options =>
+          {
+              var connectionString = configuration.GetSection("ConnectionStrings:Default").Value;
+
+              // Khởi tạo builder để xử lý chuỗi kết nối
+              var builder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+              options.UseNpgsql(builder.ConnectionString, npgsqlOptions =>
+              {
+                  npgsqlOptions.CommandTimeout(databaseOptions.CommandTimeoutSeconds);
+                  npgsqlOptions.EnableRetryOnFailure(databaseOptions.MaxRetryCount);
+              });
+          })
             .AddLogingService(configuration)
             .AddIdentityServices(configuration)
             .AddMailService(configuration)
@@ -85,8 +89,6 @@ public static class DependencyInjection
     private static IServiceCollection AddCacheService(this IServiceCollection services, IConfiguration configuration, CacheOptions cacheOptions)
     {
         var redisConnection = configuration["Redis:ConnectionString"];
-        var environment = configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT") ?? "Production";
-        var isDevelopment = environment.Equals("Development", StringComparison.OrdinalIgnoreCase);
 
         var fusionCacheBuilder = services.AddFusionCache()
             .WithDefaultEntryOptions(new FusionCacheEntryOptions
@@ -95,24 +97,28 @@ public static class DependencyInjection
             })
             .WithSerializer(new FusionCacheSystemTextJsonSerializer());
 
-        // Use Redis if configured (allows backplane to sync Private and Public API caches in Development)
         if (!string.IsNullOrEmpty(redisConnection))
         {
             var options = StackExchange.Redis.ConfigurationOptions.Parse(redisConnection);
-            options.AbortOnConnectFail = false; // Prevents startup crash if Redis is unavailable
-            options.ConnectTimeout = 3000;      // Shorter timeout so it doesn't block startup
+            options.AbortOnConnectFail = false;
+            options.ConnectTimeout = 3000;
 
             var multiplexer = StackExchange.Redis.ConnectionMultiplexer.Connect(options);
             services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexer);
 
+            // 1. Thiết lập Distributed Cache (L2)
             services.AddStackExchangeRedisCache(redisOpts => redisOpts.ConfigurationOptions = options);
             fusionCacheBuilder.WithRegisteredDistributedCache();
 
-            // Setup Redis Backplane to invalidate L1 (memory) cache across instances
-            fusionCacheBuilder.WithRegisteredBackplane(new ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions
+            // 2. ĐĂNG KÝ Backplane vào hệ thống DI (Đây là bước bạn thiếu)
+            services.AddFusionCacheStackExchangeRedisBackplane(backplaneOpts =>
             {
-                ConfigurationOptions = options
+                backplaneOpts.ConfigurationOptions = options;
             });
+
+            // 3. Nói với FusionCache: "Hãy dùng cái Backplane vừa đăng ký ở trên"
+            // Method này KHÔNG có tham số nhé!
+            fusionCacheBuilder.WithRegisteredBackplane();
         }
         else
         {

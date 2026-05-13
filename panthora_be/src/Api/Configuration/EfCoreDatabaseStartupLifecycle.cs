@@ -8,9 +8,9 @@ public sealed class EfCoreDatabaseStartupLifecycle(IServiceScopeFactory scopeFac
 {
     public async Task EnsureDeletedAsync(CancellationToken cancellationToken)
     {
-        await ExecuteAsync(
-            (dbContext, token) => dbContext.Database.EnsureDeletedAsync(token),
-            cancellationToken);
+        //await ExecuteAsync(
+        //    (dbContext, token) => dbContext.Database.EnsureDeletedAsync(token),
+        //    cancellationToken);
     }
 
     public async Task MigrateAsync(CancellationToken cancellationToken)
