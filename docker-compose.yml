@@ -111,7 +111,7 @@ services:
   #  Backend — Private Api (dashboard, admin, management)
   # ════════════════════════════════════════════════════════
   backend:
-    container_name: pathora-backend
+    container_name: pathora-backend-v2
     build:
       context: ./panthora_be
       dockerfile: src/Api/Dockerfile
@@ -133,7 +133,7 @@ services:
   #  Backend — Public Api (public pages, auth, payment)
   # ════════════════════════════════════════════════════════
   publicapi:
-    container_name: pathora-publicapi
+    container_name: pathora-publicapi-v2
     build:
       context: ./panthora_be
       dockerfile: src/PublicApi/ApiPublic/Dockerfile
@@ -159,7 +159,7 @@ services:
   # ════════════════════════════════════════════════════════
   nginx:
     image: nginx:1.27-alpine
-    container_name: pathora-nginx
+    container_name: pathora-nginx-v2
     ports:
       - "80:80"
     volumes:
@@ -168,6 +168,8 @@ services:
       backend:
         condition: service_healthy
       publicapi:
+        condition: service_healthy
+      frontend:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1/health/api"]
@@ -181,7 +183,7 @@ services:
   #  Frontend (Next.js)
   # ════════════════════════════════════════════════════════
   frontend:
-    container_name: pathora-frontend
+    container_name: pathora-frontend-v2
     build:
       context: ./pathora/frontend
       dockerfile: Dockerfile
@@ -196,8 +198,8 @@ services:
       NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
       # Server-side fetch dùng nginx internal Docker network URL
       INTERNAL_API_URL: "http://nginx"
-    ports:
-      - "3003:3003"
+    expose:
+      - "3003"
     depends_on:
       backend:
         condition: service_healthy
