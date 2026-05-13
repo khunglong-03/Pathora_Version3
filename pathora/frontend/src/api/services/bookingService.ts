@@ -135,9 +135,6 @@ export const bookingService = {
   },
 
   getBookingDetail: async (bookingId: string) => {
-    // Use the CustomerBookingController endpoint (CustomerOnly policy).
-    // NOT BOOKING.GET_DETAIL (/api/bookings/{id}) — that's BookingInfoController
-    // which only allows Admin/Manager/TourOperator/TourGuide (403 for customers).
     const response = await api.get<ServiceResponse<BookingDetailResponse>>(
       API_ENDPOINTS.PUBLIC_BOOKING.GET_DETAIL(bookingId),
     );

@@ -80,6 +80,7 @@ export function TourInstancePublicDetailPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<NormalizedTourInstanceDto | null>(null);
   const [apiLanguage, setApiLanguage] = useState(() => resolveApiLanguage());
+  const [activeTaxRate, setActiveTaxRate] = useState<number>(10);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -107,8 +108,12 @@ export function TourInstancePublicDetailPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const detail = await homeService.getPublicInstanceDetail(id, apiLanguage);
+        const [detail, taxRate] = await Promise.all([
+          homeService.getPublicInstanceDetail(id, apiLanguage),
+          homeService.getActiveTaxRate(),
+        ]);
         setData(detail);
+        setActiveTaxRate(taxRate);
       } catch (error: unknown) {
         const handledError = handleApiError(error);
         console.error("Failed to load public instance detail:", handledError.message);
@@ -616,6 +621,7 @@ export function TourInstancePublicDetailPage() {
                     children: String(children),
                     infants: String(infants),
                     depositPercentage: String(depositPct),
+                    taxRate: String(activeTaxRate),
                     bookingType: "InstanceJoin",
                     instanceType: isPublicInstance ? "public" : "private",
                   });

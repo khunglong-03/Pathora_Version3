@@ -293,6 +293,7 @@ export const tourService = {
       customizationNotes?: string;
     },
   ): Promise<CheckoutPriceResponse | null> => {
+    // request-private yêu cầu auth → gọi Api chính (5182), không phải PublicApi (8081)
     const response = await api.post<ServiceResponse<unknown>>(
       API_ENDPOINTS.PUBLIC_TOUR.REQUEST_PRIVATE(tourId),
       payload,

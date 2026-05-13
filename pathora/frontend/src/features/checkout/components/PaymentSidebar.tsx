@@ -333,7 +333,7 @@ interface PaymentSidebarProps {
   onStatusChange?: (status: NormalizedPaymentStatus) => void;
   paymentOption: "full" | "deposit";
   onPaymentOptionChange: (option: "full" | "deposit") => void;
-  checkoutPrice: { depositPercentage?: number } | null;
+  checkoutPrice: { depositPercentage?: number; taxRate?: number } | null;
   depositAmount: number;
   totalPrice: number;
   remainingBalance: number;
@@ -430,24 +430,54 @@ export function PaymentSidebar({
 
             {/* Price breakdown */}
             <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-3">
-              {paymentOption === "deposit" ? (
-                <>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-600">
-                      {t("landing.checkout.deposit")} ({Math.round((checkoutPrice?.depositPercentage ?? 0.3) * 100)}%)
-                    </span>
-                    <span className="text-lg font-semibold tracking-tight text-slate-900">{fmtCurrency(depositAmount)}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                    <span className="text-xs text-slate-500">{t("landing.checkout.remainingBalance")}</span>
-                    <span className="text-xs text-slate-500">{fmtCurrency(remainingBalance)}</span>
-                  </div>
-                </>
-              ) : null}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-sm font-semibold tracking-tight text-slate-900">{t("landing.checkout.total")}</span>
-                <span className="text-2xl font-bold tracking-tight text-slate-900">{fmtCurrency(totalPrice)}</span>
-              </div>
+              {(() => {
+                const taxRate = (checkoutPrice?.taxRate ?? 0) / 100;
+                if (paymentOption === "deposit") {
+                  const depositTax = Math.round(depositAmount * taxRate);
+                  const depositTotal = depositAmount + depositTax;
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-600">
+                          {t("landing.checkout.deposit")} ({Math.round((checkoutPrice?.depositPercentage ?? 0.3) * 100)}%)
+                        </span>
+                        <span className="text-lg font-semibold tracking-tight text-slate-900">{fmtCurrency(depositAmount)}</span>
+                      </div>
+                      {taxRate > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-500">Thuế ({Math.round(taxRate * 100)}%)</span>
+                          <span className="text-xs text-slate-500">{fmtCurrency(depositTax)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                        <span className="text-xs text-slate-500">{t("landing.checkout.remainingBalance")}</span>
+                        <span className="text-xs text-slate-500">{fmtCurrency(remainingBalance)}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-sm font-semibold tracking-tight text-slate-900">{t("landing.checkout.total")}</span>
+                        <span className="text-2xl font-bold tracking-tight text-slate-900">{fmtCurrency(depositTotal)}</span>
+                      </div>
+                    </>
+                  );
+                } else {
+                  const fullTax = Math.round(totalPrice * taxRate);
+                  const fullTotal = totalPrice + fullTax;
+                  return (
+                    <>
+                      {taxRate > 0 && (
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                          <span className="text-xs text-slate-500">Thuế ({Math.round(taxRate * 100)}%)</span>
+                          <span className="text-xs text-slate-500">{fmtCurrency(fullTax)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-sm font-semibold tracking-tight text-slate-900">{t("landing.checkout.total")}</span>
+                        <span className="text-2xl font-bold tracking-tight text-slate-900">{fmtCurrency(fullTotal)}</span>
+                      </div>
+                    </>
+                  );
+                }
+              })()}
             </div>
 
             {/* Confirm Button */}

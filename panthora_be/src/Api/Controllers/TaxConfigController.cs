@@ -11,6 +11,15 @@ namespace Api.Controllers;
 [Route(TaxConfigEndpoint.Base)]
 public class TaxConfigController : BaseApiController
 {
+    /// <summary>GET /api/tax-configs/active-rate — public, no auth required.</summary>
+    [HttpGet("active-rate")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetActiveRate()
+    {
+        var result = await Sender.Send(new GetActiveTaxRateQuery());
+        return HandleResult(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

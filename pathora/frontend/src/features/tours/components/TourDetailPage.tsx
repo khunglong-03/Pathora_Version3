@@ -13,6 +13,7 @@ import Image from "@/features/shared/components/LandingImage";
 import { Icon } from "@/components/ui";
 
 import { tourService } from "@/api/services/tourService";
+import { homeService } from "@/api/services/homeService";
 import { normalizeLanguageForApi } from "@/api/languageHeader";
 import { formatCurrency } from "@/utils/format";
 import { calculateTourEstimate } from "@/utils/pricingUtils";
@@ -110,6 +111,11 @@ export function TourDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const [activeTaxRate, setActiveTaxRate] = useState<number>(10);
+
+  useEffect(() => {
+    homeService.getActiveTaxRate().then(setActiveTaxRate).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!tourId) return;
@@ -194,6 +200,7 @@ export function TourDetailPage() {
       children: String(children),
       infants: String(infants),
       depositPercentage: String(depositPct),
+      taxRate: String(activeTaxRate),
       bookingType: "PrivateCustom",
       instanceType: "private",
       classificationId: String(selectedClassification.id),

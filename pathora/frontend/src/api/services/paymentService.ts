@@ -141,13 +141,10 @@ export const paymentService = {
   },
 
   createTransaction: async (payload: CreateTransactionPayload) => {
-    // Convert string enums to integers for backend
     const apiPayload = {
       ...payload,
       type: toTransactionType(payload.type),
       paymentMethod: toPaymentMethod(payload.paymentMethod),
-      // paymentGateway is already a string ("PayOS" or "Sepay"), pass as-is
-      // Backend will handle the conversion
     };
 
     const response = await api.post<ServiceResponse<PaymentTransaction>>(

@@ -2,6 +2,7 @@ using Application.Common.Constant;
 using Application.Contracts.TaxConfig;
 using Application.Services;
 using BuildingBlocks.CORS;
+using Domain.Common.Repositories;
 using ErrorOr;
 using FluentValidation;
 using System.Text.Json.Serialization;
@@ -40,5 +41,19 @@ public sealed class GetTaxConfigByIdQueryHandler(ITaxConfigService taxConfigServ
     public async Task<ErrorOr<TaxConfigResponse?>> Handle(GetTaxConfigByIdQuery request, CancellationToken cancellationToken)
     {
         return await _taxConfigService.GetByIdAsync(request.Id);
+    }
+}
+
+/// <summary>Lấy tax rate của config đang active — dùng cho public endpoints (không cần auth).</summary>
+public sealed record GetActiveTaxRateQuery : IQuery<ErrorOr<decimal>>;
+
+public sealed class GetActiveTaxRateQueryHandler(ITaxConfigRepository taxConfigRepository)
+    : IQueryHandler<GetActiveTaxRateQuery, ErrorOr<decimal>>
+{
+    public async Task<ErrorOr<decimal>> Handle(GetActiveTaxRateQuery request, CancellationToken cancellationToken)
+    {
+        var configs = await taxConfigRepository.GetListAsync(c => c.IsActive, cancellationToken: cancellationToken);
+        var active = configs.FirstOrDefault();
+        return active is null ? 0m : active.TaxRate;
     }
 }

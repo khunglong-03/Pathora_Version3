@@ -33,6 +33,7 @@ export interface CancellationPolicyEndpoints {
 export interface TaxConfigEndpoints {
   GET_ALL: string;
   GET_DETAIL: EndpointWithId;
+  GET_ACTIVE_RATE: string;
   CREATE: string;
   UPDATE: string;
   DELETE: EndpointWithId;
@@ -69,6 +70,7 @@ export const CANCELLATION_POLICY: CancellationPolicyEndpoints = {
 export const TAX_CONFIG: TaxConfigEndpoints = {
   GET_ALL: "/api/tax-configs",
   GET_DETAIL: (id: string): string => `/api/tax-configs/${id}`,
+  GET_ACTIVE_RATE: "/api/tax-configs/active-rate",
   CREATE: "/api/tax-configs",
   UPDATE: "/api/tax-configs",
   DELETE: (id: string): string => `/api/tax-configs/${id}`,

@@ -317,8 +317,8 @@ export function CheckoutPage() {
       const childSubtotal = childPrice * numberChild;
       const infantSubtotal = infantPrice * numberInfant;
       const subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-      const taxRate = 0;
-      const taxAmount = Math.round(subtotal * taxRate);
+      const taxRate = Number(searchParams.get("taxRate") ?? "0");
+      const taxAmount = Math.round(subtotal * taxRate / 100);
       const totalPrice = subtotal + taxAmount;
       const depositAmount = Math.round(totalPrice * depositPct);
 

@@ -136,6 +136,17 @@ export const homeService = {
     return extractItems<string>(response.data);
   },
 
+  getActiveTaxRate: async (): Promise<number> => {
+    try {
+      const response = await api.get<ServiceResponse<number>>(
+        API_ENDPOINTS.TAX_CONFIG.GET_ACTIVE_RATE,
+      );
+      return extractResult<number>(response.data) ?? 0;
+    } catch {
+      return 0;
+    }
+  },
+
   getAvailablePublicInstances: async (
     destination?: string,
     page = 1,

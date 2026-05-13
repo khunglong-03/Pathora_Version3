@@ -1,31 +1,22 @@
 import { DepositPolicyDto, PricingPolicyDto } from "@/types/tour";
 
-function applyPricingTier(basePrice: number, tiers: PricingPolicyDto['tiers'] | undefined | null, age: number, defaultPercentage: number = 100): number {
-  if (!tiers || tiers.length === 0) return basePrice * (defaultPercentage / 100);
-
-  for (const tier of tiers) {
-    if (age >= tier.ageFrom && (tier.ageTo === null || tier.ageTo === undefined || age <= tier.ageTo)) {
-      return basePrice * (tier.pricePercentage / 100);
-    }
-  }
-  return basePrice * (defaultPercentage / 100);
-}
-
 export function calculateTourEstimate(
   basePrice: number,
   adults: number,
   children: number,
   infants: number,
-  pricingPolicy?: PricingPolicyDto | null
+  _pricingPolicy?: PricingPolicyDto | null
 ): {
   adultPrice: number;
   childPrice: number;
   infantPrice: number;
   totalPrice: number;
 } {
-  const adultPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 18, 100));
-  const childPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 5, 75));
-  const infantPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 1, 10));
+  // Frontend dùng basePrice trực tiếp cho estimate — backend tính giá chính xác sau booking.
+  // Không áp dụng pricingPolicy.tiers ở đây vì tiers được backend dùng theo logic riêng.
+  const adultPrice = Math.round(basePrice);
+  const childPrice = Math.round(basePrice * 0.75);
+  const infantPrice = Math.round(basePrice * 0.1);
 
   const totalPrice = adultPrice * adults + childPrice * children + infantPrice * infants;
 

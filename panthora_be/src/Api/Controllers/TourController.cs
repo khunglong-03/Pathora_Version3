@@ -7,6 +7,7 @@ using Application.Contracts.Booking;
 using Application.Dtos;
 using Application.Features.Tour.Commands;
 using Application.Tours.Commands;
+using Application.Features.Public.Commands;
 using Application.Features.Tour.Commands.PurgeTour;
 using Application.Features.Tour.Queries;
 using Application.Services;
@@ -387,6 +388,35 @@ public class TourController(
     public async Task<IActionResult> Purge(Guid id)
     {
         var result = await Sender.Send(new PurgeTourCommand(id));
+        return HandleResult(result);
+    }
+
+    /// <summary>
+    /// POST /api/public/tours/{id}/request-private
+    /// Tạo tour instance Private (Draft) + booking, trả về giá checkout.
+    /// Yêu cầu đăng nhập.
+    /// </summary>
+    [HttpPost("{id:guid}/request-private")]
+    public async Task<IActionResult> RequestPrivate(Guid id, [FromBody] RequestPublicPrivateTourRequestDto dto)
+    {
+        var command = new RequestPublicPrivateTourCommand(
+            TourId: id,
+            ClassificationId: dto.ClassificationId,
+            StartDate: dto.StartDate,
+            EndDate: dto.EndDate,
+            MaxParticipation: dto.MaxParticipation,
+            CustomerName: dto.CustomerName,
+            CustomerPhone: dto.CustomerPhone,
+            CustomerEmail: dto.CustomerEmail,
+            NumberAdult: dto.NumberAdult,
+            NumberChild: dto.NumberChild,
+            NumberInfant: dto.NumberInfant,
+            PaymentMethod: dto.PaymentMethod,
+            IsFullPay: dto.IsFullPay,
+            WantsCustomization: dto.WantsCustomization,
+            CustomizationNotes: dto.CustomizationNotes);
+
+        var result = await Sender.Send(command);
         return HandleResult(result);
     }
 
