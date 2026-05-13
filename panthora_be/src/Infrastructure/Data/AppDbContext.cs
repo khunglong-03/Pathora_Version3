@@ -3,22 +3,43 @@ using Domain.Abstractions;
 using Domain.Entities;
 using Domain.Mails;
 using Infrastructure.Data.Configurations;
+using Infrastructure.Mails;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(
+    DbContextOptions<AppDbContext> options,
+    IMailQueueSignal? mailSignal = null) : DbContext(options)
 {
     public override int SaveChanges()
     {
         UpdateAuditableEntities();
-        return base.SaveChanges();
+        var hasNewMail = HasPendingMailAdds();
+        var result = base.SaveChanges();
+        if (hasNewMail) FireMailSignal();
+        return result;
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateAuditableEntities();
-        return await base.SaveChangesAsync(cancellationToken);
+        var hasNewMail = HasPendingMailAdds();
+        var result = await base.SaveChangesAsync(cancellationToken);
+        if (hasNewMail) FireMailSignal(cancellationToken);
+        return result;
+    }
+
+    private bool HasPendingMailAdds()
+    {
+        if (mailSignal is null) return false;
+        return ChangeTracker.Entries<MailEntity>().Any(e => e.State == EntityState.Added);
+    }
+
+    private void FireMailSignal(CancellationToken cancellationToken = default)
+    {
+        if (mailSignal is null) return;
+        _ = mailSignal.NotifyAsync(cancellationToken);
     }
 
     private void UpdateAuditableEntities()

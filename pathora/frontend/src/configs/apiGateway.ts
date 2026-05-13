@@ -17,6 +17,11 @@ export const resolveApiGatewayBaseUrl = (
 ): string => {
   const trimmed = configuredValue?.trim();
   if (trimmed && trimmed.length > 0) {
+    // In Server-Side Rendering (SSR) inside Docker, 'localhost' points to the container itself.
+    // We rewrite 'localhost' to 'nginx' to route the request through the internal Docker network to the Nginx reverse proxy.
+    if (typeof window === "undefined" && trimmed.includes("localhost")) {
+      return normalizeBaseUrl(trimmed.replace("localhost", "nginx"));
+    }
     return normalizeBaseUrl(trimmed);
   }
 

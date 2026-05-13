@@ -15,18 +15,21 @@ public sealed class MailProcessor : BackgroundService
     private readonly IMailBodyBuilder _mailBodyBuilder;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ResiliencePipelineProvider<string> _pipelineProvider;
+    private readonly IMailQueueSignal _signal;
     private readonly ILogger<MailProcessor> _logger;
 
     public MailProcessor(
         IMailBodyBuilder mailBodyBuilder,
         IServiceScopeFactory scopeFactory,
         ResiliencePipelineProvider<string> pipelineProvider,
+        IMailQueueSignal signal,
         ILogger<MailProcessor> logger)
     {
         _scopeFactory = scopeFactory;
 
         _mailBodyBuilder = mailBodyBuilder;
         _pipelineProvider = pipelineProvider;
+        _signal = signal;
         _logger = logger;
     }
 
@@ -34,40 +37,18 @@ public sealed class MailProcessor : BackgroundService
     {
         await Task.Yield();
 
+        await _signal.StartSubscriberAsync(stoppingToken);
+
+        // Initial drain at startup in case mails were left pending from a previous run
+        // or queued before the subscriber attached.
+        await DrainAsync(stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                var mailRepository = scope.ServiceProvider.GetRequiredService<IMailRepository>();
-                var mailClient = scope.ServiceProvider.GetRequiredService<IMailClient>();
-
-                var mailsResult = await mailRepository.FindPending(stoppingToken);
-                if (mailsResult.IsError)
-                {
-                    _logger.LogError("Error getting pending mails: {Error}", mailsResult);
-                    await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
-                    continue;
-                }
-
-                var pendingMails = mailsResult.Value ?? [];
-
-                var sendTasks = pendingMails.Select(async mail =>
-                {
-                    await _semaphore.WaitAsync(stoppingToken);
-                    try
-                    {
-                        using var innerScope = _scopeFactory.CreateScope();
-                        var innerRepository = innerScope.ServiceProvider.GetRequiredService<IMailRepository>();
-                        await SendAsync(innerRepository, mailClient, mail);
-                    }
-                    finally
-                    {
-                        _semaphore.Release();
-                    }
-                });
-
-                await Task.WhenAll(sendTasks);
+                await _signal.WaitAsync(stoppingToken);
+                await DrainAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -85,15 +66,48 @@ public sealed class MailProcessor : BackgroundService
                     break;
                 }
             }
+        }
+    }
 
-            try
+    private async Task DrainAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var mailRepository = scope.ServiceProvider.GetRequiredService<IMailRepository>();
+            var mailClient = scope.ServiceProvider.GetRequiredService<IMailClient>();
+
+            var mailsResult = await mailRepository.FindPending(stoppingToken);
+            if (mailsResult.IsError)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                _logger.LogError("Error getting pending mails: {Error}", mailsResult);
+                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                continue;
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+
+            var pendingMails = mailsResult.Value ?? [];
+            if (pendingMails.Count == 0)
             {
-                break;
+                _signal.MarkDrained();
+                return;
             }
+
+            var sendTasks = pendingMails.Select(async mail =>
+            {
+                await _semaphore.WaitAsync(stoppingToken);
+                try
+                {
+                    using var innerScope = _scopeFactory.CreateScope();
+                    var innerRepository = innerScope.ServiceProvider.GetRequiredService<IMailRepository>();
+                    await SendAsync(innerRepository, mailClient, mail);
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            });
+
+            await Task.WhenAll(sendTasks);
         }
     }
 

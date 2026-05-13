@@ -5,8 +5,6 @@ using Serilog;
 namespace Api.Configuration;
 
 public sealed class DatabaseStartupInitializer(
-    IConfiguration configuration,
-    IHostEnvironment hostEnvironment,
     IDatabaseStartupLifecycle lifecycle)
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -14,7 +12,6 @@ public sealed class DatabaseStartupInitializer(
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        var resetAndReseedEnabled = configuration.IsResetAndReseedOnStartupEnabled();
 
         // --- Mode 2: Auto-detect — migrate if schema missing, then seed if needed ---
         await RunOnceAsync(async ct =>

@@ -15,6 +15,7 @@ internal static class DependencyInjection
         services.AddScoped<IMailClient, MailClient>();
 
         services.AddSingleton<IMailBodyBuilder, MailBodyBuilder>();
+        services.AddSingleton<IMailQueueSignal, MailQueueSignal>();
 
         // NOTE: MailProcessor (BackgroundService) is NOT registered here.
         // It is registered ONLY in the Private API (Api/DependencyInjection.cs)

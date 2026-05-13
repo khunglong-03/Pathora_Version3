@@ -2,31 +2,36 @@ using Domain.Common.Repositories;
 using Domain.Mails;
 using ErrorOr;
 using Infrastructure.Data;
+using Infrastructure.Mails;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class MailRepository(AppDbContext context) : IMailRepository
+public class MailRepository(AppDbContext context, IMailQueueSignal signal) : IMailRepository
 {
     private readonly AppDbContext _context = context;
+    private readonly IMailQueueSignal _signal = signal;
 
     public async Task<ErrorOr<Success>> Add(MailEntity record, CancellationToken ct = default)
     {
         await _context.Mails.AddAsync(record, ct);
         await _context.SaveChangesAsync(ct);
+        await _signal.NotifyAsync(ct);
         return Result.Success;
     }
 
     public async Task AddWithoutSaveAsync(MailEntity record, CancellationToken ct = default)
     {
         await _context.Mails.AddAsync(record, ct);
-        // No SaveChangesAsync — caller (e.g. ExecuteTransactionAsync) is responsible for saving
+        // No SaveChangesAsync — caller (e.g. ExecuteTransactionAsync) is responsible for saving.
+        // AppDbContext.SaveChangesAsync detects the added MailEntity and fires the signal post-commit.
     }
 
     public async Task<ErrorOr<Success>> AddRange(List<MailEntity> records, CancellationToken ct = default)
     {
         await _context.Mails.AddRangeAsync(records, ct);
         await _context.SaveChangesAsync(ct);
+        await _signal.NotifyAsync(ct);
         return Result.Success;
     }
 

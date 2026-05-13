@@ -42,12 +42,18 @@ export const BoldTrendingDestinations = () => {
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    homeService.getDestinations().then(data => {
-      if (data && data.length > 0) {
-        setDestinations(data.slice(0, 6));
-        setActiveDestination(data[0]);
-      }
-    });
+    homeService.getDestinations()
+      .then(data => {
+        if (data && data.length > 0) {
+          setDestinations(data.slice(0, 6));
+          setActiveDestination(data[0]);
+        } else {
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const fetchToursByDestination = React.useCallback(async (destination: string) => {
