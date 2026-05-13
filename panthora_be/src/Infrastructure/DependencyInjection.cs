@@ -109,9 +109,9 @@ public static class DependencyInjection
             fusionCacheBuilder.WithRegisteredDistributedCache();
 
             // Setup Redis Backplane to invalidate L1 (memory) cache across instances
-            fusionCacheBuilder.WithRegisteredBackplane(new ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions
+            fusionCacheBuilder.WithStackExchangeRedisBackplane(backplaneOptions =>
             {
-                ConfigurationOptions = options
+                backplaneOptions.ConfigurationOptions = options;
             });
         }
         else

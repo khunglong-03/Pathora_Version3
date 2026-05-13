@@ -17,10 +17,6 @@ var app = builder.Build();
 
 Application.Services.SepayParsingHelper.SetLogger(app.Services.GetService<Microsoft.Extensions.Logging.ILogger>());
 
-// Database startup: auto-detect missing schema → migrate → seed
-var dbInitializer = app.Services.GetRequiredService<Api.Configuration.DatabaseStartupInitializer>();
-await dbInitializer.InitializeAsync();
-
 app.UseAppMiddleware();
 
 app.MapControllers();
