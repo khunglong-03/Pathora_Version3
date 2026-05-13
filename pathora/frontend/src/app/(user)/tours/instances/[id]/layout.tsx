@@ -10,11 +10,21 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * Server-side fetch dùng internal URL khi chạy trong Docker (INTERNAL_API_URL),
+ * fallback về API_GATEWAY_BASE_URL khi dev local.
+ * INTERNAL_API_URL nên trỏ đến nginx container: http://nginx
+ */
+function resolveServerSideBaseUrl(): string {
+  const internal = process.env.INTERNAL_API_URL?.trim();
+  if (internal) return internal.replace(/\/+$/, "");
+  return API_GATEWAY_BASE_URL.replace(/\/+$/, "");
+}
+
 async function fetchTourInstance(id: string) {
   try {
-    const baseUrl = API_GATEWAY_BASE_URL.replace(/\/+$/, "");
+    const baseUrl = resolveServerSideBaseUrl();
     const res = await fetch(`${baseUrl}/api/public/tour-instances/${id}`, {
-      credentials: "include",
       next: { revalidate: 60 },
     });
     if (!res.ok) return null;

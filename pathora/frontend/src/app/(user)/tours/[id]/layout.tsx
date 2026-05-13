@@ -10,11 +10,16 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+function resolveServerSideBaseUrl(): string {
+  const internal = process.env.INTERNAL_API_URL?.trim();
+  if (internal) return internal.replace(/\/+$/, "");
+  return API_GATEWAY_BASE_URL.replace(/\/+$/, "");
+}
+
 async function fetchTour(id: string) {
   try {
-    const baseUrl = API_GATEWAY_BASE_URL.replace(/\/+$/, "");
+    const baseUrl = resolveServerSideBaseUrl();
     const res = await fetch(`${baseUrl}/api/public/tours/${id}`, {
-      credentials: "include",
       next: { revalidate: 60 },
     });
     if (!res.ok) return null;
