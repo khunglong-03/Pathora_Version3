@@ -19,7 +19,7 @@ interface Result {
 }
 
 const isActiveCancellation = (p: CancellationPolicy) => p.status === 1;
-const isActivePricing = (p: PricingPolicy) => p.status === 1;
+const isActivePricing = (p: PricingPolicy) => p.status === "Active";
 const isActiveDeposit = (p: DepositPolicy) => p.isActive;
 
 const pickLocaleDescription = (

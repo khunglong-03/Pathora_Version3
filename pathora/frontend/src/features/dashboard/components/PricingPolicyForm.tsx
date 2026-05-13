@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { pricingPolicyService } from "@/api/services/pricingPolicyService";
-import type { PricingPolicy, PricingPolicyTier, CreatePricingPolicyRequest, UpdatePricingPolicyRequest, PricingPolicyTranslations } from "@/types/pricingPolicy";
+import type { PricingPolicy, PricingPolicyTier, CreatePricingPolicyRequest, UpdatePricingPolicyRequest, PricingPolicyTranslations, TourTypeValue } from "@/types/pricingPolicy";
 import { PricingTierInput } from "./PricingTierInput";
 import { TranslationTabForm, TranslationField } from "./TranslationTabForm";
 import { PencilSimple, TagIcon } from "@phosphor-icons/react";
@@ -45,14 +45,14 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
   const [translations, setTranslations] = useState<PricingPolicyTranslations>(
     policy?.translations || { vi: { name: "", description: "" }, en: { name: "", description: "" } }
   );
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<{
+  const { register, handleSubmit, formState: { errors }, reset, setValue, getValues, watch } = useForm<{
     name: string;
-    tourType: number;
+    tourType: TourTypeValue;
     isDefault: boolean;
   }>({
     defaultValues: {
       name: policy?.name || "",
-      tourType: policy?.tourType || 2,
+      tourType: policy?.tourType || "Public",
       isDefault: policy?.isDefault || false,
     },
   });
@@ -73,7 +73,9 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
     }
   }, [policy, reset]);
 
-  const onSubmit = async (data: { name: string; tourType: number; isDefault: boolean }) => {
+  const isDefaultValue = watch("isDefault");
+
+  const onSubmit = async (data: { name: string; tourType: TourTypeValue; isDefault: boolean }) => {
     if (tiers.length === 0) {
       setErrorMessage(t("pricingPolicy.form.minOneTier", "Please add at least one pricing tier"));
       return;
@@ -87,7 +89,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
         const payload: UpdatePricingPolicyRequest = {
           id: policy.id,
           name: data.name,
-          tourType: Number(data.tourType),
+          tourType: data.tourType,
           tiers,
           translations,
         };
@@ -95,7 +97,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
       } else {
         const payload: CreatePricingPolicyRequest = {
           name: data.name,
-          tourType: Number(data.tourType),
+          tourType: data.tourType,
           tiers,
           isDefault: data.isDefault,
           translations,
@@ -177,8 +179,8 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
               {...register("tourType", { required: true })}
               className="block w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-2xl text-sm text-stone-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200 appearance-none bg-white cursor-pointer"
             >
-              <option value={1}>{t("pricingPolicy.private", "Private")}</option>
-              <option value={2}>{t("pricingPolicy.public", "Public")}</option>
+              <option value="Private">{t("pricingPolicy.private", "Private")}</option>
+              <option value="Public">{t("pricingPolicy.public", "Public")}</option>
             </select>
             <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-stone-400">
@@ -192,17 +194,28 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
       {/* Default checkbox */}
       {!policy && (
         <div className="mb-8">
-          <label className="group inline-flex items-center gap-3 cursor-pointer">
-            <div className="relative">
+          <label
+            className="group inline-flex items-center gap-3 cursor-pointer select-none"
+            onClick={() => setValue("isDefault", !getValues("isDefault"))}
+          >
+            <div className="relative shrink-0">
               <input
                 type="checkbox"
                 {...register("isDefault")}
                 className="sr-only"
               />
-              <div className="w-5 h-5 rounded-lg border-2 border-stone-300 group-hover:border-amber-400 transition-colors duration-150 flex items-center justify-center bg-white peer-checked:bg-amber-500 peer-checked:border-amber-500">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="hidden peer-checked:block">
-                  <path d="M2 5.5L4 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <div
+                className={`w-5 h-5 rounded-lg border-2 transition-colors duration-150 flex items-center justify-center ${
+                  isDefaultValue
+                    ? "bg-amber-500 border-amber-500"
+                    : "border-stone-300 bg-white group-hover:border-amber-400"
+                }`}
+              >
+                {isDefaultValue && (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5.5L4 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
               </div>
             </div>
             <span className="text-sm text-stone-600 group-hover:text-stone-800 transition-colors duration-150">

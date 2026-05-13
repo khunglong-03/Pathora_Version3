@@ -76,7 +76,7 @@ const buildEditHref = (type: DashboardPolicyType, sourceId: string): string => {
 };
 
 const mapPricingPolicy = (policy: PricingPolicy): DashboardPolicyListItem => {
-  const status = policy.status === 1 ? "active" : "inactive";
+  const status = policy.status === "Active" ? "active" : "inactive";
   const normalized = normalizeStatus(status, policy.statusName ?? "");
   return {
     rowKey: `pricing-${policy.id}`,

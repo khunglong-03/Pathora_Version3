@@ -15,13 +15,16 @@ export interface PricingPolicyTranslation {
 
 export type PricingPolicyTranslations = Record<string, PricingPolicyTranslation>;
 
+export type PricingPolicyStatusValue = "Active" | "Inactive";
+export type TourTypeValue = "Private" | "Public" | "Group";
+
 export interface PricingPolicy {
   id: string;
   policyCode: string;
   name: string;
-  tourType: number;
+  tourType: TourTypeValue;
   tourTypeName: string;
-  status: number;
+  status: PricingPolicyStatusValue;
   statusName: string;
   isDefault: boolean;
   tiers: PricingPolicyTier[];
@@ -32,7 +35,7 @@ export interface PricingPolicy {
 
 export interface CreatePricingPolicyRequest {
   name: string;
-  tourType: number;
+  tourType: TourTypeValue;
   tiers: PricingPolicyTier[];
   isDefault?: boolean;
   translations?: PricingPolicyTranslations;
@@ -41,19 +44,19 @@ export interface CreatePricingPolicyRequest {
 export interface UpdatePricingPolicyRequest {
   id: string;
   name: string;
-  tourType: number;
+  tourType: TourTypeValue;
   tiers: PricingPolicyTier[];
-  status?: number;
+  status?: PricingPolicyStatusValue;
   translations?: PricingPolicyTranslations;
 }
 
-export const PricingPolicyStatusMap: Record<number, string> = {
-  1: "Active",
-  2: "Inactive",
+export const PricingPolicyStatusMap: Record<PricingPolicyStatusValue, string> = {
+  Active: "Active",
+  Inactive: "Inactive",
 };
 
-export const TourTypeMap: Record<number, string> = {
-  1: "Private",
-  2: "Public",
-  3: "Group",
+export const TourTypeMap: Record<TourTypeValue, string> = {
+  Private: "Private",
+  Public: "Public",
+  Group: "Group",
 };

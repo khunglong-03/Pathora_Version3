@@ -4,7 +4,7 @@
  * These tests verify the component's data-flow and interaction logic:
  * - Mock data shapes match the PricingPolicy type
  * - Service response shape validation
- * - Status label display logic (On=active, Off=inactive, status===1)
+ * - Status label display logic (On=Active, Off=Inactive)
  * - Handler call patterns
  *
  * Note: Full DOM rendering tests require a jsdom environment (not configured
@@ -24,9 +24,9 @@ const activePolicy: PricingPolicy = {
   id: "policy-1",
   policyCode: "PP001",
   name: "Standard Pricing",
-  tourType: 1,
+  tourType: "Private",
   tourTypeName: "Private",
-  status: 1,
+  status: "Active",
   statusName: "Active",
   isDefault: true,
   tiers: [{ id: "t1", label: "Adult", ageFrom: 18, ageTo: null, pricePercentage: 100 }],
@@ -39,9 +39,9 @@ const inactivePolicy: PricingPolicy = {
   id: "policy-2",
   policyCode: "PP002",
   name: "Group Discount",
-  tourType: 2,
+  tourType: "Public",
   tourTypeName: "Public",
-  status: 2,
+  status: "Inactive",
   statusName: "Inactive",
   isDefault: false,
   tiers: [],
@@ -50,9 +50,9 @@ const inactivePolicy: PricingPolicy = {
   lastModifiedOnUtc: null,
 };
 
-// --- Status label logic (mirrors component: policy.status === 1 ? "On" : "Off") ---
+// --- Status label logic (mirrors component: policy.status === "Active" ? "On" : "Off") ---
 const getStatusLabel = (policy: PricingPolicy): string =>
-  policy.status === 1 ? "On" : "Off";
+  policy.status === "Active" ? "On" : "Off";
 
 // --- Handler call assertions ---
 const callOnEdit = (
@@ -120,11 +120,11 @@ describe("PricingPolicyList component logic", () => {
   });
 
   describe("status label display", () => {
-    it("displays 'On' when policy.status === 1 (active)", () => {
+    it('displays "On" when policy.status === "Active"', () => {
       expect(getStatusLabel(activePolicy)).toBe("On");
     });
 
-    it("displays 'Off' when policy.status === 2 (inactive)", () => {
+    it('displays "Off" when policy.status === "Inactive"', () => {
       expect(getStatusLabel(inactivePolicy)).toBe("Off");
     });
 
@@ -181,7 +181,7 @@ describe("PricingPolicyList component logic", () => {
       expect(activePolicy.tourTypeName).toBe("Private");
       expect(activePolicy.tiers.length).toBe(1);
       expect(activePolicy.isDefault).toBe(true);
-      expect(activePolicy.status).toBe(1);
+      expect(activePolicy.status).toBe("Active");
     });
 
     it("tiers length is displayed as-is in the tiers column", () => {

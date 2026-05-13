@@ -46,7 +46,7 @@ export function PricingPoliciesPage() {
       tourType: policy.tourType,
       tiers: policy.tiers,
       translations: policy.translations,
-      status: policy.status === 1 ? 2 : 1,
+      status: policy.status === "Active" ? "Inactive" : "Active",
     });
     if (response.success) {
       setRefreshKey((k) => k + 1);
