@@ -123,7 +123,7 @@ services:
       - "traefik.http.routers.pathora-backend.entrypoints=websecure"
       - "traefik.http.routers.pathora-backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.pathora-backend.loadbalancer.server.port=8080"
-      - "traefik.http.routers.pathora-backend.priority=1"
+      - "traefik.http.routers.pathora-backend.priority=10"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
       interval: 15s
@@ -152,7 +152,7 @@ services:
       - "traefik.http.routers.pathora-publicapi.entrypoints=websecure"
       - "traefik.http.routers.pathora-publicapi.tls.certresolver=letsencrypt"
       - "traefik.http.services.pathora-publicapi.loadbalancer.server.port=8081"
-      - "traefik.http.routers.pathora-publicapi.priority=2"
+      - "traefik.http.routers.pathora-publicapi.priority=20"
     depends_on:
       backend:
         condition: service_healthy
