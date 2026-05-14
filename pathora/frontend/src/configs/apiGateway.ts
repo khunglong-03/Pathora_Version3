@@ -1,7 +1,7 @@
 export const DEFAULT_DEVELOPMENT_API_GATEWAY_BASE_URL =
   "http://localhost:5182";
-export const DEFAULT_PRODUCTION_API_GATEWAY_BASE_URL =
-  "https://api.vivugo.me";
+// Production: Use empty string for relative URLs (same origin through Traefik)
+export const DEFAULT_PRODUCTION_API_GATEWAY_BASE_URL = "";
 
 const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, "");
 
