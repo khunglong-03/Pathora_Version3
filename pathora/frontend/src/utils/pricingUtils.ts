@@ -1,14 +1,14 @@
 import { DepositPolicyDto, PricingPolicyDto } from "@/types/tour";
 
-function applyPricingTier(basePrice: number, tiers: PricingPolicyDto['tiers'] | undefined | null, age: number, defaultPercentage: number = 100): number {
-  if (!tiers || tiers.length === 0) return basePrice * (defaultPercentage / 100);
+function applyPricingTier(basePrice: number, tiers: PricingPolicyDto["tiers"] | undefined | null, age: number): number {
+  if (!tiers || tiers.length === 0) return basePrice;
 
   for (const tier of tiers) {
     if (age >= tier.ageFrom && (tier.ageTo === null || tier.ageTo === undefined || age <= tier.ageTo)) {
       return basePrice * (tier.pricePercentage / 100);
     }
   }
-  return basePrice * (defaultPercentage / 100);
+  return basePrice;
 }
 
 export function calculateTourEstimate(
@@ -23,9 +23,9 @@ export function calculateTourEstimate(
   infantPrice: number;
   totalPrice: number;
 } {
-  const adultPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 18, 100));
-  const childPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 5, 75));
-  const infantPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 1, 10));
+  const adultPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 18));
+  const childPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 5));
+  const infantPrice = Math.round(applyPricingTier(basePrice, pricingPolicy?.tiers, 1));
 
   const totalPrice = adultPrice * adults + childPrice * children + infantPrice * infants;
 

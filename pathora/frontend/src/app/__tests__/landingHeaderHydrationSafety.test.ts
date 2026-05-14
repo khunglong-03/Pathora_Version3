@@ -28,6 +28,18 @@ describe("landing header hydration safety", () => {
     expect(source.includes('href="/"')).toBe(true);
   });
 
+  it("keeps the mobile drawer close breakpoint aligned with the hamburger visibility", () => {
+    const source = readFile("src/features/shared/components/LandingHeader.tsx");
+
+    expect(source.includes("const lgBreakpoint = breakpoints.lg;")).toBe(true);
+    expect(
+      source.includes("if (mobileMenuOpen && width >= lgBreakpoint) {"),
+    ).toBe(true);
+    expect(
+      source.includes("[mobileMenuOpen, width, lgBreakpoint, setMobileMenuOpen]"),
+    ).toBe(true);
+  });
+
   it("suppresses hydration warnings for react-icons used in header controls", () => {
     const source = readFile("src/features/shared/components/LandingHeader.tsx");
 

@@ -43,7 +43,8 @@ public sealed class GetPublicTourInstanceDetailQueryHandler(
         var instanceType = Enum.Parse<TourType>(dto.InstanceType, true);
 
         // Fetch system-wide policies
-        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(instanceType, cancellationToken);
+        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(instanceType, cancellationToken)
+            ?? await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
 
         var cancelPolicies = await cancellationPolicyRepository.FindByTourScope(tour.TourScope, cancellationToken);
         var cancellationPolicy = cancelPolicies.FirstOrDefault(p => p.Status == CancellationPolicyStatus.Active);
@@ -60,4 +61,3 @@ public sealed class GetPublicTourInstanceDetailQueryHandler(
         };
     }
 }
-

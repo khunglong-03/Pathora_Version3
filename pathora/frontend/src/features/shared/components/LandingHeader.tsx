@@ -462,7 +462,7 @@ export const LandingHeader = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useMobileMenu();
   const { width, breakpoints } = useWidth();
-  const mdBreakpoint = breakpoints.md;
+  const lgBreakpoint = breakpoints.lg;
   const searchParams = useSearchParams();
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"signup" | "login" | "forgot">(
@@ -566,10 +566,10 @@ export const LandingHeader = () => {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
-    if (mobileMenuOpen && width >= mdBreakpoint) {
+    if (mobileMenuOpen && width >= lgBreakpoint) {
       setMobileMenuOpen(false);
     }
-  }, [mobileMenuOpen, width, mdBreakpoint, setMobileMenuOpen]);
+  }, [mobileMenuOpen, width, lgBreakpoint, setMobileMenuOpen]);
 
   useEffect(() => {
     if (!languageMenuOpen && !userMenuOpen) return;

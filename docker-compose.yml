@@ -117,7 +117,7 @@ services:
       dockerfile: src/Api/Dockerfile
     environment:
       <<: *backend-env
-      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
       ASPNETCORE_HTTP_PORTS: "8080"
     expose:
       - "8080"
@@ -139,7 +139,7 @@ services:
       dockerfile: src/PublicApi/ApiPublic/Dockerfile
     environment:
       <<: *backend-env
-      ASPNETCORE_URLS: "http://+:8081"
+      ASPNETCORE_URLS: "http://0.0.0.0:8081"
       ASPNETCORE_HTTP_PORTS: "8081"
     expose:
       - "8081"

@@ -45,7 +45,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
   const [translations, setTranslations] = useState<PricingPolicyTranslations>(
     policy?.translations || { vi: { name: "", description: "" }, en: { name: "", description: "" } }
   );
-  const { register, handleSubmit, formState: { errors }, reset, setValue, getValues, watch } = useForm<{
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<{
     name: string;
     tourType: TourTypeValue;
     isDefault: boolean;
@@ -181,6 +181,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
             >
               <option value="Private">{t("pricingPolicy.private", "Private")}</option>
               <option value="Public">{t("pricingPolicy.public", "Public")}</option>
+              <option value="Group">{t("pricingPolicy.group", "Group")}</option>
             </select>
             <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-stone-400">
@@ -194,10 +195,7 @@ export function PricingPolicyForm({ policy, onSuccess, onCancel }: PricingPolicy
       {/* Default checkbox */}
       {!policy && (
         <div className="mb-8">
-          <label
-            className="group inline-flex items-center gap-3 cursor-pointer select-none"
-            onClick={() => setValue("isDefault", !getValues("isDefault"))}
-          >
+          <label className="group inline-flex items-center gap-3 cursor-pointer select-none">
             <div className="relative shrink-0">
               <input
                 type="checkbox"

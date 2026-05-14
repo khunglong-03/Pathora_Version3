@@ -219,9 +219,9 @@ export function TourDetailPage() {
       adults,
       children,
       infants,
-      null // We don't have the PricingPolicy object directly in TourDetailPage, so it falls back to defaults.
+      tour?.pricingPolicy
     );
-  }, [pricePerPerson, adults, children, infants]);
+  }, [pricePerPerson, adults, children, infants, tour?.pricingPolicy]);
 
   const serviceFee = 0;
   const estimatedTotal = estimateBreakdown.totalPrice + serviceFee;

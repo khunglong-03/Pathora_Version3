@@ -26,6 +26,7 @@ public sealed record GetPublicTourDetailQuery(
 public sealed class GetPublicTourDetailQueryHandler(
     ITourRepository tourRepository,
     IDepositPolicyRepository depositPolicyRepository,
+    IPricingPolicyRepository pricingPolicyRepository,
     IMapper mapper)
     : IQueryHandler<GetPublicTourDetailQuery, ErrorOr<TourDto>>
 {
@@ -39,14 +40,16 @@ public sealed class GetPublicTourDetailQueryHandler(
         tour.ApplyResolvedTranslations(request.ResolvedLanguage);
         var dto = mapper.Map<TourDto>(tour);
 
-        // Fetch and map deposit policy
-        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
-        var policy = depositPolicies.FirstOrDefault(p => p.TourScope == tour.TourScope);
-        if (policy != null)
-        {
-            dto = dto with { DepositPolicy = mapper.Map<DepositPolicyDto>(policy) };
-        }
+        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(TourType.Private, cancellationToken)
+            ?? await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
 
-        return dto;
+        var depositPolicies = await depositPolicyRepository.GetAllActiveAsync(cancellationToken);
+        var depositPolicy = depositPolicies.FirstOrDefault(p => p.TourScope == tour.TourScope);
+
+        return dto with
+        {
+            PricingPolicy = pricingPolicy is null ? null : mapper.Map<PricingPolicyDto>(pricingPolicy),
+            DepositPolicy = depositPolicy is null ? null : mapper.Map<DepositPolicyDto>(depositPolicy)
+        };
     }
 }

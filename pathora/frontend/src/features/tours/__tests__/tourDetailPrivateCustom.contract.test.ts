@@ -14,4 +14,10 @@ describe("tour detail private-custom booking contract", () => {
     expect(page).toMatch(/depositPercentage:\s*"0\.3"/);
     expect(page).toMatch(/bookingType:\s*"PrivateCustom"/);
   });
+
+  it("uses pricing policy tiers for the private-custom price estimate", () => {
+    const page = readFile("src/features/tours/components/TourDetailPage.tsx");
+    expect(page).toMatch(/calculateTourEstimate\(\s*pricePerPerson,\s*adults,\s*children,\s*infants,\s*tour\?\.pricingPolicy\s*\)/);
+    expect(page).not.toMatch(/calculateTourEstimate\(\s*pricePerPerson,\s*adults,\s*children,\s*infants,\s*null/);
+  });
 });

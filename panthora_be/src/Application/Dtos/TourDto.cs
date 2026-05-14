@@ -76,6 +76,9 @@ public sealed record TourDto
     [JsonPropertyName("services")]
     public List<ServiceDto>? Services { get; init; }
 
+    [JsonPropertyName("pricingPolicy")]
+    public PricingPolicyDto? PricingPolicy { get; init; }
+
     [JsonPropertyName("depositPolicy")]
     public DepositPolicyDto? DepositPolicy { get; init; }
 }
