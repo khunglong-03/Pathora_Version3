@@ -159,8 +159,9 @@ public static class DependencyInjection
 
         app.UseCors("DefaultCorsPolicy");
 
-        app.UseAuthentication();
-        app.UseAuthorization();
+        // PublicApi does not use authentication - all endpoints are [AllowAnonymous]
+        // app.UseAuthentication();
+        // app.UseAuthorization();
 
         app.UseResponseCompression();
         app.UseResponseCaching();
