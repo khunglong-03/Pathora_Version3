@@ -131,6 +131,9 @@ services:
       retries: 10
       start_period: 60s
     restart: unless-stopped
+    networks:
+      - default
+      - dokploy-network
 
   # ════════════════════════════════════════════════════════
   #  Backend — Public Api (public pages, auth, payment)
@@ -163,6 +166,9 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+    networks:
+      - default
+      - dokploy-network
 
   # ════════════════════════════════════════════════════════
   #  Frontend (Next.js)
@@ -204,3 +210,12 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    networks:
+      - default
+      - dokploy-network
+
+networks:
+  default:
+    driver: bridge
+  dokploy-network:
+    external: true
