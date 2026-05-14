@@ -119,7 +119,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.pathora-backend.rule=Host(`cbbo-g99.io.vn`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.pathora-backend.rule=Host(`cbbo-g99.io.vn`) && PathPrefix(`/api`) && !PathPrefix(`/api/public`) && !PathPrefix(`/api/payment`)"
       - "traefik.http.routers.pathora-backend.entrypoints=websecure"
       - "traefik.http.routers.pathora-backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.pathora-backend.loadbalancer.server.port=8080"
