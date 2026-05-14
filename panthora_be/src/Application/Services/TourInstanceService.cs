@@ -1727,8 +1727,11 @@ public class TourInstanceService(
                 quantity: request.RoomCount ?? 1);
         }
 
-        // Attach to tracked collection so EF inserts as part of the single SaveChanges in Recalc.
-        day.Activities.Add(activity);
+        // Use AddAsync (via repo) to explicitly mark the entry as Added — adding to the
+        // tracked Activities collection leaves EF guessing the state, and because the
+        // entity's CreatedOnUtc is set in Create(), the Update fixup heuristic won't flip
+        // it back to Added, causing EF to emit UPDATE (0 rows) instead of INSERT.
+        await _tourInstanceRepository.AddInstanceDayActivity(activity);
 
         await RecalculatePrivateTourFinalPriceAsync(request.InstanceId, instance);
 
@@ -1752,7 +1755,7 @@ public class TourInstanceService(
         if (activity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
 
-        day.Activities.Remove(activity);
+        await _tourInstanceRepository.DeleteInstanceDayActivity(activity);
 
         await RecalculatePrivateTourFinalPriceAsync(request.InstanceId, instance);
 
@@ -1763,19 +1766,20 @@ public class TourInstanceService(
         var instance = loadedInstance ?? await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
         if (instance == null || instance.InstanceType != TourType.Private) return;
 
-        // OriginalBasePrice is the immutable per-person snapshot set at creation time.
-        // BasePrice = OriginalBasePrice + sum of all instance activity prices.
+        // OriginalBasePrice is the immutable per-person snapshot set at creation time
+        // (kept for historical reference). The displayed BasePrice for a private custom
+        // tour reflects the sum of all activity prices designed by the operator.
         decimal totalActivitiesPrice = instance.InstanceDays
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.Activities)
             .Sum(a => a.Price ?? 0);
 
-        instance.BasePrice = instance.OriginalBasePrice + totalActivitiesPrice;
+        instance.BasePrice = totalActivitiesPrice;
 
-        if (loadedInstance is null)
-        {
-            await _tourInstanceRepository.Update(instance);
-        }
+        // Always invoke repo Update — runs the ICreationAuditable state-fixup that flips
+        // newly-added entities (with client-generated keys like Guid.CreateVersion7) from
+        // Modified back to Added. Without this, EF emits UPDATE for inserts → 0 rows affected.
+        await _tourInstanceRepository.Update(instance);
 
         // Sync associated booking TotalPrice so the booking detail view stays accurate.
         if (_bookingRepository != null)

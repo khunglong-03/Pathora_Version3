@@ -33,23 +33,12 @@ public class GetBookingDetailQueryHandler(
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
             .Sum(t => t.PaidAmount ?? t.Amount);
 
-        // Include VisaServiceFeeTotal inside TotalPrice has been handled in booking.AddVisaServiceFee.
-        var remainingBalance = Math.Max(0, booking.TotalPrice - paidAmount);
-
         var pendingTransactions = booking.PaymentTransactions
             .Where(t => t.Status == Domain.Enums.TransactionStatus.Pending)
             .OrderByDescending(t => t.CreatedOnUtc)
             .ToList();
 
         var durationDays = booking.TourInstance?.EndDate.Subtract(booking.TourInstance.StartDate).Days + 1 ?? 1;
-
-        string paymentStatusStr = booking.Status switch
-        {
-            Domain.Enums.BookingStatus.Paid => "paid",
-            Domain.Enums.BookingStatus.Completed => "paid",
-            Domain.Enums.BookingStatus.Deposited => "partial",
-            _ => paidAmount > 0 ? (paidAmount >= booking.TotalPrice ? "paid" : "partial") : "unpaid"
-        };
 
         string statusStr = booking.Status switch
         {
@@ -82,6 +71,20 @@ public class GetBookingDetailQueryHandler(
         var taxRate = activeTaxConfig?.TaxRate ?? 0m;
         var taxAmount = decimal.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
 
+        // Total = subtotal (adult + child + infant per tier) + tax + visa fee.
+        // booking.TotalPrice is stale (= basePrice × numberAdult) and is no longer
+        // authoritative for display; the computed totalAmount drives the UI.
+        var totalAmount = subtotal + taxAmount + booking.VisaServiceFeeTotal;
+        var remainingBalance = Math.Max(0m, totalAmount - paidAmount);
+
+        string paymentStatusStr = booking.Status switch
+        {
+            Domain.Enums.BookingStatus.Paid => "paid",
+            Domain.Enums.BookingStatus.Completed => "paid",
+            Domain.Enums.BookingStatus.Deposited => "partial",
+            _ => paidAmount > 0 ? (paidAmount >= totalAmount ? "paid" : "partial") : "unpaid"
+        };
+
         var dto = new BookingDetailDto
         {
             Id = booking.Id,
@@ -112,7 +115,7 @@ public class GetBookingDetailQueryHandler(
             Subtotal = subtotal,
             TaxRate = taxRate,
             TaxAmount = taxAmount,
-            TotalAmount = booking.TotalPrice,
+            TotalAmount = totalAmount,
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,
             VisaServiceFeeTotal = booking.VisaServiceFeeTotal,

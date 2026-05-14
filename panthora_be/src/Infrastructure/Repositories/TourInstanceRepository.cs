@@ -250,47 +250,19 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
         // Calling _context.TourInstances.Update() would reset all navigation property states
         // (Deleted/Added managers → Modified) causing DbUpdateConcurrencyException.
 
-        // [TEMP DEBUG] Log all tracked TourInstancePlanAccommodationEntity entries
-        foreach (var entry in _context.ChangeTracker.Entries<TourInstancePlanAccommodationEntity>())
-        {
-            Console.WriteLine($"[EF-DEBUG-ACCOM] Entity={entry.Entity.GetType().Name} State={entry.State} Id={entry.Entity.Id} ActivityId={entry.Entity.TourInstanceDayActivityId} RoomType={entry.Entity.RoomType} Qty={entry.Entity.Quantity} SupplierId={entry.Entity.SupplierId} CreatedOnUtc={entry.Entity.CreatedOnUtc}");
-        }
-
         // Fix entities added via navigation properties with pre-set keys (e.g. Guid.CreateVersion7).
         // EF Core's ValueGeneratedOnAdd treats non-default key values as existing entities,
-        // marking them Modified or Unchanged instead of Added. Detect them by checking CreatedOnUtc == default
-        // (a persisted entity always has a real audit timestamp set by AppDbContext).
+        // marking them Modified or Unchanged instead of Added. Detect them by checking
+        // CreatedOnUtc == default (a persisted entity always has an audit timestamp).
         foreach (var entry in _context.ChangeTracker.Entries<ICreationAuditable>())
         {
             if ((entry.State == EntityState.Modified || entry.State == EntityState.Unchanged) && entry.Entity.CreatedOnUtc == default)
             {
-                Console.WriteLine($"[EF-DEBUG-FIX] Fixing {entry.Entity.GetType().Name} from {entry.State} to Added (CreatedOnUtc=default)");
                 entry.State = EntityState.Added;
             }
         }
 
-        // [TEMP DEBUG] Log state AFTER fixup
-        foreach (var entry in _context.ChangeTracker.Entries<TourInstancePlanAccommodationEntity>())
-        {
-            Console.WriteLine($"[EF-DEBUG-ACCOM-AFTER] State={entry.State} Id={entry.Entity.Id}");
-        }
-
-        try
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
-        {
-            foreach (var entry in ex.Entries)
-            {
-                Console.WriteLine($"[EF-CONCURRENCY] Entity={entry.Entity.GetType().Name} State={entry.State} Keys={string.Join(",", entry.Metadata.FindPrimaryKey()!.Properties.Select(p => $"{p.Name}={entry.Property(p.Name).CurrentValue}"))}");
-                foreach (var prop in entry.Metadata.GetProperties().Where(p => p.IsConcurrencyToken))
-                {
-                    Console.WriteLine($"  ConcurrencyToken: {prop.Name} Original={entry.Property(prop.Name).OriginalValue} Current={entry.Property(prop.Name).CurrentValue}");
-                }
-            }
-            throw;
-        }
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task SoftDelete(Guid id, CancellationToken cancellationToken = default)
@@ -433,14 +405,19 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
 
     public async Task AddInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
     {
+        // AddAsync explicitly marks the entry as Added regardless of whether the
+        // primary key is already set (Guid.CreateVersion7). Caller is responsible
+        // for committing via UnitOfWork so the activity insert participates in the
+        // same transaction as price recalculation + booking sync.
         await _context.TourInstanceDayActivities.AddAsync(activity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
+    public Task DeleteInstanceDayActivity(TourInstanceDayActivityEntity activity, CancellationToken cancellationToken = default)
     {
         _context.TourInstanceDayActivities.Remove(activity);
-        await _context.SaveChangesAsync(cancellationToken);
+        // Caller is responsible for committing via UnitOfWork so deletion participates
+        // in the same transaction as price recalculation + booking sync.
+        return Task.CompletedTask;
     }
 
     public async Task<List<TourInstanceEntity>> FindDuplicate(Guid tourId, Guid classificationId, DateTimeOffset startDate, CancellationToken cancellationToken = default)
