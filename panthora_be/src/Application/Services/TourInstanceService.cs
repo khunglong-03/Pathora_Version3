@@ -306,7 +306,7 @@ public class TourInstanceService(
                     transportationType: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationType : null,
                     transportationName: templateActivity.ActivityType == TourDayActivityType.Transportation ? templateActivity.TransportationName : null,
                     durationMinutes: templateActivity.DurationMinutes,
-                    price: templateActivity.Price
+                    price: templateActivity.Price ?? templateActivity.EstimatedCost
                 );
 
                 switch (templateActivity.ActivityType)
@@ -1660,28 +1660,25 @@ public class TourInstanceService(
         activity.LastModifiedBy = performedBy;
         activity.LastModifiedOnUtc = DateTimeOffset.UtcNow;
 
-        await _tourInstanceRepository.Update(instance);
-        if (_unitOfWork != null)
-        {
-            await _unitOfWork.SaveChangeAsync();
-        }
+        // Recalc uses the already-tracked `instance`; SaveChanges happens inside Recalc.
+        // Avoid loading TourInstance twice (would throw "instance already being tracked").
+        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId, instance);
 
-        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId);
-
-        // Return a mapped DTO. Wait, the return type is TourDayActivityDto but the entity is TourInstanceDayActivityEntity.
-        // It might be mapped correctly if AutoMapper profile exists.
         return _mapper.Map<TourInstanceDayActivityDto>(activity);
     }
 
     public async Task<ErrorOr<TourInstanceDayActivityDto>> CreateActivity(CreateTourInstanceActivityCommand request)
     {
-        var day = await _tourInstanceRepository.FindInstanceDayById(request.InstanceId, request.DayId);
-        if (day == null)
-            return Error.NotFound("TourInstanceDay.NotFound", "Day not found.");
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        var instanceForLockCheck = await _tourInstanceRepository.FindByIdWithInstanceDays(request.InstanceId);
-        if (instanceForLockCheck is not null && instanceForLockCheck.IsLockedForOperatorEdit())
+        if (instance.IsLockedForOperatorEdit())
             return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
+
+        var day = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
+        if (day is null)
+            return Error.NotFound("TourInstanceDay.NotFound", "Day not found.");
 
         int order = day.Activities.Count > 0 ? day.Activities.Max(a => a.Order) + 1 : 1;
 
@@ -1730,34 +1727,40 @@ public class TourInstanceService(
                 quantity: request.RoomCount ?? 1);
         }
 
-        await _tourInstanceRepository.AddInstanceDayActivity(activity);
-        
-        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId);
+        // Attach to tracked collection so EF inserts as part of the single SaveChanges in Recalc.
+        day.Activities.Add(activity);
+
+        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId, instance);
 
         return _mapper.Map<TourInstanceDayActivityDto>(activity);
     }
 
     public async Task<ErrorOr<Success>> DeleteActivity(DeleteTourInstanceActivityCommand request)
     {
-        var activity = await _tourInstanceRepository.FindActivityByIdAsync(request.ActivityId);
-        if (activity == null)
-            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
+        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(request.InstanceId);
+        if (instance is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        var instanceId = activity.TourInstanceDay.TourInstanceId;
-
-        var instanceForLockCheck = await _tourInstanceRepository.FindByIdWithInstanceDays(instanceId);
-        if (instanceForLockCheck is not null && instanceForLockCheck.IsLockedForOperatorEdit())
+        if (instance.IsLockedForOperatorEdit())
             return Error.Validation("TourInstance.LockedForEdit", "Lịch trình đang chờ duyệt, không thể chỉnh sửa.");
 
-        await _tourInstanceRepository.DeleteInstanceDayActivity(activity);
-        
-        await RecalculatePrivateTourFinalPriceAsync(instanceId);
+        var day = instance.InstanceDays.FirstOrDefault(d => d.Id == request.DayId);
+        if (day is null)
+            return Error.NotFound("TourInstanceDay.NotFound", "Day not found.");
+
+        var activity = day.Activities.FirstOrDefault(a => a.Id == request.ActivityId);
+        if (activity is null)
+            return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, "Activity not found.");
+
+        day.Activities.Remove(activity);
+
+        await RecalculatePrivateTourFinalPriceAsync(request.InstanceId, instance);
 
         return Result.Success;
     }
-    private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId)
+    private async Task RecalculatePrivateTourFinalPriceAsync(Guid instanceId, TourInstanceEntity? loadedInstance = null)
     {
-        var instance = await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
+        var instance = loadedInstance ?? await _tourInstanceRepository.FindByIdWithInstanceDaysForUpdate(instanceId);
         if (instance == null || instance.InstanceType != TourType.Private) return;
 
         // OriginalBasePrice is the immutable per-person snapshot set at creation time.
@@ -1768,7 +1771,11 @@ public class TourInstanceService(
             .Sum(a => a.Price ?? 0);
 
         instance.BasePrice = instance.OriginalBasePrice + totalActivitiesPrice;
-        await _tourInstanceRepository.Update(instance);
+
+        if (loadedInstance is null)
+        {
+            await _tourInstanceRepository.Update(instance);
+        }
 
         // Sync associated booking TotalPrice so the booking detail view stays accurate.
         if (_bookingRepository != null)
@@ -1778,6 +1785,11 @@ public class TourInstanceService(
             if (booking != null)
             {
                 booking.TotalPrice = instance.BasePrice * booking.NumberAdult;
+                // Detach navigation graph so EF's Update(...) graph-attacher does not try to
+                // re-attach the TourInstance (which is already tracked by Recalc above).
+                booking.TourInstance = null!;
+                booking.User = null!;
+                booking.BookingParticipants = null!;
                 await _bookingRepository.UpdateWithoutSaveAsync(booking);
             }
         }

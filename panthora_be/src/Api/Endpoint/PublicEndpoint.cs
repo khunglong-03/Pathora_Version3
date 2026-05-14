@@ -9,6 +9,7 @@ public static class PublicEndpoint
     public const string Bookings = "bookings";
     public const string Available = "available";
     public const string My = "my";
+    public const string MyBookings = "my-bookings";
     public const string MyRecentBookings = "my-recent-bookings";
     public const string Destinations = "destinations";
     public const string Attractions = "attractions";

@@ -64,10 +64,55 @@ export default function CustomTourRequestDetailPage({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const isDraft = data?.status?.toLowerCase() === STATUS_DRAFT.toLowerCase();
-  const isPendingManagerReview = data?.status?.toLowerCase() === STATUS_PENDING_MANAGER_REVIEW.toLowerCase();
+  const statusLower = data?.status?.toLowerCase() ?? "";
+  const isDraft = statusLower === STATUS_DRAFT.toLowerCase();
+  const isPendingManagerReview = statusLower === STATUS_PENDING_MANAGER_REVIEW.toLowerCase();
   const canManagerAct = role === "manager" && isDraft;
   const canManagerReview = role === "manager" && isPendingManagerReview;
+
+  const managerWaitingInfo = useMemo<{
+    title: string;
+    description: string;
+    nextActor: string;
+    tone: "info" | "success" | "neutral";
+  } | null>(() => {
+    if (role !== "manager") return null;
+    if (canManagerAct || canManagerReview) return null;
+    switch (statusLower) {
+      case "pendingadjustment":
+        return {
+          title: "Đang chờ Tour Operator chỉnh sửa",
+          description:
+            "Bạn đã gửi yêu cầu điều chỉnh. Tour Operator đang hoàn thiện lịch trình. Khi họ gửi lại, lịch trình sẽ chuyển sang trạng thái 'Chờ Manager duyệt' và bạn có thể xác nhận hoặc yêu cầu chỉnh tiếp.",
+          nextActor: "Tour Operator",
+          tone: "info",
+        };
+      case "pendingcustomerapproval":
+        return {
+          title: "Đang chờ khách hàng xác nhận",
+          description:
+            "Lịch trình đã được duyệt và gửi cho khách hàng. Khi khách hàng xác nhận, tour sẽ chuyển sang 'Đã xác nhận'.",
+          nextActor: "Khách hàng",
+          tone: "info",
+        };
+      case "confirmed":
+        return {
+          title: "Tour đã được xác nhận",
+          description: "Khách hàng đã xác nhận lịch trình. Tour sẵn sàng thực hiện.",
+          nextActor: "—",
+          tone: "success",
+        };
+      case "cancelled":
+        return {
+          title: "Yêu cầu đã bị huỷ",
+          description: "Tour đã bị huỷ. Không cần thực hiện thêm thao tác nào.",
+          nextActor: "—",
+          tone: "neutral",
+        };
+      default:
+        return null;
+    }
+  }, [role, statusLower, canManagerAct, canManagerReview]);
 
   // Handler for initial approval (Draft → PendingAdjustment)
   const handleApprove = useCallback(async () => {
@@ -619,6 +664,56 @@ export default function CustomTourRequestDetailPage({
               </div>
             )}
           </motion.div>
+
+          {/* ── Manager Waiting Banner (non-actionable statuses) ── */}
+          {managerWaitingInfo && (
+            <motion.div
+              variants={itemVariants}
+              className={`rounded-[2rem] border p-6 md:p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] ${
+                managerWaitingInfo.tone === "success"
+                  ? "bg-emerald-50 border-emerald-200/60"
+                  : managerWaitingInfo.tone === "neutral"
+                    ? "bg-slate-50 border-slate-200/60"
+                    : "bg-amber-50 border-amber-200/60"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                  managerWaitingInfo.tone === "success"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : managerWaitingInfo.tone === "neutral"
+                      ? "bg-slate-200 text-slate-700"
+                      : "bg-amber-100 text-amber-700"
+                }`}>
+                  <Icon
+                    icon={
+                      managerWaitingInfo.tone === "success"
+                        ? "heroicons:check-circle"
+                        : managerWaitingInfo.tone === "neutral"
+                          ? "heroicons:no-symbol"
+                          : "heroicons:clock"
+                    }
+                    className="size-5"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+                    {managerWaitingInfo.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-2 leading-relaxed max-w-[65ch]">
+                    {managerWaitingInfo.description}
+                  </p>
+                  {managerWaitingInfo.nextActor !== "—" && (
+                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/60 border border-white/80 text-xs font-medium text-slate-700">
+                      <Icon icon="heroicons:arrow-right-circle" className="size-3.5" />
+                      Người xử lý tiếp theo:{" "}
+                      <span className="font-semibold">{managerWaitingInfo.nextActor}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* ── Manager Approval Actions ─────────────────────── */}
           {canManagerAct && (
