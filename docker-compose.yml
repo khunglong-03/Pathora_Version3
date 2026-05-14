@@ -119,6 +119,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.pathora-backend.rule=Host(`cbbo-g99.io.vn`) && PathPrefix(`/api`) && !PathPrefix(`/api/public`) && !PathPrefix(`/api/payment`)"
       - "traefik.http.routers.pathora-backend.entrypoints=websecure"
       - "traefik.http.routers.pathora-backend.tls.certresolver=letsencrypt"
@@ -151,6 +152,7 @@ services:
       - "8081"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.pathora-publicapi.rule=Host(`cbbo-g99.io.vn`) && (PathPrefix(`/api/public`) || PathPrefix(`/api/payment`))"
       - "traefik.http.routers.pathora-publicapi.entrypoints=websecure"
       - "traefik.http.routers.pathora-publicapi.tls.certresolver=letsencrypt"
@@ -193,6 +195,7 @@ services:
       - "3003"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.pathora-frontend.rule=Host(`cbbo-g99.io.vn`)"
       - "traefik.http.routers.pathora-frontend.entrypoints=websecure"
       - "traefik.http.routers.pathora-frontend.tls.certresolver=letsencrypt"
