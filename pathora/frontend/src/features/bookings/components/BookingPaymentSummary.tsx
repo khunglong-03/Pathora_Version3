@@ -111,17 +111,57 @@ export function BookingPaymentSummary({
       <div className="v-stack gap-4">
         {/* Infinite Carousel Data Stream effect for the price breakdown */}
         <div className="v-stack gap-3 p-5 rounded-[1.5rem] bg-slate-50 border border-slate-100/50 relative overflow-hidden">
-          <div className="h-stack items-center justify-between relative z-10">
-            <span className="text-sm font-bold text-slate-500">Price per person</span>
-            <span className="text-sm font-bold font-mono text-slate-900">
-              {formatCurrency(booking.pricePerPerson)}
-            </span>
-          </div>
-          <div className="h-stack items-center justify-between relative z-10">
-            <span className="text-sm font-bold text-slate-500">Number of guests</span>
-            <span className="text-sm font-bold font-mono text-slate-900">
-              &times;{totalGuests}
-            </span>
+          {booking.adults > 0 && (
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-sm font-bold text-slate-500">
+                Adult ({formatCurrency(booking.adultPrice ?? booking.pricePerPerson)} &times; {booking.adults})
+              </span>
+              <span className="text-sm font-bold font-mono text-slate-900">
+                {formatCurrency(booking.adultSubtotal ?? (booking.adultPrice ?? booking.pricePerPerson) * booking.adults)}
+              </span>
+            </div>
+          )}
+          {booking.children > 0 && (
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-sm font-bold text-slate-500">
+                Child ({formatCurrency(booking.childPrice ?? 0)} &times; {booking.children})
+              </span>
+              <span className="text-sm font-bold font-mono text-slate-900">
+                {formatCurrency(booking.childSubtotal ?? (booking.childPrice ?? 0) * booking.children)}
+              </span>
+            </div>
+          )}
+          {(booking.infants ?? 0) > 0 && (
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-sm font-bold text-slate-500">
+                Infant ({formatCurrency(booking.infantPrice ?? 0)} &times; {booking.infants})
+              </span>
+              <span className="text-sm font-bold font-mono text-slate-900">
+                {formatCurrency(booking.infantSubtotal ?? (booking.infantPrice ?? 0) * (booking.infants ?? 0))}
+              </span>
+            </div>
+          )}
+          {booking.subtotal !== undefined && (
+            <div className="h-stack items-center justify-between relative z-10 border-t border-slate-200 pt-2">
+              <span className="text-sm font-bold text-slate-500">Subtotal</span>
+              <span className="text-sm font-bold font-mono text-slate-900">
+                {formatCurrency(booking.subtotal)}
+              </span>
+            </div>
+          )}
+          {(booking.taxAmount ?? 0) > 0 && (
+            <div className="h-stack items-center justify-between relative z-10">
+              <span className="text-sm font-bold text-slate-500">
+                Tax{booking.taxRate ? ` (${booking.taxRate}%)` : ""}
+              </span>
+              <span className="text-sm font-bold font-mono text-slate-900">
+                {formatCurrency(booking.taxAmount ?? 0)}
+              </span>
+            </div>
+          )}
+          <div className="h-stack items-center justify-between relative z-10 pt-1 text-[11px] text-slate-400">
+            <span>Number of guests</span>
+            <span>&times;{totalGuests}</span>
           </div>
         </div>
 

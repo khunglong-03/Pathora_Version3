@@ -30,6 +30,15 @@ export interface BookingDetail {
   children: number;
   infants: number;
   pricePerPerson: number;
+  adultPrice?: number;
+  childPrice?: number;
+  infantPrice?: number;
+  adultSubtotal?: number;
+  childSubtotal?: number;
+  infantSubtotal?: number;
+  subtotal?: number;
+  taxRate?: number;
+  taxAmount?: number;
   totalAmount: number;
   paidAmount: number;
   remainingBalance: number;
@@ -41,6 +50,7 @@ export interface BookingDetail {
   tourInstanceId?: string;
   isVisaRequired?: boolean;
   tourStatus?: string;
+  bookingType?: string;
   visaServiceFeeTotal?: number;
   cancellationRequest?: any;
   cancellationRequests?: any[];

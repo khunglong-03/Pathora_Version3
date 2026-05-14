@@ -32,6 +32,9 @@ const PUBLIC_PATH_PREFIXES = [
   "/auth/callback",
   "/tours",
   "/tours/instances",
+  "/bookings",
+  "/hotel",
+  "/transport",
 ];
 
 const isPublicPath = (pathname: string): boolean => {
@@ -132,7 +135,7 @@ const clearAuthCookies = (response: NextResponse): void => {
   });
 };
 
-export function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (STATIC_MEDIA_REGEX.test(pathname)) {

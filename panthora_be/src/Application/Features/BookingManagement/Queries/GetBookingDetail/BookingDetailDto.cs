@@ -23,10 +23,20 @@ public class BookingDetailDto
     public int Children { get; set; }
     public int Infants { get; set; }
     public decimal PricePerPerson { get; set; }
+    public decimal AdultPrice { get; set; }
+    public decimal ChildPrice { get; set; }
+    public decimal InfantPrice { get; set; }
+    public decimal AdultSubtotal { get; set; }
+    public decimal ChildSubtotal { get; set; }
+    public decimal InfantSubtotal { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxRate { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal PaidAmount { get; set; }
     public decimal RemainingBalance { get; set; }
     public decimal VisaServiceFeeTotal { get; set; }
+    public string BookingType { get; set; } = string.Empty;
     public string Image { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public List<string> Highlights { get; set; } = [];

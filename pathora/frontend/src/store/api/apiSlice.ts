@@ -52,9 +52,15 @@ export function createBaseQueryWithReauth(
     // 401 — refreshing then would fail again and redirect to /?login=true&next=…
     // before the user can even submit the login form, which is what made the
     // login + refresh requests "disappear" from the Network panel.
-    const hasSession =
-      typeof document !== "undefined" && Boolean(getCookie("auth_status"));
-    if (!hasSession) {
+    const currentUrl = new URL(typeof window !== "undefined" ? window.location.href : "http://localhost");
+    const currentPath = currentUrl.pathname;
+    const hasSession = typeof document !== "undefined" && Boolean(getCookie("auth_status"));
+    const bypassRedirectPaths = ["/bookings", "/hotel", "/transport"];
+    const isBypassPath = bypassRedirectPaths.some(
+      (p) => currentPath === p || currentPath.startsWith(`${p}/`),
+    );
+
+    if (!hasSession || isBypassPath) {
       return result;
     }
 
@@ -72,6 +78,15 @@ export function createBaseQueryWithReauth(
         const cleanSearch = currentUrl.searchParams.toString();
         const currentPath =
           currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+
+        const bypassRedirectPaths = ["/bookings", "/hotel", "/transport"];
+        if (
+          bypassRedirectPaths.some(
+            (p) => currentPath === p || currentPath.startsWith(`${p}/`),
+          )
+        ) {
+          return result;
+        }
 
         const loginUrl = new URL("/", window.location.origin);
         loginUrl.searchParams.set("login", "true");

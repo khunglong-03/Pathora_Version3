@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using Domain.Common.Repositories;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.ValueObjects;
 using ErrorOr;
 
 namespace Application.Features.BookingManagement.Queries.GetBookingDetail;
@@ -11,6 +12,8 @@ namespace Application.Features.BookingManagement.Queries.GetBookingDetail;
 public class GetBookingDetailQueryHandler(
     IBookingRepository bookingRepository,
     IBookingCancellationRequestRepository cancellationRequestRepository,
+    IPricingPolicyRepository pricingPolicyRepository,
+    ITaxConfigRepository taxConfigRepository,
     Application.Common.Interfaces.ICurrentUser currentUser) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
 {
     public async Task<ErrorOr<BookingDetailDto>> Handle(GetBookingDetailQuery request, CancellationToken cancellationToken)
@@ -60,6 +63,25 @@ public class GetBookingDetailQueryHandler(
             _ => "pending"
         };
 
+        var basePrice = booking.TourInstance?.BasePrice ?? 0m;
+        var instanceType = booking.TourInstance?.InstanceType ?? Domain.Enums.TourType.Public;
+        var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(instanceType, cancellationToken)
+            ?? await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
+
+        var adultPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 18);
+        var childPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 5);
+        var infantPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 1);
+
+        var adultSubtotal = adultPrice * booking.NumberAdult;
+        var childSubtotal = childPrice * booking.NumberChild;
+        var infantSubtotal = infantPrice * booking.NumberInfant;
+        var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
+
+        var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive, cancellationToken: cancellationToken);
+        var activeTaxConfig = taxConfigs.FirstOrDefault();
+        var taxRate = activeTaxConfig?.TaxRate ?? 0m;
+        var taxAmount = decimal.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
+
         var dto = new BookingDetailDto
         {
             Id = booking.Id,
@@ -80,11 +102,21 @@ public class GetBookingDetailQueryHandler(
             Adults = booking.NumberAdult,
             Children = booking.NumberChild,
             Infants = booking.NumberInfant,
-            PricePerPerson = booking.TourInstance?.BasePrice ?? (booking.NumberAdult > 0 ? (booking.TotalPrice / booking.NumberAdult) : 0),
+            PricePerPerson = adultPrice,
+            AdultPrice = adultPrice,
+            ChildPrice = childPrice,
+            InfantPrice = infantPrice,
+            AdultSubtotal = adultSubtotal,
+            ChildSubtotal = childSubtotal,
+            InfantSubtotal = infantSubtotal,
+            Subtotal = subtotal,
+            TaxRate = taxRate,
+            TaxAmount = taxAmount,
             TotalAmount = booking.TotalPrice,
             PaidAmount = paidAmount,
             RemainingBalance = remainingBalance,
             VisaServiceFeeTotal = booking.VisaServiceFeeTotal,
+            BookingType = booking.BookingType.ToString(),
             Image = booking.TourInstance?.Thumbnail?.PublicURL ?? "/assets/images/tours/placeholder.png",
             Description = booking.TourInstance?.TourName ?? string.Empty,
             Highlights = [],
@@ -121,5 +153,19 @@ public class GetBookingDetailQueryHandler(
         }
 
         return dto;
+    }
+
+    private static decimal ApplyPricingTier(decimal basePrice, List<PricingPolicyTier>? tiers, int age)
+    {
+        if (tiers == null || tiers.Count == 0)
+            return basePrice;
+
+        foreach (var tier in tiers)
+        {
+            if (age >= tier.AgeFrom && (!tier.AgeTo.HasValue || age <= tier.AgeTo.Value))
+                return basePrice * tier.PricePercentage / 100m;
+        }
+
+        return basePrice;
     }
 }

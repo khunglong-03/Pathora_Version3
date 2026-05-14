@@ -446,11 +446,14 @@ export default function CustomTourRequestDetailPage({
                                   </div>
                                 )}
                                 
-                                {act.price != null && act.price > 0 && (
-                                  <div className="mt-3 text-sm font-bold text-slate-700">
-                                    Chi phí dự kiến: <span className="text-emerald-600">{formatCurrency(act.price)}</span>
-                                  </div>
-                                )}
+                                <div className="mt-3 text-sm font-bold text-slate-700">
+                                  Chi phí dự kiến:{" "}
+                                  {act.price != null && act.price > 0 ? (
+                                    <span className="text-emerald-600">{formatCurrency(act.price)}</span>
+                                  ) : (
+                                    <span className="text-slate-400 italic">Chưa định giá</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>

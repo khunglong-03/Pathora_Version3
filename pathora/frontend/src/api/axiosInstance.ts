@@ -84,6 +84,15 @@ const onUnauthorized = (): void => {
   currentUrl.searchParams.delete("next");
   const cleanSearch = currentUrl.searchParams.toString();
   const currentPath = currentUrl.pathname + (cleanSearch ? `?${cleanSearch}` : "");
+  
+  const bypassRedirectPaths = ["/bookings", "/hotel", "/transport"];
+  if (
+    bypassRedirectPaths.some(
+      (p) => currentPath === p || currentPath.startsWith(`${p}/`),
+    )
+  ) {
+    return;
+  }
 
   const loginUrl = new URL("/", window.location.origin);
   loginUrl.searchParams.set("login", "true");

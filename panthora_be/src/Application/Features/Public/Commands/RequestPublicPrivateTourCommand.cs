@@ -233,6 +233,9 @@ public sealed class RequestPublicPrivateTourCommandHandler(
             bookingType: BookingType.PrivateCustomTourRequest);
 
         await bookingRepository.AddAsync(booking);
+
+        tourInstance.SubmitForManagerReview(currentUserId?.ToString() ?? "PUBLIC_USER");
+
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
         if (tour.TourOperatorId.HasValue)

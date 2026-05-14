@@ -51,6 +51,7 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
 
 export const getBookingDerivedState = (booking: BookingDetail) => {
   const isCustomTourPending = [
+    "Draft",
     "PendingManagerReview",
     "PendingAdjustment",
     "PendingCustomerApproval",
