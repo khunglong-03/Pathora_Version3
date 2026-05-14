@@ -1,5 +1,6 @@
 using ApiPublic.Controller.BaseController;
 using ApiPublic.Endpoint;
+using Application.Features.Public.Commands;
 using Application.Features.Public.Queries;
 using Contracts.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +33,28 @@ public class PublicTourController : BaseApiController
     {
         var language = lang ?? languageContext?.CurrentLanguage ?? "en";
         var result = await Sender.Send(new GetPublicToursQuery(searchText, pageNumber, pageSize, language));
+        return HandleResult(result);
+    }
+
+    [HttpPost("{id:guid}/request-private")]
+    public async Task<IActionResult> RequestPrivateTour(Guid id, [FromBody] RequestPublicPrivateTourRequestDto request)
+    {
+        var result = await Sender.Send(new RequestPublicPrivateTourCommand(
+            id,
+            request.ClassificationId,
+            request.StartDate,
+            request.EndDate,
+            request.MaxParticipation,
+            request.CustomerName,
+            request.CustomerPhone,
+            request.CustomerEmail,
+            request.NumberAdult,
+            request.NumberChild,
+            request.NumberInfant,
+            request.PaymentMethod,
+            request.IsFullPay,
+            request.WantsCustomization,
+            request.CustomizationNotes));
         return HandleResult(result);
     }
 }

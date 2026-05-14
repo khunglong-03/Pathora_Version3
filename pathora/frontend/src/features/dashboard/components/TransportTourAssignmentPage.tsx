@@ -1214,6 +1214,12 @@ export default function TransportTourAssignmentPage() {
                               : item.activity.description || "Chưa cập nhật"}
                           </p>
                         </div>
+                        <div className="rounded-2xl bg-indigo-50 p-4 border border-indigo-100/50">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Doanh thu dự kiến</p>
+                          <p className="mt-1 font-semibold text-indigo-900">
+                            {(item.activity.price || 0).toLocaleString("vi-VN")} đ
+                          </p>
+                        </div>
                       </div>
 
                       {/* Current Assignments */}

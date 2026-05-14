@@ -656,14 +656,15 @@ export function TourDetailPage() {
                     <Icon icon="heroicons-outline:calendar" className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
                     <TextInput
                       type="date"
-                      min={new Date().toISOString().split('T')[0]}
+                      min={addCalendarDays(new Date().toISOString().slice(0, 10), 10)}
                       value={departureDate}
                       onChange={(e) => {
                         const selectedDate = e.target.value;
                         const todayStr = new Date().toISOString().split('T')[0];
-                        if (selectedDate && selectedDate < todayStr) {
-                          setDepartureDate(todayStr);
-                          toast.error(t("landing.tourDetail.pastDateError", "Cannot select a date in the past."));
+                        const minDateStr = addCalendarDays(todayStr, 10);
+                        if (selectedDate && selectedDate < minDateStr) {
+                          setDepartureDate(minDateStr);
+                          toast.error(t("landing.tourDetail.minBookingDaysError", "Booking date must be at least 10 days from today."));
                         } else {
                           setDepartureDate(selectedDate);
                         }

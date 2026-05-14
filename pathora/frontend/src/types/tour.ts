@@ -446,6 +446,7 @@ export interface TourInstanceVm {
   currentParticipation: number;
   maxParticipation: number;
   basePrice: number;
+  assignedRevenue?: number;
   status: string;
   instanceType: string;
   /** @deprecated Instance-level approval status is a transition artifact. Per-activity status on days[].activities[].transportationApprovalStatus is authoritative. Used by the rollup pill (section 1) only as a downscope pending backend DTO enrichment. */

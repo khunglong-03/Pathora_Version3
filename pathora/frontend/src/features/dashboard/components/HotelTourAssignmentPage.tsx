@@ -180,6 +180,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
       activityId: string;
       title: string;
       description: string | null;
+      price?: number | null;
       accommodation: any;
     }> = [];
 
@@ -198,6 +199,7 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
             activityId: act.id,
             title: act.title,
             description: act.description,
+            price: act.price,
             accommodation: act.accommodation,
           });
         }
@@ -733,6 +735,10 @@ export default function HotelTourAssignmentPage(props: HotelTourAssignmentPagePr
                     </div>
 
                     <h4 className="text-xl font-bold tracking-tight text-slate-800 leading-tight mt-1">{act.title}</h4>
+                    <div className="mt-1 h-stack items-center gap-2">
+                        <span className="text-sm font-bold text-indigo-600">{(act.price || 0).toLocaleString("vi-VN")} đ</span>
+                        <span className="text-xs text-slate-400 font-medium tracking-tight">doanh thu hoạt động</span>
+                    </div>
                     {act.description && (
                       <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2">{act.description}</p>
                     )}

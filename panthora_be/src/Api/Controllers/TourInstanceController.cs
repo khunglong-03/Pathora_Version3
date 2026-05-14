@@ -37,7 +37,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTourInstanceCommand command)
     {
@@ -45,7 +45,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateTourInstanceCommand command)
     {
@@ -53,7 +53,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPut(TourInstanceEndpoint.AssignGuides)]
     public async Task<IActionResult> AssignGuides(Guid id, [FromBody] AssignTourInstanceGuidesCommand command)
     {
@@ -62,7 +62,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpDelete(TourInstanceEndpoint.Id)]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -105,7 +105,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPut(TourInstanceEndpoint.DayId)]
     public async Task<IActionResult> UpdateDay(Guid id, Guid dayId, [FromBody] UpdateTourInstanceDayCommand command)
     {
@@ -114,7 +114,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost(TourInstanceEndpoint.Days)]
     public async Task<IActionResult> CreateDay(Guid id, [FromBody] CreateTourInstanceDayCommand command)
     {
@@ -123,7 +123,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPatch(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> UpdateActivity(Guid id, Guid dayId, Guid activityId, [FromBody] UpdateTourInstanceActivityCommand command)
     {
@@ -132,7 +132,7 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpPost(TourInstanceEndpoint.DayId + "/activities")]
     public async Task<IActionResult> CreateActivity(Guid id, Guid dayId, [FromBody] CreateTourInstanceActivityCommand command)
     {
@@ -141,7 +141,7 @@ public class TourInstanceController : BaseApiController
         return HandleCreated(result);
     }
 
-    [Authorize(Roles = "Admin,TourOperator")]
+    [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpDelete(TourInstanceEndpoint.ActivityId)]
     public async Task<IActionResult> DeleteActivity(Guid id, Guid dayId, Guid activityId)
     {

@@ -23,4 +23,5 @@ public sealed record TourInstanceVm(
     [property: JsonPropertyName("wantsCustomization")] bool WantsCustomization,
     [property: JsonPropertyName("customizationNotes")] string? CustomizationNotes,
     [property: JsonPropertyName("instanceType")] string InstanceType,
+    [property: JsonPropertyName("assignedRevenue")] decimal? AssignedRevenue = null,
     [property: JsonPropertyName("transportApprovalStatus")] int TransportApprovalStatus = 0);

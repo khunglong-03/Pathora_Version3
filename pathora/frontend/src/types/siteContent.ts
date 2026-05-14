@@ -25,7 +25,7 @@ export interface UpdateAdminSiteContentRequest {
 
 // ── Policy Page Types ───────────────────────────────────────
 
-/** Shape of a policy section returned by GET /api/site-content?pageKey=policies */
+/** Display shape for policy sections rendered on the policies page. */
 export interface PolicySection {
   id?: string;
   icon: string;

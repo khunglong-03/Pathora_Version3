@@ -1330,7 +1330,8 @@ public class TourInstanceService(
             var vm = _mapper.Map<TourInstanceVm>(e);
             var supplierIdSet = new HashSet<Guid>(supplierIds);
             var rollup = ComputeTransportApprovalRollup(e, supplierIdSet);
-            return vm with { TransportApprovalStatus = rollup };
+            var assignedRevenue = ComputeAssignedRevenue(e, supplierIdSet);
+            return vm with { TransportApprovalStatus = rollup, AssignedRevenue = assignedRevenue };
         }).ToList();
         return new PaginatedList<TourInstanceVm>(total, vms, pageNumber, pageSize);
     }
@@ -1834,6 +1835,16 @@ public class TourInstanceService(
         if (hasPending) return (int)ProviderApprovalStatus.Pending;
         if (allApproved && hasApproved) return (int)ProviderApprovalStatus.Approved;
         return 0;
+    }
+
+    private static decimal ComputeAssignedRevenue(TourInstanceEntity entity, HashSet<Guid> supplierIds)
+    {
+        return entity.InstanceDays
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.Activities)
+            .Where(a => (a.TransportSupplierId.HasValue && supplierIds.Contains(a.TransportSupplierId.Value))
+                     || (a.Accommodation?.SupplierId != null && supplierIds.Contains(a.Accommodation.SupplierId.Value)))
+            .Sum(a => a.Price ?? 0);
     }
 }
 

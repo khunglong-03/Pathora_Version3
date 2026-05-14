@@ -9,9 +9,7 @@ import Button from "@/components/ui/Button";
 import Image from "@/features/shared/components/LandingImage";
 import { Icon } from "@/components/ui";
 
-import { useSiteContent } from "@/hooks/useSiteContent";
 import type { PolicySection } from "@/types/siteContent";
-import { normalizePolicySections } from "../utils/normalizePolicySections";
 import { useSystemPolicySections } from "../hooks/useSystemPolicySections";
 
 /* ── Motion & Style Constants ── */
@@ -268,15 +266,11 @@ export const PolicyPage = () => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { content, loading: cmsLoading, error: cmsError } = useSiteContent("policies");
   const { sections: systemSections, loading: sysLoading, error: sysError } = useSystemPolicySections();
 
-  const raw = content?.["policy-sections"];
-  const { sections: cmsSections } = normalizePolicySections(raw);
-
-  const policySections: PolicySection[] = [...systemSections, ...cmsSections];
-  const loading = cmsLoading || sysLoading;
-  const error = sysError || cmsError;
+  const policySections: PolicySection[] = systemSections;
+  const loading = sysLoading;
+  const error = sysError;
 
   if (!mounted) {
     return (

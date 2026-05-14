@@ -87,6 +87,13 @@ public sealed class CreatePublicBookingCommandHandler(
                 ErrorConstants.TourInstance.NotFoundDescription);
         }
 
+        if (tourInstance.StartDate.Date < DateTimeOffset.UtcNow.AddDays(10).Date)
+        {
+            return Error.Validation(
+                "TourInstance.LeadTimeTooShort",
+                "Ngày đặt tour phải cách ngày hiện tại ít nhất 10 ngày.");
+        }
+
         if (tourInstance.Status != TourInstanceStatus.Available)
         {
             var allowPrivateDraft = tourInstance.InstanceType == TourType.Private

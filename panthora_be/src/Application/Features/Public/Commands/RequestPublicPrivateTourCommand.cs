@@ -67,8 +67,8 @@ public sealed class RequestPublicPrivateTourCommandValidator : AbstractValidator
 
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceStartDateRequired)
-            .Must(date => date.Date >= DateTimeOffset.UtcNow.Date)
-            .WithMessage("Ngày bắt đầu không được nằm trong quá khứ.");
+            .Must(date => date.Date >= DateTimeOffset.UtcNow.AddDays(10).Date)
+            .WithMessage("Ngày đặt tour phải cách ngày hiện tại ít nhất 10 ngày.");
 
         RuleFor(x => x.EndDate)
             .NotEmpty().WithMessage(ValidationMessages.TourInstanceEndDateRequired)

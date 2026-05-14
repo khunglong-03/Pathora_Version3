@@ -150,7 +150,7 @@ export default function ProviderTourApprovals({ providerType }: ProviderTourAppr
                       </div>
                       <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-1.5 text-sm font-medium text-slate-700">
                         <Icon icon="heroicons:currency-dollar" className="size-4 text-slate-400" />
-                        {instance.basePrice.toLocaleString("vi-VN")} đ
+                        {(instance.assignedRevenue ?? instance.basePrice).toLocaleString("vi-VN")} đ
                       </div>
                     </div>
                   </div>
