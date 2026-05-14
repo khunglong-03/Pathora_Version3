@@ -360,6 +360,27 @@ describe("CreateTourInstancePage", () => {
     ]);
   });
 
+  it("only offers public tour instance creation", async () => {
+    await renderToInstanceDetailsStep();
+
+    expect(
+      screen.queryByRole("option", { name: "Private" }),
+    ).not.toBeInTheDocument();
+
+    const publicOption = screen.getByRole("option", {
+      name: "Public",
+    }) as HTMLOptionElement;
+    const instanceTypeSelect = publicOption.closest(
+      "select",
+    ) as HTMLSelectElement;
+
+    expect(publicOption.value).toBe("2");
+    expect(instanceTypeSelect.value).toBe("2");
+    expect(
+      Array.from(instanceTypeSelect.options).map((option) => option.value),
+    ).toEqual(["2"]);
+  });
+
   it("does not retry the admin tour endpoint after an auth failure", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
       return;

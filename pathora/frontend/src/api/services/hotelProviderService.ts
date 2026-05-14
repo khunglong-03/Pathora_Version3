@@ -154,7 +154,7 @@ export const hotelProviderService = {
   // Hotel Accommodations (existing scoped endpoint)
   getAccommodations: async (): Promise<AccommodationItem[]> => {
     const response = await api.get<ServiceResponse<AccommodationItem[]>>(
-      "/hotel-provider/accommodations",
+      "/api/hotel-provider/accommodations",
     );
     return extractResult<AccommodationItem[]>(response.data) ?? [];
   },
@@ -163,7 +163,7 @@ export const hotelProviderService = {
     data: CreateAccommodationDto,
   ): Promise<AccommodationItem> => {
     const response = await api.post<ServiceResponse<AccommodationItem>>(
-      "/hotel-provider/accommodations",
+      "/api/hotel-provider/accommodations",
       data,
     );
     return extractResult<AccommodationItem>(
@@ -176,7 +176,7 @@ export const hotelProviderService = {
     data: UpdateAccommodationDto,
   ): Promise<AccommodationItem> => {
     const response = await api.put<ServiceResponse<AccommodationItem>>(
-      `/hotel-provider/accommodations/${id}`,
+      `/api/hotel-provider/accommodations/${id}`,
       data,
     );
     return extractResult<AccommodationItem>(
@@ -185,7 +185,7 @@ export const hotelProviderService = {
   },
 
   deleteAccommodation: async (id: string): Promise<void> => {
-    await api.delete(`/hotel-provider/accommodations/${id}`);
+    await api.delete(`/api/hotel-provider/accommodations/${id}`);
   },
 
   // Room Availability
@@ -194,7 +194,7 @@ export const hotelProviderService = {
     toDate: string,
   ): Promise<RoomAvailability[]> => {
     const response = await api.get<ServiceResponse<RoomAvailability[]>>(
-      "/hotel-room-availability",
+      "/api/hotel-room-availability",
       { params: { fromDate, toDate } },
     );
     return extractResult<RoomAvailability[]>(response.data) ?? [];
@@ -205,7 +205,7 @@ export const hotelProviderService = {
     params: ArrivalFilterParams = {},
   ): Promise<GuestArrivalItem[]> => {
     const response = await api.get<ServiceResponse<GuestArrivalItem[]>>(
-      "/guest-arrivals",
+      "/api/guest-arrivals",
       { params },
     );
     return extractResult<GuestArrivalItem[]>(response.data) ?? [];
@@ -215,7 +215,7 @@ export const hotelProviderService = {
     accommodationDetailId: string,
   ): Promise<GuestArrivalDetail> => {
     const response = await api.get<ServiceResponse<GuestArrivalDetail>>(
-      `/guest-arrivals/accommodation/${accommodationDetailId}`,
+      `/api/guest-arrivals/accommodation/${accommodationDetailId}`,
     );
     return extractResult<GuestArrivalDetail>(
       response.data,
@@ -226,7 +226,7 @@ export const hotelProviderService = {
     data: SubmitGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
     const response = await api.post<ServiceResponse<GuestArrivalItem>>(
-      "/guest-arrivals",
+      "/api/guest-arrivals",
       data,
     );
     return extractResult<GuestArrivalItem>(
@@ -239,7 +239,7 @@ export const hotelProviderService = {
     data: UpdateGuestArrivalDto,
   ): Promise<GuestArrivalItem> => {
     const response = await api.put<ServiceResponse<GuestArrivalItem>>(
-      `/guest-arrivals/${id}`,
+      `/api/guest-arrivals/${id}`,
       data,
     );
     return extractResult<GuestArrivalItem>(

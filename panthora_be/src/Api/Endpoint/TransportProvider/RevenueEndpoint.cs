@@ -2,7 +2,7 @@ namespace Api.Endpoint.TransportProvider;
 
 public static class RevenueEndpoint
 {
-    public const string Base = "transport-provider/revenue";
-    public const string Summary = "transport-provider/revenue/summary";
-    public const string History = "transport-provider/revenue/history";
+    public const string Base = "api/transport-provider/revenue";
+    public const string Summary = "api/transport-provider/revenue/summary";
+    public const string History = "api/transport-provider/revenue/history";
 }

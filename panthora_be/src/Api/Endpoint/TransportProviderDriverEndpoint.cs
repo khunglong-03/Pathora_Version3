@@ -2,5 +2,5 @@ namespace Api.Endpoint;
 
 public static class TransportProviderDriverEndpoint
 {
-    public const string Base = "transport-provider/drivers";
+    public const string Base = "api/transport-provider/drivers";
 }

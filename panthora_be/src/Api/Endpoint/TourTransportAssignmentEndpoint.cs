@@ -2,5 +2,5 @@ namespace Api.Endpoint;
 
 public static class TourTransportAssignmentEndpoint
 {
-    public const string Assign = "booking-activity-route-transport/assign";
+    public const string Assign = "api/booking-activity-route-transport/assign";
 }

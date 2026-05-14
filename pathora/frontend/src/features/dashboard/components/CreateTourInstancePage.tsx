@@ -987,27 +987,17 @@ function InstanceDetailsStep({
               onChange={(event) =>
                 updateField("instanceType", event.target.value)
               }>
-              <option value="1">{t("tourInstance.private", "Private")}</option>
               <option value="2">{t("tourInstance.public", "Public")}</option>
             </select>
             {errors.instanceType && (
               <p className="text-xs text-red-600">{errors.instanceType}</p>
             )}
-            {form.instanceType === "1" ? (
-              <p className="text-xs text-stone-400">
-                {t(
-                  "tourInstance.instanceType.private.hint",
-                  "Only visible in the admin dashboard",
-                )}
-              </p>
-            ) : (
-              <p className="text-xs text-stone-400">
-                {t(
-                  "tourInstance.instanceType.public.hint",
-                  "Visible to all site users",
-                )}
-              </p>
-            )}
+            <p className="text-xs text-stone-400">
+              {t(
+                "tourInstance.instanceType.public.hint",
+                "Visible to all site users",
+              )}
+            </p>
           </div>
         </div>
       </DoubleBezelCard>
@@ -2979,7 +2969,7 @@ export function CreateTourInstancePage({
         tourId: form.tourId,
         classificationId: form.classificationId,
         title: form.title.trim(),
-        instanceType: Number(form.instanceType),
+        instanceType: 2,
         startDate: form.startDate + "T00:00:00Z",
         endDate: form.endDate + "T00:00:00Z",
         maxParticipation: Number(form.maxParticipation),
