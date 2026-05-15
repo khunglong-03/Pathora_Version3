@@ -167,19 +167,19 @@ services:
     labels:
       - "traefik.enable=true"
       # ── HTTP → HTTPS redirect ──────────────────────────────
-      - "traefik.http.routers.pathora-http.rule=Host(`pathora-fe.duckdns.org`)"
-      - "traefik.http.routers.pathora-http.entrypoints=web"
-      - "traefik.http.routers.pathora-http.middlewares=pathora-https-redirect"
-      - "traefik.http.middlewares.pathora-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.pathora-https-redirect.redirectscheme.permanent=true"
+      - "traefik.http.routers.pathora-main-http.rule=Host(`pathora-fe.duckdns.org`)"
+      - "traefik.http.routers.pathora-main-http.entrypoints=web"
+      - "traefik.http.routers.pathora-main-http.middlewares=pathora-main-https-redirect"
+      - "traefik.http.middlewares.pathora-main-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.pathora-main-https-redirect.redirectscheme.permanent=true"
       # ── HTTPS router ──────────────────────────────────────
-      - "traefik.http.routers.pathora-https.rule=Host(`pathora-fe.duckdns.org`)"
-      - "traefik.http.routers.pathora-https.entrypoints=websecure"
-      - "traefik.http.routers.pathora-https.tls=true"
-      - "traefik.http.routers.pathora-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pathora-main-https.rule=Host(`pathora-fe.duckdns.org`)"
+      - "traefik.http.routers.pathora-main-https.entrypoints=websecure"
+      - "traefik.http.routers.pathora-main-https.tls=true"
+      - "traefik.http.routers.pathora-main-https.tls.certresolver=letsencrypt"
       # ── Service (target port inside container) ────────────
-      - "traefik.http.services.pathora-nginx.loadbalancer.server.port=8080"
-      - "traefik.http.routers.pathora-https.service=pathora-nginx"
+      - "traefik.http.services.pathora-main-nginx.loadbalancer.server.port=8080"
+      - "traefik.http.routers.pathora-main-https.service=pathora-main-nginx"
       # ── Tell Traefik which network to use ─────────────────
       - "traefik.docker.network=pathora-shared-network"
     networks:
