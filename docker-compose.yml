@@ -167,13 +167,13 @@ services:
     labels:
       - "traefik.enable=true"
       # ── HTTP → HTTPS redirect ──────────────────────────────
-      - "traefik.http.routers.pathora-http.rule=Host(`pathora-api.duckdns.org`)"
+      - "traefik.http.routers.pathora-http.rule=Host(`pathora-fe.duckdns.org`)"
       - "traefik.http.routers.pathora-http.entrypoints=web"
       - "traefik.http.routers.pathora-http.middlewares=pathora-https-redirect"
       - "traefik.http.middlewares.pathora-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.pathora-https-redirect.redirectscheme.permanent=true"
       # ── HTTPS router ──────────────────────────────────────
-      - "traefik.http.routers.pathora-https.rule=Host(`pathora-api.duckdns.org`)"
+      - "traefik.http.routers.pathora-https.rule=Host(`pathora-fe.duckdns.org`)"
       - "traefik.http.routers.pathora-https.entrypoints=websecure"
       - "traefik.http.routers.pathora-https.tls=true"
       - "traefik.http.routers.pathora-https.tls.certresolver=letsencrypt"
