@@ -246,19 +246,22 @@ public class PaymentService : IPaymentService
             if (!string.IsNullOrEmpty(content))
             {
                 // Try each token in the content as a potential refCode
-                var tokens = content.Split(new[] { ' ', '|', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var token in tokens)
+                var tokens = content.Split(new[] { ' ', '|', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(t => t.Trim())
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .ToList();
+
+                if (tokens.Count > 0)
                 {
-                    var found = await _transactionRepository.FindPendingByReferenceCodeAsync(token.Trim());
+                    var foundTransactions = await _transactionRepository.FindPendingByReferenceCodesAsync(tokens);
+                    var found = foundTransactions.FirstOrDefault();
                     if (found != null)
                     {
                         _logger.LogInformation(
                             "Found transaction by ReferenceCode fallback: {RefCode} -> {TransactionCode}",
-                            token, found.TransactionCode);
-                        // Set ReferenceCode on the found entity so MarkAsPaid can use it
-                        found.ReferenceCode = token.Trim();
+                            found.ReferenceCode, found.TransactionCode);
+                        found.ReferenceCode = found.ReferenceCode;
                         transaction = found;
-                        break;
                     }
                 }
             }

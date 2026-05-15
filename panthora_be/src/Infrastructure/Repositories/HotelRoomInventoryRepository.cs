@@ -46,4 +46,29 @@ public class HotelRoomInventoryRepository(AppDbContext context)
     }
 
     public void Remove(HotelRoomInventoryEntity entity) => _dbSet.Remove(entity);
+
+    public async Task<Dictionary<(Guid SupplierId, RoomType RoomType), HotelRoomInventoryEntity>> FindByHotelAndRoomTypesAsync(
+        IEnumerable<(Guid SupplierId, RoomType RoomType)> keys, CancellationToken cancellationToken = default)
+    {
+        var keyList = keys.ToList();
+        if (keyList.Count == 0)
+            return [];
+
+        var supplierIds = keyList.Select(k => k.SupplierId).Distinct().ToList();
+        var inventories = await _dbSet
+            .AsNoTracking()
+            .Where(x => supplierIds.Contains(x.SupplierId))
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<(Guid, RoomType), HotelRoomInventoryEntity>();
+        foreach (var inv in inventories)
+        {
+            if (keyList.Any(k => k.SupplierId == inv.SupplierId && k.RoomType == inv.RoomType))
+            {
+                result[(inv.SupplierId, inv.RoomType)] = inv;
+            }
+        }
+
+        return result;
+    }
 }

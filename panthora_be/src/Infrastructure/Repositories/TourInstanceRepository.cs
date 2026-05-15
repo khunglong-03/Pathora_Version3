@@ -577,6 +577,18 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
     }
 
+    public async Task<List<UserEntity>> FindUserByIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var ids = userIds.ToList();
+        if (ids.Count == 0)
+            return [];
+
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => ids.Contains(u.Id) && !u.IsDeleted)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<TourInstanceDayActivityEntity?> FindActivityByIdAsync(Guid activityId, bool asNoTracking = true, CancellationToken cancellationToken = default)
     {
         var query = _context.TourInstanceDayActivities.AsQueryable();

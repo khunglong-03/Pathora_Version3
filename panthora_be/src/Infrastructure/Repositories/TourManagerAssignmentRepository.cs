@@ -147,4 +147,45 @@ public class TourManagerAssignmentRepository(AppDbContext context)
 
         return bookings;
     }
+
+    public async Task<Guid?> FindManagerForOperatorAsync(Guid operatorUserId, CancellationToken cancellationToken = default)
+    {
+        const int managerRoleId = 2;
+
+        var assignedCandidates = await _context.TourManagerAssignments
+            .AsNoTracking()
+            .Where(a => a.AssignedEntityType == AssignedEntityType.TourOperator
+                        && a.AssignedUserId == operatorUserId)
+            .Select(a => a.TourManagerId)
+            .ToListAsync(cancellationToken);
+
+        if (assignedCandidates.Count > 0)
+        {
+            var managerIdSet = assignedCandidates.ToHashSet();
+            var leastLoaded = await _context.TourManagerAssignments
+                .AsNoTracking()
+                .Where(a => managerIdSet.Contains(a.TourManagerId))
+                .GroupBy(a => a.TourManagerId)
+                .Select(g => new { ManagerId = g.Key, Load = g.Count() })
+                .OrderBy(x => x.Load)
+                .Select(x => (Guid?)x.ManagerId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return leastLoaded ?? assignedCandidates[0];
+        }
+
+        var fallbackManagerId = await _context.UserRoles
+            .AsNoTracking()
+            .Where(ur => ur.RoleId == managerRoleId)
+            .Join(
+                _context.Users.AsNoTracking().Where(u => !u.IsDeleted),
+                ur => ur.UserId,
+                u => u.Id,
+                (ur, u) => u.Id)
+            .OrderBy(id => id)
+            .Select(id => (Guid?)id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return fallbackManagerId;
+    }
 }

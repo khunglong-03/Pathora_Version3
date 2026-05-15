@@ -12,4 +12,18 @@ public class VisaRepository(AppDbContext context) : Repository<VisaEntity>(conte
     {
         return await _dbSet.FirstOrDefaultAsync(x => x.VisaApplicationId == visaApplicationId, cancellationToken);
     }
+
+    public async Task<Dictionary<Guid, VisaEntity>> GetByVisaApplicationIdsAsync(IEnumerable<Guid> visaApplicationIds, CancellationToken cancellationToken = default)
+    {
+        var ids = visaApplicationIds.ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var visas = await _dbSet
+            .AsNoTracking()
+            .Where(v => ids.Contains(v.VisaApplicationId))
+            .ToListAsync(cancellationToken);
+
+        return visas.ToDictionary(v => v.VisaApplicationId);
+    }
 }

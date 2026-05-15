@@ -49,4 +49,9 @@ public interface ISupplierRepository : IRepository<SupplierEntity>
     Task<(int Total, int Active, int Completed)> GetTransportBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task<(int Total, int Active, int Completed)> GetHotelBookingCountsByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
     Task DeactivateAllByOwnerAsync(Guid ownerUserId, string performedBy, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Batch-loads suppliers by IDs. Used to avoid N+1 in notification and validation loops.
+    /// </summary>
+    Task<List<SupplierEntity>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 }

@@ -11,6 +11,7 @@ public interface IPaymentTransactionRepository
     Task<List<PaymentTransactionEntity>> GetByBookingIdListAsync(Guid bookingId, CancellationToken cancellationToken = default);
     Task<PaymentTransactionEntity?> GetPendingByBookingIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
     Task<PaymentTransactionEntity?> FindPendingByReferenceCodeAsync(string referenceCode, CancellationToken cancellationToken = default);
+    Task<List<PaymentTransactionEntity>> FindPendingByReferenceCodesAsync(IEnumerable<string> referenceCodes, CancellationToken cancellationToken = default);
     Task<List<PaymentTransactionEntity>> GetExpiredTransactionsAsync(CancellationToken cancellationToken = default);
     Task<List<PaymentTransactionEntity>> GetPendingTransactionsAsync(CancellationToken cancellationToken = default);
     Task<List<PaymentTransactionEntity>> GetAllAsync(int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default);

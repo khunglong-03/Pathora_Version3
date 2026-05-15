@@ -238,13 +238,16 @@ public sealed class RequestPublicPrivateTourCommandHandler(
 
         await unitOfWork.SaveChangeAsync(cancellationToken);
 
-        if (tour.TourOperatorId.HasValue)
+        var assignedManagerId = tourInstance.Managers
+            .FirstOrDefault(m => m.Role == TourInstanceManagerRole.Manager)?.UserId;
+
+        if (assignedManagerId.HasValue)
         {
             await notificationBroadcaster.NotifyManagerNewCustomRequestAsync(
                 tourInstance.Id,
                 tourInstance.TourName,
                 request.CustomerName,
-                tour.TourOperatorId.Value,
+                assignedManagerId.Value,
                 cancellationToken);
         }
 

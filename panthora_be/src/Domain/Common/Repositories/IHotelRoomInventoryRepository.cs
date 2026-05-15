@@ -12,4 +12,10 @@ public interface IHotelRoomInventoryRepository
     Task AddAsync(HotelRoomInventoryEntity entity, CancellationToken cancellationToken = default);
     void Update(HotelRoomInventoryEntity entity);
     void Remove(HotelRoomInventoryEntity entity);
+
+    /// <summary>
+    /// Batch-lookup inventories by (supplierId, roomType) pairs. Used to avoid N+1 in validation loops.
+    /// </summary>
+    Task<Dictionary<(Guid SupplierId, RoomType RoomType), HotelRoomInventoryEntity>> FindByHotelAndRoomTypesAsync(
+        IEnumerable<(Guid SupplierId, RoomType RoomType)> keys, CancellationToken cancellationToken = default);
 }

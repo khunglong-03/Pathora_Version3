@@ -645,17 +645,26 @@ public sealed class GetBookingParticipantsQueryHandler(
         }
 
         var participants = await bookingParticipantRepository.GetByBookingIdAsync(request.BookingId);
+        var participantIds = participants.Select(p => p.Id).ToList();
+
+        var passports = await passportRepository.GetByBookingParticipantIdsAsync(participantIds);
+        var allVisaApps = await visaApplicationRepository.GetByBookingParticipantIdsAsync(participantIds);
+        var visaAppIds = allVisaApps.Select(v => v.Id).ToList();
+        var visas = await visaRepository.GetByVisaApplicationIdsAsync(visaAppIds);
+
+        var visaAppsByParticipant = allVisaApps.GroupBy(v => v.BookingParticipantId).ToDictionary(g => g.Key, g => g.ToList());
+
         var result = new List<ParticipantDto>();
 
         foreach (var participant in participants)
         {
-            var passport = await passportRepository.GetByBookingParticipantIdAsync(participant.Id);
-            var visaApplications = await visaApplicationRepository.GetByBookingParticipantIdAsync(participant.Id);
+            var passport = passports.TryGetValue(participant.Id, out var p) ? p : null;
+            var participantVisaApps = visaAppsByParticipant.TryGetValue(participant.Id, out var apps) ? apps : [];
 
             var visaApplicationDtos = new List<VisaApplicationDto>();
-            foreach (var application in visaApplications)
+            foreach (var application in participantVisaApps)
             {
-                var visa = await visaRepository.GetByVisaApplicationIdAsync(application.Id);
+                var visa = visas.TryGetValue(application.Id, out var v) ? v : null;
                 visaApplicationDtos.Add(ToVisaApplicationDto(application, visa));
             }
 
@@ -760,11 +769,14 @@ public sealed class GetParticipantVisasQueryHandler(
     public async Task<ErrorOr<List<VisaApplicationDto>>> Handle(GetParticipantVisasQuery request, CancellationToken cancellationToken)
     {
         var applications = await visaApplicationRepository.GetByBookingParticipantIdAsync(request.ParticipantId);
+        var appIds = applications.Select(a => a.Id).ToList();
+        var visas = await visaRepository.GetByVisaApplicationIdsAsync(appIds);
+
         var result = new List<VisaApplicationDto>();
 
         foreach (var application in applications)
         {
-            var visa = await visaRepository.GetByVisaApplicationIdAsync(application.Id);
+            var visa = visas.TryGetValue(application.Id, out var v) ? v : null;
             result.Add(new VisaApplicationDto(
                 application.Id,
                 application.BookingParticipantId,

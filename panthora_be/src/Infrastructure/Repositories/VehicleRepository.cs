@@ -260,4 +260,16 @@ public class VehicleRepository(AppDbContext context) : Repository<VehicleEntity>
 
         return results;
     }
+
+    public async Task<List<VehicleEntity>> FindByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        if (idList.Count == 0)
+            return [];
+
+        return await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => idList.Contains(v.Id))
+            .ToListAsync(cancellationToken);
+    }
 }

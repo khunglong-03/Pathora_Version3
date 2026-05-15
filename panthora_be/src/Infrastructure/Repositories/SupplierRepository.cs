@@ -392,4 +392,16 @@ public class SupplierRepository : Repository<SupplierEntity>, ISupplierRepositor
                 .SetProperty(s => s.LastModifiedOnUtc, DateTimeOffset.UtcNow),
                 cancellationToken);
     }
+
+    public async Task<List<SupplierEntity>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        if (idList.Count == 0)
+            return [];
+
+        return await _context.Suppliers
+            .AsNoTracking()
+            .Where(s => idList.Contains(s.Id))
+            .ToListAsync(cancellationToken);
+    }
 }

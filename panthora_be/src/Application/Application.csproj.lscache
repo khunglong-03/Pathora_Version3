@@ -1,0 +1,887 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically. For more information, see https://aka.ms/lscache
+#
+# To control where cache files are stored, use the following VS Code setting:
+#   "dotnet.projectsystem.cacheInProjectFolder": true
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Application
+CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>obj/project.assets.json
+RootNamespace=Application
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=*Undefined*
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>bin/Debug/net10.0/Application.dll
+TargetRefPath=<PATH>obj/Debug/net10.0/ref/Application.dll
+TemporaryDependencyNodeTargetIdentifier=net10.0
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:NU1903,NU1902,NU1904,1701,1702,8002
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:10
+/define:TRACE;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/features:"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated"
+/debug+
+/debug:portable
+/filealign:512
+/optimize-
+/out:obj/Debug/net10.0/Application.dll
+/refout:obj/Debug/net10.0/refint/Application.dll
+/target:library
+/warnaserror+
+/utf8output
+/deterministic+
+/langversion:14.0
+/warnaserror+:NU1605,SYSLIB0011
+
+[sourceFiles]
+Common/
+ Auth/AuthPortalResolver.cs
+ Authorization/TourInstanceRoleGuard.cs
+ Behaviors/
+  CacheInvalidationBehavior.cs
+  CacheKeyTracker.cs
+  CachingBehavior.cs
+ CacheKey.cs
+ CloudinaryUtils.cs
+ Constant/
+  AuthProviderConstants.cs
+  AuthProviders.cs
+  DefaultRoleIds.cs
+  ErrorConstants.BookingCancellation.cs
+  ErrorConstants.cs
+  ErrorConstants.TicketImage.cs
+  ErrorConstants.TourInstanceTransport.cs
+  LocalizedMessage.cs
+  MailSubjectConstants.cs
+  OutboxMessageTypeConstants.cs
+  Policies.cs
+  PrivateTourPolicyMessages.cs
+  RoleConstants.cs
+  SuccessMessages.cs
+  SupportedLanguageConstants.cs
+  UserSettingSourceConstants.cs
+  ValidationMessages.cs
+ EnumHelper.cs
+ Interfaces/
+  ICurrentUser.cs
+  IFileManager.cs
+  IResourceAvailabilityService.cs
+  ITokenManager.cs
+ Localization/PublicLanguageResolver.cs
+Contracts/Admin/
+ CreateStaffUnderManagerRequest.cs
+ UpdateBankAccountRequest.cs
+ UpdateStaffUnderManagerRequest.cs
+Contracts/
+ Booking/BookingManagementDtos.cs
+ CancellationPolicy/Request.cs
+ Department/
+  Create.cs
+  GetAll.cs
+  GetAllComboBox.cs
+  Upsert.cs
+ DepositPolicy/Request.cs
+ File/
+  DeleteMutipleFiles.cs
+  UploadFile.cs
+  UploadMultipleFiles.cs
+ Identity/
+  ChangePassword.cs
+  ConfirmRegister.cs
+  ExternalLogin.cs
+  ForgotPassword.cs
+  GetTabs.cs
+  GetUserInfo.cs
+  Login.cs
+  Logout.cs
+  Refresh.cs
+  Register.cs
+  UpdateMyProfileRequest.cs
+  UpdateUserInfo.cs
+  UserSettings.cs
+ Manager/
+  CreateManagerBankAccountRequest.cs
+  UpdateManagerBankAccountRequest.cs
+  UpdateMyBankAccountRequest.cs
+ Payment/
+  CreatePrivateTourInitialPaymentCommand.cs
+  GetQR.cs
+  PaymentTransactionCommands.cs
+  ProcessPayment.cs
+  ProcessPaymentCommandHandler.cs
+  SepayWebhookRequest.cs
+ Position/
+  Create.cs
+  GetList.cs
+  Update.cs
+ PricingPolicy/Request.cs
+ Public/PublicViewModels.cs
+ Role/
+  Create.cs
+  Delete.cs
+  GetAll.cs
+  GetDetail.cs
+  Update.cs
+ TaxConfig/Request.cs
+ TourManagerAssignment/
+  Request.cs
+  ViewModel.cs
+ User/
+  ChangePassword.cs
+  Create.cs
+  GetAll.cs
+  GetDetail.cs
+  Update.cs
+DependencyInjection.cs
+Dtos/
+ AssignVehicleToRouteResponseDto.cs
+ CancellationPolicyDto.cs
+ CheckDuplicateTourInstanceDtos.cs
+ DepartmentDto.cs
+ DepositPolicyDto.cs
+ FileMetadataDto.cs
+ GuideAvailabilityDtos.cs
+ ImageDto.cs
+ ImageInputDto.cs
+ PositionDto.cs
+ PricingPolicyDto.cs
+ RoleDto.cs
+ TourClassificationDto.cs
+ TourDayActivityDto.cs
+ TourDayDto.cs
+ TourDto.cs
+ TourInstanceDayDto.cs
+ TourInstanceDto.cs
+ TourInstanceGuideDto.cs
+ TourInstanceManagerDto.cs
+ TourInstanceStatsDto.cs
+ TourInstanceVm.cs
+ TourInsuranceDto.cs
+ TourPlanAccommodationDto.cs
+ TourPlanLocationDto.cs
+ TourRequestDto.cs
+ TourResourceDto.cs
+ UserDto.cs
+Features/Admin/Commands/
+ CreateStaffUnderManager/CreateStaffUnderManagerCommand.cs
+ ManageTransportVehicles/
+  AdminCreateVehicleCommand.cs
+  AdminDeleteVehicleCommand.cs
+  AdminUpdateVehicleCommand.cs
+ ReassignStaff/
+  ReassignStaffCommand.cs
+  ReassignStaffRequest.cs
+ UpdateBankAccount/UpdateBankAccountCommand.cs
+ UpdateStaffUnderManager/UpdateStaffUnderManagerCommand.cs
+ VerifyBankAccount/VerifyBankAccountCommand.cs
+Features/Admin/DTOs/
+ AdminDashboardOverviewDto.cs
+ HotelProviderDetailDto.cs
+ HotelProviderListItemDto.cs
+ TourManagerStaffDto.cs
+ TransportProviderDetailDto.cs
+ TransportProviderListItemDto.cs
+ TransportProviderStatsDto.cs
+ UserBankAccountDto.cs
+ UserDetailDto.cs
+ UserListItemDto.cs
+Features/Admin/Queries/
+ GetAdminDashboardOverview/GetAdminDashboardOverviewQuery.cs
+ GetAdminDashboardQuery.cs
+ GetAdminOverviewQuery.cs
+ GetAdminTourManagementQuery.cs
+ GetAllManagerUsers/GetAllManagerUsersQuery.cs
+ GetAllUsers/GetAllUsersQuery.cs
+ GetHotelProviderById/GetHotelProviderByIdQuery.cs
+ GetHotelProviders/GetHotelProvidersQuery.cs
+ GetManagersBankAccount/GetManagersBankAccountQuery.cs
+ GetTourManagerStaff/GetTourManagerStaffQuery.cs
+ GetTransportProviderById/GetTransportProviderByIdQuery.cs
+ GetTransportProviders/
+  GetTransportProvidersQuery.cs
+  GetTransportProviderStatsQuery.cs
+ GetUserDetail/GetUserDetailQuery.cs
+Features/Admin/Validators/
+ GetAllUsersQueryValidator.cs
+ GetUserDetailQueryValidator.cs
+Features/AdminHotelBookings/
+ DTOs/AdminHotelBookingDtos.cs
+ Queries/GetHotelBookingsForAdminQuery.cs
+Features/BookingCancellation/Commands/
+ ApproveCancellationRequestCommand.cs
+ ConfirmRefundCommand.cs
+ RejectCancellationRequestCommand.cs
+ RequestBookingCancellationCommand.cs
+Features/BookingCancellation/
+ EventHandlers/BookingCancellationEmailNotificationHandler.cs
+ Queries/
+  GetCancellationFeeEstimateQuery.cs
+  GetMyCancellationRequestsQuery.cs
+  GetPendingCancellationRequestsQuery.cs
+Features/BookingManagement/Activity/
+ BookingAccommodationDetailCommands.cs
+ BookingActivityReservationCommands.cs
+ BookingTransportDetailCommands.cs
+Features/BookingManagement/
+ ActivityStatus/ActivityStatusCommands.cs
+ Common/BookingCapacityValidation.cs
+ Handlers/GetBookingsByTourInstanceQueryHandler.cs
+ Participant/ParticipantAndDocumentCommands.cs
+ Payable/SupplierPayableCommands.cs
+ Queries/
+  GetAllBookingsQuery.cs
+  GetBookingDetail/
+   BookingDetailDto.cs
+   GetBookingDetailQuery.cs
+   GetBookingDetailQueryHandler.cs
+  GetBookingsByTourInstanceQuery.cs
+  GetCheckoutPriceQuery.cs
+  GetMyBookings/
+   GetMyBookingsQuery.cs
+   GetMyBookingsQueryHandler.cs
+  GetRecentBookingsQuery.cs
+ Supplier/
+  SupplierCommands.cs
+  SupplierQueries.cs
+ TourGuide/TourGuideCommands.cs
+Features/CancellationPolicy/Commands/
+ CreateCancellationPolicyCommand.cs
+ DeleteCancellationPolicyCommand.cs
+ UpdateCancellationPolicyCommand.cs
+Features/CancellationPolicy/Queries/
+ GetAllCancellationPoliciesQuery.cs
+ GetCancellationPolicyByIdQuery.cs
+Features/Department/Commands/
+ CreateDepartmentCommand.cs
+ DeleteDepartmentCommand.cs
+ UpdateDepartmentCommand.cs
+Features/Department/Queries/
+ GetAllDepartmentsQuery.cs
+ GetDepartmentComboBoxQuery.cs
+Features/DepositPolicy/
+ Commands/DepositPolicyCommands.cs
+ Queries/DepositPolicyQueries.cs
+Features/GuestArrival/Commands/
+ CreateGuestArrival/CreateGuestArrivalCommand.cs
+ UpdateGuestArrival/UpdateGuestArrivalCommand.cs
+Features/GuestArrival/DTOs/
+ GuestArrivalDto.cs
+ GuestArrivalListDto.cs
+ GuestArrivalRequestDtos.cs
+Features/GuestArrival/Queries/
+ GetGuestArrival/GetGuestArrivalQuery.cs
+ GetGuestArrivalsByHotel/GetGuestArrivalsByHotelQuery.cs
+Features/HotelRoomInventory/Commands/
+ CreateHotelRoomInventory/CreateHotelRoomInventoryCommand.cs
+ DeleteHotelRoomInventory/DeleteHotelRoomInventoryCommand.cs
+ UpdateHotelRoomInventory/UpdateHotelRoomInventoryCommand.cs
+Features/HotelRoomInventory/DTOs/
+ HotelRoomInventoryDto.cs
+ HotelRoomInventoryRequestDtos.cs
+Features/HotelRoomInventory/Queries/
+ GetHotelRoomInventory/GetHotelRoomInventoryQuery.cs
+ GetHotelRoomInventoryById/GetHotelRoomInventoryByIdQuery.cs
+Features/HotelServiceProvider/Accommodations/Commands/
+ CreateAccommodationCommand.cs
+ DeleteAccommodationCommand.cs
+ UpdateAccommodationCommand.cs
+Features/HotelServiceProvider/Accommodations/
+ DTOs/AccommodationDto.cs
+ Queries/
+  GetAccommodationByIdQuery.cs
+  GetAccommodationsQuery.cs
+Features/HotelServiceProvider/Supplier/
+ DTOs/SupplierDtos.cs
+ Queries/GetHotelSupplierForProviderQuery.cs
+ SupplierCommands.cs
+Features/Identity/Commands/
+ ChangePasswordCommand.cs
+ ConfirmCommand.cs
+ ExternalLoginCommand.cs
+ ForgotPasswordCommand.cs
+ LoginCommand.cs
+ LoginWithRolesCommand.cs
+ LogoutAllCommand.cs
+ LogoutCommand.cs
+ RefreshCommand.cs
+ RegisterCommand.cs
+ ResetPasswordCommand.cs
+ UpdateMyProfileCommand.cs
+ UpdateUserSettingsCommand.cs
+ UploadAvatarCommand.cs
+Features/Identity/Queries/
+ GetTabsQuery.cs
+ GetUserInfoQuery.cs
+ GetUserSettingsQuery.cs
+Features/Insurance/
+ Commands/InsuranceCommands.cs
+ DTOs/InsuranceDto.cs
+ Queries/InsuranceQueries.cs
+Features/Manager/Commands/
+ CreateManagerBankAccount/CreateManagerBankAccountCommand.cs
+ DeleteManagerBankAccount/DeleteManagerBankAccountCommand.cs
+ UpdateManagerBankAccount/UpdateManagerBankAccountCommand.cs
+ UpdateMyBankAccount/UpdateMyBankAccountCommand.cs
+Features/Manager/DTOs/
+ ManagerBankAccountDto.cs
+ ManagerBankAccountItemDto.cs
+ TourManagementStatsDto.cs
+Features/Manager/Queries/
+ GetManagerDashboardQuery.cs
+ GetMyBankAccount/GetMyBankAccountQuery.cs
+ GetMyBankAccounts/GetMyBankAccountsQuery.cs
+ GetTourManagementStatsQuery.cs
+Features/Position/Commands/
+ CreatePositionCommand.cs
+ DeletePositionCommand.cs
+ UpdatePositionCommand.cs
+Features/Position/Queries/
+ GetAllPositionsQuery.cs
+ GetPositionComboBoxQuery.cs
+Features/PricingPolicy/Commands/
+ CreatePricingPolicyCommand.cs
+ DeletePricingPolicyCommand.cs
+ SetDefaultPricingPolicyCommand.cs
+ UpdatePricingPolicyCommand.cs
+Features/PricingPolicy/Queries/
+ GetAllPricingPoliciesQuery.cs
+ GetPricingPolicyByIdQuery.cs
+Features/Public/Commands/
+ CreatePublicBookingCommand.cs
+ RequestPublicPrivateTourCommand.cs
+Features/Public/Queries/
+ GetDestinationsQuery.cs
+ GetFeaturedToursQuery.cs
+ GetHomeStatsQuery.cs
+ GetLatestToursQuery.cs
+ GetPublicCheckoutPriceQuery.cs
+ GetPublicTourDetailQuery.cs
+ GetPublicTourInstanceDetailQuery.cs
+ GetPublicTourInstancesQuery.cs
+ GetPublicToursQuery.cs
+ GetTopAttractionsQuery.cs
+ GetTopReviewsQuery.cs
+ GetTrendingDestinationsQuery.cs
+ SearchToursQuery.cs
+Features/
+ Public/Validators/PublicQueryLimitValidator.cs
+ Role/Commands/
+  CreateRoleCommand.cs
+  DeleteRoleCommand.cs
+  UpdateRoleCommand.cs
+ Role/Queries/
+  GetAllRolesQuery.cs
+  GetRoleDetailQuery.cs
+  GetRoleLookupQuery.cs
+ RoomBlocking/Commands/
+  CreateRoomBlock/CreateRoomBlockCommand.cs
+  DeleteRoomBlock/DeleteRoomBlockCommand.cs
+  UpdateRoomBlock/UpdateRoomBlockCommand.cs
+ RoomBlocking/DTOs/
+  HotelRoomAvailabilityDto.cs
+  RoomBlockDtos.cs
+ RoomBlocking/
+  Notifications/BookingStatusChangedBlockCleanupHandler.cs
+  Queries/
+   GetHotelRoomAvailability/GetHotelRoomAvailabilityQuery.cs
+   GetRoomBlocks/GetRoomBlocksQuery.cs
+ TaxConfig/
+  Commands/TaxConfigCommands.cs
+  Queries/TaxConfigQueries.cs
+ Tour/Commands/
+  CreateTourCommand.cs
+  CreateTourDtos.cs
+  DeleteTourCommand.cs
+  PurgeTour/
+   ITourPurgeExecutor.cs
+   PurgeTourCommand.cs
+  UpdateTourCommand.cs
+  UpdateTourStatusCommand.cs
+ Tour/Queries/
+  GetAllToursQuery.cs
+  GetMyToursQuery.cs
+  GetTourDetailQuery.cs
+ Tour/Validators/TourCommandValidators.cs
+ TourInstance/Commands/
+  ApproveTransportationActivityCommand.cs
+  AssignAccommodationSupplierCommand.cs
+  AssignRoomToAccommodationCommand.cs
+  AssignTourInstanceGuidesCommand.cs
+  AssignTourInstanceGuidesCommandHandler.cs
+  AssignTransportSupplierCommand.cs
+  AssignVehicleToRouteCommand.cs
+  ChangeTourInstanceStatusCommand.cs
+  ConfirmExternalTransportCommand.cs
+  CreateTourInstanceActivityAssignmentDto.cs
+  CreateTourInstanceActivityCommand.cs
+  CreateTourInstanceCommand.cs
+  CreateTourInstanceDayCommand.cs
+  DeleteTicketImageCommand.cs
+  DeleteTourInstanceActivityCommand.cs
+  DeleteTourInstanceCommand.cs
+  GuideApproveTourInstanceCommand.cs
+  GuideApproveTourInstanceCommandHandler.cs
+  PrivateTourReviewCommands.cs
+  ProviderApproveTourInstanceCommand.cs
+  RejectTransportationActivityCommand.cs
+  SaveBookingRoomAssignmentCommand.cs
+  SaveBookingTicketCommand.cs
+  SetAccommodationRequirementsCommand.cs
+  UpdateTourInstanceActivityCommand.cs
+  UpdateTourInstanceCommand.cs
+  UpdateTourInstanceDayCommand.cs
+  UploadTicketImageCommand.cs
+ TourInstance/
+  DTOs/TicketImageDto.cs
+  Handlers/
+   GetMyAssignedTourInstanceDetailQueryHandler.cs
+   GetMyAssignedTourInstancesQueryHandler.cs
+  ItineraryFeedback/
+   ApplyPrivateTourSettlementCommand.cs
+   ApproveOperatorResponseCommand.cs
+   CreateTourItineraryFeedbackCommand.cs
+   DeleteTourItineraryFeedbackCommand.cs
+   ForwardCustomerFeedbackToOperatorCommand.cs
+   ListTourItineraryFeedbackQuery.cs
+   PrivateTourCoDesignAccess.cs
+   RejectOperatorResponseCommand.cs
+   SetPrivateTourFinalSellPriceCommand.cs
+   TourItineraryFeedbackDtos.cs
+   UpdateTourItineraryFeedbackCommand.cs
+  Queries/
+   CheckDuplicateTourInstanceQuery.cs
+   CheckGuideAvailabilityQuery.cs
+   GetAllTourInstancesQuery.cs
+   GetBookingRoomAssignmentsQuery.cs
+   GetBookingTicketsQuery.cs
+   GetMyAssignedTourInstanceDetailQuery.cs
+   GetMyAssignedTourInstancesQuery.cs
+   GetProviderAssignedTourInstancesQuery.cs
+   GetTicketImagesQuery.cs
+   GetTourInstanceDetailQuery.cs
+   GetTourInstanceStatsQuery.cs
+ TourManagerAssignment/Commands/
+  AssignTourManagerTeam/AssignTourManagerTeamCommand.cs
+  BulkAssignTourManagerTeam/BulkAssignTourManagerTeamCommand.cs
+  RemoveTourManagerAssignment/RemoveTourManagerAssignmentCommand.cs
+ TourManagerAssignment/Queries/
+  GetTourManagerAssignmentByIdQuery.cs
+  GetTourManagerAssignmentsQuery.cs
+ TourRequest/Commands/
+  CreateTourRequestCommand.cs
+  ReviewTourRequestCommand.cs
+ TourRequest/Queries/
+  GetAllTourRequestsQuery.cs
+  GetMyTourRequestsQuery.cs
+  GetTourRequestDetailQuery.cs
+ TourRequest/TourRequestMappings.cs
+ TourTransportAssignment/
+  Commands/AssignRouteTransportCommand.cs
+  DTOs/TourTransportDto.cs
+  Queries/GetBookingTransportInfoQuery.cs
+  Validators/RouteTransportAssignmentRequestDtoValidator.cs
+ TransportProvider/Company/
+  Commands/UpdateTransportCompanyCommand.cs
+  DTOs/TransportCompanyProfileDto.cs
+  Queries/GetTransportCompanyQuery.cs
+ TransportProvider/Drivers/Commands/
+  CreateDriverCommand.cs
+  DeleteDriverCommand.cs
+  UpdateDriverCommand.cs
+ TransportProvider/Drivers/DTOs/
+  DriverActivityResponseDto.cs
+  DriverDto.cs
+ TransportProvider/Drivers/Queries/
+  GetAvailableDriversQuery.cs
+  GetDriverActivitiesQuery.cs
+  GetDriversQuery.cs
+ TransportProvider/Drivers/Validators/
+  CreateDriverRequestDtoValidator.cs
+  UpdateDriverRequestDtoValidator.cs
+ TransportProvider/Revenue/DTOs/
+  MonthlyRevenueDto.cs
+  RevenueSummaryDto.cs
+  TripHistoryItemDto.cs
+  TripHistoryResponseDto.cs
+ TransportProvider/Revenue/Queries/
+  GetRevenueSummaryQuery.cs
+  GetTripHistoryQuery.cs
+ TransportProvider/TripAssignments/Commands/
+  AcceptTripAssignmentCommand.cs
+  RejectTripAssignmentCommand.cs
+  UpdateTripStatusCommand.cs
+ TransportProvider/TripAssignments/DTOs/
+  AcceptTripAssignmentRequestDto.cs
+  RejectTripAssignmentRequestDto.cs
+  TripAssignmentDetailDto.cs
+  TripAssignmentListDto.cs
+  UpdateTripStatusRequestDto.cs
+ TransportProvider/TripAssignments/Queries/
+  GetTripAssignmentDetailQuery.cs
+  GetTripAssignmentsQuery.cs
+ TransportProvider/Vehicles/Commands/
+  CreateVehicleCommand.cs
+  DeleteVehicleCommand.cs
+  UpdateVehicleCommand.cs
+ TransportProvider/Vehicles/DTOs/
+  VehicleAvailabilityDto.cs
+  VehicleDto.cs
+ TransportProvider/Vehicles/Queries/
+  GetAvailableVehiclesQuery.cs
+  GetVehicleScheduleQuery.cs
+  GetVehiclesQuery.cs
+ TransportProvider/Vehicles/Validators/
+  CreateVehicleRequestDtoValidator.cs
+  UpdateVehicleRequestDtoValidator.cs
+ User/Commands/
+  ChangePasswordCommand.cs
+  CreateUserCommand.cs
+  DeleteUserCommand.cs
+  UpdateUserCommand.cs
+  UpdateUserStatusCommand.cs
+ User/Queries/
+  GetAllUsersQuery.cs
+  GetTeamGuides/GetTeamGuidesQuery.cs
+  GetUserDetailQuery.cs
+ VisaApplication/Commands/
+  CustomerVisaCommands.cs
+  VisaApplicationCommands.cs
+ VisaApplication/
+  DTOs/VisaApplicationDto.cs
+  EventHandlers/
+   VisaCacheInvalidationHandler.cs
+   VisaEmailNotificationHandler.cs
+  Queries/
+   GetCustomerVisaRequirementsQuery.cs
+   VisaApplicationQueries.cs
+ Withdrawal/Commands/ApproveWithdrawal/
+  ApproveWithdrawalCommand.cs
+  ApproveWithdrawalCommandHandler.cs
+ Withdrawal/Commands/CancelWithdrawalRequest/
+  CancelWithdrawalRequestCommand.cs
+  CancelWithdrawalRequestCommandHandler.cs
+ Withdrawal/Commands/ConfirmWithdrawalTransfer/
+  ConfirmWithdrawalTransferCommand.cs
+  ConfirmWithdrawalTransferCommandHandler.cs
+ Withdrawal/Commands/CreateWithdrawalRequest/
+  CreateWithdrawalRequestCommand.cs
+  CreateWithdrawalRequestCommandHandler.cs
+  CreateWithdrawalRequestCommandValidator.cs
+ Withdrawal/Commands/RejectWithdrawal/
+  RejectWithdrawalCommand.cs
+  RejectWithdrawalCommandHandler.cs
+  RejectWithdrawalCommandValidator.cs
+ Withdrawal/Queries/GetAdminWithdrawals/
+  GetAdminWithdrawalsQuery.cs
+  GetAdminWithdrawalsQueryHandler.cs
+ Withdrawal/Queries/GetManagerWithdrawals/
+  GetManagerWithdrawalsQuery.cs
+  GetManagerWithdrawalsQueryHandler.cs
+ Withdrawal/Queries/GetWithdrawalDetail/
+  GetWithdrawalDetailQuery.cs
+  GetWithdrawalDetailQueryHandler.cs
+ Withdrawal/Queries/GetWithdrawalQR/
+  GetWithdrawalQRQuery.cs
+  GetWithdrawalQRQueryHandler.cs
+Mapping/
+ DepartmentProfile.cs
+ FileProfile.cs
+ PositionProfile.cs
+ RoleProfile.cs
+ TourInstanceProfile.cs
+ TourProfile.cs
+ UserProfile.cs
+obj/Debug/net10.0/
+ .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+ Application.AssemblyInfo.cs
+ Application.GlobalUsings.g.cs
+Options/
+ AuthOptions.cs
+ PaymentOptions.cs
+ ProviderAssignmentOptions.cs
+ SePayOptions.cs
+Services/
+ CancellationPolicyService.cs
+ DepartmentService.cs
+ DepositPolicyService.cs
+ FileService.cs
+ HotelServiceProviderSupplierMapper.cs
+ ICloudinaryService.cs
+ IdentityService.cs
+ IOwnershipValidator.cs
+ IPostPaymentVisaGateService.cs
+ IRoleService.cs
+ ISePayApiClient.cs
+ ITourInstanceNotificationBroadcaster.cs
+ OwnershipValidator.cs
+ PaymentReconciliationService.cs
+ PaymentService.cs
+ PaymentStatusMapper.cs
+ PositionService.cs
+ PostPaymentVisaGateService.cs
+ PricingPolicyService.cs
+ PrivateTour/
+  IPrivateTourPolicyMetrics.cs
+  LoggingPrivateTourPolicyMetrics.cs
+  PrivateTourTopUpDeadlineProcessor.cs
+ RateLimitService.cs
+ RoleService.cs
+ SepayMatchingService.cs
+ SePayModels.cs
+ SepayParsingHelper.cs
+ SystemKeyService.cs
+ TaxConfigService.cs
+ TourInstanceService.cs
+ TourService.cs
+ UserService.cs
+Tours/Commands/
+ ReviewTourCommand.cs
+ ReviewTourCommandHandler.cs
+ ReviewTourRequest.cs
+
+[metadataReferences]
+../../Share/
+ BuildingBlocks/obj/Debug/net10.0/ref/BuildingBlocks.dll
+ Common/obj/Debug/net10.0/ref/Common.dll
+ Contracts/obj/Debug/net10.0/ref/Contracts.dll
+../Domain/obj/Debug/net10.0/ref/Domain.dll
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.6/ref/net10.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipelines.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.AsyncEnumerable.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServerSentEvents.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.AccessControl.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+<NUGET>/
+ automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+ automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
+ dnsclient/1.6.1/lib/net5.0/DnsClient.dll
+ erroror/2.0.1/lib/net6.0/ErrorOr.dll
+ fluentvalidation.dependencyinjectionextensions/12.1.1/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
+ fluentvalidation/12.1.1/lib/net8.0/FluentValidation.dll
+ mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
+ mediatr/12.4.1/lib/net6.0/MediatR.dll
+ microsoft.entityframeworkcore.abstractions/10.0.0/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+ microsoft.entityframeworkcore/10.0.0/lib/net10.0/Microsoft.EntityFrameworkCore.dll
+ microsoft.extensions.caching.abstractions/10.0.0/lib/net10.0/Microsoft.Extensions.Caching.Abstractions.dll
+ microsoft.extensions.caching.memory/10.0.0/lib/net10.0/Microsoft.Extensions.Caching.Memory.dll
+ microsoft.extensions.configuration.abstractions/10.0.0/lib/net10.0/Microsoft.Extensions.Configuration.Abstractions.dll
+ microsoft.extensions.dependencyinjection.abstractions/10.0.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ microsoft.extensions.dependencyinjection/10.0.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.dll
+ microsoft.extensions.logging.abstractions/10.0.0/lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll
+ microsoft.extensions.logging/10.0.0/lib/net10.0/Microsoft.Extensions.Logging.dll
+ microsoft.extensions.options/10.0.0/lib/net10.0/Microsoft.Extensions.Options.dll
+ microsoft.extensions.primitives/10.0.0/lib/net10.0/Microsoft.Extensions.Primitives.dll
+ mongodb.bson/3.0.0/lib/net6.0/MongoDB.Bson.dll
+ mongodb.driver/3.0.0/lib/net6.0/MongoDB.Driver.dll
+ serilog/4.3.1/lib/net10.0/Serilog.dll
+ sharpcompress/0.30.1/lib/net5.0/SharpCompress.dll
+ snappier/1.0.0/lib/net5.0/Snappier.dll
+ ziggycreatures.fusioncache/2.4.0/lib/net9.0/ZiggyCreatures.FusionCache.dll
+ zstdsharp.port/0.7.3/lib/net7.0/ZstdSharp.dll
+
+[analyzerReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.6/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.JavaScript.JSImportGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.202/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.202/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/
+ microsoft.entityframeworkcore.analyzers/10.0.0/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
+ microsoft.extensions.logging.abstractions/10.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
+ microsoft.extensions.options/10.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
+
+[analyzerConfigFiles]
+<DOTNET>/sdk/10.0.202/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_10_default.globalconfig
+obj/Debug/net10.0/Application.GeneratedMSBuildEditorConfig.editorconfig

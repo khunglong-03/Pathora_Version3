@@ -39,6 +39,7 @@ public interface ITourInstanceRepository
     Task<List<TourInstanceEntity>> FindByGuideUserId(Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<bool> HasGuideAssignmentAsync(Guid tourInstanceId, Guid userId, CancellationToken cancellationToken = default);
     Task<UserEntity?> FindUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<UserEntity>> FindUserByIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lightweight lookup for a TourInstanceDayActivity by ID. Used for IDOR validation

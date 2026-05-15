@@ -12,4 +12,18 @@ public class PassportRepository(AppDbContext context) : Repository<PassportEntit
     {
         return await _dbSet.FirstOrDefaultAsync(x => x.BookingParticipantId == bookingParticipantId, cancellationToken);
     }
+
+    public async Task<Dictionary<Guid, PassportEntity>> GetByBookingParticipantIdsAsync(IEnumerable<Guid> bookingParticipantIds, CancellationToken cancellationToken = default)
+    {
+        var ids = bookingParticipantIds.ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var passports = await _dbSet
+            .AsNoTracking()
+            .Where(p => ids.Contains(p.BookingParticipantId))
+            .ToListAsync(cancellationToken);
+
+        return passports.ToDictionary(p => p.BookingParticipantId);
+    }
 }

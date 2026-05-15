@@ -95,14 +95,18 @@ public sealed class GetCustomerVisaRequirementsQueryHandler(
 
         var participantDtos = new List<VisaRequirementParticipantDto>();
 
+        var participantIds = booking.BookingParticipants.Select(p => p.Id).ToList();
+        var passports = await passportRepository.GetByBookingParticipantIdsAsync(participantIds, cancellationToken);
+        var allVisaApps = await visaApplicationRepository.GetByBookingParticipantIdsAsync(participantIds, cancellationToken);
+        var visaAppsByParticipant = allVisaApps.GroupBy(v => v.BookingParticipantId).ToDictionary(g => g.Key, g => g.ToList());
+
         foreach (var participant in booking.BookingParticipants)
         {
             bool missingDob = !participant.DateOfBirth.HasValue;
             bool requiresVisa = true; // All participants require a visa regardless of age.
 
-            // Load passport và visa applications
-            var passport = await passportRepository.GetByBookingParticipantIdAsync(participant.Id, cancellationToken);
-            var visaApps = await visaApplicationRepository.GetByBookingParticipantIdAsync(participant.Id, cancellationToken);
+            var passport = passports.TryGetValue(participant.Id, out var p) ? p : null;
+            var visaApps = visaAppsByParticipant.TryGetValue(participant.Id, out var apps) ? apps : [];
             var latestApp = visaApps
                 .OrderByDescending(v => v.CreatedOnUtc)
                 .FirstOrDefault();

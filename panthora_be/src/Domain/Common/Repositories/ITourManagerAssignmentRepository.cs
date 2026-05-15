@@ -13,4 +13,11 @@ public interface ITourManagerAssignmentRepository
     Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<int> CountPendingTourRequestsAsync(CancellationToken cancellationToken);
     Task<List<ActivityItemDto>> GetRecentActivityAsync(int limit, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Resolve Manager user phụ trách một TourOperator. Trả Manager được gán
+    /// (AssignedEntityType=TourOperator, AssignedUserId=operatorUserId) — pick load thấp nhất.
+    /// Nếu không có gán cụ thể, fallback Manager active đầu tiên (RoleId=2).
+    /// </summary>
+    Task<Guid?> FindManagerForOperatorAsync(Guid operatorUserId, CancellationToken cancellationToken = default);
 }

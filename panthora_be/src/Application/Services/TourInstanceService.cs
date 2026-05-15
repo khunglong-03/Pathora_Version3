@@ -77,7 +77,8 @@ public class TourInstanceService(
     ITourInstanceNotificationBroadcaster? notificationBroadcaster = null,
     IVehicleBlockRepository? vehicleBlockRepository = null,
     Domain.Common.Repositories.IBookingRepository? bookingRepository = null,
-    IUnitOfWork? unitOfWork = null) : ITourInstanceService
+    IUnitOfWork? unitOfWork = null,
+    Domain.Common.Repositories.ITourManagerAssignmentRepository? tourManagerAssignmentRepository = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
@@ -96,6 +97,7 @@ public class TourInstanceService(
     private readonly ITourInstanceNotificationBroadcaster? _notificationBroadcaster = notificationBroadcaster;
     private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
     private readonly Domain.Common.Repositories.IBookingRepository? _bookingRepository = bookingRepository;
+    private readonly Domain.Common.Repositories.ITourManagerAssignmentRepository? _tourManagerAssignmentRepository = tourManagerAssignmentRepository;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -137,7 +139,22 @@ public class TourInstanceService(
             return Error.Validation("TourInstance.PrivateTypeRequired", "Yêu cầu tour riêng phải dùng loại Private.");
 
         var operatorId = tour.TourOperatorId.Value;
-        return await CreateCoreAsync(request, tour, classification, operatorId, operatorId.ToString());
+
+        Guid? managerId = null;
+        if (_tourManagerAssignmentRepository is not null)
+        {
+            managerId = await _tourManagerAssignmentRepository.FindManagerForOperatorAsync(operatorId);
+        }
+
+        if (!managerId.HasValue)
+        {
+            _logger.LogWarning(
+                "No Manager could be resolved for TourOperator {OperatorId}; private tour request will fall back to operator as manager.",
+                operatorId);
+        }
+
+        var resolvedManagerId = managerId ?? operatorId;
+        return await CreateCoreAsync(request, tour, classification, resolvedManagerId, resolvedManagerId.ToString());
     }
 
     private async Task<ErrorOr<Guid>> CreateCoreAsync(
@@ -465,10 +482,16 @@ public class TourInstanceService(
         if (candidates.Count == 0)
             return Result.Success;
 
+        var supplierIds = candidates.Select(a => a.TransportSupplierId!.Value).Distinct().ToList();
+        var suppliers = await _supplierRepository.GetByIdsAsync(supplierIds);
+        var supplierMap = suppliers.Where(s => s != null).ToDictionary(s => s!.Id);
+
         foreach (var assignment in candidates)
         {
-            var supplier = await _supplierRepository.GetByIdAsync(assignment.TransportSupplierId!.Value);
-            if (supplier is null || !supplier.OwnerUserId.HasValue)
+            if (!supplierMap.TryGetValue(assignment.TransportSupplierId!.Value, out var supplier) || supplier is null)
+                continue;
+
+            if (!supplier.OwnerUserId.HasValue)
                 continue; // upstream supplier validator already handles missing supplier
 
             var fleetSize = await _vehicleRepository.CountActiveByTransportSupplierFleetAsync(
@@ -505,13 +528,31 @@ public class TourInstanceService(
         if (candidates.Count == 0)
             return Result.Success;
 
-        foreach (var assignment in candidates)
+        var inventoryKeys = new List<(Guid SupplierId, RoomType RoomType)>();
+        var assignmentRoomTypes = new Dictionary<int, RoomType>();
+        for (var i = 0; i < candidates.Count; i++)
         {
-            if (!Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
+            var assignment = candidates[i];
+            if (Enum.TryParse<RoomType>(assignment.RoomType, true, out var roomType))
+            {
+                inventoryKeys.Add((assignment.SupplierId!.Value, roomType));
+                assignmentRoomTypes[i] = roomType;
+            }
+        }
+
+        if (inventoryKeys.Count == 0)
+            return Result.Success;
+
+        var inventoryMap = await _hotelRoomInventoryRepository.FindByHotelAndRoomTypesAsync(inventoryKeys);
+
+        for (var i = 0; i < candidates.Count; i++)
+        {
+            var assignment = candidates[i];
+            if (!assignmentRoomTypes.TryGetValue(i, out var roomType))
                 continue; // invalid room type already flagged earlier
 
-            var inventory = await _hotelRoomInventoryRepository
-                .FindByHotelAndRoomTypeAsync(assignment.SupplierId!.Value, roomType);
+            var key = (assignment.SupplierId!.Value, roomType);
+            var inventory = inventoryMap.TryGetValue(key, out var inv) ? inv : null;
 
             var inventoryTotal = inventory?.TotalRooms ?? 0;
             if (assignment.AccommodationQuantity!.Value > inventoryTotal)
@@ -537,18 +578,31 @@ public class TourInstanceService(
         if (supplierIds.Count == 0)
             return Result.Success;
 
+        var suppliers = await _supplierRepository.GetByIdsAsync(supplierIds);
+        var supplierMap = suppliers.Where(s => s != null).ToDictionary(s => s!.Id);
+        var ownerUserIds = suppliers
+            .Where(s => s != null && s.OwnerUserId.HasValue)
+            .Select(s => s!.OwnerUserId!.Value)
+            .Distinct()
+            .ToList();
+
+        var ownerMap = new Dictionary<Guid, UserEntity>();
+        if (ownerUserIds.Count > 0)
+        {
+            var owners = await _tourInstanceRepository.FindUserByIdsAsync(ownerUserIds);
+            ownerMap = owners.Where(o => o != null).ToDictionary(o => o!.Id);
+        }
+
         foreach (var supplierId in supplierIds)
         {
-            var supplier = await _supplierRepository.GetByIdAsync(supplierId);
-            if (supplier == null || supplier.IsDeleted)
+            if (!supplierMap.TryGetValue(supplierId, out var supplier) || supplier is null)
                 return Error.NotFound(ErrorConstants.Supplier.NotFoundCode, $"Accommodation supplier ID '{supplierId}' not found.");
 
             if (!supplier.IsActive)
                 return Error.Validation("TourInstance.SupplierInactive", $"Nhà cung cấp lưu trú '{supplier.Name}' đang ngừng hoạt động.");
 
-            if (supplier.OwnerUserId.HasValue)
+            if (supplier.OwnerUserId.HasValue && ownerMap.TryGetValue(supplier.OwnerUserId.Value, out var owner))
             {
-                var owner = await _tourInstanceRepository.FindUserByIdAsync(supplier.OwnerUserId.Value);
                 if (owner?.Status == UserStatus.Banned)
                     return Error.Validation("TourInstance.SupplierBanned", $"Tài khoản của nhà cung cấp lưu trú '{supplier.Name}' đã bị khóa.");
             }
@@ -720,30 +774,35 @@ public class TourInstanceService(
             .Distinct()
             .ToList();
 
-        foreach (var transportSupplierId in transportSupplierIds)
+        if (transportSupplierIds.Count > 0)
         {
-            try
+            var suppliers = await _supplierRepository.GetByIdsAsync(transportSupplierIds);
+            var supplierMap = suppliers.Where(s => s != null).ToDictionary(s => s!.Id);
+
+            foreach (var transportSupplierId in transportSupplierIds)
             {
-                var transportSupplier = await _supplierRepository.GetByIdAsync(transportSupplierId);
-                if (transportSupplier?.OwnerUserId is null)
+                try
                 {
-                    _logger.LogWarning(
-                        "Cannot notify TransportProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
-                        entity.Id, transportSupplierId);
+                    if (!supplierMap.TryGetValue(transportSupplierId, out var transportSupplier) || transportSupplier?.OwnerUserId is null)
+                    {
+                        _logger.LogWarning(
+                            "Cannot notify TransportProvider for TourInstance {TourInstanceId}: OwnerUserId is null on Supplier {SupplierId}",
+                            entity.Id, transportSupplierId);
+                    }
+                    else
+                    {
+                        await _notificationBroadcaster.NotifyProviderAssignmentAsync(
+                            entity.Id, entity.Title, entity.TourName,
+                            entity.StartDate, entity.EndDate, "Transport",
+                            transportSupplier.OwnerUserId.Value);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await _notificationBroadcaster.NotifyProviderAssignmentAsync(
-                        entity.Id, entity.Title, entity.TourName,
-                        entity.StartDate, entity.EndDate, "Transport",
-                        transportSupplier.OwnerUserId.Value);
+                    _logger.LogWarning(ex,
+                        "Failed to send assignment notification to TransportProvider {SupplierId} for TourInstance {TourInstanceId}",
+                        transportSupplierId, entity.Id);
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex,
-                    "Failed to send assignment notification to TransportProvider {SupplierId} for TourInstance {TourInstanceId}",
-                    transportSupplierId, entity.Id);
             }
         }
 
@@ -876,10 +935,10 @@ public class TourInstanceService(
                 }
 
                 var capacityMap = new Dictionary<Guid, int>(vehicleIds.Count);
-                foreach (var vid in vehicleIds)
+                if (vehicleIds.Count > 0)
                 {
-                    var vehicle = await _vehicleRepository.GetByIdAsync(vid);
-                    capacityMap[vid] = vehicle?.SeatCapacity ?? 0;
+                    var vehicles = await _vehicleRepository.FindByIdsAsync(vehicleIds);
+                    capacityMap = vehicles.ToDictionary(v => v.Id, v => v.SeatCapacity);
                 }
 
                 try

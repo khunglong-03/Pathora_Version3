@@ -63,6 +63,18 @@ public class PaymentTransactionRepository(AppDbContext context) : IPaymentTransa
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<List<PaymentTransactionEntity>> FindPendingByReferenceCodesAsync(IEnumerable<string> referenceCodes, CancellationToken cancellationToken = default)
+    {
+        var codes = referenceCodes.ToList();
+        if (codes.Count == 0)
+            return [];
+
+        return await _context.PaymentTransactions
+            .Include(x => x.Booking)
+            .Where(x => x.Status == TransactionStatus.Pending && codes.Contains(x.ReferenceCode!))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<PaymentTransactionEntity>> GetExpiredTransactionsAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow;

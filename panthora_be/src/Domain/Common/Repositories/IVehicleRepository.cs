@@ -54,6 +54,11 @@ public interface IVehicleRepository : IRepository<VehicleEntity>
         DateOnly date,
         Guid? excludeActivityId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Batch-loads vehicles by IDs. Used to avoid N+1 when resolving capacity for multiple vehicles.
+    /// </summary>
+    Task<List<VehicleEntity>> FindByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
