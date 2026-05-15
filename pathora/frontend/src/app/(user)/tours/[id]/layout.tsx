@@ -10,6 +10,11 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * Server-side fetch khi chạy trong Docker (INTERNAL_API_URL).
+ * Phải trỏ tới service có route GET /api/public/tours/* — tức **PublicApi** (8081),
+ * hoặc nginx nội bộ nếu Host/route khớp. Không dùng private Api :8080.
+ */
 function resolveServerSideBaseUrl(): string {
   const internal = process.env.INTERNAL_API_URL?.trim();
   if (internal) return internal.replace(/\/+$/, "");

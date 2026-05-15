@@ -117,8 +117,9 @@ services:
         NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
     environment:
       NODE_ENV: "production"
-      NEXT_PUBLIC_API_GATEWAY: "" 
-      INTERNAL_API_URL: "http://huynq-test-be:8080"
+      NEXT_PUBLIC_API_GATEWAY: ""
+      # SSR (generateMetadata / layout): chỉ PublicApi có GET /api/public/tours/*. Không dùng huynq-test-be:8080.
+      INTERNAL_API_URL: "${INTERNAL_API_URL:-http://huynq-test-publicapi:8081}"
     expose:
       - "3003"
     depends_on:
