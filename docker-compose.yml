@@ -160,28 +160,8 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: pathora-nginx
-    # Traefik/Dokploy terminates TLS externally and forwards to this container.
-    # No host port binding needed when running behind Traefik — expose only.
-    expose:
-      - "8080"
-    labels:
-      - "traefik.enable=true"
-      # ── HTTP → HTTPS redirect ──────────────────────────────
-      - "traefik.http.routers.pathora-main-http.rule=Host(`pathora-fe.duckdns.org`)"
-      - "traefik.http.routers.pathora-main-http.entrypoints=web"
-      - "traefik.http.routers.pathora-main-http.middlewares=pathora-main-https-redirect"
-      - "traefik.http.middlewares.pathora-main-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.pathora-main-https-redirect.redirectscheme.permanent=true"
-      # ── HTTPS router ──────────────────────────────────────
-      - "traefik.http.routers.pathora-main-https.rule=Host(`pathora-fe.duckdns.org`)"
-      - "traefik.http.routers.pathora-main-https.entrypoints=websecure"
-      - "traefik.http.routers.pathora-main-https.tls=true"
-      - "traefik.http.routers.pathora-main-https.tls.certresolver=letsencrypt"
-      # ── Service (target port inside container) ────────────
-      - "traefik.http.services.pathora-main-nginx.loadbalancer.server.port=8080"
-      - "traefik.http.routers.pathora-main-https.service=pathora-main-nginx"
-      # ── Tell Traefik which network to use ─────────────────
-      - "traefik.docker.network=pathora-shared-network"
+    ports:
+      - "8099:8080"
     networks:
       - default
       - pathora-shared-network
