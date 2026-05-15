@@ -38,6 +38,8 @@ pathora/frontend/coverage/
 .env
 .env.local
 .env.*.local
+.env.dokploy
+.env.production
 backend/.env
 backend/.env.*
 panthora_be/src/Api/appsettings.*.json
