@@ -9,7 +9,8 @@ import type {
   SubmitVisaApplicationPayload, 
   UpdateVisaApplicationPayload, 
   RequestVisaSupportResponse,
-  BookingDetailResponse
+  BookingDetailResponse,
+  RefundStatusString
 } from "@/types/booking";
 
 // Tour Day Activity Status (for guide portal)
@@ -76,6 +77,14 @@ export interface AdminBookingListResponse {
   numberChild: number;
   /** Em bé (< 2 tuổi) — KHÔNG cần ghế riêng */
   numberInfant: number;
+  /** Refund tracking fields */
+  refundStatus?: RefundStatusString;
+  refundOutstandingAmount?: number | null;
+  refundContactedAt?: string | null;
+  refundCompletedAt?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  cancelledAt?: string | null;
 }
 
 export const bookingService = {
@@ -86,9 +95,10 @@ export const bookingService = {
     return extractItems<RecentBooking>(response.data);
   },
 
-  getBookingsByTourInstance: async (tourInstanceId: string) => {
+  getBookingsByTourInstance: async (tourInstanceId: string, refundStatus?: RefundStatusString) => {
     const response = await api.get<ServiceResponse<AdminBookingListResponse[]>>(
       API_ENDPOINTS.BOOKING.GET_BY_TOUR_INSTANCE(tourInstanceId),
+      refundStatus ? { params: { refundStatus } } : undefined,
     );
     return extractItems<AdminBookingListResponse>(response.data);
   },
@@ -203,5 +213,24 @@ export const bookingService = {
       payload
     );
     return extractResult<unknown>(response.data);
+  },
+
+  updateRefundStatus: async (bookingId: string, newStatus: "Contacted" | "Refunded") => {
+    const response = await api.patch<ServiceResponse<unknown>>(
+      API_ENDPOINTS.BOOKING.UPDATE_REFUND_STATUS(bookingId),
+      { bookingId, newStatus }
+    );
+    return extractResult<unknown>(response.data);
+  },
+
+  getAllBookings: async (params: { page?: number; pageSize?: number; refundStatus?: RefundStatusString } = {}) => {
+    const { page = 1, pageSize = 20, refundStatus } = params;
+    const queryParams: Record<string, string | number> = { page, pageSize };
+    if (refundStatus) queryParams.refundStatus = refundStatus;
+    const response = await api.get<ServiceResponse<AdminBookingListResponse[]>>(
+      API_ENDPOINTS.BOOKING.GET_LIST,
+      { params: queryParams }
+    );
+    return response.data;
   },
 };

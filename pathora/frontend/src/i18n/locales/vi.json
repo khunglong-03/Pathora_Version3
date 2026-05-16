@@ -1232,7 +1232,12 @@
       "DuplicateCode": "Mã tour đã tồn tại"
     },
     "TourInstance": {
-      "NotFound": "Lịch trình tour không tồn tại"
+      "NotFound": "Lịch trình tour không tồn tại",
+      "CannotCancelAfterStart": "Tour đã bắt đầu hoặc hoàn thành, không thể huỷ."
+    },
+    "Booking": {
+      "InvalidRefundStatusTransition": "Trạng thái hoàn tiền không hợp lệ.",
+      "RefundStatusOnlyForCancelled": "Chỉ booking đã huỷ mới cập nhật được trạng thái hoàn tiền."
     },
     "DynamicPricing": {
       "InvalidRange": "Khoảng số lượng khách không hợp lệ",
@@ -1490,7 +1495,14 @@
     "viewAll": "Xem tất cả",
     "noBookings": "Bạn chưa có tour nào",
     "browseTours": "Khám phá tour ngay",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "refundStatus": {
+      "pending": "Chờ liên hệ",
+      "contacted": "Đã liên hệ",
+      "refunded": "Đã hoàn tiền",
+      "notApplicable": "Không áp dụng"
+    },
+    "refundOutstanding": "Số tiền cần hoàn"
   },
   "notification": {
     "title": "Thông báo",
@@ -4092,6 +4104,47 @@
       "title": "Tài khoản",
       "avatar": "Ảnh đại diện",
       "changePassword": "Đổi mật khẩu"
+    }
+  },
+  "refundTracking": {
+    "title": "Theo dõi hoàn tiền",
+    "subtitle": "Danh sách booking bị huỷ cần liên hệ khách hoàn tiền. Click số điện thoại để gọi trực tiếp.",
+    "empty": "Không có booking nào trong trạng thái này.",
+    "stale": "> 7 ngày",
+    "tabs": {
+      "pending": "Chờ liên hệ",
+      "contacted": "Đã liên hệ",
+      "refunded": "Đã hoàn tiền",
+      "all": "Tất cả"
+    },
+    "col": {
+      "tour": "Tour",
+      "customer": "Khách hàng",
+      "phone": "Điện thoại",
+      "email": "Email",
+      "amount": "Số tiền cần hoàn",
+      "cancelledAt": "Ngày huỷ",
+      "status": "Trạng thái",
+      "action": "Hành động"
+    },
+    "action": {
+      "markContacted": "Đã liên hệ",
+      "markRefunded": "Đã hoàn tiền",
+      "markedContacted": "Đã đánh dấu đã liên hệ",
+      "markedRefunded": "Đã đánh dấu hoàn tiền"
+    }
+  },
+  "tourInstance": {
+    "cancelConfirmTitle": "Xác nhận huỷ tour",
+    "cancelConfirmWarning": "Tất cả booking active sẽ bị huỷ. Khách mất 30% cọc. Bạn phải liên hệ khách qua điện thoại để hoàn tiền."
+  },
+  "errors": {
+    "TourInstance": {
+      "CannotCancelAfterStart": "Tour đã bắt đầu hoặc hoàn thành, không thể huỷ."
+    },
+    "Booking": {
+      "InvalidRefundStatusTransition": "Trạng thái hoàn tiền không hợp lệ.",
+      "RefundStatusOnlyForCancelled": "Chỉ booking đã huỷ mới cập nhật được trạng thái hoàn tiền."
     }
   }
 }

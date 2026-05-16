@@ -1232,7 +1232,12 @@
       "DuplicateCode": "Tour code already exists"
     },
     "TourInstance": {
-      "NotFound": "Tour instance not found"
+      "NotFound": "Tour instance not found",
+      "CannotCancelAfterStart": "Tour has started or completed and cannot be cancelled."
+    },
+    "Booking": {
+      "InvalidRefundStatusTransition": "Invalid refund status transition.",
+      "RefundStatusOnlyForCancelled": "Refund status can only be updated for cancelled bookings."
     },
     "DynamicPricing": {
       "InvalidRange": "Invalid participant range",
@@ -1490,7 +1495,14 @@
     "viewAll": "View all",
     "noBookings": "You haven't booked any tours yet",
     "browseTours": "Browse tours now",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "refundStatus": {
+      "pending": "Pending contact",
+      "contacted": "Contacted",
+      "refunded": "Refunded",
+      "notApplicable": "Not applicable"
+    },
+    "refundOutstanding": "Refund amount"
   },
   "notification": {
     "title": "Notifications",
@@ -4113,6 +4125,47 @@
       "title": "Account",
       "avatar": "Avatar",
       "changePassword": "Change Password"
+    }
+  },
+  "refundTracking": {
+    "title": "Refund Tracking",
+    "subtitle": "Cancelled bookings that need customer contact for refund. Click phone to call directly.",
+    "empty": "No bookings in this status.",
+    "stale": "> 7 days",
+    "tabs": {
+      "pending": "Pending contact",
+      "contacted": "Contacted",
+      "refunded": "Refunded",
+      "all": "All"
+    },
+    "col": {
+      "tour": "Tour",
+      "customer": "Customer",
+      "phone": "Phone",
+      "email": "Email",
+      "amount": "Refund amount",
+      "cancelledAt": "Cancelled at",
+      "status": "Status",
+      "action": "Action"
+    },
+    "action": {
+      "markContacted": "Mark contacted",
+      "markRefunded": "Mark refunded",
+      "markedContacted": "Marked as contacted",
+      "markedRefunded": "Marked as refunded"
+    }
+  },
+  "tourInstance": {
+    "cancelConfirmTitle": "Confirm cancel tour",
+    "cancelConfirmWarning": "All active bookings will be cancelled. Customers lose 30% deposit. You must contact customers by phone for refund."
+  },
+  "errors": {
+    "TourInstance": {
+      "CannotCancelAfterStart": "Tour has started or completed and cannot be cancelled."
+    },
+    "Booking": {
+      "InvalidRefundStatusTransition": "Invalid refund status transition.",
+      "RefundStatusOnlyForCancelled": "Only cancelled bookings can have refund status updated."
     }
   }
 }

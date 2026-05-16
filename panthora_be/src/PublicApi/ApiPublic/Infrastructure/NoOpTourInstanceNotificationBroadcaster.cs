@@ -12,4 +12,5 @@ public class NoOpTourInstanceNotificationBroadcaster : ITourInstanceNotification
     public Task NotifyProviderReleasedAsync(Guid oldSupplierId, Guid activityId, Guid tourInstanceId, string reason, CancellationToken ct = default) => Task.CompletedTask;
     public Task NotifyItineraryFeedbackEventAsync(Guid tourInstanceId, Guid feedbackId, string eventType, string targetUserGroup, string? reason = null, CancellationToken ct = default) => Task.CompletedTask;
     public Task NotifyManagerNewCustomRequestAsync(Guid tourInstanceId, string tourName, string customerName, Guid targetManagerUserId, CancellationToken ct = default) => Task.CompletedTask;
+    public Task NotifyCustomerTourCancelledAsync(Guid bookingId, string customerEmail, string tourName, decimal? refundOutstandingAmount, CancellationToken ct = default) => Task.CompletedTask;
 }

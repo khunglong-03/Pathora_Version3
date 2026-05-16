@@ -9,7 +9,7 @@ namespace Application.Features.TourInstance.Commands;
 
 public sealed record DeleteTourInstanceCommand([property: JsonPropertyName("id")] Guid Id) : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, CacheKey.Booking];
 }
 
 public sealed class DeleteTourInstanceCommandHandler(ITourInstanceService tourInstanceService)
@@ -17,6 +17,6 @@ public sealed class DeleteTourInstanceCommandHandler(ITourInstanceService tourIn
 {
     public async Task<ErrorOr<Success>> Handle(DeleteTourInstanceCommand request, CancellationToken cancellationToken)
     {
-        return await tourInstanceService.Delete(request.Id);
+        return await tourInstanceService.Delete(request.Id, cancellationToken);
     }
 }

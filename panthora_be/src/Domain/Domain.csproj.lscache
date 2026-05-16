@@ -221,6 +221,7 @@ Enums/
  PricingPolicyStatus.cs
  PricingType.cs
  ProviderApprovalStatus.cs
+ RefundStatus.cs
  ReservationStatus.cs
  RoleStatus.cs
  RoleType.cs
@@ -271,6 +272,7 @@ Mails/
  PasswordResetMail.cs
  RegisterMail.cs
  ResetPasswordMail.cs
+ TourCancelledMail.cs
  TourRequestApprovedMail.cs
  TourRequestRejectedMail.cs
  TourRequestSubmittedMail.cs

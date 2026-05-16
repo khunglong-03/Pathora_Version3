@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Tour bị huỷ - Thông báo hoàn tiền</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Xin chào {{ customer_name }},</h2>
+        <p>Chúng tôi rất tiếc phải thông báo rằng tour <strong>{{ tour_name }}</strong> (Mã đặt chỗ: {{ booking_id }}) đã bị huỷ bởi quản lý.</p>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
+            <strong>Số tiền dự kiến hoàn:</strong><br />
+            {{ refund_outstanding_amount }}
+        </div>
+
+        <p>Quản lý sẽ liên hệ với bạn trong thời gian sớm nhất để xử lý hoàn tiền. Nếu bạn cần hỗ trợ gấp, vui lòng gọi hotline:</p>
+
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0;">
+            <strong>Hotline:</strong> {{ hotline_phone }}
+        </div>
+
+        <p>Chúng tôi xin lỗi vì sự bất tiện này và cảm ơn bạn đã tin tưởng Pathora.</p>
+        <p>Trân trọng,<br />Đội ngũ Pathora</p>
+    </div>
+</body>
+</html>

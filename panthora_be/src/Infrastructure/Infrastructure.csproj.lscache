@@ -181,6 +181,8 @@ Migrations/
  20260504015346_AddBookingCancellationWorkflow.Designer.cs
  20260505024450_DropFinalSellPriceAddOriginalBasePrice.cs
  20260505024450_DropFinalSellPriceAddOriginalBasePrice.Designer.cs
+ 20260515182407_AddBookingRefundStatus.cs
+ 20260515182407_AddBookingRefundStatus.Designer.cs
  AppDbContextModelSnapshot.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs

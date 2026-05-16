@@ -15,7 +15,7 @@ public sealed record ChangeTourInstanceStatusCommand(
     [property: JsonPropertyName("newStatus")] TourInstanceStatus NewStatus)
     : ICommand<ErrorOr<Success>>, ICacheInvalidator
 {
-    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance];
+    public IReadOnlyList<string> CacheKeysToInvalidate => [CacheKey.TourInstance, CacheKey.Booking];
 }
 
 public sealed class ChangeTourInstanceStatusCommandValidator : AbstractValidator<ChangeTourInstanceStatusCommand>
@@ -35,6 +35,6 @@ public sealed class ChangeTourInstanceStatusCommandHandler(ITourInstanceService 
 {
     public async Task<ErrorOr<Success>> Handle(ChangeTourInstanceStatusCommand request, CancellationToken cancellationToken)
     {
-        return await tourInstanceService.ChangeStatus(request.Id, request.NewStatus);
+        return await tourInstanceService.ChangeStatus(request.Id, request.NewStatus, cancellationToken);
     }
 }

@@ -1,6 +1,7 @@
 using Api.Endpoint;
 using Application.Features.BookingCancellation.Commands;
 using Application.Features.BookingCancellation.Queries;
+using Application.Features.BookingManagement;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -105,6 +106,17 @@ public class BookingCancellationController : BaseApiController
         var result = await Sender.Send(new ConfirmRefundCommand(requestId, body?.RefundNote, managerId));
         return HandleResult(result);
     }
+
+    /// <summary>
+    /// Manager: update refund tracking status (Pending → Contacted → Refunded).
+    /// </summary>
+    [Authorize(Policy = "ManagerOnly")]
+    [HttpPatch("bookings/{bookingId:guid}/refund-status")]
+    public async Task<IActionResult> UpdateRefundStatus(Guid bookingId, [FromBody] UpdateRefundStatusBody body)
+    {
+        var result = await Sender.Send(new UpdateBookingRefundStatusCommand(bookingId, body.Status));
+        return HandleResult(result);
+    }
 }
 
 // ─── Request body DTOs ─────────────────────────────────────────────────────────
@@ -121,3 +133,6 @@ public sealed record RejectBody(
 
 public sealed record ConfirmRefundBody(
     [property: JsonPropertyName("refundNote")] string? RefundNote);
+
+public sealed record UpdateRefundStatusBody(
+    [property: JsonPropertyName("status")] RefundStatus Status);

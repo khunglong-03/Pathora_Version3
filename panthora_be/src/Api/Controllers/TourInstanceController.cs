@@ -64,9 +64,9 @@ public class TourInstanceController : BaseApiController
 
     [Authorize(Roles = "Admin,Manager,TourOperator")]
     [HttpDelete(TourInstanceEndpoint.Id)]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(new DeleteTourInstanceCommand(id));
+        var result = await Sender.Send(new DeleteTourInstanceCommand(id), cancellationToken);
         return HandleResult(result);
     }
 
@@ -77,11 +77,11 @@ public class TourInstanceController : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager")]
     [HttpPatch(TourInstanceEndpoint.ChangeStatus)]
-    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request)
+    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeTourInstanceStatusRequest request, CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(new ChangeTourInstanceStatusCommand(id, request.Status));
+        var result = await Sender.Send(new ChangeTourInstanceStatusCommand(id, request.Status), cancellationToken);
         return HandleResult(result);
     }
 

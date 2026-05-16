@@ -191,4 +191,30 @@ public sealed class TourInstanceNotificationService(
             "New custom tour request notification sent to user {UserId} for TourInstance {TourInstanceId}",
             targetManagerUserId, tourInstanceId);
     }
+
+    public async Task NotifyCustomerTourCancelledAsync(
+        Guid bookingId,
+        string customerEmail,
+        string tourName,
+        decimal? refundOutstandingAmount,
+        CancellationToken ct = default)
+    {
+        // Email is handled by BookingCancelledNotificationHandler via domain event.
+        // This method exists for interface completeness and can broadcast in-app events if needed.
+        var payload = new
+        {
+            BookingId = bookingId,
+            TourName = tourName,
+            RefundOutstandingAmount = refundOutstandingAmount,
+            Event = "TourCancelled"
+        };
+
+        await _hubContext.Clients
+            .Group($"booking:{bookingId}")
+            .SendAsync("ReceiveBookingUpdate", payload, ct);
+
+        _logger.LogDebug(
+            "Tour cancelled notification sent for booking {BookingId} (email: {CustomerEmail})",
+            bookingId, customerEmail);
+    }
 }

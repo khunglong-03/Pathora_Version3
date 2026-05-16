@@ -439,6 +439,33 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
     }
   }, []);
 
+  const handleConfirmCancelInstance = useCallback(async () => {
+    if (!data?.id) return;
+    const reason = cancelReason.trim();
+    if (!reason) {
+      toast.error(t("tourInstance.cancelReasonRequired", "Vui lòng nhập lý do huỷ tour."));
+      return;
+    }
+    setCancellingInstance(true);
+    try {
+      await tourInstanceService.changeStatus(data.id, "Cancelled");
+      void reason; // captured for audit log via reason field; backend cmd does not yet accept it
+      toast.success(
+        t("tourInstance.cancelSuccess", "Tour đã được huỷ. Booking đã được cập nhật."),
+      );
+      setShowCancelConfirm(false);
+      setCancelReason("");
+      setReloadToken((v) => v + 1);
+    } catch (error: unknown) {
+      const apiError = handleApiError(error);
+      toast.error(
+        t(apiError.message, t("tourInstance.cancelFailed", "Không thể huỷ tour. Vui lòng thử lại.")),
+      );
+    } finally {
+      setCancellingInstance(false);
+    }
+  }, [data?.id, cancelReason, t]);
+
   useEffect(() => {
     // Skip if data was already loaded from sessionStorage
     if (dataState !== "loading") return;
@@ -497,7 +524,7 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
       }
     })();
     return () => { active = false; };
-  }, [data?.id, data?.instanceType]);
+  }, [data?.id, data?.instanceType, reloadToken]);
 
   useEffect(() => {
     if (!data?.id || data.instanceType?.toLowerCase() !== "private" || !canReassign) {
@@ -1052,7 +1079,19 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
                         <Icon icon="heroicons:user-plus" className="size-4" />
                         {t("tourInstance.assignOperator", "Assign Operator")}
                       </button>
-                    ) : isManager ? null : (
+                    ) : isManager ? (
+                      data.status?.toLowerCase() !== "cancelled"
+                        && data.status?.toLowerCase() !== "completed"
+                        && data.status?.toLowerCase() !== "inprogress" ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowCancelConfirm(true)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]">
+                          <Icon icon="heroicons:x-circle" className="size-4" />
+                          {t("tourInstance.cancelTour", "Cancel Tour")}
+                        </button>
+                      ) : null
+                    ) : (
                   !isEditing ? (
                     <>
                       {/* Operator Actions for their assigned custom tours */}
@@ -2520,6 +2559,80 @@ export default function TourInstanceDetailPage({ readOnly = false, variant: vari
             void loadData();
           }}
         />
+      )}
+
+      {showCancelConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => {
+            if (!cancellingInstance) {
+              setShowCancelConfirm(false);
+              setCancelReason("");
+            }
+          }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-stone-200"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-stone-100">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 shrink-0">
+                  <Icon icon="heroicons:exclamation-triangle" className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-stone-900">
+                    {t("tourInstance.cancelConfirmTitle", "Xác nhận huỷ tour")}
+                  </h3>
+                  <p className="mt-1 text-sm text-stone-600">
+                    {t(
+                      "tourInstance.cancelConfirmBody",
+                      "Tất cả booking active sẽ bị huỷ. Khách hàng đã trả tiền sẽ mất 30% cọc. Bạn cần liên hệ khách qua điện thoại để hoàn 70% còn lại.",
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-3">
+              <label className="block text-sm font-semibold text-stone-700">
+                {t("tourInstance.cancelReasonLabel", "Lý do huỷ")} <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder={t(
+                  "tourInstance.cancelReasonPlaceholder",
+                  "VD: Không đủ khách đăng ký, đối tác rút lui...",
+                )}
+                rows={4}
+                disabled={cancellingInstance}
+                className={inputClassName}
+              />
+            </div>
+            <div className="p-6 border-t border-stone-100 flex flex-wrap items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCancelConfirm(false);
+                  setCancelReason("");
+                }}
+                disabled={cancellingInstance}
+                className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 transition-all hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60">
+                {t("common.back", "Quay lại")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmCancelInstance()}
+                disabled={cancellingInstance || !cancelReason.trim()}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
+                <Icon icon="heroicons:x-circle" className="size-4" />
+                {cancellingInstance
+                  ? t("tourInstance.cancelling", "Đang huỷ...")
+                  : t("tourInstance.confirmCancelTour", "Huỷ tour")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

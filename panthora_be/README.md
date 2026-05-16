@@ -14,6 +14,20 @@ ASP.NET Core backend for the Panthora travel/tour platform.
 
 - [Private tour — luồng thanh toán hai giai đoạn (co-design)](docs/private-custom-tour-payment-flow.md) — mô tả nghiệp vụ (VI), route/identifier (EN).
 
+### Manager cancel tour — cascade & refund tracking
+
+- **Khi Manager huỷ tour (status → `Cancelled`)**: hệ thống tự động cascade cancel toàn bộ booking active (`Pending`/`Confirmed`/`Deposited`/`Paid`). Booking đã `Cancelled` / `Completed` bị skip.
+- **Tour InProgress / Completed không thể huỷ** — endpoint trả `TourInstance.CannotCancelAfterStart`.
+- **Penalty cố định 30%** trên số tiền khách đã thanh toán (không dùng `CancellationPolicyEntity` cho luồng này). 70% còn lại Manager liên hệ khách offline.
+- **Không trừ ví Manager** — refund tracking là workflow ngoài, Manager click "Đã liên hệ" → "Đã hoàn tiền" trong dashboard.
+- **RefundStatus enum**: `Pending` (cần liên hệ) → `Contacted` (đã gọi) → `Refunded` (đã chuyển khoản) → `NotApplicable` (không có gì hoàn vì khách chưa trả).
+- **API**:
+  - `PATCH /api/tour-instances/{id}/status` (Authorize Admin/Manager) — cancel tour + cascade booking.
+  - `PATCH /api/bookings/{id}/refund-status` (Authorize Admin/Manager) — cập nhật Pending → Contacted → Refunded.
+  - `GET /api/bookings?refundStatus=Pending` — filter Manager dashboard.
+- **Email**: customer nhận thông báo `tour-cancelled.{vi,en}.html` với `refundOutstandingAmount` + hotline. Mail fail không throw, log warning.
+- **Frontend**: route `/manager/dashboard/refund-tracking`, tabs `Pending|Contacted|Refunded|All`, click-to-call `tel:` / `mailto:`, highlight đỏ nếu Pending > 7 ngày.
+
 ## Local Development
 
 Run from `D:/DoAn/panthora_be`.

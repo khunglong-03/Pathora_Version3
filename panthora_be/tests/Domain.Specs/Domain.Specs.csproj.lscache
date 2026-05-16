@@ -74,6 +74,7 @@ Api/
  AuthTokenResolverTests.cs
  BookingManagementApiControllerTests.cs
  CancellationPolicyControllerTests.cs
+ CancelTourAuthorizationTests.cs
  ContinentMigrationTests.cs
  CustomExceptionHandlerTests.cs
  DatabaseStartupInitializerTests.cs
@@ -130,7 +131,12 @@ Application/Features/Admin/Queries/
 Application/Features/
  Admin/Validators/ReassignStaffCommandValidatorTests.cs
  BankAccount/BankAccountFlowTests.cs
- BookingManagement/Supplier/SupplierCommandValidationAndUpdateTests.cs
+ BookingManagement/
+  Notifications/BookingCancelledNotificationHandlerTests.cs
+  Queries/GetAllBookingsQueryHandlerTests.cs
+  Supplier/SupplierCommandValidationAndUpdateTests.cs
+  UpdateBookingRefundStatusCommandHandlerTests.cs
+ ManagerCancelCascadeIntegrationTests.cs
  Public/
   CreatePrivateTourInitialPaymentCommandHandlerTests.cs
   CreatePublicBookingCommandHandlerTests.cs
@@ -167,6 +173,7 @@ Application/Services/
  PrivateTour/PrivateTourTopUpDeadlineProcessorTests.cs
  SepayParsingHelperTests.cs
  TourInstanceServiceApprovalFlowTests.cs
+ TourInstanceServiceCascadeCancelTests.cs
  TourInstanceServiceDayActivityTests.cs
  TourInstanceServiceGetAllScopeTests.cs
  TourInstanceServiceProviderAssignedTests.cs

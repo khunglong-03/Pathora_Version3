@@ -313,7 +313,7 @@ public class BookingManagementController : BaseApiController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Domain.Enums.RefundStatus? refundStatus = null)
     {
         Guid? managerId = null;
         if (User.IsInRole("Manager") && !User.IsInRole("Admin"))
@@ -326,7 +326,7 @@ public class BookingManagementController : BaseApiController
             managerId = parsedManagerId;
         }
 
-        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize, managerId));
+        var result = await Sender.Send(new GetAllBookingsQuery(page, pageSize, managerId, refundStatus));
         return HandleResult(result);
     }
 

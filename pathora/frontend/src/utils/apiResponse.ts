@@ -139,6 +139,12 @@ export const TICKET_IMAGE_ERROR_CODES = [
   "TicketImage.DeleteForbidden",
 ] as const;
 
+export const REFUND_TRACKING_ERROR_CODES = [
+  "TourInstance.CannotCancelAfterStart",
+  "Booking.InvalidRefundStatusTransition",
+  "Booking.RefundStatusOnlyForCancelled",
+] as const;
+
 /**
  * Maps a transport error code to its i18n translation key.
  * Returns null if the code is not in the allowlist.
@@ -184,6 +190,10 @@ const TRANSPORT_ERROR_CODE_MAP: Record<string, string> = {
   "TicketImage.EmptyFile": "tourInstance.transport.ticketImages.errors.emptyFile",
   "TicketImage.CrossActivityDelete": "tourInstance.transport.ticketImages.errors.crossActivityDelete",
   "TicketImage.DeleteForbidden": "tourInstance.transport.ticketImages.errors.deleteForbidden",
+  // Refund tracking
+  "TourInstance.CannotCancelAfterStart": "errors.TourInstance.CannotCancelAfterStart",
+  "Booking.InvalidRefundStatusTransition": "errors.Booking.InvalidRefundStatusTransition",
+  "Booking.RefundStatusOnlyForCancelled": "errors.Booking.RefundStatusOnlyForCancelled",
 };
 
 const AUTH_ERROR_CODE_MAP: Record<string, string> = {

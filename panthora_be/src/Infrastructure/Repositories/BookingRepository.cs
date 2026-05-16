@@ -80,13 +80,16 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<(List<BookingEntity> Items, int TotalCount)> GetAllPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(List<BookingEntity> Items, int TotalCount)> GetAllPagedAsync(int page, int pageSize, RefundStatus? refundStatus = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Bookings
             .AsNoTracking()
             .Include(b => b.TourInstance)
             .Include(b => b.User)
             .AsSplitQuery();
+
+        if (refundStatus.HasValue)
+            query = query.Where(b => b.RefundStatus == refundStatus.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
@@ -102,6 +105,7 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
         Guid managerId,
         int page,
         int pageSize,
+        RefundStatus? refundStatus = null,
         CancellationToken cancellationToken = default)
     {
         var designerIds = await _context.TourManagerAssignments
@@ -137,6 +141,9 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
                         && (allowedTourIds.Contains(b.TourInstance.TourId)
                             || allowedInstanceIds.Contains(b.TourInstanceId)))
             .AsSplitQuery();
+
+        if (refundStatus.HasValue)
+            query = query.Where(b => b.RefundStatus == refundStatus.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query

@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Domain.Common.Repositories;
 
@@ -9,8 +10,8 @@ public interface IBookingRepository
     Task<List<BookingEntity>> GetByTourInstanceIdAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
     Task<List<BookingEntity>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<List<BookingEntity>> GetRecentByUserIdAsync(Guid userId, int count, CancellationToken cancellationToken = default);
-    Task<(List<BookingEntity> Items, int TotalCount)> GetAllPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
-    Task<(List<BookingEntity> Items, int TotalCount)> GetPagedForManagerAsync(Guid managerId, int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<(List<BookingEntity> Items, int TotalCount)> GetAllPagedAsync(int page, int pageSize, RefundStatus? refundStatus = null, CancellationToken cancellationToken = default);
+    Task<(List<BookingEntity> Items, int TotalCount)> GetPagedForManagerAsync(Guid managerId, int page, int pageSize, RefundStatus? refundStatus = null, CancellationToken cancellationToken = default);
     Task<int> CountByTourInstanceIdAsync(Guid tourInstanceId, CancellationToken cancellationToken = default);
     Task AddAsync(BookingEntity booking, CancellationToken cancellationToken = default);
     Task UpdateWithoutSaveAsync(BookingEntity booking);

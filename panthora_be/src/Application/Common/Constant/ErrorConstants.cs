@@ -73,6 +73,12 @@ public static class ErrorConstants
             new(
                 "Lịch khởi hành này đã được sửa bởi người khác. Vui lòng tải lại và thử lại.",
                 "This tour instance was modified by another user. Please refresh and try again.");
+
+        public const string CannotCancelAfterStartCode = "TourInstance.CannotCancelAfterStart";
+        public static readonly LocalizedMessage CannotCancelAfterStartDescription =
+            new(
+                "Tour đã bắt đầu hoặc hoàn thành, không thể huỷ.",
+                "Tour has started or completed and cannot be cancelled.");
     }
 
     public static class ItineraryFeedback
@@ -302,6 +308,14 @@ public static class ErrorConstants
             new(
                 "Số lượng participant ({0}) vượt quá sức chứa phòng ({1}).",
                 "Participant count ({0}) exceeds room capacity ({1}).");
+
+        public const string InvalidRefundStatusTransitionCode = "Booking.InvalidRefundStatusTransition";
+        public static readonly LocalizedMessage InvalidRefundStatusTransitionDescription =
+            new("Chuyển trạng thái hoàn tiền không hợp lệ.", "Invalid refund status transition.");
+
+        public const string RefundStatusOnlyForCancelledCode = "Booking.RefundStatusOnlyForCancelled";
+        public static readonly LocalizedMessage RefundStatusOnlyForCancelledDescription =
+            new("Chỉ có thể cập nhật trạng thái hoàn tiền cho booking đã huỷ.", "Refund status can only be updated for cancelled bookings.");
     }
 
     public static class TourGuide
@@ -685,6 +699,9 @@ public static class ErrorConstants
             var value when value == Payment.BookingNotFoundCode => Payment.BookingNotFoundDescription,
             var value when value == Payment.PaymentProcessingFailedCode => Payment.PaymentProcessingFailedDescription,
             var value when value == Payment.TransactionAlreadyCancelledCode => Payment.TransactionAlreadyCancelledDescription,
+            var value when value == TourInstance.CannotCancelAfterStartCode => TourInstance.CannotCancelAfterStartDescription,
+            var value when value == Booking.InvalidRefundStatusTransitionCode => Booking.InvalidRefundStatusTransitionDescription,
+            var value when value == Booking.RefundStatusOnlyForCancelledCode => Booking.RefundStatusOnlyForCancelledDescription,
             _ => null,
         };
 

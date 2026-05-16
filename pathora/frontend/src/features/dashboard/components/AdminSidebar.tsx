@@ -31,6 +31,7 @@ import {
   BuildingOfficeIcon,
   HouseIcon,
   PlusIcon,
+  HandCoinsIcon,
 } from "@phosphor-icons/react";
 import { tourRequestService } from "@/api/services/tourRequestService";
 import { transportProviderService } from "@/api/services/transportProviderService";
@@ -72,6 +73,11 @@ export const MANAGER_NAV_ITEMS = [
     label: "Cancellations",
     icon: XCircleIcon,
     href: "/manager/dashboard/cancellations",
+  },
+  {
+    label: "Refund Tracking",
+    icon: HandCoinsIcon,
+    href: "/manager/dashboard/refund-tracking",
   },
   {
     label: "Payments",

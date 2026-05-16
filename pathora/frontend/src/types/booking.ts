@@ -53,6 +53,7 @@ export type PaymentStatusString = "Pending" | "Partial" | "Paid" | "Overdue" | "
 export type BookingStatusString = "Pending" | "Confirmed" | "Cancelled" | "Completed";
 export type SupplierTypeString = "Hotel" | "Restaurant" | "Transport" | "Activity" | "Other";
 export type TransportTypeString = "Bus" | "Train" | "Flight" | "Boat" | "Car" | "Other";
+export type RefundStatusString = "Pending" | "Contacted" | "Refunded" | "NotApplicable";
 
 // Sub-DTOs
 export interface PassportDto {
@@ -251,6 +252,10 @@ export interface BookingDetailResponse {
   activityStatuses: TourDayActivityStatusDto[];
   cancellationRequest?: BookingCancellationRequestSummaryDto;
   cancellationRequests: BookingCancellationRequestSummaryDto[];
+  refundStatus?: RefundStatusString;
+  refundOutstandingAmount?: number | null;
+  refundContactedAt?: string | null;
+  refundCompletedAt?: string | null;
 }
 
 export interface BookingCancellationRequestSummaryDto {

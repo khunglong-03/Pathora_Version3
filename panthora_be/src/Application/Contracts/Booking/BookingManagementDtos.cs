@@ -362,7 +362,14 @@ public sealed record AdminBookingListResponse(
     [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("numberAdult")] int NumberAdult,
     [property: JsonPropertyName("numberChild")] int NumberChild,
-    [property: JsonPropertyName("numberInfant")] int NumberInfant
+    [property: JsonPropertyName("numberInfant")] int NumberInfant,
+    [property: JsonPropertyName("refundStatus")] string? RefundStatus = null,
+    [property: JsonPropertyName("refundOutstandingAmount")] decimal? RefundOutstandingAmount = null,
+    [property: JsonPropertyName("refundContactedAt")] DateTimeOffset? RefundContactedAt = null,
+    [property: JsonPropertyName("refundCompletedAt")] DateTimeOffset? RefundCompletedAt = null,
+    [property: JsonPropertyName("customerPhone")] string? CustomerPhone = null,
+    [property: JsonPropertyName("customerEmail")] string? CustomerEmail = null,
+    [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt = null
 );
 
 public sealed record AdminBookingListResult(

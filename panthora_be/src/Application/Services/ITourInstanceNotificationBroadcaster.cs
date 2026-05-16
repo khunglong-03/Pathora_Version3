@@ -66,4 +66,14 @@ public interface ITourInstanceNotificationBroadcaster
         string customerName,
         Guid targetManagerUserId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Gửi email thông báo cho customer khi tour bị huỷ bởi Manager.
+    /// </summary>
+    Task NotifyCustomerTourCancelledAsync(
+        Guid bookingId,
+        string customerEmail,
+        string tourName,
+        decimal? refundOutstandingAmount,
+        CancellationToken ct = default);
 }

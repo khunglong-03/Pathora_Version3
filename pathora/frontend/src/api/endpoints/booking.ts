@@ -42,6 +42,7 @@ export interface BookingEndpoints {
   SET_TOUR_GUIDES: (id: string) => string;
   GET_MY_RECENT: string;
   GET_MY_BOOKINGS: string;
+  UPDATE_REFUND_STATUS: (id: string) => string;
 }
 
 export interface TourRequestEndpoints {
@@ -112,6 +113,7 @@ export const BOOKING: BookingEndpoints = {
   SET_TOUR_MANAGER: (id: string): string => `/api/bookings/${id}/team/tour-manager`,
   SET_TOUR_OPERATORS: (id: string): string => `/api/bookings/${id}/team/tour-operators`,
   SET_TOUR_GUIDES: (id: string): string => `/api/bookings/${id}/team/tour-guides`,
+  UPDATE_REFUND_STATUS: (id: string): string => `/api/bookings/${id}/refund-status`,
 };
 
 export const TOUR_REQUESTS: TourRequestEndpoints = {

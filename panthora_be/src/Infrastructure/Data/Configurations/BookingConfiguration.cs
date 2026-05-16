@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -58,6 +59,20 @@ public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
             .HasMaxLength(1000);
 
         builder.Property(b => b.CancelledAt);
+
+        // Refund tracking fields
+        builder.Property(b => b.RefundStatus)
+            .HasConversion<int>()
+            .HasDefaultValue(RefundStatus.NotApplicable)
+            .IsRequired();
+
+        builder.Property(b => b.RefundOutstandingAmount)
+            .HasColumnType("numeric(18,2)");
+
+        builder.Property(b => b.RefundContactedAt);
+        builder.Property(b => b.RefundCompletedAt);
+
+        builder.HasIndex(b => b.RefundStatus);
 
         // Indexes
         builder.HasIndex(b => b.Status);

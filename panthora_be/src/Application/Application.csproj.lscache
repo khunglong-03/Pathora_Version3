@@ -66,6 +66,7 @@ Common/
  Constant/
   AuthProviderConstants.cs
   AuthProviders.cs
+  BookingCancellationConstants.cs
   DefaultRoleIds.cs
   ErrorConstants.BookingCancellation.cs
   ErrorConstants.cs
@@ -246,6 +247,7 @@ Features/BookingManagement/
  ActivityStatus/ActivityStatusCommands.cs
  Common/BookingCapacityValidation.cs
  Handlers/GetBookingsByTourInstanceQueryHandler.cs
+ Notifications/BookingCancelledNotificationHandler.cs
  Participant/ParticipantAndDocumentCommands.cs
  Payable/SupplierPayableCommands.cs
  Queries/
@@ -264,6 +266,7 @@ Features/BookingManagement/
   SupplierCommands.cs
   SupplierQueries.cs
  TourGuide/TourGuideCommands.cs
+ UpdateBookingRefundStatusCommand.cs
 Features/CancellationPolicy/Commands/
  CreateCancellationPolicyCommand.cs
  DeleteCancellationPolicyCommand.cs

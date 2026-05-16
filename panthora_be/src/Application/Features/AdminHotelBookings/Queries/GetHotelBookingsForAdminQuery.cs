@@ -29,7 +29,7 @@ public sealed class GetHotelBookingsForAdminQueryHandler(
         CancellationToken cancellationToken)
     {
         var (bookings, totalCount) = await bookingRepository.GetAllPagedAsync(
-            request.PageNumber, request.PageSize, cancellationToken);
+            request.PageNumber, request.PageSize, cancellationToken: cancellationToken);
 
         var result = new List<AdminHotelBookingDto>();
 

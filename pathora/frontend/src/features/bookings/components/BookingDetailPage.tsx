@@ -23,6 +23,7 @@ import { BookingNeedHelp } from "./BookingNeedHelp";
 import { BookingFloatingSocial } from "./BookingFloatingSocial";
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
+import { BookingRefundSection } from "./BookingRefundSection";
 
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
@@ -184,6 +185,15 @@ export function BookingDetailPage() {
                 getPaymentStatusLabel={labelFns.getPaymentStatusLabel}
               />
               <CancellationRequestTimeline requests={mappedBooking.cancellationRequests || []} />
+              <BookingRefundSection
+                bookingId={mappedBooking.id}
+                bookingStatus={mappedBooking.status}
+                refundStatus={booking.refundStatus}
+                refundOutstandingAmount={booking.refundOutstandingAmount}
+                refundContactedAt={booking.refundContactedAt}
+                refundCompletedAt={booking.refundCompletedAt}
+                onChanged={fetchBookingWithoutLoading}
+              />
               <BookingNeedHelp />
             </div>
           </div>

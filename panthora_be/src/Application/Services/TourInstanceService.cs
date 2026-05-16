@@ -24,8 +24,8 @@ public interface ITourInstanceService
 {
     Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request);
     Task<ErrorOr<Success>> Update(UpdateTourInstanceCommand request);
-    Task<ErrorOr<Success>> Delete(Guid id);
-    Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus);
+    Task<ErrorOr<Success>> Delete(Guid id, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> ProviderApprove(
         Guid instanceId,
         bool isApproved,
@@ -78,7 +78,9 @@ public class TourInstanceService(
     IVehicleBlockRepository? vehicleBlockRepository = null,
     Domain.Common.Repositories.IBookingRepository? bookingRepository = null,
     IUnitOfWork? unitOfWork = null,
-    Domain.Common.Repositories.ITourManagerAssignmentRepository? tourManagerAssignmentRepository = null) : ITourInstanceService
+    Domain.Common.Repositories.ITourManagerAssignmentRepository? tourManagerAssignmentRepository = null,
+    Domain.Common.Repositories.IPaymentTransactionRepository? paymentTransactionRepository = null,
+    Domain.Common.Repositories.IBookingCancellationRequestRepository? bookingCancellationRequestRepository = null) : ITourInstanceService
 {
     private readonly ITourInstanceRepository _tourInstanceRepository = tourInstanceRepository;
     private readonly ITourRepository _tourRepository = tourRepository;
@@ -98,6 +100,8 @@ public class TourInstanceService(
     private readonly IVehicleBlockRepository? _vehicleBlockRepository = vehicleBlockRepository;
     private readonly Domain.Common.Repositories.IBookingRepository? _bookingRepository = bookingRepository;
     private readonly Domain.Common.Repositories.ITourManagerAssignmentRepository? _tourManagerAssignmentRepository = tourManagerAssignmentRepository;
+    private readonly Domain.Common.Repositories.IPaymentTransactionRepository? _paymentTransactionRepository = paymentTransactionRepository;
+    private readonly Domain.Common.Repositories.IBookingCancellationRequestRepository? _bookingCancellationRequestRepository = bookingCancellationRequestRepository;
 
     public async Task<ErrorOr<Guid>> Create(CreateTourInstanceCommand request)
     {
@@ -1052,14 +1056,49 @@ public class TourInstanceService(
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> Delete(Guid id)
+    public async Task<ErrorOr<Success>> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await _tourInstanceRepository.FindById(id);
         if (entity is null)
             return Error.NotFound(ErrorConstants.TourInstance.NotFoundCode, ErrorConstants.TourInstance.NotFoundDescription);
 
-        // ER-3: clean up room/vehicle blocks tied to this tour instance before soft-delete,
-        // so inventory is freed back to the supplier.
+        // Check for active bookings before delete — cascade cancel if any
+        if (_bookingRepository is not null)
+        {
+            var bookings = await _bookingRepository.GetByTourInstanceIdAsync(id, cancellationToken);
+            var hasActiveBookings = bookings.Any(b => b.Status is not (BookingStatus.Completed or BookingStatus.Cancelled));
+            var hasInProgressOrCompleted = bookings.Any(b => b.Status is BookingStatus.Completed);
+
+            if (hasInProgressOrCompleted)
+                return Error.Validation(ErrorConstants.TourInstance.CannotCancelAfterStartCode, ErrorConstants.TourInstance.CannotCancelAfterStartDescription);
+
+            if (hasActiveBookings)
+            {
+                var performedBy = _user.Id ?? string.Empty;
+                async Task DoDelete()
+                {
+                    await _roomBlockRepository.DeleteByTourInstanceAsync(id);
+                    if (_vehicleBlockRepository is not null)
+                        await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
+                    await CascadeCancelBookingsAsync(id, "Tour bị xoá bởi Manager", performedBy, cancellationToken);
+                    await _tourInstanceRepository.SoftDelete(id);
+                    if (_unitOfWork is not null)
+                        await _unitOfWork.SaveChangeAsync(cancellationToken);
+                }
+
+                if (_unitOfWork is not null)
+                {
+                    await _unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, DoDelete);
+                }
+                else
+                {
+                    await DoDelete();
+                }
+                return Result.Success;
+            }
+        }
+
+        // No active bookings — proceed with original soft-delete
         await _roomBlockRepository.DeleteByTourInstanceAsync(id);
         if (_vehicleBlockRepository is not null)
             await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
@@ -1068,7 +1107,7 @@ public class TourInstanceService(
         return Result.Success;
     }
 
-    public async Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus)
+    public async Task<ErrorOr<Success>> ChangeStatus(Guid id, TourInstanceStatus newStatus, CancellationToken cancellationToken = default)
     {
         var entity = await _tourInstanceRepository.FindById(id);
         if (entity is null)
@@ -1079,17 +1118,67 @@ public class TourInstanceService(
         {
             if (!Guid.TryParse(_user.Id, out var currentUserId))
                 return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, ErrorConstants.User.UnauthorizedDescription);
-                
+
             var isAssigned = entity.Managers.Any(m => m.UserId == currentUserId && m.Role == TourInstanceManagerRole.Guide);
             if (!isAssigned)
                 return Error.Unauthorized(ErrorConstants.User.UnauthorizedCode, "Bạn không được phân công hướng dẫn tour này.");
-            
+
             // TourGuide can only transition to InProgress or Completed
             if (newStatus != TourInstanceStatus.InProgress && newStatus != TourInstanceStatus.Completed)
                 return Error.Validation("TourInstance.InvalidStatus", "Hướng dẫn viên chỉ có thể Bắt đầu (InProgress) hoặc Kết thúc (Completed) tour.");
         }
 
+        // Guard: cannot cancel instance that has already started or completed
+        if (newStatus == TourInstanceStatus.Cancelled && entity.Status is TourInstanceStatus.InProgress or TourInstanceStatus.Completed or TourInstanceStatus.Cancelled)
+            return Error.Validation(ErrorConstants.TourInstance.CannotCancelAfterStartCode, ErrorConstants.TourInstance.CannotCancelAfterStartDescription);
+
         var performedBy = _user.Id ?? string.Empty;
+
+        // Cancelled branch: wrap in transaction with cascade
+        if (newStatus == TourInstanceStatus.Cancelled)
+        {
+            async Task DoCancel()
+            {
+                try
+                {
+                    entity.ChangeStatus(newStatus, performedBy);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException(ex.Message, ex);
+                }
+
+                await _tourInstanceRepository.Update(entity);
+
+                // ER-3: free all inventory holds
+                await _roomBlockRepository.DeleteByTourInstanceAsync(id);
+                if (_vehicleBlockRepository is not null)
+                    await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
+
+                // Cascade cancel bookings
+                if (_bookingRepository is not null)
+                    await CascadeCancelBookingsAsync(id, "Tour bị huỷ bởi Manager", performedBy, cancellationToken);
+
+                if (_unitOfWork is not null)
+                    await _unitOfWork.SaveChangeAsync(cancellationToken);
+            }
+
+            try
+            {
+                if (_unitOfWork is not null)
+                    await _unitOfWork.ExecuteTransactionAsync(System.Data.IsolationLevel.RepeatableRead, DoCancel);
+                else
+                    await DoCancel();
+            }
+            catch (InvalidOperationException ex) when (ex.InnerException is not InvalidOperationException)
+            {
+                return Error.Validation("TourInstance.InvalidTransition", ex.Message);
+            }
+
+            return Result.Success;
+        }
+
+        // Non-cancelled branch: original logic
         try
         {
             entity.ChangeStatus(newStatus, performedBy);
@@ -1101,15 +1190,51 @@ public class TourInstanceService(
 
         await _tourInstanceRepository.Update(entity);
 
-        // ER-3: whenever the tour transitions into Cancelled, free all inventory holds.
-        if (newStatus == TourInstanceStatus.Cancelled)
-        {
-            await _roomBlockRepository.DeleteByTourInstanceAsync(id);
-            if (_vehicleBlockRepository is not null)
-                await _vehicleBlockRepository.DeleteByTourInstanceAsync(id);
-        }
-
         return Result.Success;
+    }
+
+    /// <summary>
+    /// Cascade huỷ tất cả booking active của instance về Cancelled, khởi tạo refund tracking,
+    /// và auto-reject các booking cancellation request đang pending.
+    /// </summary>
+    private async Task CascadeCancelBookingsAsync(Guid instanceId, string reason, string performedBy, CancellationToken ct)
+    {
+        if (_bookingRepository is null || _paymentTransactionRepository is null)
+            return;
+
+        var bookings = await _bookingRepository.GetByTourInstanceIdAsync(instanceId, ct);
+
+        foreach (var booking in bookings)
+        {
+            if (booking.Status is BookingStatus.Completed or BookingStatus.Cancelled)
+                continue;
+
+            // Compute net paid amount
+            var txs = await _paymentTransactionRepository.GetByBookingIdListAsync(booking.Id, ct);
+            var paidIn = txs
+                .Where(t => t.Status == TransactionStatus.Completed && t.Type is TransactionType.Deposit or TransactionType.FullPayment)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            var refundOut = txs
+                .Where(t => t.Status == TransactionStatus.Completed && t.Type == TransactionType.Refund)
+                .Sum(t => t.PaidAmount ?? t.Amount);
+            var netPaid = Math.Max(0, paidIn - refundOut);
+
+            booking.Cancel(reason, performedBy);
+            booking.InitializeRefundTracking(netPaid, performedBy);
+            await _bookingRepository.UpdateAsync(booking, ct);
+
+            // Auto-reject pending cancellation requests for this booking
+            if (_bookingCancellationRequestRepository is not null && Guid.TryParse(performedBy, out var managerId))
+            {
+                var pendingRequest = await _bookingCancellationRequestRepository.GetPendingByBookingId(booking.Id, ct);
+                if (pendingRequest is not null)
+                {
+                    pendingRequest.Reject(managerId, "Tour bị huỷ bởi Manager — yêu cầu huỷ tự động đóng.");
+                    if (_unitOfWork is not null)
+                        _unitOfWork.GenericRepository<BookingCancellationRequestEntity>().Update(pendingRequest);
+                }
+            }
+        }
     }
 
     public async Task<ErrorOr<Success>> ManagerApproveItinerary(Guid id)

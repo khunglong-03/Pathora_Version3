@@ -1,5 +1,6 @@
 namespace Domain.Entities;
 
+using Domain.Enums;
 using Domain.Events;
 
 /// <summary>
@@ -86,6 +87,15 @@ public class BookingEntity : Aggregate<Guid>
     /// <summary>Ghi nhận hoàn / điều chỉnh ví liên quan booking (OpenSpec TransactionHistory).</summary>
     public virtual List<TransactionHistoryEntity> TransactionHistories { get; set; } = [];
 
+    // Refund tracking (manager-initiated cancel workflow)
+    /// <summary>Trạng thái hoàn tiền thủ công. Mặc định NotApplicable, chỉ relevant khi booking Cancelled.</summary>
+    public RefundStatus RefundStatus { get; private set; } = RefundStatus.NotApplicable;
+    /// <summary>Số tiền cần hoàn (snapshot = paidAmount * 0.7 tại thời điểm cascade).</summary>
+    public decimal? RefundOutstandingAmount { get; private set; }
+    /// <summary>Thời điểm Manager đã liên hệ khách.</summary>
+    public DateTimeOffset? RefundContactedAt { get; private set; }
+    /// <summary>Thời điểm hoàn tiền xong.</summary>
+    public DateTimeOffset? RefundCompletedAt { get; private set; }
 
     public static BookingEntity Create(
         Guid tourInstanceId,
@@ -236,6 +246,65 @@ public class BookingEntity : Aggregate<Guid>
             throw new ArgumentOutOfRangeException(nameof(amount), "Phí visa phải lớn hơn 0.");
         VisaServiceFeeTotal += amount;
         TotalPrice += amount;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Khởi tạo tracking hoàn tiền sau khi booking đã Cancel.
+    /// Guard: chỉ chạy khi Status = Cancelled.
+    /// paidAmount = 0 → NotApplicable; paidAmount > 0 → Pending với outstanding = paid * 0.7.
+    /// </summary>
+    public void InitializeRefundTracking(decimal paidAmount, string performedBy)
+    {
+        if (Status != BookingStatus.Cancelled)
+            throw new InvalidOperationException("Chỉ khởi tạo refund tracking cho booking đã Cancel.");
+
+        if (paidAmount <= 0)
+        {
+            RefundStatus = RefundStatus.NotApplicable;
+            RefundOutstandingAmount = null;
+        }
+        else
+        {
+            RefundStatus = RefundStatus.Pending;
+            RefundOutstandingAmount = Math.Round(paidAmount * 0.7m, 0, MidpointRounding.ToEven);
+        }
+
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Đánh dấu Manager đã liên hệ khách.
+    /// Guard: RefundStatus phải là Pending.
+    /// </summary>
+    public void MarkRefundContacted(string performedBy)
+    {
+        if (Status != BookingStatus.Cancelled)
+            throw new InvalidOperationException("Chỉ đánh dấu refund cho booking đã Cancel.");
+        if (RefundStatus != RefundStatus.Pending)
+            throw new InvalidOperationException($"Không thể chuyển từ {RefundStatus} sang Contacted. Chỉ được chuyển từ Pending.");
+
+        RefundStatus = RefundStatus.Contacted;
+        RefundContactedAt = DateTimeOffset.UtcNow;
+        LastModifiedBy = performedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Đánh dấu đã hoàn tiền xong.
+    /// Guard: RefundStatus phải là Contacted.
+    /// </summary>
+    public void MarkRefundCompleted(string performedBy)
+    {
+        if (Status != BookingStatus.Cancelled)
+            throw new InvalidOperationException("Chỉ đánh dấu refund cho booking đã Cancel.");
+        if (RefundStatus != RefundStatus.Contacted)
+            throw new InvalidOperationException($"Không thể chuyển từ {RefundStatus} sang Refunded. Chỉ được chuyển từ Contacted.");
+
+        RefundStatus = RefundStatus.Refunded;
+        RefundCompletedAt = DateTimeOffset.UtcNow;
         LastModifiedBy = performedBy;
         LastModifiedOnUtc = DateTimeOffset.UtcNow;
     }
