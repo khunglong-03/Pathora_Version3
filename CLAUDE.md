@@ -86,6 +86,13 @@ D:\DoAn\
 > - **Api (`panthora_be/src/Api`)**: cho các endpoint nội bộ cần authentication (JWT token, ví dụ `/api/customer/*`, `/api/admin/*`, v.v.).
 > **Migrations:** Chỉ tạo và chạy (dotnet ef database update) migration từ project `Api`! Không chạy auto-migration ở bất kỳ service nào.
 
+> **Runtime Ingress (Docker Compose):**
+> - **Production / Dokploy** (`docker compose -f docker-compose.yml up -d`): KHÔNG publish host port. Traefik (Dokploy) route `Host(${PATHORA_PUBLIC_HOST})` vào `pathora-nginx:8080` qua external network `pathora-shared-network`. Traefik labels gắn trên service nginx. Set env `NEXT_PUBLIC_API_GATEWAY=""` (rỗng) cho same-origin.
+> - **Dev** (`docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` — dev overlay KHÔNG auto-load): mở `localhost:80` (nginx), `localhost:3003` (FE), `localhost:8099` (nginx alt), `localhost:8088/8089` (backend/publicapi direct) để debug.
+> - **Frontend container** chỉ `expose: 3003`, không join `pathora-shared-network` → Traefik không thể route trực tiếp vào FE; mọi traffic phải qua nginx.
+> - **Rate-limit**: nginx `limit_req` zone `auth_zone` 10 r/s burst 20 áp cho `/api/auth/*` và `/signin-google`.
+> - **Required env on Dokploy**: `PATHORA_PUBLIC_HOST=yourdomain.com`, `NEXT_PUBLIC_API_GATEWAY=` (rỗng), bỏ origin dev khỏi `Cors__AllowedOrigins__*`.
+
 ---
 
 ## Lệnh Thực Thi

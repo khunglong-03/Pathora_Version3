@@ -41,11 +41,38 @@ Pathora (Panthora) is a comprehensive travel and tour platform built with a mode
 
 ### Starting the Infrastructure
 
-Run the following command in the root directory to start the necessary databases and services:
+#### Production (Dokploy + Traefik)
 
 ```bash
-docker-compose up -d
+docker compose -f docker-compose.yml up -d
 ```
+
+- No host ports published — Traefik (managed by Dokploy) routes `Host(${PATHORA_PUBLIC_HOST})` into `pathora-nginx:8080` via the external `pathora-shared-network`.
+- Nginx labels declare entrypoint `websecure` + cert resolver `letsencrypt`. Override label values in the Dokploy UI if your Traefik setup differs.
+- Same-origin: set `NEXT_PUBLIC_API_GATEWAY=""` in the Dokploy env so the FE calls `/api/*` relative.
+- Required network: `docker network create pathora-shared-network` (Dokploy usually creates this automatically — verify with `docker network ls`).
+
+#### Dev (local prod-style + debug ports)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
+- Adds `http://localhost/` (nginx :80), `localhost:3003` (frontend direct), `localhost:8099` (nginx alt), `localhost:8088/8089` (backend/publicapi direct).
+- Use these only for debugging — production traffic always goes through nginx + Traefik.
+- Note: the dev overlay is **not** auto-loaded. The `-f docker-compose.dev.yml` flag is required, which prevents accidental dev-port leakage in production.
+
+#### Nginx routing summary
+
+| Path | Upstream | Notes |
+|------|----------|-------|
+| `/api/public/*`, `/api/payment/*` | publicapi | anonymous |
+| `/api/auth/*`, `/signin-google` | backend | rate-limited 10 r/s, burst 20 |
+| `/api/cancellation-policies`, `/api/deposit-policies`, `/api/pricing-policies`, `/api/site-content` | publicapi (GET) / backend (write) | `limit_except` dispatch |
+| `/api/hubs/*` | backend | SignalR WebSocket upgrade |
+| `/api/*` (catch-all) | backend | JWT required |
+| `/health/api`, `/health/public` | backend/publicapi `/health/live` | container healthcheck |
+| `/*` | frontend | Next.js SSR |
 
 ### Running the Backend
 

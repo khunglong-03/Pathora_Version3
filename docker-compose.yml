@@ -160,13 +160,28 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: pathora-nginx
-    ports:
-      - "8099:8080"
+    # ── Traefik / Dokploy routing ─────────────────────────
+    # nginx is the ONLY service joined to `pathora-shared-network`, so the
+    # external TLS edge (Traefik via Dokploy) reaches `pathora-nginx:8080`.
+    # NO host port publish in production — Dokploy's Traefik owns :80/:443
+    # and routes by Host(domain) rule via the shared network. The dev
+    # overlay (`docker-compose.dev.yml`) re-adds `80:8080` for local
+    # `http://localhost/` testing without Dokploy.
+    expose:
+      - "8080"
     networks:
       - default
       - pathora-shared-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=pathora-shared-network"
+      - "traefik.http.routers.pathora.rule=Host(`${PATHORA_PUBLIC_HOST:-pathora.local}`)"
+      - "traefik.http.routers.pathora.entrypoints=websecure"
+      - "traefik.http.routers.pathora.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pathora.loadbalancer.server.port=8080"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/00-security.conf:/etc/nginx/conf.d/00-security.conf:ro
     depends_on:
       backend:
         condition: service_healthy
@@ -201,15 +216,15 @@ services:
       NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
       NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
       NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
-    ports:
-      - "3003:3003"
+    expose:
+      - "3003"
     depends_on:
       backend:
         condition: service_healthy
       publicapi:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3003"]
       interval: 30s
       timeout: 10s
       retries: 3
