@@ -220,9 +220,9 @@ services:
       - "3003"
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
       publicapi:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3003"]
       interval: 30s
