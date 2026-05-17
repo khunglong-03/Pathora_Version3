@@ -14,11 +14,11 @@ COPY ["Share/BuildingBlocks/BuildingBlocks.csproj", "Share/BuildingBlocks/"]
 COPY ["Share/Common/Common.csproj", "Share/Common/"]
 COPY ["Share/Contracts/Contracts.csproj", "Share/Contracts/"]
 
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet restore "src/PublicApi/ApiPublic/ApiPublic.csproj"
 
 COPY . .
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet publish "src/PublicApi/ApiPublic/ApiPublic.csproj" \
         -c $BUILD_CONFIGURATION \
         -o /app/publish \
