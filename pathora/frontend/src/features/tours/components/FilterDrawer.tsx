@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Transition, TransitionChild } from "@headlessui/react";
 import Button from "@/components/ui/Button";
 import { Icon } from "@/components/ui";
-import type { TourDiscoveryInstanceType } from "@/utils/tourDiscoveryFilters";
 
 interface FilterOption {
   value: string;
@@ -52,9 +51,6 @@ interface FilterDrawerProps {
   selectedClassifications: string[];
   onClassificationToggle: (value: string) => void;
   onClearFilters: () => void;
-  showDepartureTypeFilter?: boolean;
-  catalogInstanceType?: TourDiscoveryInstanceType;
-  onCatalogInstanceTypeChange?: (value: TourDiscoveryInstanceType) => void;
 }
 
 export const FilterDrawer = ({
@@ -63,14 +59,11 @@ export const FilterDrawer = ({
   selectedClassifications,
   onClassificationToggle,
   onClearFilters,
-  showDepartureTypeFilter = false,
-  catalogInstanceType = null,
-  onCatalogInstanceTypeChange,
 }: FilterDrawerProps) => {
   const { t } = useTranslation();
 
   const activeFilterCount =
-    selectedClassifications.length + (catalogInstanceType === "private" ? 1 : 0);
+    selectedClassifications.length;
 
   return (
     <Transition show={isOpen}>
@@ -120,36 +113,6 @@ export const FilterDrawer = ({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-5">
-              {showDepartureTypeFilter && onCatalogInstanceTypeChange && (
-                <div className="mb-6">
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3 pb-1 border-b border-slate-100">
-                    {t("landing.tourDiscovery.departureCatalogType", "Departure type")}
-                  </h3>
-                  <div className="flex flex-col gap-2 mt-3">
-                    <label className="flex items-center gap-3 cursor-pointer py-2 text-sm text-slate-600">
-                      <input
-                        type="radio"
-                        name="catalog-instance-type-drawer"
-                        className="accent-[#fa8b02] size-4"
-                        checked={catalogInstanceType !== "private"}
-                        onChange={() => onCatalogInstanceTypeChange(null)}
-                      />
-                      <span>{t("landing.tourDiscovery.instanceType.publicDepartures", "Public scheduled departures")}</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer py-2 text-sm text-slate-600">
-                      <input
-                        type="radio"
-                        name="catalog-instance-type-drawer"
-                        className="accent-[#fa8b02] size-4"
-                        checked={catalogInstanceType === "private"}
-                        onChange={() => onCatalogInstanceTypeChange("private")}
-                      />
-                      <span>{t("landing.tourDiscovery.instanceType.privateCharters", "Private departures")}</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {/* Classification */}
               <div className="mb-6">
                 <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3 pb-1 border-b border-slate-100">
@@ -161,7 +124,6 @@ export const FilterDrawer = ({
                       key={option.value}
                       className="flex items-center gap-3 cursor-pointer py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                     >
-                      {/* Radio-style circle with teal active state */}
                       <div
                         role="checkbox"
                         aria-checked={selectedClassifications.includes(option.value)}

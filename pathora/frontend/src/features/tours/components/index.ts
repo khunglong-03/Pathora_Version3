@@ -2,6 +2,7 @@ export { CustomizeBanner } from "./CustomizeBanner";
 export { FilterDrawer } from "./FilterDrawer";
 export { FilterSidebar } from "./FilterSidebar";
 export { HeroSection } from "./HeroSection";
+export { HeroSearchSection } from "./HeroSearchSection";
 export { SearchBar } from "./SearchBar";
 export { TourCard } from "./TourCard";
 export { TourDiscoveryPage } from "./TourDiscoveryPage";

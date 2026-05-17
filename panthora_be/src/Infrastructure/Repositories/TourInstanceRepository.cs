@@ -295,6 +295,7 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     public async Task<List<TourInstanceEntity>> FindPublicAvailable(string? destination, string? sortBy, int page, int pageSize, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
         var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
+        var now = DateTimeOffset.UtcNow;
         var query = _context.TourInstances
             .AsNoTracking()
             .AsSplitQuery()
@@ -305,7 +306,8 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
             .Include(t => t.Managers).ThenInclude(m => m.User)
             .Where(t => !t.IsDeleted
                 && t.InstanceType == instanceTypeFilter
-                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut)
+                && t.EndDate >= now);
 
         if (!string.IsNullOrWhiteSpace(destination))
         {
@@ -331,10 +333,12 @@ public class TourInstanceRepository(AppDbContext context) : ITourInstanceReposit
     public async Task<int> CountPublicAvailable(string? destination, TourType? catalogInstanceType = null, CancellationToken cancellationToken = default)
     {
         var instanceTypeFilter = catalogInstanceType ?? TourType.Public;
+        var now = DateTimeOffset.UtcNow;
         var query = _context.TourInstances
             .Where(t => !t.IsDeleted
                 && t.InstanceType == instanceTypeFilter
-                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut));
+                && (t.Status == TourInstanceStatus.Available || t.Status == TourInstanceStatus.Confirmed || t.Status == TourInstanceStatus.SoldOut)
+                && t.EndDate >= now);
 
         if (!string.IsNullOrWhiteSpace(destination))
         {

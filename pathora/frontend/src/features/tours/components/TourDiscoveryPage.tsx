@@ -14,13 +14,11 @@ import {
   buildTourDiscoverySearchParams,
   parseTourDiscoveryFilters,
   TourDiscoveryView,
-  type TourDiscoveryInstanceType,
 } from "@/utils/tourDiscoveryFilters";
 
 import { FilterDrawer } from "./FilterDrawer";
 import { FilterSidebar } from "./FilterSidebar";
-import { HeroSection } from "./HeroSection";
-import { SearchBar } from "./SearchBar";
+import { HeroSearchSection } from "./HeroSearchSection";
 import { TourCard } from "./TourCard";
 import { TourInstanceCard } from "./TourInstanceCard";
 
@@ -90,7 +88,6 @@ export const TourDiscoveryPage = () => {
     classifications?: string[];
     page?: number;
     view?: TourDiscoveryView;
-    instanceType?: TourDiscoveryInstanceType;
     [key: string]: unknown;
   }) => {
     const nextFilters = {
@@ -165,7 +162,6 @@ export const TourDiscoveryPage = () => {
           PAGE_SIZE,
           apiLanguage,
           sortBy,
-          filters.instanceType === "private" ? "private" : undefined,
         );
 
         if (!isActive) {
@@ -206,7 +202,6 @@ export const TourDiscoveryPage = () => {
     selectedClassifications,
     selectedContinent,
     sortBy,
-    filters.instanceType,
   ]);
 
   const handleSearchSubmit = () => {
@@ -226,11 +221,7 @@ export const TourDiscoveryPage = () => {
 
   const handleClearFilters = () => {
     setSelectedClassifications([]);
-    syncFilters({ instanceType: null, page: 1 });
-  };
-
-  const handleCatalogInstanceTypeChange = (value: TourDiscoveryInstanceType) => {
-    syncFilters({ instanceType: value, page: 1 });
+    syncFilters({ page: 1 });
   };
 
   const handleSortChange = (value: string) => {
@@ -263,7 +254,7 @@ export const TourDiscoveryPage = () => {
     setSelectedClassifications([]);
     setSelectedContinent(null);
     setSearchText("");
-    syncFilters({ destination: "", page: 1, instanceType: null });
+    syncFilters({ destination: "", page: 1 });
   };
 
   return (
@@ -271,9 +262,7 @@ export const TourDiscoveryPage = () => {
 
 
       <main className="min-h-screen bg-[#F8F8F6]">
-        <HeroSection />
-
-        <SearchBar
+        <HeroSearchSection
           searchText={searchText}
           onSearchChange={setSearchText}
           onSearchSubmit={handleSearchSubmit}
@@ -292,9 +281,6 @@ export const TourDiscoveryPage = () => {
                 selectedClassifications={selectedClassifications}
                 onClassificationToggle={handleClassificationToggle}
                 onClearFilters={handleClearFilters}
-                showDepartureTypeFilter={viewType === "instances"}
-                catalogInstanceType={filters.instanceType}
-                onCatalogInstanceTypeChange={handleCatalogInstanceTypeChange}
               />
             </div>
 
@@ -578,9 +564,6 @@ export const TourDiscoveryPage = () => {
         selectedClassifications={selectedClassifications}
         onClassificationToggle={handleClassificationToggle}
         onClearFilters={handleClearFilters}
-        showDepartureTypeFilter={viewType === "instances"}
-        catalogInstanceType={filters.instanceType}
-        onCatalogInstanceTypeChange={handleCatalogInstanceTypeChange}
       />
     </>
   );
