@@ -1,3 +1,4 @@
+using Application.Common.Pricing;
 using Application.Contracts.Booking;
 using Application.Features.BookingManagement.Queries;
 using Application.Services;
@@ -12,19 +13,20 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
     IBookingRepository bookingRepository,
     ITourInstanceRepository tourInstanceRepository,
     ITourRepository tourRepository,
-    IUser user)
+    IUser user,
+    IPricingPolicyRepository pricingPolicyRepository,
+    ITaxConfigRepository taxConfigRepository,
+    IBookingPriceCalculator priceCalculator)
     : IQueryHandler<GetBookingsByTourInstanceQuery, ErrorOr<List<AdminBookingListResponse>>>
 {
     public async Task<ErrorOr<List<AdminBookingListResponse>>> Handle(GetBookingsByTourInstanceQuery request, CancellationToken cancellationToken)
     {
-        // Verify tour instance exists and user (if guide) is assigned
         var tourInstance = await tourInstanceRepository.FindById(request.TourInstanceId);
         if (tourInstance is null)
         {
             return Error.NotFound("TourInstance.NotFound", "Tour instance not found.");
         }
 
-        // Check access: admin/manager can access all; guides can only access if assigned to this instance
         var isAdminOrManager = user.Roles.Any(r =>
             string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(r, "Manager", StringComparison.OrdinalIgnoreCase));
@@ -55,18 +57,32 @@ public sealed class GetBookingsByTourInstanceQueryHandler(
             }
         }
 
+        var pricingPolicy = await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
+        var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive, cancellationToken: cancellationToken);
+        var activeTaxConfig = taxConfigs.FirstOrDefault();
+
         var bookings = await bookingRepository.GetByTourInstanceIdAsync(request.TourInstanceId, cancellationToken);
-        var result = bookings.Select(b => new AdminBookingListResponse(
-            b.Id,
-            b.CustomerName,
-            b.TourInstance.TourName,
-            b.TourInstance.StartDate,
-            b.TotalPrice,
-            b.Status.ToString(),
-            b.NumberAdult,
-            b.NumberChild,
-            b.NumberInfant
-        )).ToList();
+        var result = bookings.Select(b =>
+        {
+            var paidAmount = b.PaymentTransactions?.Where(t => t.Status == Domain.Enums.TransactionStatus.Completed).Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
+            var breakdown = priceCalculator.Calculate(b, b.TourInstance, pricingPolicy?.Tiers, activeTaxConfig, paidAmount);
+
+            return new AdminBookingListResponse(
+                b.Id,
+                b.CustomerName,
+                b.TourInstance.TourName,
+                b.TourInstance.StartDate,
+                breakdown.TotalAmount,
+                b.Status.ToString(),
+                b.NumberAdult,
+                b.NumberChild,
+                b.NumberInfant,
+                Subtotal: breakdown.Subtotal,
+                TaxAmount: breakdown.TaxAmount,
+                TotalAmount: breakdown.TotalAmount,
+                RemainingBalance: breakdown.RemainingBalance
+            );
+        }).ToList();
 
         return result;
     }

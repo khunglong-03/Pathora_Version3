@@ -100,4 +100,11 @@ public class PublicHomeController : BaseApiController
         var result = await Sender.Send(new GetDestinationsQuery());
         return HandleResult(result);
     }
+
+    [HttpGet(PublicEndpoint.Continents)]
+    public async Task<IActionResult> GetContinents()
+    {
+        var result = await Sender.Send(new GetContinentsQuery());
+        return HandleResult(result);
+    }
 }

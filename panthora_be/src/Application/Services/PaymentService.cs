@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Application.Common.Constant;
+using Application.Common.Pricing;
 using Application.Options;
 using Domain.Common.Repositories;
 using Microsoft.Extensions.Options;
@@ -57,6 +58,9 @@ public class PaymentService : IPaymentService
     private readonly Domain.UnitOfWork.IUnitOfWork _unitOfWork;
     private readonly IServiceProvider _serviceProvider;
     private readonly IPostPaymentVisaGateService _postPaymentVisaGateService;
+    private readonly IBookingPriceCalculator _priceCalculator;
+    private readonly IPricingPolicyRepository _pricingPolicyRepository;
+    private readonly ITaxConfigRepository _taxConfigRepository;
 
     public PaymentService(
         IPaymentTransactionRepository transactionRepository,
@@ -69,7 +73,10 @@ public class PaymentService : IPaymentService
         IConfiguration configuration,
         Domain.UnitOfWork.IUnitOfWork unitOfWork,
         IServiceProvider serviceProvider,
-        IPostPaymentVisaGateService postPaymentVisaGateService)
+        IPostPaymentVisaGateService postPaymentVisaGateService,
+        IBookingPriceCalculator priceCalculator,
+        IPricingPolicyRepository pricingPolicyRepository,
+        ITaxConfigRepository taxConfigRepository)
     {
         _transactionRepository = transactionRepository;
         _bookingRepository = bookingRepository;
@@ -81,6 +88,9 @@ public class PaymentService : IPaymentService
         _unitOfWork = unitOfWork;
         _serviceProvider = serviceProvider;
         _postPaymentVisaGateService = postPaymentVisaGateService;
+        _priceCalculator = priceCalculator;
+        _pricingPolicyRepository = pricingPolicyRepository;
+        _taxConfigRepository = taxConfigRepository;
         _sepayAccountNumber = NormalizeConfigValue(configuration["Payment:Account"]);
         _sepayBankCode = NormalizeConfigValue(configuration["Payment:Bank"]);
         _sepayQrBaseUrl = NormalizeConfigValue(configuration["Payment:QrBaseUrl"]);
@@ -464,6 +474,16 @@ public class PaymentService : IPaymentService
             return (false, false);
         }
 
+        // Compute authoritative total for deposit/full-pay comparison (booking.TotalPrice may be stale).
+        var paidAmount = booking.PaymentTransactions
+            .Where(t => t.Status == TransactionStatus.Completed && t.Id != transaction.Id)
+            .Sum(t => t.PaidAmount ?? t.Amount);
+        var pricingPolicy = await _pricingPolicyRepository.GetActivePolicyByTourType(tourInstance.InstanceType, CancellationToken.None)
+            ?? await _pricingPolicyRepository.GetDefaultPolicy(CancellationToken.None);
+        var taxConfigs = await _taxConfigRepository.GetListAsync(t => t.IsActive, cancellationToken: CancellationToken.None);
+        var activeTaxConfig = taxConfigs.FirstOrDefault();
+        var breakdown = _priceCalculator.Calculate(booking, tourInstance, pricingPolicy?.Tiers, activeTaxConfig, paidAmount);
+
         // Only check and reserve capacity if the booking is currently Pending
         if (booking.Status == BookingStatus.Pending)
         {
@@ -489,17 +509,22 @@ public class PaymentService : IPaymentService
             case TransactionType.Deposit:
                 if (booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.Confirmed)
                 {
-                    if (transaction.Amount >= booking.TotalPrice || booking.IsFullPay)
+                    var oldStatus = booking.Status;
+                    if (transaction.Amount >= breakdown.TotalAmount || booking.IsFullPay)
                     {
                         booking.MarkPaid("SYSTEM");
-                        _logger.LogInformation("Booking {BookingId} marked as Paid via 100% deposit transaction {TransactionCode}",
-                            booking.Id, transaction.TransactionCode);
+                        _logger.LogInformation(
+                            "Booking {BookingId} status {Old} → {New} via transaction {TransactionCode} (type={Type}, bookingType={BookingType}, instanceType={InstanceType})",
+                            booking.Id, oldStatus, BookingStatus.Paid, transaction.TransactionCode,
+                            transaction.Type, booking.BookingType, tourInstance.InstanceType);
                     }
                     else
                     {
                         booking.MarkDeposited("SYSTEM");
-                        _logger.LogInformation("Booking {BookingId} marked as Deposited via transaction {TransactionCode}",
-                            booking.Id, transaction.TransactionCode);
+                        _logger.LogInformation(
+                            "Booking {BookingId} status {Old} → {New} via transaction {TransactionCode} (type={Type}, bookingType={BookingType}, instanceType={InstanceType})",
+                            booking.Id, oldStatus, BookingStatus.Deposited, transaction.TransactionCode,
+                            transaction.Type, booking.BookingType, tourInstance.InstanceType);
                     }
 
                     // Khi thanh toán deposit cho Private Custom Tour đã được Manager duyệt (PendingCustomerApproval) → xác nhận instance
@@ -544,9 +569,12 @@ public class PaymentService : IPaymentService
                 if (booking.Status == BookingStatus.PendingAdjustment
                     || (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Completed))
                 {
+                    var oldStatus = booking.Status;
                     booking.MarkPaid("SYSTEM");
-                    _logger.LogInformation("Booking {BookingId} marked as Paid via transaction {TransactionCode}",
-                        booking.Id, transaction.TransactionCode);
+                    _logger.LogInformation(
+                        "Booking {BookingId} status {Old} → {New} via transaction {TransactionCode} (type={Type}, bookingType={BookingType}, instanceType={InstanceType})",
+                        booking.Id, oldStatus, BookingStatus.Paid, transaction.TransactionCode,
+                        transaction.Type, booking.BookingType, tourInstance.InstanceType);
 
                     // Khi full pay cho Private Custom Tour đã được Manager duyệt (PendingCustomerApproval) → xác nhận instance
                     if (tourInstance.InstanceType == TourType.Private

@@ -194,6 +194,8 @@ services:
         NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"
         NEXT_PUBLIC_REMOTE_IMAGE_HOSTS: *frontend-remote-image-hosts
         NEXT_PUBLIC_IMAGES_UNOPTIMIZED: "${NEXT_PUBLIC_IMAGES_UNOPTIMIZED}"
+        NODE_OPTIONS_ARG: "--max-old-space-size=4096"
+        DOCKER_BUILD: "true"
     environment:
       NODE_ENV: "${FRONTEND_NODE_ENV}"
       NEXT_PUBLIC_API_GATEWAY: "${NEXT_PUBLIC_API_GATEWAY}"

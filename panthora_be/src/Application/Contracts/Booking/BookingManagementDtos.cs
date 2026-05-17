@@ -369,7 +369,12 @@ public sealed record AdminBookingListResponse(
     [property: JsonPropertyName("refundCompletedAt")] DateTimeOffset? RefundCompletedAt = null,
     [property: JsonPropertyName("customerPhone")] string? CustomerPhone = null,
     [property: JsonPropertyName("customerEmail")] string? CustomerEmail = null,
-    [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt = null
+    [property: JsonPropertyName("cancelledAt")] DateTimeOffset? CancelledAt = null,
+    // Breakdown fields (task 3.3)
+    [property: JsonPropertyName("subtotal")] decimal Subtotal = 0m,
+    [property: JsonPropertyName("taxAmount")] decimal TaxAmount = 0m,
+    [property: JsonPropertyName("totalAmount")] decimal TotalAmount = 0m,
+    [property: JsonPropertyName("remainingBalance")] decimal RemainingBalance = 0m
 );
 
 public sealed record AdminBookingListResult(

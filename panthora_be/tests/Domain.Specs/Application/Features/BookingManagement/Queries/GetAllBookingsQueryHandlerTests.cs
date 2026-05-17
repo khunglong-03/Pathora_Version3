@@ -1,3 +1,4 @@
+using Application.Common.Pricing;
 using Application.Features.BookingManagement.Queries;
 using Domain.Common.Repositories;
 using Domain.Entities;
@@ -10,11 +11,14 @@ namespace Domain.Specs.Application.Features.BookingManagement.Queries;
 public sealed class GetAllBookingsQueryHandlerTests
 {
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
+    private readonly IPricingPolicyRepository _pricingPolicyRepository = Substitute.For<IPricingPolicyRepository>();
+    private readonly ITaxConfigRepository _taxConfigRepository = Substitute.For<ITaxConfigRepository>();
+    private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
     private readonly GetAllBookingsQueryHandler _handler;
 
     public GetAllBookingsQueryHandlerTests()
     {
-        _handler = new GetAllBookingsQueryHandler(_bookingRepository);
+        _handler = new GetAllBookingsQueryHandler(_bookingRepository, _pricingPolicyRepository, _taxConfigRepository, _priceCalculator);
     }
 
     [Fact]

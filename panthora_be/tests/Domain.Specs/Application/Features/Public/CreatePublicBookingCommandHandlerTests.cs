@@ -1,5 +1,6 @@
 namespace Domain.Specs.Application.Features.Public.Commands;
 
+using global::Application.Common.Pricing;
 using global::Application.Features.Public.Commands;
 using global::Contracts.Interfaces;
 using global::Domain.Common.Repositories;
@@ -64,6 +65,7 @@ public sealed class CreatePublicBookingCommandHandlerTests
     private readonly IDepositPolicyRepository _depositPolicyRepository = Substitute.For<IDepositPolicyRepository>();
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
 
     private CreatePublicBookingCommandHandler CreateHandler() => new(
         _user,
@@ -74,6 +76,7 @@ public sealed class CreatePublicBookingCommandHandlerTests
         _tourRepository,
         _depositPolicyRepository,
         _userRepository,
+        _priceCalculator,
         _unitOfWork);
 
     private static TourInstanceEntity CreateTourInstance(Guid id)

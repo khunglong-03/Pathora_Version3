@@ -216,46 +216,63 @@ export interface TourDayActivityStatusDto {
 }
 
 // Main booking detail response
-// NOTE: The CustomerBooking endpoint (GET /api/public/bookings/{id}) returns
-// `adults`, `children`, `infants` from BookingDetailDto.
-// The admin endpoint uses `numberAdult`, `numberChild`, `numberInfant`.
-// Both field names are declared here for compatibility.
+// Schema matches BE BookingDetailDto (customer endpoint GET /api/public/bookings/{id})
 export interface BookingDetailResponse {
   bookingId: string;
   tourInstanceId: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
-  /** @deprecated Use `adults` — kept for admin endpoint compatibility */
-  numberAdult: number;
-  /** @deprecated Use `children` — kept for admin endpoint compatibility */
-  numberChild: number;
-  /** @deprecated Use `infants` — kept for admin endpoint compatibility */
-  numberInfant: number;
-  /** Customer endpoint field name */
-  adults?: number;
-  /** Customer endpoint field name */
-  children?: number;
-  /** Customer endpoint field name */
-  infants?: number;
-  totalPrice: number;
-  status: BookingStatusEnum;
+  adults: number;
+  children: number;
+  infants: number;
+  adultPrice: number;
+  childPrice: number;
+  infantPrice: number;
+  adultSubtotal: number;
+  childSubtotal: number;
+  infantSubtotal: number;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  remainingBalance: number;
+  visaServiceFeeTotal: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  bookingType: string;
+  tourStatus: string;
   isVisaRequired?: boolean;
-  visaServiceFeeTotal?: number;
   pendingTransactions?: BookingPendingTransaction[];
-  activityReservations: BookingActivityReservationDto[];
-  transportDetails: TransportDetailDto[];
-  accommodationDetails: AccommodationDetailDto[];
-  participants: ParticipantDto[];
-  supplierPayables: SupplierPayableDto[];
-  assignedTourGuides: BookingTourGuideDto[];
-  activityStatuses: TourDayActivityStatusDto[];
+  activityReservations?: BookingActivityReservationDto[];
+  transportDetails?: TransportDetailDto[];
+  accommodationDetails?: AccommodationDetailDto[];
+  participants?: ParticipantDto[];
+  supplierPayables?: SupplierPayableDto[];
+  assignedTourGuides?: BookingTourGuideDto[];
+  activityStatuses?: TourDayActivityStatusDto[];
   cancellationRequest?: BookingCancellationRequestSummaryDto;
   cancellationRequests: BookingCancellationRequestSummaryDto[];
   refundStatus?: RefundStatusString;
   refundOutstandingAmount?: number | null;
   refundContactedAt?: string | null;
   refundCompletedAt?: string | null;
+  tourName?: string;
+  reference?: string;
+  tier?: string;
+  location?: string;
+  duration?: string;
+  bookingDate?: string;
+  departureDate?: string;
+  returnDate?: string;
+  pricePerPerson?: number;
+  image?: string;
+  description?: string;
+  highlights?: string[];
+  importantInfo?: Record<string, unknown>[];
+  pendingTransactionCode?: string;
 }
 
 export interface BookingCancellationRequestSummaryDto {

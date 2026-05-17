@@ -18,9 +18,11 @@ export const resolveApiGatewayBaseUrl = (
   const trimmed = configuredValue?.trim();
   if (trimmed && trimmed.length > 0) {
     // In Server-Side Rendering (SSR) inside Docker, 'localhost' points to the container itself.
-    // We rewrite 'localhost' to 'nginx' to route the request through the internal Docker network to the Nginx reverse proxy.
+    // Rewrite host -> 'nginx' (docker service name) AND force the container-side port 8080
+    // because the host-published port (e.g. 8099) doesn't exist on the docker network.
     if (typeof window === "undefined" && trimmed.includes("localhost")) {
-      return normalizeBaseUrl(trimmed.replace("localhost", "nginx"));
+      const rewritten = trimmed.replace(/localhost(?::\d+)?/, "nginx:8080");
+      return normalizeBaseUrl(rewritten);
     }
     return normalizeBaseUrl(trimmed);
   }

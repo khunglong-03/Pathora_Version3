@@ -20,6 +20,14 @@ export interface MyBookingDto {
   children: number;
   infants: number;
   createdAt: string;
+  // Breakdown fields (task 6.7)
+  adultUnitPrice?: number;
+  childUnitPrice?: number;
+  infantUnitPrice?: number;
+  subtotal?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  remainingBalance?: number;
 }
 
 export const bookingApi = apiSlice.injectEndpoints({

@@ -19,6 +19,7 @@ export function BookingsTable({ bookings, t }: BookingsTableProps) {
     "bookings.column.customer",
     "bookings.column.tour",
     "bookings.column.departure",
+    "bookings.column.pax",
     "bookings.column.amount",
     "bookings.column.status",
   ];

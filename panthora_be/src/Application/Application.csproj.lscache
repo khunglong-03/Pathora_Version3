@@ -89,6 +89,9 @@ Common/
   IResourceAvailabilityService.cs
   ITokenManager.cs
  Localization/PublicLanguageResolver.cs
+ Pricing/
+  BookingPriceBreakdown.cs
+  BookingPriceCalculator.cs
 Contracts/Admin/
  CreateStaffUnderManagerRequest.cs
  UpdateBankAccountRequest.cs

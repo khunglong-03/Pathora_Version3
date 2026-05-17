@@ -59,8 +59,13 @@ export const TableRow = React.memo(function TableRow({
         </p>
       </td>
       <td className="px-6 py-4">
+        <span className="text-sm font-mono" style={{ color: CSS.textSecondary }} title="Adults / Children / Infants">
+          {booking.numberAdult ?? 0}/{booking.numberChild ?? 0}/{booking.numberInfant ?? 0}
+        </span>
+      </td>
+      <td className="px-6 py-4">
         <span className="text-sm font-semibold data-value" style={{ color: CSS.textPrimary }}>
-          {formatCurrency(booking.amount ?? 0)}
+          {formatCurrency(booking.totalAmount ?? booking.amount ?? 0)}
         </span>
       </td>
       <td className="px-6 py-4">

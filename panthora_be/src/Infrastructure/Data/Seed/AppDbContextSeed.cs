@@ -14,13 +14,14 @@ public static class AppDbContextSeed
         return Task.CompletedTask;
     }
 
-    public static Task<bool> SeedIfNeededAsync(AppDbContext context, CancellationToken cancellationToken = default)
+    public static async Task<bool> SeedIfNeededAsync(AppDbContext context, CancellationToken cancellationToken = default)
     {
         SeedDataPreflightValidator.ValidateRequiredSeedFiles();
         var seeded = BookingContextSeed.SeedData(context);
         seeded |= SiteContentSeedData.SeedData(context);
         seeded |= UserRoleSeed.SeedData(context);
         seeded |= SeedPolicies(context);
+        seeded |= await SeedTaxConfig(context, cancellationToken);
         seeded |= SeedSuppliers(context);
         seeded |= SeedVehiclesDriversRooms(context);
         seeded |= SeedTourContent(context);
@@ -30,7 +31,13 @@ public static class AppDbContextSeed
         seeded |= SeedCustomerDepositsAndPayments(context);
         seeded |= SeedPaymentTransactions(context);
         seeded |= SeedReviews(context);
-        return Task.FromResult(seeded);
+        return seeded;
+    }
+
+    private static async Task<bool> SeedTaxConfig(AppDbContext context, CancellationToken cancellationToken)
+    {
+        await TaxConfigContextSeed.SeedAsync(context, cancellationToken);
+        return true;
     }
 
     // Layer 1: Policies

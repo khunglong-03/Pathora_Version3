@@ -10,17 +10,12 @@ import type { SearchTour } from "@/types/home";
 import { getFallbackImage } from "@/utils/imageFallback";
 import { cn } from "@/lib/cn";
 
-const formatBadgeDate = (createdAt?: string): string => {
-  if (!createdAt) return "NEW";
-  const date = new Date(createdAt);
-  if (Number.isNaN(date.getTime())) {
-    return "NEW";
-  }
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+const continentKeys: Record<number, string> = {
+  1: "asia",
+  2: "europe",
+  3: "africa",
+  4: "americas",
+  5: "oceania",
 };
 
 const getValidImageUrl = (thumbnail: any, fallbackIndex: string | number) => {
@@ -35,18 +30,18 @@ export const BoldTrendingDestinations = () => {
   const [titleRef, titleVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 });
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const [destinations, setDestinations] = useState<string[]>([]);
-  const [activeDestination, setActiveDestination] = useState<string>("");
+  const [continents, setContinents] = useState<number[]>([]);
+  const [activeContinent, setActiveContinent] = useState<number | null>(null);
   const [tours, setTours] = useState<SearchTour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    homeService.getDestinations()
+    homeService.getContinents()
       .then(data => {
         if (data && data.length > 0) {
-          setDestinations(data.slice(0, 6));
-          setActiveDestination(data[0]);
+          setContinents(data);
+          setActiveContinent(data[0]);
         } else {
           setIsLoading(false);
         }
@@ -56,19 +51,18 @@ export const BoldTrendingDestinations = () => {
       });
   }, []);
 
-  const fetchToursByDestination = React.useCallback(async (destination: string) => {
-    if (!destination) return;
+  const fetchToursByContinent = React.useCallback(async (continent: number) => {
     try {
       setIsLoading(true);
       setError(null);
       const data = await homeService.searchTours({
-        destination: destination,
+        continent: continent,
         pageSize: 6,
         language: i18n.resolvedLanguage ?? i18n.language
       });
       setTours(data?.data ?? []);
     } catch {
-      setError(t("landing.destinations.error") || "Unable to load tours");
+      setError(t("landing.continents.error") || "Unable to load tours");
       setTours([]);
     } finally {
       setIsLoading(false);
@@ -76,10 +70,18 @@ export const BoldTrendingDestinations = () => {
   }, [i18n.language, i18n.resolvedLanguage, t]);
 
   React.useEffect(() => {
-    if (activeDestination) {
-      fetchToursByDestination(activeDestination);
+    if (activeContinent !== null) {
+      fetchToursByContinent(activeContinent);
     }
-  }, [activeDestination, fetchToursByDestination]);
+  }, [activeContinent, fetchToursByContinent]);
+
+  const getContinentLabel = (continent: number): string => {
+    const key = continentKeys[continent];
+    if (key) {
+      return t(`landing.continents.${key}`) || key;
+    }
+    return `Continent ${continent}`;
+  };
 
   return (
     <section className={cn("py-24 md:py-32 bg-stone-50 overflow-hidden")}>
@@ -92,30 +94,30 @@ export const BoldTrendingDestinations = () => {
         >
           <div className={cn("max-w-2xl")}>
             <span suppressHydrationWarning className={cn("inline-block px-4 py-1.5 rounded-full bg-stone-200/50 text-[11px] font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 border border-stone-200/50 shadow-sm")}>
-              {t("landing.destinations.eyebrow", "Explore By Destination")}
+              {t("landing.continents.eyebrow", "EXPLORE BY CONTINENT")}
             </span>
             <h2
               className={cn("text-4xl md:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]")}
             >
-              {t("landing.destinations.title", "Tours By Destination")}
+              {t("landing.continents.title", "Where do you want to go?")}
             </h2>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-          {destinations.map((dest) => (
+          {continents.map((continent) => (
             <button
-              key={dest}
-              onClick={() => setActiveDestination(dest)}
+              key={continent}
+              onClick={() => setActiveContinent(continent)}
               className={cn(
                 "px-6 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all",
-                activeDestination === dest
+                activeContinent === continent
                   ? "bg-stone-900 text-white shadow-md"
                   : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-100"
               )}
             >
-              {dest}
+              {getContinentLabel(continent)}
             </button>
           ))}
         </div>
@@ -140,7 +142,7 @@ export const BoldTrendingDestinations = () => {
           </div>
         ) : tours.length === 0 ? (
           <div className={cn("rounded-[2rem] border border-stone-200 bg-white p-12 text-center text-stone-500 font-medium")}>
-            {t("landing.destinations.empty", "No tours available for this destination at the moment.")}
+            {t("landing.continents.empty", "No tours available for this continent at the moment.")}
           </div>
         ) : (
           <div

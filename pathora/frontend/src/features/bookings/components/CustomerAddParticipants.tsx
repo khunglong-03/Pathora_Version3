@@ -82,9 +82,9 @@ export function CustomerAddParticipants({ bookingId }: { bookingId: string }) {
         bookingService.getBookingDetail(bookingId)
       ]);
 
-      const numAdult = (bookingData as any)?.adults ?? bookingData?.numberAdult ?? 0;
-      const numChild = (bookingData as any)?.children ?? bookingData?.numberChild ?? 0;
-      const numInfant = (bookingData as any)?.infants ?? bookingData?.numberInfant ?? 0;
+      const numAdult = (bookingData as any)?.adults ?? 0;
+      const numChild = (bookingData as any)?.children ?? 0;
+      const numInfant = (bookingData as any)?.infants ?? 0;
       const totalGuests = numAdult + numChild + numInfant;
       setMaxParticipants(totalGuests);
       setIsVisaRequired(!!bookingData?.isVisaRequired);

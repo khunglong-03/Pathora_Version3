@@ -46,7 +46,7 @@ export function useBookingsData(t: TFunction) {
   const canShowData = dataState === "ready" || isEmpty;
 
   const totalRevenue = useMemo(
-    () => bookings.reduce((sum, b) => sum + (b.amount ?? 0), 0),
+    () => bookings.reduce((sum, b) => sum + (b.totalAmount ?? b.amount ?? 0), 0),
     [bookings],
   );
 

@@ -24,7 +24,7 @@ interface BookingCardProps {
   paymentStatusLabel: string;
   paymentMethodLabel: string;
   formatCurrency: (n: number) => string;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }
 
 export function BookingCard({
@@ -107,6 +107,17 @@ export function BookingCard({
               label={t("landing.bookings.guests")} 
               value={`${booking.guests} ${booking.guests === 1 ? t("landing.bookings.guest") : t("landing.bookings.guestsLabel")}`} 
             />
+            {(booking.adults ?? 0) > 0 || (booking.children ?? 0) > 0 || (booking.infants ?? 0) > 0 ? (
+              <div className="col-span-2">
+                <p className="text-xs font-bold text-slate-500">
+                  {t("landing.bookings.paxBreakdown", {
+                    adults: booking.adults ?? 0,
+                    children: booking.children ?? 0,
+                    infants: booking.infants ?? 0,
+                  })}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {/* Footer actions */}

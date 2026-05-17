@@ -20,6 +20,13 @@ export interface BookingUpdate {
   updatedAt: string;
 }
 
+export interface BookingStatusChangedEvent {
+  bookingId: string;
+  newStatus: string;
+  paidAmount: number;
+  remainingBalance: number;
+}
+
 export interface TourInstanceUpdate {
   instanceId: string;
   status: string;
@@ -60,6 +67,7 @@ export interface CancellationRequestUpdate {
 
 type NotificationHandler = (notification: Notification) => void;
 type BookingUpdateHandler = (update: BookingUpdate) => void;
+type BookingStatusChangedHandler = (event: BookingStatusChangedEvent) => void;
 type TourInstanceUpdateHandler = (update: TourInstanceUpdate) => void;
 type PaymentUpdateHandler = (update: PaymentUpdate) => void;
 type CustomTourRequestHandler = (update: CustomTourRequestUpdate) => void;
@@ -70,6 +78,7 @@ class SignalRService {
   private connection: signalR.HubConnection | null = null;
   private notificationHandlers: NotificationHandler[] = [];
   private bookingUpdateHandlers: BookingUpdateHandler[] = [];
+  private bookingStatusChangedHandlers: BookingStatusChangedHandler[] = [];
   private tourInstanceUpdateHandlers: TourInstanceUpdateHandler[] = [];
   private paymentUpdateHandlers: PaymentUpdateHandler[] = [];
   private itineraryFeedbackHandlers: ((event: ItineraryFeedbackEvent) => void)[] = [];
@@ -114,6 +123,10 @@ class SignalRService {
 
       this.connection.on("ReceiveBookingUpdate", (update: BookingUpdate) => {
         this.bookingUpdateHandlers.forEach((handler) => handler(update));
+      });
+
+      this.connection.on("BookingStatusChanged", (event: BookingStatusChangedEvent) => {
+        this.bookingStatusChangedHandlers.forEach((handler) => handler(event));
       });
 
       this.connection.on("ReceiveTourInstanceUpdate", (update: TourInstanceUpdate) => {
@@ -195,6 +208,16 @@ class SignalRService {
       const index = this.bookingUpdateHandlers.indexOf(handler);
       if (index > -1) {
         this.bookingUpdateHandlers.splice(index, 1);
+      }
+    };
+  }
+
+  onBookingStatusChanged(handler: BookingStatusChangedHandler): () => void {
+    this.bookingStatusChangedHandlers.push(handler);
+    return () => {
+      const index = this.bookingStatusChangedHandlers.indexOf(handler);
+      if (index > -1) {
+        this.bookingStatusChangedHandlers.splice(index, 1);
       }
     };
   }

@@ -24,18 +24,23 @@ import { BookingFloatingSocial } from "./BookingFloatingSocial";
 import { BookingCustomerApprovalAction } from "./BookingCustomerApprovalAction";
 import { CancellationRequestTimeline } from "./CancellationRequestTimeline";
 import { BookingRefundSection } from "./BookingRefundSection";
+import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
 
 import { NormalizedTourInstanceDto } from "@/types/tour";
 import { tourInstanceService } from "@/api/services/tourInstanceService";
+import type { BookingDetailResponse } from "@/types/booking";
+import type { BookingDetail } from "./BookingDetailData";
 
 export function BookingDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
   const bookingId = params?.id as string;
   
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<BookingDetailResponse | null>(null);
   const [tourInstance, setTourInstance] = useState<NormalizedTourInstanceDto | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useBookingStatusListener();
 
   useEffect(() => {
     if (!bookingId) return;
@@ -123,7 +128,49 @@ export function BookingDetailPage() {
   const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
     ? "pending_approval" 
     : mappedStatusStr;
-  const mappedBooking = { ...booking, status: actualStatus };
+  // Bridge BookingDetailResponse → BookingDetail for existing child components
+  const mappedBooking: BookingDetail = {
+    id: booking.bookingId,
+    tourName: booking.tourName ?? booking.description ?? "Unknown Tour",
+    reference: booking.reference ?? `PATH-${booking.bookingId.slice(0, 8)}`,
+    tier: "standard",
+    status: actualStatus as any,
+    paymentStatus: (booking.paymentStatus as any) ?? "unpaid",
+    paymentMethod: (booking.paymentMethod as any) ?? "bank_transfer",
+    location: "",
+    duration: "",
+    bookingDate: "",
+    departureDate: "",
+    returnDate: "",
+    adults: booking.adults ?? 0,
+    children: booking.children ?? 0,
+    infants: booking.infants ?? 0,
+    pricePerPerson: booking.adultPrice ?? 0,
+    adultPrice: booking.adultPrice,
+    childPrice: booking.childPrice,
+    infantPrice: booking.infantPrice,
+    adultSubtotal: booking.adultSubtotal,
+    childSubtotal: booking.childSubtotal,
+    infantSubtotal: booking.infantSubtotal,
+    subtotal: booking.subtotal,
+    taxRate: booking.taxRate,
+    taxAmount: booking.taxAmount,
+    totalAmount: booking.totalAmount,
+    paidAmount: booking.paidAmount,
+    remainingBalance: booking.remainingBalance,
+    image: "/assets/images/tours/placeholder.png",
+    description: booking.description ?? "",
+    highlights: booking.highlights ?? [],
+    importantInfo: (booking.importantInfo as unknown as string[]) ?? [],
+    pendingTransactionCode: booking.pendingTransactionCode,
+    tourInstanceId: booking.tourInstanceId,
+    isVisaRequired: booking.isVisaRequired,
+    tourStatus: booking.tourStatus,
+    bookingType: booking.bookingType,
+    visaServiceFeeTotal: booking.visaServiceFeeTotal,
+    cancellationRequest: booking.cancellationRequest,
+    cancellationRequests: booking.cancellationRequests,
+  };
 
   const { totalGuests, showPayRemaining, showVisaSection, showCancelBooking } =
     getBookingDerivedState(mappedBooking);

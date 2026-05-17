@@ -136,6 +136,13 @@ export const homeService = {
     return extractItems<string>(response.data);
   },
 
+  getContinents: async () => {
+    const response = await api.get<ServiceResponse<number[]>>(
+      API_ENDPOINTS.PUBLIC_HOME.GET_CONTINENTS,
+    );
+    return extractItems<number>(response.data);
+  },
+
   getAvailablePublicInstances: async (
     destination?: string,
     page = 1,

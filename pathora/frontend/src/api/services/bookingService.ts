@@ -69,7 +69,7 @@ export interface AdminBookingListResponse {
   customerName: string;
   tourName: string;
   departureDate: string;
-  totalPrice: number;
+  totalPrice: number; // @deprecated — use totalAmount
   status: string;
   /** Người lớn — mỗi người cần 1 ghế */
   numberAdult: number;
@@ -85,6 +85,11 @@ export interface AdminBookingListResponse {
   customerPhone?: string | null;
   customerEmail?: string | null;
   cancelledAt?: string | null;
+  // Breakdown fields (task 6.2)
+  subtotal?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  remainingBalance?: number;
 }
 
 export const bookingService = {

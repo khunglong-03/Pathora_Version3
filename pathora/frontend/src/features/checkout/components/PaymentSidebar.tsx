@@ -340,14 +340,16 @@ interface PaymentSidebarProps {
   canConfirm: boolean;
   loading: boolean;
   onConfirmBooking: () => void;
-  /** Guest checkout email (for post-payment copy when user is not logged in). */
   customerEmail?: string;
-  /** Private custom flow: 100% base upfront only — hide deposit vs full toggle. */
   hidePayMethodToggle?: boolean;
-  /** Private custom flow — success panel shows co-design copy. */
   privateCustomCheckout?: boolean;
-  /** Delta &gt; 0 — existing top-up transaction loaded by code. */
   privateTopUpCheckout?: boolean;
+  subtotal?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  /** When set with bookingType === "PrivateCustomTourRequest", gates payment until approved. */
+  tourInstanceStatus?: string;
+  bookingType?: string;
   t: ReturnType<typeof useTranslation>[0];
 }
 
@@ -368,8 +370,17 @@ export function PaymentSidebar({
   hidePayMethodToggle = false,
   privateCustomCheckout = false,
   privateTopUpCheckout = false,
+  subtotal,
+  taxRate,
+  taxAmount,
+  tourInstanceStatus,
+  bookingType,
   t,
 }: PaymentSidebarProps) {
+  const isPrivateCustomRequest = bookingType === "PrivateCustomTourRequest";
+  const payableStatuses = ["PendingCustomerApproval", "Confirmed"];
+  const isPaymentGated =
+    isPrivateCustomRequest && !payableStatuses.includes(tourInstanceStatus ?? "");
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="p-8 md:p-10">
@@ -430,6 +441,18 @@ export function PaymentSidebar({
 
             {/* Price breakdown */}
             <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-3">
+              {subtotal != null && subtotal > 0 ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">{t("landing.checkout.subtotal")}</span>
+                  <span className="text-sm font-medium text-slate-900">{fmtCurrency(subtotal)}</span>
+                </div>
+              ) : null}
+              {taxAmount != null && taxAmount > 0 ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">{t("landing.checkout.tax", { rate: taxRate ?? 0 })}</span>
+                  <span className="text-sm font-medium text-slate-900">{fmtCurrency(taxAmount)}</span>
+                </div>
+              ) : null}
               {paymentOption === "deposit" ? (
                 <>
                   <div className="flex items-center justify-between">
@@ -452,12 +475,18 @@ export function PaymentSidebar({
 
             {/* Confirm Button */}
             <div className="flex flex-col gap-3">
+              {isPaymentGated ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                  <Icon icon="heroicons:information-circle" className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-amber-800 leading-snug">{t("landing.checkout.privateGateMessage")}</p>
+                </div>
+              ) : null}
               <Button
                 type="button"
-                disabled={!canConfirm}
+                disabled={!canConfirm || isPaymentGated}
                 onClick={onConfirmBooking}
                 className={`w-full h-14 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ${
-                  canConfirm
+                  canConfirm && !isPaymentGated
                     ? "bg-zinc-950 text-white hover:bg-zinc-900 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-900/20 cursor-pointer"
                     : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
                 }`}>
@@ -465,6 +494,11 @@ export function PaymentSidebar({
                   <>
                     <Icon icon="heroicons:arrow-path" className="size-5 animate-spin" />
                     <span>{t("landing.checkout.processing")}</span>
+                  </>
+                ) : isPaymentGated ? (
+                  <>
+                    <span>{t("landing.checkout.confirmBooking")}</span>
+                    <span className="ml-2 text-xs font-medium bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">{t("landing.checkout.privateGateBadge")}</span>
                   </>
                 ) : (
                   <>

@@ -15,6 +15,7 @@ import {
 } from "@/api/services/paymentService";
 import { bookingService, type CreateBookingPayload } from "@/api/services/bookingService";
 import { handleApiError } from "@/utils/apiResponse";
+import { taxConfigService } from "@/api/services/taxConfigService";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   isCancelReturn,
@@ -206,8 +207,10 @@ export function CheckoutRequestPage() {
 
   const [isMounted, setIsMounted] = useState(false);
   const [loadingTopUpTransaction, setLoadingTopUpTransaction] = useState(false);
+  const [activeTaxRate, setActiveTaxRate] = useState(0);
   useEffect(() => {
     setIsMounted(true);
+    taxConfigService.getActive().then(setActiveTaxRate);
   }, []);
 
   // Task 5.3.1: visibility ref for tab focus tracking
@@ -393,7 +396,7 @@ export function CheckoutRequestPage() {
       const childSubtotal = childPrice * numberChild;
       const infantSubtotal = infantPrice * numberInfant;
       const subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-      const taxRate = 0;
+      const taxRate = activeTaxRate;
       const taxAmount = Math.round(subtotal * taxRate);
       const totalPrice = subtotal + taxAmount;
       const depositAmountRaw = depositPct <= 1 ? totalPrice * depositPct : depositPct;
@@ -954,6 +957,10 @@ export function CheckoutRequestPage() {
                   hidePayMethodToggle={false}
                   privateCustomCheckout={isPrivateCustomCheckout}
                   privateTopUpCheckout={isPrivateTopUpCheckout}
+                  subtotal={effectivePrice?.subtotal}
+                  taxRate={effectivePrice?.taxRate}
+                  taxAmount={effectivePrice?.taxAmount}
+                  bookingType={tourInstanceBooking?.bookingType}
                   t={t}
                 />
               )}

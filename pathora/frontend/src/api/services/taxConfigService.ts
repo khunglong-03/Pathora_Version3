@@ -14,6 +14,17 @@ export const taxConfigService = {
     );
   },
 
+  getActive: async (): Promise<number> => {
+    try {
+      const response = await api.get<ServiceResponse<TaxConfig[]>>("/api/tax-configs");
+      const configs = response.data.data ?? [];
+      const active = configs.find((c) => c.isActive);
+      return active?.taxRate ?? 0;
+    } catch {
+      return 0;
+    }
+  },
+
   getById: (id: string): Promise<ServiceResponse<TaxConfig>> => {
     return executeApiRequest<TaxConfig>(() =>
       api.get(`/api/tax-configs/${id}`),

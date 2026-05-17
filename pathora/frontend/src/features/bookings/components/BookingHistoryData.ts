@@ -27,6 +27,10 @@ export interface Booking {
   totalAmount: number;
   remainingAmount?: number;
   image: string;
+  // Pax breakdown (task 7.1)
+  adults?: number;
+  children?: number;
+  infants?: number;
 }
 
 /* ── Sample Data ───────────────────────────────────────────── */

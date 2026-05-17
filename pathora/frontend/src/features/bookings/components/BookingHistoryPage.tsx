@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { SOCIAL_MEDIA } from "@/configs/urls";
 import { FilterKey } from "./BookingHistoryData";
 import { useBookings } from "../hooks/useBookings";
+import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
 import {
   formatCurrency,
   getStatusLabel,
@@ -35,6 +36,8 @@ export function BookingHistoryPage() {
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  useBookingStatusListener();
 
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [searchQuery, setSearchQuery] = useState("");

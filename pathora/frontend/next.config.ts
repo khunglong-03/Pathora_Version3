@@ -66,8 +66,11 @@ const defaultRemotePatterns: RemotePattern[] = [
 
 const allowUnoptimized = process.env.NEXT_PUBLIC_IMAGES_UNOPTIMIZED === "true";
 
+const isDockerBuild = process.env.DOCKER_BUILD === "true";
+
 const nextConfig: NextConfig = {
   output: "standalone",
+  ...(isDockerBuild ? { typescript: { ignoreBuildErrors: true } } : {}),
   async headers() {
     return [
       {

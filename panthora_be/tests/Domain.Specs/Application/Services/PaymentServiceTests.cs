@@ -1,10 +1,12 @@
 using System.Threading;
 using global::Application.Common.Constant;
+using global::Application.Common.Pricing;
 using global::Application.Services;
 using global::Domain.Common.Repositories;
 using global::Domain.Entities;
 using global::Domain.Enums;
 using global::Domain.UnitOfWork;
+using global::Domain.ValueObjects;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -23,9 +25,11 @@ public sealed class PaymentServiceTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
     private readonly IManagerBankAccountRepository _managerBankAccountRepo = Substitute.For<IManagerBankAccountRepository>();
-
     private readonly IUserRepository _userRepo = Substitute.For<IUserRepository>();
     private readonly IPostPaymentVisaGateService _postPaymentVisaGateService = Substitute.For<IPostPaymentVisaGateService>();
+    private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
+    private readonly IPricingPolicyRepository _pricingPolicyRepo = Substitute.For<IPricingPolicyRepository>();
+    private readonly ITaxConfigRepository _taxConfigRepo = Substitute.For<ITaxConfigRepository>();
 
     public PaymentServiceTests()
     {
@@ -35,6 +39,18 @@ public sealed class PaymentServiceTests
             100, 1000m, "manager");
         _tourInstanceRepo.FindById(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(dummyInstance);
         _tourInstanceRepo.FindByIdWithTourForPaymentAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(dummyInstance);
+
+        var dummyBreakdown = new BookingPriceBreakdown(
+            AdultUnitPrice: 1000m, ChildUnitPrice: 500m, InfantUnitPrice: 0m,
+            AdultSubtotal: 1000m, ChildSubtotal: 0m, InfantSubtotal: 0m,
+            Subtotal: 1000m, TaxRate: 0m, TaxAmount: 0m,
+            VisaServiceFeeTotal: 0m, TotalAmount: 100000m, PaidAmount: 0m, RemainingBalance: 100000m);
+        _priceCalculator.Calculate(
+            Arg.Any<BookingEntity>(),
+            Arg.Any<TourInstanceEntity>(),
+            Arg.Any<IReadOnlyList<PricingPolicyTier>>(),
+            Arg.Any<TaxConfigEntity?>(),
+            Arg.Any<decimal>()).Returns(dummyBreakdown);
     }
 
     private PaymentService CreateService() 
@@ -60,7 +76,10 @@ public sealed class PaymentServiceTests
             _configuration,
             _unitOfWork,
             serviceProvider,
-            _postPaymentVisaGateService);
+            _postPaymentVisaGateService,
+            _priceCalculator,
+            _pricingPolicyRepo,
+            _taxConfigRepo);
     }
 
     private static PaymentTransactionEntity CreatePendingTransaction(

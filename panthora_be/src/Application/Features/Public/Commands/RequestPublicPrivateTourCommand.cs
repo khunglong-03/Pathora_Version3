@@ -1,4 +1,5 @@
 using Application.Common.Constant;
+using Application.Common.Pricing;
 using Application.Contracts.Booking;
 using Application.Features.TourInstance.Commands;
 using Application.Services;
@@ -114,6 +115,7 @@ public sealed class RequestPublicPrivateTourCommandHandler(
     IPricingPolicyRepository pricingPolicyRepository,
     IDepositPolicyRepository depositPolicyRepository,
     IUserRepository userRepository,
+    IBookingPriceCalculator priceCalculator,
     IUnitOfWork unitOfWork,
     ITourInstanceNotificationBroadcaster notificationBroadcaster)
     : ICommandHandler<RequestPublicPrivateTourCommand, ErrorOr<CheckoutPriceResponse>>
@@ -189,18 +191,17 @@ public sealed class RequestPublicPrivateTourCommandHandler(
         var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(tourInstance.InstanceType)
             ?? await pricingPolicyRepository.GetDefaultPolicy();
 
-        var adultUnitPrice = ApplyPricingTier(tourInstance.BasePrice, pricingPolicy?.Tiers, 18);
-        var childUnitPrice = ApplyPricingTier(tourInstance.BasePrice, pricingPolicy?.Tiers, 5);
-        var infantUnitPrice = ApplyPricingTier(tourInstance.BasePrice, pricingPolicy?.Tiers, 1);
+        var breakdown = priceCalculator.Calculate(
+            numberAdult: request.NumberAdult,
+            numberChild: request.NumberChild,
+            numberInfant: request.NumberInfant,
+            basePrice: tourInstance.BasePrice,
+            tiers: pricingPolicy?.Tiers,
+            taxConfig: activeTaxConfig,
+            visaServiceFeeTotal: 0m,
+            paidAmount: 0m);
 
-        var adultSubtotal = adultUnitPrice * request.NumberAdult;
-        var childSubtotal = childUnitPrice * request.NumberChild;
-        var infantSubtotal = infantUnitPrice * request.NumberInfant;
-        var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-
-        var taxRate = activeTaxConfig?.TaxRate ?? 0m;
-        var taxAmount = Math.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
-        var totalPrice = subtotal + taxAmount;
+        var totalPrice = breakdown.TotalAmount;
 
         Guid? currentUserId = null;
         if (!string.IsNullOrWhiteSpace(user.Id) && Guid.TryParse(user.Id, out var parsedId))
@@ -289,36 +290,18 @@ public sealed class RequestPublicPrivateTourCommandHandler(
             NumberAdult: request.NumberAdult,
             NumberChild: request.NumberChild,
             NumberInfant: request.NumberInfant,
-            BasePrice: adultUnitPrice,
-            ChildPrice: childUnitPrice,
-            InfantPrice: infantUnitPrice,
-            AdultSubtotal: adultSubtotal,
-            ChildSubtotal: childSubtotal,
-            InfantSubtotal: infantSubtotal,
-            Subtotal: subtotal,
-            TaxRate: taxRate,
-            TaxAmount: taxAmount,
+            BasePrice: breakdown.AdultUnitPrice,
+            ChildPrice: breakdown.ChildUnitPrice,
+            InfantPrice: breakdown.InfantUnitPrice,
+            AdultSubtotal: breakdown.AdultSubtotal,
+            ChildSubtotal: breakdown.ChildSubtotal,
+            InfantSubtotal: breakdown.InfantSubtotal,
+            Subtotal: breakdown.Subtotal,
+            TaxRate: breakdown.TaxRate,
+            TaxAmount: breakdown.TaxAmount,
             TotalPrice: totalPrice,
             DepositPercentage: depositPercentage,
             DepositAmount: depositAmount,
             RemainingBalance: remainingBalance);
-    }
-
-    private static decimal ApplyPricingTier(decimal basePrice, List<PricingPolicyTier>? tiers, int age)
-    {
-        if (tiers == null || tiers.Count == 0)
-        {
-            return basePrice;
-        }
-
-        foreach (var tier in tiers)
-        {
-            if (age >= tier.AgeFrom && (!tier.AgeTo.HasValue || age <= tier.AgeTo.Value))
-            {
-                return basePrice * tier.PricePercentage / 100m;
-            }
-        }
-
-        return basePrice;
     }
 }

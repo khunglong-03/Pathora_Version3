@@ -11,6 +11,7 @@ public static class PublicEndpoint
     public const string My = "my";
     public const string MyRecentBookings = "my-recent-bookings";
     public const string Destinations = "destinations";
+    public const string Continents = "continents";
     public const string Attractions = "attractions";
     public const string Stats = "stats";
     public const string Reviews = "reviews";

@@ -1,6 +1,7 @@
 using global::Application.Common;
 using global::Application.Common.Constant;
 using global::Application.Common.Interfaces;
+using global::Application.Common.Pricing;
 using global::Application.Features.BookingManagement;
 using global::Application.Features.TourInstance.Commands;
 using global::Application.Services;
@@ -97,11 +98,14 @@ public sealed class ManagerCancelCascadeIntegrationTests
     {
         // Arrange
         var bookingRepository = Substitute.For<IBookingRepository>();
+        var pricingPolicyRepository = Substitute.For<IPricingPolicyRepository>();
+        var taxConfigRepository = Substitute.For<ITaxConfigRepository>();
+        var priceCalculator = Substitute.For<IBookingPriceCalculator>();
         bookingRepository
             .GetAllPagedAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<RefundStatus?>(), Arg.Any<CancellationToken>())
             .Returns((new List<BookingEntity>(), 0));
 
-        var handler = new global::Application.Features.BookingManagement.Queries.GetAllBookingsQueryHandler(bookingRepository);
+        var handler = new global::Application.Features.BookingManagement.Queries.GetAllBookingsQueryHandler(bookingRepository, pricingPolicyRepository, taxConfigRepository, priceCalculator);
         var query = new global::Application.Features.BookingManagement.Queries.GetAllBookingsQuery(
             Page: 1, PageSize: 20, ManagerId: null, RefundStatus: RefundStatus.Pending);
 

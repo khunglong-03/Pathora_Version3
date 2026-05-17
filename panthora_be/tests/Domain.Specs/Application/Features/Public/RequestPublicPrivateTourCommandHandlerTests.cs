@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using global::Application.Common.Pricing;
 using global::Application.Features.Public.Commands;
 using global::Application.Features.TourInstance.Commands;
 using global::Application.Services;
@@ -25,6 +26,7 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ITourInstanceNotificationBroadcaster _notificationBroadcaster = Substitute.For<ITourInstanceNotificationBroadcaster>();
+    private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
 
     private RequestPublicPrivateTourCommandHandler CreateHandler() => new(
         _tourInstanceService,
@@ -36,6 +38,7 @@ public sealed class RequestPublicPrivateTourCommandHandlerTests
         _pricingPolicyRepository,
         _depositPolicyRepository,
         _userRepository,
+        _priceCalculator,
         _unitOfWork,
         _notificationBroadcaster);
 

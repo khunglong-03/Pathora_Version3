@@ -1,5 +1,6 @@
 using System.Reflection;
 using Application.Common.Behaviors;
+using Application.Common.Pricing;
 using Application.Services;
 using Application.Services.PrivateTour;
 using BuildingBlocks.Behaviors;
@@ -57,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IPrivateTourPolicyMetrics, LoggingPrivateTourPolicyMetrics>();
         services.AddScoped<PrivateTourTopUpDeadlineProcessor>();
+        services.AddScoped<IBookingPriceCalculator, BookingPriceCalculator>();
 
         return services;
     }

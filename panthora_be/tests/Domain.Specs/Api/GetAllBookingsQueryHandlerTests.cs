@@ -1,3 +1,4 @@
+using global::Application.Common.Pricing;
 using global::Application.Contracts.Booking;
 using global::Application.Features.BookingManagement.Queries;
 using global::Domain.Common.Repositories;
@@ -11,12 +12,15 @@ namespace Domain.Specs.Api;
 public sealed class GetAllBookingsQueryHandlerTests
 {
     private readonly IBookingRepository _bookingRepository;
+    private readonly IPricingPolicyRepository _pricingPolicyRepository = Substitute.For<IPricingPolicyRepository>();
+    private readonly ITaxConfigRepository _taxConfigRepository = Substitute.For<ITaxConfigRepository>();
+    private readonly IBookingPriceCalculator _priceCalculator = Substitute.For<IBookingPriceCalculator>();
     private readonly GetAllBookingsQueryHandler _handler;
 
     public GetAllBookingsQueryHandlerTests()
     {
         _bookingRepository = Substitute.For<IBookingRepository>();
-        _handler = new GetAllBookingsQueryHandler(_bookingRepository);
+        _handler = new GetAllBookingsQueryHandler(_bookingRepository, _pricingPolicyRepository, _taxConfigRepository, _priceCalculator);
     }
 
     [Fact]

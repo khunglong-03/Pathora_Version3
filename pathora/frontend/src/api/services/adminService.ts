@@ -44,7 +44,11 @@ export interface AdminBooking {
   departure?: string;
   amount?: number;
   totalPrice?: number;
+  totalAmount?: number;
   status: string;
+  numberAdult?: number;
+  numberChild?: number;
+  numberInfant?: number;
 }
 
 export interface GetAllUsersParams {

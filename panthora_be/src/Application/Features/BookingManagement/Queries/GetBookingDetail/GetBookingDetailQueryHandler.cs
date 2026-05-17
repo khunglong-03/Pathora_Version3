@@ -1,4 +1,5 @@
 using Application.Common.Constant;
+using Application.Common.Pricing;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
 using Domain.Common.Repositories;
@@ -14,6 +15,7 @@ public class GetBookingDetailQueryHandler(
     IBookingCancellationRequestRepository cancellationRequestRepository,
     IPricingPolicyRepository pricingPolicyRepository,
     ITaxConfigRepository taxConfigRepository,
+    IBookingPriceCalculator priceCalculator,
     Application.Common.Interfaces.ICurrentUser currentUser) : IQueryHandler<GetBookingDetailQuery, ErrorOr<BookingDetailDto>>
 {
     public async Task<ErrorOr<BookingDetailDto>> Handle(GetBookingDetailQuery request, CancellationToken cancellationToken)
@@ -57,25 +59,27 @@ public class GetBookingDetailQueryHandler(
         var pricingPolicy = await pricingPolicyRepository.GetActivePolicyByTourType(instanceType, cancellationToken)
             ?? await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
 
-        var adultPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 18);
-        var childPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 5);
-        var infantPrice = ApplyPricingTier(basePrice, pricingPolicy?.Tiers, 1);
-
-        var adultSubtotal = adultPrice * booking.NumberAdult;
-        var childSubtotal = childPrice * booking.NumberChild;
-        var infantSubtotal = infantPrice * booking.NumberInfant;
-        var subtotal = adultSubtotal + childSubtotal + infantSubtotal;
-
         var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive, cancellationToken: cancellationToken);
         var activeTaxConfig = taxConfigs.FirstOrDefault();
-        var taxRate = activeTaxConfig?.TaxRate ?? 0m;
-        var taxAmount = decimal.Round(subtotal * taxRate / 100m, 0, MidpointRounding.ToEven);
 
-        // Total = subtotal (adult + child + infant per tier) + tax + visa fee.
-        // booking.TotalPrice is stale (= basePrice × numberAdult) and is no longer
-        // authoritative for display; the computed totalAmount drives the UI.
-        var totalAmount = subtotal + taxAmount + booking.VisaServiceFeeTotal;
-        var remainingBalance = Math.Max(0m, totalAmount - paidAmount);
+        var breakdown = priceCalculator.Calculate(
+            booking,
+            booking.TourInstance!,
+            pricingPolicy?.Tiers,
+            activeTaxConfig,
+            paidAmount);
+
+        var adultPrice = breakdown.AdultUnitPrice;
+        var childPrice = breakdown.ChildUnitPrice;
+        var infantPrice = breakdown.InfantUnitPrice;
+        var adultSubtotal = breakdown.AdultSubtotal;
+        var childSubtotal = breakdown.ChildSubtotal;
+        var infantSubtotal = breakdown.InfantSubtotal;
+        var subtotal = breakdown.Subtotal;
+        var taxRate = breakdown.TaxRate;
+        var taxAmount = breakdown.TaxAmount;
+        var totalAmount = breakdown.TotalAmount;
+        var remainingBalance = breakdown.RemainingBalance;
 
         string paymentStatusStr = booking.Status switch
         {
@@ -156,19 +160,5 @@ public class GetBookingDetailQueryHandler(
         }
 
         return dto;
-    }
-
-    private static decimal ApplyPricingTier(decimal basePrice, List<PricingPolicyTier>? tiers, int age)
-    {
-        if (tiers == null || tiers.Count == 0)
-            return basePrice;
-
-        foreach (var tier in tiers)
-        {
-            if (age >= tier.AgeFrom && (!tier.AgeTo.HasValue || age <= tier.AgeTo.Value))
-                return basePrice * tier.PricePercentage / 100m;
-        }
-
-        return basePrice;
     }
 }

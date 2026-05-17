@@ -28,13 +28,25 @@ public sealed class SepayWebhookController(
     [HttpPost(PaymentEndpoint.SepayWebhook)]
     public async Task<IActionResult> ReceiveWebhook([FromBody] SepayWebhookRequest request, CancellationToken cancellationToken)
     {
+        var callerIp = ResolveCallerIp()?.ToString() ?? "unknown";
+        var headerKeys = string.Join(",", Request.Headers.Keys);
+        _logger.LogInformation(
+            "SePay webhook received from IP {CallerIp}. Headers: [{HeaderKeys}]. Body: TransactionId={TransactionId}, TransferType={TransferType}",
+            callerIp, headerKeys, request.Id, request.TransferType);
+
         if (!IsAuthorizationValid())
         {
+            var token = GetConfiguredWebhookToken();
+            var maskedToken = token.Length > 4 ? $"****{token[^4..]}" : "****";
+            _logger.LogWarning(
+                "SePay webhook rejected: invalid authorization from IP {CallerIp}. Configured token ends with {MaskedToken}",
+                callerIp, maskedToken);
             return Unauthorized(new { success = false, message = "Invalid webhook authorization." });
         }
 
         if (!IsCallerIpAllowed())
         {
+            _logger.LogWarning("SePay webhook rejected: caller IP {CallerIp} not in allowlist.", callerIp);
             return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Webhook caller IP is not allowed." });
         }
 

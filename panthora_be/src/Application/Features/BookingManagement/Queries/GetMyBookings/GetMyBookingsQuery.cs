@@ -22,7 +22,15 @@ public sealed record MyBookingDto(
     int Adults,
     int Children,
     int Infants,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    // Breakdown fields (task 3.1)
+    decimal AdultUnitPrice = 0m,
+    decimal ChildUnitPrice = 0m,
+    decimal InfantUnitPrice = 0m,
+    decimal Subtotal = 0m,
+    decimal TaxAmount = 0m,
+    decimal TotalAmount = 0m,
+    decimal RemainingBalance = 0m
 );
 
 public sealed record MyBookingListResult(

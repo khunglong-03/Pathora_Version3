@@ -30,9 +30,14 @@ export function useBookings(statusFilter: FilterKey, page: number = 1, pageSize:
         : "N/A",
       departure: b.startDate ? format(new Date(b.startDate), "MMM d, yyyy") : "TBD",
       guests: (b.adults || 0) + (b.children || 0) + (b.infants || 0),
-      totalAmount: b.totalPrice || 0,
-      remainingAmount: (b.totalPrice || 0) - (b.paidAmount || 0) > 0 ? (b.totalPrice || 0) - (b.paidAmount || 0) : undefined,
+      totalAmount: b.totalAmount || b.totalPrice || 0,
+      remainingAmount: ((b.totalAmount ?? b.totalPrice ?? 0) - (b.paidAmount || 0)) > 0
+        ? (b.totalAmount ?? b.totalPrice ?? 0) - (b.paidAmount || 0)
+        : undefined,
       image: b.thumbnailUrl || "/assets/images/tours/bali.png", // fallback image
+      adults: b.adults || 0,
+      children: b.children || 0,
+      infants: b.infants || 0,
     }));
   }, [data]);
 

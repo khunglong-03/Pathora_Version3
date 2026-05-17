@@ -20,6 +20,13 @@ public interface IPaymentNotificationService
     Task BroadcastPaymentUpdateAsync(
         PaymentStatusSnapshot snapshot,
         CancellationToken ct = default);
+    Task BroadcastBookingStatusChangedAsync(
+        Guid bookingId,
+        string newStatus,
+        decimal paidAmount,
+        decimal remainingBalance,
+        Guid? userId,
+        CancellationToken ct = default);
 }
 
 /// <summary>
@@ -40,11 +47,48 @@ public sealed class PaymentNotificationService(
         await ((IPaymentNotificationBroadcaster)this).BroadcastAsync(snapshot, ct);
     }
 
+    public async Task BroadcastBookingStatusChangedAsync(
+        Guid bookingId,
+        string newStatus,
+        decimal paidAmount,
+        decimal remainingBalance,
+        Guid? userId,
+        CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            bookingId,
+            newStatus,
+            paidAmount,
+            remainingBalance
+        };
+
+        if (userId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group($"user:{userId.Value.ToString()}")
+                .SendAsync("BookingStatusChanged", payload, ct);
+            _logger.LogDebug(
+                "BookingStatusChanged broadcast to user {UserId} for booking {BookingId}",
+                userId, bookingId);
+        }
+
+        await _hubContext.Clients
+            .Group("admins")
+            .SendAsync("BookingStatusChanged", payload, ct);
+        _logger.LogDebug(
+            "BookingStatusChanged broadcast to admins for booking {BookingId}",
+            bookingId);
+    }
+
     /// <inheritdoc />
     async Task IPaymentNotificationBroadcaster.BroadcastAsync(PaymentStatusSnapshot snapshot, CancellationToken ct)
     {
         PaymentUpdateEvent? paymentEvent = null;
         string? userId = null;
+        Guid? bookingId = null;
+        decimal paidAmount = 0m;
+        decimal remainingBalance = 0m;
 
         try
         {
@@ -52,6 +96,17 @@ public sealed class PaymentNotificationService(
             if (booking != null)
             {
                 userId = booking.UserId.ToString();
+                bookingId = booking.Id;
+
+                var completedPaid = booking.PaymentTransactions
+                    .Where(t => t.Status == Domain.Enums.TransactionStatus.Completed)
+                    .Sum(t => t.PaidAmount ?? t.Amount);
+
+                paidAmount = completedPaid;
+
+                // Re-compute remaining balance from booking's stored total (approximate — authoritative value is in detail endpoint)
+                remainingBalance = Math.Max(0m, booking.TotalPrice - completedPaid);
+
                 paymentEvent = new PaymentUpdateEvent(
                     snapshot.TransactionCode,
                     snapshot.NormalizedStatus,
@@ -105,5 +160,26 @@ public sealed class PaymentNotificationService(
         _logger.LogDebug(
             "Payment update broadcast to tx:{TransactionCode}",
             snapshot.TransactionCode);
+
+        // Also emit BookingStatusChanged for clients listening to that event (task 4.4)
+        if (bookingId.HasValue && !string.IsNullOrEmpty(userId))
+        {
+            var statusPayload = new
+            {
+                bookingId = bookingId.Value,
+                newStatus = snapshot.NormalizedStatus,
+                paidAmount,
+                remainingBalance
+            };
+            await _hubContext.Clients
+                .Group($"user:{userId}")
+                .SendAsync("BookingStatusChanged", statusPayload, ct);
+            await _hubContext.Clients
+                .Group("admins")
+                .SendAsync("BookingStatusChanged", statusPayload, ct);
+            _logger.LogDebug(
+                "BookingStatusChanged broadcast for booking {BookingId} status {NewStatus}",
+                bookingId.Value, snapshot.NormalizedStatus);
+        }
     }
 }

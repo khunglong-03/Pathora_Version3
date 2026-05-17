@@ -10,7 +10,7 @@ public sealed class SePayOptions
     public string ApiKey { get; init; } = "";
     public string WebhookSecret { get; init; } = "";
     public string AllowedIps { get; init; } = "";
-    public string WebhookPath { get; init; } = "/api/payment/sepay/webhook";
+    public string WebhookPath { get; init; } = "/api/payment/sepay-webhook";
     public string CallbackBaseUrl { get; init; } = "";
     public string CallbackUrl { get; init; } = "";
     public string NgrokAuthtoken { get; init; } = "";
@@ -47,7 +47,7 @@ public sealed class SePayOptions
         }
 
         var normalizedPath = string.IsNullOrWhiteSpace(WebhookPath)
-            ? "/api/payment/sepay/webhook"
+            ? "/api/payment/sepay-webhook"
             : WebhookPath.Trim();
 
         return $"{baseUrl.TrimEnd('/')}/{normalizedPath.TrimStart('/')}";

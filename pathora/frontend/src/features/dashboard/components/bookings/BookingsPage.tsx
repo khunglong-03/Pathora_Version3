@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/ui";
 import { useBookingsData } from "./BookingsPageHooks";
+import { useBookingStatusListener } from "@/hooks/useBookingStatusListener";
 import { buildStatCards } from "./ui/BookingsStatCards";
 import { BookingsTable } from "./ui/BookingsTable";
 import { BookingsErrorState, BookingsEmptyState, BookingsLoadingState } from "./ui/BookingsStates";
@@ -13,6 +14,8 @@ import { CSS } from "./BookingsPageData";
 
 export default function BookingsPage() {
   const { t } = useTranslation();
+
+  useBookingStatusListener();
 
   const {
     isLoading,

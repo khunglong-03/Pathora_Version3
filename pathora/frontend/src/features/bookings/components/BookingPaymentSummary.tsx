@@ -166,7 +166,9 @@ export function BookingPaymentSummary({
         </div>
 
         <div className="h-stack items-center justify-between pt-4 px-2">
-          <span className="text-lg font-bold tracking-tight text-slate-900">Total Amount</span>
+          <span className="text-lg font-bold tracking-tight text-slate-900" title={booking.taxRate > 0 ? t("landing.bookings.totalIncludesTax", { taxRate: booking.taxRate }) : undefined}>
+            Total Amount
+          </span>
           <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
             {formatCurrency(booking.totalAmount)}
           </span>
@@ -241,25 +243,42 @@ export function BookingPaymentSummary({
         <AnimatePresence>
           {showPayRemaining && (
             <motion.div key="btn-pay" whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-              <button
-                type="button"
-                onClick={handlePayRemaining}
-                disabled={creatingTransaction || booking.status === "pending_cancellation"}
-                className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
-                  creatingTransaction || booking.status === "pending_cancellation"
-                    ? "bg-slate-400 cursor-not-allowed"
-                    : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
-                }`}
-                title={booking.status === "pending_cancellation" ? t("landing.bookings.paymentDisabledPendingCancellation") : ""}
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <CurrencyCircleDollar weight="bold" className="size-5 relative z-10" />
-                <span className="relative z-10">
-                  {creatingTransaction 
-                    ? "Generating QR…" 
-                    : booking.paymentStatus === "unpaid" ? "Pay Now" : "Pay Remaining Balance"}
-                </span>
-              </button>
+              {(() => {
+                const payableStatuses = ["PendingCustomerApproval", "Confirmed"];
+                const isPrivateGated =
+                  booking.bookingType === "PrivateCustomTourRequest" &&
+                  !payableStatuses.includes(booking.tourStatus ?? "");
+                const isDisabled = creatingTransaction || booking.status === "pending_cancellation" || isPrivateGated;
+                return (
+                  <button
+                    type="button"
+                    onClick={handlePayRemaining}
+                    disabled={isDisabled}
+                    className={`group relative h-stack items-center justify-center gap-2 w-full py-5 rounded-[1.5rem] text-white text-sm font-bold shadow-lg shadow-emerald-500/20 overflow-hidden transition-colors ${
+                      isDisabled
+                        ? "bg-slate-400 cursor-not-allowed"
+                        : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
+                    }`}
+                    title={
+                      booking.status === "pending_cancellation"
+                        ? t("landing.bookings.paymentDisabledPendingCancellation")
+                        : isPrivateGated
+                          ? t("landing.checkout.privateGateMessage")
+                          : ""
+                    }
+                  >
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                    <CurrencyCircleDollar weight="bold" className="size-5 relative z-10" />
+                    <span className="relative z-10">
+                      {creatingTransaction 
+                        ? "Generating QR…" 
+                        : isPrivateGated
+                          ? t("landing.checkout.privateGateBadge")
+                          : booking.paymentStatus === "unpaid" ? "Pay Now" : "Pay Remaining Balance"}
+                    </span>
+                  </button>
+                );
+              })()}
             </motion.div>
           )}
 

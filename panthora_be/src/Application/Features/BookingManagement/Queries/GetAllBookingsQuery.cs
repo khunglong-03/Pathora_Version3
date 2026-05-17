@@ -1,3 +1,4 @@
+using Application.Common.Pricing;
 using Application.Contracts.Booking;
 using BuildingBlocks.CORS;
 using Contracts.Interfaces;
@@ -17,7 +18,10 @@ public sealed record GetAllBookingsQuery(
 
 
 public sealed class GetAllBookingsQueryHandler(
-    IBookingRepository bookingRepository)
+    IBookingRepository bookingRepository,
+    IPricingPolicyRepository pricingPolicyRepository,
+    ITaxConfigRepository taxConfigRepository,
+    IBookingPriceCalculator priceCalculator)
     : IQueryHandler<GetAllBookingsQuery, ErrorOr<AdminBookingListResult>>
 {
     public async Task<ErrorOr<AdminBookingListResult>> Handle(
@@ -31,24 +35,38 @@ public sealed class GetAllBookingsQueryHandler(
             ? await bookingRepository.GetPagedForManagerAsync(request.ManagerId.Value, page, pageSize, request.RefundStatus, cancellationToken)
             : await bookingRepository.GetAllPagedAsync(page, pageSize, request.RefundStatus, cancellationToken);
 
-        var response = items.Select(b => new AdminBookingListResponse(
-            b.Id,
-            b.CustomerName,
-            b.TourInstance.TourName,
-            b.TourInstance.StartDate,
-            b.TotalPrice,
-            b.Status.ToString(),
-            b.NumberAdult,
-            b.NumberChild,
-            b.NumberInfant,
-            b.RefundStatus.ToString(),
-            b.RefundOutstandingAmount,
-            b.RefundContactedAt,
-            b.RefundCompletedAt,
-            b.CustomerPhone,
-            b.CustomerEmail,
-            b.CancelledAt
-        )).ToList();
+        var pricingPolicy = await pricingPolicyRepository.GetDefaultPolicy(cancellationToken);
+        var taxConfigs = await taxConfigRepository.GetListAsync(t => t.IsActive, cancellationToken: cancellationToken);
+        var activeTaxConfig = taxConfigs.FirstOrDefault();
+
+        var response = items.Select(b =>
+        {
+            var paidAmount = b.PaymentTransactions?.Where(t => t.Status == TransactionStatus.Completed).Sum(t => t.PaidAmount ?? t.Amount) ?? 0m;
+            var breakdown = priceCalculator.Calculate(b, b.TourInstance, pricingPolicy?.Tiers, activeTaxConfig, paidAmount);
+
+            return new AdminBookingListResponse(
+                b.Id,
+                b.CustomerName,
+                b.TourInstance.TourName,
+                b.TourInstance.StartDate,
+                breakdown.TotalAmount,
+                b.Status.ToString(),
+                b.NumberAdult,
+                b.NumberChild,
+                b.NumberInfant,
+                b.RefundStatus.ToString(),
+                b.RefundOutstandingAmount,
+                b.RefundContactedAt,
+                b.RefundCompletedAt,
+                b.CustomerPhone,
+                b.CustomerEmail,
+                b.CancelledAt,
+                Subtotal: breakdown.Subtotal,
+                TaxAmount: breakdown.TaxAmount,
+                TotalAmount: breakdown.TotalAmount,
+                RemainingBalance: breakdown.RemainingBalance
+            );
+        }).ToList();
 
         return new AdminBookingListResult(response, totalCount);
     }

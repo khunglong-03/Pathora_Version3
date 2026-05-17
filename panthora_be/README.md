@@ -49,6 +49,14 @@ dotnet test tests/Domain.Specs/Domain.Specs.csproj
 
 Regression scope cho change **private-custom-tour** (thanh toán 2 pha, webhook, ví): có thể lọc test theo namespace/feature liên quan thay vì chạy toàn bộ `Domain.Specs` nếu môi trường có test legacy đỏ — xem `docs/private-custom-tour-payment-flow.md`.
 
+## SePay Webhook
+
+- **Endpoint**: `POST /api/payment/sepay-webhook` (served by `SepayWebhookController` in `PublicApi`).
+- **Purpose**: Receives payment completion notifications from SePay gateway. Updates booking payment status and broadcasts `BookingStatusChanged` via SignalR.
+- **Idempotency**: Safe to receive duplicate callbacks — checks transaction state before processing.
+- **Fallback**: If webhook delivery fails (5xx), the outbox sweep worker retries periodically with `source = "sepay-sweep"`.
+- **Deploy note**: After deploying, update the webhook URL in the SePay dashboard to `/api/payment/sepay-webhook`. No legacy alias is supported.
+
 ### Run API locally
 
 We use Nginx as a reverse proxy for both `Api` (authenticated) and `PublicApi` (anonymous). The recommended way to run them locally is via Docker Compose:

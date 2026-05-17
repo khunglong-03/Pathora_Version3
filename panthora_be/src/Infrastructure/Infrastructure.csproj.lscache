@@ -141,6 +141,7 @@ Data/
   SeedDataPreflightValidator.cs
   SeedFileManifest.cs
   SiteContentSeedData.cs
+  TaxConfigContextSeed.cs
   UserRoleSeed.cs
 DependencyInjection.cs
 Exceptions/InfrastructureException.cs

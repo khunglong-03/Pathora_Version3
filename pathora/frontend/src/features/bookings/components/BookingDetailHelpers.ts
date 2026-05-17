@@ -18,6 +18,8 @@ export const getStatusLabel = (t: (key: string) => string, s: BookingStatus) => 
     cancelled: t("landing.bookingDetail.statusCancelled"),
     rejected: t("landing.bookingDetail.statusRejected"),
     pending_cancellation: t("landing.bookingDetail.statusPendingCancellation"),
+    deposited: t("landing.bookingDetail.statusDeposited"),
+    pending_adjustment: t("landing.bookingDetail.statusPendingAdjustment"),
   };
   return map[s];
 };
@@ -49,7 +51,17 @@ export const getTierLabel = (t: (key: string) => string, tier: TourTier) => {
   return map[tier];
 };
 
-export const getBookingDerivedState = (booking: BookingDetail) => {
+interface BookingDerivedInput {
+  adults: number;
+  children: number;
+  infants?: number;
+  paymentStatus: string;
+  status: string;
+  isVisaRequired?: boolean;
+  tourStatus?: string;
+}
+
+export const getBookingDerivedState = (booking: BookingDerivedInput) => {
   const isCustomTourPending = [
     "Draft",
     "PendingManagerReview",

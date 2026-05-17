@@ -626,6 +626,16 @@ public class TourRepository(AppDbContext context) : ITourRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Continent>> GetContinentsWithTours(CancellationToken cancellationToken = default)
+    {
+        return await _context.Tours
+            .Where(t => t.Status == TourStatus.Active && !t.IsDeleted && t.Continent.HasValue)
+            .Select(t => t.Continent!.Value)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<TourPlanLocationEntity?> FindLocationByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.TourPlanLocations

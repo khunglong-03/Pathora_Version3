@@ -25,6 +25,7 @@ export interface PublicHomeEndpoints {
   }) => string;
   SEARCH_TOURS: (params?: SearchToursParams) => string;
   GET_DESTINATIONS: string;
+  GET_CONTINENTS: string;
   GET_TOUR_DETAIL: (id: string) => string;
 }
 
@@ -93,5 +94,6 @@ export const PUBLIC_HOME: PublicHomeEndpoints = {
     return `/api/public/tours/search?${url.toString()}`;
   },
   GET_DESTINATIONS: "/api/public/destinations",
+  GET_CONTINENTS: "/api/public/continents",
   GET_TOUR_DETAIL: (id: string): string => `/api/public/tours/${id}`,
 };
