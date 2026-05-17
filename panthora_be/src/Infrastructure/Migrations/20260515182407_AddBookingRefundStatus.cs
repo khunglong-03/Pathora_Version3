@@ -41,9 +41,10 @@ namespace Infrastructure.Migrations
                 table: "Bookings",
                 column: "RefundStatus");
 
-            // Backfill: existing Cancelled bookings → NotApplicable (already handled manually)
+            // Backfill: existing Cancelled bookings → NotApplicable.
+            // Bookings.Status is stored as varchar (enum.ToString()), not int — so compare by name.
             migrationBuilder.Sql(
-                @"UPDATE ""Bookings"" SET ""RefundStatus"" = 4 WHERE ""Status"" = 5;");
+                @"UPDATE ""Bookings"" SET ""RefundStatus"" = 4 WHERE ""Status"" = 'Cancelled';");
         }
 
         /// <inheritdoc />
