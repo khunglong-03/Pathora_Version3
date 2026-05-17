@@ -164,7 +164,11 @@ public class PaymentService : IPaymentService
         var managerBankCode = _vietQrBankBin;
         var managerAccountName = _vietQrAccountName;
         var beneficiaryBank = string.IsNullOrWhiteSpace(_sepayBankCode) ? _vietQrBankBin : _sepayBankCode;
-
+        amount = booking.TotalPrice;
+        if (type == TransactionType.Deposit)
+        {
+            amount = booking.TotalPrice * 0.3m; // 30% deposit
+        }
         // VND is a zero-decimal currency — ensure whole-number amount for QR, DB, and webhook matching
         var roundedAmount = Math.Round(amount, 0, MidpointRounding.ToEven);
 
