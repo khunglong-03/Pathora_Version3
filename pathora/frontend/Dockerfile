@@ -54,7 +54,7 @@ USER nextjs
 EXPOSE 3003
 
 # BusyBox wget (built-in on alpine) — no apk add needed
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3003 || exit 1
 
 CMD ["node", "server.js"]
