@@ -156,7 +156,13 @@ export const bookingService = {
     const response = await api.get<ServiceResponse<BookingDetailResponse>>(
       API_ENDPOINTS.PUBLIC_BOOKING.GET_DETAIL(bookingId),
     );
-    return extractResult<BookingDetailResponse>(response.data);
+    const raw = extractResult<BookingDetailResponse & { bookingId?: string }>(
+      response.data,
+    );
+    if (!raw) return null;
+
+    const resolvedId = String(raw.id ?? raw.bookingId ?? bookingId);
+    return { ...raw, id: resolvedId, bookingId: resolvedId };
   },
 
   getVisaRequirements: async (bookingId: string) => {

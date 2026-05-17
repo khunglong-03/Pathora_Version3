@@ -128,11 +128,13 @@ export function BookingDetailPage() {
   const actualStatus = booking.tourStatus === "PendingCustomerApproval" 
     ? "pending_approval" 
     : mappedStatusStr;
+  const resolvedBookingId = booking.id ?? booking.bookingId ?? bookingId;
+
   // Bridge BookingDetailResponse → BookingDetail for existing child components
   const mappedBooking: BookingDetail = {
-    id: booking.bookingId,
+    id: resolvedBookingId,
     tourName: booking.tourName ?? booking.description ?? "Unknown Tour",
-    reference: booking.reference ?? `PATH-${booking.bookingId.slice(0, 8)}`,
+    reference: booking.reference ?? `PATH-${resolvedBookingId.slice(0, 8)}`,
     tier: "standard",
     status: actualStatus as any,
     paymentStatus: (booking.paymentStatus as any) ?? "unpaid",

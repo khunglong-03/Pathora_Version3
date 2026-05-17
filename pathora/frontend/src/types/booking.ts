@@ -216,9 +216,11 @@ export interface TourDayActivityStatusDto {
 }
 
 // Main booking detail response
-// Schema matches BE BookingDetailDto (customer endpoint GET /api/public/bookings/{id})
+// Schema matches BE BookingDetailDto (customer GET /api/customer/bookings/{id}) — primary key is `id`.
 export interface BookingDetailResponse {
-  bookingId: string;
+  id: string;
+  /** Alias of `id` after bookingService normalization (legacy callers). */
+  bookingId?: string;
   tourInstanceId: string;
   customerName: string;
   customerPhone: string;

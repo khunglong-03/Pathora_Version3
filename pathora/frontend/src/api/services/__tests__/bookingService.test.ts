@@ -188,7 +188,7 @@ describe("bookingService", () => {
   });
 
   describe("getBookingDetail", () => {
-    it("calls GET_DETAIL endpoint and returns extracted result with pendingTransactions", async () => {
+    it("calls GET_DETAIL endpoint and normalizes id + bookingId from BE `id` field", async () => {
       const mockResult = {
         id: "bk-1",
         totalPrice: 1000,
@@ -202,8 +202,22 @@ describe("bookingService", () => {
 
       const result = await bookingService.getBookingDetail("bk-1");
 
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual({ ...mockResult, bookingId: "bk-1" });
       expect(api.get).toHaveBeenCalledWith(API_ENDPOINTS.PUBLIC_BOOKING.GET_DETAIL("bk-1"));
+    });
+
+    it("falls back to path bookingId when response omits id fields", async () => {
+      const mockResult = {
+        totalPrice: 1000,
+      };
+      vi.mocked(api.get).mockResolvedValue({
+        data: { result: mockResult },
+      } as never);
+
+      const result = await bookingService.getBookingDetail("path-fallback-id");
+
+      expect(result?.id).toBe("path-fallback-id");
+      expect(result?.bookingId).toBe("path-fallback-id");
     });
   });
 
