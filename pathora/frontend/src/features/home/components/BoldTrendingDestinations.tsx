@@ -41,22 +41,17 @@ export const BoldTrendingDestinations = () => {
       .then(data => {
         if (data && data.length > 0) {
           setContinents(data);
-          setActiveContinent(data[0]);
-        } else {
-          setIsLoading(false);
         }
       })
-      .catch(() => {
-        setIsLoading(false);
-      });
+      .catch(() => {});
   }, []);
 
-  const fetchToursByContinent = React.useCallback(async (continent: number) => {
+  const fetchTours = React.useCallback(async (continent: number | null) => {
     try {
       setIsLoading(true);
       setError(null);
       const data = await homeService.searchTours({
-        continent: continent,
+        continent: continent ?? undefined,
         pageSize: 6,
         language: i18n.resolvedLanguage ?? i18n.language
       });
@@ -70,10 +65,8 @@ export const BoldTrendingDestinations = () => {
   }, [i18n.language, i18n.resolvedLanguage, t]);
 
   React.useEffect(() => {
-    if (activeContinent !== null) {
-      fetchToursByContinent(activeContinent);
-    }
-  }, [activeContinent, fetchToursByContinent]);
+    fetchTours(activeContinent);
+  }, [activeContinent, fetchTours]);
 
   const getContinentLabel = (continent: number): string => {
     const key = continentKeys[continent];
@@ -106,6 +99,18 @@ export const BoldTrendingDestinations = () => {
 
         {/* Tabs */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 scrollbar-hide">
+          <button
+            key="all"
+            onClick={() => setActiveContinent(null)}
+            className={cn(
+              "px-6 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all",
+              activeContinent === null
+                ? "bg-stone-900 text-white shadow-md"
+                : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-100"
+            )}
+          >
+            {t("landing.continents.all", "All")}
+          </button>
           {continents.map((continent) => (
             <button
               key={continent}

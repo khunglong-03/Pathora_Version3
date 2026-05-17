@@ -12,6 +12,7 @@ interface StatDisplayItem {
   labelKey: string;
   isDecimal?: boolean;
   isLoading?: boolean;
+  placeholder?: string;
 }
 
 function StatItem({
@@ -42,7 +43,7 @@ function StatItem({
       <span
         className={cn("text-4xl md:text-5xl font-black text-stone-900 mb-2 tracking-tighter")}
       >
-        {stat.isDecimal ? stat.value + stat.suffix : countValue}
+        {stat.placeholder ?? (stat.isDecimal ? stat.value + stat.suffix : countValue)}
       </span>
       <span className={cn("text-[11px] font-bold text-stone-500 uppercase tracking-[0.2em]")}>
         {t(stat.labelKey)}
@@ -77,10 +78,34 @@ export const BoldStatsStrip = () => {
       .getHomeStats()
       .then((data) => {
         if (cancelled) return;
+
+        const tours = data.totalTours ?? 0;
+        const travelers = data.totalTravelers ?? 0;
+        const km = data.totalDistanceKm ?? 0;
+
+        // Distance: convert to "k+" once >= 1000 km, plain number otherwise.
+        const distanceValue = km >= 1000 ? Math.round(km / 1000) : km;
+        const distanceSuffix = km >= 1000 ? "k+" : "";
+
         setStats([
-          { value: data.totalTours, suffix: "+", labelKey: "landing.stats.items.totalTours" },
-          { value: data.totalTravelers, suffix: "+", labelKey: "landing.stats.items.totalTravellers" },
-          { value: data.totalDistanceKm, suffix: "k", labelKey: "landing.stats.items.totalDistanceKm" },
+          {
+            value: tours,
+            suffix: "+",
+            labelKey: "landing.stats.items.totalTours",
+            placeholder: tours === 0 ? "—" : undefined,
+          },
+          {
+            value: travelers,
+            suffix: "+",
+            labelKey: "landing.stats.items.totalTravellers",
+            placeholder: travelers === 0 ? "—" : undefined,
+          },
+          {
+            value: distanceValue,
+            suffix: distanceSuffix,
+            labelKey: "landing.stats.items.totalDistanceKm",
+            placeholder: km === 0 ? "—" : undefined,
+          },
           { value: 24, suffix: "/7", labelKey: "landing.stats.items.support" },
         ]);
         setIsLoading(false);
