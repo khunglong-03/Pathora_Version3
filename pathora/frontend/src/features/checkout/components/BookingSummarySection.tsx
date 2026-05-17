@@ -123,7 +123,7 @@ export function BookingSummarySection({
             )}
             {checkoutPrice.taxAmount > 0 && (
               <div className="flex items-center justify-between text-sm mt-1">
-                <span className="text-slate-500">{t("landing.checkout.tax")} ({checkoutPrice.taxRate}%)</span>
+                <span className="text-slate-500">{t("landing.checkout.tax", { rate: Math.round(checkoutPrice.taxRate * 100) })}</span>
                 <span className="font-medium text-slate-900">{fmtCurrency(checkoutPrice.taxAmount)}</span>
               </div>
             )}
